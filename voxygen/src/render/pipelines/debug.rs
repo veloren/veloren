@@ -36,6 +36,8 @@ pub struct Locals {
     /// by the shader
     pub pos: [f32; 4],
     pub color: [f32; 4],
+    /// quaternion as [x, y, z, w]
+    pub ori: [f32; 4],
 }
 
 pub type BoundLocals = Bound<Consts<Locals>>;

@@ -9,7 +9,16 @@ use vek::*;
 #[derive(Debug)]
 pub enum DebugShape {
     Line([Vec3<f32>; 2]),
-    Cylinder { radius: f32, height: f32 },
+    Cylinder {
+        radius: f32,
+        height: f32,
+    },
+    CapsulePrism {
+        p0: Vec2<f32>,
+        p1: Vec2<f32>,
+        radius: f32,
+        height: f32,
+    },
 }
 
 impl DebugShape {
@@ -22,27 +31,116 @@ impl DebugShape {
         let quad = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>, w: Vec3<f32>| {
             Quad::<DebugVertex>::new(x.into(), y.into(), z.into(), w.into())
         };
+
         match self {
             DebugShape::Line([a, b]) => {
                 let h = Vec3::new(0.0, 1.0, 0.0);
                 mesh.push_quad(quad(*a, a + h, b + h, *b));
             },
             DebugShape::Cylinder { radius, height } => {
-                const SUBDIVISIONS: usize = 16;
+                const SUBDIVISIONS: u8 = 16;
                 for i in 0..SUBDIVISIONS {
-                    let angle = |j: usize| (j as f32 / SUBDIVISIONS as f32) * 2.0 * PI;
-                    let a = Vec3::zero();
-                    let b = Vec3::new(radius * angle(i).cos(), radius * angle(i).sin(), 0.0);
-                    let c = Vec3::new(
-                        radius * angle(i + 1).cos(),
-                        radius * angle(i + 1).sin(),
-                        0.0,
-                    );
+                    // dot on circle edge
+                    let to = |n: u8| {
+                        const FULL: f32 = 2.0 * PI;
+                        let angle = FULL * f32::from(n) / f32::from(SUBDIVISIONS);
+
+                        Vec3::new(radius * angle.cos(), radius * angle.sin(), 0.0)
+                    };
+
+                    let origin = Vec3::zero();
+                    let r0 = to(i);
+                    let r1 = to(i + 1);
+
                     let h = Vec3::new(0.0, 0.0, *height);
-                    mesh.push_tri(tri(c, b, a));
-                    mesh.push_quad(quad(b, c, c + h, b + h));
-                    mesh.push_tri(tri(a + h, b + h, c + h));
+
+                    // Draw bottom sector
+                    mesh.push_tri(tri(r1, r0, origin));
+                    // Draw face
+                    mesh.push_quad(quad(r0, r1, r1 + h, r0 + h));
+                    // Draw top sector
+                    mesh.push_tri(tri(origin + h, r0 + h, r1 + h));
                 }
+            },
+            DebugShape::CapsulePrism {
+                p0,
+                p1,
+                radius,
+                height,
+            } => {
+                // We split circle in two parts
+                const HALF_SECTORS: u8 = 8;
+                const TOTAL: u8 = HALF_SECTORS * 2;
+
+                let offset = (p0 - p1).angle_between(Vec2::new(0.0, 1.0));
+                let h = Vec3::new(0.0, 0.0, *height);
+
+                let draw_cylinder_sector =
+                    |mesh: &mut Mesh<DebugVertex>, origin: Vec3<f32>, from: u8, to: u8| {
+                        for i in from..to {
+                            // dot on circle edge
+                            let to = |n: u8| {
+                                const FULL: f32 = 2.0 * PI;
+                                let angle = offset + FULL * f32::from(n) / f32::from(TOTAL);
+                                let (x, y) = (radius * angle.cos(), radius * angle.sin());
+                                let to_edge = Vec3::new(x, y, 0.0);
+
+                                origin + to_edge
+                            };
+
+                            let r0 = to(i);
+                            let r1 = to(i + 1);
+
+                            // Draw bottom sector
+                            mesh.push_tri(tri(r1, r0, origin));
+                            // Draw face
+                            mesh.push_quad(quad(r0, r1, r1 + h, r0 + h));
+                            // Draw top sector
+                            mesh.push_tri(tri(origin + h, r0 + h, r1 + h));
+                        }
+                    };
+
+                let p0 = Vec3::new(p0.x, p0.y, 0.0);
+                let p1 = Vec3::new(p1.x, p1.y, 0.0);
+                // 1) Draw first half-cylinder
+                draw_cylinder_sector(&mut mesh, p0, 0, HALF_SECTORS);
+
+                // 2) Draw cuboid in-between
+                // get main line segment
+                let a = p1 - p0;
+                // normalize
+                let a = a / a.magnitude();
+                // stretch to radius
+                let a = a * *radius;
+                // rotate to 90 degrees to get needed shift
+                let ortoghonal = Quaternion::rotation_z(PI / 2.0);
+                let shift = ortoghonal * a;
+
+                // bottom points
+                let a0 = p0 + shift;
+                let b0 = p0 - shift;
+                let c0 = p1 - shift;
+                let d0 = p1 + shift;
+
+                // top points
+                let a1 = a0 + h;
+                let b1 = b0 + h;
+                let c1 = c0 + h;
+                let d1 = d0 + h;
+
+                // Bottom
+                mesh.push_quad(quad(d0, c0, b0, a0));
+
+                // Faces
+                // (we need only two of them, because other two are inside)
+                mesh.push_quad(quad(d0, a0, a1, d1));
+                mesh.push_quad(quad(b0, c0, c1, b1));
+
+                // Top
+                mesh.push_quad(quad(a1, b1, c1, d1));
+
+                // 3) Draw second half-cylinder
+                draw_cylinder_sector(&mut mesh, p1, HALF_SECTORS, TOTAL);
             },
         }
         mesh
@@ -55,7 +153,7 @@ pub struct DebugShapeId(pub u64);
 pub struct Debug {
     next_shape_id: DebugShapeId,
     pending_shapes: HashMap<DebugShapeId, DebugShape>,
-    pending_locals: HashMap<DebugShapeId, ([f32; 4], [f32; 4])>,
+    pending_locals: HashMap<DebugShapeId, ([f32; 4], [f32; 4], [f32; 4])>,
     pending_deletes: HashSet<DebugShapeId>,
     models: HashMap<DebugShapeId, (Model<DebugVertex>, Bound<Consts<DebugLocals>>)>,
 }
@@ -78,8 +176,8 @@ impl Debug {
         id
     }
 
-    pub fn set_pos_and_color(&mut self, id: DebugShapeId, pos: [f32; 4], color: [f32; 4]) {
-        self.pending_locals.insert(id, (pos, color));
+    pub fn set_context(&mut self, id: DebugShapeId, pos: [f32; 4], color: [f32; 4], ori: [f32; 4]) {
+        self.pending_locals.insert(id, (pos, color, ori));
     }
 
     pub fn remove_shape(&mut self, id: DebugShapeId) { self.pending_deletes.insert(id); }
@@ -90,6 +188,7 @@ impl Debug {
                 let locals = renderer.create_debug_bound_locals(&[DebugLocals {
                     pos: [0.0; 4],
                     color: [1.0, 0.0, 0.0, 1.0],
+                    ori: [0.0, 0.0, 0.0, 1.0],
                 }]);
                 self.models.insert(id, (model, locals));
             } else {
@@ -99,12 +198,13 @@ impl Debug {
                 );
             }
         }
-        for (id, (pos, color)) in self.pending_locals.drain() {
+        for (id, (pos, color, ori)) in self.pending_locals.drain() {
             if let Some((_, locals)) = self.models.get_mut(&id) {
                 let lc = srgba_to_linear(color.into());
                 let new_locals = [DebugLocals {
                     pos,
                     color: [lc.r, lc.g, lc.b, lc.a],
+                    ori,
                 }];
                 renderer.update_consts(locals, &new_locals);
             } else {

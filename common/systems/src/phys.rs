@@ -290,8 +290,9 @@ impl<'a> PhysicsData<'a> {
             !&read.mountings,
             read.stickies.maybe(),
             &mut write.physics_states,
-            // TODO: if we need to avoid collisions for other things consider moving whether it
-            // should interact into the collider component or into a separate component
+            // TODO: if we need to avoid collisions for other things consider
+            // moving whether it should interact into the collider component
+            // or into a separate component.
             read.projectiles.maybe(),
             read.char_states.maybe(),
         )
@@ -322,9 +323,10 @@ impl<'a> PhysicsData<'a> {
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
 
-                    // TODO: quick fix for bad performance at extrememly high velocities
-                    // use oriented rectangles at some threshold of displacement/radius
-                    // to query the spatial grid and limit max displacement per tick somehow
+                    // TODO: quick fix for bad performance. At extrememly high
+                    // velocities use oriented rectangles at some threshold of
+                    // displacement/radius to query the spatial grid and limit
+                    // max displacement per tick somehow.
                     if previous_cache.collision_boundary > 128.0 {
                         return PhysicsMetrics {
                             entity_entity_collision_checks,
@@ -419,9 +421,14 @@ impl<'a> PhysicsData<'a> {
                                             <= pos_other.z
                                                 + z_limits_other.1 * previous_cache_other.scale
                                     {
-                                        // If entities have not yet collided this tick (but just
-                                        // did) and if entity is either in mid air or is not sticky,
-                                        // then mark them as colliding with the other entity
+                                        // If entities have not yet collided
+                                        // this tick (but just did) and if entity
+                                        //
+                                        // is either in mid air
+                                        // or is not sticky,
+                                        //
+                                        // then mark them as colliding with the
+                                        // other entity.
                                         if !collision_registered && (is_mid_air || !is_sticky) {
                                             physics.touch_entities.insert(*other);
                                             entity_entity_collisions += 1;
@@ -627,8 +634,9 @@ impl<'a> PhysicsData<'a> {
                     // And not already stuck on a block (e.g., for arrows)
                     && !(physics_state.on_surface().is_some() && sticky.is_some())
                     {
-                        // Clamp dt to an effective 10 TPS, to prevent gravity from slamming the
-                        // players into the floor when stationary if other systems cause the server
+                        // Clamp dt to an effective 10 TPS, to prevent gravity
+                        // from slamming the players into the floor when
+                        // stationary if other systems cause the server
                         // to lag (as observed in the 0.9 release party).
                         let dt = DeltaTime(read.dt.0.min(0.1));
 
@@ -750,8 +758,8 @@ impl<'a> PhysicsData<'a> {
                 )| {
                     let mut land_on_ground = None;
                     let mut outcomes = Vec::new();
-                    // Defer the writes of positions, velocities and orientations to allow an inner
-                    // loop over terrain-like entities
+                    // Defer the writes of positions, velocities and orientations
+                    // to allow an inner loop over terrain-like entities.
                     let old_vel = *vel;
                     let mut vel = *vel;
                     let old_ori = *ori;
@@ -777,17 +785,23 @@ impl<'a> PhysicsData<'a> {
                         Vec3::zero()
                     };
 
-                    // What's going on here? Because collisions need to be resolved against multiple
+                    // What's going on here?
+                    // Because collisions need to be resolved against multiple
                     // colliders, this code takes the current position and
                     // propagates it forward according to velocity to find a
-                    // 'target' position. This is where we'd ideally end up at the end of the tick,
+                    // 'target' position.
+                    //
+                    // This is where we'd ideally end up at the end of the tick,
                     // assuming no collisions. Then, we refine this target by
                     // stepping from the original position to the target for
-                    // every obstacle, refining the target position as we go. It's not perfect, but
-                    // it works pretty well in practice. Oddities can occur on
-                    // the intersection between multiple colliders, but it's not
-                    // like any game physics system resolves these sort of things well anyway. At
-                    // the very least, we don't do things that result in glitchy
+                    // every obstacle, refining the target position as we go.
+                    //
+                    // It's not perfect, but it works pretty well in practice.
+                    // Oddities can occur on the intersection between multiple
+                    // colliders, but it's not like any game physics system
+                    // resolves these sort of things well anyway.
+                    //
+                    // At the very least, we don't do things that result in glitchy
                     // velocities or entirely broken position snapping.
                     let mut tgt_pos = pos.0 + pos_delta;
 
@@ -799,11 +813,12 @@ impl<'a> PhysicsData<'a> {
 
                     match &collider {
                         Collider::Voxel { .. } => {
-                            // for now, treat entities with voxel colliders as their bounding
-                            // cylinders for the purposes of colliding them with terrain
-
-                            // Additionally, multiply radius by 0.1 to make the cylinder smaller to
-                            // avoid lag
+                            // For now, treat entities with voxel colliders
+                            // as their bounding cylinders for the purposes of
+                            // colliding them with terrain.
+                            //
+                            // Additionally, multiply radius by 0.1 to make
+                            // the cylinder smaller to avoid lag.
                             let radius = collider.get_radius() * scale * 0.1;
                             let (z_min, z_max) = collider.get_z_limits(scale);
 
@@ -832,6 +847,50 @@ impl<'a> PhysicsData<'a> {
                             z_min,
                             z_max,
                         } => {
+                            // FIXME:
+                            // !! DEPRECATED !!
+                            //
+                            // Scale collider
+                            let radius = radius.min(0.45) * scale;
+                            let z_min = *z_min * scale;
+                            let z_max = z_max.clamped(1.2, 1.95) * scale;
+
+                            let cylinder = (radius, z_min, z_max);
+                            let mut cpos = *pos;
+                            box_voxel_collision(
+                                cylinder,
+                                &*read.terrain,
+                                entity,
+                                &mut cpos,
+                                tgt_pos,
+                                &mut vel,
+                                &mut physics_state,
+                                Vec3::zero(),
+                                &read.dt,
+                                was_on_ground,
+                                block_snap,
+                                climbing,
+                                |entity, vel| land_on_ground = Some((entity, vel)),
+                                read,
+                            );
+
+                            // Sticky things shouldn't move when on a surface
+                            if physics_state.on_surface().is_some() && sticky.is_some() {
+                                vel.0 = physics_state.ground_vel;
+                            }
+
+                            tgt_pos = cpos.0;
+                        },
+                        Collider::CapsulePrism {
+                            radius,
+                            z_min,
+                            z_max,
+                            ..
+                        } => {
+                            // FIXME: placeholder.
+                            // copypasted from Box collider
+                            //
+                            // This shoudln't pass Code Review.
                             // Scale collider
                             let radius = radius.min(0.45) * scale;
                             let z_min = *z_min * scale;
@@ -866,8 +925,10 @@ impl<'a> PhysicsData<'a> {
                         Collider::Point => {
                             let mut pos = *pos;
 
-                            // If the velocity is exactly 0, a raycast may not pick up the current
-                            // block. Handle this.
+                            // TODO: If the velocity is exactly 0,
+                            // a raycast may not pick up the current block.
+                            //
+                            // Handle this.
                             let (dist, block) = if let Some(block) = read
                                 .terrain
                                 .get(pos.0.map(|e| e.floor() as i32))
@@ -882,7 +943,8 @@ impl<'a> PhysicsData<'a> {
                                     .until(|block: &Block| block.is_solid())
                                     .ignore_error()
                                     .cast();
-                                (dist, block.unwrap()) // Can't fail since we do ignore_error above
+                                // Can't fail since we do ignore_error above
+                                (dist, block.unwrap())
                             };
 
                             pos.0 += pos_delta.try_normalized().unwrap_or_else(Vec3::zero) * dist;
@@ -987,6 +1049,7 @@ impl<'a> PhysicsData<'a> {
                     // Collide with terrain-like entities
                     let query_center = path_sphere.center.xy();
                     let query_radius = path_sphere.radius;
+
                     voxel_collider_spatial_grid
                         .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
@@ -1280,6 +1343,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
+#[warn(clippy::pedantic)]
 #[allow(clippy::too_many_arguments)]
 fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
@@ -1297,22 +1361,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     mut land_on_ground: impl FnMut(Entity, Vel),
     read: &PhysicsRead,
 ) {
-    let (radius, z_min, z_max) = cylinder;
-
-    // Probe distances
-    let hdist = radius.ceil() as i32;
-    // Neighbouring blocks iterator
-    let near_iter = (-hdist..hdist + 1)
-        .map(move |i| {
-            (-hdist..hdist + 1).map(move |j| {
-                (1 - Block::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
-                    ..z_max.ceil() as i32 + 1)
-                    .map(move |k| (i, j, k))
-            })
-        })
-        .flatten()
-        .flatten();
-
     // Function for iterating over the blocks the player at a specific position
     // collides with
     fn collision_iter<'a, T: BaseVol<Vox = Block> + ReadVol>(
@@ -1357,7 +1405,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         })
     }
 
-    let z_range = z_min..z_max;
     // Function for determining whether the player at a specific position collides
     // with blocks with the given criteria
     fn collision_with<'a, T: BaseVol<Vox = Block> + ReadVol>(
@@ -1381,6 +1428,25 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         .is_some()
     }
 
+    fn always_hits(_: &Block) -> bool { true }
+    let (radius, z_min, z_max) = cylinder;
+
+    // Probe distances
+    let hdist = radius.ceil() as i32;
+    // Neighbouring blocks iterator
+    let near_iter = (-hdist..hdist + 1)
+        .map(move |i| {
+            (-hdist..hdist + 1).map(move |j| {
+                (1 - Block::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
+                    ..z_max.ceil() as i32 + 1)
+                    .map(move |k| (i, j, k))
+            })
+        })
+        .flatten()
+        .flatten();
+
+    let z_range = z_min..z_max;
+
     physics_state.on_ground = None;
     physics_state.on_ceiling = false;
 
@@ -1395,7 +1461,6 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         .ceil()
         .max(1.0);
     let old_pos = pos.0;
-    fn block_true(_: &Block) -> bool { true }
     for _ in 0..increments as usize {
         pos.0 += pos_delta / increments;
 
@@ -1485,7 +1550,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 // ...and the vertical resolution direction is sufficiently great...
                 && dir.z < -0.1
                 // ...and the space above is free...
-                && !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, block_true, near_iter.clone(), radius, z_range.clone())
+                && !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, always_hits, near_iter.clone(), radius, z_range.clone())
                 // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
                 // && terrain
                 //     .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
@@ -1495,7 +1560,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
                 && collision_with(
                     pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
                     &terrain,
-                    block_true,
+                    always_hits,
                     near_iter.clone(),
                     radius,
                     z_range.clone(),
@@ -1545,7 +1610,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     } else if collision_with(
         pos.0 - Vec3::unit_z() * 1.1,
         &terrain,
-        block_true,
+        always_hits,
         near_iter.clone(),
         radius,
         z_range.clone(),

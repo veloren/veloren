@@ -99,10 +99,24 @@ impl Component for Density {
 // Collider
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Collider {
-    // TODO: pass the map from ids -> voxel data to get_radius and get_z_limits to compute a
-    // bounding cylinder
-    Voxel { id: String },
-    Box { radius: f32, z_min: f32, z_max: f32 },
+    // TODO: pass the map from ids -> voxel data to get_radius
+    // and get_z_limits to compute a bounding cylinder.
+    Voxel {
+        id: String,
+    },
+    Box {
+        radius: f32,
+        z_min: f32,
+        z_max: f32,
+    },
+    /// Capsule prism with line segment from p0 to p1
+    CapsulePrism {
+        p0: Vec2<f32>,
+        p1: Vec2<f32>,
+        radius: f32,
+        z_min: f32,
+        z_max: f32,
+    },
     Point,
 }
 
@@ -111,6 +125,11 @@ impl Collider {
         match self {
             Collider::Voxel { .. } => 1.0,
             Collider::Box { radius, .. } => *radius,
+            // FIXME: I know that this is wrong for sure,
+            // because it's not a circle.
+            //
+            // CodeReviewers, please welp!
+            Collider::CapsulePrism { radius, .. } => *radius,
             Collider::Point => 0.0,
         }
     }
@@ -124,6 +143,7 @@ impl Collider {
         match self {
             Collider::Voxel { .. } => (0.0, 1.0),
             Collider::Box { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
+            Collider::CapsulePrism { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }
     }

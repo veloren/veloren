@@ -147,6 +147,20 @@ impl<
     const EXTENSION: &'static str = "ron";
 }
 
+// Utility enum used to build Stadium points
+// Read doc for [Body::sausage] for more.
+//
+// Actually can be removed I guess?
+// We can just determine shape form dimensions.
+//
+// But I want Dachshund in Veloren at least somewhere XD
+enum Shape {
+    // Dachshund-like
+    Long,
+    // Cyclops-like
+    Wide,
+}
+
 impl Body {
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
@@ -292,11 +306,12 @@ impl Body {
     }
 
     /// The width (shoulder to shoulder), length (nose to tail) and height
-    /// respectively
+    /// respectively (in metres)
+    // Code reviewers: should we replace metres with 'block height'?
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
             Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Cyclops => Vec3::new(4.6, 3.0, 6.5),
+                biped_large::Species::Cyclops => Vec3::new(5.6, 3.0, 6.5),
                 biped_large::Species::Dullahan => Vec3::new(4.6, 3.0, 5.5),
                 biped_large::Species::Mightysaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Mindflayer => Vec3::new(4.4, 3.0, 8.0),
@@ -350,6 +365,8 @@ impl Body {
                 quadruped_medium::Species::Ngoubou => Vec3::new(2.0, 3.2, 2.4),
                 quadruped_medium::Species::Llama => Vec3::new(2.0, 2.5, 2.6),
                 quadruped_medium::Species::Alpaca => Vec3::new(2.0, 2.0, 2.0),
+                quadruped_medium::Species::Camel => Vec3::new(2.0, 4.0, 3.5),
+                // FIXME: We really shouldn't be doing wildcards here
                 _ => Vec3::new(2.0, 3.0, 2.0),
             },
             Body::QuadrupedSmall(body) => match body.species {
@@ -386,12 +403,78 @@ impl Body {
         }
     }
 
+    fn shape(&self) -> Shape {
+        match self {
+            Body::BipedLarge(_)
+            | Body::BipedSmall(_)
+            | Body::Golem(_)
+            | Body::Humanoid(_)
+            | Body::Object(_) => Shape::Wide,
+            Body::BirdLarge(_)
+            | Body::BirdMedium(_)
+            | Body::Dragon(_)
+            | Body::FishMedium(_)
+            | Body::FishSmall(_)
+            | Body::QuadrupedLow(_)
+            | Body::QuadrupedMedium(_)
+            | Body::QuadrupedSmall(_)
+            | Body::Ship(_)
+            | Body::Theropod(_) => Shape::Long,
+        }
+    }
+
     // Note: This is used for collisions, but it's not very accurate for shapes that
     // are very much not cylindrical. Eventually this ought to be replaced by more
     // accurate collision shapes.
     pub fn radius(&self) -> f32 {
         let dim = self.dimensions();
         dim.x.max(dim.y) / 2.0
+    }
+
+    /// Base of our Capsule Prism used for collisions.
+    /// Returns line segment and radius. See [this wiki page][stadium_wiki].
+    ///
+    /// [stadium_wiki]: <https://en.wikipedia.org/wiki/Stadium_(geometry)>
+    pub fn sausage(&self) -> (Vec2<f32>, Vec2<f32>, f32) {
+        // Consider this ascii-art stadium with radius `r` and line segment `a`
+        //
+        //      xxxxxxxxxxxxxxxxx
+        //
+        //        _ aaaaaaaaa
+        // y    -*      r     * -
+        // y   *        r        *
+        // y  * rrr --------- rrr *
+        // y  *         r         *
+        // y   *        r        *
+        //       *__aaaaaaaaa_ ^
+        let dim = self.dimensions();
+        // The width (shoulder to shoulder) and length (nose to tail)
+        let (width, length) = (dim.x, dim.y);
+
+        match self.shape() {
+            Shape::Long => {
+                let radius = width / 2.0;
+
+                let a = length - 2.0 * radius;
+                debug_assert!(a > 0.0);
+
+                let p0 = Vec2::new(0.0, -a / 2.0);
+                let p1 = Vec2::new(0.0, a / 2.0);
+
+                (p0, p1, radius)
+            },
+            Shape::Wide => {
+                let radius = length / 2.0;
+
+                let a = width - 2.0 * radius;
+                debug_assert!(a > 0.0);
+
+                let p0 = Vec2::new(-a / 2.0, 0.0);
+                let p1 = Vec2::new(a / 2.0, 0.0);
+
+                (p0, p1, radius)
+            },
+        }
     }
 
     // How far away other entities should try to be. Will be added uppon the other
@@ -417,6 +500,7 @@ impl Body {
             }
     }
 
+    /// Height from the bottom to the top (in metres)
     pub fn height(&self) -> f32 { self.dimensions().z }
 
     pub fn base_energy(&self) -> u32 {

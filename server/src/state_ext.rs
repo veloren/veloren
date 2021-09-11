@@ -185,6 +185,7 @@ impl StateExt for State {
         inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
+        use comp::body::{biped_large, quadruped_medium};
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -202,6 +203,31 @@ impl StateExt for State {
             .with(match body {
                 comp::Body::Ship(ship) => comp::Collider::Voxel {
                     id: ship.manifest_entry().to_string(),
+                },
+                body
+                @
+                (comp::Body::QuadrupedMedium(quadruped_medium::Body {
+                    species: quadruped_medium::Species::Camel,
+                    ..
+                })
+                | comp::Body::BipedLarge(biped_large::Body {
+                    species: biped_large::Species::Cyclops,
+                    ..
+                })) => {
+                    // no Camel was hurt while doing this sausage
+                    // can't say the same about Cyclops
+                    let (p0, p1, radius) = body.sausage();
+
+                    // TODO:
+                    // It would be cool not have z_min as hardcoded 0.0
+                    // but it needs to work nicer with terrain collisions.
+                    comp::Collider::CapsulePrism {
+                        p0,
+                        p1,
+                        radius,
+                        z_min: 0.0,
+                        z_max: body.height(),
+                    }
                 },
                 _ => comp::Collider::Box {
                     radius: body.radius(),
