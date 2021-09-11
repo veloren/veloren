@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- Made dungeon tiers 3, 4, and 5 more common
 
 ### Removed
 
