@@ -134,6 +134,23 @@ impl Health {
         self.current = self.maximum;
         self.is_dead = false;
     }
+
+    // Function only exists for plugin tests, do not use anywhere else
+    // TODO: Remove somehow later
+    #[deprecated]
+    pub fn empty() -> Self {
+        Health {
+            current: 0,
+            base_max: 0,
+            maximum: 0,
+            last_change: (0.0, HealthChange {
+                amount: 0.0,
+                by: None,
+                cause: None,
+            }),
+            is_dead: false,
+        }
+    }
 }
 
 #[cfg(not(target_arch = "wasm32"))]
