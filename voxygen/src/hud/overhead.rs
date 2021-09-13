@@ -67,11 +67,12 @@ pub struct Info<'a> {
 
 /// Determines whether to show the healthbar
 pub fn should_show_healthbar(health: &Health) -> bool {
-    health.current() != health.maximum() || health.current() < health.base_max()
+    (health.current() - health.maximum()).abs() > Health::HEALTH_EPSILON
+        || health.current() < health.base_max()
 }
 /// Determines if there is decayed health being applied
 pub fn decayed_health_displayed(health: &Health) -> bool {
-    (1.0 - health.maximum() as f64 / health.base_max() as f64) > 0.0
+    (1.0 - health.maximum() / health.base_max()) > 0.0
 }
 /// ui widget containing everything that goes over a character's head
 /// (Speech bubble, Name, Level, HP/energy bars, etc.)
@@ -192,8 +193,8 @@ impl<'a> Widget for Overhead<'a> {
                 h.current() as f64 / h.base_max().max(h.maximum()) as f64 * 100.0
             });
             // Compare levels to decide if a skull is shown
-            let health_current = health.map_or(1.0, |h| (h.current() / 10) as f64);
-            let health_max = health.map_or(1.0, |h| (h.maximum() / 10) as f64);
+            let health_current = health.map_or(1.0, |h| f64::from(h.current()));
+            let health_max = health.map_or(1.0, |h| f64::from(h.maximum()));
             let name_y = if (health_current - health_max).abs() < 1e-6 {
                 MANA_BAR_Y + 20.0
             } else {

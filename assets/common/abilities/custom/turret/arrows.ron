@@ -3,7 +3,7 @@ BasicRanged(
     buildup_duration: 1.0,
     recover_duration: 0.3,
     projectile: Arrow(
-        damage: 200.0,
+        damage: 20.0,
         knockback: 5.0,
         energy_regen: 100,
     ),

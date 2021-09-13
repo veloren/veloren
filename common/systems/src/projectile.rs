@@ -2,8 +2,8 @@ use common::{
     combat::{self, AttackOptions, AttackSource, AttackerInfo, TargetInfo},
     comp::{
         agent::{Sound, SoundKind},
-        projectile, Alignment, Body, CharacterState, Combo, Energy, Group, Health, HealthSource,
-        Inventory, Ori, PhysicsState, Player, Pos, Projectile, Stats, Vel,
+        projectile, Alignment, Body, CharacterState, Combo, Energy, Group, Health, Inventory, Ori,
+        PhysicsState, Player, Pos, Projectile, Stats, Vel,
     },
     event::{Emitter, EventBus, ServerEvent},
     outcome::Outcome,
@@ -176,10 +176,7 @@ impl<'a> System<'a> for Sys {
                             });
                         },
                         projectile::Effect::Vanish => {
-                            server_emitter.emit(ServerEvent::Destroy {
-                                entity,
-                                cause: HealthSource::World,
-                            });
+                            server_emitter.emit(ServerEvent::Delete(entity));
                             projectile_vanished = true;
                         },
                         projectile::Effect::Bonk => {
@@ -203,10 +200,7 @@ impl<'a> System<'a> for Sys {
             }
 
             if projectile.time_left == Duration::default() {
-                server_emitter.emit(ServerEvent::Destroy {
-                    entity,
-                    cause: HealthSource::World,
-                });
+                server_emitter.emit(ServerEvent::Delete(entity));
             }
             projectile.time_left = projectile
                 .time_left
@@ -348,10 +342,7 @@ fn dispatch_hit(
         },
         projectile::Effect::Vanish => {
             let entity = projectile_info.entity;
-            server_emitter.emit(ServerEvent::Destroy {
-                entity,
-                cause: HealthSource::World,
-            });
+            server_emitter.emit(ServerEvent::Delete(entity));
             *projectile_vanished = true;
         },
         projectile::Effect::Possess => {

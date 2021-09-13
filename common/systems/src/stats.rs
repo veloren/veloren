@@ -105,7 +105,7 @@ impl<'a> System<'a> for Sys {
                 entities_died_last_tick.0.push(cloned_entity);
                 server_event_emitter.emit(ServerEvent::Destroy {
                     entity,
-                    cause: health.last_change.1.cause,
+                    cause: health.last_change.1,
                 });
 
                 health.is_dead = true;
@@ -113,12 +113,12 @@ impl<'a> System<'a> for Sys {
             let stat = stats;
 
             let update_max_hp = {
-                (stat.max_health_modifier - 1.0).abs() > f32::EPSILON
-                    || health.base_max() != health.maximum()
+                stat.max_health_modifiers.update_maximum()
+                    || (health.base_max() - health.maximum()).abs() > Health::HEALTH_EPSILON
             };
 
             if update_max_hp {
-                health.scale_maximum(stat.max_health_modifier);
+                health.update_maximum(stat.max_health_modifiers);
             }
 
             let (change_energy, energy_scaling) = {
@@ -176,7 +176,7 @@ impl<'a> System<'a> for Sys {
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0);
-                health.update_max_hp(Some(*body), health_level);
+                health.update_max_hp(*body, health_level);
                 skill_set.modify_health = false;
             }
             if skill_set.modify_energy {

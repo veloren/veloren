@@ -2,7 +2,7 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 60,
+            base_damage: 6.0,
             damage_increase: 0,
             base_poise_damage: 15,
             poise_damage_increase: 0,
@@ -18,7 +18,7 @@ ComboMelee(
         ),
         (
             stage: 2,
-            base_damage: 60,
+            base_damage: 6.0,
             damage_increase: 0,
             base_poise_damage: 15,
             poise_damage_increase: 0,
@@ -34,7 +34,7 @@ ComboMelee(
         ),
         (
             stage: 3,
-            base_damage: 60,
+            base_damage: 6.0,
             damage_increase: 0,
             base_poise_damage: 15,
             poise_damage_increase: 0,
@@ -50,7 +50,7 @@ ComboMelee(
         ),
         (
             stage: 4,
-            base_damage: 60,
+            base_damage: 6.0,
             damage_increase: 0,
             base_poise_damage: 15,
             poise_damage_increase: 0,

@@ -9,7 +9,7 @@ use vek::*;
 pub struct HpFloater {
     pub timer: f32,
     // Numbers of times significant damage has been dealt
-    pub hp_change: i32,
+    pub hp_change: f32,
     // Used for randomly offsetting
     pub rand: f32,
 }
@@ -19,7 +19,7 @@ pub struct HpFloaterList {
     pub floaters: Vec<HpFloater>,
     // Keep from spawning more floaters from same hp change
     // Note: this can't detect a change if equivalent healing and damage take place simultaneously
-    pub last_hp: u32,
+    pub last_hp: f32,
     // The time since you last damaged this entity
     // Used to display nametags outside normal range if this time is below a certain value
     pub time_since_last_dmg_by_me: Option<f32>,

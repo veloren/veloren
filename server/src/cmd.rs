@@ -837,27 +837,17 @@ fn handle_home(
 
 fn handle_kill(
     server: &mut Server,
-    client: EcsEntity,
+    _client: EcsEntity,
     target: EcsEntity,
     _args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let reason = if client == target {
-        comp::HealthSource::Suicide
-    } else if let Some(uid) = server.state.read_storage::<Uid>().get(client) {
-        comp::HealthSource::Damage {
-            kind: DamageSource::Other,
-            by: Some(*uid),
-        }
-    } else {
-        comp::HealthSource::Command
-    };
     server
         .state
         .ecs_mut()
         .write_storage::<comp::Health>()
         .get_mut(target)
-        .map(|mut h| h.set_to(0, reason));
+        .map(|mut h| h.kill());
     Ok(())
 }
 
@@ -1014,14 +1004,19 @@ fn handle_health(
     args: Vec<String>,
     _action: &ChatCommand,
 ) -> CmdResult<()> {
-    if let Some(hp) = parse_args!(args, u32) {
+    if let Some(hp) = parse_args!(args, f32) {
         if let Some(mut health) = server
             .state
             .ecs()
             .write_storage::<comp::Health>()
             .get_mut(target)
         {
-            health.set_to(hp * 10, comp::HealthSource::Command);
+            let change = comp::HealthChange {
+                amount: hp - health.current(),
+                by: None,
+                cause: None,
+            };
+            health.change_by(change);
             Ok(())
         } else {
             Err("You have no health".into())
@@ -1693,7 +1688,7 @@ fn handle_kill_npcs(
 
         if should_kill {
             count += 1;
-            health.set_to(0, comp::HealthSource::Command);
+            health.kill();
         }
     }
 

@@ -18,13 +18,13 @@ use strum_macros::EnumIter;
 pub enum BuffKind {
     // Buffs
     /// Restores health/time for some period
-    /// Strength should be 10x the healing per second
+    /// Strength should be the healing per second
     Regeneration,
     /// Restores health/time for some period for consumables
-    /// Strength should be 10x the healing per second
+    /// Strength should be the healing per second
     Saturation,
     /// Applied when drinking a potion
-    /// Strength should be 10x the healing per second
+    /// Strength should be the healing per second
     Potion,
     /// Applied when sitting at a campfire
     /// Strength is fraction of health resotred per second
@@ -33,7 +33,7 @@ pub enum BuffKind {
     /// Strength should be 10x the effect to max energy
     IncreaseMaxEnergy,
     /// Raises maximum health
-    /// Strength should be 10x the effect to max health
+    /// Strength should be the effect to max health
     IncreaseMaxHealth,
     /// Makes you immune to attacks
     /// Strength does not affect this buff
@@ -48,10 +48,10 @@ pub enum BuffKind {
     Frenzied,
     // Debuffs
     /// Does damage to a creature over time
-    /// Strength should be 10x the DPS of the debuff
+    /// Strength should be the DPS of the debuff
     Burning,
     /// Lowers health over time for some duration
-    /// Strength should be 10x the DPS of the debuff
+    /// Strength should be the DPS of the debuff
     Bleeding,
     /// Lower a creature's max health over time
     /// Strength only affects the target max health, 0.5 targets 50% of base
@@ -59,7 +59,7 @@ pub enum BuffKind {
     Cursed,
     /// Reduces movement speed and causes bleeding damage
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
-    /// speed, 1.0 is 33% speed. Bleeding is at 10x the value of the strength.
+    /// speed, 1.0 is 33% speed. Bleeding is at 4x the value of the strength.
     Crippled,
     /// Slows movement and attack speed.
     /// Strength scales the attack speed debuff non-linearly. 0.5 is ~50%
@@ -247,13 +247,13 @@ impl Buff {
             BuffKind::Cursed => (
                 vec![
                     BuffEffect::MaxHealthChangeOverTime {
-                        rate: -10.0,
+                        rate: -1.0,
                         kind: ModifierKind::Additive,
                         target_fraction: 1.0 - data.strength,
                         achieved_fraction: None,
                     },
                     BuffEffect::HealthChangeOverTime {
-                        rate: -10.0,
+                        rate: -1.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
                     },
@@ -296,7 +296,7 @@ impl Buff {
                 vec![
                     BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength)),
                     BuffEffect::HealthChangeOverTime {
-                        rate: -data.strength * 40.0,
+                        rate: -data.strength * 4.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
                     },
@@ -307,7 +307,7 @@ impl Buff {
                 vec![
                     BuffEffect::MovementSpeed(1.0 + data.strength),
                     BuffEffect::HealthChangeOverTime {
-                        rate: data.strength * 100.0,
+                        rate: data.strength * 10.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
                     },

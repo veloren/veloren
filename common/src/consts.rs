@@ -29,4 +29,4 @@ pub const SOUND_TRAVEL_DIST_PER_VOLUME: f32 = 3.0;
 
 // Stat increase per level (multiplied by 10 compared to what you'll see in UI)
 pub const ENERGY_PER_LEVEL: u32 = 50;
-pub const HUMANOID_HP_PER_LEVEL: u32 = 50;
+pub const HUMANOID_HP_PER_LEVEL: u16 = 5;

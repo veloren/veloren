@@ -163,7 +163,7 @@ pub struct MusicTransitionManifest {
     combat_nearby_radius: f32,
     /// Each multiple of this factor that an enemy has health counts as an extra
     /// enemy
-    combat_health_factor: u32,
+    combat_health_factor: f32,
     /// How many nearby enemies trigger High combat music
     combat_nearby_high_thresh: u32,
     /// How many nearby enemies trigger Low combat music
@@ -178,7 +178,7 @@ impl Default for MusicTransitionManifest {
     fn default() -> MusicTransitionManifest {
         MusicTransitionManifest {
             combat_nearby_radius: 40.0,
-            combat_health_factor: 1000,
+            combat_health_factor: 100.0,
             combat_nearby_high_thresh: 3,
             combat_nearby_low_thresh: 1,
             fade_timings: HashMap::new(),
@@ -247,7 +247,7 @@ impl MusicMgr {
                         && (player_pos.0 - pos.0).magnitude_squared()
                             < mtm.combat_nearby_radius.powf(2.0)
                     {
-                        (health.maximum() / mtm.combat_health_factor).max(1)
+                        (health.maximum() / mtm.combat_health_factor).ceil() as u32
                     } else {
                         0
                     }

@@ -6,8 +6,7 @@ use common::{
             Buffs,
         },
         fluid_dynamics::{Fluid, LiquidKind},
-        Energy, Health, HealthChange, HealthSource, Inventory, LightEmitter, ModifierKind,
-        PhysicsState, Stats,
+        Energy, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -203,34 +202,30 @@ impl<'a> System<'a> for Sys {
                                 if accumulated.abs() > rate.abs().min(10.0)
                                     || buff.time.map_or(false, |dur| dur == Duration::default())
                                 {
-                                    let cause = if *accumulated > 0.0 {
-                                        HealthSource::Heal { by: buff_owner }
+                                    let (cause, by) = if *accumulated < 0.0 {
+                                        (Some(DamageSource::Buff(buff.kind)), buff_owner)
                                     } else {
-                                        HealthSource::Damage {
-                                            kind: DamageSource::Buff(buff.kind),
-                                            by: buff_owner,
-                                        }
+                                        (None, None)
                                     };
                                     let amount = match *kind {
-                                        ModifierKind::Additive => *accumulated as i32,
+                                        ModifierKind::Additive => *accumulated,
                                         ModifierKind::Fractional => {
-                                            (health.maximum() as f32 * *accumulated) as i32
+                                            health.maximum() as f32 * *accumulated
                                         },
                                     };
-                                    server_emitter.emit(ServerEvent::Damage {
+                                    server_emitter.emit(ServerEvent::HealthChange {
                                         entity,
-                                        change: HealthChange { amount, cause },
+                                        change: HealthChange { amount, by, cause },
                                     });
                                     *accumulated = 0.0;
                                 };
                             },
                             BuffEffect::MaxHealthModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    stat.max_health_modifier *=
-                                        1.0 + *value / (health.base_max() as f32);
+                                    stat.max_health_modifiers.add_mod += *value;
                                 },
                                 ModifierKind::Fractional => {
-                                    stat.max_health_modifier *= *value;
+                                    stat.max_health_modifiers.mult_mod *= *value;
                                 },
                             },
                             BuffEffect::MaxEnergyModifier { value, kind } => match kind {
@@ -302,7 +297,7 @@ impl<'a> System<'a> for Sys {
                                     }
 
                                     // Apply achieved_fraction to max_health_modifier
-                                    stat.max_health_modifier *= *achieved_fraction;
+                                    stat.max_health_modifiers.mult_mod *= *achieved_fraction;
                                 }
                             },
                             BuffEffect::MovementSpeed(speed) => {

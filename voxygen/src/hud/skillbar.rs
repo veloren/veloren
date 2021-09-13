@@ -33,7 +33,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
-use std::cmp;
 use vek::*;
 
 widget_ids! {
@@ -366,11 +365,11 @@ impl<'a> Skillbar<'a> {
         let (hp_percentage, energy_percentage): (f64, f64) = if self.health.is_dead {
             (0.0, 0.0)
         } else {
-            let max_hp = cmp::max(self.health.base_max(), self.health.maximum()) as f64;
-            let current_hp = self.health.current() as f64;
+            let max_hp = f64::from(self.health.base_max().max(self.health.maximum()));
+            let current_hp = f64::from(self.health.current());
             (
                 current_hp / max_hp * 100.0,
-                (self.energy.fraction() * 100.0).into(),
+                f64::from(self.energy.fraction() * 100.0),
             )
         };
 
@@ -378,7 +377,8 @@ impl<'a> Skillbar<'a> {
         let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
         let crit_hp_color: Color = Color::Rgba(0.79, 0.19, 0.17, hp_ani);
         let bar_values = self.global_state.settings.interface.bar_numbers;
-        let show_health = self.health.current() != self.health.maximum();
+        let show_health =
+            (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON;
         let show_energy = self.energy.current() != self.energy.maximum();
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
@@ -458,9 +458,9 @@ impl<'a> Skillbar<'a> {
             Some((
                 format!(
                     "{}/{}",
-                    (self.health.current() / 10).max(1) as u32, /* Don't show 0 health for
-                                                                 * living players */
-                    (self.health.maximum() / 10) as u32
+                    self.health.current().round().max(1.0) as u32, /* Don't show 0 health for
+                                                                    * living players */
+                    self.health.maximum().round() as u32
                 ),
                 format!(
                     "{}/{}",

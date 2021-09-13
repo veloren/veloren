@@ -468,7 +468,7 @@ impl<'a> System<'a> for Sys {
                         // was recent and we have a health component
                         match health {
                             Some(health) if health.last_change.0 < DAMAGE_MEMORY_DURATION => {
-                                if let Some(by) = health.last_change.1.cause.damage_by() {
+                                if let Some(by) = health.last_change.1.damage_by() {
                                     if let Some(attacker) =
                                         read_data.uid_allocator.retrieve_entity_internal(by.id())
                                     {
@@ -1425,7 +1425,7 @@ impl<'a> AgentData<'a> {
     /// the healing isn't interrupted.
     fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller) -> bool {
         let healing_value = |item: &Item| {
-            let mut value = 0;
+            let mut value = 0.0;
 
             if let ItemKind::Consumable {
                 kind: ConsumableKind::Drink,
@@ -1442,15 +1442,14 @@ impl<'a> AgentData<'a> {
                         Effect::Buff(BuffEffect { kind, data, .. })
                             if matches!(kind, Regeneration | Saturation | Potion) =>
                         {
-                            value += (data.strength
-                                * data.duration.map_or(0.0, |d| d.as_secs() as f32))
-                                as i32;
+                            value +=
+                                data.strength * data.duration.map_or(0.0, |d| d.as_secs() as f32);
                         }
                         _ => {},
                     }
                 }
             }
-            value
+            value as i32
         };
 
         let mut consumables: Vec<_> = self
@@ -1569,7 +1568,7 @@ impl<'a> AgentData<'a> {
                 stats.name == "Guard" && other_is_npc && remembers_damage
             });
 
-            let attacker_of = |health: &Health| health.last_change.1.cause.damage_by();
+            let attacker_of = |health: &Health| health.last_change.1.damage_by();
 
             need_help
                 .then(|| {
@@ -4191,7 +4190,7 @@ impl<'a> AgentData<'a> {
     ) {
         if let Some(Target { target, .. }) = agent.target {
             if let Some(tgt_health) = read_data.healths.get(target) {
-                if let Some(by) = tgt_health.last_change.1.cause.damage_by() {
+                if let Some(by) = tgt_health.last_change.1.damage_by() {
                     if let Some(attacker) = get_entity_by_id(by.id(), read_data) {
                         if agent.target.is_none() {
                             controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
@@ -4450,7 +4449,7 @@ fn decrement_awareness(agent: &mut Agent) {
 
 fn entity_was_attacked(entity: EcsEntity, read_data: &ReadData) -> bool {
     if let Some(entity_health) = read_data.healths.get(entity) {
-        entity_health.last_change.0 < 5.0 && entity_health.last_change.1.amount < 0
+        entity_health.last_change.0 < 5.0 && entity_health.last_change.1.amount < 0.0
     } else {
         false
     }
