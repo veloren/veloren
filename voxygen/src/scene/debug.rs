@@ -39,7 +39,7 @@ impl DebugShape {
                         0.0,
                     );
                     let h = Vec3::new(0.0, 0.0, *height);
-                    mesh.push_tri(tri(a, b, c));
+                    mesh.push_tri(tri(c, b, a));
                     mesh.push_quad(quad(b, c, c + h, b + h));
                     mesh.push_tri(tri(a + h, b + h, c + h));
                 }
