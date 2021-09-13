@@ -383,8 +383,7 @@ impl<'a> Widget for Group<'a> {
                         inventory, health, energy, skill_set, *body, self.msm,
                     );
                     let char_name = stats.name.to_string();
-                    let health_perc =
-                        health.current() as f64 / health.base_max().max(health.maximum()) as f64;
+                    let health_perc = health.current() / health.base_max().max(health.maximum());
                     // change panel positions when debug info is shown
                     let x = if debug_on { i / 8 } else { i / 12 };
                     let y = if debug_on { i % 8 } else { i % 12 };
@@ -411,7 +410,7 @@ impl<'a> Widget for Group<'a> {
                         .set(state.ids.member_panels_bg[i], ui);
                     // Health
                     Image::new(self.imgs.bar_content)
-                        .w_h(148.0 * health_perc, 22.0)
+                        .w_h(148.0 * f64::from(health_perc), 22.0)
                         .color(Some(health_col))
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
                         .set(state.ids.member_health[i], ui);

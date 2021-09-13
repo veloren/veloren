@@ -1120,7 +1120,7 @@ impl Hud {
             //self.input = client.read_storage::<comp::ControllerInputs>();
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
-                let hp_percentage = health.current() as f32 / health.maximum() as f32 * 100.0;
+                let hp_percentage = health.current() / health.maximum() * 100.0;
                 if hp_percentage < 10.0 && !health.is_dead {
                     let hurt_fade =
                         (self.pulse * (10.0 - hp_percentage as f32) * 0.1/* speed factor */).sin()
