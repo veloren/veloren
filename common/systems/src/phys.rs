@@ -1344,7 +1344,7 @@ impl<'a> System<'a> for Sys {
 }
 
 #[warn(clippy::pedantic)]
-#[allow(clippy::too_many_arguments)]
+#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
     terrain: &'a T,
@@ -1361,6 +1361,13 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     mut land_on_ground: impl FnMut(Entity, Vel),
     read: &PhysicsRead,
 ) {
+    // FIXME: Review these
+    #![allow(
+        clippy::cast_precision_loss,
+        clippy::cast_possible_truncation,
+        clippy::cast_sign_loss
+    )]
+
     // Function for iterating over the blocks the player at a specific position
     // collides with
     fn collision_iter<'a, T: BaseVol<Vox = Block> + ReadVol>(
@@ -1375,9 +1382,10 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         near_iter.filter_map(move |(i, j, k)| {
             let block_pos = pos.map(|e| e.floor() as i32) + Vec3::new(i, j, k);
 
-            // `near_iter` could be a few blocks too large due to being integer aligned and
-            // rounding up, so skip points outside of the tighter bounds before looking them
-            // up in the terrain (which incurs a hashmap cost for volgrids)
+            // `near_iter` could be a few blocks too large due to being integer
+            // aligned and rounding up, so skip points outside of the tighter
+            // bounds before looking them up in the terrain
+            // (which incurs a hashmap cost for volgrids)
             let player_aabb = Aabb {
                 min: pos + Vec3::new(-radius, -radius, z_range.start),
                 max: pos + Vec3::new(radius, radius, z_range.end),
@@ -1428,21 +1436,27 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         .is_some()
     }
 
+    // Should be easy to just make clippy happy if we want?
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn always_hits(_: &Block) -> bool { true }
+
     let (radius, z_min, z_max) = cylinder;
 
     // Probe distances
     let hdist = radius.ceil() as i32;
+
     // Neighbouring blocks iterator
-    let near_iter = (-hdist..hdist + 1)
-        .map(move |i| {
-            (-hdist..hdist + 1).map(move |j| {
-                (1 - Block::MAX_HEIGHT.ceil() as i32 + z_min.floor() as i32
-                    ..z_max.ceil() as i32 + 1)
-                    .map(move |k| (i, j, k))
+    let near_iter = (-hdist..=hdist)
+        .flat_map(move |i| {
+            (-hdist..=hdist).map(move |j| {
+                let max_block_height = Block::MAX_HEIGHT.ceil() as i32;
+                let box_floor = z_min.floor() as i32;
+                let floor = 1 - max_block_height + box_floor;
+                let ceil = z_max.ceil() as i32;
+
+                (floor..=ceil).map(move |k| (i, j, k))
             })
         })
-        .flatten()
         .flatten();
 
     let z_range = z_min..z_max;
@@ -1452,7 +1466,8 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     let mut on_ground = None;
     let mut on_ceiling = false;
-    let mut attempts = 0; // Don't loop infinitely here
+    // Don't loop infinitely here
+    let mut attempts = 0;
 
     let mut pos_delta = tgt_pos - pos.0;
 
@@ -1461,54 +1476,62 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         .ceil()
         .max(1.0);
     let old_pos = pos.0;
+
     for _ in 0..increments as usize {
+        const MAX_ATTEMPTS: usize = 16;
         pos.0 += pos_delta / increments;
 
-        const MAX_ATTEMPTS: usize = 16;
+        let try_colliding_block = |pos: &Pos| {
+            // Calculate the player's AABB
+            let player_aabb = Aabb {
+                min: pos.0 + Vec3::new(-radius, -radius, z_min),
+                max: pos.0 + Vec3::new(radius, radius, z_max),
+            };
+
+            // Determine the block that we are colliding with most
+            // (based on minimum collision axis)
+            // (if we are colliding with one)
+            //
+            // 1) Calculate the block's positions in world space
+            // 2) Make sure the block is actually solid
+            // 3) Calculate block AABB
+            // 4) Find the maximum of the minimum collision axes
+            // (this bit is weird, trust me that it works)
+            near_iter
+                .clone()
+                .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
+                .filter_map(|block_pos| {
+                    terrain
+                        .get(block_pos)
+                        .ok()
+                        .filter(|block| block.is_solid())
+                        .map(|block| (block_pos, block))
+                })
+                .map(|(block_pos, block)| {
+                    (
+                        block_pos,
+                        Aabb {
+                            min: block_pos.map(|e| e as f32),
+                            max: block_pos.map(|e| e as f32)
+                                + Vec3::new(1.0, 1.0, block.solid_height()),
+                        },
+                        block,
+                    )
+                })
+                .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
+                .min_by_key(|(_, block_aabb, _)| {
+                    ordered_float::OrderedFloat(
+                        (block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
+                            .map(f32::abs)
+                            .sum(),
+                    )
+                })
+        };
 
         // While the player is colliding with the terrain...
-        while let Some((_block_pos, block_aabb, block)) =
-            (attempts < MAX_ATTEMPTS).then(|| {
-                // Calculate the player's AABB
-                let player_aabb = Aabb {
-                    min: pos.0 + Vec3::new(-radius, -radius, z_min),
-                    max: pos.0 + Vec3::new(radius, radius, z_max),
-                };
-
-                // Determine the block that we are colliding with most (based on minimum
-                // collision axis) (if we are colliding with one)
-                near_iter
-                    .clone()
-                    // Calculate the block's position in world space
-                    .map(|(i, j, k)| pos.0.map(|e| e.floor() as i32) + Vec3::new(i, j, k))
-                    // Make sure the block is actually solid
-                    .filter_map(|block_pos| {
-                        terrain
-                            .get(block_pos)
-                            .ok()
-                            .filter(|block| block.is_solid())
-                            .map(|block| (block_pos, block))
-                    })
-                    // Calculate block AABB
-                    .map(|(block_pos, block)| {
-                        (
-                            block_pos,
-                            Aabb {
-                                min: block_pos.map(|e| e as f32),
-                                max: block_pos.map(|e| e as f32) + Vec3::new(1.0, 1.0, block.solid_height()),
-                            },
-                            block,
-                        )
-                    })
-                    // Determine whether the block's AABB collides with the player's AABB
-                    .filter(|(_, block_aabb, _)| block_aabb.collides_with_aabb(player_aabb))
-                    // Find the maximum of the minimum collision axes (this bit is weird, trust me that it works)
-                    .min_by_key(|(_, block_aabb, _)| {
-                        ordered_float::OrderedFloat((block_aabb.center() - player_aabb.center() - Vec3::unit_z() * 0.5)
-                            .map(f32::abs)
-                            .sum())
-                    })
-            }).flatten()
+        while let Some((_block_pos, block_aabb, block)) = (attempts < MAX_ATTEMPTS)
+            .then(|| try_colliding_block(pos))
+            .flatten()
         {
             // Calculate the player's AABB
             let player_aabb = Aabb {
@@ -1532,10 +1555,9 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
             // When the resolution direction is pointing upwards, we must be on the
             // ground
-            if resolve_dir.z > 0.0
-            /* && vel.0.z <= 0.0 */
-            {
-                on_ground = Some(block).copied();
+            /* if resolve_dir.z > 0.0 && vel.0.z <= 0.0 { */
+            if resolve_dir.z > 0.0 {
+                on_ground = Some(*block);
 
                 if !was_on_ground {
                     land_on_ground(entity, *vel);
@@ -1545,47 +1567,57 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             }
 
             // When the resolution direction is non-vertical, we must be colliding
-            // with a wall If we're being pushed out horizontally...
-            if resolve_dir.z == 0.0
-                // ...and the vertical resolution direction is sufficiently great...
-                && dir.z < -0.1
-                // ...and the space above is free...
-                && !collision_with(Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()), &terrain, always_hits, near_iter.clone(), radius, z_range.clone())
-                // ...and we're falling/standing OR there is a block *directly* beneath our current origin (note: not hitbox)...
-                // && terrain
-                //     .get((pos.0 - Vec3::unit_z() * 0.1).map(|e| e.floor() as i32))
-                //     .map(|block| block.is_solid())
-                //     .unwrap_or(false)
-                // ...and there is a collision with a block beneath our current hitbox...
-                && collision_with(
-                    pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
-                    &terrain,
-                    always_hits,
-                    near_iter.clone(),
-                    radius,
-                    z_range.clone(),
-                )
+            // with a wall
+            //
+            // If we're being pushed out horizontally...
+            let pushed_horizontaly = resolve_dir.z == 0.0;
+            // ...and the vertical resolution direction is sufficiently great...
+            let vertical_resolution = dir.z < -0.1;
+            // ...and the space above is free...
+            let space_above_is_free = !collision_with(
+                Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()),
+                &terrain,
+                always_hits,
+                near_iter.clone(),
+                radius,
+                z_range.clone(),
+            );
+            // ...and there is a collision with a block beneath our current hitbox...
+            let block_beneath_collides = collision_with(
+                pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
+                &terrain,
+                always_hits,
+                near_iter.clone(),
+                radius,
+                z_range.clone(),
+            );
+
+            if pushed_horizontaly
+                && vertical_resolution
+                && space_above_is_free
+                && block_beneath_collides
             {
                 // ...block-hop!
                 pos.0.z = pos.0.z.max(block_aabb.max.z);
                 vel.0.z = vel.0.z.max(0.0);
-                // Push the character on to the block very slightly to avoid jitter due to imprecision
-                if (vel.0 * resolve_dir).xy().magnitude_squared() < 1.0f32.powi(2) {
+                // Push the character on to the block very slightly
+                // to avoid jitter due to imprecision
+                if (vel.0 * resolve_dir).xy().magnitude_squared() < 1.0_f32.powi(2) {
                     pos.0 -= resolve_dir.normalized() * 0.05;
                 }
-                on_ground = Some(block).copied();
+                on_ground = Some(*block);
                 break;
-            } else {
-                // Correct the velocity
-                vel.0 = vel.0.map2(
-                    resolve_dir,
-                    |e, d| {
-                        if d * e.signum() < 0.0 { 0.0 } else { e }
-                    },
-                );
-
-                pos_delta *= resolve_dir.map(|e| if e != 0.0 { 0.0 } else { 1.0 });
             }
+
+            // If not, correct the velocity
+            vel.0 = vel.0.map2(
+                resolve_dir,
+                |e, d| {
+                    if d * e.signum() < 0.0 { 0.0 } else { e }
+                },
+            );
+
+            pos_delta *= resolve_dir.map(|e| if e == 0.0 { 1.0 } else { 0.0 });
 
             // Resolve the collision normally
             pos.0 += resolve_dir;
@@ -1622,8 +1654,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
             .ok()
             .filter(|block| block.is_solid())
-            .map(|block| block.solid_height())
-            .unwrap_or(0.0);
+            .map_or(0.0, Block::solid_height);
         vel.0.z = 0.0;
         pos.0.z = (pos.0.z - 0.1).floor() + snap_height;
         physics_state.on_ground = terrain
@@ -1702,28 +1733,32 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             });
         }
     }
+
     physics_state.on_wall = on_wall;
     let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
+
     if physics_state.on_ground.is_some() || (physics_state.on_wall.is_some() && climbing) {
         vel.0 *= (1.0 - FRIC_GROUND.min(1.0) * fric_mod).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
 
     physics_state.in_fluid = liquid
-        .map(|(kind, max_z)| (kind, max_z - pos.0.z)) // NOTE: assumes min_z == 0.0
-        .map(|(kind, depth)| {
-            (kind, physics_state
-                .in_liquid()
-                // This is suboptimal because it doesn't check for true depth,
-                // so it can cause problems for situations like swimming down
-                // a river and spawning or teleporting in(/to) water
-                .map(|old_depth| (old_depth + old_pos.z - pos.0.z).max(depth))
-                .unwrap_or(depth))
-        })
-        .map(|(kind, depth)| Fluid::Liquid {
-            kind,
-            depth,
-            vel: Vel::zero(),
+        .map(|(kind, max_z)| {
+            // NOTE: assumes min_z == 0.0
+            let depth = max_z - pos.0.z;
+
+            // This is suboptimal because it doesn't check for true depth,
+            // so it can cause problems for situations like swimming down
+            // a river and spawning or teleporting in(/to) water
+            let new_depth = physics_state.in_liquid().map_or(depth, |old_depth| {
+                (old_depth + old_pos.z - pos.0.z).max(depth)
+            });
+
+            Fluid::Liquid {
+                kind,
+                depth: new_depth,
+                vel: Vel::zero(),
+            }
         })
         .or_else(|| match physics_state.in_fluid {
             Some(Fluid::Liquid { .. }) | None => Some(Fluid::Air {
