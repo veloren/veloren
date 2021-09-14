@@ -2,11 +2,11 @@ use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
-use super::target::{self, Target};
+use super::target::{self, MAX_TARGET_RANGE, Target};
 use client::Client;
 use common::{
     comp,
-    consts::{MAX_PICKUP_RANGE, MAX_TARGET_RANGE},
+    consts::MAX_PICKUP_RANGE,
     terrain::Block,
     util::find_dist::{Cube, Cylinder, FindDist},
     vol::ReadVol,

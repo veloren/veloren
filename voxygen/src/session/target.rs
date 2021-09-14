@@ -5,7 +5,7 @@ use vek::*;
 use client::{self, Client};
 use common::{
     comp,
-    consts::{MAX_PICKUP_RANGE, MAX_TARGET_RANGE},
+    consts::MAX_PICKUP_RANGE,
     terrain::Block,
     util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
@@ -38,6 +38,9 @@ pub struct Terrain;
 impl<T> Target<T> {
     pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
 }
+
+/// Max distance an entity can be "targeted"
+pub const MAX_TARGET_RANGE: f32 = 300.0;
 
 /// Calculate what the cursor is pointing at within the 3d scene
 #[allow(clippy::type_complexity)]
