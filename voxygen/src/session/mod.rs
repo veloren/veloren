@@ -412,8 +412,14 @@ impl PlayState for SessionState {
                 && client.is_wielding() == Some(true);
 
             // Check to see whether we're aiming at anything
-            let (build_target, collect_target, entity_target, mine_target, shortest_dist) =
-                targets_under_cursor(&client, cam_pos, cam_dir, can_build, is_mining);
+            let (
+                build_target,
+                collect_target,
+                entity_target,
+                mine_target,
+                terrain_target,
+                shortest_dist,
+            ) = targets_under_cursor(&client, cam_pos, cam_dir, can_build, is_mining);
 
             self.interactable = select_interactable(
                 &client,
@@ -442,10 +448,11 @@ impl PlayState for SessionState {
             } else {
                 self.scene.set_select_pos(None);
             }
+            // filled block in line of sight
+            let default_select_pos = terrain_target.map(|tt| tt.position);
 
             // Throw out distance info, it will be useful in the future
             self.target_entity = entity_target.map(|t| t.kind.0);
-            let default_select_pos = entity_target.map(|et| et.position);
 
             // Handle window events.
             for event in events {
@@ -476,16 +483,10 @@ impl PlayState for SessionState {
                                 }) {
                                     client.remove_block(build_target.position_int());
                                 } else {
-                                    let mut select_pos = default_select_pos;
-                                    if let Some(mine_target) = mine_target.filter(|mt| {
-                                        is_mining && is_nearest_target(shortest_dist, *mt)
-                                    }) {
-                                        select_pos = Some(mine_target.position);
-                                    }
                                     client.handle_input(
                                         InputKind::Primary,
                                         state,
-                                        select_pos,
+                                        default_select_pos,
                                         self.target_entity,
                                     );
                                 }
@@ -504,7 +505,7 @@ impl PlayState for SessionState {
                                     client.handle_input(
                                         InputKind::Secondary,
                                         state,
-                                        default_select_pos,
+                                        None,
                                         self.target_entity,
                                     );
                                 }
@@ -513,7 +514,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Block,
                                     state,
-                                    default_select_pos,
+                                    None,
                                     self.target_entity,
                                 );
                             },
@@ -536,7 +537,7 @@ impl PlayState for SessionState {
                                     client.handle_input(
                                         InputKind::Roll,
                                         state,
-                                        default_select_pos,
+                                        None,
                                         self.target_entity,
                                     );
                                 }
@@ -551,7 +552,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
                                     state,
-                                    default_select_pos,
+                                    None,
                                     self.target_entity,
                                 );
                             },
@@ -626,7 +627,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Fly,
                                     self.key_state.fly,
-                                    default_select_pos,
+                                    None,
                                     self.target_entity,
                                 );
                             },

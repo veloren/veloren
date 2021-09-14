@@ -31,6 +31,10 @@ pub struct Entity(pub specs::Entity);
 #[derive(Clone, Copy, Debug)]
 pub struct Mine;
 
+#[derive(Clone, Copy, Debug)]
+// line of sight (if not bocked by entity). Not build/mine mode dependent.
+pub struct Terrain;
+
 impl<T> Target<T> {
     pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
 }
@@ -48,6 +52,7 @@ pub(super) fn targets_under_cursor(
     Option<Target<Collectable>>,
     Option<Target<Entity>>,
     Option<Target<Mine>>,
+    Option<Target<Terrain>>,
     f32,
 ) {
     span!(_guard, "targets_under_cursor");
@@ -193,12 +198,23 @@ pub(super) fn targets_under_cursor(
             } else { None }
         });
 
-    let build_target = if can_build {
+    let solid_ray_dist = solid_cam_ray.map(|r| r.0);
+    let terrain_target = if let (None, Some(distance)) = (entity_target, solid_ray_dist) {
+        solid_pos.map(|position| Target {
+            kind: Terrain,
+            distance,
+            position,
+        })
+    } else {
+        None
+    };
+
+    let build_target = if let (true, Some(distance)) = (can_build, solid_ray_dist) {
         place_block_pos
-            .zip(solid_pos.zip(solid_cam_ray))
-            .map(|(place_pos, (position, ray))| Target {
+            .zip(solid_pos)
+            .map(|(place_pos, position)| Target {
                 kind: Build(place_pos),
-                distance: ray.0,
+                distance,
                 position,
             })
     } else {
@@ -226,6 +242,7 @@ pub(super) fn targets_under_cursor(
         collect_target,
         entity_target,
         mine_target,
+        terrain_target,
         shortest_cam_dist,
     )
 }
