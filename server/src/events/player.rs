@@ -1,7 +1,8 @@
 use super::Event;
 use crate::{
-    client::Client, metrics::PlayerMetrics, persistence::character_updater::CharacterUpdater,
-    presence::Presence, state_ext::StateExt, BattleModeBuffer, Server,
+    client::Client, events::trade::cancel_trade_for, metrics::PlayerMetrics,
+    persistence::character_updater::CharacterUpdater, presence::Presence, state_ext::StateExt,
+    BattleModeBuffer, Server,
 };
 use common::{
     comp,
@@ -114,13 +115,14 @@ pub fn handle_client_disconnect(
     skip_persistence: bool,
 ) -> Event {
     span!(_guard, "handle_client_disconnect");
+    cancel_trade_for(server, entity);
     if let Some(client) = server
         .state()
         .ecs()
         .write_storage::<Client>()
         .get_mut(entity)
     {
-        // NOTE: There are not and likely willl not be a way to safeguard against
+        // NOTE: There are not and likely will not be a way to safeguard against
         // receiving multiple `ServerEvent::ClientDisconnect` messages in a tick
         // intended for the same player, so the `None` case here is *not* a bug
         // and we should not log it as a potential issue.
