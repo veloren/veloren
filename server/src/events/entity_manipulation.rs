@@ -599,7 +599,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
             .copied()
             .unwrap_or_default();
         let impact_energy = mass.0 * vel.z.powi(2) / 2.0;
-        let falldmg = impact_energy / 100.0;
+        let falldmg = impact_energy / 1000.0;
 
         let inventories = ecs.read_storage::<Inventory>();
         let stats = ecs.read_storage::<Stats>();
