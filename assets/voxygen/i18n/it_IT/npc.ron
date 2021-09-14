@@ -3,7 +3,6 @@
 /// Localization for italian
 (
     string_map: {
-
     },
 
     vector_map: {
@@ -178,6 +177,14 @@
             "Ho distrutto il mio nemico!",
             "Finalmente in pace!",
             "... ora, che cosa stavo facendo?",
-        ]
+        ],
+        "npc.speech.menacing": [
+            "Ti sto avvertendo!",
+            "Vieni più vicino e ti attacco!",
+            "Tu non mi spaventi!",
+            "Vattene via da qui!",
+            "Vattene se vuoi vivere!",
+            "Tu non sei il benvenuto qui!",
+        ],
     }
 )

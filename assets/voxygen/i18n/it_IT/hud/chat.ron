@@ -11,6 +11,7 @@
         "hud.outcome.curse": "morto di: maledizione",
         "hud.outcome.bleeding": "morto di: sanguinamento",
         "hud.outcome.crippled": "morto di: storpiatura",
+        "hud.outcome.frozen": "morto di: congelamento",
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] è ora online",

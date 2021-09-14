@@ -21,7 +21,9 @@
 	"hud.trade.coin": "moneta/e",
 	"hud.trade.tooltip_hint_1": "<Shift-Click per Aggiungere/Rimuovere dal commercio.>",
 	"hud.trade.tooltip_hint_2": "<Ctrl-Click per Auto-Bilanciare con questo.>",
-    },
+    "hud.trade.your_offer": "La tua offerta",
+	"hud.trade.their_offer": "La sua offerta",
+	},
 
 
     vector_map: {

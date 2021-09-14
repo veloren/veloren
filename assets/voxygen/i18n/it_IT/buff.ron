@@ -30,9 +30,15 @@
         "buff.desc.burn": "Stai bruciando vivo",
         "buff.title.crippled": "Storpio",
         "buff.desc.crippled": "Il tuo movimento è storpio dal momento che le tue gambe sono gravemente ferite.",
+        "buff.title.frozen": "Congelato",
+        "buff.desc.frozen": "I tuoi movimenti e i tuoi attacchi sono rallentati.",
+        "buff.title.wet": "bagnato",
+        "buff.desc.wet": "Il terreno rifiuta i tuoi piedi, rendendoti difficile fermarsi.",
+        "buff.title.ensnared": "Intrappolato",
+        "buff.desc.ensnared": "Liane si attorcigliano intorno alle tue gambe, impedendo il uo movimento.",
         // Buffs stats
         "buff.stat.health": "Rigenera {str_total} di Salute",
-        "buff.stat.increase_max_energy": "Aumenta la Stamina Massima di {strength}",
+        "buff.stat.increase_max_energy": "Aumenta l'Energia Massima di {strength}",
         "buff.stat.increase_max_health": "Aumenta la Salute Massima di {strength}",
         "buff.stat.invulnerability": "Dona invulnerabilità",
         // Text
