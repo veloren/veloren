@@ -6,7 +6,7 @@ use super::target::{self, Target};
 use client::Client;
 use common::{
     comp,
-    consts::MAX_PICKUP_RANGE,
+    consts::{MAX_PICKUP_RANGE, MAX_TARGET_RANGE},
     terrain::Block,
     util::find_dist::{Cube, Cylinder, FindDist},
     vol::ReadVol,
@@ -62,7 +62,7 @@ pub(super) fn select_interactable(
 
     if let Some(interactable) = entity_target
         .and_then(|t| {
-            if t.distance < MAX_PICKUP_RANGE {
+            if t.distance < MAX_TARGET_RANGE {
                 let entity = t.kind.0;
                 Some(Interactable::Entity(entity))
             } else {

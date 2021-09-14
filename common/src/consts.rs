@@ -1,6 +1,8 @@
 // The limit on distance between the entity and a collectible (squared)
 pub const MAX_PICKUP_RANGE: f32 = 5.0;
 pub const MAX_MOUNT_RANGE: f32 = 14.0;
+/// Max distance an entity can be "targeted"
+pub const MAX_TARGET_RANGE: f32 = 300.0;
 
 pub const GRAVITY: f32 = 25.0;
 pub const FRIC_GROUND: f32 = 0.15;

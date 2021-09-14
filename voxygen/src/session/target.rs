@@ -5,7 +5,7 @@ use vek::*;
 use client::{self, Client};
 use common::{
     comp,
-    consts::MAX_PICKUP_RANGE,
+    consts::{MAX_PICKUP_RANGE, MAX_TARGET_RANGE},
     terrain::Block,
     util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
@@ -35,8 +35,6 @@ impl<T> Target<T> {
     pub fn position_int(self) -> Vec3<i32> { self.position.map(|p| p.floor() as i32) }
 }
 
-/// Max distance an entity can be "targeted"
-const MAX_TARGET_RANGE: f32 = 300.0;
 /// Calculate what the cursor is pointing at within the 3d scene
 #[allow(clippy::type_complexity)]
 pub(super) fn targets_under_cursor(
@@ -168,7 +166,7 @@ pub(super) fn targets_under_cursor(
 
     let seg_ray = LineSegment3 {
         start: cam_pos,
-        end: cam_pos + cam_dir * shortest_cam_dist,
+        end: cam_pos + cam_dir * cast_dist,
     };
     // TODO: fuzzy borders
     let entity_target = nearby
