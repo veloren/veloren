@@ -415,7 +415,7 @@ impl<'a> Widget for Group<'a> {
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 2.0, 2.0)
                         .set(state.ids.member_health[i], ui);
                     // Health Decay
-                    let decayed_health = 1.0 - health.maximum() as f64 / health.base_max() as f64;
+                    let decayed_health = f64::from(1.0 - health.maximum() / health.base_max());
                     if decayed_health > 0.0 {
                         let decay_bar_len = 148.0 * decayed_health;
                         Image::new(self.imgs.bar_content)

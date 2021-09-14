@@ -896,7 +896,7 @@ impl<'a> Widget for Bag<'a> {
                         * Damage::compute_damage_reduction(Some(inventory), Some(self.stats), None,))
                         as i32
                 );
-                let health_txt = format!("{}", (self.health.maximum() as f32 / 10.0) as usize);
+                let health_txt = format!("{}", self.health.maximum().round() as usize);
                 let energy_txt = format!("{}", (self.energy.maximum() as f32 / 10.0) as usize);
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
                 let stun_res_txt = format!(

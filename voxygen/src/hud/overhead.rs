@@ -190,7 +190,7 @@ impl<'a> Widget for Overhead<'a> {
         {
             // Used to set healthbar colours based on hp_percentage
             let hp_percentage = health.map_or(100.0, |h| {
-                h.current() as f64 / h.base_max().max(h.maximum()) as f64 * 100.0
+                f64::from(h.current() / h.base_max().max(h.maximum()) * 100.0)
             });
             // Compare levels to decide if a skull is shown
             let health_current = health.map_or(1.0, |h| f64::from(h.current()));
@@ -318,7 +318,7 @@ impl<'a> Widget for Overhead<'a> {
                     // Show HP Bar
                     let hp_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 1.0; //Animation timer
                     let crit_hp_color: Color = Color::Rgba(0.93, 0.59, 0.03, hp_ani);
-                    let decayed_health = 1.0 - health.maximum() as f64 / health.base_max() as f64;
+                    let decayed_health = f64::from(1.0 - health.maximum() / health.base_max());
                     // Background
                     Image::new(if self.in_group {self.imgs.health_bar_group_bg} else {self.imgs.enemy_health_bg})
                         .w_h(84.0 * BARSIZE, 10.0 * BARSIZE)
