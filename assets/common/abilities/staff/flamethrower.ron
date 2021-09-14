@@ -13,7 +13,7 @@ BasicBeam(
         chance: 0.25,
     ))),
     energy_regen: 0,
-    energy_drain: 350,
+    energy_drain: 35.0,
     ori_rate: 0.3,
     specifier: Flamethrower,
 )

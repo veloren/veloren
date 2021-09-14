@@ -7,7 +7,7 @@ ItemDef(
             stats: (
                 protection: Invincible,
                 poise_resilience: Invincible,
-                energy_max: 9000,
+                energy_max: 900.0,
                 energy_reward: 9.0,
                 crit_power: 0.0,
                 stealth: 1000.0,

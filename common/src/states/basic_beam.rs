@@ -3,10 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget,
     },
-    comp::{
-        beam, body::biped_large, Body, CharacterState, EnergyChange, EnergySource, Ori, Pos,
-        StateUpdate,
-    },
+    comp::{beam, body::biped_large, Body, CharacterState, Ori, Pos, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -98,7 +95,7 @@ impl CharacterBehavior for Data {
             StageSection::Action => {
                 if input_is_pressed(data, self.static_data.ability_info.input)
                     && (self.static_data.energy_drain <= f32::EPSILON
-                        || update.energy.current() > 0)
+                        || update.energy.current() > 0.0)
                 {
                     let speed =
                         self.static_data.range / self.static_data.beam_duration.as_secs_f32();
@@ -185,10 +182,9 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and ability key is held down
-                    update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        source: EnergySource::Ability,
-                    });
+                    update
+                        .energy
+                        .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else {
                     update.character = CharacterState::BasicBeam(Data {
                         timer: Duration::default(),

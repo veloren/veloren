@@ -390,7 +390,7 @@ impl<'a> Widget for Overhead<'a> {
 
                     // % Mana Filling
                     if let Some(energy) = energy {
-                        let energy_factor = energy.current() as f64 / energy.maximum() as f64;
+                        let energy_factor = f64::from(energy.current() / energy.maximum());
                         let size_factor = energy_factor * BARSIZE;
                         let w = if self.in_group {
                             80.0 * size_factor

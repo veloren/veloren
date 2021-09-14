@@ -72,7 +72,7 @@ pub use self::{
         InputKind, InventoryAction, InventoryEvent, InventoryManip, MountState, Mounting,
         UtteranceKind,
     },
-    energy::{Energy, EnergyChange, EnergySource},
+    energy::Energy,
     fluid_dynamics::Fluid,
     group::Group,
     inputs::CanBuild,
@@ -95,7 +95,7 @@ pub use self::{
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
     skills::{Skill, SkillGroup, SkillGroupKind, SkillSet},
-    stats::Stats,
+    stats::{Stats, StatsModifier},
     visual::{LightAnimation, LightEmitter},
 };
 

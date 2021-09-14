@@ -11,7 +11,7 @@ BasicAura(
     ),
     aura_duration: 1.0,
     range: 25.0,
-    energy_cost: 200,
+    energy_cost: 20.0,
     scales_with_combo: true,
     specifier: HealingAura,
 )

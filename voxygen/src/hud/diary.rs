@@ -2100,7 +2100,7 @@ fn general_skill_strings(skill: GeneralSkill, i18n: &Localization) -> (&str, Cow
             i18n,
             "hud.skill.inc_energy_title",
             "hud.skill.inc_energy",
-            ENERGY_PER_LEVEL / 10,
+            u32::from(ENERGY_PER_LEVEL),
         ),
     }
 }

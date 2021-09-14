@@ -597,7 +597,7 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
             .unwrap_or(false)
         //&& update.vel.0.z < 0.0
         && data.body.can_climb()
-        && update.energy.current() > 100
+        && update.energy.current() > 10.0
     {
         update.character = CharacterState::Climb(climb::Data::create_adjusted_by_skills(data));
         true

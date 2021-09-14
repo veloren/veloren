@@ -6,7 +6,7 @@ use crate::{
         inventory::item::tool::{Stats, ToolKind},
         projectile::ProjectileConstructor,
         skills::{self, SKILL_MODIFIERS},
-        Body, CharacterState, EnergySource, LightEmitter, StateUpdate,
+        Body, CharacterState, LightEmitter, StateUpdate,
     },
     states::{
         behavior::JoinData,
@@ -336,10 +336,7 @@ impl CharacterAbility {
             CharacterAbility::Roll { energy_cost, .. } => {
                 data.physics.on_ground.is_some()
                     && data.inputs.move_dir.magnitude_squared() > 0.25
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
+                    && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::DashMelee { energy_cost, .. }
             | CharacterAbility::BasicMelee { energy_cost, .. }
@@ -349,20 +346,15 @@ impl CharacterAbility {
             | CharacterAbility::ChargedMelee { energy_cost, .. }
             | CharacterAbility::Shockwave { energy_cost, .. }
             | CharacterAbility::BasicBlock { energy_cost, .. }
-            | CharacterAbility::SelfBuff { energy_cost, .. } => update
-                .energy
-                .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                .is_ok(),
+            | CharacterAbility::SelfBuff { energy_cost, .. } => {
+                update.energy.try_change_by(-*energy_cost).is_ok()
+            },
             // Consumes energy within state, so value only checked before entering state
             CharacterAbility::RepeaterRanged { energy_cost, .. } => {
-                update.energy.current() as f32 >= *energy_cost
+                update.energy.current() >= *energy_cost
             },
             CharacterAbility::LeapMelee { energy_cost, .. } => {
-                update.vel.0.z >= 0.0
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
+                update.vel.0.z >= 0.0 && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::BasicAura {
                 energy_cost,
@@ -370,10 +362,7 @@ impl CharacterAbility {
                 ..
             } => {
                 ((*scales_with_combo && data.combo.counter() > 0) | !*scales_with_combo)
-                    && update
-                        .energy
-                        .try_change_by(-(*energy_cost as i32), EnergySource::Ability)
-                        .is_ok()
+                    && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::ComboMelee { .. }
             | CharacterAbility::Boost { .. }
@@ -386,7 +375,7 @@ impl CharacterAbility {
 
     pub fn default_roll() -> CharacterAbility {
         CharacterAbility::Roll {
-            energy_cost: 120.0,
+            energy_cost: 12.0,
             buildup_duration: 0.05,
             movement_duration: 0.33,
             recover_duration: 0.125,
@@ -856,7 +845,7 @@ impl CharacterAbility {
         self
     }
 
-    pub fn get_energy_cost(&self) -> u32 {
+    pub fn get_energy_cost(&self) -> f32 {
         use CharacterAbility::*;
         match self {
             BasicMelee { energy_cost, .. }
@@ -871,19 +860,19 @@ impl CharacterAbility {
             | Shockwave { energy_cost, .. }
             | BasicAura { energy_cost, .. }
             | BasicBlock { energy_cost, .. }
-            | SelfBuff { energy_cost, .. } => *energy_cost as u32,
+            | SelfBuff { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
-                    1
+                    1.0
                 } else {
-                    0
+                    0.0
                 }
             },
             Boost { .. }
             | ComboMelee { .. }
             | Blink { .. }
             | BasicSummon { .. }
-            | SpriteSummon { .. } => 0,
+            | SpriteSummon { .. } => 0.0,
         }
     }
 
@@ -1620,7 +1609,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     max_angle: *max_angle,
                     block_strength: *block_strength,
-                    energy_cost: *energy_cost as i32,
+                    energy_cost: *energy_cost,
                     ability_info,
                 },
                 timer: Duration::default(),

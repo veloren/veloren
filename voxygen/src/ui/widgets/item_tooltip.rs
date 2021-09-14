@@ -8,9 +8,12 @@ use crate::hud::{
 use client::Client;
 use common::{
     combat,
-    comp::item::{
-        armor::{ArmorKind, Protection},
-        Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
+    comp::{
+        item::{
+            armor::{ArmorKind, Protection},
+            Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
+        },
+        Energy,
     },
     trade::SitePrices,
 };
@@ -734,7 +737,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         // Armour
                         let protection = armor.protection();
                         let poise_res = armor.poise_resilience();
-                        let energy_max = armor.energy_max() / 10;
+                        let energy_max = armor.energy_max();
                         let energy_reward = armor.energy_reward() * 10.0;
                         let crit_power = armor.crit_power();
                         let stealth = armor.stealth();
@@ -890,8 +893,8 @@ impl<'a> Widget for ItemTooltip<'a> {
                             diff_text(text, poise_res_diff.1, 0)
                         }
 
-                        if diff.energy_max() != 0.0 as i32 {
-                            let text = format!("{} {}", &energy_max_diff.0, diff.energy_max() / 10);
+                        if diff.energy_max() > Energy::ENERGY_EPSILON {
+                            let text = format!("{} {:.1}", &energy_max_diff.0, diff.energy_max());
                             diff_text(text, energy_max_diff.1, 1)
                         }
 

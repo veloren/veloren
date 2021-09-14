@@ -12,7 +12,7 @@ BasicBeam(
         strength: DamageFraction(0.75),
         chance: 0.75,
     ))),
-    energy_regen: 50,
+    energy_regen: 0,
     energy_drain: 0,
     ori_rate: 0.07,
     specifier: ClayGolem,

@@ -380,7 +380,7 @@ impl<'a> Skillbar<'a> {
         let show_health = self.global_state.settings.interface.always_show_bars
             || (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON;
         let show_energy = self.global_state.settings.interface.always_show_bars
-            || self.energy.current() != self.energy.maximum();
+            || (self.energy.current() - self.energy.maximum()).abs() > Energy::ENERGY_EPSILON;
         let decayed_health = 1.0 - self.health.maximum() as f64 / self.health.base_max() as f64;
 
         if show_health && !self.health.is_dead || decayed_health > 0.0 {
@@ -465,8 +465,8 @@ impl<'a> Skillbar<'a> {
                 ),
                 format!(
                     "{}/{}",
-                    (self.energy.current() / 10) as u32,
-                    (self.energy.maximum() / 10) as u32
+                    self.energy.current().round() as u32,
+                    self.energy.maximum().round() as u32
                 ),
             ))
         } else if let BarNumbers::Percent = bar_values {

@@ -7,7 +7,7 @@ BasicBeam(
     range: 25.0,
     max_angle: 1.0,
     damage_effect: Some(Lifesteal(0.15)),
-    energy_regen: 25,
+    energy_regen: 2.5,
     energy_drain: 0,
     ori_rate: 0.3,
     specifier: LifestealBeam,

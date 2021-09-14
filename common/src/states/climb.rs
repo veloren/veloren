@@ -1,7 +1,7 @@
 use crate::{
     comp::{
         skills::{ClimbSkill::*, Skill, SKILL_MODIFIERS},
-        CharacterState, Climb, EnergySource, InputKind, Ori, StateUpdate,
+        CharacterState, Climb, InputKind, Ori, StateUpdate,
     },
     consts::GRAVITY,
     event::LocalEvent,
@@ -46,7 +46,7 @@ impl Default for Data {
     fn default() -> Self {
         Data {
             static_data: StaticData {
-                energy_cost: 5.0,
+                energy_cost: 15.0,
                 movement_speed: 5.0,
             },
         }
@@ -91,14 +91,14 @@ impl CharacterBehavior for Data {
 
         // Expend energy if climbing
         let energy_use = match climb {
-            Climb::Up => self.static_data.energy_cost as i32,
-            Climb::Down => 1,
-            Climb::Hold => 1,
+            Climb::Up => self.static_data.energy_cost,
+            Climb::Down => 1.0,
+            Climb::Hold => 1.0,
         };
 
         if update
             .energy
-            .try_change_by(-energy_use, EnergySource::Climb)
+            .try_change_by(-energy_use * data.dt.0)
             .is_err()
         {
             update.character = CharacterState::Idle {};

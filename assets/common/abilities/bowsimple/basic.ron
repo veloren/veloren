@@ -5,7 +5,7 @@ BasicRanged(
     projectile: Arrow(
         damage: 3.5,
         knockback: 5.0,
-        energy_regen: 40,
+        energy_regen: 4.0,
     ),
     projectile_body: Object(Arrow),
     projectile_light: None,

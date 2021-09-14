@@ -3,8 +3,8 @@ use common::{
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health, Inventory, Poise,
-        PoiseChange, PoiseSource, Pos, SkillSet, Stats,
+        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, PoiseChange, PoiseSource,
+        Pos, SkillSet, Stats, StatsModifier,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -18,7 +18,7 @@ use specs::{
 };
 use vek::Vec3;
 
-const ENERGY_REGEN_ACCEL: f32 = 10.0;
+const ENERGY_REGEN_ACCEL: f32 = 1.0;
 const POISE_REGEN_ACCEL: f32 = 2.0;
 
 #[derive(SystemData)]
@@ -121,23 +121,23 @@ impl<'a> System<'a> for Sys {
                 health.update_maximum(stat.max_health_modifiers);
             }
 
-            let (change_energy, energy_scaling) = {
+            let (change_energy, energy_mods) = {
                 // Calculates energy scaling from stats and inventory
-                let new_energy_scaling =
-                    combat::compute_max_energy_mod(&energy, inventory) + stat.max_energy_modifier;
-                let current_energy_scaling = energy.maximum() as f32 / energy.base_max() as f32;
-                // Only changes energy if new modifier different from old modifer
-                // TODO: Look into using wider threshold incase floating point imprecision makes
-                // this always true
+                let energy_mods = StatsModifier {
+                    add_mod: stat.max_energy_modifiers.add_mod
+                        + combat::compute_max_energy_mod(inventory),
+                    mult_mod: stat.max_energy_modifiers.mult_mod,
+                };
                 (
-                    (current_energy_scaling - new_energy_scaling).abs() > f32::EPSILON,
-                    new_energy_scaling,
+                    energy_mods.update_maximum()
+                        || (energy.base_max() - energy.maximum()).abs() > Energy::ENERGY_EPSILON,
+                    energy_mods,
                 )
             };
 
             // If modifier sufficiently different, mutably access energy
             if change_energy {
-                energy.scale_maximum(energy_scaling);
+                energy.update_maximum(energy_mods);
             }
 
             let skills_to_level = skill_set
@@ -184,7 +184,7 @@ impl<'a> System<'a> for Sys {
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
                     .unwrap_or(None)
                     .unwrap_or(0);
-                energy.update_max_energy(Some(*body), energy_level);
+                energy.update_max_energy(*body, energy_level);
                 skill_set.modify_energy = false;
             }
         }
@@ -209,14 +209,8 @@ impl<'a> System<'a> for Sys {
 
                     if res {
                         let energy = &mut *energy;
-                        // Have to account for Calc I differential equations due to acceleration
-                        energy.change_by(EnergyChange {
-                            amount: (energy.regen_rate * dt + ENERGY_REGEN_ACCEL * dt.powi(2) / 2.0)
-                                as i32,
-                            source: EnergySource::Regen,
-                        });
-                        energy.regen_rate =
-                            (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(100.0);
+                        energy.change_by(energy.regen_rate * dt);
+                        energy.regen_rate = (energy.regen_rate + ENERGY_REGEN_ACCEL * dt).min(10.0);
                     }
 
                     let res_poise = { poise.current() < poise.maximum() };

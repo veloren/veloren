@@ -1,5 +1,5 @@
 DashMelee(
-    energy_cost: 100,
+    energy_cost: 10.0,
     base_damage: 9.0,
     scaled_damage: 16.0,
     base_poise_damage: 40,

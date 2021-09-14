@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
     consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -185,10 +185,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_cost as i32),
-                        source: EnergySource::Ability,
-                    });
+                    update.energy.change_by(-self.static_data.energy_cost);
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::SpinMelee(Data {
