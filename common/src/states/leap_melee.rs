@@ -172,7 +172,7 @@ impl CharacterBehavior for Data {
                         hit_count: 0,
                         break_block: data
                             .inputs
-                            .select_pos
+                            .break_block_pos
                             .map(|p| {
                                 (
                                     p.map(|e| e.floor() as i32),

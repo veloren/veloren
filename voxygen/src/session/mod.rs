@@ -434,17 +434,18 @@ impl PlayState for SessionState {
                 mine_target.filter(|mt| is_mining && is_nearest_target(shortest_dist, *mt))
             {
                 self.scene.set_select_pos(Some(mt.position_int()));
+                self.inputs.break_block_pos = Some(mt.position);
             } else if let Some(bt) =
                 build_target.filter(|bt| can_build && is_nearest_target(shortest_dist, *bt))
             {
                 self.scene.set_select_pos(Some(bt.position_int()));
             } else {
                 self.scene.set_select_pos(None);
-                self.inputs.select_pos = entity_target.map(|et| et.position);
             }
 
             // Throw out distance info, it will be useful in the future
             self.target_entity = entity_target.map(|t| t.kind.0);
+            let default_select_pos = entity_target.map(|et| et.position);
 
             // Handle window events.
             for event in events {
@@ -473,18 +474,18 @@ impl PlayState for SessionState {
                                 if let Some(build_target) = build_target.filter(|bt| {
                                     state && can_build && is_nearest_target(shortest_dist, *bt)
                                 }) {
-                                    self.inputs.select_pos = Some(build_target.position);
                                     client.remove_block(build_target.position_int());
                                 } else {
+                                    let mut select_pos = default_select_pos;
                                     if let Some(mine_target) = mine_target.filter(|mt| {
                                         is_mining && is_nearest_target(shortest_dist, *mt)
                                     }) {
-                                        self.inputs.select_pos = Some(mine_target.position);
+                                        select_pos = Some(mine_target.position);
                                     }
                                     client.handle_input(
                                         InputKind::Primary,
                                         state,
-                                        self.inputs.select_pos,
+                                        select_pos,
                                         self.target_entity,
                                     );
                                 }
@@ -495,7 +496,6 @@ impl PlayState for SessionState {
                                     state && can_build && is_nearest_target(shortest_dist, *bt)
                                 }) {
                                     let selected_pos = build_target.kind.0;
-                                    self.inputs.select_pos = Some(selected_pos);
                                     client.place_block(
                                         selected_pos.map(|p| p.floor() as i32),
                                         self.selected_block,
@@ -504,7 +504,7 @@ impl PlayState for SessionState {
                                     client.handle_input(
                                         InputKind::Secondary,
                                         state,
-                                        self.inputs.select_pos,
+                                        default_select_pos,
                                         self.target_entity,
                                     );
                                 }
@@ -513,7 +513,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Block,
                                     state,
-                                    self.inputs.select_pos,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },
@@ -529,8 +529,6 @@ impl PlayState for SessionState {
                                                 .ok()
                                                 .copied()
                                         }) {
-                                            self.inputs.select_pos =
-                                                build_target.map(|t| t.position);
                                             self.selected_block = block;
                                         }
                                     }
@@ -538,7 +536,7 @@ impl PlayState for SessionState {
                                     client.handle_input(
                                         InputKind::Roll,
                                         state,
-                                        self.inputs.select_pos,
+                                        default_select_pos,
                                         self.target_entity,
                                     );
                                 }
@@ -553,7 +551,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Jump,
                                     state,
-                                    self.inputs.select_pos,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },
@@ -628,7 +626,7 @@ impl PlayState for SessionState {
                                 self.client.borrow_mut().handle_input(
                                     InputKind::Fly,
                                     self.key_state.fly,
-                                    self.inputs.select_pos,
+                                    default_select_pos,
                                     self.target_entity,
                                 );
                             },
@@ -704,8 +702,6 @@ impl PlayState for SessionState {
                                                 match interaction {
                                                     Some(Interaction::Collect) => {
                                                         if block.is_collectible() {
-                                                            self.inputs.select_pos =
-                                                                collect_target.map(|t| t.position);
                                                             client.collect_block(pos);
                                                         }
                                                     },
@@ -1360,7 +1356,7 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().handle_input(
                             InputKind::Ability(0),
                             state,
-                            self.inputs.select_pos,
+                            default_select_pos,
                             self.target_entity,
                         );
                     },
@@ -1368,7 +1364,7 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().handle_input(
                             InputKind::Ability(1),
                             state,
-                            self.inputs.select_pos,
+                            default_select_pos,
                             self.target_entity,
                         );
                     },
