@@ -14,7 +14,7 @@ use common_net::msg::world_msg::{PoiKind, SiteId, SiteKind};
 use conrod_core::{
     color, position,
     widget::{self, Button, Image, Rectangle, Text},
-    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
 use specs::{saveload::MarkerAllocator, WorldExt};
@@ -197,6 +197,7 @@ impl<'a> Widget for Map<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;
+        let drag = self.global_state.settings.interface.map_drag;
         let zoom = self.global_state.settings.interface.map_zoom;
         let show_difficulty = self.global_state.settings.interface.map_show_difficulty;
         let show_towns = self.global_state.settings.interface.map_show_towns;
@@ -326,19 +327,80 @@ impl<'a> Widget for Map<'a> {
         let min_drag = (relative_player_pos.map(|x| x as f64) / 2.0 - 1.0) * map_size;
         let max_drag = (relative_player_pos.map(|x| x as f64) / 2.0 + 1.0) * map_size;
 
-        // Handle dragging
-        let drag = self.global_state.settings.interface.map_drag;
-        let dragged: Vec2<f64> = ui
-            .widget_input(state.ids.map_layers[0])
-            .drags()
-            .left()
-            .map(|drag| Vec2::<f64>::from(drag.delta_xy))
-            .sum();
-        // Drag represents offset of view from the player_pos in chunk coords
-        let drag_new = (drag + dragged / map_size / zoom * max_zoom).clamped(min_drag, max_drag);
-        if drag_new != drag {
-            events.push(Event::SettingsChange(MapDrag(drag_new)));
-        }
+        let handle_widget_mouse_events = |widget,
+                                          wpos: Option<Vec2<f32>>,
+                                          ui: &mut UiCell,
+                                          events: &mut Vec<Event>,
+                                          map_widget| {
+            // Handle Location Marking
+            if let Some(click) = ui.widget_input(widget).clicks().middle().next() {
+                match wpos {
+                    Some(ref wpos) => events.push(Event::SetLocationMarker(*wpos)),
+                    None => {
+                        let tmp: Vec2<f64> =
+                            Vec2::<f64>::from(click.xy) / map_size / zoom * max_zoom - drag;
+                        let wpos = tmp
+                            .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as f32 * sz as f32)
+                            + player_pos;
+                        events.push(Event::SetLocationMarker(wpos));
+                    },
+                }
+                events.push(Event::ToggleMarker);
+            }
+
+            // Handle zooming with the mousewheel
+            let scrolled: f64 = ui
+                .widget_input(widget)
+                .scrolls()
+                .map(|scroll| scroll.y)
+                .sum();
+            if scrolled != 0.0 {
+                let new_zoom_lvl: f64 = (f64::log2(zoom) - scrolled * 0.03)
+                    .exp2()
+                    .clamped(1.0, max_zoom / 64.0);
+                events.push(Event::SettingsChange(MapZoom(new_zoom_lvl)));
+                let cursor_mouse_pos = ui
+                    .widget_input(map_widget)
+                    .mouse()
+                    .map(|mouse| mouse.rel_xy());
+                if let Some(cursor_pos) = cursor_mouse_pos {
+                    // First we calc the new zoomed rect. Then we find out its mid.
+                    // The diff between both mids is the new drag.
+                    let w_src2 = max_zoom / new_zoom_lvl;
+                    let h_src2 = max_zoom / new_zoom_lvl;
+                    // range -0.5 to 0.5
+                    let relative_mouse_pos = Vec2::from_slice(&cursor_pos) / map_size;
+                    let drag_new = (drag
+                        + relative_mouse_pos * Vec2::new(w_src2 - w_src, h_src2 - h_src))
+                    .clamped(min_drag, max_drag);
+                    if drag_new != drag {
+                        events.push(Event::SettingsChange(MapDrag(drag_new)));
+                    }
+                }
+            }
+
+            // Handle dragging
+            let dragged: Vec2<f64> = ui
+                .widget_input(widget)
+                .drags()
+                .left()
+                .map(|drag| Vec2::<f64>::from(drag.delta_xy))
+                .sum();
+            // Drag represents offset of view from the player_pos in chunk coords
+            let drag_new =
+                (drag + dragged / map_size / zoom * max_zoom).clamped(min_drag, max_drag);
+            if drag_new != drag {
+                events.push(Event::SettingsChange(MapDrag(drag_new)));
+            }
+        };
+
+        handle_widget_mouse_events(
+            state.ids.map_layers[0],
+            None,
+            ui,
+            &mut events,
+            state.ids.map_layers[0],
+        );
 
         let rect_src = position::Rect::from_xy_dim(
             [
@@ -348,20 +410,7 @@ impl<'a> Widget for Map<'a> {
             ],
             [w_src, h_src],
         );
-        // Handle Location Marking
-        if let Some(click) = ui
-            .widget_input(state.ids.map_layers[0])
-            .clicks()
-            .middle()
-            .next()
-        {
-            events.push(Event::SetLocationMarker(
-                (Vec2::<f64>::from(click.xy) / map_size / zoom * max_zoom - drag)
-                    .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as f32 * sz as f32)
-                    + player_pos,
-            ));
-            events.push(Event::ToggleMarker);
-        }
+
         // X-Button
         if Button::image(self.imgs.close_button)
             .w_h(24.0, 25.0)
@@ -391,38 +440,6 @@ impl<'a> Widget for Map<'a> {
                     .source_rectangle(rect_src)
                     .graphics_for(state.ids.map_layers[0])
                     .set(state.ids.map_layers[index], ui);
-            }
-        }
-
-        // Handle zooming with the mousewheel
-        let scrolled: f64 = ui
-            .widget_input(state.ids.map_layers[0])
-            .scrolls()
-            .map(|scroll| scroll.y)
-            .sum();
-        if scrolled != 0.0 {
-            let new_zoom_lvl: f64 = (f64::log2(zoom) - scrolled * 0.03)
-                .exp2()
-                .clamped(1.0, max_zoom / 64.0);
-            events.push(Event::SettingsChange(MapZoom(new_zoom_lvl)));
-            let drag = self.global_state.settings.interface.map_drag;
-            let cursor_mouse_pos = ui
-                .widget_input(state.ids.map_layers[0])
-                .mouse()
-                .map(|mouse| mouse.rel_xy());
-            if let Some(cursor_pos) = cursor_mouse_pos {
-                // First we calc the new zoomed rect. Then we find out its mid.
-                // The diff between both mids is the new drag.
-                let w_src2 = max_zoom / new_zoom_lvl;
-                let h_src2 = max_zoom / new_zoom_lvl;
-                // range -0.5 to 0.5
-                let relative_mouse_pos = Vec2::from_slice(&cursor_pos) / map_size;
-                let drag_new = (drag
-                    + relative_mouse_pos * Vec2::new(w_src2 - w_src, h_src2 - h_src))
-                .clamped(min_drag, max_drag);
-                if drag_new != drag {
-                    events.push(Event::SettingsChange(MapDrag(drag_new)));
-                }
             }
         }
 
@@ -840,6 +857,15 @@ impl<'a> Widget for Map<'a> {
                     SiteKind::Tree => TEXT_COLOR,
                 },
             );
+
+            handle_widget_mouse_events(
+                state.ids.mmap_site_icons[i],
+                Some(site.wpos.map(|e| e as f32)),
+                ui,
+                &mut events,
+                state.ids.map_layers[0],
+            );
+
             // Only display sites that are toggled on
             let show_site = match &site.kind {
                 SiteKind::Town => show_towns,
@@ -922,6 +948,14 @@ impl<'a> Widget for Map<'a> {
                         }
                     },
                 }
+
+                handle_widget_mouse_events(
+                    state.ids.site_difs[i],
+                    Some(site.wpos.map(|e| e as f32)),
+                    ui,
+                    &mut events,
+                    state.ids.map_layers[0],
+                );
             }
         }
         for (i, poi) in self.client.pois().iter().enumerate() {
@@ -952,6 +986,15 @@ impl<'a> Widget for Map<'a> {
                                 //.graphics_for(state.ids.map_layers[0])
                                 .color(TEXT_COLOR)
                                 .set(state.ids.mmap_poi_titles[i], ui);
+
+                        handle_widget_mouse_events(
+                            state.ids.mmap_poi_titles[i],
+                            Some(poi.wpos.map(|e| e as f32)),
+                            ui,
+                            &mut events,
+                            state.ids.map_layers[0],
+                        );
+
                         // Show peak altitude
                         if ui
                             .widget_input(state.ids.mmap_poi_titles[i])
@@ -1066,6 +1109,14 @@ impl<'a> Widget for Map<'a> {
                 .floating(true)
                 .with_tooltip(self.tooltip_manager, &name, "", &site_tooltip, TEXT_COLOR)
                 .set(state.ids.member_indicators[i], ui);
+
+                handle_widget_mouse_events(
+                    state.ids.member_indicators[i],
+                    Some(member_pos.0.xy().map(|e| e as f32)),
+                    ui,
+                    &mut events,
+                    state.ids.map_layers[0],
+                );
             }
         }
 
@@ -1102,6 +1153,14 @@ impl<'a> Widget for Map<'a> {
                 {
                     events.push(Event::ToggleMarker);
                 }
+
+                handle_widget_mouse_events(
+                    state.ids.location_marker,
+                    Some(Vec2::new(0.0, 0.0)),
+                    ui,
+                    &mut events,
+                    state.ids.map_layers[0],
+                );
             }
         }
 
@@ -1136,6 +1195,14 @@ impl<'a> Widget for Map<'a> {
                 .w_h(arrow_sz.x, arrow_sz.y)
                 .color(Some(UI_HIGHLIGHT_0))
                 .set(state.ids.indicator, ui);
+
+            handle_widget_mouse_events(
+                state.ids.indicator,
+                Some(player_pos.xy()),
+                ui,
+                &mut events,
+                state.ids.map_layers[0],
+            );
         }
 
         // Info about controls
