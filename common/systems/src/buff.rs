@@ -209,9 +209,7 @@ impl<'a> System<'a> for Sys {
                                     };
                                     let amount = match *kind {
                                         ModifierKind::Additive => *accumulated,
-                                        ModifierKind::Fractional => {
-                                            health.maximum() as f32 * *accumulated
-                                        },
+                                        ModifierKind::Fractional => health.maximum() * *accumulated,
                                     };
                                     server_emitter.emit(ServerEvent::HealthChange {
                                         entity,
@@ -248,8 +246,7 @@ impl<'a> System<'a> for Sys {
                                 // Current fraction uses information from last tick, which is
                                 // necessary as buffs from this tick are not guaranteed to have
                                 // finished applying
-                                let current_fraction =
-                                    health.maximum() as f32 / health.base_max() as f32;
+                                let current_fraction = health.maximum() / health.base_max();
 
                                 // If achieved_fraction not initialized, initialize it to health
                                 // fraction
