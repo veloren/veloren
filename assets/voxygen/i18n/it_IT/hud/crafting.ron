@@ -14,6 +14,10 @@
         "hud.crafting.cauldron": "Calderone",
         "hud.crafting.cooking_pot": "Pentola",
         "hud.crafting.crafting_bench": "Tavolo di Creazione",
+        "hud.crafting.forge": "Forgia",
+        "hud.crafting.loom": "Telaio",
+        "hud.crafting.spinning_wheel": "Filatoio",
+        "hud.crafting.tanning_rack": "Telaio per la Concia",
         // Tabs
         "hud.crafting.tabs.all": "Tutto",
         "hud.crafting.tabs.armor": "Armatura",
@@ -25,6 +29,7 @@
         "hud.crafting.tabs.utility": "Utilità",
         "hud.crafting.tabs.weapon": "Armi",
         "hud.crafting.tabs.bag": "Borse",
+        "hud.crafting.tabs.processed_material": "Materiali",
     },
 
 
