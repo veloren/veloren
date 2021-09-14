@@ -8,7 +8,7 @@ use common::{
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
         ChatType,
     },
-    trade::Trades,
+    trade::{TradeResult, Trades},
     uid::Uid,
 };
 use common_net::{
@@ -60,6 +60,8 @@ pub fn handle_invite(
     }
 
     let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
+    let mut agents = state.ecs().write_storage::<comp::Agent>();
+    let mut invites = state.ecs().write_storage::<Invite>();
 
     if let InviteKind::Group = kind {
         if !group_manip::can_invite(
@@ -72,10 +74,28 @@ pub fn handle_invite(
         ) {
             return;
         }
+    } else {
+        // cancel current trades for inviter before inviting someone else to trade
+        let mut trades = state.ecs().write_resource::<Trades>();
+        if let Some(inviter_uid) = uids.get(inviter).copied() {
+            if let Some(active_trade) = trades.entity_trades.get(&inviter_uid).copied() {
+                trades
+                    .decline_trade(active_trade, inviter_uid)
+                    .and_then(|u| state.ecs().entity_from_uid(u.0))
+                    .map(|e| {
+                        if let Some(client) = clients.get(e) {
+                            client
+                                .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+                        }
+                        if let Some(agent) = agents.get_mut(e) {
+                            agent
+                                .inbox
+                                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                        }
+                    });
+            }
+        };
     }
-
-    let mut agents = state.ecs().write_storage::<comp::Agent>();
-    let mut invites = state.ecs().write_storage::<Invite>();
 
     if invites.contains(invitee) {
         // Inform inviter that there is already an invite
