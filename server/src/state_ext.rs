@@ -185,7 +185,6 @@ impl StateExt for State {
         inventory: comp::Inventory,
         body: comp::Body,
     ) -> EcsEntityBuilder {
-        use comp::body::{biped_large, quadruped_medium};
         self.ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -204,18 +203,7 @@ impl StateExt for State {
                 comp::Body::Ship(ship) => comp::Collider::Voxel {
                     id: ship.manifest_entry().to_string(),
                 },
-                body
-                @
-                (comp::Body::QuadrupedMedium(quadruped_medium::Body {
-                    species: quadruped_medium::Species::Camel,
-                    ..
-                })
-                | comp::Body::BipedLarge(biped_large::Body {
-                    species: biped_large::Species::Cyclops,
-                    ..
-                })) => {
-                    // no Camel was hurt while doing this sausage
-                    // can't say the same about Cyclops
+                _ => {
                     let (p0, p1, radius) = body.sausage();
 
                     // TODO:
@@ -228,12 +216,7 @@ impl StateExt for State {
                         z_min: 0.0,
                         z_max: body.height(),
                     }
-                },
-                _ => comp::Collider::Box {
-                    radius: body.radius(),
-                    z_min: 0.0,
-                    z_max: body.height(),
-                },
+                }
             })
             .with(comp::Controller::default())
             .with(body)

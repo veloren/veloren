@@ -154,12 +154,6 @@ impl<
 // We can just determine shape form dimensions.
 //
 // But I want Dachshund in Veloren at least somewhere XD
-enum Shape {
-    // Dachshund-like
-    Long,
-    // Cyclops-like
-    Wide,
-}
 
 impl Body {
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
@@ -403,26 +397,6 @@ impl Body {
         }
     }
 
-    fn shape(&self) -> Shape {
-        match self {
-            Body::BipedLarge(_)
-            | Body::BipedSmall(_)
-            | Body::Golem(_)
-            | Body::Humanoid(_)
-            | Body::Object(_) => Shape::Wide,
-            Body::BirdLarge(_)
-            | Body::BirdMedium(_)
-            | Body::Dragon(_)
-            | Body::FishMedium(_)
-            | Body::FishSmall(_)
-            | Body::QuadrupedLow(_)
-            | Body::QuadrupedMedium(_)
-            | Body::QuadrupedSmall(_)
-            | Body::Ship(_)
-            | Body::Theropod(_) => Shape::Long,
-        }
-    }
-
     // Note: This is used for collisions, but it's not very accurate for shapes that
     // are very much not cylindrical. Eventually this ought to be replaced by more
     // accurate collision shapes.
@@ -451,29 +425,26 @@ impl Body {
         // The width (shoulder to shoulder) and length (nose to tail)
         let (width, length) = (dim.x, dim.y);
 
-        match self.shape() {
-            Shape::Long => {
-                let radius = width / 2.0;
+        if length > width {
+            // Dachshund-like
+            let radius = width / 2.0;
 
-                let a = length - 2.0 * radius;
-                debug_assert!(a > 0.0);
+            let a = length - 2.0 * radius;
 
-                let p0 = Vec2::new(0.0, -a / 2.0);
-                let p1 = Vec2::new(0.0, a / 2.0);
+            let p0 = Vec2::new(0.0, -a / 2.0);
+            let p1 = Vec2::new(0.0, a / 2.0);
 
-                (p0, p1, radius)
-            },
-            Shape::Wide => {
-                let radius = length / 2.0;
+            (p0, p1, radius)
+        } else {
+            // Cyclops-like
+            let radius = length / 2.0;
 
-                let a = width - 2.0 * radius;
-                debug_assert!(a > 0.0);
+            let a = width - 2.0 * radius;
 
-                let p0 = Vec2::new(-a / 2.0, 0.0);
-                let p1 = Vec2::new(a / 2.0, 0.0);
+            let p0 = Vec2::new(-a / 2.0, 0.0);
+            let p1 = Vec2::new(a / 2.0, 0.0);
 
-                (p0, p1, radius)
-            },
+            (p0, p1, radius)
         }
     }
 
