@@ -62,6 +62,8 @@ widget_ids! {
         show_bar_numbers_values_text,
         show_bar_numbers_percentage_button,
         show_bar_numbers_percentage_text,
+        always_show_bars_button,
+        always_show_bars_label,
         //
         show_shortcuts_button,
         show_shortcuts_text,
@@ -980,6 +982,30 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.show_bar_numbers_percentage_button)
             .color(TEXT_COLOR)
             .set(state.ids.show_bar_numbers_percentage_text, ui);
+
+        // Always show energy bars
+        let always_show_bars = ToggleButton::new(
+            self.global_state.settings.interface.always_show_bars,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.show_bar_numbers_percentage_button, 20.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.always_show_bars_button, ui);
+
+        if always_show_bars != self.global_state.settings.interface.always_show_bars {
+            events.push(ToggleAlwaysShowBars(always_show_bars));
+        }
+
+        Text::new(self.localized_strings.get("hud.settings.always_show_bars"))
+            .right_from(state.ids.always_show_bars_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.always_show_bars_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.always_show_bars_label, ui);
 
         // Reset the interface settings to the default settings
         if Button::image(self.imgs.button)

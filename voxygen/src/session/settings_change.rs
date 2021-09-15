@@ -106,6 +106,7 @@ pub enum Interface {
     Intro(Intro),
     ToggleXpBar(XpBar),
     ToggleBarNumbers(BarNumbers),
+    ToggleAlwaysShowBars(bool),
     ToggleShortcutNumbers(ShortcutNumbers),
     BuffPosition(BuffPosition),
 
@@ -467,6 +468,9 @@ impl SettingsChange {
                     },
                     Interface::ToggleBarNumbers(bar_numbers) => {
                         settings.interface.bar_numbers = bar_numbers;
+                    },
+                    Interface::ToggleAlwaysShowBars(always_show_bars) => {
+                        settings.interface.always_show_bars = always_show_bars;
                     },
                     Interface::ToggleShortcutNumbers(shortcut_numbers) => {
                         settings.interface.shortcut_numbers = shortcut_numbers;
