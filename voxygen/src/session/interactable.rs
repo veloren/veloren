@@ -2,7 +2,10 @@ use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
-use super::target::{self, MAX_TARGET_RANGE, Target};
+use super::{
+    find_shortest_distance,
+    target::{self, Target, MAX_TARGET_RANGE},
+};
 use client::Client;
 use common::{
     comp,
@@ -34,11 +37,11 @@ impl Interactable {
 
 /// Select interactable to hightlight, display interaction text for, and to
 /// interact with if the interact key is pressed
-/// Selected in the following order
-/// 1) Targeted items, in order of preference:
+/// Selected in the following order:
+/// 1) Targeted items, in order of nearest under cursor:
 ///     (a) entity (if within range)
 ///     (b) collectable
-///     (c) can be mined
+///     (c) can be mined, and is a mine sprite (Air) not a weak rock.
 /// 2) outside of targeted cam ray
 ///     -> closest of nearest interactable entity/block
 pub(super) fn select_interactable(
@@ -51,6 +54,12 @@ pub(super) fn select_interactable(
     span!(_guard, "select_interactable");
     use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 
+    let nearest_dist = find_shortest_distance(&mut [
+        mine_target.map(|t| t.distance),
+        entity_target.map(|t| t.distance),
+        collect_target.map(|t| t.distance),
+    ]);
+
     fn get_block<T>(client: &Client, target: Target<T>) -> Option<Block> {
         client
             .state()
@@ -62,7 +71,7 @@ pub(super) fn select_interactable(
 
     if let Some(interactable) = entity_target
         .and_then(|t| {
-            if t.distance < MAX_TARGET_RANGE {
+            if t.distance < MAX_TARGET_RANGE && Some(t.distance) == nearest_dist {
                 let entity = t.kind.0;
                 Some(Interactable::Entity(entity))
             } else {
@@ -71,24 +80,33 @@ pub(super) fn select_interactable(
         })
         .or_else(|| {
             collect_target.and_then(|t| {
-                get_block(client, t)
-                    .map(|b| Interactable::Block(b, t.position_int(), Some(Interaction::Collect)))
+                if Some(t.distance) == nearest_dist {
+                    get_block(client, t).map(|b| {
+                        Interactable::Block(b, t.position_int(), Some(Interaction::Collect))
+                    })
+                } else {
+                    None
+                }
             })
         })
         .or_else(|| {
             mine_target.and_then(|t| {
-                get_block(client, t).and_then(|b| {
-                    // Handling edge detection. sometimes the casting (in Target mod) returns a
-                    // position which is actually empty, which we do not want labeled as an
-                    // interactable. We are only returning the mineable air
-                    // elements (e.g. minerals). The mineable weakrock are used
-                    // in the terrain selected_pos, but is not an interactable.
-                    if b.mine_tool().is_some() && b.is_air() {
-                        Some(Interactable::Block(b, t.position_int(), None))
-                    } else {
-                        None
-                    }
-                })
+                if Some(t.distance) == nearest_dist {
+                    get_block(client, t).and_then(|b| {
+                        // Handling edge detection. sometimes the casting (in Target mod) returns a
+                        // position which is actually empty, which we do not want labeled as an
+                        // interactable. We are only returning the mineable air
+                        // elements (e.g. minerals). The mineable weakrock are used
+                        // in the terrain selected_pos, but is not an interactable.
+                        if b.mine_tool().is_some() && b.is_air() {
+                            Some(Interactable::Block(b, t.position_int(), None))
+                        } else {
+                            None
+                        }
+                    })
+                } else {
+                    None
+                }
             })
         })
     {

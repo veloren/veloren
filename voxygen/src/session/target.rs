@@ -1,4 +1,3 @@
-use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
 use vek::*;
 
@@ -56,7 +55,6 @@ pub(super) fn targets_under_cursor(
     Option<Target<Entity>>,
     Option<Target<Mine>>,
     Option<Target<Terrain>>,
-    f32,
 ) {
     span!(_guard, "targets_under_cursor");
     // Choose a spot above the player's head for item distance checks
@@ -106,24 +104,6 @@ pub(super) fn targets_under_cursor(
         .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
         .unwrap_or((None, None, None));
     let (solid_pos, place_block_pos, solid_cam_ray) = find_pos(|b: Block| b.is_solid());
-
-    // Find shortest cam_dist of non-entity targets.
-    // Note that some of these targets can technically be in Air, such as the
-    // collectable.
-    let shortest_cam_dist = [&collect_cam_ray, &solid_cam_ray]
-        .iter()
-        .chain(
-            is_mining
-                .then(|| [&mine_cam_ray])
-                .unwrap_or([&solid_cam_ray])
-                .iter(),
-        )
-        .filter_map(|x| match **x {
-            Some((d, Ok(Some(_)))) => Some(d),
-            _ => None,
-        })
-        .min_by(|d1, d2| OrderedFloat(*d1).cmp(&OrderedFloat(*d2)))
-        .unwrap_or(MAX_PICKUP_RANGE);
 
     // See if ray hits entities
     // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity
@@ -246,6 +226,5 @@ pub(super) fn targets_under_cursor(
         entity_target,
         mine_target,
         terrain_target,
-        shortest_cam_dist,
     )
 }
