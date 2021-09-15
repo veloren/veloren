@@ -22,8 +22,8 @@ impl checkbox::Renderer for IcedRenderer {
         };
 
         let background_image = match (is_checked, is_mouse_over) {
-            (true, true) => style.bg_hover_check(),
-            (true, false) => style.bg_check(),
+            (true, true) => style.bg_hover_checked(),
+            (true, false) => style.bg_checked(),
             (false, true) => style.bg_hover(),
             (false, false) => style.bg_default(),
         };
@@ -41,7 +41,7 @@ impl checkbox::Renderer for IcedRenderer {
             Primitive::Group {
                 primitives: if is_checked {
                     let check = style
-                        .checked()
+                        .check()
                         .map(|image| Primitive::Image {
                             handle: (image, Rotation::None),
                             bounds,
