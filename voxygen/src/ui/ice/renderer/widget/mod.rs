@@ -1,6 +1,7 @@
 mod aspect_ratio_container;
 mod background_container;
 mod button;
+mod checkbox;
 mod column;
 mod compound_graphic;
 mod container;
