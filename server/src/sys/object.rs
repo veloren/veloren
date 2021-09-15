@@ -54,7 +54,7 @@ impl<'a> System<'a> for Sys {
                                     RadiusEffect::Entity(Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
                                         kind: DamageKind::Energy,
-                                        value: 400.0,
+                                        value: 40.0,
                                     })),
                                     RadiusEffect::Entity(Effect::PoiseChange(PoiseChange {
                                         source: PoiseSource::Explosion,
@@ -148,7 +148,7 @@ impl<'a> System<'a> for Sys {
                                     RadiusEffect::Entity(Effect::Damage(Damage {
                                         source: DamageSource::Explosion,
                                         kind: DamageKind::Energy,
-                                        value: 50.0,
+                                        value: 5.0,
                                     })),
                                     RadiusEffect::Entity(Effect::PoiseChange(PoiseChange {
                                         source: PoiseSource::Explosion,

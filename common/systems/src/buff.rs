@@ -113,7 +113,7 @@ impl<'a> System<'a> for Sys {
                         entity,
                         buff_change: BuffChange::Add(Buff::new(
                             BuffKind::Burning,
-                            BuffData::new(200.0, None),
+                            BuffData::new(20.0, None),
                             vec![BuffCategory::Natural],
                             BuffSource::World,
                         )),
@@ -199,7 +199,7 @@ impl<'a> System<'a> for Sys {
                                 *accumulated += *rate * dt;
                                 // Apply health change only once per second, per health, or
                                 // when a buff is removed
-                                if accumulated.abs() > rate.abs().min(10.0)
+                                if accumulated.abs() > rate.abs().min(1.0)
                                     || buff.time.map_or(false, |dur| dur == Duration::default())
                                 {
                                     let (cause, by) = if *accumulated < 0.0 {
