@@ -217,6 +217,7 @@ impl Block {
         }
     }
 
+    // Filled blocks or sprites
     #[inline]
     pub fn is_solid(&self) -> bool {
         self.get_sprite()
