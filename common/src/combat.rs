@@ -905,13 +905,13 @@ pub fn combat_rating(
     msm: &MaterialStatManifest,
 ) -> f32 {
     const WEAPON_WEIGHT: f32 = 1.0;
-    const HEALTH_WEIGHT: f32 = 5.0;
+    const HEALTH_WEIGHT: f32 = 0.5;
     const ENERGY_WEIGHT: f32 = 0.5;
     const SKILLS_WEIGHT: f32 = 1.0;
     const POISE_WEIGHT: f32 = 0.5;
     const CRIT_WEIGHT: f32 = 0.6;
     // Assumes a "standard" max health of 100
-    let health_rating = health.base_max()
+    let health_rating = 10.0 * health.base_max()
         / 100.0
         / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
 
