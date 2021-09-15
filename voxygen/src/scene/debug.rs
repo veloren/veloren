@@ -23,7 +23,7 @@ pub enum DebugShape {
 
 impl DebugShape {
     pub fn mesh(&self) -> Mesh<DebugVertex> {
-        use core::f32::consts::PI;
+        use core::f32::consts::{PI, TAU};
         let mut mesh = Mesh::new();
         let tri = |x: Vec3<f32>, y: Vec3<f32>, z: Vec3<f32>| {
             Tri::<DebugVertex>::new(x.into(), y.into(), z.into())
@@ -42,8 +42,7 @@ impl DebugShape {
                 for i in 0..SUBDIVISIONS {
                     // dot on circle edge
                     let to = |n: u8| {
-                        const FULL: f32 = 2.0 * PI;
-                        let angle = FULL * f32::from(n) / f32::from(SUBDIVISIONS);
+                        let angle = TAU * f32::from(n) / f32::from(SUBDIVISIONS);
 
                         Vec3::new(radius * angle.cos(), radius * angle.sin(), 0.0)
                     };
@@ -80,8 +79,7 @@ impl DebugShape {
                         for i in from..to {
                             // dot on circle edge
                             let to = |n: u8| {
-                                const FULL: f32 = 2.0 * PI;
-                                let angle = offset + FULL * f32::from(n) / f32::from(TOTAL);
+                                let angle = offset + TAU * f32::from(n) / f32::from(TOTAL);
                                 let (x, y) = (radius * angle.cos(), radius * angle.sin());
                                 let to_edge = Vec3::new(x, y, 0.0);
 

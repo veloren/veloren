@@ -866,7 +866,6 @@ impl<'a> PhysicsData<'a> {
                     // Oddities can occur on the intersection between multiple
                     // colliders, but it's not like any game physics system
                     // resolves these sort of things well anyway.
-                    //
                     // At the very least, we don't do things that result in glitchy
                     // velocities or entirely broken position snapping.
                     let mut tgt_pos = pos.0 + pos_delta;
