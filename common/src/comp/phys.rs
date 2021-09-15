@@ -55,6 +55,9 @@ pub struct PreviousPhysCache {
     pub collision_boundary: f32,
     pub scale: f32,
     pub scaled_radius: f32,
+    pub neighborhood_radius: f32,
+    /// p0 and p1 in case of CapsulePrism collider, Vec2::zero() otherwise.
+    pub origins: (Vec2<f32>, Vec2<f32>),
     pub ori: Quaternion<f32>,
 }
 
@@ -125,11 +128,10 @@ impl Collider {
         match self {
             Collider::Voxel { .. } => 1.0,
             Collider::Box { radius, .. } => *radius,
-            // FIXME: I know that this is wrong for sure,
-            // because it's not a circle.
-            //
-            // CodeReviewers, please welp!
-            Collider::CapsulePrism { radius, .. } => *radius,
+            Collider::CapsulePrism { radius, p0, p1, .. } => {
+                let a = p0.distance(*p1);
+                a / 2.0 + *radius
+            },
             Collider::Point => 0.0,
         }
     }
