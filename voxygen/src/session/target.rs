@@ -103,7 +103,7 @@ pub(super) fn targets_under_cursor(
     let (mine_pos, _, mine_cam_ray) = is_mining
         .then(|| find_pos(|b: Block| b.mine_tool().is_some()))
         .unwrap_or((None, None, None));
-    let (solid_pos, place_block_pos, solid_cam_ray) = find_pos(|b: Block| b.is_opaque());
+    let (solid_pos, place_block_pos, solid_cam_ray) = find_pos(|b: Block| b.is_filled());
 
     // See if ray hits entities
     // Don't cast through blocks, (hence why use shortest_cam_dist from non-entity

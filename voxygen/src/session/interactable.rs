@@ -54,7 +54,7 @@ pub(super) fn select_interactable(
     span!(_guard, "select_interactable");
     use common::{spiral::Spiral2d, terrain::TerrainChunk, vol::RectRasterableVol};
 
-    let nearest_dist = find_shortest_distance(&mut [
+    let nearest_dist = find_shortest_distance(&[
         mine_target.map(|t| t.distance),
         entity_target.map(|t| t.distance),
         collect_target.map(|t| t.distance),

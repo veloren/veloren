@@ -426,12 +426,12 @@ impl PlayState for SessionState {
             drop(client);
 
             // Nearest block to consider with GameInput primary or secondary key.
-            let nearest_block_dist = find_shortest_distance(&mut [
+            let nearest_block_dist = find_shortest_distance(&[
                 mine_target.filter(|_| is_mining).map(|t| t.distance),
                 build_target.filter(|_| can_build).map(|t| t.distance),
             ]);
             // Nearest block to be highlighted in the scene (self.scene.set_select_pos).
-            let nearest_scene_dist = find_shortest_distance(&mut [
+            let nearest_scene_dist = find_shortest_distance(&[
                 nearest_block_dist,
                 collect_target.filter(|_| !is_mining).map(|t| t.distance),
             ]);
@@ -513,7 +513,7 @@ impl PlayState for SessionState {
                                     client.handle_input(
                                         InputKind::Secondary,
                                         state,
-                                        None,
+                                        default_select_pos,
                                         self.target_entity,
                                     );
                                 }
@@ -1542,7 +1542,7 @@ impl PlayState for SessionState {
     fn egui_enabled(&self) -> bool { true }
 }
 
-fn find_shortest_distance(arr: &mut [Option<f32>]) -> Option<f32> {
+fn find_shortest_distance(arr: &[Option<f32>]) -> Option<f32> {
     arr.iter()
         .filter_map(|x| *x)
         .min_by(|d1, d2| OrderedFloat(*d1).cmp(&OrderedFloat(*d2)))
