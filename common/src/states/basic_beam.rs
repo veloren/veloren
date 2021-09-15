@@ -12,6 +12,7 @@ use crate::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
     },
+    terrain::Block,
     uid::Uid,
     util::Dir,
 };
@@ -160,9 +161,16 @@ impl CharacterBehavior for Data {
                         ))
                         .prerotated(pitch)
                     };
+                    // Velocity relative to the current ground
+                    let rel_vel = data.vel.0 - data.physics.ground_vel;
                     // Gets offsets
-                    let body_offsets =
-                        beam_offsets(data.body, data.inputs.look_dir, update.ori.look_vec());
+                    let body_offsets = beam_offsets(
+                        data.body,
+                        data.inputs.look_dir,
+                        update.ori.look_vec(),
+                        rel_vel,
+                        data.physics.on_ground,
+                    );
                     let pos = Pos(data.pos.0 + body_offsets);
 
                     // Create beam segment
@@ -219,9 +227,17 @@ impl CharacterBehavior for Data {
     }
 }
 
-fn height_offset(body: &Body, look_dir: Dir) -> f32 {
+fn height_offset(body: &Body, look_dir: Dir, velocity: Vec3<f32>, on_ground: Option<Block>) -> f32 {
     match body {
-        Body::BirdLarge(_) => body.height() * 0.8,
+        // Hack to make the beam offset correspond to the animation
+        Body::BirdLarge(_) => {
+            body.height() * 0.3
+                + if on_ground.is_none() {
+                    (2.0 - velocity.xy().magnitude() * 0.25).max(-1.0)
+                } else {
+                    0.0
+                }
+        },
         Body::Golem(_) => {
             const DIR_COEFF: f32 = 2.0;
             body.height() * 0.9 + look_dir.z * DIR_COEFF
@@ -234,10 +250,15 @@ fn height_offset(body: &Body, look_dir: Dir) -> f32 {
     }
 }
 
-pub fn beam_offsets(body: &Body, look_dir: Dir, ori: Vec3<f32>) -> Vec3<f32> {
+pub fn beam_offsets(
+    body: &Body,
+    look_dir: Dir,
+    ori: Vec3<f32>,
+    velocity: Vec3<f32>,
+    on_ground: Option<Block>,
+) -> Vec3<f32> {
     let body_radius = body.min_radius();
-    let body_offsets_z = height_offset(body, look_dir);
-
+    let body_offsets_z = height_offset(body, look_dir, velocity, on_ground);
     Vec3::new(
         body_radius * ori.x * 1.1,
         body_radius * ori.y * 1.1,

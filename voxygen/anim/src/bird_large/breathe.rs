@@ -106,14 +106,16 @@ impl Animation for BreatheAnimation {
             next.tail_rear.orientation =
                 Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * -0.2);
         } else {
-            if velocity.xy().magnitude() < 1.0 {
-                next.neck.orientation =
-                    Quaternion::rotation_x(movement1abs * -0.4 - movement2abs * 0.5);
+            next.neck.orientation = Quaternion::rotation_x(
+                movement1abs * -0.4
+                    + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0),
+            );
 
-                next.head.orientation = Quaternion::rotation_x(
-                    movement1abs * 0.5 - movement2abs * 0.5 + look_dir.z * 0.4,
-                );
-            };
+            next.head.orientation = Quaternion::rotation_x(
+                movement1abs * 0.5
+                    + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0)
+                    + look_dir.z * 0.4,
+            );
         }
 
         next

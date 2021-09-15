@@ -241,10 +241,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Roc, _) => (-0.4),
                 (FlameWyvern, _) => (-0.65),
             },
-            wyvern: match (body.species, body.body_type) {
-                (FlameWyvern, _) => true,
-                _ => false,
-            },
+            wyvern: matches!((body.species, body.body_type), (FlameWyvern, _)),
         }
     }
 }

@@ -343,17 +343,14 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {
-            (bird_large::Species::Cockatrice, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.birdlargebreathe",
-            )),
+            (bird_large::Species::Cockatrice | bird_large::Species::FlameWyvern, _) => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.birdlargebreathe"),
+            ),
             (bird_large::Species::Phoenix, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargefire",
             )),
             (bird_large::Species::Roc, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.birdlargebasic",
-            )),
-            (bird_large::Species::FlameWyvern, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.birdlargebreathe",
             )),
         },
         _ => None,

@@ -1884,6 +1884,9 @@ impl<'a> AgentData<'a> {
                             body,
                             controller.inputs.look_dir,
                             self.ori.look_vec(),
+                            // Try to match animation by getting some context
+                            self.vel.0 - self.physics_state.ground_vel,
+                            self.physics_state.on_ground,
                         )
                 });
                 let aim_to = Vec3::new(
