@@ -216,7 +216,7 @@ impl StateExt for State {
                         z_min: 0.0,
                         z_max: body.height(),
                     }
-                }
+                },
             })
             .with(comp::Controller::default())
             .with(body)

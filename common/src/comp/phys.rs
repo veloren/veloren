@@ -54,10 +54,12 @@ pub struct PreviousPhysCache {
     /// Calculates a Sphere over the Entity for quick boundary checking
     pub collision_boundary: f32,
     pub scale: f32,
+    /// Approximate radius of cylinder of collider.
     pub scaled_radius: f32,
+    /// Radius of stadium of collider.
     pub neighborhood_radius: f32,
-    /// p0 and p1 in case of CapsulePrism collider, Vec2::zero() otherwise.
-    pub origins: (Vec2<f32>, Vec2<f32>),
+    /// relative p0 and p1 of collider's statium, None if cylinder.
+    pub origins: Option<(Vec2<f32>, Vec2<f32>)>,
     pub ori: Quaternion<f32>,
 }
 

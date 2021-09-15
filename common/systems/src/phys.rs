@@ -23,7 +23,7 @@ use specs::{
     Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteExpect,
     WriteStorage,
 };
-use std::ops::Range;
+use std::ops::{ControlFlow, Range};
 use vek::*;
 
 /// The density of the fluid as a function of submersion ratio in given fluid
@@ -193,7 +193,7 @@ impl<'a> PhysicsData<'a> {
                     scale: 0.0,
                     scaled_radius: 0.0,
                     neighborhood_radius: 0.0,
-                    origins: (Vec2::zero(), Vec2::zero()),
+                    origins: None,
                     ori: Quaternion::identity(),
                 });
         }
@@ -224,7 +224,9 @@ impl<'a> PhysicsData<'a> {
             let flat_radius = collider.map(|c| c.get_radius()).unwrap_or(0.5) * scale;
             let neighborhood_radius = match collider {
                 Some(Collider::CapsulePrism { radius, .. }) => radius * scale,
-                _ => flat_radius,
+                Some(Collider::Box { .. } | Collider::Voxel { .. } | Collider::Point) | None => {
+                    flat_radius
+                },
             };
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
 
@@ -237,31 +239,36 @@ impl<'a> PhysicsData<'a> {
             phys_cache.scaled_radius = flat_radius;
 
             let ori = ori.to_quat();
-            let (p0, p1) = match collider {
+            let origins = match collider {
                 Some(Collider::CapsulePrism { p0, p1, .. }) => {
-                    // Build the line between two origins
+                    // Apply orientation to origins of prism.
+                    // We do this by building line between them,
+                    // rotate it and then split back to origins.
+                    //
+                    // (Otherwise we will need to do the same with each
+                    // origin).
                     let a = p1 - p0;
                     let len = a.magnitude();
-                    // Make it 3d
-                    let a = Vec3::new(a.x, a.y, 0.0);
-                    // Rotate it
+                    // We cast it to 3d and then convert it back to 2d
+                    // to apply quaternion.
+                    let a = a.with_z(0.0);
                     let a = ori * a;
-                    // Make it 2d again
-                    let a = Vec2::new(a.x, a.y);
+                    let a = a.xy();
+                    // Previous operation could shrink x and y coordinates
+                    // if orientation had Z parameter.
                     // Make sure we have the same length as before
-                    // (and scale it)
+                    // (and scale it, while we on it).
                     let a = a * scale * len / a.magnitude();
-
-                    // Splite the oriented line into two origins
                     let p0 = -a / 2.0;
                     let p1 = a / 2.0;
-                    (p0, p1)
+
+                    Some((p0, p1))
                 },
                 Some(Collider::Box { .. } | Collider::Voxel { .. } | Collider::Point) | None => {
-                    (Vec2::zero(), Vec2::zero())
+                    None
                 },
             };
-            phys_cache.origins = (p0, p1);
+            phys_cache.origins = origins;
             phys_cache.ori = ori;
         }
     }
@@ -350,7 +357,7 @@ impl<'a> PhysicsData<'a> {
                     mass,
                     collider,
                     sticky,
-                    physics,
+                    mut physics,
                     projectile,
                     char_state_maybe,
                 )| {
@@ -443,113 +450,37 @@ impl<'a> PhysicsData<'a> {
 
                                 for i in 0..increments {
                                     let factor = i as f32 * step_delta;
-
-                                    // get positions
-                                    let pos = pos.0 + previous_cache.velocity_dt * factor;
-
-                                    let pos_other =
-                                        pos_other.0 + previous_cache_other.velocity_dt * factor;
-
-                                    // Compare Z ranges
-                                    let ceiling = pos.z + z_limits.1 * previous_cache.scale;
-                                    let floor = pos.z + z_limits.0 * previous_cache.scale;
-
-                                    let ceiling_other =
-                                        pos_other.z + z_limits_other.1 * previous_cache_other.scale;
-                                    let floor_other =
-                                        pos_other.z + z_limits_other.0 * previous_cache_other.scale;
-                                    let in_z_range =
-                                        ceiling >= floor_other && floor <= ceiling_other;
-
-                                    // check horizontal distance
-                                    let (p0_offset, p1_offset) = previous_cache.origins;
-                                    let p0 = pos + p0_offset;
-                                    let p1 = pos + p1_offset;
-                                    let segment = LineSegment2 {
-                                        start: p0.xy(),
-                                        end: p1.xy(),
-                                    };
-
-                                    let (p0_offset_other, p1_offset_other) =
-                                        previous_cache_other.origins;
-                                    let p0_other = pos_other + p0_offset_other;
-                                    let p1_other = pos_other + p1_offset_other;
-
-                                    let segment_other = LineSegment2 {
-                                        start: p0_other.xy(),
-                                        end: p1_other.xy(),
-                                    };
-
-                                    let diff = projection_between(segment, segment_other);
-
-                                    let in_collision_range =
-                                        diff.magnitude_squared() <= collision_dist.powi(2);
-
-                                    let collides = in_collision_range && in_z_range;
-
-                                    if !collides {
-                                        continue;
-                                    }
-
-                                    // If entities have not yet collided
-                                    // this tick (but just did) and if entity
-                                    //
-                                    // is either in mid air
-                                    // or is not sticky,
-                                    //
-                                    // then mark them as colliding with the
-                                    // other entity.
-                                    if !collision_registered && (is_mid_air || !is_sticky) {
-                                        physics.touch_entities.insert(*other);
-                                        entity_entity_collisions += 1;
-                                    }
-
-                                    // Don't apply e2e pushback to entities
-                                    // that are in a forced movement state
-                                    // (e.g. roll, leapmelee).
-                                    //
-                                    // This allows leaps to work properly
-                                    // (since you won't get pushed away before
-                                    // delivering the hit), and allows
-                                    // rolling through an enemy when trapped
-                                    // (e.g. with minotaur).
-                                    //
-                                    // This allows using e2e pushback to
-                                    // gain speed by jumping out of a roll
-                                    // while in the middle of a collider, this
-                                    // is an intentional combat mechanic.
-                                    let forced_movement = matches!(
+                                    match try_e2e_collision(
+                                        // utility variables for our entity
+                                        &mut collision_registered,
+                                        &mut entity_entity_collisions,
+                                        factor,
+                                        collision_dist,
+                                        &mut physics,
                                         char_state_maybe,
-                                        Some(cs) if cs.is_forced_movement());
-
-                                    // Don't apply repulsive force
-                                    // to projectiles
-                                    //
-                                    // or if we're colliding with a
-                                    // terrain-like entity,
-                                    //
-                                    // or if we are a terrain-like entity
-                                    //
-                                    // Don't apply force when entity
-                                    // is a sticky which is on the
-                                    // ground (or on the wall)
-                                    if !forced_movement
-                                        && (!is_sticky || is_mid_air)
-                                        && diff.magnitude_squared() > 0.0
-                                        && !is_projectile
-                                        && !matches!(collider_other, Some(Collider::Voxel { .. }))
-                                        && !matches!(collider, Some(Collider::Voxel { .. }))
-                                    {
-                                        let force = 400.0
-                                            * (collision_dist - diff.magnitude())
-                                            * mass_other.0
-                                            / (mass.0 + mass_other.0);
-
-                                        vel_delta +=
-                                            Vec3::from(diff.normalized()) * force * step_delta;
+                                        &mut vel_delta,
+                                        step_delta,
+                                        // physics flags
+                                        is_mid_air,
+                                        is_sticky,
+                                        is_projectile,
+                                        // entity we colliding with
+                                        *other,
+                                        // symetrical collider context
+                                        pos,
+                                        pos_other,
+                                        previous_cache,
+                                        previous_cache_other,
+                                        z_limits,
+                                        z_limits_other,
+                                        collider,
+                                        collider_other,
+                                        *mass,
+                                        *mass_other,
+                                    ) {
+                                        ControlFlow::Continue(..) => continue,
+                                        ControlFlow::Break(..) => break,
                                     }
-
-                                    collision_registered = true;
                                 }
                             },
                         );
@@ -1861,31 +1792,161 @@ fn voxel_collider_bounding_sphere(
     }
 }
 
-/// Get the shortest line segment between AB and CD, used for pushback
-/// and collision checks.
-fn projection_between(ab: LineSegment2<f32>, cd: LineSegment2<f32>) -> Vec2<f32> {
-    // On 2d we can just check projection of A to CD, B to CD, C to AB and D to AB.
+#[allow(clippy::too_many_arguments)]
+fn try_e2e_collision(
+    // utility variables for our entity
+    collision_registered: &mut bool,
+    entity_entity_collisions: &mut u64,
+    factor: f32,
+    collision_dist: f32,
+    physics: &mut PhysicsState,
+    char_state_maybe: Option<&CharacterState>,
+    vel_delta: &mut Vec3<f32>,
+    step_delta: f32,
+    // physics flags
+    is_mid_air: bool,
+    is_sticky: bool,
+    is_projectile: bool,
+    // entity we colliding with
+    other: Uid,
+    // symetrical collider context
+    pos: &Pos,
+    pos_other: &Pos,
+    previous_cache: &PreviousPhysCache,
+    previous_cache_other: &PreviousPhysCache,
+    z_limits: (f32, f32),
+    z_limits_other: (f32, f32),
+    collider: Option<&Collider>,
+    collider_other: Option<&Collider>,
+    mass: Mass,
+    mass_other: Mass,
+) -> ControlFlow<()> {
+    // Find the distance betwen our collider and
+    // collider we collide with and get vector of pushback.
     //
-    // NOTE: We don't check if segments are intersecting, because
-    // even if they do, we still need to return pushback vector.
-    let a = ab.start;
-    let b = ab.end;
-    let c = cd.start;
-    let d = cd.end;
+    // If we aren't colliding, just skip step.
 
-    let projections = [
-        // A to CD
-        a - cd.projected_point(a),
-        // B to CD
-        b - cd.projected_point(b),
-        // C to AB
-        c - ab.projected_point(c),
-        // D to AB
-        d - ab.projected_point(d),
-    ];
+    // Get positions
+    let pos = pos.0 + previous_cache.velocity_dt * factor;
+    let pos_other = pos_other.0 + previous_cache_other.velocity_dt * factor;
 
-    // min_by_key returns None only if iterator is empty, so unwrap is fine
-    IntoIterator::into_iter(projections)
-        .min_by_key(|p| ordered_float::OrderedFloat(p.magnitude_squared()))
-        .unwrap()
+    // Compare Z ranges
+    let ceiling = pos.z + z_limits.1 * previous_cache.scale;
+    let floor = pos.z + z_limits.0 * previous_cache.scale;
+
+    let ceiling_other = pos_other.z + z_limits_other.1 * previous_cache_other.scale;
+    let floor_other = pos_other.z + z_limits_other.0 * previous_cache_other.scale;
+
+    let in_z_range = ceiling >= floor_other && floor <= ceiling_other;
+
+    // Check horizontal distance.
+    let diff = if in_z_range {
+        let ours = ColliderContext {
+            pos,
+            previous_cache,
+        };
+        let theirs = ColliderContext {
+            pos: pos_other,
+            previous_cache: previous_cache_other,
+        };
+
+        projection_between(ours, theirs)
+    } else {
+        return ControlFlow::Continue(());
+    };
+
+    let in_collision_range = diff.magnitude_squared() <= collision_dist.powi(2);
+    if !in_collision_range {
+        return ControlFlow::Continue(());
+    }
+
+    // If entities have not yet collided this tick (but just did) and if entity
+    // is either in mid air or is not sticky, then mark them as colliding with
+    // the other entity.
+    if !*collision_registered && (is_mid_air || !is_sticky) {
+        physics.touch_entities.insert(other);
+        *entity_entity_collisions += 1;
+    }
+
+    // Don't apply e2e pushback to entities that are in a forced movement state
+    // (e.g. roll, leapmelee).
+    //
+    // This allows leaps to work properly (since you won't get pushed away
+    // before delivering the hit), and allows rolling through an enemy when
+    // trapped (e.g. with minotaur).
+    //
+    // This allows using e2e pushback to gain speed by jumping out of a roll
+    // while in the middle of a collider, this is an intentional combat mechanic.
+    let forced_movement = matches!(char_state_maybe, Some(cs) if cs.is_forced_movement());
+
+    // Don't apply repulsive force to projectiles,
+    // or if we're colliding with a terrain-like entity,
+    // or if we are a terrain-like entity.
+    //
+    // Don't apply force when entity is a sticky which is on the ground
+    // (or on the wall).
+    if !forced_movement
+        && (!is_sticky || is_mid_air)
+        && diff.magnitude_squared() > 0.0
+        && !is_projectile
+        && !matches!(collider_other, Some(Collider::Voxel { .. }))
+        && !matches!(collider, Some(Collider::Voxel { .. }))
+    {
+        let force =
+            400.0 * (collision_dist - diff.magnitude()) * mass_other.0 / (mass.0 + mass_other.0);
+
+        *vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
+    }
+
+    *collision_registered = true;
+
+    ControlFlow::Continue(())
+}
+
+struct ColliderContext<'a> {
+    pos: Vec3<f32>,
+    previous_cache: &'a PreviousPhysCache,
+}
+
+/// Find pushback vector
+fn projection_between(c0: ColliderContext, c1: ColliderContext) -> Vec2<f32> {
+    // "Proper" way to do this would be handle the case when both our colliders
+    // are capsule prisms by building origins from p0, p1 offsets and our
+    // positions and find some sort of projection between line segments of
+    // both colliders.
+    // While it's possible, it's not a trivial operation especially
+    // in the case when they are intersect. Because in such case,
+    // even when you found intersection and you should push entities back
+    // from each other, you get then difference between them is 0 vector.
+    //
+    // Considering that we won't fully simulate collision of capsule prism.
+    // As intermediate solution, we would assume that bigger collider
+    // (with bigger scaled_radius) is capsule prism (cylinder is special
+    // case of capsule prism too) and smaller collider is cylinder (point is
+    // special case of cylinder).
+    if c0.previous_cache.scaled_radius > c1.previous_cache.scaled_radius {
+        let (p0_offset, p1_offset) = c0
+            .previous_cache
+            .origins
+            .unwrap_or((Vec2::zero(), Vec2::zero()));
+        let segment = LineSegment2 {
+            start: c0.pos.xy() + p0_offset,
+            end: c0.pos.xy() + p1_offset,
+        };
+        let other = c1.pos.xy();
+
+        other - segment.projected_point(other)
+    } else {
+        let we = c0.pos.xy();
+        let (p0_offset_other, p1_offset_other) = c1
+            .previous_cache
+            .origins
+            .unwrap_or((Vec2::zero(), Vec2::zero()));
+        let segment_other = LineSegment2 {
+            start: c1.pos.xy() + p0_offset_other,
+            end: c1.pos.xy() + p1_offset_other,
+        };
+
+        we - segment_other.projected_point(we)
+    }
 }
