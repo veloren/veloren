@@ -286,7 +286,28 @@ fn handle_invite_answer(
 ) {
     let clients = state.ecs().read_storage::<Client>();
     let uids = state.ecs().read_storage::<Uid>();
-
+    if matches!(kind, InviteKind::Trade) && matches!(invite_answer, InviteAnswer::Accepted) {
+        // invitee must close current trade if one exists before accepting new one
+        if let Some(invitee_uid) = uids.get(entity).copied() {
+            let mut trades = state.ecs().write_resource::<Trades>();
+            if let Some(active_trade) = trades.entity_trades.get(&invitee_uid).copied() {
+                trades
+                    .decline_trade(active_trade, invitee_uid)
+                    .and_then(|u| state.ecs().entity_from_uid(u.0))
+                    .map(|e| {
+                        if let Some(client) = clients.get(e) {
+                            client
+                                .send_fallible(ServerGeneral::FinishedTrade(TradeResult::Declined));
+                        }
+                        if let Some(agent) = state.ecs().write_storage::<comp::Agent>().get_mut(e) {
+                            agent
+                                .inbox
+                                .push_back(AgentEvent::FinishedTrade(TradeResult::Declined));
+                        }
+                    });
+            }
+        };
+    }
     if let (Some(client), Some(target)) = (clients.get(inviter), uids.get(entity).copied()) {
         client.send_fallible(ServerGeneral::InviteComplete {
             target,
