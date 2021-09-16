@@ -23,7 +23,7 @@ use specs::{
     Entities, Entity, Join, ParJoin, Read, ReadExpect, ReadStorage, SystemData, Write, WriteExpect,
     WriteStorage,
 };
-use std::ops::{ControlFlow, Range};
+use std::ops::Range;
 use vek::*;
 
 /// The density of the fluid as a function of submersion ratio in given fluid
@@ -222,7 +222,7 @@ impl<'a> PhysicsData<'a> {
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
             let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
-            let flat_radius = collider.map_or(0.5, Collider::get_radius) * scale;
+            let flat_radius = collider.map_or(0.5, Collider::bounding_radius) * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
 
             // Move center to the middle between OLD and OLD+VEL_DT
@@ -234,9 +234,7 @@ impl<'a> PhysicsData<'a> {
 
             let neighborhood_radius = match collider {
                 Some(Collider::CapsulePrism { radius, .. }) => radius * scale,
-                Some(Collider::Box { .. } | Collider::Voxel { .. } | Collider::Point) | None => {
-                    flat_radius
-                },
+                Some(Collider::Voxel { .. } | Collider::Point) | None => flat_radius,
             };
             phys_cache.neighborhood_radius = neighborhood_radius;
 
@@ -250,7 +248,7 @@ impl<'a> PhysicsData<'a> {
                     //
                     // Other advantage of early-return is that we don't
                     // later divide by zero and return NaN
-                    if len < 0.000001 {
+                    if len < std::f32::EPSILON * 10.0 {
                         Some((*p0, *p0))
                     } else {
                         // Apply orientation to origins of prism.
@@ -276,9 +274,7 @@ impl<'a> PhysicsData<'a> {
                         Some((p0, p1))
                     }
                 },
-                Some(Collider::Box { .. } | Collider::Voxel { .. } | Collider::Point) | None => {
-                    None
-                },
+                Some(Collider::Voxel { .. } | Collider::Point) | None => None,
             };
             phys_cache.origins = origins;
             phys_cache.ori = ori;
@@ -460,7 +456,10 @@ impl<'a> PhysicsData<'a> {
 
                                 for i in 0..increments {
                                     let factor = i as f32 * step_delta;
-                                    match try_e2e_collision(
+                                    // We are not interested if collision succeed
+                                    // or no as of now.
+                                    // Collision reaction is done inside.
+                                    let _ = resolve_e2e_collision(
                                         // utility variables for our entity
                                         &mut collision_registered,
                                         &mut entity_entity_collisions,
@@ -486,10 +485,7 @@ impl<'a> PhysicsData<'a> {
                                         collider_other,
                                         *mass,
                                         *mass_other,
-                                    ) {
-                                        ControlFlow::Continue(..) => continue,
-                                        ControlFlow::Break(..) => break,
-                                    }
+                                    );
                                 }
                             },
                         );
@@ -824,7 +820,7 @@ impl<'a> PhysicsData<'a> {
                             //
                             // Additionally, multiply radius by 0.1 to make
                             // the cylinder smaller to avoid lag.
-                            let radius = collider.get_radius() * scale * 0.1;
+                            let radius = collider.bounding_radius() * scale * 0.1;
                             let (z_min, z_max) = collider.get_z_limits(scale);
 
                             let mut cpos = *pos;
@@ -847,45 +843,6 @@ impl<'a> PhysicsData<'a> {
                             );
                             tgt_pos = cpos.0;
                         },
-                        Collider::Box {
-                            radius,
-                            z_min,
-                            z_max,
-                        } => {
-                            // FIXME:
-                            // Deprecated, should remove?
-                            //
-                            // Scale collider
-                            let radius = radius.min(0.45) * scale;
-                            let z_min = *z_min * scale;
-                            let z_max = z_max.clamped(1.2, 1.95) * scale;
-
-                            let cylinder = (radius, z_min, z_max);
-                            let mut cpos = *pos;
-                            box_voxel_collision(
-                                cylinder,
-                                &*read.terrain,
-                                entity,
-                                &mut cpos,
-                                tgt_pos,
-                                &mut vel,
-                                &mut physics_state,
-                                Vec3::zero(),
-                                &read.dt,
-                                was_on_ground,
-                                block_snap,
-                                climbing,
-                                |entity, vel| land_on_ground = Some((entity, vel)),
-                                read,
-                            );
-
-                            // Sticky things shouldn't move when on a surface
-                            if physics_state.on_surface().is_some() && sticky.is_some() {
-                                vel.0 = physics_state.ground_vel;
-                            }
-
-                            tgt_pos = cpos.0;
-                        },
                         Collider::CapsulePrism {
                             z_min,
                             z_max,
@@ -894,7 +851,7 @@ impl<'a> PhysicsData<'a> {
                             radius: _,
                         } => {
                             // Scale collider
-                            let radius = collider.get_radius().min(0.45) * scale;
+                            let radius = collider.bounding_radius().min(0.45) * scale;
                             let z_min = *z_min * scale;
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
@@ -1039,7 +996,7 @@ impl<'a> PhysicsData<'a> {
                         let entity_center = pos.0 + (z_limits.0 + half_height) * Vec3::unit_z();
                         let path_center = entity_center + pos_delta / 2.0;
 
-                        let flat_radius = collider.get_radius() * scale;
+                        let flat_radius = collider.bounding_radius() * scale;
                         let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
                         let path_bounding_radius = radius + (pos_delta / 2.0).magnitude();
 
@@ -1087,7 +1044,7 @@ impl<'a> PhysicsData<'a> {
                                 // use bounding cylinder regardless of our collider
                                 // TODO: extract point-terrain collision above to its own
                                 // function
-                                let radius = collider.get_radius();
+                                let radius = collider.bounding_radius();
                                 let (z_min, z_max) = collider.get_z_limits(1.0);
 
                                 let radius = radius.min(0.45) * scale;
@@ -1301,7 +1258,7 @@ impl<'a> PhysicsData<'a> {
             .for_each(|(entity, pos, scale, collider)| {
                 let scale = scale.map(|s| s.0).unwrap_or(1.0);
                 let radius_2d =
-                    (collider.map(|c| c.get_radius()).unwrap_or(0.5) * scale).ceil() as u32;
+                    (collider.map(|c| c.bounding_radius()).unwrap_or(0.5) * scale).ceil() as u32;
                 let pos_2d = pos.0.xy().map(|e| e as i32);
                 const POS_TRUNCATION_ERROR: u32 = 1;
                 spatial_grid.insert(pos_2d, radius_2d + POS_TRUNCATION_ERROR, entity);
@@ -1801,8 +1758,9 @@ fn voxel_collider_bounding_sphere(
     }
 }
 
+/// Returns whether interesction between entities occured
 #[allow(clippy::too_many_arguments)]
-fn try_e2e_collision(
+fn resolve_e2e_collision(
     // utility variables for our entity
     collision_registered: &mut bool,
     entity_entity_collisions: &mut u64,
@@ -1828,7 +1786,7 @@ fn try_e2e_collision(
     collider_other: Option<&Collider>,
     mass: Mass,
     mass_other: Mass,
-) -> ControlFlow<()> {
+) -> bool {
     // Find the distance betwen our collider and
     // collider we collide with and get vector of pushback.
     //
@@ -1850,7 +1808,7 @@ fn try_e2e_collision(
     let in_z_range = ceiling >= floor_other && floor <= ceiling_other;
 
     if !in_z_range {
-        return ControlFlow::Continue(());
+        return false;
     }
 
     let ours = ColliderContext {
@@ -1865,7 +1823,7 @@ fn try_e2e_collision(
     let in_collision_range = diff.magnitude_squared() <= collision_dist.powi(2);
 
     if !in_collision_range {
-        return ControlFlow::Continue(());
+        return false;
     }
 
     // If entities have not yet collided this tick (but just did) and if entity
@@ -1900,16 +1858,17 @@ fn try_e2e_collision(
         && !matches!(collider_other, Some(Collider::Voxel { .. }))
         && !matches!(collider, Some(Collider::Voxel { .. }))
     {
+        const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
         let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);
         let distance_coefficient = collision_dist - diff.magnitude();
-        let force = 400.0 * distance_coefficient * mass_coefficient;
+        let force = ELASTIC_FORCE_COEFFICIENT * distance_coefficient * mass_coefficient;
 
         *vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
     }
 
     *collision_registered = true;
 
-    ControlFlow::Continue(())
+    true
 }
 
 struct ColliderContext<'a> {
@@ -1958,17 +1917,32 @@ fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f
     }
 }
 
+/// Returns the points on line segments n and m respectively that are the
+/// closest to one-another. If the lines are parallel, an arbitrary,
+/// unspecified pair of points that sit on the line segments will be chosen.
 fn closest_points(n: LineSegment2<f32>, m: LineSegment2<f32>) -> (Vec2<f32>, Vec2<f32>) {
-    let p0 = n.start;
-    let r1 = n.end - n.start;
-    let q0 = m.start;
-    let r2 = m.end - m.start;
+    // TODO: Rewrite this to something reasonable, if you have faith
+    #![allow(clippy::many_single_char_names)]
 
-    // The solution for following equations
-    // t = (q0.x + u * r2.x - p0.x) / r1.x
-    // u = (p0.y + t * r1.y - q0.y) / r2.y
-    let t = (r2.y / r2.x * (q0.x - p0.x) + p0.y - q0.y) / (r1.x * r2.y / r2.x - r1.y);
-    let u = (p0.y + t * r1.y - q0.y) / r2.y;
+    let a = n.start;
+    let b = n.end - n.start;
+    let c = m.start;
+    let d = m.end - m.start;
+
+    // Check to prevent div by 0.0 (produces NaNs) and minimize precision
+    // loss from dividing by small values.
+    // If both d.x and d.y are 0.0 then the segment is a point and we are fine
+    // to fallback to the end point projection.
+    let t = if d.x > d.y {
+        (d.y / d.x * (c.x - a.x) + a.y - c.y) / (b.x * d.y / d.x - b.y)
+    } else {
+        (d.x / d.y * (c.y - a.y) + a.x - c.x) / (b.y * d.x / d.y - b.x)
+    };
+    let u = if d.y > d.x {
+        (a.y + t * b.y - c.y) / d.y
+    } else {
+        (a.x + t * b.x - c.x) / d.x
+    };
 
     // Check to see whether the lines are parallel
     if !t.is_finite() || !u.is_finite() {
@@ -1978,14 +1952,14 @@ fn closest_points(n: LineSegment2<f32>, m: LineSegment2<f32>) -> (Vec2<f32>, Vec
             (n.start, m.projected_point(n.start)),
             (n.end, m.projected_point(n.end)),
         ])
-            .min_by_key(|(a, b)| ordered_float::OrderedFloat(a.distance_squared(*b)))
-            .expect("Lines had non-finite elements")
+        .min_by_key(|(a, b)| ordered_float::OrderedFloat(a.distance_squared(*b)))
+        .expect("Lines had non-finite elements")
     } else {
         let t = t.clamped(0.0, 1.0);
         let u = u.clamped(0.0, 1.0);
 
-        let close_n = p0 + r1 * t;
-        let close_m = q0 + r2 * u;
+        let close_n = a + b * t;
+        let close_m = c + d * u;
 
         let proj_n = n.projected_point(close_m);
         let proj_m = m.projected_point(close_n);

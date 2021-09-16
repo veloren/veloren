@@ -1164,30 +1164,6 @@ impl Scene {
                 .join()
             {
                 match collider {
-                    comp::Collider::Box {
-                        radius,
-                        z_min,
-                        z_max,
-                    } => {
-                        current_entities.insert(entity);
-                        let shape_id = hitboxes.entry(entity).or_insert_with(|| {
-                            self.debug.add_shape(DebugShape::Cylinder {
-                                radius: *radius,
-                                height: *z_max - *z_min,
-                            })
-                        });
-                        let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
-                        let color = if group == Some(&comp::group::ENEMY) {
-                            [1.0, 0.0, 0.0, 0.5]
-                        } else if group == Some(&comp::group::NPC) {
-                            [0.0, 0.0, 1.0, 0.5]
-                        } else {
-                            [0.0, 1.0, 0.0, 0.5]
-                        };
-                        // cylinders don't need orientation anyway
-                        let ori = [0.0, 0.0, 0.0, 1.0];
-                        self.debug.set_context(*shape_id, hb_pos, color, ori);
-                    },
                     comp::Collider::CapsulePrism {
                         p0,
                         p1,

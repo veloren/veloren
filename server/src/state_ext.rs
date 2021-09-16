@@ -203,20 +203,7 @@ impl StateExt for State {
                 comp::Body::Ship(ship) => comp::Collider::Voxel {
                     id: ship.manifest_entry().to_string(),
                 },
-                _ => {
-                    let (p0, p1, radius) = body.sausage();
-
-                    // TODO:
-                    // It would be cool not have z_min as hardcoded 0.0
-                    // but it needs to work nicer with terrain collisions.
-                    comp::Collider::CapsulePrism {
-                        p0,
-                        p1,
-                        radius,
-                        z_min: 0.0,
-                        z_max: body.height(),
-                    }
-                },
+                _ => capsule(&body),
             })
             .with(comp::Controller::default())
             .with(body)
@@ -248,11 +235,7 @@ impl StateExt for State {
             .with(comp::Ori::default())
             .with(body.mass())
             .with(body.density())
-            .with(comp::Collider::Box {
-                radius: body.max_radius(),
-                z_min: 0.0,
-                z_max: body.height(),
-            })
+            .with(capsule(&body))
             .with(body)
     }
 
@@ -314,11 +297,7 @@ impl StateExt for State {
         if projectile.is_point {
             projectile_base = projectile_base.with(comp::Collider::Point)
         } else {
-            projectile_base = projectile_base.with(comp::Collider::Box {
-                radius: body.max_radius(),
-                z_min: 0.0,
-                z_max: body.height(),
-            })
+            projectile_base = projectile_base.with(capsule(&body))
         }
 
         projectile_base.with(projectile).with(body)
@@ -391,11 +370,7 @@ impl StateExt for State {
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
-            .with(comp::Collider::Box {
-                radius: comp::Body::Object(object).max_radius(),
-                z_min: 0.0,
-                z_max: comp::Body::Object(object).height()
-            })
+            .with(capsule(&object.into()))
             .with(comp::Body::Object(object))
             .with(comp::Mass(10.0))
             // .with(comp::Sticky)
@@ -467,7 +442,9 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Pos(spawn_point));
             self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
             self.write_component_ignore_entity_dead(entity, comp::Ori::default());
-            self.write_component_ignore_entity_dead(entity, comp::Collider::Box {
+            self.write_component_ignore_entity_dead(entity, comp::Collider::CapsulePrism {
+                p0: Vec2::zero(),
+                p1: Vec2::zero(),
                 radius: 0.4,
                 z_min: 0.0,
                 z_max: 1.75,
@@ -509,11 +486,7 @@ impl StateExt for State {
             // and we call nothing that can delete it in any of the subsequent
             // commands, so we can assume that all of these calls succeed,
             // justifying ignoring the result of insertion.
-            self.write_component_ignore_entity_dead(entity, comp::Collider::Box {
-                radius: body.max_radius(),
-                z_min: 0.0,
-                z_max: body.height(),
-            });
+            self.write_component_ignore_entity_dead(entity, capsule(&body));
             self.write_component_ignore_entity_dead(entity, body);
             self.write_component_ignore_entity_dead(entity, body.mass());
             self.write_component_ignore_entity_dead(entity, body.density());
@@ -894,5 +867,17 @@ fn send_to_group(g: &comp::Group, ecs: &specs::World, msg: &comp::ChatMsg) {
         if g == group {
             client.send_fallible(ServerGeneral::ChatMsg(msg.clone()));
         }
+    }
+}
+
+fn capsule(body: &comp::Body) -> comp::Collider {
+    let (p0, p1, radius) = body.sausage();
+
+    comp::Collider::CapsulePrism {
+        p0,
+        p1,
+        radius,
+        z_min: 0.0,
+        z_max: body.height(),
     }
 }
