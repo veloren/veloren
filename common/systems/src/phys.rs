@@ -216,53 +216,66 @@ impl<'a> PhysicsData<'a> {
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
             let z_limits = calc_z_limit(cs, collider);
-            let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
-            let half_height = (z_limits.1 - z_limits.0) / 2.0;
+            let (z_min, z_max) = z_limits;
+            let (z_min, z_max) = (z_min * scale, z_max * scale);
+            let half_height = (z_max - z_min) / 2.0;
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
-            let entity_center = position.0 + Vec3::new(0.0, z_limits.0 + half_height, 0.0);
-            let flat_radius = collider.map(|c| c.get_radius()).unwrap_or(0.5) * scale;
+            let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
+            let flat_radius = collider.map_or(0.5, Collider::get_radius) * scale;
+            let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
+
+            // Move center to the middle between OLD and OLD+VEL_DT
+            // so that we can reduce the collision_boundary.
+            phys_cache.center = entity_center + phys_cache.velocity_dt / 2.0;
+            phys_cache.collision_boundary = radius
+                + (phys_cache.velocity_dt / 2.0).magnitude();
+            phys_cache.scale = scale;
+            phys_cache.scaled_radius = flat_radius;
+
             let neighborhood_radius = match collider {
                 Some(Collider::CapsulePrism { radius, .. }) => radius * scale,
                 Some(Collider::Box { .. } | Collider::Voxel { .. } | Collider::Point) | None => {
                     flat_radius
                 },
             };
-            let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
-
-            // Move center to the middle between OLD and OLD+VEL_DT so that we can reduce
-            // the collision_boundary
-            phys_cache.center = entity_center + phys_cache.velocity_dt / 2.0;
-            phys_cache.collision_boundary = radius + (phys_cache.velocity_dt / 2.0).magnitude();
-            phys_cache.scale = scale;
             phys_cache.neighborhood_radius = neighborhood_radius;
-            phys_cache.scaled_radius = flat_radius;
 
             let ori = ori.to_quat();
             let origins = match collider {
                 Some(Collider::CapsulePrism { p0, p1, .. }) => {
-                    // Apply orientation to origins of prism.
-                    // We do this by building line between them,
-                    // rotate it and then split back to origins.
-                    //
-                    // (Otherwise we will need to do the same with each
-                    // origin).
                     let a = p1 - p0;
                     let len = a.magnitude();
-                    // We cast it to 3d and then convert it back to 2d
-                    // to apply quaternion.
-                    let a = a.with_z(0.0);
-                    let a = ori * a;
-                    let a = a.xy();
-                    // Previous operation could shrink x and y coordinates
-                    // if orientation had Z parameter.
-                    // Make sure we have the same length as before
-                    // (and scale it, while we on it).
-                    let a = a * scale * len / a.magnitude();
-                    let p0 = -a / 2.0;
-                    let p1 = a / 2.0;
+                    // If origins are close enough, our capsule prism is cylinder
+                    // with one origin which we don't even need to rotate.
+                    //
+                    // Other advantage of early-return is that we don't
+                    // later divide by zero and return NaN
+                    if len < 0.000001 {
+                        Some((*p0, *p0))
+                    } else {
+                        // Apply orientation to origins of prism.
+                        //
+                        // We do this by building line between them,
+                        // rotate it and then split back to origins.
+                        // (Otherwise we will need to do the same with each
+                        // origin).
+                        //
+                        // Cast it to 3d and then convert it back to 2d
+                        // to apply quaternion.
+                        let a = a.with_z(0.0);
+                        let a = ori * a;
+                        let a = a.xy();
+                        // Previous operation could shrink x and y coordinates
+                        // if orientation had Z parameter.
+                        // Make sure we have the same length as before
+                        // (and scale it, while we on it).
+                        let a = a.normalized() * scale * len;
+                        let p0 = -a / 2.0;
+                        let p1 = a / 2.0;
 
-                    Some((p0, p1))
+                        Some((p0, p1))
+                    }
                 },
                 Some(Collider::Box { .. } | Collider::Voxel { .. } | Collider::Point) | None => {
                     None
@@ -434,6 +447,7 @@ impl<'a> PhysicsData<'a> {
                                 entity_entity_collision_checks += 1;
 
                                 const MIN_COLLISION_DIST: f32 = 0.3;
+
                                 let increments = ((previous_cache.velocity_dt
                                     - previous_cache_other.velocity_dt)
                                     .magnitude()
@@ -445,8 +459,6 @@ impl<'a> PhysicsData<'a> {
 
                                 let mut collision_registered = false;
 
-                                let collision_dist = previous_cache.neighborhood_radius
-                                    + previous_cache_other.neighborhood_radius;
 
                                 for i in 0..increments {
                                     let factor = i as f32 * step_delta;
@@ -455,7 +467,6 @@ impl<'a> PhysicsData<'a> {
                                         &mut collision_registered,
                                         &mut entity_entity_collisions,
                                         factor,
-                                        collision_dist,
                                         &mut physics,
                                         char_state_maybe,
                                         &mut vel_delta,
@@ -1798,7 +1809,6 @@ fn try_e2e_collision(
     collision_registered: &mut bool,
     entity_entity_collisions: &mut u64,
     factor: f32,
-    collision_dist: f32,
     physics: &mut PhysicsState,
     char_state_maybe: Option<&CharacterState>,
     vel_delta: &mut Vec3<f32>,
@@ -1831,31 +1841,31 @@ fn try_e2e_collision(
     let pos_other = pos_other.0 + previous_cache_other.velocity_dt * factor;
 
     // Compare Z ranges
-    let ceiling = pos.z + z_limits.1 * previous_cache.scale;
-    let floor = pos.z + z_limits.0 * previous_cache.scale;
+    let (z_min, z_max) = z_limits;
+    let ceiling = pos.z + z_max * previous_cache.scale;
+    let floor = pos.z + z_min * previous_cache.scale;
 
-    let ceiling_other = pos_other.z + z_limits_other.1 * previous_cache_other.scale;
-    let floor_other = pos_other.z + z_limits_other.0 * previous_cache_other.scale;
+    let (z_min_other, z_max_other) = z_limits_other;
+    let ceiling_other = pos_other.z + z_max_other * previous_cache_other.scale;
+    let floor_other = pos_other.z + z_min_other * previous_cache_other.scale;
 
     let in_z_range = ceiling >= floor_other && floor <= ceiling_other;
 
-    // Check horizontal distance.
-    let diff = if in_z_range {
-        let ours = ColliderContext {
-            pos,
-            previous_cache,
-        };
-        let theirs = ColliderContext {
-            pos: pos_other,
-            previous_cache: previous_cache_other,
-        };
-
-        projection_between(ours, theirs)
-    } else {
+    if !in_z_range {
         return ControlFlow::Continue(());
-    };
+    }
 
+    let ours = ColliderContext {
+        pos,
+        previous_cache,
+    };
+    let theirs = ColliderContext {
+        pos: pos_other,
+        previous_cache: previous_cache_other,
+    };
+    let (diff, collision_dist) = projection_between(ours, theirs);
     let in_collision_range = diff.magnitude_squared() <= collision_dist.powi(2);
+
     if !in_collision_range {
         return ControlFlow::Continue(());
     }
@@ -1892,8 +1902,9 @@ fn try_e2e_collision(
         && !matches!(collider_other, Some(Collider::Voxel { .. }))
         && !matches!(collider, Some(Collider::Voxel { .. }))
     {
-        let force =
-            400.0 * (collision_dist - diff.magnitude()) * mass_other.0 / (mass.0 + mass_other.0);
+        let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);
+        let distance_coefficient = collision_dist - diff.magnitude();
+        let force = 400.0 * distance_coefficient * mass_coefficient;
 
         *vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
     }
@@ -1908,8 +1919,8 @@ struct ColliderContext<'a> {
     previous_cache: &'a PreviousPhysCache,
 }
 
-/// Find pushback vector
-fn projection_between(c0: ColliderContext, c1: ColliderContext) -> Vec2<f32> {
+/// Find pushback vector and collision_distance we assume between this colliders.
+fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f32) {
     // "Proper" way to do this would be handle the case when both our colliders
     // are capsule prisms by building origins from p0, p1 offsets and our
     // positions and find some sort of projection between line segments of
@@ -1924,29 +1935,53 @@ fn projection_between(c0: ColliderContext, c1: ColliderContext) -> Vec2<f32> {
     // (with bigger scaled_radius) is capsule prism (cylinder is special
     // case of capsule prism too) and smaller collider is cylinder (point is
     // special case of cylinder).
+    // So in the end our model of collision and pushback vector is simplified
+    // to checking distance of the point between segment of capsule.
+    //
+    // NOTE: no matter if we consider our collider capsule prism or cylinder
+    // we should always build pushback vector to have direction
+    // of motion from our target collider to our collider.
+    //
+    // TODO: can code beloew be deduplicated? :think:
     if c0.previous_cache.scaled_radius > c1.previous_cache.scaled_radius {
-        let (p0_offset, p1_offset) = c0
-            .previous_cache
-            .origins
-            .unwrap_or((Vec2::zero(), Vec2::zero()));
-        let segment = LineSegment2 {
-            start: c0.pos.xy() + p0_offset,
-            end: c0.pos.xy() + p1_offset,
-        };
+        let our_radius = c0.previous_cache.neighborhood_radius;
+        let their_radius = c1.previous_cache.scaled_radius;
+        let collision_dist = our_radius + their_radius;
+
+        let we = c0.pos.xy();
         let other = c1.pos.xy();
 
-        other - segment.projected_point(other)
-    } else {
-        let we = c0.pos.xy();
-        let (p0_offset_other, p1_offset_other) = c1
-            .previous_cache
-            .origins
-            .unwrap_or((Vec2::zero(), Vec2::zero()));
-        let segment_other = LineSegment2 {
-            start: c1.pos.xy() + p0_offset_other,
-            end: c1.pos.xy() + p1_offset_other,
+        let (p0_offset, p1_offset) = match c0.previous_cache.origins {
+            Some(origins) => origins,
+            None => return (we - other, collision_dist),
+        };
+        let segment = LineSegment2 {
+            start: we + p0_offset,
+            end: we + p1_offset,
         };
 
-        we - segment_other.projected_point(we)
+        let projection = other - segment.projected_point(other) - other;
+
+        (projection, collision_dist)
+    } else {
+        let our_radius = c0.previous_cache.scaled_radius;
+        let their_radius = c1.previous_cache.neighborhood_radius;
+        let collision_dist = our_radius + their_radius;
+
+        let we = c0.pos.xy();
+        let other = c1.pos.xy();
+
+        let (p0_offset_other, p1_offset_other) = match c1.previous_cache.origins {
+            Some(origins) => origins,
+            None => return (we - other, collision_dist),
+        };
+        let segment_other = LineSegment2 {
+            start: other + p0_offset_other,
+            end: other + p1_offset_other,
+        };
+
+        let projection = we - segment_other.projected_point(we);
+
+        (projection, collision_dist)
     }
 }
