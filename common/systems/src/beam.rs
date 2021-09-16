@@ -82,174 +82,193 @@ impl<'a> System<'a> for Sys {
             &beam_segments,
         )
             .par_join()
-            .fold(|| (Vec::new(), Vec::new(), Vec::new()),
-            |(mut server_events, mut add_hit_entities, mut outcomes),
-            (entity, pos, ori, beam_segment)|
-        {
-            let creation_time = match beam_segment.creation {
-                Some(time) => time,
-                // Skip newly created beam segments
-                None => return (server_events, add_hit_entities, outcomes),
-            };
-            let end_time = creation_time + beam_segment.duration.as_secs_f64();
-
-            let beam_owner = beam_segment
-                .owner
-                .and_then(|uid| read_data.uid_allocator.retrieve_entity_internal(uid.into()));
-
-            let mut rng = thread_rng();
-            if rng.gen_bool(0.005) {
-                server_events.push(ServerEvent::Sound {
-                    sound: Sound::new(SoundKind::Beam, pos.0, 7.0, time),
-                });
-            }
-
-            // If beam segment is out of time emit destroy event but still continue since it
-            // may have traveled and produced effects a bit before reaching its
-            // end point
-            if end_time < time {
-                server_events.push(ServerEvent::Delete(entity));
-            }
-
-            // Determine area that was covered by the beam in the last tick
-            let frame_time = dt.min((end_time - time) as f32);
-            if frame_time <= 0.0 {
-                return (server_events, add_hit_entities, outcomes);
-            }
-            // Note: min() probably uneeded
-            let time_since_creation = (time - creation_time) as f32;
-            let frame_start_dist =
-                (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);
-            let frame_end_dist = (beam_segment.speed * time_since_creation).max(frame_start_dist);
-
-            // Group to ignore collisions with
-            // Might make this more nuanced if beams are used for non damage effects
-            let group = beam_owner.and_then(|e| read_data.groups.get(e));
-
-            let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get(e)) {
-                &beam.hit_entities
-            } else {
-                return (server_events, add_hit_entities, outcomes);
-            };
-
-            // Go through all affectable entities by querying the spatial grid
-            let target_iter = read_data
-                .cached_spatial_grid
-                .0
-                .in_circle_aabr(pos.0.xy(), frame_end_dist - frame_start_dist)
-                .filter_map(|target|{
-                    read_data
-                        .positions
-                        .get(target)
-                        .and_then(|l| read_data.healths.get(target).map(|r| (l,r)))
-                        .and_then(|l| read_data.uids.get(target).map(|r| (l,r)))
-                        .and_then(|l| read_data.bodies.get(target).map(|r| (l,r)))
-                        .map(|(((pos_b, health_b), uid_b), body_b)| {
-                            (target, uid_b, pos_b, health_b, body_b)
-                        })
-                });
-            target_iter.for_each(|(target, uid_b, pos_b, health_b, body_b)| {
-                // Check to see if entity has already been hit recently
-                if hit_entities.iter().any(|&uid| uid == *uid_b) {
-                    return;
-                }
-
-                // Scales
-                let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
-                let rad_b = body_b.radius() * scale_b;
-                let height_b = body_b.height() * scale_b;
-
-                // Check if it is a hit
-                let hit = entity != target && !health_b.is_dead
-                    // Collision shapes
-                    && sphere_wedge_cylinder_collision(pos.0, frame_start_dist, frame_end_dist, *ori.look_dir(), beam_segment.angle, pos_b.0, rad_b, height_b);
-
-                // Finally, ensure that a hit has actually occurred by performing a raycast. We do this last because
-                // it's likely to be the most expensive operation.
-                let tgt_dist = pos.0.distance(pos_b.0);
-                let hit = hit && read_data.terrain
-                    .ray(pos.0, pos.0 + *ori.look_dir() * (tgt_dist + 1.0))
-                    .until(|b| b.is_filled())
-                    .cast().0 >= tgt_dist;
-
-                if hit {
-                    // See if entities are in the same group
-                    let same_group = group
-                        .map(|group_a| Some(group_a) == read_data.groups.get(target))
-                        .unwrap_or(Some(*uid_b) == beam_segment.owner);
-
-                    let target_group = if same_group {
-                        GroupTarget::InGroup
-                    } else {
-                        GroupTarget::OutOfGroup
+            .fold(
+                || (Vec::new(), Vec::new(), Vec::new()),
+                |(mut server_events, mut add_hit_entities, mut outcomes),
+                 (entity, pos, ori, beam_segment)| {
+                    let creation_time = match beam_segment.creation {
+                        Some(time) => time,
+                        // Skip newly created beam segments
+                        None => return (server_events, add_hit_entities, outcomes),
                     };
+                    let end_time = creation_time + beam_segment.duration.as_secs_f64();
 
-                    // If owner, shouldn't heal or damage
-                    if Some(*uid_b) == beam_segment.owner {
-                        return;
+                    let beam_owner = beam_segment.owner.and_then(|uid| {
+                        read_data.uid_allocator.retrieve_entity_internal(uid.into())
+                    });
+
+                    let mut rng = thread_rng();
+                    if rng.gen_bool(0.005) {
+                        server_events.push(ServerEvent::Sound {
+                            sound: Sound::new(SoundKind::Beam, pos.0, 7.0, time),
+                        });
                     }
 
-                    let attacker_info =
-                        beam_owner
-                            .zip(beam_segment.owner)
-                            .map(|(entity, uid)| AttackerInfo {
-                                entity,
-                                uid,
-                                energy: read_data.energies.get(entity),
-                                combo: read_data.combos.get(entity),
-                                inventory: read_data.inventories.get(entity),
-                            });
+                    // If beam segment is out of time emit destroy event but still continue since it
+                    // may have traveled and produced effects a bit before reaching its
+                    // end point
+                    if end_time < time {
+                        server_events.push(ServerEvent::Delete(entity));
+                    }
 
-                    let target_info = TargetInfo {
-                        entity: target,
-                        uid: *uid_b,
-                        inventory: read_data.inventories.get(target),
-                        stats: read_data.stats.get(target),
-                        health: read_data.healths.get(target),
-                        pos: pos_b.0,
-                        ori: read_data.orientations.get(target),
-                        char_state: read_data.character_states.get(target),
+                    // Determine area that was covered by the beam in the last tick
+                    let frame_time = dt.min((end_time - time) as f32);
+                    if frame_time <= 0.0 {
+                        return (server_events, add_hit_entities, outcomes);
+                    }
+                    // Note: min() probably uneeded
+                    let time_since_creation = (time - creation_time) as f32;
+                    let frame_start_dist =
+                        (beam_segment.speed * (time_since_creation - frame_time)).max(0.0);
+                    let frame_end_dist =
+                        (beam_segment.speed * time_since_creation).max(frame_start_dist);
+
+                    // Group to ignore collisions with
+                    // Might make this more nuanced if beams are used for non damage effects
+                    let group = beam_owner.and_then(|e| read_data.groups.get(e));
+
+                    let hit_entities = if let Some(beam) = beam_owner.and_then(|e| beams.get(e)) {
+                        &beam.hit_entities
+                    } else {
+                        return (server_events, add_hit_entities, outcomes);
                     };
 
+                    // Go through all affectable entities by querying the spatial grid
+                    let target_iter = read_data
+                        .cached_spatial_grid
+                        .0
+                        .in_circle_aabr(pos.0.xy(), frame_end_dist - frame_start_dist)
+                        .filter_map(|target| {
+                            read_data
+                                .positions
+                                .get(target)
+                                .and_then(|l| read_data.healths.get(target).map(|r| (l, r)))
+                                .and_then(|l| read_data.uids.get(target).map(|r| (l, r)))
+                                .and_then(|l| read_data.bodies.get(target).map(|r| (l, r)))
+                                .map(|(((pos_b, health_b), uid_b), body_b)| {
+                                    (target, uid_b, pos_b, health_b, body_b)
+                                })
+                        });
+                    target_iter.for_each(|(target, uid_b, pos_b, health_b, body_b)| {
+                        // Check to see if entity has already been hit recently
+                        if hit_entities.iter().any(|&uid| uid == *uid_b) {
+                            return;
+                        }
 
-                    // PvP check
-                    let may_harm = combat::may_harm(
-                        &read_data.alignments,
-                        &read_data.players,
-                        &read_data.uid_allocator,
-                        beam_owner,
-                        target,
-                    );
-                    let attack_options = AttackOptions {
-                        // No luck with dodging beams
-                        target_dodging: false,
-                        may_harm,
-                        target_group,
-                    };
+                        // Scales
+                        let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
+                        let rad_b = body_b.max_radius() * scale_b;
+                        let height_b = body_b.height() * scale_b;
 
-                    beam_segment.properties.attack.apply_attack(
-                        attacker_info,
-                        target_info,
-                        ori.look_dir(),
-                        attack_options,
-                        1.0,
-                        AttackSource::Beam,
-                        |e| server_events.push(e),
-                        |o| outcomes.push(o),
-                    );
+                        // Check if it is a hit
+                        // TODO: use Capsule Prism instead of cylinder
+                        let hit = entity != target
+                            && !health_b.is_dead
+                            && sphere_wedge_cylinder_collision(
+                                pos.0,
+                                frame_start_dist,
+                                frame_end_dist,
+                                *ori.look_dir(),
+                                beam_segment.angle,
+                                pos_b.0,
+                                rad_b,
+                                height_b,
+                            );
 
-                    add_hit_entities.push((beam_owner, *uid_b));
-                }
-            });
-            (server_events, add_hit_entities, outcomes)
-        }).reduce(|| (Vec::new(), Vec::new(), Vec::new()),
-            |(mut events_a, mut hit_entities_a, mut outcomes_a),
-            (mut events_b, mut hit_entities_b, mut outcomes_b)| {
-                events_a.append(&mut events_b);
-                hit_entities_a.append(&mut hit_entities_b);
-                outcomes_a.append(&mut outcomes_b);
-                (events_a, hit_entities_a, outcomes_a)
-            });
+                        // Finally, ensure that a hit has actually occurred by performing a raycast.
+                        // We do this last because it's likely to be the
+                        // most expensive operation.
+                        let tgt_dist = pos.0.distance(pos_b.0);
+                        let hit = hit
+                            && read_data
+                                .terrain
+                                .ray(pos.0, pos.0 + *ori.look_dir() * (tgt_dist + 1.0))
+                                .until(|b| b.is_filled())
+                                .cast()
+                                .0
+                                >= tgt_dist;
+
+                        if hit {
+                            // See if entities are in the same group
+                            let same_group = group
+                                .map(|group_a| Some(group_a) == read_data.groups.get(target))
+                                .unwrap_or(Some(*uid_b) == beam_segment.owner);
+
+                            let target_group = if same_group {
+                                GroupTarget::InGroup
+                            } else {
+                                GroupTarget::OutOfGroup
+                            };
+
+                            // If owner, shouldn't heal or damage
+                            if Some(*uid_b) == beam_segment.owner {
+                                return;
+                            }
+
+                            let attacker_info =
+                                beam_owner.zip(beam_segment.owner).map(|(entity, uid)| {
+                                    AttackerInfo {
+                                        entity,
+                                        uid,
+                                        energy: read_data.energies.get(entity),
+                                        combo: read_data.combos.get(entity),
+                                        inventory: read_data.inventories.get(entity),
+                                    }
+                                });
+
+                            let target_info = TargetInfo {
+                                entity: target,
+                                uid: *uid_b,
+                                inventory: read_data.inventories.get(target),
+                                stats: read_data.stats.get(target),
+                                health: read_data.healths.get(target),
+                                pos: pos_b.0,
+                                ori: read_data.orientations.get(target),
+                                char_state: read_data.character_states.get(target),
+                            };
+
+                            // PvP check
+                            let may_harm = combat::may_harm(
+                                &read_data.alignments,
+                                &read_data.players,
+                                &read_data.uid_allocator,
+                                beam_owner,
+                                target,
+                            );
+                            let attack_options = AttackOptions {
+                                // No luck with dodging beams
+                                target_dodging: false,
+                                may_harm,
+                                target_group,
+                            };
+
+                            beam_segment.properties.attack.apply_attack(
+                                attacker_info,
+                                target_info,
+                                ori.look_dir(),
+                                attack_options,
+                                1.0,
+                                AttackSource::Beam,
+                                |e| server_events.push(e),
+                                |o| outcomes.push(o),
+                            );
+
+                            add_hit_entities.push((beam_owner, *uid_b));
+                        }
+                    });
+                    (server_events, add_hit_entities, outcomes)
+                },
+            )
+            .reduce(
+                || (Vec::new(), Vec::new(), Vec::new()),
+                |(mut events_a, mut hit_entities_a, mut outcomes_a),
+                 (mut events_b, mut hit_entities_b, mut outcomes_b)| {
+                    events_a.append(&mut events_b);
+                    hit_entities_a.append(&mut hit_entities_b);
+                    outcomes_a.append(&mut outcomes_b);
+                    (events_a, hit_entities_a, outcomes_a)
+                },
+            );
         job.cpu_stats.measure(ParMode::Single);
         outcomes.append(&mut new_outcomes);
 

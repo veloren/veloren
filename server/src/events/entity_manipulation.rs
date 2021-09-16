@@ -715,8 +715,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
         cyl_body: Body,
     ) -> f32 {
         // 2d check
-        let horiz_dist =
-            Vec2::<f32>::from(sphere_pos - cyl_pos).distance(Vec2::default()) - cyl_body.radius();
+        let horiz_dist = Vec2::<f32>::from(sphere_pos - cyl_pos).distance(Vec2::default())
+            - cyl_body.max_radius();
         // z check
         let half_body_height = cyl_body.height() / 2.0;
         let vert_distance =

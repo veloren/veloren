@@ -641,7 +641,7 @@ pub fn handle_manipulate_loadout(
             // MAX_PICKUP_RANGE and the radius of the body
             let sprite_range_check = |pos: Vec3<f32>| {
                 (sprite_pos_f32 - pos).magnitude_squared()
-                    < (MAX_PICKUP_RANGE + data.body.radius()).powi(2)
+                    < (MAX_PICKUP_RANGE + data.body.max_radius()).powi(2)
             };
 
             // Checks if player's feet or head is near to sprite

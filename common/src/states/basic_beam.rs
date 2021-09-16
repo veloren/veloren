@@ -232,8 +232,9 @@ fn height_offset(body: &Body, look_dir: Dir) -> f32 {
 }
 
 pub fn beam_offsets(body: &Body, look_dir: Dir, ori: Vec3<f32>) -> Vec3<f32> {
-    let body_radius = body.radius();
+    let body_radius = body.min_radius();
     let body_offsets_z = height_offset(body, look_dir);
+
     Vec3::new(
         body_radius * ori.x * 1.1,
         body_radius * ori.y * 1.1,

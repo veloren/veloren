@@ -249,7 +249,7 @@ impl StateExt for State {
             .with(body.mass())
             .with(body.density())
             .with(comp::Collider::Box {
-                radius: body.radius(),
+                radius: body.max_radius(),
                 z_min: 0.0,
                 z_max: body.height(),
             })
@@ -315,7 +315,7 @@ impl StateExt for State {
             projectile_base = projectile_base.with(comp::Collider::Point)
         } else {
             projectile_base = projectile_base.with(comp::Collider::Box {
-                radius: body.radius(),
+                radius: body.max_radius(),
                 z_min: 0.0,
                 z_max: body.height(),
             })
@@ -392,7 +392,7 @@ impl StateExt for State {
             .with(comp::Vel(Vec3::zero()))
             .with(comp::Ori::default())
             .with(comp::Collider::Box {
-                radius: comp::Body::Object(object).radius(),
+                radius: comp::Body::Object(object).max_radius(),
                 z_min: 0.0,
                 z_max: comp::Body::Object(object).height()
             })
@@ -510,7 +510,7 @@ impl StateExt for State {
             // commands, so we can assume that all of these calls succeed,
             // justifying ignoring the result of insertion.
             self.write_component_ignore_entity_dead(entity, comp::Collider::Box {
-                radius: body.radius(),
+                radius: body.max_radius(),
                 z_min: 0.0,
                 z_max: body.height(),
             });

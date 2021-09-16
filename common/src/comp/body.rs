@@ -400,9 +400,17 @@ impl Body {
     // Note: This is used for collisions, but it's not very accurate for shapes that
     // are very much not cylindrical. Eventually this ought to be replaced by more
     // accurate collision shapes.
-    pub fn radius(&self) -> f32 {
+    pub fn max_radius(&self) -> f32 {
         let dim = self.dimensions();
-        dim.x.max(dim.y) / 2.0
+        let (x, y) = (dim.x, dim.y);
+
+        x.max(y) / 2.0
+    }
+
+    pub fn min_radius(&self) -> f32 {
+        let (_p0, _p1, radius) = self.sausage();
+
+        radius
     }
 
     /// Base of our Capsule Prism used for collisions.
@@ -453,7 +461,7 @@ impl Body {
     // lead to that both entities will try to keep 5.0 units away from each
     // other.
     pub fn spacing_radius(&self) -> f32 {
-        self.radius()
+        self.max_radius()
             + match self {
                 Body::QuadrupedSmall(body) => match body.species {
                     quadruped_small::Species::Rat => 0.0,

@@ -228,8 +228,7 @@ impl<'a> PhysicsData<'a> {
             // Move center to the middle between OLD and OLD+VEL_DT
             // so that we can reduce the collision_boundary.
             phys_cache.center = entity_center + phys_cache.velocity_dt / 2.0;
-            phys_cache.collision_boundary = radius
-                + (phys_cache.velocity_dt / 2.0).magnitude();
+            phys_cache.collision_boundary = radius + (phys_cache.velocity_dt / 2.0).magnitude();
             phys_cache.scale = scale;
             phys_cache.scaled_radius = flat_radius;
 
@@ -458,7 +457,6 @@ impl<'a> PhysicsData<'a> {
                                 let step_delta = 1.0 / increments as f32;
 
                                 let mut collision_registered = false;
-
 
                                 for i in 0..increments {
                                     let factor = i as f32 * step_delta;
@@ -1919,7 +1917,8 @@ struct ColliderContext<'a> {
     previous_cache: &'a PreviousPhysCache,
 }
 
-/// Find pushback vector and collision_distance we assume between this colliders.
+/// Find pushback vector and collision_distance we assume between this
+/// colliders.
 fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f32) {
     // "Proper" way to do this would be handle the case when both our colliders
     // are capsule prisms by building origins from p0, p1 offsets and our

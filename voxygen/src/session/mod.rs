@@ -1612,12 +1612,13 @@ fn under_cursor(
         .filter_map(|(e, p, s, b, i)| {
             const RADIUS_SCALE: f32 = 3.0;
             // TODO: use collider radius instead of body radius?
-            let radius = s.map_or(1.0, |s| s.0) * b.radius() * RADIUS_SCALE;
+            let radius = s.map_or(1.0, |s| s.0) * b.max_radius() * RADIUS_SCALE;
             // Move position up from the feet
             let pos = Vec3::new(p.0.x, p.0.y, p.0.z + radius);
             // Distance squared from camera to the entity
             let dist_sqr = pos.distance_squared(cam_pos);
-            // We only care about interacting with entities that contain items, or are not inanimate (to trade with)
+            // We only care about interacting with entities that contain items,
+            // or are not inanimate (to trade with)
             if i.is_some() || !matches!(b, comp::Body::Object(_)) {
                 Some((e, pos, radius, dist_sqr))
             } else {

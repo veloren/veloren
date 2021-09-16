@@ -196,7 +196,7 @@ impl CharacterBehavior for Data {
                             Outcome::GroundSlam {
                                 pos: data.pos.0
                                     + *data.ori.look_dir()
-                                        * (data.body.radius() + self.static_data.range),
+                                        * (data.body.max_radius() + self.static_data.range),
                             },
                         ));
                     }
