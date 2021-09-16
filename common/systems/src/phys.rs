@@ -1920,6 +1920,87 @@ struct ColliderContext<'a> {
 /// Find pushback vector and collision_distance we assume between this
 /// colliders.
 fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f32) {
+    const DIFF_THRESHOLD: f32 = std::f32::EPSILON;
+    let our_radius = c0.previous_cache.neighborhood_radius;
+    let their_radius = c1.previous_cache.neighborhood_radius;
+    let collision_dist = our_radius + their_radius;
+
+    let we = c0.pos.xy();
+    let other = c1.pos.xy();
+
+    let (p0_offset, p1_offset) = match c0.previous_cache.origins {
+        Some(origins) => origins,
+        // fallback to simpler model
+        None => return capsule2cylinder(c0, c1),
+    };
+    let segment = LineSegment2 {
+        start: we + p0_offset,
+        end: we + p1_offset,
+    };
+
+    let (p0_offset_other, p1_offset_other) = match c1.previous_cache.origins {
+        Some(origins) => origins,
+        // fallback to simpler model
+        None => return capsule2cylinder(c0, c1),
+    };
+    let segment_other = LineSegment2 {
+        start: other + p0_offset_other,
+        end: other + p1_offset_other,
+    };
+
+    let (our, their) = closest_points(segment, segment_other);
+    let diff = our - their;
+
+    if diff.magnitude_squared() < DIFF_THRESHOLD {
+        capsule2cylinder(c0, c1)
+    } else {
+        (diff, collision_dist)
+    }
+}
+
+fn closest_points(n: LineSegment2<f32>, m: LineSegment2<f32>) -> (Vec2<f32>, Vec2<f32>) {
+    let p0 = n.start;
+    let r1 = n.end - n.start;
+    let q0 = m.start;
+    let r2 = m.end - m.start;
+
+    // The solution for following equations
+    // t = (q0.x + u * r2.x - p0.x) / r1.x
+    // u = (p0.y + t * r1.y - q0.y) / r2.y
+    let t = (r2.y / r2.x * (q0.x - p0.x) + p0.y - q0.y) / (r1.x * r2.y / r2.x - r1.y);
+    let u = (p0.y + t * r1.y - q0.y) / r2.y;
+
+    // Check to see whether the lines are parallel
+    if !t.is_finite() || !u.is_finite() {
+        core::array::IntoIter::new([
+            (n.projected_point(m.start), m.start),
+            (n.projected_point(m.end), m.end),
+            (n.start, m.projected_point(n.start)),
+            (n.end, m.projected_point(n.end)),
+        ])
+            .min_by_key(|(a, b)| ordered_float::OrderedFloat(a.distance_squared(*b)))
+            .expect("Lines had non-finite elements")
+    } else {
+        let t = t.clamped(0.0, 1.0);
+        let u = u.clamped(0.0, 1.0);
+
+        let close_n = p0 + r1 * t;
+        let close_m = q0 + r2 * u;
+
+        let proj_n = n.projected_point(close_m);
+        let proj_m = m.projected_point(close_n);
+
+        if proj_n.distance_squared(close_m) < proj_m.distance_squared(close_n) {
+            (proj_n, close_m)
+        } else {
+            (close_n, proj_m)
+        }
+    }
+}
+
+/// Find pushback vector and collision_distance we assume between this
+/// colliders assuming that only one of them is capsule prism.
+fn capsule2cylinder(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f32) {
     // "Proper" way to do this would be handle the case when both our colliders
     // are capsule prisms by building origins from p0, p1 offsets and our
     // positions and find some sort of projection between line segments of
