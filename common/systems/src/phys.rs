@@ -1942,13 +1942,12 @@ fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f
     // of motion from our target collider to our collider.
     //
     // TODO: can code beloew be deduplicated? :think:
+    let we = c0.pos.xy();
+    let other = c1.pos.xy();
     if c0.previous_cache.scaled_radius > c1.previous_cache.scaled_radius {
         let our_radius = c0.previous_cache.neighborhood_radius;
         let their_radius = c1.previous_cache.scaled_radius;
         let collision_dist = our_radius + their_radius;
-
-        let we = c0.pos.xy();
-        let other = c1.pos.xy();
 
         let (p0_offset, p1_offset) = match c0.previous_cache.origins {
             Some(origins) => origins,
@@ -1959,16 +1958,13 @@ fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f
             end: we + p1_offset,
         };
 
-        let projection = other - segment.projected_point(other) - other;
+        let projection = segment.projected_point(other) - other;
 
         (projection, collision_dist)
     } else {
         let our_radius = c0.previous_cache.scaled_radius;
         let their_radius = c1.previous_cache.neighborhood_radius;
         let collision_dist = our_radius + their_radius;
-
-        let we = c0.pos.xy();
-        let other = c1.pos.xy();
 
         let (p0_offset_other, p1_offset_other) = match c1.previous_cache.origins {
             Some(origins) => origins,
