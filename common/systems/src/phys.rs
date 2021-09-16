@@ -821,7 +821,8 @@ impl<'a> PhysicsData<'a> {
                             // Additionally, multiply radius by 0.1 to make
                             // the cylinder smaller to avoid lag.
                             let radius = collider.bounding_radius() * scale * 0.1;
-                            let (z_min, z_max) = collider.get_z_limits(scale);
+                            let (_, z_max) = collider.get_z_limits(scale);
+                            let z_min = 0.0;
 
                             let mut cpos = *pos;
                             let cylinder = (radius, z_min, z_max);
@@ -844,7 +845,7 @@ impl<'a> PhysicsData<'a> {
                             tgt_pos = cpos.0;
                         },
                         Collider::CapsulePrism {
-                            z_min,
+                            z_min: _,
                             z_max,
                             p0: _,
                             p1: _,
@@ -852,7 +853,7 @@ impl<'a> PhysicsData<'a> {
                         } => {
                             // Scale collider
                             let radius = collider.bounding_radius().min(0.45) * scale;
-                            let z_min = *z_min * scale;
+                            let z_min = 0.0;
                             let z_max = z_max.clamped(1.2, 1.95) * scale;
 
                             let cylinder = (radius, z_min, z_max);
@@ -1045,10 +1046,10 @@ impl<'a> PhysicsData<'a> {
                                 // TODO: extract point-terrain collision above to its own
                                 // function
                                 let radius = collider.bounding_radius();
-                                let (z_min, z_max) = collider.get_z_limits(1.0);
+                                let (_, z_max) = collider.get_z_limits(1.0);
 
                                 let radius = radius.min(0.45) * scale;
-                                let z_min = z_min * scale;
+                                let z_min = 0.0;
                                 let z_max = z_max.clamped(1.2, 1.95) * scale;
 
                                 if let Some(voxel_collider) =
