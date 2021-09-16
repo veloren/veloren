@@ -422,13 +422,13 @@ impl Body {
         //
         //      xxxxxxxxxxxxxxxxx
         //
-        //        _ aaaaaaaaa
-        // y    -*      r     * -
+        //        _ ----------_
+        // y    -*      r      *-
         // y   *        r        *
-        // y  * rrr --------- rrr *
+        // y  * rrr aaaaaaaaa rrr *
         // y  *         r         *
         // y   *        r        *
-        //       *__aaaaaaaaa_ ^
+        //       *____________ ^
         let dim = self.dimensions();
         // The width (shoulder to shoulder) and length (nose to tail)
         let (width, length) = (dim.x, dim.y);
