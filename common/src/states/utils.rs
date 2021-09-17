@@ -201,7 +201,7 @@ impl Body {
             Body::QuadrupedLow(_) => Some(300.0 * self.mass().0),
             Body::QuadrupedMedium(_) => Some(300.0 * self.mass().0),
             Body::QuadrupedSmall(_) => Some(300.0 * self.mass().0),
-            Body::Ship(ship) if ship.has_water_thrust() => Some(750.0 * self.mass().0),
+            Body::Ship(ship) if ship.has_water_thrust() => Some(1500.0 * self.mass().0),
             Body::Ship(_) => None,
         }
     }
