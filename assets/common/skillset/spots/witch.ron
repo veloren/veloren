@@ -1,4 +1,4 @@
 ([
-    Tree("common.skillset.spots.general_max"),
-    Tree("common.skillset.spots.sceptre_max"),    
+    Tree("common.skillset.preset.max.general"),
+    Tree("common.skillset.preset.max.sceptre"),
 ])
