@@ -59,8 +59,8 @@ use crate::{
     render::UiDrawer,
     scene::camera::{self, Camera},
     session::{
+        interactable::Interactable,
         settings_change::{Chat as ChatChange, Interface as InterfaceChange, SettingsChange},
-        Interactable,
     },
     settings::chat::ChatFilter,
     ui::{

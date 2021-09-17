@@ -7,7 +7,7 @@ use common_base::span;
 use rand::prelude::*;
 use vek::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum Interaction {
     Collect,
     Craft(CraftingTab),

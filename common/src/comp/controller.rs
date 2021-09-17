@@ -199,7 +199,7 @@ pub struct ControllerInputs {
     pub move_z: f32, /* z axis (not combined with move_dir because they may have independent
                       * limits) */
     pub look_dir: Dir,
-    pub select_pos: Option<Vec3<f32>>,
+    pub break_block_pos: Option<Vec3<f32>>,
     /// Attempt to enable strafing.
     /// Currently, setting this to false will *not* disable strafing during a
     /// wielding character state.
@@ -236,7 +236,7 @@ impl ControllerInputs {
         self.move_dir = new.move_dir;
         self.move_z = new.move_z;
         self.look_dir = new.look_dir;
-        self.select_pos = new.select_pos;
+        self.break_block_pos = new.break_block_pos;
     }
 }
 
