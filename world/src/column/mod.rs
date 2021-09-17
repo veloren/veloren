@@ -14,7 +14,6 @@ use common::{
 use noise::NoiseFn;
 use serde::Deserialize;
 use std::{
-    cmp::Reverse,
     f32,
     ops::{Add, Div, Mul, Sub},
 };
@@ -51,28 +50,12 @@ pub struct Colors {
     pub tropical_high: (f32, f32, f32),
 }
 
+/// Generalised power function, pushes values in the range 0-1 to extremes.
 fn power(x: f64, t: f64) -> f64 {
     if x < 0.5 {
         (2.0 * x).powf(t) / 2.0
     } else {
         1.0 - (-2.0 * x + 2.0).powf(t) / 2.0
-    }
-}
-
-fn cubic(x: f64) -> f64 {
-    power(x, 3.0)
-    // if x < 0.5 {
-    //     (2.0 * x).powf(3.0) / 2.0
-    // } else {
-    //     1.0 - (-2.0 * x + 2.0).powf(3.0) / 2.0
-    // }
-}
-
-fn revcubic(x: f64) -> f64 {
-    if x < 0.5 {
-        (x / 4.0).powf(1.0 / 3.0)
-    } else {
-        1.0 - (2.0 - 2.0 * x).powf(1.0 / 3.0) / 2.0
     }
 }
 
@@ -146,8 +129,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
             };
             let downhill_wpos = downhill_pos.map(|e| e as f64);
-            let downhill_pos =
-                downhill_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e.div_euclid(sz as i32));
+            let downhill_pos = downhill_pos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| {
+                e.div_euclid(sz as i32)
+            });
             let neighbor_wpos = posj.map(|e| e as f64) * neighbor_coef + neighbor_coef * 0.5;
             let direction = neighbor_wpos - downhill_wpos;
             let river_width_min = if let RiverKind::River { cross_section } = kind {
@@ -159,17 +143,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             let coeffs =
                 river_spline_coeffs(neighbor_wpos, chunkj.river.spline_derivative, downhill_wpos);
             let (direction, coeffs, downhill_chunk, river_t, river_pos, river_dist) = match kind {
-                RiverKind::River { .. } /*| RiverKind::Lake { .. }*/ => {
-                    if let Some((t, pt, dist)) = quadratic_nearest_point(&coeffs, wposf, Vec2::new(neighbor_wpos, downhill_wpos)) /*{
-                        let curve = CubicBezier2 {
-                            start: neighbor_wpos,
-                            ctrl0: neighbor_wpos * 0.75 + downhill_wpos * 0.25 + chunkj.river.spline_derivative.map(|e| e as f64).normalized() * 0.0,
-                            ctrl1: downhill_wpos * 0.75 + neighbor_wpos * 0.25 - downhill_chunk.river.spline_derivative.map(|e| e as f64).normalized() * 0.0,
-                            end: downhill_wpos,
-                        };
-                        let (t, pos) = curve.binary_search_point_by_steps(wposf, 16, 0.001);
-                        Some((t, pos, curve.evaluate(t).distance_squared(wposf)))
-                    }*/ {
+                RiverKind::River { .. } => {
+                    if let Some((t, pt, dist)) = quadratic_nearest_point(
+                        &coeffs,
+                        wposf,
+                        Vec2::new(neighbor_wpos, downhill_wpos),
+                    ) {
                         let (t, pt, dist) = if dist > wposf.distance_squared(neighbor_wpos) {
                             (0.0, neighbor_wpos, wposf.distance_squared(neighbor_wpos))
                         } else if dist > wposf.distance_squared(downhill_wpos) {
@@ -220,16 +199,24 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     if pass_dist > 1 {
                         return (posj, chunkj, river, None);
                     }
-                    let neighbor_pass_wpos = neighbor_pass_pos.map(|e| e as f64) + neighbor_coef * 0.5;
+                    let neighbor_pass_wpos =
+                        neighbor_pass_pos.map(|e| e as f64) + neighbor_coef * 0.5;
                     let neighbor_pass_pos = neighbor_pass_pos
                         .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
                     let coeffs =
                         river_spline_coeffs(neighbor_wpos, spline_derivative, neighbor_pass_wpos);
                     let direction = neighbor_wpos - neighbor_pass_wpos;
 
-                    if matches!(downhill_chunk.river.river_kind, Some(RiverKind::Lake { .. })) {
+                    // Lakes get a special distance function to avoid cookie-cutter edges
+                    if matches!(
+                        downhill_chunk.river.river_kind,
+                        Some(RiverKind::Lake { .. })
+                    ) {
                         let water_chunk = posj.map(|e| e as f64);
-                        let lake_width_noise = sim.gen_ctx.small_nz.get((wposf.map(|e| e as f64).div(32.0)).into_array());
+                        let lake_width_noise = sim
+                            .gen_ctx
+                            .small_nz
+                            .get((wposf.map(|e| e as f64).div(32.0)).into_array());
                         let water_aabr = Aabr {
                             min: water_chunk * neighbor_coef + 4.0 - lake_width_noise * 8.0,
                             max: (water_chunk + 1.0) * neighbor_coef - 4.0 + lake_width_noise * 8.0,
@@ -243,7 +230,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             pos,
                             pos.distance(wposf),
                         )
-                    } else if let Some((t, pt, dist)) = quadratic_nearest_point(&coeffs, wposf, Vec2::new(neighbor_wpos, neighbor_pass_wpos)) {
+                    } else if let Some((t, pt, dist)) = quadratic_nearest_point(
+                        &coeffs,
+                        wposf,
+                        Vec2::new(neighbor_wpos, neighbor_pass_wpos),
+                    ) {
                         (
                             direction,
                             coeffs,
@@ -288,10 +279,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             };
             let river_width_max =
                 if let Some(RiverKind::River { cross_section }) = downhill_chunk.river.river_kind {
-                    (cross_section.x as f64).min(river_width_min * 1.75) // Hack
+                    // Harmless hack that prevents a river growing wildly outside its bounds to
+                    // create water walls
+                    (cross_section.x as f64).min(river_width_min * 1.75)
                 } else if let Some(RiverKind::River { cross_section }) = chunkj.river.river_kind {
                     Lerp::lerp(cross_section.x as f64, lake_width, 0.5)
                 } else {
+                    // 0.5 prevents rivers pooling into lakes having extremely wide bounds, creating
+                    // water walls
                     lake_width * 0.5
                 };
             let river_width_noise = (sim.gen_ctx.small_nz.get((river_pos.div(16.0)).into_array()))
@@ -302,11 +297,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             let river_width = Lerp::lerp(
                 river_width_min,
                 river_width_max,
-                // if matches!(chunkj.river.river_kind, Some(RiverKind::Lake { .. })) {
-                //     (1.0 - (river_t.clamped(0.0, 1.0) * 2.0 - 1.0).powi(2)).sqrt() * 0.5
-                // } else {
-                    cubic(river_t.clamped(0.0, 1.0))
-                // },
+                river_t.clamped(0.0, 1.0).powf(3.0),
             );
 
             let river_width = river_width.max(2.0) * (1.0 + river_width_noise * 0.3);
@@ -330,19 +321,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             )
         });
 
-        let downhill = sim_chunk.downhill;
-        let downhill_pos = downhill.and_then(|downhill_pos| sim.get(downhill_pos));
         debug_assert!(sim_chunk.water_alt >= CONFIG.sea_level);
 
-        let downhill_water_alt = downhill_pos
-            .map(|downhill_chunk| {
-                downhill_chunk
-                    .water_alt
-                    .min(sim_chunk.water_alt)
-                    .max(sim_chunk.alt.min(sim_chunk.water_alt))
-            })
-            .unwrap_or(CONFIG.sea_level);
-
+        /// A type that makes managing surface altitude weighting much simpler.
         #[derive(Default)]
         struct WeightedSum<T> {
             sum: T,
@@ -351,6 +332,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             max: Option<T>,
         }
         impl WeightedSum<f32> {
+            /// Add a weight to the sum.
             fn with(self, value: f32, weight: f32) -> Self {
                 Self {
                     sum: self.sum + value * weight,
@@ -359,7 +341,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
             }
 
-            /// With an upper bound
+            /// Add an upper bound to the result.
             fn with_min(self, min: f32) -> Self {
                 Self {
                     min: Some(self.min.unwrap_or(min).min(min)),
@@ -367,7 +349,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
             }
 
-            /// With a lower bound
+            /// Add a lower bound to the result.
             fn with_max(self, max: f32) -> Self {
                 Self {
                     max: Some(self.max.unwrap_or(max).max(max)),
@@ -375,6 +357,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
             }
 
+            /// Evaluate the weighted sum, if weightings were applied.
             fn eval(&self) -> Option<f32> {
                 if self.weight > 0.0 {
                     let res = self.sum / self.weight;
@@ -386,6 +369,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 }
             }
 
+            /// Evaluate the weighted sum, or use a default value if no
+            /// weightings were applied.
             fn eval_or(&self, default: f32) -> f32 {
                 let res = if self.weight > 0.0 {
                     self.sum / self.weight
@@ -398,11 +383,16 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             }
         }
 
+        /// Determine whether a river should become a waterfall
         fn is_waterfall(
             chunk_pos: Vec2<i32>,
             river_chunk: &SimChunk,
             downhill_chunk: &SimChunk,
         ) -> bool {
+            // Waterfalls are rare, so use some hacky RNG seeded with the position to
+            // reflect that. Additionally, the river must experience a rapid
+            // change in elevation. Pooling into a lake produces a rapid.
+            // TODO: Find a better way to produce rapids along the course of a river?
             (chunk_pos.sum() as u32 % 19 < 2
                 || matches!(
                     downhill_chunk.river.river_kind,
@@ -411,28 +401,40 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 && (river_chunk.water_alt > downhill_chunk.water_alt + 8.0)
         }
 
+        /// Determine the altitude of a river based on the altitude of the
+        /// spline ends and a tweening factor.
         fn river_water_alt(a: f32, b: f32, t: f32, is_waterfall: bool) -> f32 {
-            Lerp::lerp(
-                a,
-                b,
-                // if t < 0.5 {
-                //     0.0
-                // } else {
-                //     let t = (t - 0.5) * 2.0;
-                //     t.powf(1.0 + (a - b).max(0.0) / 1.5)
-                // },
-                // t.powf(1.0 / (1.0 + (a - b).max(0.0) / 3.0)),
-                if is_waterfall {
-                    power(t as f64, 3.0 + (a - b).clamped(0.0, 16.0) as f64) as f32
-                } else {
-                    // cubic(t as f64) as f32
-                    t
-                },
-            )
+            let t = if is_waterfall {
+                // Waterfalls bias the water altitude toward extremes
+                power(t as f64, 3.0 + (a - b).clamped(0.0, 16.0) as f64) as f32
+            } else {
+                t
+            };
+            Lerp::lerp(a, b, t)
         }
 
         let actual_sea_level = CONFIG.sea_level + 2.0; // TODO: Don't add 2.0, why is this required?
 
+        // What's going on here?
+        //
+        // We're iterating over nearby bodies of water and calculating a weighted sum
+        // for the river water level, the lake water level, and the 'unbounded
+        // water level' (the maximum water body altitude, which we use later to
+        // prevent water walls). In doing so, we also apply various clamping strategies
+        // to catch lots of nasty edge cases, as well as calculating the
+        // distance to the nearest body of water.
+        //
+        // The clamping strategies employed prevent very specific, annoying artifacts
+        // such as 'water walls' (vertical columns of water that are physically
+        // implausible) and 'backflows' (regions where a body of water appears to
+        // flow upstream due to irregular humps along its course).
+        //
+        // It is incredibly difficult to explain exactly what every part of this code is
+        // doing without visual examples. Needless to say, any changes to this
+        // code *at all* should be very ruggedly tested to ensure that
+        // they do not result in artifacts, even in edge cases. The exact configuration
+        // of this code is the product of hundreds of hours of testing and
+        // refinement and I ask that you do not take that effort lightly.
         let (river_water_level, in_river, lake_water_level, lake_dist, water_dist, unbounded_water_level) = neighbor_river_data.clone().fold(
             (
                 WeightedSum::default().with_max(actual_sea_level),
@@ -444,20 +446,24 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             ),
             |(mut river_water_level, mut in_river, mut lake_water_level, mut lake_dist, water_dist, mut unbounded_water_level), (river_chunk_idx, river_chunk, river, dist_info)| match (river.river_kind, dist_info) {
                 (
-                    Some(kind/*RiverKind::River { cross_section }*/),
-                    Some((_, dist, river_width, (river_t, (river_pos, _), downhill_chunk))),
+                    Some(kind),
+                    Some((_, _, river_width, (river_t, (river_pos, _), downhill_chunk))),
                 ) => {
                     // Distance from river center
                     let river_dist = river_pos.distance(wposf);
                     // Distance from edge of river
                     let river_edge_dist = (river_dist - river_width * 0.5).max(0.0) as f32;
                     // 0.0 = not near river, 1.0 = in middle of river
-                    let near_river = ((river_dist / river_width) as f32).min(1.0).mul(f32::consts::PI).cos().add(1.0).mul(0.5);
-                    let near_center = ((river_dist / (river_width * 0.5)) as f32).min(1.0).mul(f32::consts::PI).cos().add(1.0).mul(0.5);
+                    let near_center = ((river_dist / (river_width * 0.5)) as f32)
+                        .min(1.0)
+                        .mul(f32::consts::PI)
+                        .cos()
+                        .add(1.0)
+                        .mul(0.5);
 
                     match kind {
-                        RiverKind::River { .. } /*| RiverKind::Lake { .. }*/ => {
-                            // Alt of river water *is* the alt of land
+                        RiverKind::River { .. } => {
+                            // Alt of river water *is* the alt of land (ignoring gorge, which gets applied later)
                             let river_water_alt = river_water_alt(
                                 river_chunk.alt.max(river_chunk.water_alt),
                                 downhill_chunk.alt.max(downhill_chunk.water_alt),
@@ -465,14 +471,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 is_waterfall(river_chunk_idx, river_chunk, downhill_chunk),
                             );
 
-                            // if river_edge_dist > 0.0 {
-                            //     unbounded_water_level = unbounded_water_level
-                            //         .with(river_water_alt - (river_edge_dist - 2.0).max(0.0), 1.0 / (1.0 + river_edge_dist * 5.0))
-                            //         .with_max(river_water_alt - (river_edge_dist - 2.0).max(0.0));
-                            // }
-
                             river_water_level = river_water_level
-                                // .with_max(river_water_alt)
                                 .with(river_water_alt, near_center);
 
                             if river_edge_dist <= 0.0 {
@@ -499,17 +498,12 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 .with(lake_water_alt, near_center);
 
                             lake_dist = lake_dist.min(river_edge_dist);
-                            // if river_edge_dist <= 0.0 {
-                            //     in_lake = true;
-                            // }
 
                             // Lake border prevents a lake failing to propagate its altitude to nearby rivers
-                            let border = (river_width / lake_width) as f32 * 14.0;
-                            if river_edge_dist <= 0.0/*border*/ {
+                            if river_edge_dist <= 0.0 {
                                 lake_water_level = lake_water_level
                                     // Make sure the closest lake is prioritised
                                     .with(lake_water_alt, near_center + 0.1 / (1.0 + river_edge_dist));
-                                    // .with_max(lake_water_alt);
                             }
                         },
                         RiverKind::Ocean => {},
@@ -524,6 +518,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             },
         );
         let unbounded_water_level = unbounded_water_level.eval_or(actual_sea_level);
+        // Calculate a final, canonical altitude for the water in this column by
+        // combining and clamping the attributes we found while iterating over
+        // nearby bodies of water.
         let water_level = match (
             river_water_level.eval(),
             lake_water_level
@@ -538,6 +535,31 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         };
 
         let riverless_alt = alt;
+
+        // What's going on here?
+        //
+        // Now that we've figured out the altitude of the water in this column, we can
+        // determine the altitude of the river banks. This initially appears
+        // somewhat backward (surely the river basin determines the water level?)
+        // but it is necessary to prevent backflows. Here, the surface of the water is
+        // king because we require global information to determine it without
+        // backflows. The river banks simply reflect the will of the water. We care
+        // much less about a river bank that's slightly rugged and irregular than we do
+        // about the surface of the water itself being rugged and irregular (and
+        // hence physically implausible). From that perspective, it makes sense
+        // that we determine river banks after the water level because it is the one
+        // that we are most at liberty to screw up.
+        //
+        // Similar to the iteration above, we perform a fold over nearby bodies of water
+        // and use the distance to the water to come up wight a weighted sum for
+        // the altitude. The way we determine this altitude differs somewhat
+        // between rivers, lakes, and the ocean and also whether we are *inside* said
+        // bodies of water or simply near their edge.
+        //
+        // As with the previous iteration, a lot of this code is extremely delicate and
+        // has been carefully designed to handle innumeral edge cases. Please
+        // test any changes to this code extremely well to avoid regressions: some
+        // edge cases are very rare indeed!
         let alt = neighbor_river_data.clone().fold(
             WeightedSum::default().with(riverless_alt, 1.0),
             |alt, (river_chunk_idx, river_chunk, river, dist_info)| match (
@@ -545,20 +567,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 dist_info,
             ) {
                 (
-                    Some(kind /* RiverKind::River { cross_section } */),
-                    Some((_, dist, river_width, (river_t, (river_pos, _), downhill_chunk))),
+                    Some(kind),
+                    Some((_, _, river_width, (river_t, (river_pos, _), downhill_chunk))),
                 ) => {
                     // Distance from river center
                     let river_dist = river_pos.distance(wposf);
                     // Distance from edge of river
                     let river_edge_dist = (river_dist - river_width * 0.5).max(0.0) as f32;
-                    // 0.0 = not near river, 1.0 = in middle of river
-                    let near_river = ((river_dist / river_width) as f32)
-                        .min(1.0)
-                        .mul(f32::consts::PI)
-                        .cos()
-                        .add(1.0)
-                        .mul(0.5);
 
                     let water_alt = match kind {
                         RiverKind::River { cross_section } => {
@@ -595,7 +610,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
                             Some((
                                 lake_water_alt,
-                                /* river_width as f32 * 0.15 */ depth,
+                                // TODO: The depth given to us by the erosion code is technically
+                                // correct, but it also
+                                // looks terrible. Come up with a good solution to this.
+                                /* river_width as f32 * 0.15 */
+                                depth,
                                 Some(min_alt),
                             ))
                         },
@@ -612,6 +631,9 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 .cos()
                                 .add(1.0)
                                 .mul(0.5);
+                            // Waterfalls 'boost' the depth of the river to prevent artifacts
+                            // TODO: Come up with a more principled way of doing this without
+                            // guessing magic numbers
                             let waterfall_boost =
                                 if is_waterfall(river_chunk_idx, river_chunk, downhill_chunk) {
                                     (river_chunk.alt - downhill_chunk.alt).max(0.0).powf(2.0)
@@ -620,8 +642,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 } else {
                                     0.0
                                 };
-                            // let river_depth = cross_section.y as f32 /*river_width as f32 *
-                            // 0.15*/;
                             let riverbed_depth =
                                 near_centre * water_depth + MIN_DEPTH + waterfall_boost;
                             // Handle rivers debouching into the ocean nicely by 'flattening' their
@@ -646,8 +666,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                         + (river_edge_dist as f32 - 3.0).max(0.0) * BANK_STRENGTH
                                             / BANK_SCALE),
                                 0.0,
-                                // cubic((river_edge_dist / BANK_SCALE).clamped(0.0, 1.0) as f64)
-                                // as f32,
                                 (river_edge_dist / BANK_SCALE).clamped(0.0, 1.0),
                             );
                             let alt = alt.with(water_alt + GORGE, weight);
@@ -657,11 +675,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             } else {
                                 alt
                             };
-                            // let alt = if !in_river && lake_dist > 0.0 {
-                            //     alt.with_max(water_alt + GORGE - river_edge_dist.powf(2.0) /
-                            // 10.0) } else {
-                            //     alt
-                            // };
                             alt
                         }
                     } else {
@@ -672,169 +685,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             },
         );
         let alt = alt.eval_or(riverless_alt);
-
-        // Find the average distance to each neighboring body of water.
-        let mut river_count = 0.0f64;
-        let mut overlap_count = 0.0f64;
-        let mut river_distance_product = 1.0f64;
-        let mut river_overlap_distance_product = 0.0f64;
-        let mut max_river = None;
-        let mut max_key = None;
-        let mut max_dip = 0.0f32;
-        // IDEA:
-        // For every "nearby" chunk, check whether it is a river.  If so, find the
-        // closest point on the river segment to wposf (if two point are
-        // equidistant, choose the earlier one), calling this point river_pos
-        // and the length (from 0 to 1) along the river segment for the nearby
-        // chunk river_t.  Let river_dist be the distance from river_pos to wposf.
-        //
-        // Let river_alt be the interpolated river height at this point
-        // (from the alt/water altitude at the river, to the alt/water_altitude of the
-        // downhill river, increasing with river_t).
-        //
-        // Now, if river_dist is <= river_width * 0.5, then we don't care what altitude
-        // we use, and mark that we are on a river (we decide what river to use
-        // using a heuristic, and set the solely according to the computed
-        // river_alt for that point).
-        //
-        // Otherwise, we let dist = river_dist - river_width * 0.5.
-        //
-        // If dist >= TerrainChunkSize::RECT_SIZE.x, we don't include this river in the
-        // calculation of the correct altitude for this point.
-        //
-        // Otherwise (i.e. dist < TerrainChunkSize::RECT_SIZE.x), we want to bias the
-        // altitude of this point towards the altitude of the river.
-        // Specifically, as the dist goes from TerrainChunkSize::RECT_SIZE.x to
-        // 0, the weighted altitude of this point should go from
-        // alt to river_alt.
-        neighbor_river_data.for_each(|(river_chunk_idx, river_chunk, river, dist)| {
-            return; // TODO: Not this
-
-            match river.river_kind {
-                Some(kind) => {
-                    if kind.is_river() && dist.is_none() {
-                        // Ostensibly near a river segment, but not "usefully" so (there is no
-                        // closest point between t = 0.0 and t = 1.0).
-                        return;
-                    } else {
-                        let river_dist = dist.map(|(_, dist, river_width, (river_t, (river_pos, _), downhill_river))| {
-                            let downhill_height = if kind.is_river() {
-                                // Lerp::lerp(
-                                //     river_chunk.alt.max(river_chunk.water_alt),
-                                //     downhill_river.alt.max(downhill_river.water_alt),
-                                //     river_t as f32,
-                                // ) as f64
-                                river_width - (river_pos - wposf).magnitude()
-                            } else {
-                                let neighbor_pos =
-                                    river_chunk_idx.map(|e| e as f64) * neighbor_coef;
-                                river_width - (wposf - neighbor_pos).magnitude()
-                            };
-                            (Reverse((dist.x, dist.y /*- if kind.is_river() { 0.01 } else { 0.0 }*/)), downhill_height)
-                        });
-                        let river_dist = river_dist.or_else(|| {
-                            if !kind.is_river() {
-                                let neighbor_pos =
-                                    river_chunk_idx.map(|e| e as f64) * neighbor_coef;
-                                let dist = (wposf - neighbor_pos).magnitude();
-                                let dist_upon =
-                                    (dist - TerrainChunkSize::RECT_SIZE.x as f64 * 0.5).max(0.0);
-                                let dist_ = if dist == 0.0 { f64::INFINITY } else { -dist };
-                                Some((Reverse((0.0, dist_upon)), dist_))
-                            } else {
-                                None
-                            }
-                        });
-                        let river_key = (river_dist, Reverse(kind));
-                        if max_key < Some(river_key) {
-                            max_river = Some((river_chunk_idx, river_chunk, river, dist));
-                            max_key = Some(river_key);
-                        }
-                    }
-
-                    // NOTE: we scale by the distance to the river divided by the difference
-                    // between the edge of the river that we intersect, and the remaining distance
-                    // until the nearest point in "this" chunk (i.e. the one whose top-left corner
-                    // is chunk_pos) that is at least 2 chunks away from the river source.
-                    if let Some((_, dist, river_width, (river_t, (river_pos, _), downhill_river_chunk))) = dist {
-                        let max_distance = if !river.is_river() {
-                            /*(*/
-                            TerrainChunkSize::RECT_SIZE.x as f64 /* * (1.0 - (2.0f64.sqrt() / 2.0))) + 4.0*/ - lake_width * 0.5
-                        } else {
-                            TerrainChunkSize::RECT_SIZE.x as f64
-                        };
-                        let scale_factor = max_distance;
-                        let river_dist = if kind.is_river() {
-                            // dist.y
-                            ((river_pos - wposf).magnitude() - river_width * 0.5).max(0.0)
-                        } else {
-                            let water_chunk = river_chunk_idx.map(|e| e as f64);
-                            let water_aabr = Aabr {
-                                min: water_chunk * neighbor_coef,
-                                max: (water_chunk + 1.0) * neighbor_coef,
-                            };
-                            /*water_aabr.distance_to_point(wposf)*/
-                            (river_pos - wposf).magnitude() / (TerrainChunkSize::RECT_SIZE.x as f64 * 0.1)
-                        };
-
-                        if !(dist.x == 0.0 && river_dist < scale_factor) {
-                            return;
-                        }
-                        // We basically want to project outwards from river_pos, along the current
-                        // tangent line, to chunks <= river_width * 1.0 away from this
-                        // point.  We *don't* want to deal with closer chunks because they
-
-                        // NOTE: river_width <= 2 * max terrain chunk size width, so this should not
-                        // lead to division by zero.
-                        // NOTE: If distance = 0.0 this goes to zero, which is desired since it
-                        // means points that actually intersect with rivers will not be interpolated
-                        // with the "normal" height of this point.
-                        // NOTE: We keep the maximum at 1.0 so we don't undo work from another river
-                        // just by being far away.
-                        let river_scale = river_dist / scale_factor;
-                        let river_alt =
-                            Lerp::lerp(river_chunk.alt, downhill_river_chunk.alt, river_t as f32);
-                        let river_alt = Lerp::lerp(river_alt, alt, river_scale as f32);
-                        let river_alt_diff = river_alt - alt;
-                        let river_alt_inv = river_alt_diff as f64;
-                        river_overlap_distance_product += (1.0 - river_scale) * river_alt_inv;
-                        overlap_count += 1.0 - river_scale;
-                        river_count += 1.0;
-                        river_distance_product *= river_scale;
-                        max_dip = max_dip.max(-river_alt_diff + if let RiverKind::River { cross_section } = kind {
-                            let river_depth = river_width as f32 * 0.5;
-
-                            (cross_section.y * river_depth).max(0.0) + 1.5
-                        } else {
-                            0.0
-                        });
-                    }
-                }
-                None => {}
-            }
-        });
-
-        let river_scale_factor = if river_count == 0.0 {
-            1.0
-        } else {
-            let river_scale_factor = river_distance_product;
-            if river_scale_factor == 0.0 {
-                0.0
-            } else {
-                river_scale_factor.powf(if river_count == 0.0 {
-                    1.0
-                } else {
-                    1.0 / river_count
-                })
-            }
-        };
-
-        let alt_for_river = alt;
-        // + if overlap_count == 0.0 {
-        //     0.0
-        // } else {
-        //     river_overlap_distance_product / overlap_count
-        // } as f32;
 
         let riverless_alt_delta = (sim.gen_ctx.small_nz.get(
             (wposf_turb.div(200.0 * (32.0 / TerrainChunkSize::RECT_SIZE.x as f64))).into_array(),
@@ -873,240 +723,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let cliff_offset = cliff * cliff_height;
         let riverless_alt_delta = riverless_alt_delta + (cliff - 0.5) * cliff_height;
 
-        let river_gouge = 0.5;
-        let (_in_water, old_water_dist, alt_, old_water_level, _riverless_alt, warp_factor) =
-            if let Some((
-                max_border_river_pos,
-                river_chunk,
-                max_border_river,
-                max_border_river_dist,
-            )) = max_river
-            {
-                // This is flowing into a lake, or a lake, or is at least a non-ocean tile.
-                //
-                // If we are <= water_alt, we are in the lake; otherwise, we are flowing into
-                // it.
-                match max_border_river.river_kind {
-                    Some(RiverKind::River { cross_section }) => 'block: {
-                        if max_border_river_dist.map(|(_, dist, _, _)| dist) != Some(Vec2::zero()) {
-                            let (_, _, river_width, (_, (river_pos, _), _)) =
-                                max_border_river_dist.unwrap();
-                            let river_dist = wposf.distance(river_pos);
+        let warp_factor = water_dist.map_or(1.0, |d| d.max(0.0) / 64.0);
 
-                            // FIXME: Make water altitude accurate.
-                            break 'block (
-                                river_scale_factor <= 1.0,
-                                Some((river_dist - river_width * 0.5) as f32),
-                                alt_for_river - max_dip, //alt_for_river,
-                                downhill_water_alt,
-                                alt, //alt_for_river,
-                                river_scale_factor as f32,
-                            );
-                        }
-                        let (_, _, river_width, (river_t, (river_pos, _), downhill_river_chunk)) =
-                            max_border_river_dist.unwrap();
-                        let river_alt = Lerp::lerp(
-                            river_chunk.alt.max(river_chunk.water_alt),
-                            downhill_river_chunk.alt.max(downhill_river_chunk.water_alt),
-                            river_t as f32,
-                        );
-                        let new_alt = river_alt - river_gouge;
-                        let river_dist = wposf.distance(river_pos);
-                        let river_height_factor = river_dist / (river_width * 0.5);
-
-                        // This is not a good way to determine river depth, but we do it
-                        // anyway. TODO: Make the erosion
-                        // sim output better river depths through `cross_section`.
-                        let river_depth = river_width as f32 * 0.5;
-
-                        let valley_alt = Lerp::lerp(
-                            new_alt - (cross_section.y * river_depth).max(1.0),
-                            new_alt - 1.0,
-                            (river_height_factor * river_height_factor) as f32,
-                        );
-
-                        (
-                            true,
-                            Some((river_dist - river_width * 0.5) as f32),
-                            alt_for_river - max_dip, //valley_alt.min(alt),
-                            new_alt.max(valley_alt.min(alt) + 1.0),
-                            alt,                       //river_alt + cross_section.y.max(1.0),
-                            river_scale_factor as f32, //0.0,
-                        )
-                    },
-                    Some(RiverKind::Ocean) => 'block: {
-                        let (_, dist, river_width, (river_t, (river_pos, _), downhill_river_chunk)) =
-                            if let Some(dist) = max_border_river_dist {
-                                dist
-                            } else {
-                                error!(
-                                    ?max_border_river,
-                                    ?chunk_pos,
-                                    ?max_border_river_pos,
-                                    "downhill error details"
-                                );
-                                panic!("Oceans should definitely have a downhill! ...Right?");
-                            };
-                        let lake_water_alt = Lerp::lerp(
-                            river_chunk.alt.max(river_chunk.water_alt),
-                            downhill_river_chunk.alt.max(downhill_river_chunk.water_alt),
-                            river_t as f32,
-                        ) + 1.0;
-
-                        if dist == Vec2::zero() {
-                            let river_dist = wposf.distance(river_pos);
-                            let _river_height_factor = river_dist / (river_width * 0.5);
-                            break 'block (
-                                true,
-                                Some((river_dist - river_width * 0.5) as f32),
-                                alt_for_river - max_dip, //alt_for_river,
-                                // .min(lake_water_alt - 1.0 - river_gouge),
-                                lake_water_alt,
-                                alt, //alt_for_river.max(lake_water_alt),
-                                0.0,
-                            );
-                        }
-
-                        (
-                            river_scale_factor <= 1.0,
-                            Some((wposf.distance(river_pos) - river_width * 0.5) as f32),
-                            alt_for_river - max_dip, //alt_for_river,
-                            downhill_water_alt + 1.0,
-                            alt, //alt_for_river,
-                            river_scale_factor as f32,
-                        )
-                    },
-                    Some(RiverKind::Lake { .. }) => 'block: {
-                        let lake_chunk = max_border_river_pos.map(|e| e as f64);
-                        let lake_aabr = Aabr {
-                            min: lake_chunk * neighbor_coef,
-                            max: (lake_chunk + 1.0) * neighbor_coef,
-                        };
-                        let lake_dist = lake_aabr.distance_to_point(wposf);
-                        let downhill_river_chunk = max_border_river_pos;
-                        let lake_id_dist = downhill_river_chunk - chunk_pos;
-                        let in_bounds = lake_id_dist.x >= -1
-                            && lake_id_dist.y >= -1
-                            && lake_id_dist.x <= 1
-                            && lake_id_dist.y <= 1;
-                        let in_bounds = in_bounds && (lake_id_dist.x >= 0 && lake_id_dist.y >= 0);
-                        let (_, dist, _, (river_t, _, downhill_river_chunk)) =
-                            if let Some(dist) = max_border_river_dist {
-                                dist
-                            } else if lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 1.0
-                                || in_bounds
-                            {
-                                let gouge_factor = 0.0;
-                                break 'block (
-                                    in_bounds
-                                        || downhill_water_alt.max(river_chunk.water_alt)
-                                            > alt_for_river,
-                                    Some(lake_dist as f32),
-                                    alt_for_river - max_dip, //alt_for_river,
-                                    (downhill_water_alt.max(river_chunk.water_alt) - river_gouge),
-                                    alt_for_river,
-                                    river_scale_factor as f32 * (1.0 - gouge_factor),
-                                );
-                            } else {
-                                break 'block (
-                                    false,
-                                    Some(lake_dist as f32),
-                                    alt_for_river - max_dip, //alt_for_river,
-                                    downhill_water_alt,
-                                    alt_for_river,
-                                    river_scale_factor as f32,
-                                );
-                            };
-
-                        let lake_dist = dist.y;
-                        let lake_water_alt = Lerp::lerp(
-                            river_chunk.alt.max(river_chunk.water_alt),
-                            downhill_river_chunk.alt.max(downhill_river_chunk.water_alt),
-                            river_t as f32,
-                        );
-                        // if dist == Vec2::zero() {
-                        //     return (
-                        //         true,
-                        //         Some(lake_dist as f32),
-                        //         alt_for_river,
-                        //             // .min(lake_water_alt - 1.0 - river_gouge),
-                        //         lake_water_alt - river_gouge,
-                        //         alt_for_river.max(lake_water_alt),
-                        //         0.0,
-                        //     );
-                        // }
-                        if lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 1.0 || in_bounds {
-                            let gouge_factor = if in_bounds && lake_dist <= 1.0 {
-                                1.0
-                            } else {
-                                0.0
-                            };
-                            let in_bounds_ =
-                                lake_dist <= TerrainChunkSize::RECT_SIZE.x as f64 * 0.5;
-                            if gouge_factor == 1.0 {
-                                break 'block (
-                                    true,
-                                    Some(lake_dist as f32),
-                                    alt_for_river - max_dip, //alt_for_river,
-                                    //     .min(lake_water_alt - 1.0 - river_gouge),
-                                    downhill_water_alt.max(lake_water_alt) - river_gouge,
-                                    alt.max(lake_water_alt),
-                                    0.0, // river_scale_factor as f32* (1.0 - gouge_factor),
-                                );
-                            } else {
-                                break 'block (
-                                    true,
-                                    Some(lake_dist as f32),
-                                    alt_for_river - max_dip, //alt_for_river,
-                                    if in_bounds_ {
-                                        downhill_water_alt.max(lake_water_alt)
-                                    } else {
-                                        downhill_water_alt //.max(lake_water_alt)
-                                    }
-                                    .max(river_chunk.water_alt)
-                                        - river_gouge,
-                                    alt_for_river,
-                                    river_scale_factor as f32 * (1.0 - gouge_factor),
-                                );
-                            }
-                        }
-                        (
-                            river_scale_factor <= 1.0,
-                            Some(lake_dist as f32),
-                            alt_for_river - max_dip, /* alt_for_river.max(lake_water_alt).
-                                                      * max(river_chunk.water_alt), */
-                            downhill_water_alt,
-                            alt_for_river,
-                            river_scale_factor as f32,
-                        )
-                    },
-                    None => (
-                        false,
-                        None,
-                        alt_for_river - max_dip, //alt_for_river,
-                        downhill_water_alt,
-                        alt, //alt_for_river,
-                        1.0,
-                    ),
-                }
-            } else {
-                (
-                    false,
-                    None,
-                    alt_for_river - max_dip, //alt_for_river,
-                    downhill_water_alt,
-                    alt, //alt_for_river,
-                    1.0,
-                )
-            };
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 
-        let warp_factor = warp_factor.min(water_dist.map_or(1.0, |d| d.max(0.0) / 64.0));
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
-        // let riverless_alt = alt + riverless_alt_delta; //riverless_alt +
-        // riverless_alt_delta;
-        let alt = alt/*alt_*/ + riverless_alt_delta;
+        let alt = alt + riverless_alt_delta;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
@@ -1433,9 +1056,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             snow_cover,
             cliff_offset,
             cliff_height,
-            in_river,
-            in_lake: lake_dist <= 0.0,
-            unbounded_water_level,
 
             chunk: sim_chunk,
         })
@@ -1468,9 +1088,6 @@ pub struct ColumnSample<'a> {
     pub snow_cover: bool,
     pub cliff_offset: f32,
     pub cliff_height: f32,
-    pub in_river: bool,
-    pub in_lake: bool,
-    pub unbounded_water_level: f32,
 
     pub chunk: &'a SimChunk,
 }

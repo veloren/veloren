@@ -83,12 +83,7 @@ impl Body {
 
     pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
 
-    pub fn can_fly(&self) -> bool {
-        match self {
-            Body::DefaultAirship | Body::AirBalloon => true,
-            _ => false,
-        }
-    }
+    pub fn can_fly(&self) -> bool { matches!(self, Body::DefaultAirship | Body::AirBalloon) }
 
     pub fn has_water_thrust(&self) -> bool {
         !self.can_fly() // TODO: Differentiate this more carefully

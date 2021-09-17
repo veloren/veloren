@@ -1,12 +1,11 @@
 use crate::{
     all::ForestKind,
-    util::{seed_expan, RandomPerm, Sampler, StructureGen2d, UnitChooser},
+    util::{seed_expan, Sampler, StructureGen2d, UnitChooser},
     Canvas,
 };
 use common::{
     assets::AssetHandle,
     terrain::structure::{Structure, StructuresGroup},
-    vol::ReadVol,
 };
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
@@ -24,13 +23,13 @@ struct Shrub {
     kind: ForestKind,
 }
 
-pub fn apply_shrubs_to(canvas: &mut Canvas, rng: &mut impl Rng) {
+pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
     let mut shrub_cache = HashMap::new();
 
     let shrub_gen = StructureGen2d::new(canvas.index().seed, 8, 4);
 
     let info = canvas.info();
-    canvas.foreach_col(|canvas, wpos2d, col| {
+    canvas.foreach_col(|_, wpos2d, _| {
         for (wpos, seed) in std::array::IntoIter::new(shrub_gen.get(wpos2d)) {
             shrub_cache.entry(wpos).or_insert_with(|| {
                 let col = info.col_or_gen(wpos)?;

@@ -173,6 +173,7 @@ impl Body {
                 quadruped_low::Species::Lavadrake => 1.7,
                 _ => 2.0,
             },
+            Body::Ship(ship) if ship.has_water_thrust() => 0.1,
             Body::Ship(_) => 0.035,
         }
     }
@@ -180,7 +181,7 @@ impl Body {
     /// Returns thrust force if the body type can swim, otherwise None
     pub fn swim_thrust(&self) -> Option<f32> {
         match self {
-            Body::Object(_) | Body::Ship(_) => None,
+            Body::Object(_) => None,
             Body::BipedLarge(_) | Body::Golem(_) => Some(200.0 * self.mass().0),
             Body::BipedSmall(_) => Some(100.0 * self.mass().0),
             Body::BirdMedium(_) => Some(50.0 * self.mass().0),
@@ -200,8 +201,8 @@ impl Body {
             Body::QuadrupedLow(_) => Some(300.0 * self.mass().0),
             Body::QuadrupedMedium(_) => Some(300.0 * self.mass().0),
             Body::QuadrupedSmall(_) => Some(300.0 * self.mass().0),
-            Body::Ship(ship) if ship.has_water_thrust() => Some(500.0 * self.mass().0),
-            _ => None,
+            Body::Ship(ship) if ship.has_water_thrust() => Some(750.0 * self.mass().0),
+            Body::Ship(_) => None,
         }
     }
 
