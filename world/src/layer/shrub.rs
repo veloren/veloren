@@ -1,4 +1,5 @@
 use crate::{
+    all::ForestKind,
     util::{seed_expan, RandomPerm, Sampler, StructureGen2d, UnitChooser},
     Canvas,
 };
@@ -14,12 +15,13 @@ use rand_chacha::ChaChaRng;
 use vek::*;
 
 lazy_static! {
-    static ref SHRUBS: AssetHandle<StructuresGroup> = Structure::load_group("shrubs");
+    static ref JUNGLE_SHRUBS: AssetHandle<StructuresGroup> = Structure::load_group("shrubs.jungle");
 }
 
 struct Shrub {
     wpos: Vec3<i32>,
     seed: u32,
+    kind: ForestKind,
 }
 
 pub fn apply_shrubs_to(canvas: &mut Canvas, rng: &mut impl Rng) {
@@ -33,7 +35,10 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             shrub_cache.entry(wpos).or_insert_with(|| {
                 let col = info.col_or_gen(wpos)?;
 
-                if RandomPerm::new(seed).chance(37, col.tree_density * 0.3)
+                let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+
+                const BASE_SHRUB_DENSITY: f64 = 0.15;
+                if rng.gen_bool((BASE_SHRUB_DENSITY * col.tree_density as f64).clamped(0.0, 1.0))
                     && col.water_dist.map_or(true, |d| d > 8.0)
                     && col.alt > col.water_level
                     && col.spawn_rate > 0.9
@@ -42,6 +47,11 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     Some(Shrub {
                         wpos: wpos.with_z(col.alt as i32),
                         seed,
+                        kind: *info
+                            .chunks()
+                            .make_forest_lottery(wpos)
+                            .choose_seeded(seed)
+                            .as_ref()?,
                     })
                 } else {
                     None
@@ -55,7 +65,12 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, rng: &mut impl Rng) {
 
         let units = UnitChooser::new(shrub.seed).get(shrub.seed).into();
 
-        let shrubs = SHRUBS.read();
+        let shrubs = match shrub.kind {
+            ForestKind::Mangrove => &JUNGLE_SHRUBS,
+            _ => continue, // TODO: Add more shrub varieties
+        }
+        .read();
+
         let structure = shrubs.choose(&mut rng).unwrap();
         canvas.blit_structure(shrub.wpos, structure, shrub.seed, units, true);
     }

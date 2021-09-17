@@ -304,9 +304,9 @@ pub fn quadratic_nearest_point(
     //     end: line.y,
     // };
     // let len_sq = line.start.distance_squared(line.end);
-    // let t = ((point - line.start).dot(line.end - line.start) / len_sq).clamped(0.0, 1.0);
-    // let pos = line.start + (line.end - line.start) * t;
-    // return Some((t, pos, pos.distance_squared(point)));
+    // let t = ((point - line.start).dot(line.end - line.start) /
+    // len_sq).clamped(0.0, 1.0); let pos = line.start + (line.end - line.start)
+    // * t; return Some((t, pos, pos.distance_squared(point)));
 
     // Quadratic
 
@@ -406,9 +406,9 @@ pub fn quadratic_nearest_point(
                 .unwrap()
         });
     min_root
-        // .map(|(t, pt, dist)| {
-        //     let t = t.clamped(0.0, 1.0);
-        //     let pos = spline.x * t * t + spline.y * t + spline.z;
-        //     (t, pos, pos.distance_squared(point))
-        // })
+    // .map(|(t, pt, dist)| {
+    //     let t = t.clamped(0.0, 1.0);
+    //     let pos = spline.x * t * t + spline.y * t + spline.z;
+    //     (t, pos, pos.distance_squared(point))
+    // })
 }
