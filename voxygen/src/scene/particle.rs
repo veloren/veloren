@@ -198,7 +198,7 @@ impl ParticleMgr {
                                     0.0,
                                 )
                                 .normalized()
-                                    * (body.radius() + 4.0)
+                                    * (body.max_radius() + 4.0)
                                 + Vec3::unit_z() * (body.height() + 2.0) * rng.gen::<f32>();
 
                             Particle::new_directed(
@@ -688,7 +688,7 @@ impl ParticleMgr {
                                     0.0,
                                 )
                                 .normalized()
-                                    * (body.radius() + 2.0)
+                                    * (body.max_radius() + 2.0)
                                 + Vec3::unit_z() * body.height() * rng.gen::<f32>();
 
                             let (start_pos, end_pos) =
@@ -720,8 +720,8 @@ impl ParticleMgr {
                                 || {
                                     let start_pos = pos.0
                                         + Vec3::new(
-                                            body.radius(),
-                                            body.radius(),
+                                            body.max_radius(),
+                                            body.max_radius(),
                                             body.height() / 2.0,
                                         )
                                         .map(|d| d * rng.gen_range(-1.0..1.0));
@@ -1021,8 +1021,12 @@ impl ParticleMgr {
                                 + usize::from(self.scheduler.heartbeats(Duration::from_millis(15))),
                             || {
                                 let start_pos = pos.0
-                                    + Vec3::new(body.radius(), body.radius(), body.height() / 2.0)
-                                        .map(|d| d * rng.gen_range(-1.0..1.0));
+                                    + Vec3::new(
+                                        body.max_radius(),
+                                        body.max_radius(),
+                                        body.height() / 2.0,
+                                    )
+                                    .map(|d| d * rng.gen_range(-1.0..1.0));
                                 let end_pos = start_pos
                                     + Vec3::unit_z() * body.height()
                                     + Vec3::<f32>::zero()

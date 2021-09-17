@@ -54,7 +54,12 @@ pub struct PreviousPhysCache {
     /// Calculates a Sphere over the Entity for quick boundary checking
     pub collision_boundary: f32,
     pub scale: f32,
+    /// Approximate radius of cylinder of collider.
     pub scaled_radius: f32,
+    /// Radius of stadium of collider.
+    pub neighborhood_radius: f32,
+    /// relative p0 and p1 of collider's statium, None if cylinder.
+    pub origins: Option<(Vec2<f32>, Vec2<f32>)>,
     pub ori: Quaternion<f32>,
 }
 
@@ -99,18 +104,30 @@ impl Component for Density {
 // Collider
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Collider {
-    // TODO: pass the map from ids -> voxel data to get_radius and get_z_limits to compute a
-    // bounding cylinder
-    Voxel { id: String },
-    Box { radius: f32, z_min: f32, z_max: f32 },
+    // TODO: pass the map from ids -> voxel data to get_radius
+    // and get_z_limits to compute a bounding cylinder.
+    Voxel {
+        id: String,
+    },
+    /// Capsule prism with line segment from p0 to p1
+    CapsulePrism {
+        p0: Vec2<f32>,
+        p1: Vec2<f32>,
+        radius: f32,
+        z_min: f32,
+        z_max: f32,
+    },
     Point,
 }
 
 impl Collider {
-    pub fn get_radius(&self) -> f32 {
+    pub fn bounding_radius(&self) -> f32 {
         match self {
             Collider::Voxel { .. } => 1.0,
-            Collider::Box { radius, .. } => *radius,
+            Collider::CapsulePrism { radius, p0, p1, .. } => {
+                let a = p0.distance(*p1);
+                a / 2.0 + *radius
+            },
             Collider::Point => 0.0,
         }
     }
@@ -123,7 +140,7 @@ impl Collider {
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
             Collider::Voxel { .. } => (0.0, 1.0),
-            Collider::Box { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
+            Collider::CapsulePrism { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }
     }

@@ -147,6 +147,14 @@ impl<
     const EXTENSION: &'static str = "ron";
 }
 
+// Utility enum used to build Stadium points
+// Read doc for [Body::sausage] for more.
+//
+// Actually can be removed I guess?
+// We can just determine shape form dimensions.
+//
+// But I want Dachshund in Veloren at least somewhere XD
+
 impl Body {
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
@@ -292,11 +300,12 @@ impl Body {
     }
 
     /// The width (shoulder to shoulder), length (nose to tail) and height
-    /// respectively
+    /// respectively (in metres)
+    // Code reviewers: should we replace metres with 'block height'?
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
             Body::BipedLarge(body) => match body.species {
-                biped_large::Species::Cyclops => Vec3::new(4.6, 3.0, 6.5),
+                biped_large::Species::Cyclops => Vec3::new(5.6, 3.0, 6.5),
                 biped_large::Species::Dullahan => Vec3::new(4.6, 3.0, 5.5),
                 biped_large::Species::Mightysaurok => Vec3::new(4.0, 3.0, 3.4),
                 biped_large::Species::Mindflayer => Vec3::new(4.4, 3.0, 8.0),
@@ -350,6 +359,8 @@ impl Body {
                 quadruped_medium::Species::Ngoubou => Vec3::new(2.0, 3.2, 2.4),
                 quadruped_medium::Species::Llama => Vec3::new(2.0, 2.5, 2.6),
                 quadruped_medium::Species::Alpaca => Vec3::new(2.0, 2.0, 2.0),
+                quadruped_medium::Species::Camel => Vec3::new(2.0, 4.0, 3.5),
+                // FIXME: We really shouldn't be doing wildcards here
                 _ => Vec3::new(2.0, 3.0, 2.0),
             },
             Body::QuadrupedSmall(body) => match body.species {
@@ -389,9 +400,60 @@ impl Body {
     // Note: This is used for collisions, but it's not very accurate for shapes that
     // are very much not cylindrical. Eventually this ought to be replaced by more
     // accurate collision shapes.
-    pub fn radius(&self) -> f32 {
+    pub fn max_radius(&self) -> f32 {
         let dim = self.dimensions();
-        dim.x.max(dim.y) / 2.0
+        let (x, y) = (dim.x, dim.y);
+
+        x.max(y) / 2.0
+    }
+
+    pub fn min_radius(&self) -> f32 {
+        let (_p0, _p1, radius) = self.sausage();
+
+        radius
+    }
+
+    /// Base of our Capsule Prism used for collisions.
+    /// Returns line segment and radius. See [this wiki page][stadium_wiki].
+    ///
+    /// [stadium_wiki]: <https://en.wikipedia.org/wiki/Stadium_(geometry)>
+    pub fn sausage(&self) -> (Vec2<f32>, Vec2<f32>, f32) {
+        // Consider this ascii-art stadium with radius `r` and line segment `a`
+        //
+        //      xxxxxxxxxxxxxxxxx
+        //
+        //        _ ----------_
+        // y    -*      r      *-
+        // y   *        r        *
+        // y  * rrr aaaaaaaaa rrr *
+        // y  *         r         *
+        // y   *        r        *
+        //       *____________ ^
+        let dim = self.dimensions();
+        // The width (shoulder to shoulder) and length (nose to tail)
+        let (width, length) = (dim.x, dim.y);
+
+        if length > width {
+            // Dachshund-like
+            let radius = width / 2.0;
+
+            let a = length - 2.0 * radius;
+
+            let p0 = Vec2::new(0.0, -a / 2.0);
+            let p1 = Vec2::new(0.0, a / 2.0);
+
+            (p0, p1, radius)
+        } else {
+            // Cyclops-like
+            let radius = length / 2.0;
+
+            let a = width - 2.0 * radius;
+
+            let p0 = Vec2::new(-a / 2.0, 0.0);
+            let p1 = Vec2::new(a / 2.0, 0.0);
+
+            (p0, p1, radius)
+        }
     }
 
     // How far away other entities should try to be. Will be added uppon the other
@@ -399,7 +461,7 @@ impl Body {
     // lead to that both entities will try to keep 5.0 units away from each
     // other.
     pub fn spacing_radius(&self) -> f32 {
-        self.radius()
+        self.max_radius()
             + match self {
                 Body::QuadrupedSmall(body) => match body.species {
                     quadruped_small::Species::Rat => 0.0,
@@ -417,6 +479,7 @@ impl Body {
             }
     }
 
+    /// Height from the bottom to the top (in metres)
     pub fn height(&self) -> f32 { self.dimensions().z }
 
     pub fn base_energy(&self) -> u32 {

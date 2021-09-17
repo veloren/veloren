@@ -152,7 +152,8 @@ impl<'a> System<'a> for Sys {
 
                 // Scales
                 let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
-                let rad_b = body_b.radius() * scale_b;
+                // TODO: use Capsule Prism instead of Cylinder
+                let rad_b = body_b.max_radius() * scale_b;
 
                 // Angle checks
                 let pos_b_ground = Vec3::new(pos_b.0.x, pos_b.0.y, pos.0.z);

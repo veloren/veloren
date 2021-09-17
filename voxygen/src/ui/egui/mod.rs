@@ -59,9 +59,10 @@ impl EguiState {
                 scene.debug.remove_shape(DebugShapeId(*debug_shape_id));
             },
             DebugShapeAction::SetPosAndColor { id, pos, color } => {
+                let identity_ori = [0.0, 0.0, 0.0, 1.0];
                 scene
                     .debug
-                    .set_pos_and_color(DebugShapeId(*id), *pos, *color);
+                    .set_context(DebugShapeId(*id), *pos, *color, identity_ori);
             },
         })
     }

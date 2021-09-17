@@ -1783,9 +1783,9 @@ impl<'a> AgentData<'a> {
         // Wield the weapon as running towards the target
         controller.actions.push(ControlAction::Wield);
 
-        let min_attack_dist = (self.body.map_or(0.5, |b| b.radius()) + DEFAULT_ATTACK_RANGE)
+        let min_attack_dist = (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE)
             * self.scale
-            + tgt_data.body.map_or(0.5, |b| b.radius()) * tgt_data.scale.map_or(1.0, |s| s.0);
+            + tgt_data.body.map_or(0.5, |b| b.max_radius()) * tgt_data.scale.map_or(1.0, |s| s.0);
         let dist_sqrd = self.pos.0.distance_squared(tgt_data.pos.0);
         let angle = self
             .ori
@@ -3676,7 +3676,7 @@ impl<'a> AgentData<'a> {
     ) {
         const BIRD_ATTACK_RANGE: f32 = 4.0;
         const BIRD_CHARGE_DISTANCE: f32 = 15.0;
-        let bird_attack_distance = self.body.map_or(0.0, |b| b.radius()) + BIRD_ATTACK_RANGE;
+        let bird_attack_distance = self.body.map_or(0.0, |b| b.max_radius()) + BIRD_ATTACK_RANGE;
         // Increase action timer
         agent.action_state.timer += read_data.dt.0;
         // If higher than 2 blocks
@@ -3748,7 +3748,7 @@ impl<'a> AgentData<'a> {
         const MINOTAUR_ATTACK_RANGE: f32 = 5.0;
         const MINOTAUR_CHARGE_DISTANCE: f32 = 15.0;
         let minotaur_attack_distance =
-            self.body.map_or(0.0, |b| b.radius()) + MINOTAUR_ATTACK_RANGE;
+            self.body.map_or(0.0, |b| b.max_radius()) + MINOTAUR_ATTACK_RANGE;
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());
         // Sets action counter at start of combat
         if agent.action_state.counter < MINOTAUR_FRENZY_THRESHOLD
@@ -3815,7 +3815,7 @@ impl<'a> AgentData<'a> {
         const GOLEM_LASER_RANGE: f32 = 30.0;
         const GOLEM_LONG_RANGE: f32 = 50.0;
         const GOLEM_TARGET_SPEED: f32 = 8.0;
-        let golem_melee_range = self.body.map_or(0.0, |b| b.radius()) + GOLEM_MELEE_RANGE;
+        let golem_melee_range = self.body.map_or(0.0, |b| b.max_radius()) + GOLEM_MELEE_RANGE;
         // Fraction of health, used for activation of shockwave
         // If golem don't have health for some reason, assume it's full
         let health_fraction = self.health.map_or(1.0, |h| h.fraction());

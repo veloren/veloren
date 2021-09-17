@@ -80,7 +80,8 @@ impl<'a> System<'a> for Sys {
             // Scales
             let eye_pos = pos.0 + Vec3::unit_z() * body.eye_height();
             let scale = read_data.scales.get(attacker).map_or(1.0, |s| s.0);
-            let rad = body.radius() * scale;
+            // TODO: use Capsule Prisms instead of Cylinders
+            let rad = body.max_radius() * scale;
 
             // Mine blocks broken by the attack
             if let Some((block_pos, tool)) = melee_attack.break_block {
@@ -115,7 +116,7 @@ impl<'a> System<'a> for Sys {
 
                 // Scales
                 let scale_b = read_data.scales.get(target).map_or(1.0, |s| s.0);
-                let rad_b = body_b.radius() * scale_b;
+                let rad_b = body_b.max_radius() * scale_b;
 
                 // Check if entity is dodging
                 let target_dodging = read_data
