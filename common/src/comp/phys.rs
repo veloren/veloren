@@ -60,6 +60,7 @@ pub struct PreviousPhysCache {
     pub neighborhood_radius: f32,
     /// relative p0 and p1 of collider's statium, None if cylinder.
     pub origins: Option<(Vec2<f32>, Vec2<f32>)>,
+    pub pos: Option<Pos>,
     pub ori: Quaternion<f32>,
 }
 
