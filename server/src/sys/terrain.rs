@@ -375,7 +375,7 @@ impl NpcData {
             name,
             scale,
             pos,
-            level,
+            health_scaling,
             loot_drop,
             // tools and skills
             skillset_asset,
@@ -434,7 +434,7 @@ impl NpcData {
             loadout_builder.build()
         };
 
-        let health = Some(comp::Health::new(body, level.unwrap_or(0)));
+        let health = Some(comp::Health::new(body, health_scaling.unwrap_or(0)));
         let poise = comp::Poise::new(body);
 
         let can_speak = match body {
