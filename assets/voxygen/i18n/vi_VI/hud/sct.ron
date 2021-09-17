@@ -3,6 +3,9 @@
 /// Localization for Vietnamese (Vietnam)
 (
     string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.block": "BỊ CHẶN",
     },
 
 

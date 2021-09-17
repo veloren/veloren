@@ -3,6 +3,16 @@
 /// Localization for Vietnamese (Vietnam)
 (
     string_map: {
+        "character_window.character_name": "Tên nhân vật",
+        // Character stats
+        "character_window.character_stats": r#"Bền bỉ
+
+Nhanh nhẹn
+
+Ý chí
+
+Bảo vệ
+"#,
     },
 
 
