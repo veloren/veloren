@@ -673,16 +673,6 @@ where
 }
 
 // Enable when airbraking/sensible flight is a thing
-/// Attempts to find a path from a start to the end using an informed
-/// RRT-Connect algorithm. A point is sampled from a bounding spheroid
-/// between the start and end. Two separate rapidly exploring random
-/// trees extend toward the sampled point. Nodes are stored in k-d trees
-/// for quicker nearest node calculations. Points are sampled until the
-/// trees connect. A final path is then reconstructed from the nodes.
-/// This pathfinding algorithm is more appropriate for 3D pathfinding
-/// with wider gaps, such as flying through a forest than for terrain
-/// with narrow gaps, such as navigating a maze.
-/// Returns a path and whether that path is complete or not.
 #[cfg(rrt_pathfinding)]
 fn find_air_path<V>(
     vol: &V,
@@ -694,7 +684,6 @@ where
     V: BaseVol<Vox = Block> + ReadVol,
 {
     let radius = traversal_cfg.node_tolerance;
-    let mut path = Vec::new();
     let mut connect = false;
     let total_dist_sqrd = startf.distance_squared(endf);
     // First check if a straight line path works
@@ -706,8 +695,10 @@ where
         .powi(2)
         >= total_dist_sqrd
     {
+        let mut path = Vec::new();
         path.push(endf.map(|e| e.floor() as i32));
         connect = true;
+        (Some(path.into_iter().collect()), connect)
     // Else use RRTs
     } else {
         let is_traversable = |start: &Vec3<f32>, end: &Vec3<f32>| {
@@ -720,216 +711,234 @@ where
             //vol.get(*pos).ok().copied().unwrap_or_else(Block::empty).
             // is_fluid();
         };
-        let mut node_index1: usize = 0;
-        let mut node_index2: usize = 0;
+        informed_rrt_connect(start, end, is_traversable)
+    }
+}
 
-        // Each tree has a vector of nodes
-        let mut nodes1 = Vec::new();
-        let mut nodes2 = Vec::new();
+/// Attempts to find a path from a start to the end using an informed
+/// RRT-Connect algorithm. A point is sampled from a bounding spheroid
+/// between the start and end. Two separate rapidly exploring random
+/// trees extend toward the sampled point. Nodes are stored in k-d trees
+/// for quicker nearest node calculations. Points are sampled until the
+/// trees connect. A final path is then reconstructed from the nodes.
+/// This pathfinding algorithm is more appropriate for 3D pathfinding
+/// with wider gaps, such as flying through a forest than for terrain
+/// with narrow gaps, such as navigating a maze.
+/// Returns a path and whether that path is complete or not.
+#[cfg(rrt_pathfinding)]
+fn informed_rrt_connect(
+    start: Vec3<f32>,
+    end: Vec3<f32>,
+    is_valid_edge: impl Fn(&Vec3<f32>, &Vec3<f32>) -> bool,
+) -> (Option<Path<Vec3<i32>>>, bool) {
+    let mut path = Vec::new();
 
-        // The parents hashmap stores nodes and their parent nodes as pairs to
-        // retrace the complete path once the two RRTs connect
-        let mut parents1 = HashMap::new();
-        let mut parents2 = HashMap::new();
+    // Each tree has a vector of nodes
+    let mut node_index1: usize = 0;
+    let mut node_index2: usize = 0;
+    let mut nodes1 = Vec::new();
+    let mut nodes2 = Vec::new();
 
-        // The path vector stores the path from the appropriate terminal to the
-        // connecting node or vice versa
-        let mut path1 = Vec::new();
-        let mut path2 = Vec::new();
+    // The parents hashmap stores nodes and their parent nodes as pairs to
+    // retrace the complete path once the two RRTs connect
+    let mut parents1 = HashMap::new();
+    let mut parents2 = HashMap::new();
 
-        // K-d trees are used to find the closest nodes rapidly
-        let mut kdtree1 = KdTree::new();
-        let mut kdtree2 = KdTree::new();
+    // The path vector stores the path from the appropriate terminal to the
+    // connecting node or vice versa
+    let mut path1 = Vec::new();
+    let mut path2 = Vec::new();
 
-        // Add the start as the first node of the first k-d tree
-        kdtree1
-            .add(&[startf.x, startf.y, startf.z], node_index1)
-            .unwrap_or_default();
-        nodes1.push(startf);
-        node_index1 += 1;
+    // K-d trees are used to find the closest nodes rapidly
+    let mut kdtree1 = KdTree::new();
+    let mut kdtree2 = KdTree::new();
 
-        // Add the end as the first node of the second k-d tree
-        kdtree2
-            .add(&[endf.x, endf.y, endf.z], node_index2)
-            .unwrap_or_default();
-        nodes2.push(endf);
-        node_index2 += 1;
+    // Add the start as the first node of the first k-d tree
+    kdtree1
+        .add(&[startf.x, startf.y, startf.z], node_index1)
+        .unwrap_or_default();
+    nodes1.push(startf);
+    node_index1 += 1;
 
-        let mut connection1_idx = 0;
-        let mut connection2_idx = 0;
+    // Add the end as the first node of the second k-d tree
+    kdtree2
+        .add(&[endf.x, endf.y, endf.z], node_index2)
+        .unwrap_or_default();
+    nodes2.push(endf);
+    node_index2 += 1;
 
-        // Scalar non-dimensional value that is proportional to the size of the
-        // sample spheroid volume. This increases in value until a path is found.
-        let mut search_parameter = 0.01;
+    let mut connection1_idx = 0;
+    let mut connection2_idx = 0;
 
-        // Maximum of 7000 iterations
-        for _i in 0..7000 {
-            if connect {
-                break;
-            }
+    let mut connect = false;
 
-            // Sample a point on the bounding spheroid
-            let (sampled_point1, sampled_point2) = {
-                let point = point_on_prolate_spheroid(startf, endf, search_parameter);
-                (point, point)
-            };
+    // Scalar non-dimensional value that is proportional to the size of the
+    // sample spheroid volume. This increases in value until a path is found.
+    let mut search_parameter = 0.01;
 
-            // Find the nearest nodes to the the sampled point
-            let nearest_index1 = kdtree1
-                .nearest_one(
-                    &[sampled_point1.x, sampled_point1.y, sampled_point1.z],
-                    &squared_euclidean,
-                )
-                .map_or(0, |n| *n.1);
-            let nearest_index2 = kdtree2
-                .nearest_one(
-                    &[sampled_point2.x, sampled_point2.y, sampled_point2.z],
-                    &squared_euclidean,
-                )
-                .map_or(0, |n| *n.1);
-            let nearest1 = nodes1[nearest_index1];
-            let nearest2 = nodes2[nearest_index2];
-
-            // Extend toward the sampled point from the nearest node of each tree
-            let new_point1 =
-                nearest1 + (sampled_point1 - nearest1).normalized().map(|a| a * radius);
-            let new_point2 =
-                nearest2 + (sampled_point2 - nearest2).normalized().map(|a| a * radius);
-
-            // Ensure the new nodes are valid/traversable
-            if is_traversable(&nearest1, &new_point1) {
-                kdtree1
-                    .add(&[new_point1.x, new_point1.y, new_point1.z], node_index1)
-                    .unwrap_or_default();
-                nodes1.push(new_point1);
-                parents1.insert(node_index1, nearest_index1);
-                node_index1 += 1;
-                // Check if the trees connect
-                if let Ok((check, index)) = kdtree2.nearest_one(
-                    &[new_point1.x, new_point1.y, new_point1.z],
-                    &squared_euclidean,
-                ) {
-                    if check < radius {
-                        let connection = nodes2[*index];
-                        connection2_idx = *index;
-                        nodes1.push(connection);
-                        connection1_idx = nodes1.len() - 1;
-                        parents1.insert(node_index1, node_index1 - 1);
-                        connect = true;
-                    }
-                }
-            }
-
-            // Repeat the validity check for the second tree
-            if is_traversable(&nearest2, &new_point2) {
-                kdtree2
-                    .add(&[new_point2.x, new_point2.y, new_point1.z], node_index2)
-                    .unwrap_or_default();
-                nodes2.push(new_point2);
-                parents2.insert(node_index2, nearest_index2);
-                node_index2 += 1;
-                // Again check for a connection
-                if let Ok((check, index)) = kdtree1.nearest_one(
-                    &[new_point2.x, new_point2.y, new_point1.z],
-                    &squared_euclidean,
-                ) {
-                    if check < radius {
-                        let connection = nodes1[*index];
-                        connection1_idx = *index;
-                        nodes2.push(connection);
-                        connection2_idx = nodes2.len() - 1;
-                        parents2.insert(node_index2, node_index2 - 1);
-                        connect = true;
-                    }
-                }
-            }
-            // Increase the search parameter to widen the sample volume
-            search_parameter += 0.02;
+    // Maximum of 7000 iterations
+    for _i in 0..7000 {
+        if connect {
+            break;
         }
 
-        if connect {
-            // Construct paths from the connection node to the start and end
-            let mut current_node_index1 = connection1_idx;
-            while current_node_index1 > 0 {
-                current_node_index1 = *parents1.get(&current_node_index1).unwrap_or(&0);
-                path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
+        // Sample a point on the bounding spheroid
+        let (sampled_point1, sampled_point2) = {
+            let point = point_on_prolate_spheroid(startf, endf, search_parameter);
+            (point, point)
+        };
+
+        // Find the nearest nodes to the the sampled point
+        let nearest_index1 = kdtree1
+            .nearest_one(
+                &[sampled_point1.x, sampled_point1.y, sampled_point1.z],
+                &squared_euclidean,
+            )
+            .map_or(0, |n| *n.1);
+        let nearest_index2 = kdtree2
+            .nearest_one(
+                &[sampled_point2.x, sampled_point2.y, sampled_point2.z],
+                &squared_euclidean,
+            )
+            .map_or(0, |n| *n.1);
+        let nearest1 = nodes1[nearest_index1];
+        let nearest2 = nodes2[nearest_index2];
+
+        // Extend toward the sampled point from the nearest node of each tree
+        let new_point1 = nearest1 + (sampled_point1 - nearest1).normalized().map(|a| a * radius);
+        let new_point2 = nearest2 + (sampled_point2 - nearest2).normalized().map(|a| a * radius);
+
+        // Ensure the new nodes are valid/traversable
+        if is_valid_edge(&nearest1, &new_point1) {
+            kdtree1
+                .add(&[new_point1.x, new_point1.y, new_point1.z], node_index1)
+                .unwrap_or_default();
+            nodes1.push(new_point1);
+            parents1.insert(node_index1, nearest_index1);
+            node_index1 += 1;
+            // Check if the trees connect
+            if let Ok((check, index)) = kdtree2.nearest_one(
+                &[new_point1.x, new_point1.y, new_point1.z],
+                &squared_euclidean,
+            ) {
+                if check < radius {
+                    let connection = nodes2[*index];
+                    connection2_idx = *index;
+                    nodes1.push(connection);
+                    connection1_idx = nodes1.len() - 1;
+                    parents1.insert(node_index1, node_index1 - 1);
+                    connect = true;
+                }
             }
-            let mut current_node_index2 = connection2_idx;
-            while current_node_index2 > 0 {
-                current_node_index2 = *parents2.get(&current_node_index2).unwrap_or(&0);
-                path2.push(nodes2[current_node_index2].map(|e| e.floor() as i32));
+        }
+
+        // Repeat the validity check for the second tree
+        if is_valid_edge(&nearest2, &new_point2) {
+            kdtree2
+                .add(&[new_point2.x, new_point2.y, new_point1.z], node_index2)
+                .unwrap_or_default();
+            nodes2.push(new_point2);
+            parents2.insert(node_index2, nearest_index2);
+            node_index2 += 1;
+            // Again check for a connection
+            if let Ok((check, index)) = kdtree1.nearest_one(
+                &[new_point2.x, new_point2.y, new_point1.z],
+                &squared_euclidean,
+            ) {
+                if check < radius {
+                    let connection = nodes1[*index];
+                    connection1_idx = *index;
+                    nodes2.push(connection);
+                    connection2_idx = nodes2.len() - 1;
+                    parents2.insert(node_index2, node_index2 - 1);
+                    connect = true;
+                }
             }
-            // Join the two paths together in the proper order and remove duplicates
-            path1.pop();
-            path1.reverse();
-            path.append(&mut path1);
-            path.append(&mut path2);
-            path.dedup();
-        } else {
-            // If the trees did not connect, construct a path from the start to
-            // the closest node to the end
-            let mut current_node_index1 = kdtree1
-                .nearest_one(&[endf.x, endf.y, endf.z], &squared_euclidean)
-                .map_or(0, |c| *c.1);
-            // Attempt to pick a node other than the start node
-            for _i in 0..3 {
-                if current_node_index1 == 0
-                    || nodes1[current_node_index1].distance_squared(startf) < 4.0
-                {
-                    if let Some(index) = parents1.values().choose(&mut thread_rng()) {
-                        current_node_index1 = *index;
-                    } else {
-                        break;
-                    }
+        }
+        // Increase the search parameter to widen the sample volume
+        search_parameter += 0.02;
+    }
+
+    if connect {
+        // Construct paths from the connection node to the start and end
+        let mut current_node_index1 = connection1_idx;
+        while current_node_index1 > 0 {
+            current_node_index1 = *parents1.get(&current_node_index1).unwrap_or(&0);
+            path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
+        }
+        let mut current_node_index2 = connection2_idx;
+        while current_node_index2 > 0 {
+            current_node_index2 = *parents2.get(&current_node_index2).unwrap_or(&0);
+            path2.push(nodes2[current_node_index2].map(|e| e.floor() as i32));
+        }
+        // Join the two paths together in the proper order and remove duplicates
+        path1.pop();
+        path1.reverse();
+        path.append(&mut path1);
+        path.append(&mut path2);
+        path.dedup();
+    } else {
+        // If the trees did not connect, construct a path from the start to
+        // the closest node to the end
+        let mut current_node_index1 = kdtree1
+            .nearest_one(&[endf.x, endf.y, endf.z], &squared_euclidean)
+            .map_or(0, |c| *c.1);
+        // Attempt to pick a node other than the start node
+        for _i in 0..3 {
+            if current_node_index1 == 0
+                || nodes1[current_node_index1].distance_squared(startf) < 4.0
+            {
+                if let Some(index) = parents1.values().choose(&mut thread_rng()) {
+                    current_node_index1 = *index;
                 } else {
                     break;
                 }
+            } else {
+                break;
             }
+        }
+        path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
+        // Construct the path
+        while current_node_index1 != 0 && nodes1[current_node_index1].distance_squared(startf) > 4.0
+        {
+            current_node_index1 = *parents1.get(&current_node_index1).unwrap_or(&0);
             path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
-            // Construct the path
-            while current_node_index1 != 0
-                && nodes1[current_node_index1].distance_squared(startf) > 4.0
-            {
-                current_node_index1 = *parents1.get(&current_node_index1).unwrap_or(&0);
-                path1.push(nodes1[current_node_index1].map(|e| e.floor() as i32));
-            }
+        }
 
-            path1.reverse();
-            path.append(&mut path1);
-        }
-        let mut new_path = Vec::new();
-        let mut node = path[0];
-        new_path.push(node);
-        let mut node_idx = 0;
-        let num_nodes = path.len();
-        let end = path[num_nodes - 1];
-        while node != end {
-            let next_idx = if node_idx + 4 > num_nodes - 1 {
-                num_nodes - 1
-            } else {
-                node_idx + 4
-            };
-            let next_node = path[next_idx];
-            let start_pos = node.map(|e| e as f32 + 0.5);
-            let end_pos = next_node.map(|e| e as f32 + 0.5);
-            if vol
-                .ray(start_pos, end_pos)
-                .until(Block::is_solid)
-                .cast()
-                .0
-                .powi(2)
-                > (start_pos).distance_squared(end_pos)
-            {
-                node_idx = next_idx;
-                new_path.push(next_node);
-            } else {
-                node_idx += 1;
-            }
-            node = path[node_idx];
-        }
-        path = new_path;
+        path1.reverse();
+        path.append(&mut path1);
     }
-    (Some(path.into_iter().collect()), connect)
+    let mut new_path = Vec::new();
+    let mut node = path[0];
+    new_path.push(node);
+    let mut node_idx = 0;
+    let num_nodes = path.len();
+    let end = path[num_nodes - 1];
+    while node != end {
+        let next_idx = if node_idx + 4 > num_nodes - 1 {
+            num_nodes - 1
+        } else {
+            node_idx + 4
+        };
+        let next_node = path[next_idx];
+        let start_pos = node.map(|e| e as f32 + 0.5);
+        let end_pos = next_node.map(|e| e as f32 + 0.5);
+        if vol
+            .ray(start_pos, end_pos)
+            .until(Block::is_solid)
+            .cast()
+            .0
+            .powi(2)
+            > (start_pos).distance_squared(end_pos)
+        {
+            node_idx = next_idx;
+            new_path.push(next_node);
+        } else {
+            node_idx += 1;
+        }
+        node = path[node_idx];
+    }
+    path = new_path;
 }
 
 /// Returns a random point within a radially symmetrical ellipsoid with given
