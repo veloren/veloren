@@ -235,16 +235,7 @@ impl Room {
             };
 
             for entity in entities {
-                supplement.add_entity(
-                    entity.with_level(
-                        dynamic_rng
-                            .gen_range(
-                                (self.difficulty as f32).powf(1.25) + 3.0
-                                    ..(self.difficulty as f32).powf(1.5) + 4.0,
-                            )
-                            .round() as u16,
-                    ),
-                );
+                supplement.add_entity(entity);
             }
         } else {
             // Turrets
@@ -303,17 +294,7 @@ impl Room {
             };
 
             for entity in entities {
-                supplement.add_entity(
-                    entity.with_level(
-                        dynamic_rng
-                            .gen_range(
-                                (self.difficulty as f32).powf(1.25) + 3.0
-                                    ..(self.difficulty as f32).powf(1.5) + 4.0,
-                            )
-                            .round() as u16
-                            * 5,
-                    ),
-                );
+                supplement.add_entity(entity);
             }
         }
     }
@@ -321,7 +302,6 @@ impl Room {
     fn fill_boss_cell(
         &self,
         supplement: &mut ChunkSupplement,
-        dynamic_rng: &mut impl Rng,
         tile_wcenter: Vec3<i32>,
         wpos2d: Vec2<i32>,
         tile_pos: Vec2<i32>,
@@ -347,17 +327,7 @@ impl Room {
             };
 
             for entity in entities {
-                supplement.add_entity(
-                    entity.with_level(
-                        dynamic_rng
-                            .gen_range(
-                                (self.difficulty as f32).powf(1.25) + 3.0
-                                    ..(self.difficulty as f32).powf(1.5) + 4.0,
-                            )
-                            .round() as u16
-                            * 5,
-                    ),
-                );
+                supplement.add_entity(entity);
             }
         }
     }
@@ -658,13 +628,9 @@ impl Floor {
                             wpos2d,
                             tile_pos,
                         ),
-                        RoomKind::Boss => room.fill_boss_cell(
-                            supplement,
-                            dynamic_rng,
-                            tile_wcenter,
-                            wpos2d,
-                            tile_pos,
-                        ),
+                        RoomKind::Boss => {
+                            room.fill_boss_cell(supplement, tile_wcenter, wpos2d, tile_pos)
+                        },
                         RoomKind::Peaceful => {},
                     }
                 }
@@ -689,7 +655,9 @@ fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
     entities.resize_with(number, || {
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        // TODO: give enemies health skills?
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_health_scaling(dynamic_rng.gen_range(3..4));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
@@ -704,7 +672,9 @@ fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
     entities.resize_with(number, || {
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        // TODO: give enemies health skills?
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_health_scaling(dynamic_rng.gen_range(4..5));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff"),
@@ -719,7 +689,9 @@ fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
     entities.resize_with(number, || {
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        // TODO: give enemies health skills?
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_health_scaling(dynamic_rng.gen_range(5..7));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff"),
@@ -734,7 +706,9 @@ fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
     entities.resize_with(number, || {
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        // TODO: give enemies health skills?
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_health_scaling(dynamic_rng.gen_range(7..9));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff"),
@@ -749,7 +723,9 @@ fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
     entities.resize_with(number, || {
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        // TODO: give enemies health skills?
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_health_scaling(dynamic_rng.gen_range(9..12));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff"),
@@ -764,7 +740,9 @@ fn enemy_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let number = dynamic_rng.gen_range(1..=3);
     let mut entities = Vec::new();
     entities.resize_with(number, || {
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
+        // TODO: give enemies health skills?
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
+            .with_health_scaling(dynamic_rng.gen_range(10..15));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
@@ -892,7 +870,8 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
         0 => {
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster"),
+                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster")
+                    .with_health_scaling(dynamic_rng.gen_range(50..75)),
             );
             entities.resize_with(entities.len() + 2, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))

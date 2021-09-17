@@ -13,7 +13,7 @@ EntityConfig (
     ))),
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.witch"),
+    loot: LootTable("common.loot_tables.spots.witch"),
 
     hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
 
