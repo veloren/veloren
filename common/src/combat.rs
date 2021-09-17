@@ -888,27 +888,34 @@ pub fn combat_rating(
     inventory: &Inventory,
     health: &Health,
     energy: &Energy,
+    poise: &Poise,
     skill_set: &SkillSet,
     body: Body,
     msm: &MaterialStatManifest,
 ) -> f32 {
     const WEAPON_WEIGHT: f32 = 1.0;
-    const HEALTH_WEIGHT: f32 = 0.5;
+    const HEALTH_WEIGHT: f32 = 1.5;
     const ENERGY_WEIGHT: f32 = 0.5;
     const SKILLS_WEIGHT: f32 = 1.0;
     const POISE_WEIGHT: f32 = 0.5;
-    const CRIT_WEIGHT: f32 = 0.6;
-    // Assumes a "standard" max health of 100
-    let health_rating = 10.0 * health.base_max()
+    const CRIT_WEIGHT: f32 = 0.5;
+    // Normalzied with a standard max health of 100
+    let health_rating = health.base_max()
         / 100.0
         / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
 
-    // Assumes a "standard" max energy of 100 and energy reward multiplier of 1.0
-    let energy_rating = 5.0 * energy.maximum() * compute_energy_reward_mod(Some(inventory)) / 100.0;
+    // Normalzied with a standard max energy of 100 and energy reward multiplier of
+    // x1
+    let energy_rating = (energy.base_max() + compute_max_energy_mod(Some(inventory))) / 100.0
+        * compute_energy_reward_mod(Some(inventory));
 
-    let poise_rating = 10.0 / (1.0 - Poise::compute_poise_damage_reduction(inventory)).max(0.00001);
+    // Normalzied with a standard max poise of 100
+    let poise_rating = poise.base_max() as f32
+        / 100.0
+        / (1.0 - Poise::compute_poise_damage_reduction(inventory)).max(0.00001);
 
-    let crit_rating = 10.0 * compute_crit_mult(Some(inventory));
+    // Normalzied with a standard crit multiplier of 1.2
+    let crit_rating = compute_crit_mult(Some(inventory)) / 1.2;
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
@@ -916,8 +923,7 @@ pub fn combat_rating(
         + weapon_skills(inventory, skill_set) / 10.0)
         / 2.0;
 
-    //Multiply weapon rating by 10 to keep it in the same scale as the others
-    let weapon_rating = 10.0 * get_weapon_rating(inventory, msm);
+    let weapon_rating = get_weapon_rating(inventory, msm);
 
     let combined_rating = (health_rating * HEALTH_WEIGHT
         + energy_rating * ENERGY_WEIGHT

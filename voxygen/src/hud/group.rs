@@ -355,6 +355,7 @@ impl<'a> Widget for Group<'a> {
             let inventory = client_state.ecs().read_storage::<common::comp::Inventory>();
             let uid_allocator = client_state.ecs().read_resource::<UidAllocator>();
             let bodies = client_state.ecs().read_storage::<common::comp::Body>();
+            let poises = client_state.ecs().read_storage::<common::comp::Poise>();
 
             // Keep track of the total number of widget ids we are using for buffs
             let mut total_buff_count = 0;
@@ -369,6 +370,7 @@ impl<'a> Widget for Group<'a> {
                 let inventory = entity.and_then(|entity| inventory.get(entity));
                 let is_leader = uid == leader;
                 let body = entity.and_then(|entity| bodies.get(entity));
+                let poise = entity.and_then(|entity| poises.get(entity));
 
                 if let (
                     Some(stats),
@@ -377,10 +379,11 @@ impl<'a> Widget for Group<'a> {
                     Some(health),
                     Some(energy),
                     Some(body),
-                ) = (stats, skill_set, inventory, health, energy, body)
+                    Some(poise),
+                ) = (stats, skill_set, inventory, health, energy, body, poise)
                 {
                     let combat_rating = combat::combat_rating(
-                        inventory, health, energy, skill_set, *body, self.msm,
+                        inventory, health, energy, poise, skill_set, *body, self.msm,
                     );
                     let char_name = stats.name.to_string();
                     let health_perc = health.current() / health.base_max().max(health.maximum());

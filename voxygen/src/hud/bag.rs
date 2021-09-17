@@ -547,6 +547,7 @@ pub struct Bag<'a> {
     show: &'a Show,
     body: &'a Body,
     msm: &'a MaterialStatManifest,
+    poise: &'a Poise,
 }
 
 impl<'a> Bag<'a> {
@@ -570,6 +571,7 @@ impl<'a> Bag<'a> {
         show: &'a Show,
         body: &'a Body,
         msm: &'a MaterialStatManifest,
+        poise: &'a Poise,
     ) -> Self {
         Self {
             client,
@@ -591,6 +593,7 @@ impl<'a> Bag<'a> {
             show,
             body,
             msm,
+            poise,
         }
     }
 }
@@ -869,6 +872,7 @@ impl<'a> Widget for Bag<'a> {
                 inventory,
                 self.health,
                 self.energy,
+                self.poise,
                 self.skill_set,
                 *self.body,
                 self.msm,
