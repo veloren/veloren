@@ -192,6 +192,7 @@ enum RoomKind {
     Fight,
     Boss,
     Miniboss,
+    #[allow(dead_code)]
     LavaPlatforming,
 }
 
@@ -202,7 +203,7 @@ pub struct Room {
     area: Rect<i32, i32>,
     height: i32,
     pillars: Option<i32>, // Pillars with the given separation
-    pits: Option<i32>, // Pits filled with lava
+    pits: Option<i32>,    // Pits filled with lava
     difficulty: u32,
 }
 
@@ -514,17 +515,17 @@ impl Floor {
                     pits: None,
                     difficulty: self.difficulty,
                 }),
-                // Lava platforming room
-                1 => self.create_room(Room {
-                    seed: ctx.rng.gen(),
-                    loot_density: 0.0,
-                    kind: RoomKind::LavaPlatforming,
-                    area,
-                    height: ctx.rng.gen_range(10..15),
-                    pillars: None,
-                    pits: Some(1),
-                    difficulty: self.difficulty,
-                }),
+                //// Lava platforming room
+                //1 => self.create_room(Room {
+                //    seed: ctx.rng.gen(),
+                //    loot_density: 0.0,
+                //    kind: RoomKind::LavaPlatforming,
+                //    area,
+                //    height: ctx.rng.gen_range(10..15),
+                //    pillars: None,
+                //    pits: Some(1),
+                //    difficulty: self.difficulty,
+                //}),
                 // Fight room with enemies in it
                 _ => self.create_room(Room {
                     seed: ctx.rng.gen(),
@@ -1259,6 +1260,7 @@ impl Floor {
                     }));
                     chests = Some((chest_sprite, chest_sprite_fill));
 
+                    // If a room has pits, place them
                     if room.pits.is_some() {
                         // Make an air pit
                         let tile_pit = prim(Primitive::Aabb(aabr_with_z(
@@ -1281,20 +1283,18 @@ impl Floor {
                     if room
                         .pits
                         .map(|pit_space| {
-                            tile_pos
-                                .map(|e| e.rem_euclid(pit_space) == 0)
-                                .reduce_and()
+                            tile_pos.map(|e| e.rem_euclid(pit_space) == 0).reduce_and()
                         })
-                        .unwrap_or(false) {
+                        .unwrap_or(false)
+                    {
                         let platform = prim(Primitive::Aabb(Aabb {
                             min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
                                 .with_z(floor_z - 7),
-                            max: (tile_center + Vec2::broadcast(pillar_thickness))
-                                .with_z(floor_z),
+                            max: (tile_center + Vec2::broadcast(pillar_thickness)).with_z(floor_z),
                         }));
                         fill(platform, Fill::Block(stone));
                     }
-                                
+
                     // If a room has pillars, the current tile aligns with the pillar spacing, and
                     // we're not too close to a wall (i.e. the adjacent tiles are rooms and not
                     // hallways/solid), place a pillar

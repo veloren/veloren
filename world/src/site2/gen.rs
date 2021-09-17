@@ -24,6 +24,11 @@ pub enum Primitive {
         aabb: Aabb<i32>,
         inset: i32,
     },
+    Ramp {
+        aabb: Aabb<i32>,
+        inset: i32,
+        dir: u8,
+    },
     Gable {
         aabb: Aabb<i32>,
         inset: i32,
@@ -34,6 +39,8 @@ pub enum Primitive {
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
+    /// A line segment from start to finish point
+    Segment(LineSegment3<i32>),
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
@@ -75,6 +82,34 @@ impl Fill {
             Primitive::Empty => false,
 
             Primitive::Aabb(aabb) => aabb_contains(*aabb, pos),
+            Primitive::Ramp { aabb, inset, dir } => {
+                let inset = (*inset).max(aabb.size().reduce_min());
+                let inner = match dir {
+                    0 => Aabr {
+                        min: Vec2::new(aabb.min.x - 1 + inset, aabb.min.y),
+                        max: Vec2::new(aabb.max.x, aabb.max.y),
+                    },
+                    1 => Aabr {
+                        min: Vec2::new(aabb.min.x, aabb.min.y),
+                        max: Vec2::new(aabb.max.x - inset, aabb.max.y),
+                    },
+                    2 => Aabr {
+                        min: Vec2::new(aabb.min.x, aabb.min.y - 1 + inset),
+                        max: Vec2::new(aabb.max.x, aabb.max.y),
+                    },
+                    _ => Aabr {
+                        min: Vec2::new(aabb.min.x, aabb.min.y),
+                        max: Vec2::new(aabb.max.x, aabb.max.y - inset),
+                    },
+                };
+                aabb_contains(*aabb, pos)
+                    && (inner.projected_point(pos.xy()) - pos.xy())
+                        .map(|e| e.abs())
+                        .reduce_max() as f32
+                        / (inset as f32)
+                        < 1.0
+                            - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
+            },
             Primitive::Pyramid { aabb, inset } => {
                 let inset = (*inset).max(aabb.size().reduce_min());
                 let inner = Aabr {
@@ -102,14 +137,14 @@ impl Fill {
                         max: Vec2::new(aabb.max.x, aabb.max.y - inset),
                     }
                 };
-                aabb_contains(*aabb, pos) &&
-                    (inner.projected_point(pos.xy()) - pos.xy())
-                    .map(|e| e.abs())
-                    .reduce_max() as f32
-                    / (inset as f32)
-                    < 1.0
+                aabb_contains(*aabb, pos)
+                    && (inner.projected_point(pos.xy()) - pos.xy())
+                        .map(|e| e.abs())
+                        .reduce_max() as f32
+                        / (inset as f32)
+                        < 1.0
                             - ((pos.z - aabb.min.z) as f32 + 0.5) / (aabb.max.z - aabb.min.z) as f32
-            }
+            },
             Primitive::Cylinder(aabb) => {
                 (aabb.min.z..aabb.max.z).contains(&pos.z)
                     && (pos
@@ -144,6 +179,12 @@ impl Fill {
                                 .map(|x| x.abs())
                                 .as_()
                                 .dot(*gradient) as i32)
+            },
+            Primitive::Segment(segment) => {
+                (segment.start.x..segment.end.x).contains(&pos.x)
+                    && (segment.start.y..segment.end.y).contains(&pos.y)
+                    && (segment.start.z..segment.end.z).contains(&pos.z)
+                    && segment.as_().distance_to_point(pos.map(|e| e as f32)) < 0.75
             },
             Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
@@ -228,6 +269,7 @@ impl Fill {
             Primitive::Aabb(aabb) => *aabb,
             Primitive::Pyramid { aabb, .. } => *aabb,
             Primitive::Gable { aabb, .. } => *aabb,
+            Primitive::Ramp { aabb, .. } => *aabb,
             Primitive::Cylinder(aabb) => *aabb,
             Primitive::Cone(aabb) => *aabb,
             Primitive::Sphere(aabb) => *aabb,
@@ -247,6 +289,10 @@ impl Fill {
                     max: aabr.max.with_z(origin.z + z.reduce_max().max(0)),
                 };
                 aabb.made_valid()
+            },
+            Primitive::Segment(segment) => Aabb {
+                min: segment.start,
+                max: segment.end,
             },
             Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Prefab(p) => p.get_bounds(),
