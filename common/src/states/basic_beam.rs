@@ -222,7 +222,10 @@ impl CharacterBehavior for Data {
 fn height_offset(body: &Body, look_dir: Dir) -> f32 {
     match body {
         Body::BirdLarge(_) => body.height() * 0.8,
-        Body::Golem(_) => body.height() * 0.9 + look_dir.z * 3.0,
+        Body::Golem(_) => {
+            const DIR_COEFF: f32 = 2.0;
+            body.height() * 0.9 + look_dir.z * DIR_COEFF
+        },
         Body::BipedLarge(b) => match b.species {
             biped_large::Species::Mindflayer => body.height() * 0.6,
             _ => body.height() * 0.5,
