@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moon Axe",
-    description: "The blade of this axe resembles a full moon.",
+    name: "月之斧",
+    description: "这把斧头的刀刃像一轮满月.",
     kind: Tool((
         kind: Axe,
         hands: Two,

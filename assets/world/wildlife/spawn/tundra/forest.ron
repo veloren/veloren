@@ -4,8 +4,8 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.frostfang")),
-                (1, (1, 1, "common.entity.wild.aggressive.snow_leopard")),
+                (1, (1, 3, "common.entity.wild.aggressive.frostfang")),
+                (1, (1, 3, "common.entity.wild.aggressive.snow_leopard")),
                 (1, (1, 1, "common.entity.wild.aggressive.yale")),
                 (1, (1, 1, "common.entity.wild.aggressive.grolgar")),
             ],

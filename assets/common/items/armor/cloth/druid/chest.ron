@@ -1,12 +1,12 @@
 ItemDef(
-    name: "Druid Chestguard",
-    description: "Incredibly light, with the essence of nature.",
+    name: "德鲁伊 大衣",
+    description: "令人难以置信的轻，带有自然的本质.",
     kind: Armor((
         kind: Chest("Druid"),
         stats: (
             protection: Normal(18.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 198,
+            poise_resilience: Normal(-3.0),
+            energy_max: 190,
             energy_reward: 0.2,
             crit_power: 0.0,
             stealth: 0.0,

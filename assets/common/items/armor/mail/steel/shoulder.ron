@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Steel Shoulders",
-    description: "The metal alloy plates provide better protection and comfort.",
+    name: "钢 肩凯",
+    description: "金属合金板提供更好的保护和舒适.",
     kind: Armor((
         kind: Shoulder("Steel"),
         stats: (
-            protection: Normal(24.0),
+            protection: Normal(28.0),
             poise_resilience: Normal(6.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            energy_max: -30,
+            energy_reward: -0.25,
+            crit_power: -0.05,
+            stealth: -5.0,
         ),
     )),
     quality: Moderate,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Ore",
-    description: "An incredibly common but incredibly versatile metal.",
+    name: "铁矿石",
+    description: "一种极其普通但用途极其广泛的金属.（可以在合成表出售换成金币）",
     kind: Ingredient(
         kind: "IronOre",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mortar and Pestle",
-    description: "Crushes and grinds things into\na fine powder or paste.\nUsed to craft various items.",
+    name: "研钵和杵",
+    description: "将物品粉碎并研磨成\n细粉或糊状物.\n用于制作不同的物品.",
     kind: Ingredient(
         kind: "MortarPestle",
     ),

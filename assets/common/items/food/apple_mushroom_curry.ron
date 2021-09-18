@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Mushroom Curry",
-    description: "Who could say no to that?",
+    name: "蘑菇咖喱",
+    description: "谁能拒绝它呢？",
     kind: Consumable(
         kind: ComplexFood,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 100.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,
@@ -18,7 +18,7 @@ ItemDef(
             Buff((
                 kind: Regeneration,
                 data: (
-                    strength: 1.0,
+                    strength: 10.0,
                     duration: Some((
                             secs: 70,
                             nanos: 0,

@@ -1,9 +1,9 @@
 BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.5,
-    recover_duration: 0.9,
+    recover_duration: 0.4,
     projectile: Snowball(
-        damage: 20.0,
+        damage: 30.0,
         radius: 5.0,
     ),
     projectile_body: Object(Snowball),

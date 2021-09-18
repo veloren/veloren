@@ -1,0 +1,11 @@
+ItemDef(
+    name: "暗金重型符文滑翔翼",
+    description: "使用了强度惊人的暗金制作.",
+    kind: Glider(
+        (
+            kind: "dg",
+        ),
+    ),
+    quality: Legendary,
+    tags: [],
+)

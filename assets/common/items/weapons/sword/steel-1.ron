@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Nomad's Longblade",
-    description: "Forged with steel.",
+    name: "游牧长刃",
+    description: "用钢锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

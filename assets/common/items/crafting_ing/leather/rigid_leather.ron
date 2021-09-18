@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rigid Leather",
-    description: "Light but layered, perfect for protection.",
+    name: "硬皮革",
+    description: "轻但分层，完美的保护.",
     kind: Ingredient(
         kind: "RigidLeather",
     ),

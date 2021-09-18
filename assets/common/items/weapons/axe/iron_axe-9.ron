@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wolfen Axe",
-    description: "Strikes from this axe look like wolf bites in flesh.",
+    name: "沃尔芬斧",
+    description: "这把斧头的攻击看起来像狼咬人的肉.",
     kind: Tool((
         kind: Axe,
         hands: Two,

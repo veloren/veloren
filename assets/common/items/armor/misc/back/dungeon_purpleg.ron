@@ -1,0 +1,17 @@
+ItemDef(
+    name: "邪教披风",
+    description: "闻起来像黑魔法和蜡烛.",
+    kind: Armor((
+        kind: Back("DungeonPurple"),
+        stats: (
+            protection: Normal(8.0),
+            poise_resilience: Normal(1.0),
+            energy_max: 20,
+            energy_reward: 0.025,
+            crit_power: 0.02,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

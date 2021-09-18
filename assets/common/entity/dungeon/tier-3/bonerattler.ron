@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Bonerattler"),
+    name: Name("响尾骨兽"),
     body: RandomWith("bonerattler"),
     alignment: Alignment(Enemy),
 
@@ -7,5 +7,7 @@ EntityConfig (
 
     hands: Uninit,
 
-    meta: [],
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-3.haniwa"),
+    ],
 )

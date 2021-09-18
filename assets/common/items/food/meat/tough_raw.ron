@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Raw Tough Meat",
-    description: "Peculiar bit of meat, best after cooking.",
+    name: "生硬肉",
+    description: "一块特别的肉，最好在烹调后食用.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: .36,
+                    strength: 3.6,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

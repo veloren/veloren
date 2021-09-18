@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Ore",
-    description: "A blue, shiny ore.",
+    name: "钴矿石",
+    description: "一种闪着蓝光的矿石.（可以在合成表出售换成金币）",
     kind: Ingredient(
         kind: "CobaltOre",
     ),

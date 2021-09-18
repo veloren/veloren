@@ -1,12 +1,11 @@
 [
-    // Currency
-    (10.0, ItemQuantity("common.items.utility.coins", 500, 1000)),
-    // Food
-    (5.0, LootTable("common.loot_tables.food.prepared")),
-    // Consumables
-    (5.0, LootTable("common.loot_tables.consumable.good")),
-    // Cosmetic items
-    (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
-    (1.0, Item("common.items.armor.misc.ring.skull")),
-    (1.0, Item("common.items.glider.glider_blue")),
+    // armor
+    (2.0, ItemQuantity("common.items.utility.coins",5000,15000)),
+    (0.02, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    (0.02, Item("common.items.crafting_ing.hide.dragon_scale")),
+    (0.5, ItemQuantity("common.items.boss_drops.potions",10,15)),
+    (0.5, ItemQuantity("common.items.boss_drops.exp_flask",10,15)),
+    // weapons
+    (0.02, LootTable("common.loot_tables.weapons.epic")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-5")),
 ]

@@ -1,9 +1,9 @@
 Shockwave(
-    energy_cost: 600,
+    energy_cost: 1000,
     buildup_duration: 0.7,
     swing_duration: 0.1,
-    recover_duration: 0.2,
-    damage: 20.0,
+    recover_duration: 0.3,
+    damage: 20,
     poise_damage: 0,
     knockback: ( strength: 25.0, direction: Away),
     shockwave_angle: 360.0,

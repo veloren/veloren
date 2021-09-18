@@ -5,9 +5,9 @@ ItemDef(
         kind: Hand("Woolen"),
         stats: (
             protection: Normal(3.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 33,
-            energy_reward: 0.033,
+            poise_resilience: Normal(-4.0),
+            energy_max: 30,
+            energy_reward: 0.03,
             crit_power: 0.0,
             stealth: 0.0,
         ),

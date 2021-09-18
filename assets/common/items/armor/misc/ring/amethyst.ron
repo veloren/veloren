@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst Ring",
-    description: "A tin ring with an amethyst gem.",
+    name: "紫水晶戒指",
+    description: "镶有紫水晶宝石的锡戒指.",
     kind: Armor((
         kind: Ring("Amethyst"),
         stats: (

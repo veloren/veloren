@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gold Ingot",
-    description: "An ingot made of refined metallic gold.",
+    name: "金锭",
+    description: "用精炼的金属金制成的锭.",
     kind: Ingredient(
         kind: "GoldIngot",
     ),

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Possessed Turret"),
+    name: Name("机关弩炮"),
     body: Exact(Object(Crossbow)),
     alignment: Alignment(Enemy),
 

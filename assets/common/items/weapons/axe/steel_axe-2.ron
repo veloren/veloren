@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Axe",
-    description: "A simple metal alloy axe.",
+    name: "钢斧",
+    description: "简单的金属合金斧头.",
     kind: Tool((
         kind: Axe,
         hands: Two,

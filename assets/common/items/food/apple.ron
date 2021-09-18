@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Apple",
-    description: "Red and juicy",
+    name: "苹果",
+    description: "红色多汁，源自于林地果树上.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 2.0,
+                    strength: 20.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

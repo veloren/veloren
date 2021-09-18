@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Dragon Tongue",
-    description: "The one they fear",
+    name: "龙舌",
+    description: "他们的恐惧",
     kind: Tool((
         kind: Staff,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.3,
-            power: 2.0,
-            effect_power: 1.0,
+            power: 2.3,
+            effect_power: 1.5,
             speed: 0.8,
-            crit_chance: 0.2625,
+            crit_chance: 0.25,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
@@ -17,5 +17,4 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: None,
 )

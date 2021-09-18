@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Green",
-    description: "Watch out for trees.",
+    name: "绿色烟花",
+    description: "小心别撞着树了.",
     kind: Throwable(
         kind: Firework(Green),
     ),

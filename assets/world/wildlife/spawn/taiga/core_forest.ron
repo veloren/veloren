@@ -4,11 +4,21 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.wendigo")),
-                (1, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
+                (5, (1, 1, "common.entity.wild.aggressive.wendigo")),
+                (5, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (5, (1, 6, "common.entity.dungeon.tier-1.spear")),
+                (5, (1, 6, "common.entity.dungeon.tier-1.bow")),
+                (5, (1, 6, "common.entity.dungeon.tier-1.staff")),
+                (3, (1, 1, "common.entity.dungeon.wildboss.wildboss")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
         ),
     ],
 )

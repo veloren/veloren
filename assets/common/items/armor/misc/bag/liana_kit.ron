@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Liana Kit",
-    description: "Woven from dried lianas.",
+    name: "藤蔓织袋",
+    description: "用干藤本植物编织而成.",
     kind: Armor(
         (
             kind: Bag("GreenMid"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: Moderate,
     tags: [Bag],
-    slots: 12,
+    slots: 16,
 )

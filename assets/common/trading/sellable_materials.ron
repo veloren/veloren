@@ -7,22 +7,16 @@
 // Please keep it sorted by rarity so it's easier to reason about things
 [
     // Stones
-    (0.02, Item("common.items.mineral.gem.diamond")),
-    (0.08, Item("common.items.mineral.gem.ruby")),
-    (0.1, Item("common.items.mineral.gem.emerald")),
-    (0.2, Item("common.items.mineral.gem.sapphire")),
     (0.25, Item("common.items.mineral.ore.velorite")),
     (0.5, Item("common.items.mineral.ore.veloritefrag")),
-    (0.75, Item("common.items.mineral.gem.topaz")),
-    (1.0, Item("common.items.mineral.gem.amethyst")),
     (4.0, Item("common.items.crafting_ing.stones")),
 
     // Ores
     (0.5, Item("common.items.mineral.ore.velorite")),
     (0.6, Item("common.items.mineral.ore.veloritefrag")),
-    (2.5, Item("common.items.mineral.ore.copper")),
-    (2.5, Item("common.items.mineral.ore.iron")),
-    (2.5, Item("common.items.mineral.ore.tin")),
+    (1.0, Item("common.items.mineral.ore.copper")),
+    (1.0, Item("common.items.mineral.ore.iron")),
+    (1.0, Item("common.items.mineral.ore.tin")),
 
     // Animal Hide
     (2.5, Item("common.items.crafting_ing.hide.tough_hide")),
@@ -36,7 +30,7 @@
     (2.5, Item("common.items.crafting_ing.animal_misc.fur")),
     (2.5, Item("common.items.crafting_ing.animal_misc.sharp_fang")),
     (2.5, Item("common.items.crafting_ing.animal_misc.venom_sac")),
-    (2.5, Item("common.items.crafting_ing.animal_misc.viscous_ooze")),
+    (0.05, Item("common.items.crafting_ing.animal_misc.viscous_ooze")),
     (4.0, Item("common.items.crafting_ing.cloth.wool")),
 
     // Junk

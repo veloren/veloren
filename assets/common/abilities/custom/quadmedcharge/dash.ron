@@ -14,8 +14,8 @@ DashMelee(
     charge_duration: 1.2,
     swing_duration: 0.1,
     recover_duration: 1.1,
-    ori_modifier: 0.3,
     charge_through: false,
+    ori_modifier: 1.0,
     is_interruptible: false,
     damage_kind: Crushing,
 )

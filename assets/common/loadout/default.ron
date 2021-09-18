@@ -1,9 +1,15 @@
 // Keep in mind that this should be safe defaults for new character
 ({
-    Armor(Chest): Item("common.items.armor.misc.chest.worker_purple_brown"),
-    Armor(Legs): Item("common.items.armor.misc.pants.worker_brown"),
+    Armor(Chest): Item("common.items.armor.rugged.chest"),
+    Armor(Legs): Item("common.items.armor.rugged.pants"),
+    Armor(Back): Item("common.items.armor.misc.back.short_0"),
+    Armor(Shoulders): Item("common.items.armor.misc.shoulder.leather_strip"),
     Armor(Feet): Item("common.items.armor.misc.foot.sandals"),
-
+    Armor(Neck): Item("common.items.armor.misc.neck.plain_0"),
     Lantern: Item("common.items.lantern.black_0"),
+    Armor(Ring1): Item("common.items.armor.misc.ring.scratched"),
+    Armor(Ring2): Item("common.items.armor.misc.ring.scratched"),
+    Armor(Bag1): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
+    Armor(Bag2): Item("common.items.armor.misc.bag.knitted_red_pouch"),
     Glider: Item("common.items.glider.glider_cloverleaf"),
 })

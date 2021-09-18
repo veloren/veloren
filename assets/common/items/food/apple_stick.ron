@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Apple Stick",
-    description: "The stick makes it easier to carry!",
+    name: "苹果串",
+    description: "作成串便于携带！",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 5.0,
+                    strength: 50.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

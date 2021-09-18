@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leaves Glider",
-    description: "Soar among the trees",
+    name: "绿叶滑翔翼",
+    description: "在树林中翱翔.",
     kind: Glider(
         (
             kind: "Leaves",

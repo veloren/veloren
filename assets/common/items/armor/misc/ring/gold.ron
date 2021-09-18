@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Gold Ring",
-    description: "A plain gold ring... almost as if it is missing a gem.",
+    name: "金戒指",
+    description: "很明显有个倒霉蛋弄丢了它...",
     kind: Armor((
         kind: Ring("Gold"),
         stats: (
             protection: Normal(0.5),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(0.5),
             energy_max: 0,
             energy_reward: 0.0,
             crit_power: 0.0,

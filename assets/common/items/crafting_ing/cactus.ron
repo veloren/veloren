@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cactus",
-    description: "Grows in warm and dry places.",
+    name: "仙人掌",
+    description: "生长在温暖干燥的地方.",
     kind: Ingredient(
         kind: "Cactus",
     ),

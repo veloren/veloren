@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Large Horn",
-    description: "A huge sharp horn from an animal.",
+    name: "大型角",
+    description: "角动物身上巨大而锋利的角.",
     kind: Ingredient(
         kind: "LargeHorn",
     ),

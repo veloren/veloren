@@ -13,6 +13,7 @@
         "hud.map.dungeons": "地牢",
         "hud.map.caves": "洞穴",
         "hud.map.cave": "洞穴",
+        "hud.map.peaks": "山脉",
         "hud.map.trees": "巨树",
         "hud.map.tree": "巨树",
         "hud.map.town": "城镇",
@@ -21,7 +22,13 @@
         "hud.map.difficulty_dungeon": "地牢\n\n难度: {difficulty}",
         "hud.map.drag": "拖动",
         "hud.map.zoom": "缩放",
+        "hud.map.mid_click": "标记路径点",
         "hud.map.recenter": "重新定位",
+        "hud.map.marked_location": "自定义路径点",
+        "hud.map.marked_location_remove": "点击移除",   
+        "hud.map.change_map_mode": "切换地图画风材质",
+        "hud.map.toggle_minimap_voxel": "切换小地图体素视图",
+        "hud.map.zoom_minimap_explanation": "放大小地图以更详细地查看\n您周围地形的细节",
     },
 
 

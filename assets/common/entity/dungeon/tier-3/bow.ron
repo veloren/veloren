@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Haniwa Archer"),
+    name: Name("埴轮射手"),
     body: RandomWith("haniwa"),
     alignment: Alignment(Enemy),
 

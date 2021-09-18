@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Coltsfoot",
-    description: "A daisy-like flower often used in herbal teas.",
+    name: "款冬",
+    description: "一种类似雏菊的花，常用于草药茶.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.0,
+                    strength: 10.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

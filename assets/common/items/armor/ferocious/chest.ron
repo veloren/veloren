@@ -4,16 +4,16 @@ ItemDef(
     kind: Armor((
         kind: Chest("Ferocious"),
         stats: (
-            protection: Normal(30.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Normal(500.0),
+            poise_resilience: Normal(300.0),
+            energy_max: 2000,
+            energy_reward: 5.0,
+            crit_power: 0.2,
+            stealth: 0.5,
         ),
     )),
     quality: Epic,
     tags: [
-        Material(Moonweave),
+        Material(Linen),
     ],
 )

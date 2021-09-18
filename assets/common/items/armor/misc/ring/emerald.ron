@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Emerald Ring",
-    description: "A cobalt ring with an emerald gem.",
+    name: "翡翠戒指",
+    description: "镶有翡翠宝石的钴戒指.",
     kind: Armor((
         kind: Ring("Emerald"),
         stats: (
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Normal(0.0),
             energy_max: 100,
             energy_reward: 0.0,
-            crit_power: -0.025,
+            crit_power: -0.25,
             stealth: 0.0,
         ),
     )),

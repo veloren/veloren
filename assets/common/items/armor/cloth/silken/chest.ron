@@ -1,12 +1,12 @@
 ItemDef(
-    name: "Silken Robe",
-    description: "Weaved with care by a skilled tailor.",
+    name: "丝绸 风衣",
+    description: "由一个熟练的裁缝精心编织.",
     kind: Armor((
         kind: Chest("Silken"),
         stats: (
             protection: Normal(14.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 149,
+            poise_resilience: Normal(-4.0),
+            energy_max: 150,
             energy_reward: 0.15,
             crit_power: 0.0,
             stealth: 0.0,

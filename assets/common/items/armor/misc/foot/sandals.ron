@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Worn out Sandals",
-    description: "Loyal companions.",
+    name: "冒险者的凉鞋",
+    description: "忠诚的伙伴（你确定不是“破旧的凉鞋”）.",
     kind: Armor((
         kind: Foot("Sandal"),
         stats: (

@@ -4,7 +4,7 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.rocksnapper")),
+                (1, (1, 2, "common.entity.wild.aggressive.rocksnapper")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],

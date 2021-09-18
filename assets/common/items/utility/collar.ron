@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Collar",
-    description: "Tames wild animals within 5 blocks",
+    name: "套绳",
+    description: "临时驯服周围5格半径内的友好野生动物",
     kind: Utility(
         kind: Collar,
     ),

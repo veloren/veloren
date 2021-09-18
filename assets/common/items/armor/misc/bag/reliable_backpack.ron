@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Reliable Backpack",
-    description: "It will never give you up.",
+    name: "可靠挂包",
+    description: "它永远不会放弃你.",
     kind: Armor(
         (
             kind: Bag("LeatherLarge"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: High,
     tags: [Bag],
-    slots: 16,
+    slots: 26,
 )

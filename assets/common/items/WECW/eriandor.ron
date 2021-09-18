@@ -1,0 +1,21 @@
+ItemDef(
+    name: "埃尔安多",
+    description: "埃尔安多的斩首巨斧，沉重且具有破坏力，散发着令人不安的死亡气息.\n特效（巨型武器）：攻击距离提升，更容易击晕敌人！",
+    kind: Tool((
+        kind: Axe,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.75,
+            power: 5.0,
+            effect_power: 5.0,
+            speed: 1.0,
+            crit_chance: 1.0,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    ability_spec: Some(Custom("greatAxe")),
+    tags: [],
+)

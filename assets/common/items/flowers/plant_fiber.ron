@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Plant Fiber",
-    description: "A length of raw plant material.",
+    name: "植物纤维",
+    description: "一段植物原料.",
     kind: Ingredient(
         kind: "PlantFiber",
     ),

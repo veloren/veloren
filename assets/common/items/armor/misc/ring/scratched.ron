@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Scratched Ring",
-    description: "Barely fits your finger.",
+    name: "有刮痕的指环",
+    description: "希望适合你的手指.",
     kind: Armor((
         kind: Ring("Scratched"),
         stats: (
             protection: Normal(0.1),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(0.1),
             energy_max: 0,
             energy_reward: 0.0,
             crit_power: 0.0,

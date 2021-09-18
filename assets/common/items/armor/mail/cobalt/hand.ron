@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Cobalt Gauntlets",
-    description: "Ornamental and impenetrable, the metal will never dull.",
+    name: "锰钢 护手",
+    description: "这种金属具有装饰性和渗透性，永远不会变钝.",
     kind: Armor((
         kind: Hand("Cobalt"),
         stats: (
-            protection: Normal(16.0),
-            poise_resilience: Normal(4.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Normal(25.0),
+            poise_resilience: Normal(6.0),
+            energy_max: -30,
+            energy_reward: -0.05,
+            crit_power: -0.05,
+            stealth: -5.0,
         ),
     )),
     quality: High,

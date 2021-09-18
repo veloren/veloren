@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Claymore",
-    description: "Forged with iron.",
+    name: "铁重剑",
+    description: "用铁锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

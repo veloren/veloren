@@ -1,12 +1,12 @@
 ItemDef(
-    name: "Cool Blue Lantern",
-    description: "This lantern is surprisingly cold when lit.",
+    name: "清凉的蓝提灯",
+    description: "这盏提灯点着时冷得出奇，其中包含魔力.\n（蓝色品质装备的关键素材，由T1副本雪怪掉落）",
     kind: Lantern(
         (
             kind: "Blue0",
             color: (r: 55, g: 100, b: 255),
-            strength_thousandths: 7000,
-            flicker_thousandths: 300,
+            strength_thousandths: 6000,
+            flicker_thousandths: 250,
         ),
     ),
     quality: High,

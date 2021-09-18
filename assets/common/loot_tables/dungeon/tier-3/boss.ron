@@ -1,4 +1,14 @@
 [
-    (1.0, LootTable("common.loot_tables.weapons.tier-3")),
-    (1.0, LootTable("common.loot_tables.armor.tier-3")),
+    (0.01, Item("common.items.WECW.stormgreatsword")),
+    (0.1, LootTable("common.loot_tables.weapons.cave")),
+    (0.5, LootTable("common.loot_tables.weapons.tier-5")),
+    (2.0, ItemQuantity("common.items.WECW.coins2", 1, 50)),
+    (0.5, ItemQuantity("common.items.boss_drops.potions", 2, 12)),
+    (0.5, ItemQuantity("common.items.boss_drops.exp_flask", 2, 12)),
+    (0.5, ItemQuantity("common.items.consumable.potion_big", 15, 45)),
+    (0.05, Item("common.items.WECW.neck.highneck")),
+    (0.05, Item("common.items.WECW.neck.highneck2")),
+    (0.1, Item("common.items.lantern.green_0")),
+    (0.2, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    (0.03, Item("common.items.glider.glider_purp")),
 ]

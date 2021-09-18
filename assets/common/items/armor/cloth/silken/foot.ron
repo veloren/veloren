@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Silken Feet",
-    description: "Weaved with care by a skilled tailor.",
+    name: "丝绸 长靴",
+    description: "由一个熟练的裁缝精心编织.",
     kind: Armor((
         kind: Foot("Silken"),
         stats: (
             protection: Normal(5.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-3.0),
             energy_max: 50,
             energy_reward: 0.05,
             crit_power: 0.0,

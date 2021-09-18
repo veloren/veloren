@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonbell",
-    description: "It glistens brilliantly, but only under moonlight.",
+    name: "月钟花",
+    description: "它闪闪发光，但只有在月光下.",
     kind: Ingredient(
         kind: "Moonbell",
     ),

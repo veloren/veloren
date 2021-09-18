@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bloodstone Ore",
-    description: "A deep red ore.",
+    name: "血石矿",
+    description: "深红色的矿石.（可以在合成表出售换成金币）",
     kind: Ingredient(
         kind: "BloodstoneOre",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Greatsword",
-    description: "Forged with steel.",
+    name: "钢铁巨剑",
+    description: "用钢锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

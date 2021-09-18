@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Raw Fish",
-    description: "A steak chopped from a fish, best after cooking.",
+    name: "生鱼",
+    description: "新鲜的鱼排，从鱼上切下来的, 最好先烹饪.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: .45,
+                    strength: 4.5,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

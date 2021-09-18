@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Barbarian's Axe",
-    description: "While heavy, this iron forged axe is quite easy to swing, at least for those with the muscle backing it.",
+    name: "野蛮人的斧头",
+    description: "这把铁制斧头虽然重，但很容易挥舞，至少对那些有肌肉支撑的人来说是这样.",
     kind: Tool((
         kind: Axe,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Blue",
-    description: "Recommended clearance: 42 chonks",
+    name: "蓝色烟花",
+    description: "飞升高度 42 格.",
     kind: Throwable(
         kind: Firework(Blue),
     ),

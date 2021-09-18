@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cloverleaf",
-    description: "Brings luck to its owner.",
+    name: "三叶草",
+    description: "给持有者带来好运.",
     kind: Glider(
         (
             kind: "Starter",

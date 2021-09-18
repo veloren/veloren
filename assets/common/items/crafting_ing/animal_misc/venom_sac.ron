@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Venom Sac",
-    description: "A venomous sac from a poisonous creature.",
+    name: "毒囊",
+    description: "有毒生物分泌的毒液囊.",
     kind: Ingredient(
         kind: "VenomSac",
     ),

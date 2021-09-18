@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bladed Branch",
-    description: "Grown in the shape of a sword.",
+    name: "刀片分支",
+    description: "长得像一把剑.",
     kind: Tool((
         kind: Sword,
         hands: Two,

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Rat"),
+    name: Name("老鼠"),
     body: RandomWith("rat"),
     alignment: Alignment(Enemy),
 
@@ -7,5 +7,7 @@ EntityConfig (
 
     hands: Uninit,
 
-    meta: [],
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-1.adlet_spear"),
+    ],
 )

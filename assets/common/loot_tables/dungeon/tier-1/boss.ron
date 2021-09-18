@@ -1,4 +1,10 @@
 [
-    (1.0, LootTable("common.loot_tables.weapons.tier-1")),
-    (1.0, LootTable("common.loot_tables.armor.tier-1")),
+    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
+    (0.26, ItemQuantity("common.items.boss_drops.potions", 5, 30)),
+    (0.26, ItemQuantity("common.items.boss_drops.exp_flask", 5, 30)),
+    (2.0, ItemQuantity("common.items.WECW.coins2", 5, 20)),
+    (0.5, ItemQuantity("common.items.crafting_ing.animal_misc.icy_fang", 45, 90)),
+    (0.065, Item("common.items.WECW.neck.highneck")),
+    (0.065, Item("common.items.WECW.neck.highneck2")),
+    (1.5, Item("common.items.lantern.blue_0")),
 ]

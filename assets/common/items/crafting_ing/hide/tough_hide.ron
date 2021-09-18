@@ -1,10 +1,11 @@
 ItemDef(
-    name: "Tough Hide",
-    description: "A pelt from something fierce. Becomes leather.",
+    name: "坚韧兽皮",
+    description: "猛兽的兽皮。成为皮革.",
     kind: Ingredient(
         kind: "ToughHide",
     ),
     quality: Common,
     tags: [
-    ],
+        Material(Leather)
+        ],
 )

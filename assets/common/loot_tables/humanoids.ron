@@ -1,0 +1,18 @@
+[
+    // Crafting Ingredients
+    (5.0, LootTable("common.loot_tables.materials.common")),
+    // Consumables
+    (0.2, Item("common.items.consumable.potion_minor")),
+    // Ring
+    (0.02, Item("common.items.armor.misc.ring.gold")),
+    // Utility
+    (0.05, Item("common.items.utility.collar")),
+    // Food
+    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (0.25, LootTable("common.loot_tables.food.prepared")),
+    // Weapons
+    (0.5, LootTable("common.loot_tables.weapons.sword.wood")),
+    (0.5, LootTable("common.loot_tables.weapons.hammer.stone")),
+    (0.5, LootTable("common.loot_tables.weapons.bow.rawwood")),
+    (0.5, LootTable("common.loot_tables.weapons.starter")),
+]

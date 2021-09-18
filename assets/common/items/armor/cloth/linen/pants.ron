@@ -5,7 +5,7 @@ ItemDef(
         kind: Pants("Linen"),
         stats: (
             protection: Normal(3.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-5.0),
             energy_max: 33,
             energy_reward: 0.034,
             crit_power: 0.0,

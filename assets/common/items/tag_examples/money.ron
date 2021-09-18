@@ -1,0 +1,28 @@
+ItemDef(
+    name: "高阶物品",
+    description: "一些高阶物品.",
+    kind: TagExamples(
+        item_ids: [
+            "common.items.WECW.bow",
+            "common.items.WECW.exbow",
+            "common.items.WECW.darkhammer",
+            "common.items.WECW.darkaxe",
+            "common.items.WECW.darksteel",
+            "common.items.WECW.darksteel2",
+            "common.items.WECW.caladbolgG",
+            "common.items.WECW.stormgreatsword",
+            "common.items.WECW.icehammer",
+            "common.items.WECW.mind",
+            "common.items.WECW.forgottenaxe",
+            "common.items.WECW.icehammer",
+            "common.items.WECW.weapons.staff.laevateinn",
+            "common.items.WECW.weapons.staff.phoenix",
+            "common.items.WECW.weapons.sceptre.caduceus",
+            "common.items.WECW.weapons.sceptre.root_evil",
+        ],
+    ),
+    quality: Legendary,
+    tags: [],
+)
+
+

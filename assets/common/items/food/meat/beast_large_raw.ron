@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Raw Meat Slab",
-    description: "Chunk of beastly animal meat, best after cooking.",
+    name: "生肉片",
+    description: "大块动物肉，烹调后最好.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: .45,
+                    strength: 4.5,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

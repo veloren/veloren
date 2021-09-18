@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Oil",
-    description: "A measure of thick, sludgy oil.",
+    name: "油",
+    description: "一种粘稠的油.",
     kind: Ingredient(
         kind: "Oil",
     ),

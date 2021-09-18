@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Ingot",
-    description: "An incredibly commonplace metal.",
+    name: "铁锭",
+    description: "一种非常普通的金属.",
     kind: Ingredient(
         kind: "IronIngot",
     ),

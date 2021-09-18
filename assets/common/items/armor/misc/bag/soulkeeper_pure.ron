@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Purified Soulkeeper",
-    description: "WIP",
+    name: "纯净的灵魂守护者",
+    description: "它会好好保管你的物品的~",
     kind: Armor(
         (
             kind: Bag("BlueFace"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: Legendary,
     tags: [Bag],
-    slots: 36,
+    slots: 48,
 )

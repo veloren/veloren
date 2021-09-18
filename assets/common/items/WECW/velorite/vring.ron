@@ -1,0 +1,17 @@
+ItemDef(
+    name: "奥能之戒",
+    description: "戒中充斥着巨量的奥能.",
+    kind: Armor((
+        kind: Ring("vring"),
+        stats: (
+            protection: Normal(40.0),
+            poise_resilience: Normal(40.0),
+            energy_max: 100,
+            energy_reward: 0.5,
+            crit_power: 0.2,
+            stealth: 25.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

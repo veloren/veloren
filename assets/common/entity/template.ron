@@ -7,7 +7,7 @@ EntityConfig (
 
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.humanoid"),
+    loot: LootTable("common.loot_tables.humanoids"),
 
     hands: TwoHanded(Item("common.items.weapons.sword.cultist")),
 
@@ -16,3 +16,4 @@ EntityConfig (
         SkillSetAsset("common.skillset.village.merchant"),
     ],
 )
+

@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Chest("GiantWarlord"),
         stats: (
-            protection: Normal(300.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
+            protection: Normal(500.0),
+            poise_resilience: Normal(300.0),
+            energy_max: 1000,
+            energy_reward: 10.0,
+            crit_power: 0.2,
             stealth: 0.0,
         ),
     )),

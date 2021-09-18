@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Cobalt Shoulderguards",
-    description: "Ornamental and impenetrable, the metal will never dull.",
+    name: "锰钢 肩凯",
+    description: "这种金属具有装饰性和渗透性，永远不会变钝.",
     kind: Armor((
         kind: Shoulder("Cobalt"),
         stats: (
             protection: Normal(32.0),
             poise_resilience: Normal(8.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            energy_max: -40,
+            energy_reward: -0.25,
+            crit_power: -0.05,
+            stealth: -5.0,
         ),
     )),
     quality: High,

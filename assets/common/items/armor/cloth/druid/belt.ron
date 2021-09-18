@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Druid Sash",
-    description: "Incredibly light, with the essence of nature.",
+    name: "德鲁伊 腰带",
+    description: "令人难以置信的轻，带有自然的本质.",
     kind: Armor((
         kind: Belt("Druid"),
         stats: (
             protection: Normal(3.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 33,
-            energy_reward: 0.034,
+            poise_resilience: Normal(-2.0),
+            energy_max: 30,
+            energy_reward: 0.03,
             crit_power: 0.0,
             stealth: 0.0,
         ),

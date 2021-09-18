@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Labrys",
-    description: "Double bitted axe head, decorated iron construction.",
+    name: "双刃铁斧",
+    description: "双钻头斧头，装饰铁结构.",
     kind: Tool((
         kind: Axe,
         hands: Two,

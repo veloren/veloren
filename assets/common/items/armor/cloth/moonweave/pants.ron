@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Moonweave Legs",
-    description: "The fabric dances silently, like moonlight.",
+    name: "月纹 长裤",
+    description: "织物像月光一样静静地舞动.",
     kind: Armor((
         kind: Pants("Moonweave"),
         stats: (
-            protection: Normal(17.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 165,
-            energy_reward: 0.168,
+            protection: Normal(16.0),
+            poise_resilience: Normal(-2.0),
+            energy_max: 160,
+            energy_reward: 0.16,
             crit_power: 0.0,
             stealth: 0.0,
         ),

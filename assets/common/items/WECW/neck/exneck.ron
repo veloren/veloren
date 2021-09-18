@@ -1,0 +1,17 @@
+ItemDef(
+    name: "理智",
+    description: "阻止你陷入无尽的疯狂......",
+    kind: Armor((
+        kind: Neck("exneck"),
+        stats: (
+            protection: Normal(10.0),
+            poise_resilience: Normal(10.0),
+            energy_max: 50,
+            energy_reward: 0.2,
+            crit_power: 0.05,
+            stealth: 0.05,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

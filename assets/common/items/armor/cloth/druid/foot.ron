@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Druid Kickers",
-    description: "Incredibly light, with the essence of nature.",
+    name: "德鲁伊 长靴",
+    description: "令人难以置信的轻，带有自然的本质.",
     kind: Armor((
         kind: Foot("Druid"),
         stats: (
-            protection: Normal(6.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 66,
-            energy_reward: 0.067,
+            protection: Normal(5.0),
+            poise_resilience: Normal(-2.0),
+            energy_max: 60,
+            energy_reward: 0.06,
             crit_power: 0.0,
             stealth: 0.0,
         ),

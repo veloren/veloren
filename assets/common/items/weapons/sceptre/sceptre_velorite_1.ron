@@ -1,0 +1,20 @@
+ItemDef(
+    name: "Velorite魔法权杖",
+    description: "用神秘的Velorite魔法治愈你的盟友.\n特效（自然之力）：Velorite是生命与魔法的根源，治愈光束不消耗法力值，治疗领域得到加强..",
+    kind: Tool((
+        kind: Sceptre,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.4,
+            power: 2.5,
+            effect_power: 2.0,
+            speed: 1.2,
+            crit_chance: 0.2,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+)

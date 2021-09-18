@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Forest Spirit",
-    description: "The resin glows.",
+    name: "林灵",
+    description: "树脂会发光.",
     kind: Tool((
         kind: Sword,
         hands: Two,

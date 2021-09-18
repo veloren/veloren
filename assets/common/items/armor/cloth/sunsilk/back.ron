@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Sunsilk Cape",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    name: "炎阳 披风",
+    description: "它散发着太阳的能量，以及驾驭它的优雅.",
     kind: Armor((
         kind: Back("Sunsilk"),
         stats: (
             protection: Normal(5.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-1.0),
             energy_max: 50,
             energy_reward: 0.05,
             crit_power: 0.0,

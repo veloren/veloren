@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Potent Potion",
-    description: "A potent healing potion.",
+    name: "生命之息",
+    description: "取自巨树边上的生命之泉，能感受到瓶中药水的生命能量.",
     kind: Consumable(
         kind: Drink,
         effects: [
             Buff((
-                kind: Potion,
+                kind: IncreaseMaxHealth,
                 data: (
-                    strength: 100.0,
+                    strength: 635.0,
                     duration: Some((
-                            secs: 1,
+                            secs: 240,
                             nanos: 0,
                         )),
                     ),
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: High,
+    quality: Epic,
     tags: [Potion],
 )

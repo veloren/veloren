@@ -1,0 +1,14 @@
+BasicRanged(
+    energy_cost: 775,
+    buildup_duration: 0.4,
+    recover_duration: 0.3,
+    projectile_spread: 0.02,
+    projectile: Frostball(
+        damage: 10.0,
+        radius: 8.0,
+    ),
+    projectile_body: Object(ArrowSnake),
+    projectile_light: None,
+    projectile_speed: 100.0,
+    num_projectiles: 5,
+)

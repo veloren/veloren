@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Cleaver",
-    description: "Forged with cobalt.",
+    name: "钴切肉刀",
+    description: "用钴锻造.",
     kind: Tool((
         kind: Axe,
         hands: Two,

@@ -1,0 +1,21 @@
+ItemDef(
+    name: "附魔的巨剑",
+    description: "这是一把属于邪教高层成员的魔法配剑.\n特效（魔法窃取）：每次攻击获得更多耐力值.",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.5,
+            power: 2.0,
+            effect_power: 1.25,
+            speed: 1.0,
+            crit_chance: 0.15,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: Some(Custom("Swordepic")),
+)

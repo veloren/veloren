@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Zweihander",
-    description: "Forged with iron.",
+    name: "铁茨维汉德",
+    description: "用铁锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

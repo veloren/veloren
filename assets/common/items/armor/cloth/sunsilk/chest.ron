@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Sunsilk Tunic",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    name: "炎阳 胸甲",
+    description: "它散发着太阳的能量，以及驾驭它的优雅.",
     kind: Armor((
         kind: Chest("Sunsilk"),
         stats: (
-            protection: Normal(27.0),
-            poise_resilience: Normal(0.0),
+            protection: Normal(28.0),
+            poise_resilience: Normal(-2.0),
             energy_max: 300,
             energy_reward: 0.3,
             crit_power: 0.0,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ritual Greatsword",
-    description: "Chiseled from stone.",
+    name: "仪式巨剑",
+    description: "轮廓分明的从石头.",
     kind: Tool((
         kind: Sword,
         hands: Two,

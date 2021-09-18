@@ -1,5 +1,4 @@
 [
-    (1.0, Item("common.items.food.meat.tough_raw")),
-    (3.0, Item("common.items.crafting_ing.hide.carapace")),
-
+    (1.0, ItemQuantity("common.items.food.meat.tough_raw", 1, 2)),
+    (0.25, Item("common.items.crafting_ing.hide.carapace")),
 ]

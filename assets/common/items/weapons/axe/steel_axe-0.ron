@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Battleaxe",
-    description: "Well crafted metal alloy axe that slices more cleanly than its iron counterparts.",
+    name: "钢战斧",
+    description: "制作精良的金属合金斧头，比铁制斧头切割更干净.",
     kind: Tool((
         kind: Axe,
         hands: Two,

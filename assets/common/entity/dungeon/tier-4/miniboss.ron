@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Dullahan"),
+    name: Name("(精英) 无头骑士"),
     body: RandomWith("dullahan"),
     alignment: Alignment(Enemy),
 
@@ -7,5 +7,7 @@ EntityConfig (
 
     hands: Uninit,
 
-    meta: [],
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-5.beastmaster"),
+    ],
 )

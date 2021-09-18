@@ -1,16 +1,15 @@
 [
-    // TODO: Make this loot table less cluttered
-    // tier equipment (technically worse than other weapons here until modular weapons)
-    (10.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (10.0, LootTable("common.loot_tables.armor.tier-5")),
-    // weapons (find somewhere better to put these)
-    (1.0, LootTable("common.loot_tables.weapons.cultist")),
-    (1.0, LootTable("common.loot_tables.weapons.cave")),
-    // Rare misc items
-    (1.0, Item("common.items.boss_drops.lantern")),
-    (1.0, Item("common.items.glider.glider_purp")),
-    // Legendary weapons
-    (1.0, LootTable("common.loot_tables.weapons.legendary")),
-    // Crafting material
+    (0.05, Item("common.items.weapons.staff.phoenix")),
+    (0.03, Item("common.items.weapons.staff.laevateinn")),
+    (0.01, Item("common.items.WECW.mind")),
+    (0.01, Item("common.items.WECW.darksteel")),
+    (0.01, Item("common.items.WECW.neck.epicneck")),
+    (0.01, Item("common.items.WECW.ring.skullg")),
+    (0.75, Item("common.items.crafting_ing.hide.dragon_scale")),
     (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    (0.1, Item("common.items.boss_drops.lantern")),
+    (0.1, Item("common.items.glider.glider_purp")),
+    (1.0, ItemQuantity("common.items.WECW.coins2",50,100)),
+    (0.3, ItemQuantity("common.items.boss_drops.potions",30,80)),
+    (0.3, ItemQuantity("common.items.boss_drops.exp_flask",30,80)),
 ]

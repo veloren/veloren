@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Humble Stick",
-    description: "Walking stick with a sharpened end.",
+    name: "谦卑的棍子",
+    description: "有尖头的手杖.",
     kind: Tool((
         kind: Staff,
         hands: Two,

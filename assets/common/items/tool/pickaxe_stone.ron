@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Stone Pickaxe",
-    description: "Strike the earth!",
+    name: "石镐",
+    description: "挖穿地球！在地图上的矿洞区域用于挖掘洞内的水晶矿石.",
     kind: Tool((
         kind: Pick,
         hands: Two,
@@ -16,8 +16,5 @@ ItemDef(
         )),
     )),
     quality: Low,
-    tags: [
-        CraftingTool,
-    ],
-    ability_spec: None,
+    tags: [CraftingTool],
 )

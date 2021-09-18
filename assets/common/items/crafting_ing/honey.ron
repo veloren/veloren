@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Honey",
-    description: "From a beehive.",
+    name: "蜂蜜",
+    description: "从树上嗡嗡作响的蜂巢中取来（这个游戏中不会有蜜蜂来蛰你，放心去拿吧）.",
     kind: Ingredient(
         kind: "Honey",
     ),

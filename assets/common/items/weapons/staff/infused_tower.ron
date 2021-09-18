@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Infused Tower",
-    description: "Portable Beacon",
+    name: "灌注之塔",
+    description: "移动标灯",
     kind: Tool((
         kind: Staff,
         hands: Two,

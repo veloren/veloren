@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Primal Cape",
-    description: "Smithed from hide tougher than steel.",
+    name: "硬皮 披风",
+    description: "由比钢还坚硬的皮锻造而成.",
     kind: Armor((
         kind: Back("Primal"),
         stats: (
-            protection: Normal(6.0),
-            poise_resilience: Normal(0.0),
+            protection: Normal(5.0),
+            poise_resilience: Normal(-1.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.084,
+            crit_power: 0.08,
             stealth: 0.0,
         ),
     )),

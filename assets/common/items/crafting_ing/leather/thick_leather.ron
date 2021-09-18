@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Thick Leather",
-    description: "Strong and durable.",
+    name: "厚皮革",
+    description: "牢固耐用.",
     kind: Ingredient(
         kind: "ThickLeather",
     ),

@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Dwarven Cheese",
-    description: "Aromatic and nutritious",
+    name: "矮人奶酪",
+    description: "芳香而营养.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.5,
+                    strength: 15.0,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

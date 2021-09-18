@@ -2,7 +2,7 @@ BasicBeam(
     buildup_duration: 0.25,
     recover_duration: 0.25,
     beam_duration: 1.0,
-    damage: 3.5,
+    damage: 2.5,
     tick_rate: 3.0,
     range: 20.0,
     max_angle: 15.0,
@@ -13,7 +13,7 @@ BasicBeam(
         chance: 0.25,
     ))),
     energy_regen: 0,
-    energy_drain: 350,
+    energy_drain: 500,
     ori_rate: 0.3,
     specifier: Flamethrower,
 )

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bone Staff",
-    description: "There's a red gem suspended in the bones.",
+    name: "伯塔克法杖",
+    description: "骨头里有颗红色宝石.",
     kind: Tool((
         kind: Staff,
         hands: Two,

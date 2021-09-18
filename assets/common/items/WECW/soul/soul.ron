@@ -1,0 +1,17 @@
+ItemDef(
+    name: "灵魂之戒",
+    description: "戒中封存着一位古战士的灵魂.",
+    kind: Armor((
+        kind: Ring("Skullg2"),
+        stats: (
+            protection: Normal(12.0),
+            poise_resilience: Normal(12.0),
+            energy_max: 50,
+            energy_reward: 0.1,
+            crit_power: 0.05,
+            stealth: 0.01,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

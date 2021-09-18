@@ -2,7 +2,7 @@
 
 [
     (
-        specifier: "world.structure.dungeon.jungle_entrance.1",
+        specifier: "world.structure.dungeon.jungle_temple.entrance.1",
         center: (50, 40, 10)
     ),
     (

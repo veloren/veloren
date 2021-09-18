@@ -1,5 +1,5 @@
 [
     (1.0, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
-    (1.0, Item("common.items.weapons.bow.velorite")),
-    (1.0, Item("common.items.weapons.axe.malachite_axe-0")),
+    (1.0, Item("common.items.weapons.bow.velorite_player")),
+    (1.0, Item("common.items.weapons.axe.malachite_axe-0_player")),
 ]

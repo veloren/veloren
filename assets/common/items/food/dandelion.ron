@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Dandelion",
-    description: "A small, yellow flower. Uses the wind to spread its seeds.",
+    name: "蒲公英",
+    description: "一种黄色的小花，利用风传播种子.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.0,
+                    strength: 10.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

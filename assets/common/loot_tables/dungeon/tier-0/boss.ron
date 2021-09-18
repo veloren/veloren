@@ -1,4 +1,7 @@
 [
-    (1.0, LootTable("common.loot_tables.weapons.tier-0")),
-    (1.0, LootTable("common.loot_tables.armor.tier-0")),
+    (0.5, LootTable("common.loot_tables.weapons.tier-4")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-5")),
+    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.lively_vine", 5, 10)),
+    (2.0, ItemQuantity("common.items.WECW.coins2", 2, 12)),
+    (0.2, Item("common.items.armor.misc.bag.liana_kit")),
 ]

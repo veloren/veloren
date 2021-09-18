@@ -1,0 +1,11 @@
+ItemDef(
+    name: "奥拉西斯 · 冲击之鹰",
+    description: "奥拉西斯注入奥能的滑翔翼.",
+    kind: Glider(
+        (
+            kind: "vg",
+        ),
+    ),
+    quality: Legendary,
+    tags: [],
+)

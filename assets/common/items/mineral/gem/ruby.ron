@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ruby",
-    description: "A superbly scarlet gem.",
+    name: "红宝石",
+    description: "一颗极其鲜红的宝石，在矿洞中很少见（可以在合成表出售换成金币）.",
     kind: Ingredient(
         kind: "Ruby",
     ),

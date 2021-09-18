@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Soft Fur",
-    description: "Soft fur from an animal.",
+    name: "柔软的皮毛",
+    description: "动物的软毛.",
     kind: Ingredient(
         kind: "Fur",
     ),

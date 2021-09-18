@@ -1,0 +1,21 @@
+ItemDef(
+    name: "奥拉西斯",
+    description: "由初位奥能大师奥拉西斯用至纯奥能水晶打造，强大的奥能充斥着整根魔杖。\n特效（奥能风暴）：奥能是法力之源，你掌握了几乎所有的魔法！",
+    kind: Tool((
+        kind: Staff,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.001,
+            power: 3.0,
+            effect_power: 3.0,
+            speed: 1.5,
+            crit_chance: 1.0,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+    ability_spec: Some(Custom("Staffex")),
+)

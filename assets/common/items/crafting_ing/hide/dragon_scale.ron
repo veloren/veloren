@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Dragon Scale",
-    description: "Tough scale from a legendary beast.",
+    name: "龙鳞",
+    description: "传奇巨兽的坚韧鳞片.\n（金色品质装备的关键素材，由T5副本理智摧残者掉落）",
     kind: Ingredient(
         kind: "DragonScale",
     ),

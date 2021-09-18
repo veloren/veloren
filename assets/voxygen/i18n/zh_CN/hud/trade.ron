@@ -19,6 +19,8 @@
 	"hud.trade.buy_price": "购买价格",
 	"hud.trade.sell_price": "出售价格",
 	"hud.trade.coin": "硬币",
+	"hud.trade.tooltip_hint_1": "<按住Shitf鼠标点击交易栏/背包物品 单个增减物品.>",
+	"hud.trade.tooltip_hint_2": "<按住Ctrl鼠标点击交易栏/背包物品 自动匹配填充 与对方出价等价值 数量的物品.>",
     },
 
 

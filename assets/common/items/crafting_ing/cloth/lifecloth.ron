@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lifecloth",
-    description: "A fabric imbued with special properties.",
+    name: "活性布",
+    description: "一种具有特殊性能的织物.",
     kind: Ingredient(
         kind: "Lifecloth",
     ),

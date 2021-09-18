@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tin Ore",
-    description: "A silvery metal. One of the components of bronze.",
+    name: "锡矿石",
+    description: "银色的矿石. 青铜的组成部分之一.",
     kind: Ingredient(
         kind: "TinOre",
     ),

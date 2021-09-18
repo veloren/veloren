@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ceremonial Axe",
-    description: "Heavy iron axe, likely created for ritual execution.",
+    name: "仪式斧",
+    description: "沉重的铁斧，可能是为仪式行刑而造的.",
     kind: Tool((
         kind: Axe,
         hands: Two,

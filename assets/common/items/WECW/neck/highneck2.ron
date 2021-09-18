@@ -1,0 +1,17 @@
+ItemDef(
+    name: "守护项链",
+    description: "这条注入了魔力的项链，会守护着你.",
+    kind: Armor((
+        kind: Neck("highneck2"),
+        stats: (
+            protection: Normal(6.0),
+            poise_resilience: Normal(6.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

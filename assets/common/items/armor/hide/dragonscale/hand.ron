@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Dragonscale Gloves",
-    description: "Power pulses through it.",
+    name: "龙鳞 手套",
+    description: "通过龙鳞的魔力强化.",
     kind: Armor((
         kind: Hand("Dragonscale"),
         stats: (
-            protection: Normal(14.0),
-            poise_resilience: Normal(0.0),
+            protection: Normal(12.0),
+            poise_resilience: Normal(-1.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.2,
+            crit_power: 0.15,
             stealth: 0.0,
         ),
     )),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Purple",
-    description: "Cult favourite.",
+    name: "紫色烟花",
+    description: "邪教最喜欢的色调.",
     kind: Throwable(
         kind: Firework(Purple),
     ),

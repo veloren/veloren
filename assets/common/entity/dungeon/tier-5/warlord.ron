@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Cultist Warlord"),
+    name: Name("(精英) 邪教军阀"),
     body: RandomWith("cultist_warlord"),
     alignment: Alignment(Enemy),
 

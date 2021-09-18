@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rugged Commoner's Pants",
-    description: "They remind you of the old days.",
+    name: "平民裤",
+    description: "它们让你想起过去.",
     kind: Armor((
         kind: Pants("Rugged"),
         stats: (

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Simple Leather",
-    description: "Light and flexible.",
+    name: "轻皮革",
+    description: "轻便灵活.",
     kind: Ingredient(
         kind: "SimpleLeather",
     ),

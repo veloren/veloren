@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Training Dummy"),
+    name: Name("KKY"),
     body: Exact(Object(TrainingDummy)),
     alignment: Alignment(Passive),
 

@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Raw Meat Sliver",
-    description: "Small hunk of beastly animal meat, best after cooking.",
+    name: "生肉条",
+    description: "一小块动物肉，最好在烹调后食用.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: .25,
+                    strength: 2.5,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Crimson Eye",
-    description: "The eye faintly glows.",
+    name: "绯红之眼",
+    description: "眼睛微微发光眼睛微微发光.",
     kind: Tool((
         kind: Staff,
         hands: Two,

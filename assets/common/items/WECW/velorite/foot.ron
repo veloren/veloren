@@ -1,0 +1,17 @@
+ItemDef(
+    name: "奥拉西斯 · 疾行靴",
+    description: "注入了奥能的护甲，只属于强大的奥能游骑兵！",
+    kind: Armor((
+        kind: Foot("Velorite"),
+        stats: (
+            protection: Normal(40.0),
+            poise_resilience: Normal(40.0),
+            energy_max: 100,
+            energy_reward: 0.5,
+            crit_power: 0.2,
+            stealth: 25.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

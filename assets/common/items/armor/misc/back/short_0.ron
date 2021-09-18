@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Short leather Cape",
-    description: "Probably made of the finest leather.",
+    name: "冒险者皮披风",
+    description: "可能是最好的皮革做的.",
     kind: Armor((
         kind: Back("Short0"),
         stats: (

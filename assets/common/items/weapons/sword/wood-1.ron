@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Oaken Greatsword",
-    description: "Carved from an oak.",
+    name: "橡木巨剑",
+    description: "橡木雕刻.",
     kind: Tool((
         kind: Sword,
         hands: Two,

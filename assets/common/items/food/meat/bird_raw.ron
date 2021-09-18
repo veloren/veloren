@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Raw Bird Meat",
-    description: "A hefty drumstick.",
+    name: "生禽肉",
+    description: "粗壮的下段鸡腿肉.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: .45,
+                    strength: 4.5,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

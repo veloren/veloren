@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Notched Axe",
-    description: "Every dent tells the story of a chopped tree.",
+    name: "切口斧",
+    description: "每一个凹痕都在诉说着一棵被砍了的树的故事.",
     kind: Tool((
         kind: Axe,
         hands: Two,

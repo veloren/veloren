@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Moonweave Vest",
-    description: "The fabric dances silently, like moonlight.",
+    name: "月纹 长袍",
+    description: "织物像月光一样静静地舞动.",
     kind: Armor((
         kind: Chest("Moonweave"),
         stats: (
-            protection: Normal(23.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 248,
-            energy_reward: 0.252,
+            protection: Normal(22.0),
+            poise_resilience: Normal(-2.0),
+            energy_max: 240,
+            energy_reward: 0.25,
             crit_power: 0.0,
             stealth: 0.0,
         ),

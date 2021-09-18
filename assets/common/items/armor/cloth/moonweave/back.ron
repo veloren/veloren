@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Moonweave Cape",
-    description: "The fabric dances silently, like moonlight.",
+    name: "月纹 披风",
+    description: "织物像月光一样静静地舞动.",
     kind: Armor((
         kind: Back("Moonweave"),
         stats: (
             protection: Normal(4.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 41,
-            energy_reward: 0.042,
+            poise_resilience: Normal(-1.0),
+            energy_max: 40,
+            energy_reward: 0.04,
             crit_power: 0.0,
             stealth: 0.0,
         ),

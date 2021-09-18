@@ -1,0 +1,17 @@
+ItemDef(
+    name: "梦魇魔戒",
+    description: "原本属于一位理智摧残者.",
+    kind: Armor((
+        kind: Ring("Skullg"),
+        stats: (
+            protection: Normal(15.0),
+            poise_resilience: Normal(15.0),
+            energy_max: 100,
+            energy_reward: 0.1,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

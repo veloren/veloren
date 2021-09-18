@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Glowing Remains",
-    description: "Looted from an evil being.\n\nWith some additional work it can surely be\nbrought back to its former glory...",
+    name: "发光的破布",
+    description: "源自于一个邪恶的存在.\n\n通过一些处理，也许能做出什么不得了的玩意.\n（紫色品质装备的关键素材，由T2-T5副本BOSS掉落）",
     kind: Ingredient(
         kind: "FlayerBagDamaged",
     ),

@@ -1,0 +1,6 @@
+[
+    // potions
+    (1.0, Item("common.items.consumable.potion_minor")),
+    (0.5, Item("common.items.consumable.potion_med")),
+    (0.2, Item("common.items.consumable.potion_big")),
+]

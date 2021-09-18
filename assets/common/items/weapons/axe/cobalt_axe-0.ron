@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Axe",
-    description: "The lustrous bluish gray axe provides a certain stylish class to the weapon.",
+    name: "钴的斧子",
+    description: "有光泽的蓝灰色斧头为武器提供了一个时尚的类别.",
     kind: Tool((
         kind: Axe,
         hands: Two,

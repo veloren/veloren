@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Raptor Feather",
-    description: "Large colorful feather from a raptor.",
+    name: "猛禽羽毛",
+    description: "猛禽身上巨大的彩色羽毛.",
     kind: Ingredient(
         kind: "RaptorFeather",
     ),

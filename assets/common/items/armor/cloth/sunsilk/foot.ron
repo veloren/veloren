@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Sunsilk Footwraps",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    name: "炎阳 裹足",
+    description: "它散发着太阳的能量，以及驾驭它的优雅.",
     kind: Armor((
         kind: Foot("Sunsilk"),
         stats: (
-            protection: Normal(9.0),
-            poise_resilience: Normal(0.0),
+            protection: Normal(8.0),
+            poise_resilience: Normal(-1.0),
             energy_max: 100,
             energy_reward: 0.1,
             crit_power: 0.0,

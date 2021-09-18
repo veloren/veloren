@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lava Rod",
-    description: "'Property of Rob MacLava'",
+    name: "熔岩罗达",
+    description: "'罗布·麦克拉瓦的财产'",
     kind: Tool((
         kind: Staff,
         hands: Two,

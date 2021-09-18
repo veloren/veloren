@@ -1,10 +1,7 @@
 [
-    // Currency
-    (1.0, ItemQuantity("common.items.utility.coins", 4, 10)),
-    // Food
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
-    // Nothing
-    (2.0, None),
-    // Placeholder Drop Location
+    (1.0, LootTable("common.loot_tables.humanoids")),
+    (0.5, LootTable("common.loot_tables.armor.leather")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-1")),
     (1.0, Item("common.items.crafting_ing.sticky_thread")),
+    (5.0, ItemQuantity("common.items.utility.coins", 10, 150)),
 ]

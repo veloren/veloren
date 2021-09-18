@@ -1,6 +1,6 @@
 ItemDef(
-    name: "White flower",
-    description: "Pure and precious.",
+    name: "白花",
+    description: "纯洁而珍贵.",
     kind: Ingredient(
         kind: "Flower",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnarled Rod",
-    description: "Smells like resin and magic.",
+    name: "粗糙的棒",
+    description: "闻起来像树脂和魔法.",
     kind: Tool((
         kind: Staff,
         hands: Two,

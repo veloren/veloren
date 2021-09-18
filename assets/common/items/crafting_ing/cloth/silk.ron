@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Silk",
-    description: "A fine and strong fibre produced by spiders.",
+    name: "丝绸",
+    description: "蛛丝蜘蛛产生的一种细而强的纤维.",
     kind: Ingredient(
         kind: "Silk",
     ),

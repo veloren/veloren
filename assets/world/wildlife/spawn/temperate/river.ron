@@ -4,14 +4,23 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (5, (1, 1, "common.entity.wild.peaceful.beaver")),
-                (5, (1, 1, "common.entity.wild.peaceful.river_salamander")),
-                (5, (1, 1, "common.entity.wild.peaceful.duck")),
-                (1, (1, 1, "common.entity.wild.peaceful.kelpie")),
-                (1, (1, 1, "common.entity.wild.aggressive.hakulaq")),
+                (5, (1, 4, "common.entity.wild.peaceful.beaver")),
+                (5, (1, 4, "common.entity.wild.peaceful.river_salamander")),
+                (5, (1, 4, "common.entity.wild.peaceful.duck")),
+                (1, (1, 4, "common.entity.wild.peaceful.kelpie")),
+                (1, (1, 3, "common.entity.wild.aggressive.hakulaq")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (1, (1, 2, "common.entity.dungeon.tier-2.spear")),
+                (1, (1, 2, "common.entity.dungeon.tier-2.bow")),
+                (1, (1, 1, "common.entity.dungeon.tier-2.staff")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
         ),
     ],
 )

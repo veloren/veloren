@@ -1,10 +1,11 @@
 ItemDef(
-    name: "Rugged Hide",
-    description: "A durable pelt, favored by leatherworkers.",
+    name: "巨型兽皮",
+    description: "皮一种经久耐用的皮，深受皮匠的喜爱.",
     kind: Ingredient(
         kind: "RuggedHide",
     ),
-    quality: Epic,
+    quality: Common,
     tags: [
+        Material(Leather)
     ],
 )

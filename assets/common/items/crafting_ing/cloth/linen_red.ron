@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Linen",
-    description: "A flax fiber textile, dyed to stand out.",
+    name: "红色亚麻布",
+    description: "一种亚麻纤维织物，染色后引人注目.",
     kind: Ingredient(
         kind: "LinenRed",
     ),

@@ -1,0 +1,17 @@
+ItemDef(
+    name: "奥能原石",
+    description: "项链中央镶嵌着一颗纯度极高的奥能原石，能量源源不断地涌出......",
+    kind: Armor((
+        kind: Neck("exneckg"),
+        stats: (
+            protection: Normal(40.0),
+            poise_resilience: Normal(40.0),
+            energy_max: 100,
+            energy_reward: 0.5,
+            crit_power: 0.2,
+            stealth: 25.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

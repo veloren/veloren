@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Flint Sword",
-    description: "Chiseled from flint.",
+    name: "燧石刀",
+    description: "被石头覆盖.",
     kind: Tool((
         kind: Sword,
         hands: Two,

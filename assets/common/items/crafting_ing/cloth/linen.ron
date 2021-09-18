@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Linen",
-    description: "A textile made from flax fibers.",
+    name: "亚麻布",
+    description: "用亚麻纤维制成的纺织品.",
     kind: Ingredient(
         kind: "Linen",
     ),

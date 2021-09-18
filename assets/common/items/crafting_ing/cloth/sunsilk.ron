@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunsilk",
-    description: "A supernaturally strong textile.",
+    name: "阳炎丝绸",
+    description: "一种具有超自然力量的纺织品.",
     kind: Ingredient(
         kind: "Sunsilk",
     ),

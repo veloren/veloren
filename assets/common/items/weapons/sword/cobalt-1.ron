@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Greatsword",
-    description: "Forged with cobalt.",
+    name: "钴大剑",
+    description: "用钴锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

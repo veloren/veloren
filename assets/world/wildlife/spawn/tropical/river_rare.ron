@@ -4,7 +4,7 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 2, "common.entity.wild.aggressive.alligator")),
+                (1, (1, 3, "common.entity.wild.aggressive.alligator")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],

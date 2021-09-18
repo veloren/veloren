@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tiny Red Pouch",
-    description: "Made from a single patch of dyed cloth.",
+    name: "小红包",
+    description: "用一块染色布做的.",
     kind: Armor(
         (
             kind: Bag("RedTiny"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: Common,
     tags: [Bag],
-    slots: 3,
+    slots: 4,
 )

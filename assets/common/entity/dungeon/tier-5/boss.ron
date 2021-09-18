@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Mindflayer"),
+    name: Name("理智摧残者"),
     body: RandomWith("mindflayer"),
     alignment: Alignment(Enemy),
 

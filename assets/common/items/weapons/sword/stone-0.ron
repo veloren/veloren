@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ancient Greatsword",
-    description: "Covered in stone.",
+    name: "远古巨剑",
+    description: "被石头覆盖.",
     kind: Tool((
         kind: Sword,
         hands: Two,

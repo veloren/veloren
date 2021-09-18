@@ -1,0 +1,17 @@
+BasicAura(
+    buildup_duration: 0.75,
+    cast_duration: 1.0,
+    recover_duration: 0.75,
+    targets: InGroup,
+    aura: (
+        kind: IncreaseMaxEnergy,
+        strength: 100,
+        duration: Some(60.0),
+        category: Magical,
+    ),
+    aura_duration: 1.0,
+    range: 20.0,
+    energy_cost: 1375,
+    scales_with_combo: false,
+    specifier: WardingAura,
+)

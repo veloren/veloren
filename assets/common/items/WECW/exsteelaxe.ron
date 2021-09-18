@@ -1,0 +1,21 @@
+ItemDef(
+    name: "深蓝使者",
+    description: "由多种金属打造，因为其重量，每一击都将给与敌人巨大的冲击\n特效（巨型武器）：攻击距离提升，更容易击晕敌人！",
+    kind: Tool((
+        kind: Axe,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 1.0,
+            power: 4.0,
+            effect_power: 3.0,
+            speed: 0.7,
+            crit_chance: 0.3,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: Some(Custom("greatAxe")),
+)

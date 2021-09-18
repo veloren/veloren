@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Sunflower Ice Tea",
-    description: "Brewed from freshly shelled sunflower seeds",
+    name: "向日葵冰茶",
+    description: "由新鲜去皮的葵花籽酿制而成.",
     kind: Consumable(
         kind: Drink,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 10.0,
+                    strength: 100.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

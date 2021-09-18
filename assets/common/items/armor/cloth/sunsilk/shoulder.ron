@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Sunsilk Shoulderwraps",
-    description: "It radiates with the sun's power, and the grace to harness it.",
+    name: "炎阳 护肩",
+    description: "它散发着太阳的能量，以及驾驭它的优雅.",
     kind: Armor((
         kind: Shoulder("Sunsilk"),
         stats: (
             protection: Normal(18.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-2.0),
             energy_max: 200,
             energy_reward: 0.2,
             crit_power: 0.0,

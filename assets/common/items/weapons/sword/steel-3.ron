@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Seven-Branched Sword",
-    description: "Forged with steel.",
+    name: "七枝剑",
+    description: "用钢锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

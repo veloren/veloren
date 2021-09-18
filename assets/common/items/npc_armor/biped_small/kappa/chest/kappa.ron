@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Chest("Kappa"),
         stats: (
-            protection: Normal(2.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0,
+            protection: Normal(50.0),
+            poise_resilience: Normal(15.0),
+            energy_max: 100,
             energy_reward: 0.0,
-            crit_power: 0.0,
+            crit_power: 0.1,
             stealth: 0.0,
         ),
     )),

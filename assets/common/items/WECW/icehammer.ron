@@ -1,0 +1,21 @@
+ItemDef(
+    name: "冰风暴",
+    description: "你在雪怪的尸体上搜来了这把神器，寒冰核心，可以轻易冻住你的敌人.\n特效（霜天新星）：大地一击替换为冰刺阵！",
+    kind: Tool((
+        kind: Hammer,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.5,
+            power: 3.0,
+            effect_power: 3.0,
+            speed: 1.0,
+            crit_chance: 0.5,
+            range: 1.1,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+    ability_spec: Some(Custom("Hammerice")),
+)

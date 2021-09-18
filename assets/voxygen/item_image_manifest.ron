@@ -37,6 +37,265 @@
     ),
     // Weapons
     // Diary Example Images
+    Armor(Chest("Warlord")): VoxTrans(
+        "voxel.armor.warlordG.chest",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Pants("Warlord")): VoxTrans(
+        "voxel.armor.warlord.pants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Armor(Belt("Warlord")): VoxTrans(
+        "voxel.armor.warlord.belt",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.4,
+    ),
+    Armor(Foot("Warlord")): VoxTrans(
+        "voxel.armor.warlord.foot",
+        (0.0, 0.0, 0.0), (-95.0, 140.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Warlord")): VoxTrans(
+        "voxel.armor.warlock.hand",
+        (0.0, -1.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
+    ),
+    Armor(Shoulder("Warlord")): VoxTrans(
+        "voxel.armor.warlord.shoulder",
+        (0.0, 0.0, 0.0), (-90.0, 130.0, 0.0), 1.2,
+    ),
+    Armor(Back("Warlord")): VoxTrans(
+        "voxel.armor.warlord.back",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.sword.bloodsteel-1_player"): VoxTrans(
+        "voxel.weapon.sword.bloodsteel-1",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.sword.cultist_player"): VoxTrans(
+        "voxel.weapon.sword.cultist",
+        (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.bow.velorite_player"): VoxTrans(
+        "voxel.weapon.bow.velorite",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    Tool("common.items.weapons.axe.malachite_axe-0_player"): VoxTrans(
+        "voxel.weapon.axe.2haxe_malachite-0",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
+    ),
+    Tool("common.items.weapons.hammer.cultist_purp_2h-0_player"): VoxTrans(
+        "voxel.weapon.hammer.cult_purp-0",
+        (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.weapons.staff.cultist_staff_player"): VoxTrans(
+        "voxel.weapon.staff.firestaff_cultist",
+        (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
+    ),
+    Consumable("common.items.consumable.potion_ex"): VoxTrans(
+        "voxel.object.potion_green",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
+    Consumable("common.items.boss_drops.potions"): VoxTrans(
+        "voxel.object.potion_blue",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
+    Consumable("common.items.boss_drops.exp_flask"): VoxTrans(
+        "voxel.object.potion_blue",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
+    Consumable("common.items.boss_drops.xp_potion"): VoxTrans(
+        "voxel.object.potion_purp",
+        (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
+    ),
+    Glider("vg"): VoxTrans(
+        "voxel.armor.warlordG.vg",
+        (5.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
+    Glider("dg"): VoxTrans(
+        "voxel.armor.warlordG.dg",
+        (5.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
+    Ingredient("Coins2"): VoxTrans(
+        "voxel.armor.warlordG.v-coin2",
+        (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
+    ),
+    Ingredient("Coins3"):  VoxTrans(
+        "voxel.armor.warlordG.v-coin3",
+        (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
+    ),
+    Armor(Neck("highneck")): Png(
+        "element.items.highneck",
+    ),
+    Armor(Neck("highneck2")): Png(
+        "element.items.highneck2",
+    ),
+    Armor(Neck("exneckg")): Png(
+        "element.items.exneckg",
+    ),
+    Armor(Neck("exneck")): Png(
+        "element.items.exneck",
+    ),
+    Armor(Neck("epicneck")): Png(
+        "element.items.epicneck",
+    ),
+    Armor(Ring("Skull")): VoxTrans(
+        "voxel.armor.misc.ring.skull",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Skullg")): VoxTrans(
+        "voxel.armor.warlordG.skullg",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+    ),
+    Armor(Ring("Skullg2")): VoxTrans(
+        "voxel.armor.warlordG.skullg2",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+    ),
+    Armor(Ring("vring")): VoxTrans(
+        "voxel.armor.warlordG.vring",
+        (0.0, 0.0, 0.0), (30.0, 0.0, 0.0), 0.9,
+    ),
+    Tool("common.items.WECW.darkhammerex"): VoxTrans(
+        "voxel.armor.warlordG.darkhammerex",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.holyhammer"): VoxTrans(
+        "voxel.armor.warlordG.holyhammer",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.icehammer"): VoxTrans(
+        "voxel.armor.warlordG.icehammer",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.exsteelaxe"): VoxTrans(
+        "voxel.armor.warlordG.exsteelaxe",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.bow"): VoxTrans(
+        "voxel.armor.warlordG.bow",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.exbow"): VoxTrans(
+        "voxel.armor.warlordG.exbow",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.exbowg"): VoxTrans(
+        "voxel.armor.warlordG.exbowg",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.velorite.staffex"): VoxTrans(
+        "voxel.armor.warlordG.staffex",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.forgottenaxe"): VoxTrans(
+        "voxel.armor.warlordG.forgottenaxe",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.eriandor"): VoxTrans(
+        "voxel.armor.warlordG.eriandor",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.stormgreatsword"): VoxTrans(
+        "voxel.armor.warlordG.stormgreatsword",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.mindflayer"): VoxTrans(
+        "voxel.armor.warlordG.mindflayer",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.mind"): VoxTrans(
+        "voxel.armor.warlordG.mind",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Armor(Chest("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullchest",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Pants("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullpants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Hand("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullhand",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Back("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullback",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Shoulder("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullshoulder",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Foot("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullfoot",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Belt("soul")): VoxTrans(
+        "voxel.armor.warlordG.skullbelt",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Chest("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vchest",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Pants("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vpants",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Hand("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vhand",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Back("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vback",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Shoulder("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vshoulder",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Foot("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vfoot",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Belt("Velorite")): VoxTrans(
+        "voxel.armor.warlordG.vbelt",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Armor(Back("turtle")): VoxTrans(
+        "voxel.armor.warlordG.turtleback",
+        (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.darksteel"): VoxTrans(
+        "voxel.armor.warlordG.darksteel",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.darksteel2"): VoxTrans(
+        "voxel.armor.warlordG.darksteel2",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.holysword"): VoxTrans(
+        "voxel.armor.warlordG.holysword",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.caladbolgG"): VoxTrans(
+        "voxel.armor.warlordG.caladbolgG",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.caladbolgEXG"): VoxTrans(
+        "voxel.armor.warlordG.goldsword",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.caladbolgex"): VoxTrans(
+        "voxel.armor.warlordG.HGX",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.darkhammer"): VoxTrans(
+        "voxel.armor.warlordG.darkhammer",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
+    Tool("common.items.WECW.darkaxe"): VoxTrans(
+        "voxel.armor.warlordG.darkaxe",
+        (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
+    ),
     Tool("example_utility"): VoxTrans(
         "voxel.weapon.projectile.fireworks_green-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,

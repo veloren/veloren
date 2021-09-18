@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Aurora",
-    description: "Praise the sun!",
+    name: "极光",
+    description: "赞美太阳!",
     kind: Tool((
         kind: Staff,
         hands: Two,

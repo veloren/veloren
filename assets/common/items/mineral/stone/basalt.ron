@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Basalt",
-    description: "A dark volcanic rock.",
+    name: "玄武岩",
+    description: "黑色火山岩.",
     kind: Ingredient(
         kind: "Basalt",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Seashells",
-    description: "Shells from a sea creature.",
+    name: "贝壳",
+    description: "海洋生物的贝壳.",
     kind: Ingredient(
         kind: "Seashells",
     ),

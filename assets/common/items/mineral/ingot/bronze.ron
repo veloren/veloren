@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Ingot",
-    description: "A sturdy alloy made from combining copper and tin.",
+    name: "青铜锭",
+    description: "由铜和锡结合而成的坚固的合金.",
     kind: Ingredient(
         kind: "BronzeIngot",
     ),

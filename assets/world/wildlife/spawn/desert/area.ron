@@ -10,5 +10,13 @@ SpawnEntry (
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],
         ),
+        Pack(
+            groups: [
+                (1, (1, 5, "common.entity.dungeon.tier-0.spear")),
+                (1, (1, 5, "common.entity.dungeon.tier-0.bow")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
+        ),
     ],
 )

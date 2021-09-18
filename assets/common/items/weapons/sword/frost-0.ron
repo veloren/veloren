@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frost Cleaver",
-    description: "Radiates a freezing aura.",
+    name: "冰霜砍刀",
+    description: "散发出冰冷的气息.",
     kind: Tool((
         kind: Sword,
         hands: Two,

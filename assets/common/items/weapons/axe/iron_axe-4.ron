@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Butcher's Axe",
-    description: "This axe has a heavy iron head used to cleave nearly anything.",
+    name: "屠夫的斧头",
+    description: "这把斧头有一个沉重的铁头，几乎可以劈开任何东西.",
     kind: Tool((
         kind: Axe,
         hands: Two,

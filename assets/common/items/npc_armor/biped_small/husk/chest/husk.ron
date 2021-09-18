@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Chest("Husk"),
         stats: (
-            protection: Normal(18.0),
-            poise_resilience: Normal(1.0),
+            protection: Normal(300.0),
+            poise_resilience: Normal(50.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.0,
+            crit_power: 0.1,
             stealth: 0.0,
         ),
     )),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rugged Shirt",
-    description: "Smells like Adventure.",
+    name: "冒险者的粗犷衬衫",
+    description: "散发着冒险的气息.",
     kind: Armor((
         kind: Chest("Rugged"),
         stats: (

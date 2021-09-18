@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Brass Beast",
-    description: "Forged with bronze.",
+    name: "黄铜剑",
+    description: "用青铜锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

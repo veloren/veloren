@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Cactus Colada",
-    description: "Giving you that special prickle.",
+    name: "仙人掌",
+    description: "给你那种特别的刺痛.",
     kind: Consumable(
         kind: Drink,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 5.0,
+                    strength: 50.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

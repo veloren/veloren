@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Cultist Signet Ring ",
-    description: "Once belonged to a cultist.",
+    name: "诅咒之戒",
+    description: "恶灵的加护，等价的交易.",
     kind: Armor((
         kind: Ring("Skull"),
         stats: (
-            protection: Normal(3.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Normal(-10.0),
+            poise_resilience: Normal(-10.0),
+            energy_max: 75,
+            energy_reward: 0.15,
+            crit_power: 0.05,
+            stealth: -2.5,
         ),
     )),
     quality: High,

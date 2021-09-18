@@ -1,19 +1,17 @@
 ItemDef(
-    name: "Plain Necklace",
-    description: "It's become tarnished with age.",
+    name: "朴素项链",
+    description: "看上去有些年代了.",
     kind: Armor((
         kind: Neck("Plain0"),
         stats: (
             protection: Normal(1.0),
             poise_resilience: Normal(0.0),
             energy_max: 0,
-            energy_reward: 0.0,
+            energy_reward: 0.00,
             crit_power: 0.0,
             stealth: 0.0,
         ),
     )),
     quality: Common,
-    tags: [
-        Material(Iron)
-    ],
+    tags: [],
 )

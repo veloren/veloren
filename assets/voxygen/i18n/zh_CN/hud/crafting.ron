@@ -8,7 +8,16 @@
         "hud.crafting.ingredients": "配方:",
         "hud.crafting.craft": "制作",
         "hud.crafting.tool_cata": "需要:",
-
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "需求:",
+        "hud.crafting.anvil": "锻造台",
+        "hud.crafting.cauldron": "炼药锅",
+        "hud.crafting.cooking_pot": "烹饪锅",
+        "hud.crafting.crafting_bench": "工作台",
+        "hud.crafting.forge": "熔炉",
+        "hud.crafting.loom": "纺织机",
+        "hud.crafting.spinning_wheel": "纱轮",
+        "hud.crafting.tanning_rack": "晾晒架",
         // Tabs
         "hud.crafting.tabs.all": "全部",
         "hud.crafting.tabs.armor": "防具",
@@ -20,6 +29,7 @@
         "hud.crafting.tabs.utility": "道具",
         "hud.crafting.tabs.weapon": "武器",
         "hud.crafting.tabs.bag": "背包",
+        "hud.crafting.tabs.processed_material": "材料",
     },
 
 

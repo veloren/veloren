@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Emerald",
-    description: "A vibrant viridian gem.",
+    name: "翡翠",
+    description: "充满活力的绿色宝石，通常存在于矿洞中（可以在合成表出售换成金币）.",
     kind: Ingredient(
         kind: "Emerald",
     ),

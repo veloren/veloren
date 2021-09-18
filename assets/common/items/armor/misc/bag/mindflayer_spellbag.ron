@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Mindflayer Spellbag",
-    description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
+    name: "理智摧残者的魔法袋",
+    description: "你几乎可以感觉到理智摧残者的邪恶气息在织物中流动.",
     kind: Armor(
         (
             kind: Bag("PurpleSkull"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: Epic,
     tags: [Bag],
-    slots: 27,
+    slots: 32,
 )

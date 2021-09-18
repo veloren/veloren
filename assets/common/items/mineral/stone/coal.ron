@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Coal",
-    description: "A black rock that happens to be really good at burning.",
+    name: "煤",
+    description: "一块黑色的岩石，碰巧非常擅长燃烧.",
     kind: Ingredient(
         kind: "Coal",
     ),

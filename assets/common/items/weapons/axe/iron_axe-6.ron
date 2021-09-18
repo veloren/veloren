@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Axe",
-    description: "A simple dual bitted iron forged axe.",
+    name: "铁斧",
+    description: "一把简单的双刃铁制斧头.",
     kind: Tool((
         kind: Axe,
         hands: Two,

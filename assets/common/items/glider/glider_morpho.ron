@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Morpho",
-    description: "The delicate wings flutter faintly.",
+    name: "蓝闪蝶",
+    description: "又名蓝摩尔福蝶，是蛱蝶科闪蝶属中最大的一个物种，是一种热带蝴蝶，娇嫩的翅膀微微颤动.",
     kind: Glider(
         (
             kind: "ButterflyMorpho",

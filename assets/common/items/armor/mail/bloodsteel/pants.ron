@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Bloodsteel Legs",
-    description: "Forged to preserve life, at the cost of another.",
+    name: "血钢 腿铠",
+    description: "为了保全生命，不惜牺牲他人.",
     kind: Armor((
         kind: Pants("Bloodsteel"),
         stats: (
             protection: Normal(40.0),
             poise_resilience: Normal(10.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            energy_max: -70,
+            energy_reward: -0.2,
+            crit_power: -0.05,
+            stealth: -5.0,
         ),
     )),
     quality: Epic,

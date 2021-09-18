@@ -1,0 +1,51 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        "hud.do_not_show_on_startup": "Nie pokazuj tego podczas startu",
+        "hud.show_tips": "Pokaż porady",
+        "hud.quests": "Zadania",
+        "hud.you_died": "Zginąłeś",
+        "hud.waypoint_saved": "Punkt orientacyjny zachowany",
+        "hud.sp_arrow_txt": "PR", /// punkty rozwoju
+
+        "hud.press_key_to_show_keybindings_fmt": "[{key}] przypisania klawiszy",
+        "hud.press_key_to_toggle_lantern_fmt": "[{key}] latarnia",
+        "hud.press_key_to_show_debug_info_fmt": "Naciśnij {key} by zobaczyć debug",
+        "hud.press_key_to_toggle_keybindings_fmt": "Naciśnij {key} by przełączyć przypisania klawiszy",
+        "hud.press_key_to_toggle_debug_info_fmt": "Naciśnij {key} by przełączyć debugowanie",
+
+        // Respawn message
+        "hud.press_key_to_respawn": r#"Naciśnij {key} by odrodzić się przy ostatnio odwiedzonym ognisku."#,
+
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Samouczek"#,
+        "hud.tutorial_click_here": r#"Naciśnij [ {key} ] by przełączyć tryb przechwytywania myszy i naciśnij ten przycisk!"#,
+        "hud.tutorial_elements": r#"Tworzenie"#,
+
+"hud.temp_quest_headline": r#"Witaj Przybyszu!"#,
+"hud.temp_quest_text": r#"By zacząć swoją podróż zacznij od rozglądnięcia się i zebrania zapasów.
+
+Śmiało bierz cokolwiek będzie Ci potrzebne podczas Twojej wyprawy!
+
+Spójrz w prawy dolny róg ekranu by znaleźć różne rzeczy, takie jak Twoja torba, menu tworzenia oraz mapę.
+
+Menu tworzenia pozwala stworzyć pancerze, broń, żywność i wiele innych!
+
+Dzikie zwierzęta dookoła miast są świetnym źródłem Skrawków Skóry (Leather Scraps) które możesz przetworzyć na ubrania zapewniające dobrą ochronę podczas podróżowania.
+
+Kiedy poczujesz się gotów, spróbuj zdobyć lepszy ekwipunek z wielu wyzwań rozrzuconych po całej mapie!
+"#,
+
+        "hud.spell": "Czary",
+        // Diary
+        "hud.diary": "Dziennik",
+
+        "hud.free_look_indicator": "Tryb rozglądania aktywny. Naciśnij {key} by wyłączyć.",
+        "hud.camera_clamp_indicator": "Pionowa blokada kamery aktywna. Naciśnij {key} by wyłączyć.",
+        "hud.auto_walk_indicator": "Automatyczny lot/chód aktywny",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Clay Golem"),
+    name: Name("土魔像"),
     body: RandomWith("claygolem"),
     alignment: Alignment(Enemy),
 

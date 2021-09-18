@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ley Seeker",
-    description: "Starts swinging when pointed away from water",
+    name: "寻魔者",
+    description: "当指向远离水面时开始摆动",
     kind: Tool((
         kind: Staff,
         hands: Two,

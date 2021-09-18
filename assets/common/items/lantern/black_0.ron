@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Black Lantern",
-    description: "Used by city guards.",
+    name: "普通的黑色提灯",
+    description: "城镇守卫常用的提灯.",
     kind: Lantern(
         (
             kind: "Black0",

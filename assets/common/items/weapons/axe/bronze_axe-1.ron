@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Discus Axe",
-    description: "While the metal alloy is relatively simple, this unique circular axe has a unique appearance.",
+    name: "铁饼斧",
+    description: "虽然金属合金比较简单，但这种独特的圆形斧具有独特的外观.",
     kind: Tool((
         kind: Axe,
         hands: Two,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sharp Fang",
-    description: "Incredibly sharp tooth from a predatory animal.",
+    name: "尖牙",
+    description: "这是一种食肉动物的锋利牙齿.",
     kind: Ingredient(
         kind: "SharpFang",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework Red",
-    description: "Humans sometimes use these\nas a flare in a pinch.",
+    name: "红色烟花",
+    description: "人类有时会在紧要关头利用这些\n作为照明弹.",
     kind: Throwable(
         kind: Firework(Red),
     ),

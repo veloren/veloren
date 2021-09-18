@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Plain Salad",
-    description: "Literally just chopped lettuce. Does this even count as a salad?",
+    name: "蔬菜沙拉",
+    description: "就是一堆切碎的莴苣,这算沙拉吗？",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 2.0,
+                    strength: 20.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

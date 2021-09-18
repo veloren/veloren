@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Name("遗迹魔像"),
+    body: RandomWith("stonegolem"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.dungeon.wildboss.miniboss"),
+
+    hands: Uninit,
+
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-4.myrmidon"),
+    ],
+)

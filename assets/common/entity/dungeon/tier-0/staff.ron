@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Gnarling Shaman"),
+    name: Name("纳灵 萨满"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
 

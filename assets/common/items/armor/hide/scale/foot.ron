@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Scale Sabatons",
-    description: "Each embedded scale provides protection.",
+    name: "鳞甲 长靴",
+    description: "每个嵌入式的鳞片提供额外的保护.",
     kind: Armor((
         kind: Foot("Scale"),
         stats: (
-            protection: Normal(7.0),
-            poise_resilience: Normal(0.0),
+            protection: Normal(6.0),
+            poise_resilience: Normal(-2.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.1,
+            crit_power: 0.05,
             stealth: 0.0,
         ),
     )),

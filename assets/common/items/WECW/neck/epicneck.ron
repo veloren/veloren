@@ -1,0 +1,17 @@
+ItemDef(
+    name: "暗灵项链",
+    description: "戴上它，感受暗灵的护佑......",
+    kind: Armor((
+        kind: Neck("epicneck"),
+        stats: (
+            protection: Normal(5.0),
+            poise_resilience: Normal(5.0),
+            energy_max: 20,
+            energy_reward: 0.1,
+            crit_power: 0.05,
+            stealth: 0.05,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

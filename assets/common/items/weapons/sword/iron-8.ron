@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Royal Longsword",
-    description: "Forged with iron.",
+    name: "皇家长剑",
+    description: "用铁锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

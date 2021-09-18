@@ -24,6 +24,7 @@
         "char_selection.eyeshape": "眼睛形状",
         "char_selection.accessories": "配饰",
         "char_selection.create_info_name": "你的角色需要一个名字!",
+        "char_selection.version_mismatch": "警告!该服务器与你的游戏版本 / 游戏文件不匹配，请升级你的游戏版本或更换匹配的游戏文件.",
     },
 
     vector_map: {

@@ -1,0 +1,14 @@
+BasicBeam(
+    buildup_duration: 1.00,
+    recover_duration: 1.50,
+    beam_duration: 0.5,
+    damage: 1.0,
+    tick_rate: 1.0,
+    range: 25.0,
+    max_angle: 360.0,
+    damage_effect: None,
+    energy_regen: 0,
+    energy_drain: 0,
+    ori_rate: 10000.0,
+    specifier: Flamethrower,
+)

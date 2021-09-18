@@ -1,21 +1,20 @@
 ItemDef(
-    name: "Emerald Sceptre",
-    description: "Its stone is the closest thing from perfection",
+    name: "翡翠权杖",
+    description: "上面镶嵌着近乎完美的翡翠宝玉",
     kind: Tool((
         kind: Sceptre,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.3,
             power: 2.0,
-            effect_power: 1.0,
-            speed: 1.0,
-            crit_chance: 0.140625,
+            effect_power: 1.5,
+            speed: 1.1,
+            crit_chance: 0.14,
             range: 1.0,
             energy_efficiency: 1.0,
-            buff_strength: 1.0,
+            buff_strength: 1.1,
         )),
     )),
     quality: Epic,
     tags: [],
-    ability_spec: None,
 )

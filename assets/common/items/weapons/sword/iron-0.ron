@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Buccaneer's Blade",
-    description: "Forged with iron.",
+    name: "海盗之刃",
+    description: "用铁锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

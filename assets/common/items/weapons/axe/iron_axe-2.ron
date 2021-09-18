@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cyclone Axe",
-    description: "The iron axe head is split into two distinct curves, giving it a unique appearance.",
+    name: "旋风斧",
+    description: "铁斧头被分成两条截然不同的曲线，给了它一个独特的外观.",
     kind: Tool((
         kind: Axe,
         hands: Two,

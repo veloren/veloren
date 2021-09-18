@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wild Flax",
-    description: "Could be used to spin some simple cloth.",
+    name: "野生亚麻",
+    description: "可以用来纺一些简单的布.",
     kind: Ingredient(
         kind: "WildFlax",
     ),

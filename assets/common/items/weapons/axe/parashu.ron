@@ -1,21 +1,20 @@
 ItemDef(
-    name: "Parashu",
-    description: "Said to be able to cleave the heavens.",
+    name: "帕拉舒",
+    description: "据说能劈开天空.",
     kind: Tool((
         kind: Axe,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.4,
-            power: 2.5,
-            effect_power: 1.0,
+            power: 3.0,
+            effect_power: 2.0,
             speed: 0.8,
-            crit_chance: 0.11666667,
+            crit_chance: 0.15,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
         )),
     )),
-    quality: Legendary,
+    quality: Epic,
     tags: [],
-    ability_spec: None,
 )

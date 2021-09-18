@@ -9,12 +9,18 @@
     // High tier Ores
     (0.025, Item("common.items.mineral.ore.gold")),
     (0.03, Item("common.items.mineral.ore.silver")),
-    (0.1, Item("common.items.mineral.ore.bloodstone")),
-    (0.2, Item("common.items.mineral.ore.cobalt")),
-    (0.25, Item("common.items.mineral.ore.coal")),
+    (0.025, Item("common.items.mineral.gem.diamond")),
+    (0.05, Item("common.items.mineral.ore.bloodstone")),
+    (0.1, Item("common.items.mineral.ore.cobalt")),
+    (0.1, Item("common.items.mineral.gem.ruby")),
+    (0.2, Item("common.items.mineral.gem.emerald")),
+    (0.2, Item("common.items.mineral.gem.sapphire")),
+    (1.0, Item("common.items.mineral.ore.coal")),
+    (1.0, Item("common.items.mineral.gem.topaz")),
+    (1.0, Item("common.items.mineral.gem.amethyst")),
 
     // High tier Animal Hide
-    (0.025, Item("common.items.crafting_ing.hide.dragon_scale")),
+    (0.0001, Item("common.items.crafting_ing.hide.dragon_scale")),
     (0.05, Item("common.items.crafting_ing.hide.plate")),
     (0.05, Item("common.items.crafting_ing.hide.leather_troll")),
     (0.05, Item("common.items.crafting_ing.hide.rugged_hide")),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Obsidian",
-    description: "An igneous rock that comes from melted rock.",
+    name: "黑曜石",
+    description: "一种由熔化的岩石形成的火成岩.",
     kind: Ingredient(
         kind: "Obsidian",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Steel Ingot",
-    description: "An alloy of iron and coal that is much tougher than its components.",
+    name: "钢锭",
+    description: "一种铁和煤的合金，比它的成分坚硬得多.",
     kind: Ingredient(
         kind: "SteelIngot",
     ),

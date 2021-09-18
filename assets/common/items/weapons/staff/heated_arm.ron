@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Heated Grip Arm",
-    description: "'Caution, hot surface!'",
+    name: "加热夹臂",
+    description: "'谨慎,热表面!'",
     kind: Tool((
         kind: Staff,
         hands: Two,

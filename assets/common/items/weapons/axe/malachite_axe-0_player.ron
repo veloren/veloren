@@ -1,0 +1,21 @@
+ItemDef(
+    name: "孔雀石斧",
+    description: "斧刃通过刻蚀孔雀石进行装饰，性能令人称奇.\n特效（破伤风）：矿石毒素使得被致残打击伤害的敌人伤口恶化.",
+    kind: Tool((
+        kind: Axe,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.4,
+            power: 2.5,
+            effect_power: 1.0,
+            speed: 1.0,
+            crit_chance: 0.15,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Epic,
+    tags: [],
+    ability_spec: Some(Custom("Axeepic")),
+)

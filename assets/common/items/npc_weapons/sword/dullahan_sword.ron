@@ -1,16 +1,16 @@
 ItemDef(
     name: "Dullahan Sword",
-    description: "Placeholder",
+    description: "Placehoder",
     kind: Tool((
         kind: Sword,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.5,
-            power: 1.0,
-            effect_power: 1.0,
-            speed: 1.0,
-            crit_chance: 0.0625,
-            range: 1.0,
+            power: 5.0,
+            effect_power: 100.0,
+            speed: 1.25,
+            crit_chance: 0.5,
+            range: 1.5,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
         )),

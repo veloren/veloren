@@ -5,10 +5,10 @@ ItemDef(
         kind: Back("Rawhide"),
         stats: (
             protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-3.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.017,
+            crit_power: 0.01,
             stealth: 0.0,
         ),
     )),

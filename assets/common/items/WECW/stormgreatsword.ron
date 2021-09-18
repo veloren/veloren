@@ -1,0 +1,21 @@
+ItemDef(
+    name: "风暴大剑",
+    description: "很重很重的一把大剑,似乎不属于这个世界，也许来自CubeWorld？\n特效（巨型武器）：攻击距离提升，更容易击晕敌人！",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.5,
+            power: 3.5,
+            effect_power: 3.5,
+            speed: 0.6,
+            crit_chance: 0.35,
+            range: 1.1,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+    ability_spec: Some(Custom("greatSword")),
+)

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Grim Eyeball",
-    description: "Casts a petrifying gaze.",
+    name: "恐怖眼球",
+    description: "投下令人毛骨悚然的目光.",
     kind: Ingredient(
         kind: "GrimEyeball",
     ),

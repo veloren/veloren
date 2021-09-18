@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Huge Cooked Drumstick",
-    description: "Makes for a legendary meal.",
+    name: "巨大的熟鸡腿",
+    description: "是一顿传奇的大餐.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 5.5,
+                    strength: 150.0,
                     duration: Some((
-                            secs: 15,
+                            secs: 25,
                             nanos: 0,
                         )),
                     ),

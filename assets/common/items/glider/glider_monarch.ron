@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orange Monarch",
-    description: "The delicate wings flutter faintly.",
+    name: "帝王蝶",
+    description: "帝王蝴蝶可能是世界上知名度最高的蝴蝶，娇嫩的翅膀微微颤动.",
     kind: Glider(
         (
             kind: "ButterflyMonarch",

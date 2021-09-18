@@ -5,7 +5,7 @@ ItemDef(
         kind: Belt("Linen"),
         stats: (
             protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-4.0),
             energy_max: 8,
             energy_reward: 0.009,
             crit_power: 0.0,

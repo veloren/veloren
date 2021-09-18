@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Warlord's Blade",
-    description: "Forged with iron.",
+    name: "督军之刃",
+    description: "用铁锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

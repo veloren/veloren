@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sunflower",
-    description: "Smells like summer.",
+    name: "太阳花",
+    description: "闻起来像夏天，林地中常见的花.",
     kind: Ingredient(
         kind: "Flower",
     ),

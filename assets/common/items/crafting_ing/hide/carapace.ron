@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Hard Carapace",
-    description: "Tough, hard carapace.",
+    name: "甲壳",
+    description: "坚硬的甲壳.",
     kind: Ingredient(
         kind: "Carapace",
     ),

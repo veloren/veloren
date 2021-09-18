@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Claymore",
-    description: "Forged with cobalt.",
+    name: "钴双刃大砍刀",
+    description: "用钴锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

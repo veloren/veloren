@@ -4,6 +4,22 @@
         color: None
     ),
     map: {
+        "Warlord": (
+            vox_spec: ("armor.warlord.back", (-5.0, -1.0, -14.0)),
+            color: None
+        ),
+        "turtle":(
+            vox_spec: ("armor.warlordG.turtleback", (-5.0, -5.0, -9.0)),
+            color: None
+        ),
+        "soul": (
+            vox_spec: ("armor.warlordG.skullback", (-5.0, -1.0, -14.0)),
+            color: None
+        ),
+        "Velorite": (
+            vox_spec: ("armor.warlordG.vback", (-10.0, -4.0, -15.0)),
+            color: None
+        ),
         "Short0": (
             vox_spec: ("armor.misc.back.short-0", (-5.0, -1.0, -11.0)),
             color: None

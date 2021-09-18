@@ -1,0 +1,17 @@
+ItemDef(
+    name: "邪恶战靴",
+    description: "被尘封的邪恶力量...",
+    kind: Armor((
+        kind: Foot("Warlord"),
+        stats: (
+            protection: Normal(18.0),
+            poise_resilience: Normal(15.0),
+            energy_max: 50,
+            energy_reward: 0.2,
+            crit_power: 0.05,
+            stealth: 0.05,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

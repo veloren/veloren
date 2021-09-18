@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Troll Hide",
-    description: "Looted from cave trolls.",
+    name: "巨魔皮",
+    description: "较为少见的材料，通常从洞穴巨魔身上剥取.",
     kind: Ingredient(
         kind: "TrollLeather",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Lantern",
-    description: "Caution: contents hot",
+    name: "红色提灯",
+    description: "保证内部温暖.",
     kind: Lantern(
         (
             kind: "Red0",
@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 250,
         ),
     ),
-    quality: Common,
+    quality: Moderate,
     tags: [Utility],
 )

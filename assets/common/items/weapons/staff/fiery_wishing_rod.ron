@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Fiery Wishing-Rod",
-    description: "Fulfills all your wishes from medium-rare to well-done",
+    name: "炽热许愿棒",
+    description: "满足您从三分熟到全熟的所有愿望",
     kind: Tool((
         kind: Staff,
         hands: Two,

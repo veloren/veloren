@@ -5,7 +5,7 @@ ItemDef(
         kind: Hand("Linen"),
         stats: (
             protection: Normal(2.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-4.0),
             energy_max: 17,
             energy_reward: 0.017,
             crit_power: 0.0,

@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Moonweave Gloves",
-    description: "The fabric dances silently, like moonlight.",
+    name: "月纹 手套",
+    description: "织物像月光一样静静地舞动.",
     kind: Armor((
         kind: Hand("Moonweave"),
         stats: (
-            protection: Normal(8.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 83,
-            energy_reward: 0.084,
+            protection: Normal(6.0),
+            poise_resilience: Normal(-1.0),
+            energy_max: 80,
+            energy_reward: 0.08,
             crit_power: 0.0,
             stealth: 0.0,
         ),

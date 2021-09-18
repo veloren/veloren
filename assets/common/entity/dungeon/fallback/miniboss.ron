@@ -1,7 +1,6 @@
 EntityConfig (
-    name: Name("Big Goose"),
-    body: RandomWith("goose"),
-    alignment: Alignment(Enemy),
+    name: Some("巨大的鹅"),
+    body: Some(RandomWith("goose")),
 
     loot: LootTable("common.loot_tables.fallback"),
 

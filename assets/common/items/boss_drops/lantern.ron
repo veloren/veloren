@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Magic Lantern",
-    description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
+    name: "魔法提灯",
+    description: "照亮了最黑暗的地牢\n一个巨大的怪物因为这个物品而被杀死.",
     kind: Lantern(
         (
             kind: "Green0",

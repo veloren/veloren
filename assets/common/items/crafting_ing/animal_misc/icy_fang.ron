@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Icy Shard",
-    description: "Looted from a frosty creature.",
+    name: "冰冷的碎片",
+    description: "从冷冰冰的生物身上抢来的.",
     kind: Ingredient(
         kind: "IcyShard",
     ),

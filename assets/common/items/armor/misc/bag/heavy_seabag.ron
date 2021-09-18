@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Heavy Seabag",
-    description: "Commonly used by sailors.",
+    name: "重型海洋袋",
+    description: "水手常用的袋子.",
     kind: Armor(
         (
             kind: Bag("BluePouch"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
-    quality: Moderate,
+    quality: Epic,
     tags: [Bag],
-    slots: 14,
+    slots: 30,
 )

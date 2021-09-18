@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tiny Leather Pouch",
-    description: "Made from a few patches of leather.",
+    name: "小皮包",
+    description: "用几块皮革做的.",
     kind: Armor(
         (
             kind: Bag("LeatherSmall"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: Common,
     tags: [Bag],
-    slots: 6,
+    slots: 8,
 )

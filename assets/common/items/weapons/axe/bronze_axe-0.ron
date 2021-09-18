@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bronze Axe",
-    description: "A fine quality metal alloy axe.",
+    name: "青铜骑士斧",
+    description: "优质金属合金斧.",
     kind: Tool((
         kind: Axe,
         hands: Two,

@@ -4,6 +4,18 @@
         color: None
     ),
     map: {
+        "Warlord":(
+            vox_spec: ("armor.warlord.belt", (-4.0, -3.5, 1.0)),
+            color: None
+        ),
+        "soul":(
+            vox_spec: ("armor.warlordG.skullbelt", (-5.0, -3.5, 1.0)),
+            color: None
+        ),
+        "Velorite": (
+          vox_spec: ("armor.warlordG.vbelt", (-5.0, -3.5, 2.0)),
+          color: None
+        ),
         "Dark": (
             vox_spec: ("armor.misc.belt.dark", (-4.0, -3.5, 2.0)),
             color: None

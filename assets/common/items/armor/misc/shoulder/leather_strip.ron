@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Strips",
-    description: "Tanned animal hide strips formed into loose shoulder pads.",
+    name: "冒险者皮条护肩",
+    description: "鞣制的动物皮条，形成松散的垫肩.",
     kind: Armor((
         kind: Shoulder("LeatherStrip"),
         stats: (

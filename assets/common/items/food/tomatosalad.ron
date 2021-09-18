@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Tomato Salad",
-    description: "Leafy salad with some chopped, juicy tomatoes mixed in.",
+    name: "西红柿沙拉",
+    description: "相比纯粹的生菜沙拉，多了一些多汁的西红柿，看起来好多了.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 3.0,
+                    strength: 30.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

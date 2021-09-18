@@ -1,0 +1,17 @@
+BasicAura(
+    buildup_duration: 0.3,
+    cast_duration: 0.5,
+    recover_duration: 0.3,
+    targets: InGroup,
+    aura: (
+        kind: Potion,
+        strength: 8.0,
+        duration: Some(60.0),
+        category: Magical,
+    ),
+    aura_duration: 1.0,
+    range: 25.0,
+    energy_cost: 650,
+    scales_with_combo: false,
+    specifier: HealingAura,
+)

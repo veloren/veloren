@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Carrot",
-    description: "An orange root vegetable. They say it'll improve your vision!",
+    name: "胡萝卜",
+    description: "有着橙色根的蔬菜.他们说这会改善你的视力！",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.0,
+                    strength: 10.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

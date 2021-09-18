@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Copper Ingot",
-    description: "An ingot with a unique brown color.",
+    name: "铜锭",
+    description: "一种独特的褐色铸锭.",
     kind: Ingredient(
         kind: "CopperIngot",
     ),

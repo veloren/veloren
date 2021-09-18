@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Fanged Axe",
-    description: "Several sharp axe heads forged with points to mimic animal fangs.",
+    name: "有尖刺的斧子",
+    description: "几个锋利的斧头锻造与尖模仿动物的尖牙.",
     kind: Tool((
         kind: Axe,
         hands: Two,

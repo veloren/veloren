@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Silken Cape",
-    description: "Weaved with care by a skilled tailor.",
+    name: "丝绸 披风",
+    description: "由一个熟练的裁缝精心编织.",
     kind: Armor((
         kind: Back("Silken"),
         stats: (
             protection: Normal(2.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(-3.0),
             energy_max: 25,
             energy_reward: 0.025,
             crit_power: 0.0,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sturdy Red Saddlebag",
-    description: "Made from a large amount of dyed cloth patches.",
+    name: "结实的红色马鞍包",
+    description: "用大量染色的布片制成.",
     kind: Armor(
         (
             kind: Bag("RedLarge"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: High,
     tags: [Bag],
-    slots: 18,
+    slots: 24,
 )

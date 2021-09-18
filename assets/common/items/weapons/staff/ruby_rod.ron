@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ruby Rod",
-    description: "Some legends tell that the ruby is is tied to the fire element",
+    name: "红宝石棒",
+    description: "有些传说说红宝石与火元素有关",
     kind: Tool((
         kind: Staff,
         hands: Two,

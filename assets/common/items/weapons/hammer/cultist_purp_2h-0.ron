@@ -1,21 +1,20 @@
 ItemDef(
-    name: "Magical Cultist Warhammer",
-    description: "This belonged to an evil Cult Leader.",
+    name: "附魔大锤",
+    description: "这是一把属于邪教高层成员的魔法战锤",
     kind: Tool((
         kind: Hammer,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.5,
-            power: 2.0,
-            effect_power: 1.0,
-            speed: 1.0,
-            crit_chance: 0.140625,
-            range: 1.0,
+            power: 2.5,
+            effect_power: 2.0,
+            speed: 1.2,
+            crit_chance: 0.2,
+            range: 1.2,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
         )),
     )),
     quality: Epic,
     tags: [],
-    ability_spec: None,
 )

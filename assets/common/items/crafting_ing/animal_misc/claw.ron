@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Predator Claw",
-    description: "Incredibly sharp claw from a predatory animal.",
+    name: "利爪",
+    description: "一只食肉动物的锋利无比的爪子.",
     kind: Ingredient(
         kind: "Claw",
     ),

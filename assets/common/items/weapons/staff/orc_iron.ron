@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orcish Branding Iron",
-    description: "Used to mark animals and captured foes",
+    name: "兽人烙铁",
+    description: "用来标记动物和捕获的敌人",
     kind: Tool((
         kind: Staff,
         hands: Two,

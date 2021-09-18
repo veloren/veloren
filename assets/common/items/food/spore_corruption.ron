@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Spore of Corruption",
-    description: "You feel an evil force pulsating within.\n\nIt may be unwise to hold on to it for too long...",
+    name: "腐败的孢子",
+    description: "你感觉到一股邪恶的力量在你体内跳动。\n坚持太久可能是不明智的。。。",
     kind: Consumable(
         kind: ComplexFood,
         effects: [

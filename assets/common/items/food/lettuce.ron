@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Lettuce",
-    description: "A vibrant green leafy vegetable. Lettuce make some salads!",
+    name: "生菜",
+    description: "生机勃勃的绿叶蔬菜,可以做沙拉!",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.0,
+                    strength: 10.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

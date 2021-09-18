@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Plate",
-    description: "Durable plate from an armored animal.",
+    name: "坚硬甲壳",
+    description: "从动物身上剥下的甲壳.",
     kind: Ingredient(
         kind: "Plate",
     ),

@@ -4,10 +4,19 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (3, 7, "common.entity.wild.aggressive.wolf")),
+                (1, (3, 9, "common.entity.wild.aggressive.wolf")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],
+        ),
+        Pack(
+            groups: [
+                (1, (1, 2, "common.entity.dungeon.tier-1.spear")),
+                (1, (1, 2, "common.entity.dungeon.tier-1.bow")),
+                (1, (1, 1, "common.entity.dungeon.tier-1.staff")),
+            ],
+            is_underwater: false,
+            day_period: [Night],
         ),
     ],
 )

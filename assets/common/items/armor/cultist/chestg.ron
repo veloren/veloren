@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Cultist Chest",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Chest("Cultist"),
+        stats: (
+            protection: Normal(400.0),
+            poise_resilience: Normal(100.0),
+            energy_max: 750,
+            energy_reward: 5.0,
+            crit_power: 0.1,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+        Cultist,
+    ],
+)

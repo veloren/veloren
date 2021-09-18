@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Spade Axe",
-    description: "This axe is designed to mimic the playing card suit, swiftly slicing through the air.",
+    name: "铲斧",
+    description: "这把斧头被设计成模仿扑克牌套装的样子，在空中快速地划动.",
     kind: Tool((
         kind: Axe,
         hands: Two,

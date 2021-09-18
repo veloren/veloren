@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Butterfly Sword",
-    description: "Forged with steel.",
+    name: "蝴蝶双刀",
+    description: "用钢锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

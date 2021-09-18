@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wood Raptor Wings",
-    description: "Take flight with the wings of a predator.",
+    name: "丛林之鹰",
+    description: "用捕食者的翅膀飞翔.",
     kind: Glider(
         (
             kind: "WoodRaptor",

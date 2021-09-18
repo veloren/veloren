@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Solar Staff",
-    description: "Sun energy rumble deep within this staff",
+    name: "太阳能员工",
+    description: "太阳能量在这根棍子的深处隆隆作响",
     kind: Tool((
         kind: Staff,
         hands: Two,

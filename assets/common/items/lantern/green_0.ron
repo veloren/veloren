@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Lime Zest Lantern",
-    description: "It has an opening that could fit a ring...",
+    name: "青柠提灯",
+    description: "它有一个可以装戒指的开口...",
     kind: Lantern(
         (
             kind: "Green0",
@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 250,
         ),
     ),
-    quality: Common,
+    quality: High,
     tags: [Utility],
 )

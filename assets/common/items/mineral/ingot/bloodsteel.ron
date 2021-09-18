@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bloodsteel Ingot",
-    description: "An alloy of bloodstone and iron.",
+    name: "血钢锭",
+    description: "血石和铁的合金.",
     kind: Ingredient(
         kind: "BloodsteelIngot",
     ),

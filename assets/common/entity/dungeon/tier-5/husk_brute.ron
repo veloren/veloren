@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Husk Brute"),
+    name: Name("(精英) 憎恶"),
     body: RandomWith("husk_brute"),
     alignment: Alignment(Enemy),
 
@@ -7,5 +7,7 @@ EntityConfig (
 
     hands: Uninit,
 
-    meta: [],
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-5.beastmaster"),
+    ],
 )

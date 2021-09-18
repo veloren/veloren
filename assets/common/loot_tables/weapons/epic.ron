@@ -1,0 +1,11 @@
+[
+    (1.0, Item("common.items.weapons.sword.caladbolg")),
+    (1.0, Item("common.items.weapons.hammer.mjolnir")),
+    (1.0, Item("common.items.weapons.axe.parashu")),
+    (1.0, Item("common.items.weapons.bow.sagitta")),
+    (1.0, Item("common.items.weapons.staff.dragon_tongue")),
+    (1.0, Item("common.items.weapons.sceptre.emerald")),
+    (1.0, Item("common.items.weapons.sword.cultist_player")),
+    (1.0, Item("common.items.weapons.hammer.cultist_purp_2h-0_player")),
+    (1.0, Item("common.items.weapons.staff.cultist_staff_player")),
+]

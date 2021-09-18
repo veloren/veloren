@@ -5,13 +5,13 @@ BasicAura(
     targets: InGroup,
     aura: (
         kind: ProtectingWard,
-        strength: 0.20,
-        duration: Some(10.0),
+        strength: 0.05,
+        duration: Some(15.0),
         category: Magical,
     ),
     aura_duration: 1.0,
     range: 25.0,
-    energy_cost: 400,
+    energy_cost: 450,
     scales_with_combo: false,
     specifier: WardingAura,
 )

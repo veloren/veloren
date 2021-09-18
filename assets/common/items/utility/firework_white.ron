@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Firework White",
-    description: "Twinkles like the stars",
+    name: "白色烟花",
+    description: "像星星一样闪烁.",
     kind: Throwable(
         kind: Firework(White),
     ),

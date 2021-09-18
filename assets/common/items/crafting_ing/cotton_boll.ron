@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cotton Boll",
-    description: "Plucked from a common cotton plant.",
+    name: "棉铃",
+    description: "从一株普通棉花上摘下来的.",
     kind: Ingredient(
         kind: "CottonBoll",
     ),

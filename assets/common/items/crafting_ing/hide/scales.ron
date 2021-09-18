@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Scale",
-    description: "Shiny scale from an animal.",
+    name: "鳞片",
+    description: "动物身上闪亮的鳞片.",
     kind: Ingredient(
         kind: "Scale",
     ),

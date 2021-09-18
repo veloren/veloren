@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Orichalcum Ingot",
-    description: "An ingot made of refined orichalcum.",
+    name: "奥里查库姆矿锭",
+    description: "用精制的奥里查库姆矿制成的锭.",
     kind: Ingredient(
         kind: "OrichalcumIngot",
     ),

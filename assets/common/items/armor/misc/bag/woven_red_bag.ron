@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Woven Red Bag",
-    description: "Made from some patches of dyed cloth.",
+    name: "编织红包",
+    description: "用一些染色布做的.",
     kind: Armor(
         (
             kind: Bag("RedMed"),
@@ -11,10 +11,10 @@ ItemDef(
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,
-            ),
+            ),            
         )
     ),
     quality: Moderate,
     tags: [Bag],
-    slots: 15,
+    slots: 18,
 )

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Beast Cleaver",
-    description: "A rough cut axe created by orcs to cleave beasts in two.",
+    name: "野兽切肉刀",
+    description: "半兽人用粗糙的斧头把野兽劈成两半.",
     kind: Tool((
         kind: Axe,
         hands: Two,

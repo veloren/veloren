@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Beastmaster"),
+    name: Name("(精英) 兽王"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
 

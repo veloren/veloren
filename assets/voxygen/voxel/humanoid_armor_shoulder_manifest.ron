@@ -11,6 +11,36 @@
         )
     ),
     map: {
+        "Warlord": (
+            left: (
+                vox_spec: ("armor.warlord.shoulder", (-8.0, -3.5 , -1.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.warlord.shoulder", (-1.0, -3.5 , -1.0)),
+                color: None
+            )
+        ),
+        "soul": (
+            left: (
+                vox_spec: ("armor.warlordG.skullshoulder", (-5.0, -3.5 , -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.warlordG.skullshoulder", (-1.0, -3.5 , -2.5)),
+                color: None
+            )
+        ),
+        "Velorite": (
+            left: (
+                vox_spec: ("armor.warlordG.vshoulder", (-6.0, -4.0 , 0.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.warlordG.vshoulder", (-1.0, -4.0, 0.0)),
+                color: None
+            )
+        ),
         "Brown1": (
             left: (
                 vox_spec: ("armor.shoulder.brown_right", (-3.0, -3.5, 1.0)),

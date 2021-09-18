@@ -1,12 +1,12 @@
 ({
     Armor(Shoulders): Item("common.items.armor.cultist.shoulder"),
-    Armor(Chest): Item("common.items.armor.cultist.chest"),
+    Armor(Chest): Item("common.items.armor.cultist.chestg"),
     Armor(Belt): Item("common.items.armor.cultist.belt"),
     Armor(Hands): Item("common.items.armor.cultist.hand"),
     Armor(Legs): Item("common.items.armor.cultist.pants"),
     Armor(Feet): Item("common.items.armor.cultist.foot"),
 
-    Armor(Back): Item("common.items.armor.misc.back.dungeon_purple"),
+    Armor(Back): Item("common.items.armor.misc.back.dungeon_purpleg"),
 
     Lantern: Choice([
         (1.0, Some(Item("common.items.lantern.black_0"))),
@@ -14,14 +14,4 @@
     ]),
 
     Glider: Item("common.items.glider.glider_purp"),
-
-    ActiveMainhand: Choice([
-        (2.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
-        (4.0, Some(Item("common.items.weapons.sword.cultist"))),
-        (2.0, Some(Item("common.items.weapons.staff.cultist_staff"))),
-        (2.0, Some(Item("common.items.weapons.hammer.cultist_purp_2h-0"))),
-        (2.0, Some(Item("common.items.weapons.hammer_1h.orichalcum-0"))),
-        (2.0, Some(Item("common.items.weapons.bow.velorite"))),
-        (1.0, Some(Item("common.items.weapons.sceptre.sceptre_velorite_0"))),
-    ]),
 })

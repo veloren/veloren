@@ -1,0 +1,21 @@
+BasicSummon(
+    buildup_duration: 2.0,
+    cast_duration: 2.0,
+    recover_duration: 2.0,
+    summon_amount: 2,
+    summon_distance: (1, 1),
+    summon_info: (
+        body: QuadrupedMedium((
+            species: Wolf,
+            body_type: Male,
+        )),
+        scale: None,
+        health_scaling: Some(0),
+        loadout_config: Some(HuskSummon),
+        skillset_config: None,
+    ),
+    duration: Some((
+              secs: 90,
+              nanos: 0,
+                  )),
+)

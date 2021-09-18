@@ -4,7 +4,8 @@
 (
     string_map: {
         "gameinput.primary": "普通攻击",
-        "gameinput.secondary": "特殊攻击/格挡/瞄准",
+        "gameinput.secondary": "特殊攻击/瞄准",
+        "gameinput.block": "格挡/招架",
         "gameinput.slot1": "快捷栏 1",
         "gameinput.slot2": "快捷栏 2",
         "gameinput.slot3": "快捷栏 3",
@@ -20,6 +21,7 @@
         "gameinput.help": "切换帮助窗口",
         "gameinput.toggleinterface": "切换显示界面",
         "gameinput.toggledebug": "切换FPS和调试信息",
+        "gameinput.togglechat": "切换聊天",
         "gameinput.screenshot": "截图",
         "gameinput.toggleingameui": "切换名称标签",
         "gameinput.fullscreen": "切换全屏",
@@ -53,6 +55,7 @@
         "gameinput.autowalk": "自动 行走/滑翔",
         "gameinput.cameraclamp": "锁定视角",
         "gameinput.dance": "跳舞",
+        "gameinput.greet": "打招呼",
         "gameinput.select": "选择实体",
         "gameinput.acceptgroupinvite": "接受队伍邀请",
         "gameinput.declinegroupinvite": "拒绝队伍邀请",
@@ -62,6 +65,8 @@
         "gameinput.sneak": "潜行",
         "gameinput.swimdown": "下潜",
         "gameinput.swimup": "上浮",
+        "gameinput.mapzoomin": "放大地图",
+        "gameinput.mapzoomout": "缩小地图",
     },
 
 

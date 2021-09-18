@@ -1,0 +1,22 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        "hud.group": "Drużyna",
+        "hud.group.invite_to_join": "[{name}] zaprasza Cię do drużyny!",
+        "hud.group.invite_to_trade": "[{name}] zaprasza Cię do wymiany.",
+        "hud.group.invite": "Zaproś",
+        "hud.group.kick": "Wyrzuć",
+        "hud.group.assign_leader": "Daj lidera",
+        "hud.group.leave": "Opuść drużynę",
+        "hud.group.dead" : "Martwy", /// forma
+        "hud.group.out_of_range": "Poza zasięgiem",
+        "hud.group.add_friend": "Dodaj do przyjaciół",
+        "hud.group.link_group": "Połącz drużyny",
+        "hud.group.in_menu": "W menu",
+        "hud.group.members": "Członkowie drużyny",
+    },
+
+
+    vector_map: {
+    }
+)

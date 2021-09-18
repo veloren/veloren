@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Topaz",
-    description: "An outstanding orange gem.",
+    name: "黄宝石",
+    description: "这种黄宝石在矿洞中很常见（可以在合成表出售换成金币）.",
     kind: Ingredient(
         kind: "Topaz",
     ),

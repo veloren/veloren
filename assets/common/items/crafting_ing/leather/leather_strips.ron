@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Leather Strips",
-    description: "Simple and versatile.",
+    name: "皮革碎片",
+    description: "常见的材料，通常从动物身上剥取.",
     kind: Ingredient(
         kind: "LeatherStrips",
     ),

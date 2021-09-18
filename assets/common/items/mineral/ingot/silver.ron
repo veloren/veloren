@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Silver Ingot",
-    description: "An ingot made of refined metallic silver.",
+    name: "银锭",
+    description: "用精制的金属银制成的锭.",
     kind: Ingredient(
         kind: "SilverIngot",
     ),

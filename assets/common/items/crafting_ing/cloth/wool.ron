@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Soft Wool",
-    description: "Soft wool from an animal.",
+    name: "软绒毛",
+    description: "动物身上的软毛.",
     kind: Ingredient(
         kind: "Wool",
     ),

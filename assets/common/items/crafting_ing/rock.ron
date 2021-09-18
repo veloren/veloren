@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Rock",
-    description: "A solid made up of a bunch of different minerals.",
+    name: "岩块",
+    description: "由多种矿物质组成的固体.",
     kind: Ingredient(
         kind: "Rock",
     ),

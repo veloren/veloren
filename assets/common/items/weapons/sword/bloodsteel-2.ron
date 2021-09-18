@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sharktooth",
-    description: "Infused with blood.",
+    name: "鲨鱼齿",
+    description: "沾满了鲜血.",
     kind: Tool((
         kind: Sword,
         hands: Two,
@@ -9,7 +9,7 @@ ItemDef(
             power: 2.0,
             effect_power: 1.0,
             speed: 0.8,
-            crit_chance: 0.11666667,
+            crit_chance: 0.12,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
@@ -17,5 +17,4 @@ ItemDef(
     )),
     quality: High,
     tags: [],
-    ability_spec: None,
 )

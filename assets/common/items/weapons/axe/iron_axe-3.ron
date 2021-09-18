@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Battleaxe",
-    description: "Tried and true iron armaments, mass produced for killing.",
+    name: "铁战斧",
+    description: "经过考验的铁制武器，大量生产用于杀戮.",
     kind: Tool((
         kind: Axe,
         hands: Two,

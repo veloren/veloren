@@ -1,0 +1,23 @@
+Shockwave(
+    energy_cost: 650,
+    buildup_duration: 0.3,
+    swing_duration: 0.3,
+    recover_duration: 0.3,
+    damage: 200,
+    poise_damage: 200,
+    knockback: (strength: 10.0, direction: Away),
+    shockwave_angle: 45.0,
+    shockwave_vertical_angle: 90.0,
+    shockwave_speed: 30.0,
+    shockwave_duration: 0.75,
+    requires_ground: true,
+    move_efficiency: 0.3,
+    damage_kind: Piercing,
+    specifier: Fire,
+    damage_effect: Some(Buff((
+        kind: Burning,
+        dur_secs: 10.0,
+        strength: DamageFraction(0.1),
+        chance: 1.0,
+    ))),
+)

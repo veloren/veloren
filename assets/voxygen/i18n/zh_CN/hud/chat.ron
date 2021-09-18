@@ -3,6 +3,15 @@
 /// 本地化 "Simplified Chinese" 简体中文
 (
     string_map: {
+        "hud.chat.all": "所有",
+        "hud.chat.chat_tab_hover_tooltip": "左键点击切换到预设",
+
+        // Debuff outcomes
+        "hud.outcome.burning": "烧伤",
+        "hud.outcome.curse": "诅咒",
+        "hud.outcome.bleeding": "流血",
+        "hud.outcome.crippled": "致残",
+
         // Chat outputs
         "hud.chat.online_msg": "[{name}] 上线了.",
         "hud.chat.offline_msg": "[{name}] 下线了.",

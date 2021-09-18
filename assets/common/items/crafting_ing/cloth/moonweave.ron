@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Moonweave",
-    description: "A light yet very sturdy textile.",
+    name: "月纹丝绸",
+    description: "一种轻而结实的纺织品.",
     kind: Ingredient(
         kind: "Moonweave",
     ),

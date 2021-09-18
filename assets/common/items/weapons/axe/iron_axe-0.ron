@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Iron Greataxe",
-    description: "Heavy iron hammered into rough blades, a simple tool for killing.",
+    name: "铁巨斧",
+    description: "用重铁锤打成粗糙的刀片，是一种简单的杀人工具.",
     kind: Tool((
         kind: Axe,
         hands: Two,

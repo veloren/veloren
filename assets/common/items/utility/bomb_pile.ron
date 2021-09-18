@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bomb",
+    name: "炸弹",
     description: "Boom!",
     kind: Throwable(
         kind: Bomb,

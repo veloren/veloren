@@ -1,0 +1,21 @@
+LeapMelee(
+    energy_cost: 650,
+    buildup_duration: 0.1,
+    movement_duration: 0.8,
+    swing_duration: 0.15,
+    recover_duration: 0.2,
+    base_damage: 12,
+    base_poise_damage: 8,
+    knockback: 5.0,
+    range: 3.5,
+    max_angle: 360.0,
+    forward_leap_strength: 15.0,
+    vertical_leap_strength: 5.0,
+    damage_kind: Crushing,
+    damage_effect: Some(Buff((
+        kind: Frozen,
+        dur_secs: 5.0,
+        strength: Value(0.25),
+        chance: 1.0,
+    ))),
+)

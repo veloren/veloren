@@ -1,0 +1,17 @@
+ItemDef(
+    name: "灵魂风暴·权力",
+    description: "它曾属于死亡领主Lycor.",
+    kind: Armor((
+        kind: Hand("soul"),
+        stats: (
+            protection: Normal(25.0),
+            poise_resilience: Normal(15.0),
+            energy_max: 50,
+            energy_reward: 0.1,
+            crit_power: 0.05,
+            stealth: 0.01,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

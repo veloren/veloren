@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ornamental Longsword",
-    description: "Forged with steel.",
+    name: "装饰性的长剑",
+    description: "用钢锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

@@ -4,9 +4,10 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.ogre")),
-                (1, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
-                (1, (1, 1, "common.entity.wild.aggressive.cyclope")),
+                (9, (1, 1, "common.entity.wild.aggressive.ogre")),
+                (9, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
+                (9, (1, 1, "common.entity.wild.aggressive.cyclope")),
+                (5, (1, 1, "common.entity.dungeon.wildboss.wildboss")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],

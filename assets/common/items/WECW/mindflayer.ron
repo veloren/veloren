@@ -1,0 +1,21 @@
+ItemDef(
+    name: "理智摧残者",
+    description: "汲取敌人的理智，使其陷入疯狂......\n特效（嗜血术）：治疗领域技能替换为嗜血术.",
+    kind: Tool((
+        kind: Sceptre,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.001,
+            power: 3.0,
+            effect_power: 2.0,
+            speed: 2.0,
+            crit_chance: 1.0,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+    ability_spec: Some(Custom("Sceptreex")),
+)

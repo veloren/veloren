@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Coconut",
-    description: "Reliable source of water and fat.\n\nNaturally growing at the top of palm trees.",
+    name: "椰子",
+    description: "水和脂肪的可靠来源.\n\n自然生长在棕榈树的顶端.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 4.0,
+                    strength: 40.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

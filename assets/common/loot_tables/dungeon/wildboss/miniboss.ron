@@ -1,0 +1,7 @@
+[
+    // weapons
+    (2.0, LootTable("common.loot_tables.weapons.tier-5")),
+    // materials
+    (3.0, ItemQuantity("common.items.utility.coins", 5000, 15000)),
+    (0.05, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+]

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Jagged Longblade",
-    description: "Forged with bronze.",
+    name: "锯齿长刃",
+    description: "用青铜锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

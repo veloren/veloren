@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Executioner's Axe",
-    description: "Dark rituals call for metal alloys to be formed in the blood of an animal carcass to ensure the resultant axe thirsts for future kills.",
+    name: "刽子手斧",
+    description: "黑暗的仪式要求在动物尸体的血液中形成金属合金，以确保产生的斧头渴望未来的杀戮.",
     kind: Tool((
         kind: Axe,
         hands: Two,
@@ -9,7 +9,7 @@ ItemDef(
             power: 1.8,
             effect_power: 1.0,
             speed: 1.0,
-            crit_chance: 0.1421875,
+            crit_chance: 0.14,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
@@ -17,5 +17,4 @@ ItemDef(
     )),
     quality: High,
     tags: [],
-    ability_spec: None,
 )

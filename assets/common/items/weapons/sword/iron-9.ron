@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Swift Katana",
-    description: "Forged with iron.",
+    name: "迅捷武士刀",
+    description: "用铁锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

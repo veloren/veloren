@@ -1,0 +1,18 @@
+ItemDef(
+    name: "棱晶背包",
+    description: "坚固，贴身，可靠，提供背部防御的同时还能储存少许物品.",
+    kind: Armor((
+        kind: Back("turtle"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(2.0),
+            energy_max: 50,
+            energy_reward: 0.08,
+            crit_power: 0.00,
+            stealth: 0.00,
+        ),
+    )),
+    quality: Epic,
+    tags: [Bag],
+    slots: 18,
+)

@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Tidal Warrior"),
+    name: Name("潮汐战士"),
     body: RandomWith("tidalwarrior"),
     alignment: Alignment(Enemy),
 

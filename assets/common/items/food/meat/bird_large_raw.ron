@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Huge Raw Drumstick",
-    description: "It's magnificent.",
+    name: "巨大的生鸡腿",
+    description: "很神奇.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: .9,
+                    strength: 9.0,
                     duration: Some((
                             secs: 10,
                             nanos: 0,

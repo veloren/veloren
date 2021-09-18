@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Steel Chausses",
-    description: "The metal alloy provides improvements to fit, durability, and lightness.",
+    name: "钢 腿凯",
+    description: "金属合金提供了改进的适用性，耐久性和轻便性.",
     kind: Armor((
         kind: Pants("Steel"),
         stats: (
-            protection: Normal(24.0),
+            protection: Normal(28.0),
             poise_resilience: Normal(6.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            energy_max: -30,
+            energy_reward: -0.25,
+            crit_power: -0.05,
+            stealth: -5.0,
         ),
     )),
     quality: Moderate,

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Twigs",
-    description: "Found near trees.",
+    name: "树枝",
+    description: "在林地的地面上很常见.",
     kind: Ingredient(
         kind: "Twigs",
     ),

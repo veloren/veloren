@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Cooked Meat Sliver",
-    description: "Medium Rare.",
+    name: "熟肉条",
+    description: "半熟的.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.5,
+                    strength: 30.0,
                     duration: Some((
-                            secs: 10,
+                            secs: 15,
                             nanos: 0,
                         )),
                     ),

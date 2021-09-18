@@ -1,0 +1,17 @@
+BasicAura(
+    buildup_duration: 0.25,
+    cast_duration: 0.5,
+    recover_duration: 0.25,
+    targets: InGroup,
+    aura: (
+        kind: ProtectingWard,
+        strength: 0.15,
+        duration: Some(15.0),
+        category: Magical,
+    ),
+    aura_duration: 1.0,
+    range: 25.0,
+    energy_cost: 450,
+    scales_with_combo: false,
+    specifier: WardingAura,
+)

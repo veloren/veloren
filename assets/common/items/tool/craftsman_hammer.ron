@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Craftsman Hammer",
-    description: "Used to craft various items.",
+    name: "锻造锤",
+    description: "用于在锻造台打造一些物品.",
     kind: Tool((
         kind: Hammer,
         hands: One,
@@ -16,8 +16,5 @@ ItemDef(
         )),
     )),
     quality: Common,
-    tags: [
-        CraftingTool,
-    ],
-    ability_spec: None,
+    tags: [CraftingTool],
 )

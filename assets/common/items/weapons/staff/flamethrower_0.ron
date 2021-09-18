@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Unstable Flamethrower MK II",
-    description: "Definitely-A-Flamethrower",
+    name: "不稳定的火焰喷射器 MK II",
+    description: "绝对的火焰喷射器",
     kind: Tool((
         kind: Staff,
         hands: Two,

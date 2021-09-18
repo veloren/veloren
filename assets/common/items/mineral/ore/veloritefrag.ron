@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Velorite Fragment",
-    description: "Small runes sparkle on its surface",
+    name: "Velorite碎片",
+    description: "小符文在它的表面闪闪发光.",
     kind: Ingredient(
         kind: "VeloriteFrag",        
     ),

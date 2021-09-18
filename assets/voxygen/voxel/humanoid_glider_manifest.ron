@@ -4,6 +4,14 @@
         color: None
     ),
     map: {
+        "vg": (
+            vox_spec: ("armor.warlordG.vg", (-52.0, -55.0, 0.0)),
+            color: None
+        ),
+        "dg": (
+            vox_spec: ("armor.warlordG.dg", (-47.0, -40.0, 0.0)),
+            color: None
+        ),
         "Starter": (
             vox_spec: ("glider.glider_starter", (-15.0, -5.0, 0.0)),
             color: None

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Knitted Red Pouch",
-    description: "Made from some patches of dyed cloth.",
+    name: "针织红包",
+    description: "用一些染色布做的.",
     kind: Armor(
         (
             kind: Bag("RedSmall"),
@@ -16,5 +16,5 @@ ItemDef(
     ),
     quality: Moderate,
     tags: [Bag],
-    slots: 9,
+    slots: 12,
 )

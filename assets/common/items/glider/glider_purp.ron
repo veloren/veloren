@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Skullgrin",
-    description: "Death from above.",
+    name: "骨裂",
+    description: "死亡从天降.",
     kind: Glider(
         (
             kind: "Purple0",
         ),
     ),
-    quality: Legendary,
+    quality: Epic,
     tags: [],
 )

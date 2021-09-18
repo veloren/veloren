@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frostwood Torch",
-    description: "Staff made from the coolest wood",
+    name: "霜木火炬",
+    description: "用最冷的木材制作的手杖",
     kind: Tool((
         kind: Staff,
         hands: Two,

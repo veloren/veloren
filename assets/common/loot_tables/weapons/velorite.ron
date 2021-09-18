@@ -1,0 +1,9 @@
+[
+    (1.0, Item("common.items.armor.velorite_mage.back")),
+    (1.0, Item("common.items.armor.velorite_mage.chest")),
+    (1.0, Item("common.items.armor.velorite_mage.foot")),
+    (1.0, Item("common.items.armor.velorite_mage.hand")),
+    (1.0, Item("common.items.armor.velorite_mage.pants")),
+    (1.0, Item("common.items.armor.velorite_mage.shoulder")),
+    (1.0, Item("common.items.armor.velorite_mage.belt")),
+]

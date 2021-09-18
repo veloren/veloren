@@ -1,0 +1,21 @@
+ItemDef(
+    name: "旭日击破者（奥能风暴）",
+    description: "注入梦魇魔法后，核心中的奥能得到提升，能量强化后的箭矢摧毁一切敌人！\n特效（奥能风暴）：你的箭矢速度更快且会引发奥能爆炸！奥术射击消耗更少耐力！在奥能影响下你充满活力！",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.4,
+            power: 5.0,
+            effect_power: 5.0,
+            speed: 1.25,
+            crit_chance: 1.0,
+            range: 1.2,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    ability_spec: Some(Custom("Bowexg")),
+    tags: [],
+)

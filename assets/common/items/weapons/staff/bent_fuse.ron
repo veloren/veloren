@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Bent Fuse",
-    description: "It's twitching from being charged with elemental powers",
+    name: "弯曲的保险丝",
+    description: "它因被注入元素力量而抽搐",
     kind: Tool((
         kind: Staff,
         hands: Two,

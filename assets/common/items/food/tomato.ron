@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Tomato",
-    description: "A red fruit. Not actually a vegetable.",
+    name: "西红柿",
+    description: "一个红色的水果,其实不是蔬菜.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 1.0,
+                    strength: 10.0,
                     duration: Some((
                             secs: 5,
                             nanos: 0,

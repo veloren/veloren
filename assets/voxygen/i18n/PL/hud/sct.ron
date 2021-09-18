@@ -1,0 +1,11 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+(
+    string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount} doświadczenia",
+        "hud.sct.block": "ZABLOKOWANE",
+    },
+
+    vector_map: {
+    }
+)

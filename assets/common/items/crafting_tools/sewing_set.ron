@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Sewing Set",
-    description: "Used to craft various items.",
+    name: "针线包",
+    description: "可用于缝纫，拆解一些物品.",
     kind: Ingredient(
         kind: "SewingSet",
     ),

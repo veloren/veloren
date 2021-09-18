@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Topaz Ring",
-    description: "A copper ring with a topaz gem.",
+    name: "黄玉戒指",
+    description: "镶有黄玉宝石的铜戒指.",
     kind: Armor((
         kind: Ring("Topaz"),
         stats: (
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Normal(0.0),
             energy_max: 50,
             energy_reward: 0.00,
-            crit_power: 0.0,
+            crit_power: -0.1,
             stealth: 0.0,
         ),
     )),

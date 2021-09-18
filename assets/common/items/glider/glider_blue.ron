@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Blue Falcon",
-    description: "Sky colored.",
+    name: "蓝猎鹰",
+    description: "天空的颜色.",
     kind: Glider(
         (
             kind: "Blue0",

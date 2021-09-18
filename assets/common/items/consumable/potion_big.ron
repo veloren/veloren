@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Large Potion",
-    description: "Precious medicine.",
+    name: "大瓶药水",
+    description: "",
     kind: Consumable(
         kind: Drink,
         effects: [

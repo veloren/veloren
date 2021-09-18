@@ -10,6 +10,36 @@
         )
     ),
     map: {
+        "Warlord": (
+            left: (
+                vox_spec: ("armor.warlock.hand", (-4.5, -3.5, -4.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.warlock.hand", (-2.5, -3.5, -4.5)),
+                color: None
+            )
+        ),
+        "soul": (
+            left: (
+                vox_spec: ("armor.warlordG.skullhand", (-4.0, -2.0, -4.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.warlordG.skullhand", (-1.0, -2.0, -4.5)),
+                color: None
+            )
+        ),
+        "Velorite": (
+            left: (
+                vox_spec: ("armor.warlordG.vhand", (-3.0, -2.0, -3.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.warlordG.vhand", (-3.0, -2.0, -3.5)),
+                color: None
+            )
+        ),
         "Assassin": (
             left: (
                 vox_spec: ("armor.assassin.hand", (-1.5, -1.5, -2.5)),

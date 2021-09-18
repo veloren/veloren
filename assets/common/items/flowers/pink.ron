@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Pink Flower",
-    description: "Looks like a lollipop.",
+    name: "粉红色花",
+    description: "看起来像棒棒糖.",
     kind: Ingredient(
         kind: "Flower",
     ),

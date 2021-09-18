@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Dragonscale Mantle",
-    description: "Power pulses through it.",
+    name: "龙鳞 护肩",
+    description: "通过龙鳞的魔力强化.",
     kind: Armor((
         kind: Shoulder("Dragonscale"),
         stats: (
-            protection: Normal(28.0),
-            poise_resilience: Normal(0.0),
+            protection: Normal(18.0),
+            poise_resilience: Normal(-2.0),
             energy_max: 0,
             energy_reward: 0.0,
-            crit_power: 0.4,
+            crit_power: 0.3,
             stealth: 0.0,
         ),
     )),

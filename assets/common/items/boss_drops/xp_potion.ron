@@ -1,9 +1,22 @@
 ItemDef(
-    name: "Potion of Skill",
-    description: "It doesn't seem to be doing anything...",
-    kind: Ingredient(
-        kind: "Potion",        
+    name: "无敌药水",
+    description: "由能量药水与生命之息混合制成的梦幻药水，喝下后短时间内免疫一切伤害.",
+    kind: Consumable(
+        kind: Drink,
+        effects: [
+            Buff((
+                kind: Invulnerability,
+                data: (
+                    strength: 100.0,
+                    duration: Some((
+                            secs: 3,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
-    quality: High,
+    quality: Legendary,
     tags: [Potion],
 )

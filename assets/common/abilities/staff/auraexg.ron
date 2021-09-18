@@ -1,0 +1,14 @@
+BasicRanged(
+    energy_cost: 100,
+    buildup_duration: 0.4,
+    recover_duration: 0.3,
+    projectile_spread: 0.0025,
+    projectile: Frostball(
+        damage: 50.0,
+        radius: 4.0,
+    ),
+    projectile_body: Object(BoltFire),
+    projectile_light: None,
+    projectile_speed: 60.0,
+    num_projectiles: 50,
+)

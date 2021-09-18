@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Gnarling Mugger"),
+    name: Name("凶残的抢劫犯"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
 

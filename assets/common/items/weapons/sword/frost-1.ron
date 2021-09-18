@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Frost Saw",
-    description: "Forged from a single piece of eternal ice.",
+    name: "霜锯",
+    description: "由一块永恒的冰锻造而成.",
     kind: Tool((
         kind: Sword,
         hands: Two,

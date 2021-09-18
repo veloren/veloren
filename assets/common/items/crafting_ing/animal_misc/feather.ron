@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Feather",
-    description: "Feather from a bird.",
+    name: "羽毛",
+    description: "鸟的羽毛.",
     kind: Ingredient(
         kind: "Feather",
     ),

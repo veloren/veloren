@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Crescent Axe",
-    description: "The blade of this steel axe is forged in a manner to resemble a crescent moon.",
+    name: "月牙斧",
+    description: "这把钢斧的刀刃被锻造成新月形.",
     kind: Tool((
         kind: Axe,
         hands: Two,

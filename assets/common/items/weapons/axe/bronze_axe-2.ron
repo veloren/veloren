@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tribal Axe",
-    description: "Stained with the blood of its wielder's enemies.",
+    name: "部落的斧子",
+    description: "沾满了持用者敌人的鲜血.",
     kind: Tool((
         kind: Axe,
         hands: Two,

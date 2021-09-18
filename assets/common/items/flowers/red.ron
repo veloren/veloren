@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Flower",
-    description: "Can be used as a dying ingredient.",
+    name: "红花",
+    description: "可作为染色剂使用，林地中常见的花.",
     kind: Ingredient(
         kind: "FlowerRed",
     ),

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Red Cloth Glider",
-    description: "A simple glider, but with a striking red color.",
+    name: "红布滑翔翼",
+    description: "一个简单的滑翔翼，但被染成了醒目的红色.",
     kind: Glider(
         (
             kind: "RedCloth",

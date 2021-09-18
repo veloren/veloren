@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Orichalcum Gloves",
-    description: "An ancient alloy. Myths remain of heroes who wore this metal.",
+    name: "奥里查库姆 手甲",
+    description: "一个古老的合金。关于佩戴这种金属的英雄的神话至今仍在流传.",
     kind: Armor((
         kind: Hand("Orichalcum"),
         stats: (
-            protection: Normal(24.0),
-            poise_resilience: Normal(6.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Normal(40.0),
+            poise_resilience: Normal(15.0),
+            energy_max: -60,
+            energy_reward: -0.05,
+            crit_power: -0.05,
+            stealth: -5.0,
         ),
     )),
     quality: Legendary,

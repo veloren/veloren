@@ -1,10 +1,11 @@
 ItemDef(
-    name: "Animal Hide",
-    description: "A pelt from an animal. Becomes leather.",
+    name: "动物毛皮",
+    description: "一张动物毛皮. 能制成皮革.",
     kind: Ingredient(
         kind: "AnimalHide",
     ),
     quality: Low,
     tags: [
+        Material(Leather)
     ],
 )

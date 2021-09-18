@@ -1,4 +1,116 @@
 ({  //Swords
+    "common.items.weapons.sceptre.sceptre_velorite_1": (
+        vox_spec: ("weapon.sceptre.ore-nature", (-2.0, -6.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.bloodsteel-1_player": (
+        vox_spec: ("weapon.sword.bloodsteel-1", (-2.5, -3.0, -5.5)),
+        color: None
+    ),
+    "common.items.weapons.bow.velorite_player": (
+        vox_spec: ("weapon.bow.velorite", (-1.5, -4.0, -15.0)),
+        color: None
+    ),
+    "common.items.weapons.axe.malachite_axe-0_player": (
+        vox_spec: ("weapon.axe.2haxe_malachite-0", (-1.5, -7.0, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.staff.cultist_staff_player": (
+        vox_spec: ("weapon.staff.firestaff_cultist", (-2.5, -2.5, -4.0)),
+        color: None
+    ),
+    "common.items.weapons.hammer.cultist_purp_2h-0_player": (
+        vox_spec: ("weapon.hammer.cult_purp-0", (-3.5, -4.5, -5.0)),
+        color: None
+    ),
+    "common.items.weapons.sword.cultist_player": (
+        vox_spec: ("weapon.sword.cultist", (-1.5, -4.0, -6.0)),
+        color: None
+    ),
+    "common.items.WECW.mindflayer": (
+        vox_spec: ("armor.warlordG.mindflayer", (-5.5, -3.5, -8.0)),
+        color: None
+    ),
+    "common.items.WECW.mind": (
+        vox_spec: ("armor.warlordG.mind", (-3.5, -5.5, -8.0)),
+        color: None
+    ),
+    "common.items.WECW.stormgreatsword": (
+        vox_spec: ("armor.warlordG.stormgreatsword", (-3.5, -4.5, -4.0)),
+        color: None
+    ),
+    "common.items.WECW.forgottenaxe": (
+        vox_spec: ("armor.warlordG.forgottenaxe", (-2.5, -12.0, -9.0)),
+        color: None
+    ),
+    "common.items.WECW.exsteelaxe": (
+        vox_spec: ("armor.warlordG.exsteelaxe", (-2.5, -10.0, -6.0)),
+        color: None
+    ),
+    "common.items.WECW.eriandor": (
+        vox_spec: ("armor.warlordG.eriandor", (-3.5, -14.0, -12.0)),
+        color: None
+    ),
+    "common.items.WECW.caladbolgG": (
+        vox_spec: ("armor.warlordG.caladbolgG", (-2.5, -7.0, -7.0)),
+        color: None
+    ),
+    "common.items.WECW.caladbolgEXG": (
+        vox_spec: ("armor.warlordG.goldsword", (-2.5, -5.5, -6.8)),
+        color: None
+    ),
+    "common.items.WECW.caladbolgex": (
+        vox_spec: ("armor.warlordG.HGX", (-2.5, -5.5, -6.5)),
+        color: None
+    ),
+    "common.items.WECW.darkhammerex": (
+        vox_spec: ("armor.warlordG.darkhammerex", (-4.5, -11.5, -5.5)),
+        color: None
+    ),
+    "common.items.WECW.holyhammer": (
+        vox_spec: ("armor.warlordG.holyhammer", (-3.5, -8.5, -7.0)),
+        color: None
+    ),
+    "common.items.WECW.holysword": (
+        vox_spec: ("armor.warlordG.holysword", (-1.5, -6.5, -6.5)),
+        color: None
+    ),
+    "common.items.WECW.darksteel": (
+        vox_spec: ("armor.warlordG.darksteel", (-1.5, -5.5, -8.5)),
+        color: None
+    ),
+    "common.items.WECW.darksteel2": (
+        vox_spec: ("armor.warlordG.darksteel2", (-1.5, -9.5, -6.0)),
+        color: None
+    ),
+    "common.items.WECW.darkaxe": (
+        vox_spec: ("armor.warlordG.darkaxe", (-1.0, -7.0, -9.5)),
+        color: None
+    ),
+    "common.items.WECW.darkhammer": (
+        vox_spec: ("armor.warlordG.darkhammer", (-4.5, -11.0, -4.0)),
+        color: None
+    ),
+    "common.items.WECW.icehammer": (
+        vox_spec: ("armor.warlordG.icehammer", (-3.0, -9.0, -4.0)),
+        color: None
+    ),
+    "common.items.WECW.bow": (
+        vox_spec: ("armor.warlordG.bow", (-7.0, -10.5, -19.5)),
+        color: None
+    ),
+    "common.items.WECW.exbow": (
+        vox_spec: ("armor.warlordG.exbow", (-7.0, -11.0, -23.0)),
+        color: None
+    ),
+    "common.items.WECW.exbowg": (
+        vox_spec: ("armor.warlordG.exbowg", (-6.0, -16.0, -25.0)),
+        color: None
+    ),
+    "common.items.WECW.velorite.staffex": (
+        vox_spec: ("armor.warlordG.staffex", (-5.5, -4.5, -8.0)),
+        color: None
+    ),
     "common.items.weapons.sword.bloodsteel-0": (
         vox_spec: ("weapon.sword.bloodsteel-0", (-2.5, -4.5, -4.0)),
         color: None

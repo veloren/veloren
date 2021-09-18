@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Diamond",
-    description: "A sparkling silver gem.",
+    name: "钻石",
+    description: "闪闪发光的银宝石，很珍贵，在矿洞中非常少见（可以在合成表出售换成金币）.",
     kind: Ingredient(
         kind: "Diamond",
     ),

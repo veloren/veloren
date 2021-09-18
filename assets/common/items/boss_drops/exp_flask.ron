@@ -1,9 +1,22 @@
 ItemDef(
-    name: "Flask of Velorite Dust",
-    description: "Take with plenty of water",
-    kind: Ingredient(
-        kind: "PotionExp",        
+    name: "能量药水",
+    description: "瓶中装满了源自魔法之泉的泉水，喝下后能量会充满全身.",
+    kind: Consumable(
+        kind: Drink,
+        effects: [
+            Buff((
+                kind: IncreaseMaxEnergy,
+                data: (
+                    strength: 250,
+                    duration: Some((
+                            secs: 240,
+                            nanos: 0,
+                        )),
+                    ),
+                cat_ids: [Natural],
+            )),
+        ]
     ),
-    quality: High,
+    quality: Epic,
     tags: [Potion],
 )

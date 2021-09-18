@@ -1,4 +1,4 @@
 [
-    (1.0, Item("common.items.crafting_ing.animal_misc.lively_vine")),
-    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    (0.5, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (1.5, LootTable("common.loot_tables.food.wild_ingredients")),
 ]

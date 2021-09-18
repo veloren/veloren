@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Ruby Ring",
-    description: "A silver ring with a ruby gem.",
+    name: "红宝石戒指",
+    description: "一枚镶着红宝石的银戒指.",
     kind: Armor((
         kind: Ring("Ruby"),
         stats: (

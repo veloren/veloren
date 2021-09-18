@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Coins",
-    description: "Money can be exchanged for goods and services.",
+    name: "金币",
+    description: "可以用于和商人/玩家交易，在合成表可以兑换为白金币、暗金币，进制是1000.",
     kind: Utility(
         kind: Coins,
     ),

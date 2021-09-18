@@ -1,0 +1,15 @@
+// 攻击速度快，伤害低，范围大
+BasicRanged(
+    energy_cost: 200,
+    buildup_duration: 0.25,
+    recover_duration: 0.25,
+    projectile: Fireball(
+        damage: 7.0,
+        radius: 10.0,
+        energy_regen: 80,
+    ),
+    projectile_body: Object(BoltFire),
+    projectile_speed: 60.0,
+    num_projectiles: 2,
+    projectile_spread: 0.0,
+)

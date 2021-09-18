@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tin Ingot",
-    description: "An ingot primarily used to make bronze.",
+    name: "锡锭",
+    description: "主要用来制造青铜的金属锭.",
     kind: Ingredient(
         kind: "TinIngot",
     ),

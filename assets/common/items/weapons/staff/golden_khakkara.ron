@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Golden Khakkara",
-    description: "Originally used to frighten away animals",
+    name: "金色卡卡拉",
+    description: "最初用来吓跑动物",
     kind: Tool((
         kind: Staff,
         hands: Two,

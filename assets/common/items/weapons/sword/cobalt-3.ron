@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Cobalt Towerblade",
-    description: "Forged with cobalt.",
+    name: "钴塔刀片",
+    description: "用钴锻造.",
     kind: Tool((
         kind: Sword,
         hands: Two,

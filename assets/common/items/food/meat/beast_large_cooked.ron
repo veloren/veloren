@@ -1,15 +1,15 @@
 ItemDef(
-    name: "Cooked Meat Slab",
-    description: "Medium Rare.",
+    name: "熟肉片",
+    description: "半熟的.",
     kind: Consumable(
         kind: Food,
         effects: [
             Buff((
                 kind: Saturation,
                 data: (
-                    strength: 2.5,
+                    strength: 50.0,
                     duration: Some((
-                            secs: 10,
+                            secs: 15,
                             nanos: 0,
                         )),
                     ),

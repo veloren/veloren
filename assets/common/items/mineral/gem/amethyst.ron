@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Amethyst",
-    description: "A precious purple gem.",
+    name: "紫水晶",
+    description: "一颗珍贵的紫色宝石，呃，好吧，实际上没那么珍贵，矿洞中很常见（可以在合成表出售换成金币）.",
     kind: Ingredient(
         kind: "Amethyst",
     ),
