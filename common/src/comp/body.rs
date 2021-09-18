@@ -147,14 +147,6 @@ impl<
     const EXTENSION: &'static str = "ron";
 }
 
-// Utility enum used to build Stadium points
-// Read doc for [Body::sausage] for more.
-//
-// Actually can be removed I guess?
-// We can just determine shape form dimensions.
-//
-// But I want Dachshund in Veloren at least somewhere XD
-
 impl Body {
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 

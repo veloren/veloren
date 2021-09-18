@@ -257,7 +257,16 @@ pub fn beam_offsets(
     velocity: Vec3<f32>,
     on_ground: Option<Block>,
 ) -> Vec3<f32> {
-    let body_radius = body.min_radius();
+    let dim = body.dimensions();
+    // The width (shoulder to shoulder) and length (nose to tail)
+    let (width, length) = (dim.x, dim.y);
+    let body_radius = if length > width {
+        // Dachshund-like
+        body.max_radius()
+    } else {
+        // Cyclops-like
+        body.min_radius()
+    };
     let body_offsets_z = height_offset(body, look_dir, velocity, on_ground);
     Vec3::new(
         body_radius * ori.x * 1.1,
