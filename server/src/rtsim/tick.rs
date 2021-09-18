@@ -129,7 +129,7 @@ impl<'a> System<'a> for Sys {
             } else {
                 let entity_config_path = entity.get_entity_config();
                 let mut loadout_rng = entity.loadout_rng();
-                let ad_hoc_loadout = entity.get_adhoc_loadout();
+                let ad_hoc_loadout = entity.get_adhoc_loadout(&world, &index);
                 // Body is rewritten so that body parameters
                 // are consistent between reifications
                 let entity_config = EntityConfig::from_asset_expect(entity_config_path)

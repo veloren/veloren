@@ -31,6 +31,7 @@ pub enum RtSimEntityKind {
     Random,
     Cultist,
     Villager,
+    Merchant,
 }
 
 const BIRD_LARGE_ROSTER: &[comp::bird_large::Species] = &[
@@ -79,13 +80,7 @@ impl Entity {
                     },
                 }
             },
-            RtSimEntityKind::Cultist => {
-                let species = *(&comp::humanoid::ALL_SPECIES)
-                    .choose(&mut self.rng(PERM_SPECIES))
-                    .unwrap();
-                comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
-            },
-            RtSimEntityKind::Villager => {
+            RtSimEntityKind::Cultist | RtSimEntityKind::Villager | RtSimEntityKind::Merchant => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
@@ -109,14 +104,21 @@ impl Entity {
     // is not used for RtSim as of now.
     pub fn get_adhoc_loadout(
         &self,
+        world: &World,
+        index: &world::IndexOwned,
     ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {
         let body = self.get_body();
-        let kind = &self.kind;
+        let kind = self.kind;
+
         // give potions to traveler humanoids or return loadout as is otherwise
-        if let (comp::Body::Humanoid(_), RtSimEntityKind::Random) = (body, kind) {
-            |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
-        } else {
-            |l, _| l
+        match (body, kind) {
+            (comp::Body::Humanoid(_), RtSimEntityKind::Random) => {
+                |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+            },
+            (_, RtSimEntityKind::Merchant) => {
+                |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
+            },
+            _ => |l, _| l,
         }
     }
 
@@ -666,13 +668,25 @@ impl Brain {
 
     pub fn villager(home_id: Id<Site>) -> Self {
         Self {
-            begin: None,
+            begin: Some(home_id),
             tgt: None,
             route: Travel::Idle,
             last_visited: None,
             memories: Vec::new(),
         }
     }
+
+    pub fn merchant(home_id: Id<Site>) -> Self {
+        Self {
+            begin: Some(home_id),
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
+    pub fn begin_site(&self) -> Option<Id<Site>> { self.begin }
 
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
@@ -733,6 +747,7 @@ fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
         RtSimEntityKind::Random => "common.entity.world.traveler",
         RtSimEntityKind::Villager => "common.loadout.village.villager",
+        RtSimEntityKind::Merchant => "common.loadout.village.merchant",
     }
 }
 

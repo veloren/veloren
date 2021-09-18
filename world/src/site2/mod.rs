@@ -79,6 +79,10 @@ impl Site {
 
     pub fn plots(&self) -> impl ExactSizeIterator<Item = &Plot> + '_ { self.plots.values() }
 
+    pub fn plazas(&self) -> impl ExactSizeIterator<Item = Id<Plot>> + '_ {
+        self.plazas.iter().copied()
+    }
+
     pub fn create_plot(&mut self, plot: Plot) -> Id<Plot> { self.plots.insert(plot) }
 
     pub fn blit_aabr(&mut self, aabr: Aabr<i32>, tile: Tile) {

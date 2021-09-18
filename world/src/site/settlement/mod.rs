@@ -1022,7 +1022,7 @@ fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rn
     }
 }
 
-fn merchant_loadout(
+pub fn merchant_loadout(
     loadout_builder: LoadoutBuilder,
     economy: Option<&trade::SiteInformation>,
 ) -> LoadoutBuilder {

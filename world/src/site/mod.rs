@@ -2,7 +2,7 @@ mod block_mask;
 mod castle;
 pub mod economy;
 pub mod namegen;
-mod settlement;
+pub mod settlement;
 mod tree;
 
 // Reexports
@@ -120,6 +120,24 @@ impl Site {
         }
     }
 
+    pub fn trade_information(
+        &self,
+        site_id: common::trade::SiteId,
+    ) -> Option<common::trade::SiteInformation> {
+        match &self.kind {
+            SiteKind::Settlement(s) => Some(common::trade::SiteInformation {
+                id: site_id,
+                unconsumed_stock: self
+                    .economy
+                    .unconsumed_stock
+                    .iter()
+                    .map(|(g, a)| (g.into(), *a))
+                    .collect(),
+            }),
+            _ => None,
+        }
+    }
+
     pub fn apply_to<'a>(&'a self, canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
         let info = canvas.info();
         let get_col = |wpos| info.col(wpos + info.wpos);
@@ -143,15 +161,9 @@ impl Site {
     ) {
         match &self.kind {
             SiteKind::Settlement(s) => {
-                let economy = common::trade::SiteInformation {
-                    id: site_id,
-                    unconsumed_stock: self
-                        .economy
-                        .unconsumed_stock
-                        .iter()
-                        .map(|(g, a)| (g.into(), *a))
-                        .collect(),
-                };
+                let economy = self
+                    .trade_information(site_id)
+                    .expect("Settlement has no economy");
                 s.apply_supplement(dynamic_rng, wpos2d, get_column, supplement, economy)
             },
             SiteKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
