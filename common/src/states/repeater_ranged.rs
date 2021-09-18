@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        Body, CharacterState, EnergyChange, EnergySource, LightEmitter, ProjectileConstructor,
+        Body, CharacterState, EnergyChange, EnergySource, LightEmitter, Pos, ProjectileConstructor,
         StateUpdate,
     },
     event::ServerEvent,
@@ -11,6 +11,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use vek::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
@@ -91,6 +92,9 @@ impl CharacterBehavior for Data {
                     let (crit_chance, crit_mult) =
                         get_crit_data(data, self.static_data.ability_info);
                     let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+                    // Gets offsets
+                    let body_offsets = projectile_offsets(data.body, update.ori.look_vec());
+                    let pos = Pos(data.pos.0 + body_offsets);
                     let projectile = self.static_data.projectile.create_projectile(
                         Some(*data.uid),
                         crit_chance,
@@ -99,6 +103,7 @@ impl CharacterBehavior for Data {
                     );
                     update.server_events.push_front(ServerEvent::Shoot {
                         entity: data.entity,
+                        pos,
                         dir: data.inputs.look_dir,
                         body: self.static_data.projectile_body,
                         projectile,
@@ -163,4 +168,32 @@ impl CharacterBehavior for Data {
 
         update
     }
+}
+
+fn height_offset(body: &Body) -> f32 {
+    match body {
+        Body::Golem(_) => body.height() * 0.4,
+        _ => body.eye_height(),
+    }
+}
+
+pub fn projectile_offsets(body: &Body, ori: Vec3<f32>) -> Vec3<f32> {
+    let dim = body.dimensions();
+    // The width (shoulder to shoulder) and length (nose to tail)
+    let (width, length) = (dim.x, dim.y);
+    let body_radius = if length > width {
+        // Dachshund-like
+        body.max_radius()
+    } else {
+        // Cyclops-like
+        body.min_radius()
+    };
+
+    let body_offsets_z = height_offset(body);
+
+    Vec3::new(
+        body_radius * ori.x * 1.1,
+        body_radius * ori.y * 1.1,
+        body_offsets_z,
+    )
 }

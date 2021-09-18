@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, LightEmitter, ProjectileConstructor, StateUpdate},
+    comp::{Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -10,6 +10,7 @@ use crate::{
 use rand::{thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
+use vek::*;
 
 /// Separated out to condense update portions of character state
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -83,6 +84,9 @@ impl CharacterBehavior for Data {
                     );
                     // Shoots all projectiles simultaneously
                     for i in 0..self.static_data.num_projectiles {
+                        // Gets offsets
+                        let body_offsets = projectile_offsets(data.body, update.ori.look_vec());
+                        let pos = Pos(data.pos.0 + body_offsets);
                         // Adds a slight spread to the projectiles. First projectile has no spread,
                         // and spread increases linearly with number of projectiles created.
                         let dir = Dir::from_unnormalized(data.inputs.look_dir.map(|x| {
@@ -95,6 +99,7 @@ impl CharacterBehavior for Data {
                         // Tells server to create and shoot the projectile
                         update.server_events.push_front(ServerEvent::Shoot {
                             entity: data.entity,
+                            pos,
                             dir,
                             body: self.static_data.projectile_body,
                             projectile: projectile.clone(),
@@ -140,4 +145,32 @@ impl CharacterBehavior for Data {
 
 fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
     handle_input(join, update, data.static_data.ability_info.input);
+}
+
+fn height_offset(body: &Body) -> f32 {
+    match body {
+        Body::Golem(_) => body.height() * 0.4,
+        _ => body.eye_height(),
+    }
+}
+
+pub fn projectile_offsets(body: &Body, ori: Vec3<f32>) -> Vec3<f32> {
+    let dim = body.dimensions();
+    // The width (shoulder to shoulder) and length (nose to tail)
+    let (width, length) = (dim.x, dim.y);
+    let body_radius = if length > width {
+        // Dachshund-like
+        body.max_radius()
+    } else {
+        // Cyclops-like
+        body.min_radius()
+    };
+
+    let body_offsets_z = height_offset(body);
+
+    Vec3::new(
+        body_radius * ori.x * 1.1,
+        body_radius * ori.y * 1.1,
+        body_offsets_z,
+    )
 }

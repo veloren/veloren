@@ -28,7 +28,7 @@ use common::{
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
-    states::{basic_beam, utils::StageSection},
+    states::{basic_beam, basic_ranged, charged_ranged, repeater_ranged, utils::StageSection},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     trade::{TradeAction, TradePhase, TradeResult},
@@ -1830,7 +1830,10 @@ impl<'a> AgentData<'a> {
                     + charge_factor * c.static_data.scaled_projectile_speed;
                 aim_projectile(
                     projectile_speed,
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    self.pos.0
+                        + self.body.map_or(Vec3::zero(), |body| {
+                            charged_ranged::projectile_offsets(body, self.ori.look_vec())
+                        }),
                     Vec3::new(
                         tgt_data.pos.0.x,
                         tgt_data.pos.0.y,
@@ -1842,7 +1845,10 @@ impl<'a> AgentData<'a> {
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
                     projectile_speed,
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    self.pos.0
+                        + self.body.map_or(Vec3::zero(), |body| {
+                            basic_ranged::projectile_offsets(body, self.ori.look_vec())
+                        }),
                     Vec3::new(
                         tgt_data.pos.0.x,
                         tgt_data.pos.0.y,
@@ -1854,7 +1860,10 @@ impl<'a> AgentData<'a> {
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
                     projectile_speed,
-                    Vec3::new(self.pos.0.x, self.pos.0.y, self.pos.0.z + eye_offset),
+                    self.pos.0
+                        + self.body.map_or(Vec3::zero(), |body| {
+                            repeater_ranged::projectile_offsets(body, self.ori.look_vec())
+                        }),
                     Vec3::new(
                         tgt_data.pos.0.x,
                         tgt_data.pos.0.y,
