@@ -52,7 +52,7 @@ impl House {
             door_tile: door_tile_pos,
             tile_aabr,
             bounds,
-            alt: (land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) + 1.0) as i32,
+            alt: land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) as i32,
             levels,
             overhang: if levels > 3 {
                 // Overhangs of 3 at this building height are ill-advised.
@@ -80,7 +80,11 @@ impl House {
             front,
         }
     }
+
+    pub fn z_range(&self) -> Range<i32> { self.alt..self.alt + self.levels as i32 * STOREY }
 }
+
+const STOREY: i32 = 5;
 
 impl Structure for House {
     fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
@@ -90,8 +94,8 @@ impl Structure for House {
         mut prim: F,
         mut fill: G,
     ) {
-        let storey = 5;
-        let roof = storey * self.levels as i32;
+        let storey = STOREY;
+        let roof = storey * self.levels as i32 - 1;
         let foundations = 12;
         let alt = self.alt + 1;
 
@@ -495,8 +499,8 @@ impl Structure for House {
         // Walls
         // For each storey...
         for i in 1..self.levels + 1 {
-            let previous_height = (storey * (i as i32 - 1)).max(0);
-            let height = storey * i as i32;
+            let previous_height = (storey * (i as i32 - 1) - 1).max(-1);
+            let height = storey * i as i32 - 1;
             let window_height = storey - 3;
             let storey_increase = (i as i32 - 1) * self.overhang;
 
@@ -1482,7 +1486,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x + 3, stair_origin.y).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + 10, stair_origin.y + stair_width).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 0,
                             })
                         /*},
@@ -1492,7 +1496,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x, stair_origin.y + 3).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + stair_width, stair_origin.y + 10).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 0,
                             })
                         },
@@ -1502,7 +1506,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x + 3, stair_origin.y).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + 10, stair_origin.y + stair_width).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 0,
                             })
                         },
@@ -1512,7 +1516,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x, stair_origin.y + 3).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + stair_width, stair_origin.y + 10).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 0,
                             })
                         }*/
@@ -1561,7 +1565,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x + 1, stair_origin.y + stair_width).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + 8, stair_origin.y + 2 * stair_width).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 1,
                             })
                         /*},
@@ -1571,7 +1575,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x + stair_width, stair_origin.y + 1).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + 2 * stair_width, stair_origin.y + 8).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 1,
                             })
                         },
@@ -1581,7 +1585,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x + 1, stair_origin.y + stair_width).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + 8, stair_origin.y + 2 * stair_width).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 1,
                             })
                         },
@@ -1591,7 +1595,7 @@ impl Structure for House {
                                     min: Vec2::new(stair_origin.x + stair_width, stair_origin.y + 1).with_z(alt + previous_floor_height),
                                     max: Vec2::new(stair_origin.x + 2 * stair_width, stair_origin.y + 8).with_z(alt + previous_height + 1),
                                 },
-                                inset: storey + 1,
+                                inset: storey,
                                 dir: 1,
                             })
                         },
@@ -1638,7 +1642,7 @@ impl Structure for House {
                     prim(Primitive::Empty)
                 } else if i % 2 == 0 {
                     prim(Primitive::Aabb(Aabb {
-                        min: Vec2::new(stair_origin.x, stair_origin.y)
+                        min: Vec2::new(stair_origin.x + 2, stair_origin.y)
                             .with_z(alt + previous_floor_height + 1),
                         max: Vec2::new(stair_origin.x + 9, stair_origin.y + stair_width)
                             .with_z(alt + previous_height + 1),

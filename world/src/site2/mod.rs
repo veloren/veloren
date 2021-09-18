@@ -173,21 +173,6 @@ impl Site {
                 .grow_aabr(center, area_range.clone(), min_dims)
                 .ok()
                 .zip(Some(*dir))
-            // .filter_map(|aabr| {
-            //     (aabr.min.x..aabr.max.x)
-            //         .find(|x| self.tiles.get(Vec2::new(x, aabr.min.y -
-            // 1)).is_road())         .map(|x| Vec2::new(x,
-            // aabr.min.y))         .or_else(||
-            // (aabr.min.x..aabr.max.x)         .find(|x|
-            // self.tiles.get(Vec2::new(x, aabr.max.y)).is_road())
-            //         .map(|x| Vec2::new(x, aabr.max.y))
-            //         .or_else(|| (aabr.min.y..aabr.max.y)
-            //         .find(|y| self.tiles.get(Vec2::new(aabr.min.x - 1,
-            // y)).is_road())         .map(|y| Vec2::new(aabr.min.x,
-            // y))         .or_else(|| (aabr.min.y..aabr.max.y)
-            //         .find(|y| self.tiles.get(Vec2::new(aabr.max.x,
-            // y)).is_road())         .map(|y| Vec2::new(aabr.max.x,
-            // y))))) })
         })?;
         Some((aabr, door_pos, door_dir))
     }
@@ -202,22 +187,21 @@ impl Site {
             .map(|_| rng.gen_range(-1.0..1.0))
             .normalized();
         let search_pos = if rng.gen() {
-            self.plot(*self.plazas.choose(rng)?).root_tile
-                + (dir * 4.0).map(|e: f32| e.round() as i32)
+            let plaza = self.plot(*self.plazas.choose(rng)?);
+            let sz = plaza.find_bounds().size();
+            plaza.root_tile + dir.map(|e: f32| e.round() as i32) * (sz + 1)
         } else if let PlotKind::Road(path) = &self.plot(*self.roads.choose(rng)?).kind {
             *path.nodes().choose(rng)? + (dir * 1.0).map(|e: f32| e.round() as i32)
         } else {
             unreachable!()
         };
 
-        // self.tiles
-        //     .grow_aabr(center, area_range, min_dims)
-        //     .ok()
-
         self.find_aabr(search_pos, area_range, min_dims)
     }
 
     pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Id<Plot> {
+        let plaza_radius = rng.gen_range(1..4);
+        let plaza_dist = 10.0 + plaza_radius as f32 * 5.0;
         let pos = attempt(32, || {
             self.plazas
                 .choose(rng)
@@ -225,22 +209,22 @@ impl Site {
                     self.plot(p).root_tile
                         + (Vec2::new(rng.gen_range(-1.0..1.0), rng.gen_range(-1.0..1.0))
                             .normalized()
-                            * 24.0)
+                            * plaza_dist)
                             .map(|e| e as i32)
                 })
                 .filter(|tile| !self.tiles.get(*tile).is_obstacle())
                 .filter(|&tile| {
-                    self.plazas
-                        .iter()
-                        .all(|&p| self.plot(p).root_tile.distance_squared(tile) > 20i32.pow(2))
-                        && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
+                    self.plazas.iter().all(|&p| {
+                        self.plot(p).root_tile.distance_squared(tile) as f32
+                            > (plaza_dist * 0.85).powi(2)
+                    }) && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
                 })
         })
         .unwrap_or_else(Vec2::zero);
 
         let aabr = Aabr {
-            min: pos + Vec2::broadcast(-3),
-            max: pos + Vec2::broadcast(4),
+            min: pos + Vec2::broadcast(-plaza_radius),
+            max: pos + Vec2::broadcast(plaza_radius + 1),
         };
         let plaza = self.create_plot(Plot {
             kind: PlotKind::Plaza,
@@ -254,16 +238,30 @@ impl Site {
             plot: Some(plaza),
         });
 
-        let mut already_pathed = vec![plaza];
+        let mut already_pathed = vec![];
         // One major, one minor road
-        for width in (1..=2).rev() {
+        for i in (0..rng.gen_range(1.5..2.5) as u16).rev() {
             if let Some(&p) = self
                 .plazas
                 .iter()
-                .filter(|p| !already_pathed.contains(p))
+                .filter(|&&p| {
+                    !already_pathed.contains(&p)
+                        && p != plaza
+                        && already_pathed.iter().all(|&ap| {
+                            (self.plot(ap).root_tile - pos)
+                                .map(|e| e as f32)
+                                .normalized()
+                                .dot(
+                                    (self.plot(p).root_tile - pos)
+                                        .map(|e| e as f32)
+                                        .normalized(),
+                                )
+                                < 0.0
+                        })
+                })
                 .min_by_key(|&&p| self.plot(p).root_tile.distance_squared(pos))
             {
-                self.create_road(land, rng, self.plot(p).root_tile, pos, width);
+                self.create_road(land, rng, self.plot(p).root_tile, pos, 2 /* + i */);
                 already_pathed.push(p);
             } else {
                 break;
@@ -351,7 +349,7 @@ impl Site {
 
         site.make_plaza(land, &mut rng);
 
-        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (8.0, 3), (1.75, 4)]);
+        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (8.0, 3), (5.0, 4)]);
 
         let mut castles = 0;
 
@@ -694,10 +692,15 @@ impl Site {
                 (-6..4).for_each(|z| canvas.map(
                     Vec3::new(wpos2d.x, wpos2d.y, alt + z),
                     |b| if z >= 0 {
-                        if b.is_filled() {
-                            Block::empty()
+                        let sprite = if z == 0 && self.tile_wpos(tpos) == wpos2d && tpos.sum() % 2 == 0 {
+                            SpriteKind::StreetLamp
                         } else {
-                            b.with_sprite(SpriteKind::Empty)
+                            SpriteKind::Empty
+                        };
+                        if b.is_filled() {
+                            Block::air(sprite)
+                        } else {
+                            b.with_sprite(sprite)
                         }
                     } else {
                         Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
@@ -795,7 +798,14 @@ impl Site {
                 for x in aabb.min.x..aabb.max.x {
                     for y in aabb.min.y..aabb.max.y {
                         let col_tile = self.wpos_tile(Vec2::new(x, y));
-                        if col_tile.is_building() && col_tile.plot != Some(plot) {
+                        if
+                        /* col_tile.is_building() && */
+                        col_tile
+                            .plot
+                            .and_then(|p| self.plots[p].z_range())
+                            .zip(self.plots[plot].z_range())
+                            .map_or(false, |(a, b)| a.end > b.end)
+                        {
                             continue;
                         }
 
