@@ -192,6 +192,8 @@ enum RoomKind {
     Fight,
     Boss,
     Miniboss,
+    #[allow(dead_code)]
+    LavaPlatforming,
 }
 
 pub struct Room {
@@ -201,6 +203,7 @@ pub struct Room {
     area: Rect<i32, i32>,
     height: i32,
     pillars: Option<i32>, // Pillars with the given separation
+    pits: Option<i32>,    // Pits filled with lava
     difficulty: u32,
 }
 
@@ -393,6 +396,7 @@ impl Floor {
             area: Rect::from((stair_tile - tile_offset - 1, Extent2::broadcast(3))),
             height: STAIR_ROOM_HEIGHT,
             pillars: None,
+            pits: None,
             difficulty,
         });
         if final_level {
@@ -407,6 +411,7 @@ impl Floor {
                 )),
                 height: height as i32,
                 pillars: Some(2),
+                pits: None,
                 difficulty,
             });
         } else {
@@ -418,6 +423,7 @@ impl Floor {
                 area: Rect::from((new_stair_tile - tile_offset - 1, Extent2::broadcast(3))),
                 height: STAIR_ROOM_HEIGHT,
                 pillars: None,
+                pits: None,
                 difficulty,
             });
             this.tiles.set(
@@ -506,8 +512,20 @@ impl Floor {
                     area,
                     height: ctx.rng.gen_range(15..20),
                     pillars: Some(ctx.rng.gen_range(2..=4)),
+                    pits: None,
                     difficulty: self.difficulty,
                 }),
+                //// Lava platforming room
+                //1 => self.create_room(Room {
+                //    seed: ctx.rng.gen(),
+                //    loot_density: 0.0,
+                //    kind: RoomKind::LavaPlatforming,
+                //    area,
+                //    height: ctx.rng.gen_range(10..15),
+                //    pillars: None,
+                //    pits: Some(1),
+                //    difficulty: self.difficulty,
+                //}),
                 // Fight room with enemies in it
                 _ => self.create_room(Room {
                     seed: ctx.rng.gen(),
@@ -520,6 +538,7 @@ impl Floor {
                     } else {
                         None
                     },
+                    pits: None,
                     difficulty: self.difficulty,
                 }),
             };
@@ -631,7 +650,7 @@ impl Floor {
                         RoomKind::Boss => {
                             room.fill_boss_cell(supplement, tile_wcenter, wpos2d, tile_pos)
                         },
-                        RoomKind::Peaceful => {},
+                        RoomKind::Peaceful | RoomKind::LavaPlatforming => {},
                     }
                 }
             }
@@ -1018,8 +1037,22 @@ impl Floor {
         };
         let floor_prim = prim(Primitive::Aabb(floor_aabb));
 
+        // This is copied from `src/layer/mod.rs`. It should be moved into
+        // a util file somewhere
+        let noisy_color = |color: Rgb<u8>, factor: u32| {
+            let nz = RandomField::new(0).get(Vec3::new(floor_corner.x, floor_corner.y, floor_z));
+            color.map(|e| {
+                (e as u32 + nz % (factor * 2))
+                    .saturating_sub(factor)
+                    .min(255) as u8
+            })
+        };
+
         // Declare the various kinds of blocks that will be used as fills
         let vacant = Block::air(SpriteKind::Empty);
+        // FIXME: Lava and stone color hardcoded here, it is available in colors.ron
+        // but that file is not accessed from site2 yet
+        let lava = Block::new(BlockKind::Lava, noisy_color(Rgb::new(184, 39, 0), 8));
         let stone = Block::new(BlockKind::Rock, Rgb::new(150, 150, 175));
         let stone_purple = Block::new(BlockKind::GlowingRock, Rgb::new(96, 0, 128));
 
@@ -1227,10 +1260,44 @@ impl Floor {
                     }));
                     chests = Some((chest_sprite, chest_sprite_fill));
 
-                    // If a room has pillars, the current tile aligns with
-                    // the pillar spacing, and we're not too close to a wall
-                    // (i.e. the adjacent tiles are rooms and not hallways/solid),
-                    // place a pillar
+                    // If a room has pits, place them
+                    if room.pits.is_some() {
+                        // Make an air pit
+                        let tile_pit = prim(Primitive::Aabb(aabr_with_z(
+                            tile_aabr,
+                            floor_z - 7..floor_z,
+                        )));
+                        let tile_pit = prim(Primitive::Diff(tile_pit, wall_contours));
+                        fill(tile_pit, Fill::Block(vacant));
+
+                        // Fill with lava
+                        let tile_lava = prim(Primitive::Aabb(aabr_with_z(
+                            tile_aabr,
+                            floor_z - 7..floor_z - 5,
+                        )));
+                        let tile_lava = prim(Primitive::Diff(tile_lava, wall_contours));
+                        //pits.push(tile_pit);
+                        //pits.push(tile_lava);
+                        fill(tile_lava, Fill::Block(lava));
+                    }
+                    if room
+                        .pits
+                        .map(|pit_space| {
+                            tile_pos.map(|e| e.rem_euclid(pit_space) == 0).reduce_and()
+                        })
+                        .unwrap_or(false)
+                    {
+                        let platform = prim(Primitive::Aabb(Aabb {
+                            min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
+                                .with_z(floor_z - 7),
+                            max: (tile_center + Vec2::broadcast(pillar_thickness)).with_z(floor_z),
+                        }));
+                        fill(platform, Fill::Block(stone));
+                    }
+
+                    // If a room has pillars, the current tile aligns with the pillar spacing, and
+                    // we're not too close to a wall (i.e. the adjacent tiles are rooms and not
+                    // hallways/solid), place a pillar
                     if room
                         .pillars
                         .map(|pillar_space| {
