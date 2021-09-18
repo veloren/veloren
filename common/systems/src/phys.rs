@@ -194,6 +194,7 @@ impl<'a> PhysicsData<'a> {
                     scaled_radius: 0.0,
                     neighborhood_radius: 0.0,
                     origins: None,
+                    pos: None,
                     ori: Quaternion::identity(),
                 });
         }
@@ -691,7 +692,8 @@ impl<'a> PhysicsData<'a> {
         // Update cached 'old' physics values to the current values ready for the next
         // tick
         prof_span!(guard, "record ori into phys_cache");
-        for (ori, previous_phys_cache, _) in (
+        for (pos, ori, previous_phys_cache, _) in (
+            &write.positions,
             &write.orientations,
             &mut write.previous_phys_cache,
             &read.colliders,
@@ -700,6 +702,7 @@ impl<'a> PhysicsData<'a> {
         {
             // Note: updating ori with the rest of the cache values above was attempted but
             // it did not work (investigate root cause?)
+            previous_phys_cache.pos = Some(*pos);
             previous_phys_cache.ori = ori.to_quat();
         }
         drop(guard);
@@ -755,7 +758,7 @@ impl<'a> PhysicsData<'a> {
                     character_state,
                     mut physics_state,
                     pos_vel_ori_defer,
-                    _previous_cache,
+                    previous_cache,
                     _,
                 )| {
                     let mut land_on_ground = None;
@@ -1077,6 +1080,16 @@ impl<'a> PhysicsData<'a> {
 
                                     // TODO: Cache the matrices here to avoid recomputing
 
+                                    let transform_last_from = Mat4::<f32>::translation_3d(
+                                        previous_cache_other.pos.unwrap_or(*pos_other).0
+                                            - previous_cache.pos.unwrap_or(Pos(wpos)).0,
+                                    ) * Mat4::from(
+                                        previous_cache_other.ori,
+                                    ) * Mat4::<f32>::translation_3d(
+                                        voxel_collider.translation,
+                                    );
+                                    let transform_last_to = transform_last_from.inverted();
+
                                     let transform_from =
                                         Mat4::<f32>::translation_3d(pos_other.0 - wpos)
                                             * Mat4::from(ori_other.to_quat())
@@ -1084,8 +1097,11 @@ impl<'a> PhysicsData<'a> {
                                                 voxel_collider.translation,
                                             );
                                     let transform_to = transform_from.inverted();
+
+                                    let ori_last_from = Mat4::from(previous_cache_other.ori);
+                                    let ori_last_to = ori_last_from.inverted();
+
                                     let ori_from = Mat4::from(ori_other.to_quat());
-                                    let ori_to = ori_from.inverted();
 
                                     // The velocity of the collider, taking into account
                                     // orientation.
@@ -1101,8 +1117,8 @@ impl<'a> PhysicsData<'a> {
                                     let vel_other = vel_other.0
                                         + (wpos - (pos_other.0 + rpos_last)) / read.dt.0;
 
-                                    cpos.0 = transform_to.mul_point(Vec3::zero());
-                                    vel.0 = ori_to.mul_direction(vel.0 - vel_other);
+                                    cpos.0 = transform_last_to.mul_point(Vec3::zero());
+                                    vel.0 = ori_last_to.mul_direction(vel.0 - vel_other);
                                     let cylinder = (radius, z_min, z_max);
                                     box_voxel_collision(
                                         cylinder,
@@ -1112,7 +1128,7 @@ impl<'a> PhysicsData<'a> {
                                         transform_to.mul_point(tgt_pos - wpos),
                                         &mut vel,
                                         &mut physics_state_delta,
-                                        ori_to.mul_direction(vel_other),
+                                        ori_last_to.mul_direction(vel_other),
                                         &read.dt,
                                         was_on_ground,
                                         block_snap,
@@ -1303,7 +1319,6 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-#[warn(clippy::pedantic)]
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
 fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
@@ -1432,14 +1447,13 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     let mut pos_delta = tgt_pos - pos.0;
 
     // Don't jump too far at once
-    let increments = (pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3)
-        .ceil()
-        .max(1.0);
+    const MAX_INCREMENTS: usize = 100; // The maximum number of collision tests per tick
+    let increments = ((pos_delta.map(|e| e.abs()).reduce_partial_max() / 0.3).ceil() as usize)
+        .clamped(1, MAX_INCREMENTS);
     let old_pos = pos.0;
-
-    for _ in 0..increments as usize {
+    for _ in 0..increments {
         const MAX_ATTEMPTS: usize = 16;
-        pos.0 += pos_delta / increments;
+        pos.0 += pos_delta / increments as f32;
 
         let try_colliding_block = |pos: &Pos| {
             // Calculate the player's AABB

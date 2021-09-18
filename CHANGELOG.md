@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The menu map now properly handles dragging the map, zooming, and setting the waypoint when hovering icons
+- Falling through an airship in flight should no longer be possible (although many issues with airship physics remain)
 
 ## [0.11.0] - 2021-09-11
 
