@@ -29,6 +29,7 @@ impl House {
         rng: &mut impl Rng,
         site: &Site,
         door_tile: Vec2<i32>,
+        door_dir: Vec2<i32>,
         tile_aabr: Aabr<i32>,
     ) -> Self {
         let levels = rng.gen_range(1..2 + (tile_aabr.max - tile_aabr.min).product() / 6) as u32;
@@ -37,34 +38,21 @@ impl House {
             min: site.tile_wpos(tile_aabr.min),
             max: site.tile_wpos(tile_aabr.max),
         };
-        let max_x_door_offset = (door_tile_pos.x - bounds.max.x).abs();
-        let max_y_door_offset = (door_tile_pos.y - bounds.max.y).abs();
-        let min_x_door_offset = (door_tile_pos.x - bounds.min.x).abs();
-        let min_y_door_offset = (door_tile_pos.y - bounds.min.y).abs();
-        let front = if max_y_door_offset < max_x_door_offset
-            && max_y_door_offset < min_x_door_offset
-            && max_y_door_offset < min_y_door_offset
-        {
-            0
-        } else if max_x_door_offset < max_y_door_offset
-            && max_x_door_offset < min_x_door_offset
-            && max_x_door_offset < min_y_door_offset
-        {
-            1
-        } else if min_y_door_offset < max_y_door_offset
-            && min_y_door_offset < min_x_door_offset
-            && min_y_door_offset < max_x_door_offset
-        {
+        let front = if door_dir.y < 0 {
             2
-        } else {
+        } else if door_dir.x < 0 {
             3
+        } else if door_dir.y > 0 {
+            0
+        } else {
+            1
         };
 
         Self {
             door_tile: door_tile_pos,
             tile_aabr,
             bounds,
-            alt: land.get_alt_approx(site.tile_center_wpos(door_tile)) as i32 + 2,
+            alt: (land.get_alt_approx(site.tile_center_wpos(door_tile + door_dir)) + 1.0) as i32,
             levels,
             overhang: if levels > 3 {
                 // Overhangs of 3 at this building height are ill-advised.
@@ -1928,8 +1916,12 @@ impl Structure for House {
         fill(prim(Primitive::Aabb(doorway2)), Fill::Block(Block::empty()));
 
         // Fill in the right and left side doors
-        let (door1, door1_ori, door2, door2_ori) = match self.front {
+        let (door_gap, door1, door1_ori, door2, door2_ori) = match self.front {
             0 => (
+                Aabb {
+                    min: Vec2::new(self.door_tile.x - 1, self.bounds.max.y + 1).with_z(alt),
+                    max: Vec2::new(self.door_tile.x + 3, self.bounds.max.y + 4).with_z(alt + 3),
+                },
                 Aabb {
                     min: Vec2::new(self.door_tile.x, self.bounds.max.y).with_z(alt),
                     max: Vec2::new(self.door_tile.x + 1, self.bounds.max.y + 1).with_z(alt + 1),
@@ -1943,6 +1935,10 @@ impl Structure for House {
             ),
             1 => (
                 Aabb {
+                    min: Vec2::new(self.bounds.max.x + 1, self.door_tile.y - 1).with_z(alt),
+                    max: Vec2::new(self.bounds.max.x + 4, self.door_tile.y + 3).with_z(alt + 3),
+                },
+                Aabb {
                     min: Vec2::new(self.bounds.max.x, self.door_tile.y).with_z(alt),
                     max: Vec2::new(self.bounds.max.x + 1, self.door_tile.y + 1).with_z(alt + 1),
                 },
@@ -1954,6 +1950,10 @@ impl Structure for House {
                 6,
             ),
             2 => (
+                Aabb {
+                    min: Vec2::new(self.door_tile.x - 1, self.bounds.min.y - 4).with_z(alt),
+                    max: Vec2::new(self.door_tile.x + 3, self.bounds.min.y).with_z(alt + 3),
+                },
                 Aabb {
                     min: Vec2::new(self.door_tile.x, self.bounds.min.y).with_z(alt),
                     max: Vec2::new(self.door_tile.x + 1, self.bounds.min.y + 1).with_z(alt + 1),
@@ -1967,6 +1967,10 @@ impl Structure for House {
             ),
             _ => (
                 Aabb {
+                    min: Vec2::new(self.bounds.min.x - 4, self.door_tile.y - 1).with_z(alt),
+                    max: Vec2::new(self.bounds.min.x, self.door_tile.y + 3).with_z(alt + 3),
+                },
+                Aabb {
                     min: Vec2::new(self.bounds.min.x, self.door_tile.y).with_z(alt),
                     max: Vec2::new(self.bounds.min.x + 1, self.door_tile.y + 1).with_z(alt + 1),
                 },
@@ -1978,6 +1982,10 @@ impl Structure for House {
                 6,
             ),
         };
+        fill(
+            prim(Primitive::Aabb(door_gap)),
+            Fill::Block(Block::air(SpriteKind::Empty)),
+        );
         fill(
             prim(Primitive::Aabb(door1)),
             Fill::Block(Block::air(SpriteKind::Door).with_ori(door1_ori).unwrap()),

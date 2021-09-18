@@ -164,22 +164,32 @@ impl Site {
         search_pos: Vec2<i32>,
         area_range: Range<u32>,
         min_dims: Extent2<u32>,
-    ) -> Option<(Aabr<i32>, Vec2<i32>)> {
-        self.tiles.find_near(search_pos, |center, _| {
+    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>)> {
+        let ((aabr, door_dir), door_pos) = self.tiles.find_near(search_pos, |center, _| {
+            let dir = CARDINALS
+                .iter()
+                .find(|dir| self.tiles.get(center + *dir).is_road())?;
             self.tiles
                 .grow_aabr(center, area_range.clone(), min_dims)
                 .ok()
-                .filter(|aabr| {
-                    (aabr.min.x..aabr.max.x)
-                        .any(|x| self.tiles.get(Vec2::new(x, aabr.min.y - 1)).is_road())
-                        || (aabr.min.x..aabr.max.x)
-                            .any(|x| self.tiles.get(Vec2::new(x, aabr.max.y)).is_road())
-                        || (aabr.min.y..aabr.max.y)
-                            .any(|y| self.tiles.get(Vec2::new(aabr.min.x - 1, y)).is_road())
-                        || (aabr.min.y..aabr.max.y)
-                            .any(|y| self.tiles.get(Vec2::new(aabr.max.x, y)).is_road())
-                })
-        })
+                .zip(Some(*dir))
+            // .filter_map(|aabr| {
+            //     (aabr.min.x..aabr.max.x)
+            //         .find(|x| self.tiles.get(Vec2::new(x, aabr.min.y -
+            // 1)).is_road())         .map(|x| Vec2::new(x,
+            // aabr.min.y))         .or_else(||
+            // (aabr.min.x..aabr.max.x)         .find(|x|
+            // self.tiles.get(Vec2::new(x, aabr.max.y)).is_road())
+            //         .map(|x| Vec2::new(x, aabr.max.y))
+            //         .or_else(|| (aabr.min.y..aabr.max.y)
+            //         .find(|y| self.tiles.get(Vec2::new(aabr.min.x - 1,
+            // y)).is_road())         .map(|y| Vec2::new(aabr.min.x,
+            // y))         .or_else(|| (aabr.min.y..aabr.max.y)
+            //         .find(|y| self.tiles.get(Vec2::new(aabr.max.x,
+            // y)).is_road())         .map(|y| Vec2::new(aabr.max.x,
+            // y))))) })
+        })?;
+        Some((aabr, door_pos, door_dir))
     }
 
     pub fn find_roadside_aabr(
@@ -187,7 +197,7 @@ impl Site {
         rng: &mut impl Rng,
         area_range: Range<u32>,
         min_dims: Extent2<u32>,
-    ) -> Option<(Aabr<i32>, Vec2<i32>)> {
+    ) -> Option<(Aabr<i32>, Vec2<i32>, Vec2<i32>)> {
         let dir = Vec2::<f32>::zero()
             .map(|_| rng.gen_range(-1.0..1.0))
             .normalized();
@@ -199,6 +209,10 @@ impl Site {
         } else {
             unreachable!()
         };
+
+        // self.tiles
+        //     .grow_aabr(center, area_range, min_dims)
+        //     .ok()
 
         self.find_aabr(search_pos, area_range, min_dims)
     }
@@ -337,7 +351,7 @@ impl Site {
 
         site.make_plaza(land, &mut rng);
 
-        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (8.0, 3), (0.75, 4)]);
+        let build_chance = Lottery::from(vec![(64.0, 1), (5.0, 2), (8.0, 3), (1.75, 4)]);
 
         let mut castles = 0;
 
@@ -345,8 +359,8 @@ impl Site {
             match *build_chance.choose_seeded(rng.gen()) {
                 // House
                 1 => {
-                    let size = (2.0 + rng.gen::<f32>().powf(8.0) * 3.0).round() as u32;
-                    if let Some((aabr, door_tile)) = attempt(32, || {
+                    let size = (2.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
                             4..(size + 1).pow(2),
@@ -359,6 +373,7 @@ impl Site {
                                 &mut reseed(&mut rng),
                                 &site,
                                 door_tile,
+                                door_dir,
                                 aabr,
                             )),
                             root_tile: aabr.center(),
@@ -376,7 +391,7 @@ impl Site {
                 },
                 // Guard tower
                 2 => {
-                    if let Some((_aabr, _)) = attempt(10, || {
+                    if let Some((_aabr, _, _door_dir)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 4..4, Extent2::new(2, 2))
                     }) {
                         /*
@@ -400,6 +415,7 @@ impl Site {
                     }
                 },
                 // Field
+                /*
                 3 => {
                     attempt(10, || {
                         let search_pos = attempt(16, || {
@@ -430,9 +446,10 @@ impl Site {
                         }
                     });
                 },
+                */
                 // Castle
                 4 if castles < 1 => {
-                    if let Some((aabr, _entrance_tile)) = attempt(10, || {
+                    if let Some((aabr, _entrance_tile, _door_dir)) = attempt(10, || {
                         site.find_roadside_aabr(&mut rng, 16 * 16..18 * 18, Extent2::new(16, 16))
                     }) {
                         let offset = rng.gen_range(5..(aabr.size().w.min(aabr.size().h) - 4));
@@ -634,7 +651,7 @@ impl Site {
                                         b.with_sprite(SpriteKind::Empty)
                                     }
                                 } else {
-                                    Block::new(BlockKind::Rock, Rgb::new(55, 45, 50))
+                                    Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
                                 }
                             })
                         });
@@ -656,8 +673,8 @@ impl Site {
                     if let TileKind::Road { a, b, w } = &tile.kind {
                         if let Some(PlotKind::Road(path)) = tile.plot.map(|p| &self.plot(p).kind) {
                             Some((LineSegment2 {
-                                start: self.tile_center_wpos(path.nodes()[*a as usize]).map(|e| e as f32),
-                                end: self.tile_center_wpos(path.nodes()[*b as usize]).map(|e| e as f32),
+                                start: self.tile_wpos(path.nodes()[*a as usize]).map(|e| e as f32),
+                                end: self.tile_wpos(path.nodes()[*b as usize]).map(|e| e as f32),
                             }, *w))
                         } else {
                             None
@@ -683,7 +700,7 @@ impl Site {
                             b.with_sprite(SpriteKind::Empty)
                         }
                     } else {
-                        Block::new(BlockKind::Rock, Rgb::new(55, 45, 50))
+                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
                     },
                 ));
             }
@@ -777,6 +794,11 @@ impl Site {
 
                 for x in aabb.min.x..aabb.max.x {
                     for y in aabb.min.y..aabb.max.y {
+                        let col_tile = self.wpos_tile(Vec2::new(x, y));
+                        if col_tile.is_building() && col_tile.plot != Some(plot) {
+                            continue;
+                        }
+
                         for z in aabb.min.z..aabb.max.z {
                             let pos = Vec3::new(x, y, z);
 

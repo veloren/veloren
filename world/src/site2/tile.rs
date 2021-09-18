@@ -210,9 +210,13 @@ impl Tile {
     pub fn is_road(&self) -> bool { matches!(self.kind, TileKind::Road { .. }) }
 
     pub fn is_obstacle(&self) -> bool {
+        matches!(self.kind, TileKind::Hazard(_)) || self.is_building()
+    }
+
+    pub fn is_building(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Hazard(_) | TileKind::Building | TileKind::Castle | TileKind::Wall(_)
+            TileKind::Building | TileKind::Castle | TileKind::Wall(_)
         )
     }
 }
