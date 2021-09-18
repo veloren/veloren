@@ -59,9 +59,9 @@ impl<T> Store<T> {
         (0..self.items.len()).map(|i| Id(i as u64, PhantomData))
     }
 
-    pub fn values(&self) -> impl Iterator<Item = &T> { self.items.iter() }
+    pub fn values(&self) -> impl ExactSizeIterator<Item = &T> { self.items.iter() }
 
-    pub fn values_mut(&mut self) -> impl Iterator<Item = &mut T> { self.items.iter_mut() }
+    pub fn values_mut(&mut self) -> impl ExactSizeIterator<Item = &mut T> { self.items.iter_mut() }
 
     pub fn iter(&self) -> impl Iterator<Item = (Id<T>, &T)> { self.ids().zip(self.values()) }
 

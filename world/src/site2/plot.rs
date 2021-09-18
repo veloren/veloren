@@ -26,6 +26,8 @@ impl Plot {
     }
 
     pub fn kind(&self) -> &PlotKind { &self.kind }
+
+    pub fn root_tile(&self) -> Vec2<i32> { self.root_tile }
 }
 
 pub enum PlotKind {

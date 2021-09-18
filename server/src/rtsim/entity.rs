@@ -30,6 +30,7 @@ pub struct Entity {
 pub enum RtSimEntityKind {
     Random,
     Cultist,
+    Villager,
 }
 
 const BIRD_LARGE_ROSTER: &[comp::bird_large::Species] = &[
@@ -79,6 +80,12 @@ impl Entity {
                 }
             },
             RtSimEntityKind::Cultist => {
+                let species = *(&comp::humanoid::ALL_SPECIES)
+                    .choose(&mut self.rng(PERM_SPECIES))
+                    .unwrap();
+                comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
+            },
+            RtSimEntityKind::Villager => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
@@ -657,6 +664,16 @@ impl Brain {
         }
     }
 
+    pub fn villager(home_id: Id<Site>) -> Self {
+        Self {
+            begin: None,
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
     pub fn forget_enemy(&mut self, to_forget: &str) {
@@ -715,6 +732,7 @@ fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
     match kind {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
         RtSimEntityKind::Random => "common.entity.world.traveler",
+        RtSimEntityKind::Villager => "common.loadout.village.villager",
     }
 }
 

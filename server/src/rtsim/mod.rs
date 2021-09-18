@@ -198,6 +198,26 @@ pub fn init(
                     },
                     _ => {},
                 },
+                SiteKind::Refactor(site2) => {
+                    for _ in 0..(site.economy.pop as usize).min(site2.plots().len() * 3) {
+                        rtsim.entities.insert(Entity {
+                            is_loaded: false,
+                            pos: site2
+                                .plots()
+                                .choose(&mut thread_rng())
+                                .map_or(site.get_origin(), |plot| {
+                                    site2.tile_center_wpos(plot.root_tile())
+                                })
+                                .with_z(0)
+                                .map(|e| e as f32),
+                            seed: thread_rng().gen(),
+                            controller: RtSimController::default(),
+                            last_time_ticked: 0.0,
+                            kind: RtSimEntityKind::Villager,
+                            brain: Brain::villager(site_id),
+                        });
+                    }
+                },
                 _ => {},
             }
         }

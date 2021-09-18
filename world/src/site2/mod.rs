@@ -77,7 +77,7 @@ impl Site {
 
     pub fn plot(&self, id: Id<Plot>) -> &Plot { &self.plots[id] }
 
-    pub fn plots(&self) -> impl Iterator<Item = &Plot> + '_ { self.plots.values() }
+    pub fn plots(&self) -> impl ExactSizeIterator<Item = &Plot> + '_ { self.plots.values() }
 
     pub fn create_plot(&mut self, plot: Plot) -> Id<Plot> { self.plots.insert(plot) }
 
