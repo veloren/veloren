@@ -32,7 +32,13 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
         *control_flow = winit::event_loop::ControlFlow::Poll;
 
         #[cfg(feature = "egui-ui")]
-        global_state.egui_state.platform.handle_event(&event);
+        {
+            global_state.egui_state.platform.handle_event(&event);
+            if global_state.egui_state.platform.captures_event(&event) {
+                return;
+            }
+        }
+
         // Get events for the ui.
         if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
             global_state.window.send_event(Event::Ui(event));
