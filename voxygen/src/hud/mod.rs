@@ -96,7 +96,7 @@ use common_net::{
 };
 use conrod_core::{
     text::cursor::Index,
-    widget::{self, Button, Image, Text},
+    widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget,
 };
 use hashbrown::{HashMap, HashSet};
@@ -2184,9 +2184,13 @@ impl Hud {
         // Make it use i18n keys.
         if let Some(debug_info) = debug_info {
             prof_span!("debug info");
+
+            const V_PAD: f64 = 5.0;
+            const H_PAD: f64 = 5.0;
+
             // Alpha Version
             Text::new(&version)
-                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
+                .top_left_with_margins_on(self.ids.debug_bg, V_PAD, H_PAD)
                 .font_size(self.fonts.cyri.scale(14))
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
@@ -2198,14 +2202,14 @@ impl Hud {
                 debug_info.frame_time.as_millis()
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.version, 5.0)
+            .down_from(self.ids.version, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.fps_counter, ui_widgets);
             // Ping
             Text::new(&format!("Ping: {:.0}ms", debug_info.ping_ms))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.fps_counter, 5.0)
+                .down_from(self.ids.fps_counter, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.ping, ui_widgets);
@@ -2219,7 +2223,7 @@ impl Hud {
             };
             Text::new(&coordinates_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.ping, 5.0)
+                .down_from(self.ids.ping, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.coordinates, ui_widgets);
@@ -2252,13 +2256,13 @@ impl Hud {
             };
             Text::new(&velocity_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.coordinates, 5.0)
+                .down_from(self.ids.coordinates, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.velocity, ui_widgets);
             Text::new(&glide_ratio_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.velocity, 5.0)
+                .down_from(self.ids.velocity, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.glide_ratio, ui_widgets);
@@ -2269,7 +2273,7 @@ impl Hud {
             );
             Text::new(&glide_angle_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.glide_ratio, 5.0)
+                .down_from(self.ids.glide_ratio, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.glide_aoe, ui_widgets);
@@ -2286,7 +2290,7 @@ impl Hud {
             };
             Text::new(&orientation_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.glide_aoe, 5.0)
+                .down_from(self.ids.glide_aoe, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.orientation, ui_widgets);
@@ -2300,7 +2304,7 @@ impl Hud {
             };
             Text::new(&look_dir_text)
                 .color(TEXT_COLOR)
-                .down_from(self.ids.orientation, 5.0)
+                .down_from(self.ids.orientation, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.look_direction, ui_widgets);
@@ -2311,7 +2315,7 @@ impl Hud {
                 client.loaded_distance() / TerrainChunk::RECT_SIZE.x as f32,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.look_direction, 5.0)
+            .down_from(self.ids.look_direction, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.loaded_distance, ui_widgets);
@@ -2327,7 +2331,7 @@ impl Hud {
                 current_time.format("%H:%M").to_string()
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.loaded_distance, 5.0)
+            .down_from(self.ids.loaded_distance, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.time, ui_widgets);
@@ -2336,7 +2340,7 @@ impl Hud {
             let entity_count = client.state().ecs().entities().join().count();
             Text::new(&format!("Entity count: {}", entity_count))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.time, 5.0)
+                .down_from(self.ids.time, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.entity_count, ui_widgets);
@@ -2347,7 +2351,7 @@ impl Hud {
                 debug_info.num_chunks, debug_info.num_visible_chunks, debug_info.num_shadow_chunks,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.entity_count, 5.0)
+            .down_from(self.ids.entity_count, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_chunks, ui_widgets);
@@ -2355,7 +2359,7 @@ impl Hud {
             // Type of biome
             Text::new(&format!("Biome: {:?}", client.current_biome()))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.num_chunks, 5.0)
+                .down_from(self.ids.num_chunks, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.current_biome, ui_widgets);
@@ -2363,7 +2367,7 @@ impl Hud {
             // Type of site
             Text::new(&format!("Site: {:?}", client.current_site()))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.current_biome, 5.0)
+                .down_from(self.ids.current_biome, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.current_site, ui_widgets);
@@ -2371,7 +2375,7 @@ impl Hud {
             // Number of lights
             Text::new(&format!("Lights: {}", debug_info.num_lights,))
                 .color(TEXT_COLOR)
-                .down_from(self.ids.current_site, 5.0)
+                .down_from(self.ids.current_site, V_PAD)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.num_lights, ui_widgets);
@@ -2382,7 +2386,7 @@ impl Hud {
                 debug_info.num_figures, debug_info.num_figures_visible,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.num_lights, 5.0)
+            .down_from(self.ids.num_lights, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_figures, ui_widgets);
@@ -2393,7 +2397,7 @@ impl Hud {
                 debug_info.num_particles, debug_info.num_particles_visible,
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.num_figures, 5.0)
+            .down_from(self.ids.num_figures, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.num_particles, ui_widgets);
@@ -2404,13 +2408,15 @@ impl Hud {
                 global_state.window.renderer().graphics_backend(),
             ))
             .color(TEXT_COLOR)
-            .down_from(self.ids.num_particles, 5.0)
+            .down_from(self.ids.num_particles, V_PAD)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(14))
             .set(self.ids.graphics_backend, ui_widgets);
 
-            // GPU timing for different pipelines
             let gpu_timings = global_state.window.renderer().timings();
+            let mut timings_height = 0.0;
+
+            // GPU timing for different pipelines
             if !gpu_timings.is_empty() {
                 let num_timings = gpu_timings.len();
                 // Make sure we have enough ids
@@ -2419,54 +2425,43 @@ impl Hud {
                         .gpu_timings
                         .resize(num_timings, &mut ui_widgets.widget_id_generator());
                 }
+
                 for (i, timing) in gpu_timings.iter().enumerate() {
-                    Text::new(&format!(
+                    let timings_text = &format!(
                         "{:16}{:.3} ms",
                         &format!("{}:", timing.1),
                         timing.2 * 1000.0,
-                    ))
-                    .color(TEXT_COLOR)
-                    .down(5.0)
-                    .x_place_on(
-                        ui_widgets.window,
-                        conrod_core::position::Place::Start(Some(5.0 + 10.0 * timing.0 as f64)),
-                    )
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .set(self.ids.gpu_timings[i], ui_widgets);
+                    );
+                    let timings_widget = Text::new(timings_text)
+                        .color(TEXT_COLOR)
+                        .down(V_PAD)
+                        .x_place_on(
+                            self.ids.debug_bg,
+                            conrod_core::position::Place::Start(Some(
+                                H_PAD + 10.0 * timing.0 as f64,
+                            )),
+                        )
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14));
+
+                    // Calculate timings height
+                    timings_height += timings_widget.get_h(ui_widgets).unwrap_or(0.0) + V_PAD;
+
+                    timings_widget.set(self.ids.gpu_timings[i], ui_widgets);
                 }
             }
-            // Help Window
-            if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
-                Text::new(
-                    &i18n
-                        .get("hud.press_key_to_toggle_keybindings_fmt")
-                        .replace("{key}", help_key.display_string(key_layout).as_str()),
-                )
-                .color(TEXT_COLOR)
-                .down(5.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
-                .set(self.ids.help_info, ui_widgets);
-            }
-            // Info about Debug Shortcut
-            if let Some(toggle_debug_key) = global_state
-                .settings
-                .controls
-                .get_binding(GameInput::ToggleDebug)
-            {
-                Text::new(&i18n.get("hud.press_key_to_toggle_debug_info_fmt").replace(
-                    "{key}",
-                    toggle_debug_key.display_string(key_layout).as_str(),
-                ))
-                .color(TEXT_COLOR)
-                .down_from(self.ids.help_info, 5.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
-                .set(self.ids.debug_info, ui_widgets);
-            }
-        } else if global_state.settings.interface.toggle_hotkey_hints {
-            prof_span!("help window");
+
+            // Set debug box dimensions, only timings height is dynamic
+            // TODO: Make the background box size fully dynamic
+            let debug_bg_size = [320.0, 370.0 + timings_height];
+
+            Rectangle::fill(debug_bg_size)
+                .rgba(0.0, 0.0, 0.0, global_state.settings.chat.chat_opacity)
+                .top_left_with_margins_on(ui_widgets.window, 10.0, 10.0)
+                .set(self.ids.debug_bg, ui_widgets);
+        }
+
+        if global_state.settings.interface.toggle_hotkey_hints {
             // Help Window
             if let Some(help_key) = global_state.settings.controls.get_binding(GameInput::Help) {
                 Text::new(
@@ -2479,22 +2474,6 @@ impl Hud {
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(12))
                 .set(self.ids.help_info, ui_widgets);
-            }
-            // Info about Debug Shortcut
-            if let Some(toggle_debug_key) = global_state
-                .settings
-                .controls
-                .get_binding(GameInput::ToggleDebug)
-            {
-                Text::new(&i18n.get("hud.press_key_to_show_debug_info_fmt").replace(
-                    "{key}",
-                    toggle_debug_key.display_string(key_layout).as_str(),
-                ))
-                .color(TEXT_COLOR)
-                .top_left_with_margins_on(ui_widgets.window, 5.0, 5.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(12))
-                .set(self.ids.debug_info, ui_widgets);
             }
             // Lantern Key
             if let Some(toggle_lantern_key) = global_state
@@ -2513,27 +2492,6 @@ impl Hud {
                 .set(self.ids.lantern_info, ui_widgets);
             }
         }
-
-        // Help Text
-        // TODO Add dynamic controls display
-        /*if self.show.help && !self.show.map && !self.show.esc_menu {
-            Image::new(self.imgs.help)
-                .middle_of(ui_widgets.window)
-                .w_h(1260.0, 519.0)
-                .set(self.ids.help, ui_widgets);
-            // X-button
-            if Button::image(self.imgs.close_button)
-                .w_h(40.0, 40.0)
-                .hover_image(self.imgs.close_button_hover)
-                .press_image(self.imgs.close_button_press)
-                .top_right_with_margins_on(self.ids.help, 0.0, 0.0)
-                .color(Color::Rgba(1.0, 1.0, 1.0, 0.8))
-                .set(self.ids.button_help2, ui_widgets)
-                .was_clicked()
-            {
-                self.show.help = false;
-            };
-        }*/
 
         // Bag button and nearby icons
         let ecs = client.state().ecs();
