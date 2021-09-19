@@ -20,7 +20,7 @@
         "buff.title.protectingward": "Koruyucu Totem",
         "buff.desc.protectingward": "Saldırılardan biraz korunuyorsun.",
         "buff.title.frenzied": "Gözü Dönmüş",
-        "buff.desc.frenzied": "Olağanüstü bir hıza sahipsin ve hafif sakatlıkları atalabilirsin.",
+        "buff.desc.frenzied": "Olağanüstü bir hıza sahipsin ve hafif sakatlıkları atlatabilirsin.",
         // Debuffs
         "buff.title.bleed": "Kanama",
         "buff.desc.bleed": "Devamlı hasar verir.",
@@ -33,7 +33,7 @@
         "buff.title.frozen": "Donmuş",
         "buff.desc.frozen": "Hareketlerin ve saldırıların yavaşladı.",
         "buff.title.wet": " Islak",
-        "buff.desc.wet": "Yerler ayağını kabul etmıyor, durmakta zorlanıyorsun.",
+        "buff.desc.wet": "Yerler ayağını kabul etmiyor, durmakta zorlanıyorsun.",
         "buff.title.ensnared": "Tuzağa Düşmüş",
         "buff.desc.ensnared": "Sarmaşıklar bacağına dolanarak hareketini kısıtlıyor.",
         // Buffs stats
