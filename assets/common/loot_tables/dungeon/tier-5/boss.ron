@@ -1,15 +1,31 @@
 [
-    (0.05, Item("common.items.weapons.staff.phoenix")),
-    (0.03, Item("common.items.weapons.staff.laevateinn")),
+    // 神使
+    (0.01, Item("common.items.weapons.sceptre.caduceus")),
+    // 恶魔
+    (0.01, Item("common.items.weapons.sceptre.root_evil")),
+    // 凤凰
+    (0.01, Item("common.items.weapons.staff.phoenix")),
+    // 灾厄
+    (0.01, Item("common.items.weapons.staff.laevateinn")),
+    // 灵魂
     (0.01, Item("common.items.WECW.mind")),
+    // 萨顿
     (0.01, Item("common.items.WECW.darksteel")),
+    // 暗灵项链
     (0.01, Item("common.items.WECW.neck.epicneck")),
+    // 暗灵指环
     (0.01, Item("common.items.WECW.ring.skullg")),
-    (0.75, Item("common.items.crafting_ing.hide.dragon_scale")),
-    (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (0.1, Item("common.items.boss_drops.lantern")),
-    (0.1, Item("common.items.glider.glider_purp")),
-    (1.0, ItemQuantity("common.items.WECW.coins2",50,100)),
-    (0.3, ItemQuantity("common.items.boss_drops.potions",30,80)),
-    (0.3, ItemQuantity("common.items.boss_drops.exp_flask",30,80)),
+    // (0.01, Item("common.items.lantern.pumpkin")),
+    // 紫晶
+    (0.01, Item("common.items.lantern.geode_purp")),
+    // 龙鳞
+    (0.2, ItemQuantity("common.items.crafting_ing.hide.dragon_scale",1,3)),
+    // 紫灯
+    (0.2, Item("common.items.boss_drops.lantern")),
+    // 滑翔伞
+    (0.2, Item("common.items.glider.glider_purp")),
+    // 破布
+    (0.4, ItemQuantity("common.items.crafting_ing.mindflayer_bag_damaged",1,3)),
+    // 白金
+    (1.0, ItemQuantity("common.items.WECW.coins2",66,200)),
 ]

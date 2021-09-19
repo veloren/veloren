@@ -9,7 +9,7 @@
 
     // Heal
     Skill((Sceptre(HHeal), Some(6))),
-    // Skill((Sceptre(HDuration), Some(3))),
+    Skill((Sceptre(HDuration), Some(3))),
     Skill((Sceptre(HRange), Some(4))),
     Skill((Sceptre(HCost), Some(2))),
     // Ward

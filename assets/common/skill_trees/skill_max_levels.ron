@@ -66,7 +66,7 @@
     Sceptre(HHeal): Some(10),
     Sceptre(HCost): Some(4),
     Sceptre(HRange): Some(4),
-    // Sceptre(HDuration): Some(2),
+    Sceptre(HDuration): Some(2),
     Sceptre(AStrength): Some(2),
     Sceptre(ADuration): Some(2),
     Sceptre(ARange): Some(3),

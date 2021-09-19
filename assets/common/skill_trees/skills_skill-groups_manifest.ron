@@ -102,7 +102,7 @@
         Sceptre(LRegen),
         Sceptre(HHeal),
         Sceptre(HRange),
-        // Sceptre(HDuration),
+        Sceptre(HDuration),
         Sceptre(HCost),
         Sceptre(UnlockAura),
         Sceptre(AStrength),

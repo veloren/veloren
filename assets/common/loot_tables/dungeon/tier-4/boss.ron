@@ -1,17 +1,24 @@
 [
-    (0.05, Item("common.items.weapons.sceptre.caduceus")),
-    (0.05, Item("common.items.weapons.sceptre.root_evil")),
+    // 遗忘战斧
     (0.01, Item("common.items.WECW.forgottenaxe")),
+    // 暗金切割者
     (0.01, Item("common.items.WECW.darkaxe")),
-    (2.0, ItemQuantity("common.items.WECW.coins2", 25, 100)),
-    (0.05, Item("common.items.WECW.sp.back")),
-    (0.02, Item("common.items.WECW.neck.epicneck")),
-    (0.02, Item("common.items.WECW.ring.skullg")),
+    // 暗灵项链
+    (0.01, Item("common.items.WECW.neck.epicneck")),
+    // 暗灵戒指
+    (0.01, Item("common.items.WECW.ring.skullg")),
+    // 棱镜背包
+    (0.01, Item("common.items.WECW.sp.back")),
+    // 紫色系列武器
     (0.1, LootTable("common.loot_tables.weapons.epic")),
-    (0.1, Item("common.items.boss_drops.lantern")),
-    (0.3, ItemQuantity("common.items.boss_drops.potions", 10, 100)),
-    (0.3, ItemQuantity("common.items.boss_drops.exp_flask", 10, 100)),
-    (0.5, Item("common.items.crafting_ing.hide.dragon_scale")),
-    (0.3, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (0.05, Item("common.items.glider.glider_purp")),
+    // 骨裂
+    (0.2, Item("common.items.glider.glider_purp")),
+    // 紫灯
+    (0.2, Item("common.items.boss_drops.lantern")),
+    // 龙鳞
+    (0.2, Item("common.items.crafting_ing.hide.dragon_scale")),
+    // 破布
+    (0.4, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    // 白金币
+    (1.0, ItemQuantity("common.items.WECW.coins2", 50, 100)),
 ]

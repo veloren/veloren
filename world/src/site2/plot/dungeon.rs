@@ -1175,6 +1175,7 @@ impl Floor {
                     let center = tile_center.with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
+                    let stairs_buffer = prim(Primitive::Cylinder(aabr_with_z(tile_aabr, floor_z..floor_z+1)));
                     let bb = prim(match kind {
                         StairsKind::Spiral => Primitive::Cylinder(aabb),
                         StairsKind::WallSpiral => Primitive::Aabb(aabb),
@@ -1202,7 +1203,7 @@ impl Floor {
                         }
                     }
                     lights = prim(Primitive::And(lights, lighting_mask));
-                    stairs_bb.push(bb);
+                    stairs_bb.push((bb,stairs_buffer));
                     stairs.push((stair, lights));
                 }
                 if matches!(tile, Tile::Room(_) | Tile::DownStair(_)) {
@@ -1329,9 +1330,10 @@ impl Floor {
         }
         // Carve out space for the stairs
         for stair_bb in stairs_bb.iter() {
-            fill(*stair_bb, Fill::Block(vacant));
+            fill(stair_bb.0, Fill::Block(vacant));
+            fill(stair_bb.1,Fill::Block(stone_purple));
             // Prevent sprites from floating above the stairs
-            let stair_bb_up = prim(Primitive::Translate(*stair_bb, Vec3::unit_z()));
+            let stair_bb_up = prim(Primitive::Translate(stair_bb.0, Vec3::unit_z()));
             for (sprite, _) in sprites.iter_mut() {
                 *sprite = prim(Primitive::Diff(*sprite, stair_bb_up));
             }
@@ -1339,7 +1341,6 @@ impl Floor {
         // Place the stairs themselves, and lights within the stairwells
         for (stair, lights) in stairs.iter() {
             fill(*lights, sconces_outward.clone());
-            fill(*stair, Fill::Block(stone));
         }
         // Place the sprites
         for (sprite, sprite_fill) in sprites.into_iter() {

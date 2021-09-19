@@ -1,14 +1,26 @@
 [
+    // 风暴大剑
     (0.01, Item("common.items.WECW.stormgreatsword")),
+    // 守护项链
+    (0.1, Item("common.items.WECW.neck.highneck")),
+    // 祝福项链
+    (0.1, Item("common.items.WECW.neck.highneck2")),
+    // velorite系列武器
     (0.1, LootTable("common.loot_tables.weapons.cave")),
-    (0.5, LootTable("common.loot_tables.weapons.tier-5")),
-    (2.0, ItemQuantity("common.items.WECW.coins2", 1, 50)),
-    (0.5, ItemQuantity("common.items.boss_drops.potions", 2, 12)),
-    (0.5, ItemQuantity("common.items.boss_drops.exp_flask", 2, 12)),
-    (0.5, ItemQuantity("common.items.consumable.potion_big", 15, 45)),
-    (0.05, Item("common.items.WECW.neck.highneck")),
-    (0.05, Item("common.items.WECW.neck.highneck2")),
-    (0.1, Item("common.items.lantern.green_0")),
+    // 骨裂
+    (0.1, Item("common.items.glider.glider_purp")),
+    // 发光的破布
     (0.2, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (0.03, Item("common.items.glider.glider_purp")),
+    // 青柠提灯
+    (0.35, Item("common.items.lantern.green_0")),
+    // 蓝色系列武器
+    (0.4, LootTable("common.loot_tables.weapons.tier-5")),
+    // 生命之息
+    (0.5, ItemQuantity("common.items.boss_drops.potions", 5, 12)),
+    // 能量之息
+    (0.5, ItemQuantity("common.items.boss_drops.exp_flask", 5, 12)),
+    // 大药水
+    (0.6, ItemQuantity("common.items.consumable.potion_big", 15, 45)),
+    // 白金币
+    (1.0, ItemQuantity("common.items.WECW.coins2", 20, 50)),
 ]

@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Eery Pumpkin",
-    description: "Did it just blink?!",
+    name: "爱是一到光",
+    description: "绿到你发慌",
     kind: Lantern(
         (
             kind: "PumpkinLantern",

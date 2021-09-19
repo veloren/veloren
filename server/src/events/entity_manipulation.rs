@@ -616,8 +616,12 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 stats.get(entity),
                 Some(DamageKind::Crushing),
             );
-            let change = damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0);
-            health.change_by(change);
+            // 45 - 75 是地牢楼梯摔落伤害区间
+            if !(45.0 >= falldmg || falldmg <= 95.0) {
+                let change =
+                    damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0);
+                health.change_by(change);
+            }
         }
         // Handle poise change
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {

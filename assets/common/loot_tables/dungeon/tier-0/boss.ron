@@ -1,7 +1,12 @@
 [
-    (0.5, LootTable("common.loot_tables.weapons.tier-4")),
+    // 蓝色武器系列
     (0.25, LootTable("common.loot_tables.weapons.tier-5")),
-    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.lively_vine", 5, 10)),
-    (2.0, ItemQuantity("common.items.WECW.coins2", 2, 12)),
-    (0.2, Item("common.items.armor.misc.bag.liana_kit")),
+    // 普通蓝色武器系列
+    (0.5, LootTable("common.loot_tables.weapons.tier-4")),
+    // 藤蔓织袋
+    (0.5, Item("common.items.armor.misc.bag.liana_kit")),
+    // 绿色葡萄糖
+    (0.8, ItemQuantity("common.items.crafting_ing.animal_misc.lively_vine", 5, 10)),
+    // 白金币
+    (1.0, ItemQuantity("common.items.WECW.coins2", 5, 10)),
 ]

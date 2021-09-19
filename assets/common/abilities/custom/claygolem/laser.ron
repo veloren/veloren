@@ -1,8 +1,8 @@
 BasicBeam(
     buildup_duration: 0.4,
-    recover_duration: 0.4,
-    beam_duration: 0.25,
-    damage: 6.0,
+    recover_duration: 0.5,
+    beam_duration: 1,
+    damage: 7.5,
     tick_rate: 4.0,
     range: 40.0,
     max_angle: 5.0,
@@ -14,6 +14,6 @@ BasicBeam(
     ))),
     energy_regen: 50,
     energy_drain: 0,
-    ori_rate: 0.6,
+    ori_rate: 2,
     specifier: ClayGolem,
 )

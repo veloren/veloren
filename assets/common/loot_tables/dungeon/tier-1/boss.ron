@@ -1,10 +1,18 @@
 [
-    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
+    // 祝福项链
+    (0.1, Item("common.items.WECW.neck.highneck")),
+    // 守护项链
+    (0.1, Item("common.items.WECW.neck.highneck2")),
+    // 生命之息
     (0.26, ItemQuantity("common.items.boss_drops.potions", 5, 30)),
+    // 能量药水
     (0.26, ItemQuantity("common.items.boss_drops.exp_flask", 5, 30)),
-    (2.0, ItemQuantity("common.items.WECW.coins2", 5, 20)),
-    (0.5, ItemQuantity("common.items.crafting_ing.animal_misc.icy_fang", 45, 90)),
-    (0.065, Item("common.items.WECW.neck.highneck")),
-    (0.065, Item("common.items.WECW.neck.highneck2")),
-    (1.5, Item("common.items.lantern.blue_0")),
+    // 冰冷的碎片
+    (0.4, ItemQuantity("common.items.crafting_ing.animal_misc.icy_fang", 45, 90)),
+    // 蓝色系列武器
+    (0.5, LootTable("common.loot_tables.weapons.tier-5")),
+    // 蓝灯
+    (0.8, Item("common.items.lantern.blue_0")),
+    // 白金币
+    (1.0, ItemQuantity("common.items.WECW.coins2", 10, 20)),
 ]

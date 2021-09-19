@@ -1,15 +1,28 @@
 [
+    // 旭日
     (0.01, Item("common.items.WECW.bow")),
+    // 冰风暴
     (0.01, Item("common.items.WECW.icehammer")),
-    (0.4, Item("common.items.armor.misc.bag.heavy_seabag")),
+    // 暗灵项链
     (0.01, Item("common.items.WECW.neck.epicneck")),
+    // 暗灵指环
     (0.01, Item("common.items.WECW.ring.skullg")),
+    // 骨裂
+    (0.1, Item("common.items.glider.glider_purp")),
+    // 破布
+    (0.2, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    // 海洋袋
+    (0.2, Item("common.items.armor.misc.bag.heavy_seabag")),
+    // 祝福
+    (0.2, Item("common.items.WECW.neck.highneck")),
+    // 守护
+    (0.2, Item("common.items.WECW.neck.highneck2")),
+    // 生命之息
     (0.3, ItemQuantity("common.items.boss_drops.potions", 5, 20)),
+    // 能量之息
     (0.3, ItemQuantity("common.items.boss_drops.exp_flask", 5, 20)),
-    (2.0, ItemQuantity("common.items.WECW.coins2", 1, 80)),
-    (0.1, Item("common.items.WECW.neck.highneck")),
-    (0.1, Item("common.items.WECW.neck.highneck2")),
-    (0.1, Item("common.items.lantern.green_0")),
-    (0.3, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (0.05, Item("common.items.glider.glider_purp")),
+    // 青柠提灯
+    (0.35, Item("common.items.lantern.green_0")),
+    // 白金币
+    (1.0, ItemQuantity("common.items.WECW.coins2", 20, 60)),
 ]
