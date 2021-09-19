@@ -7,7 +7,7 @@ ItemDef(
             Buff((
                 kind: IncreaseMaxEnergy,
                 data: (
-                    strength: 250,
+                    strength: 500,
                     duration: Some((
                             secs: 240,
                             nanos: 0,

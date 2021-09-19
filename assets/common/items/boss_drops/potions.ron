@@ -7,7 +7,7 @@ ItemDef(
             Buff((
                 kind: IncreaseMaxHealth,
                 data: (
-                    strength: 635.0,
+                    strength: 20000.0,
                     duration: Some((
                             secs: 240,
                             nanos: 0,

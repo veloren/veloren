@@ -9,7 +9,7 @@ ItemDef(
                 data: (
                     strength: 100.0,
                     duration: Some((
-                            secs: 3,
+                            secs: 5,
                             nanos: 0,
                         )),
                     ),

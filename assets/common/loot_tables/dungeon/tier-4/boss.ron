@@ -17,6 +17,8 @@
     (0.2, Item("common.items.boss_drops.lantern")),
     // 龙鳞
     (0.2, Item("common.items.crafting_ing.hide.dragon_scale")),
+    // 无敌药水
+    (0.3, ItemQuantity("common.items.boss_drop.xp_potion",1,5)),
     // 破布
     (0.4, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
     // 白金币
