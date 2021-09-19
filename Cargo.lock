@@ -5873,6 +5873,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.11.2",
  "indexmap",
+ "kiddo",
  "lazy_static",
  "num-derive",
  "num-traits",
