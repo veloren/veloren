@@ -396,6 +396,7 @@ impl Floor {
             difficulty,
         });
         if final_level {
+            this.hollow_depth = 500;
             // Boss room
             this.create_room(Room {
                 seed: ctx.rng.gen(),
