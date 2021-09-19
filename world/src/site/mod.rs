@@ -25,10 +25,16 @@ pub struct Colors {
 
 pub struct SpawnRules {
     pub trees: bool,
+    pub max_warp: f32,
 }
 
 impl Default for SpawnRules {
-    fn default() -> Self { Self { trees: true } }
+    fn default() -> Self {
+        Self {
+            trees: true,
+            max_warp: 1.0,
+        }
+    }
 }
 
 pub struct Site {

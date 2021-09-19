@@ -38,6 +38,7 @@ impl Tree {
         let trunk_radius = 48i32;
         SpawnRules {
             trees: wpos.distance_squared(self.origin) > trunk_radius.pow(2),
+            ..SpawnRules::default()
         }
     }
 

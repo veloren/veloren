@@ -1,4 +1,4 @@
-use super::SpawnRules;
+use super::*;
 use crate::{
     site::namegen::NameGen,
     site2::{self, aabr_with_z, Fill, Primitive, Structure as SiteStructure},
@@ -1021,13 +1021,7 @@ pub fn make_wall_contours(
 }
 
 impl Floor {
-    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
-        &self,
-        mut prim: F,
-        mut fill: G,
-        dungeon: &Dungeon,
-        floor_z: i32,
-    ) {
+    fn render(&self, painter: &Painter, dungeon: &Dungeon, floor_z: i32) {
         // Calculate an AABB and corner for the AABB that covers the current floor.
         let floor_corner = dungeon.origin + TILE_SIZE * self.tile_offset;
         let floor_aabb = Aabb {
@@ -1035,7 +1029,7 @@ impl Floor {
             max: (floor_corner + TILE_SIZE * self.tiles.size())
                 .with_z(floor_z + self.total_depth()),
         };
-        let floor_prim = prim(Primitive::Aabb(floor_aabb));
+        let floor_prim = painter.prim(Primitive::Aabb(floor_aabb));
 
         // This is copied from `src/layer/mod.rs`. It should be moved into
         // a util file somewhere
@@ -1060,7 +1054,7 @@ impl Floor {
         // produces a box of dots that will later get truncated to just the
         // floor, and the corresponding fill places the random kinds where the
         // mask says to
-        let floor_sprite = prim(Primitive::Sampling(
+        let floor_sprite = painter.prim(Primitive::sampling(
             floor_prim,
             Box::new(|pos| RandomField::new(7331).chance(pos, 0.001)),
         ));
@@ -1090,13 +1084,13 @@ impl Floor {
         // The way the ceiling is curved around corners and near hallways is intricate
         // enough that it's easiest to do with a sampling primitive, this gets
         // masked per room so that it's more efficient to query
-        let wall_contours = prim(Primitive::Sampling(floor_prim, {
+        let wall_contours = painter.prim(Primitive::sampling(floor_prim, {
             let tiles = Arc::clone(&tiles);
             make_wall_contours(tiles, floor_corner, floor_z, wall_thickness, tunnel_height)
         }));
 
         // The surface 1 unit thicker than the walls is used to place the torches onto
-        let wall_contour_surface = prim(Primitive::Sampling(floor_prim, {
+        let wall_contour_surface = painter.prim(Primitive::sampling(floor_prim, {
             let tiles = Arc::clone(&tiles);
             make_wall_contours(
                 tiles,
@@ -1135,27 +1129,27 @@ impl Floor {
         // tile grid, but offset by `lighting_offset`, used to space the torches
         // on the walls/pillars/staircases
         let lighting_mask = {
-            let mut lighting_mask_x = prim(Primitive::Empty);
+            let mut lighting_mask_x = painter.prim(Primitive::Empty);
             let floor_w = floor_aabb.max.x - floor_aabb.min.x;
             for i in 0..floor_w / light_offset {
                 let j = floor_corner.x + i * TILE_SIZE + light_offset;
-                let plane = prim(Primitive::Aabb(Aabb {
+                let plane = painter.prim(Primitive::Aabb(Aabb {
                     min: floor_aabb.min.with_x(j - 1),
                     max: floor_aabb.max.with_x(j),
                 }));
-                lighting_mask_x = prim(Primitive::Or(plane, lighting_mask_x));
+                lighting_mask_x = painter.prim(Primitive::or(plane, lighting_mask_x));
             }
-            let mut lighting_mask_y = prim(Primitive::Empty);
+            let mut lighting_mask_y = painter.prim(Primitive::Empty);
             let floor_h = floor_aabb.max.y - floor_aabb.min.y;
             for i in 0..floor_h / light_offset {
                 let j = floor_corner.y + i * TILE_SIZE + light_offset;
-                let plane = prim(Primitive::Aabb(Aabb {
+                let plane = painter.prim(Primitive::Aabb(Aabb {
                     min: floor_aabb.min.with_y(j - 1),
                     max: floor_aabb.max.with_y(j),
                 }));
-                lighting_mask_y = prim(Primitive::Or(plane, lighting_mask_y));
+                lighting_mask_y = painter.prim(Primitive::or(plane, lighting_mask_y));
             }
-            prim(Primitive::Xor(lighting_mask_x, lighting_mask_y))
+            painter.prim(Primitive::xor(lighting_mask_x, lighting_mask_y))
         };
 
         // Declare collections of various disjoint primitives that need postprocessing
@@ -1184,18 +1178,18 @@ impl Floor {
             };
 
             // Sprites are contained to the level above the floor, and not within walls
-            let sprite_layer = prim(Primitive::Aabb(aabr_with_z(
+            let sprite_layer = painter.prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
                 floor_z..floor_z + 1,
             )));
-            let sprite_layer = prim(Primitive::Diff(sprite_layer, wall_contours));
+            let sprite_layer = painter.prim(Primitive::diff(sprite_layer, wall_contours));
 
             // Lights are 2 units above the floor, and aligned with the `lighting_mask` grid
-            let lighting_plane = prim(Primitive::Aabb(aabr_with_z(
+            let lighting_plane = painter.prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
                 floor_z + 1..floor_z + 2,
             )));
-            let lighting_plane = prim(Primitive::And(lighting_plane, lighting_mask));
+            let lighting_plane = painter.prim(Primitive::and(lighting_plane, lighting_mask));
 
             let mut chests = None;
 
@@ -1208,33 +1202,33 @@ impl Floor {
                     let center = tile_center.with_z(floor_z);
                     let radius = TILE_SIZE as f32 / 2.0;
                     let aabb = aabr_with_z(tile_aabr, floor_z..floor_z + self.total_depth());
-                    let bb = prim(match kind {
+                    let bb = painter.prim(match kind {
                         StairsKind::Spiral => Primitive::Cylinder(aabb),
                         StairsKind::WallSpiral => Primitive::Aabb(aabb),
                     });
-                    let stair = prim(Primitive::Sampling(bb, match kind {
+                    let stair = painter.prim(Primitive::sampling(bb, match kind {
                         StairsKind::Spiral => spiral_staircase(center, radius, 0.5, 9.0),
                         StairsKind::WallSpiral => wall_staircase(center, radius, 27.0),
                     }));
                     // Construct the lights that go inside the staircase, starting above the
                     // ceiling to avoid placing them floating in mid-air
-                    let mut lights = prim(Primitive::Empty);
+                    let mut lights = painter.prim(Primitive::Empty);
                     for i in height..self.total_depth() {
                         if i % 9 == 0 {
-                            let mut light = prim(Primitive::Aabb(Aabb {
+                            let mut light = painter.prim(Primitive::Aabb(Aabb {
                                 min: aabb.min.with_z(floor_z + i),
                                 max: aabb.max.with_z(floor_z + i + 1),
                             }));
-                            let inner = prim(Primitive::Aabb(Aabb {
+                            let inner = painter.prim(Primitive::Aabb(Aabb {
                                 min: (aabb.min + Vec3::new(1, 1, 0)).with_z(floor_z + i),
                                 max: (aabb.max - Vec3::new(1, 1, 0)).with_z(floor_z + i + 1),
                             }));
 
-                            light = prim(Primitive::Diff(light, inner));
-                            lights = prim(Primitive::Or(light, lights));
+                            light = painter.prim(Primitive::diff(light, inner));
+                            lights = painter.prim(Primitive::or(light, lights));
                         }
                     }
-                    lights = prim(Primitive::And(lights, lighting_mask));
+                    lights = painter.prim(Primitive::and(lights, lighting_mask));
                     stairs_bb.push(bb);
                     stairs.push((stair, lights));
                 }
@@ -1245,7 +1239,7 @@ impl Floor {
                     // Place chests with a random distribution based on the
                     // room's loot density in valid sprite locations,
                     // filled based on the room's difficulty
-                    let chest_sprite = prim(Primitive::Sampling(
+                    let chest_sprite = painter.prim(Primitive::sampling(
                         sprite_layer,
                         Box::new(move |pos| RandomField::new(seed).chance(pos, loot_density * 0.5)),
                     ));
@@ -1263,22 +1257,22 @@ impl Floor {
                     // If a room has pits, place them
                     if room.pits.is_some() {
                         // Make an air pit
-                        let tile_pit = prim(Primitive::Aabb(aabr_with_z(
+                        let tile_pit = painter.prim(Primitive::Aabb(aabr_with_z(
                             tile_aabr,
                             floor_z - 7..floor_z,
                         )));
-                        let tile_pit = prim(Primitive::Diff(tile_pit, wall_contours));
-                        fill(tile_pit, Fill::Block(vacant));
+                        let tile_pit = painter.prim(Primitive::diff(tile_pit, wall_contours));
+                        painter.fill(tile_pit, Fill::Block(vacant));
 
                         // Fill with lava
-                        let tile_lava = prim(Primitive::Aabb(aabr_with_z(
+                        let tile_lava = painter.prim(Primitive::Aabb(aabr_with_z(
                             tile_aabr,
                             floor_z - 7..floor_z - 5,
                         )));
-                        let tile_lava = prim(Primitive::Diff(tile_lava, wall_contours));
+                        let tile_lava = painter.prim(Primitive::diff(tile_lava, wall_contours));
                         //pits.push(tile_pit);
                         //pits.push(tile_lava);
-                        fill(tile_lava, Fill::Block(lava));
+                        painter.fill(tile_lava, Fill::Block(lava));
                     }
                     if room
                         .pits
@@ -1287,12 +1281,12 @@ impl Floor {
                         })
                         .unwrap_or(false)
                     {
-                        let platform = prim(Primitive::Aabb(Aabb {
+                        let platform = painter.prim(Primitive::Aabb(Aabb {
                             min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
                                 .with_z(floor_z - 7),
                             max: (tile_center + Vec2::broadcast(pillar_thickness)).with_z(floor_z),
                         }));
-                        fill(platform, Fill::Block(stone));
+                        painter.fill(platform, Fill::Block(stone));
                     }
 
                     // If a room has pillars, the current tile aligns with the pillar spacing, and
@@ -1313,13 +1307,13 @@ impl Floor {
                                 matches!(self.tiles.get(other_tile_pos), Some(Tile::Room(_)))
                             })
                     {
-                        let mut pillar = prim(Primitive::Cylinder(Aabb {
+                        let mut pillar = painter.prim(Primitive::Cylinder(Aabb {
                             min: (tile_center - Vec2::broadcast(pillar_thickness - 1))
                                 .with_z(floor_z),
                             max: (tile_center + Vec2::broadcast(pillar_thickness))
                                 .with_z(floor_z + height),
                         }));
-                        let base = prim(Primitive::Cylinder(Aabb {
+                        let base = painter.prim(Primitive::Cylinder(Aabb {
                             min: (tile_center - Vec2::broadcast(1 + pillar_thickness - 1))
                                 .with_z(floor_z),
                             max: (tile_center + Vec2::broadcast(1 + pillar_thickness))
@@ -1327,14 +1321,14 @@ impl Floor {
                         }));
 
                         let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
-                        let mut lights =
-                            prim(Primitive::Scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
-                        lights = prim(Primitive::And(lighting_plane, lights));
+                        let mut lights = painter
+                            .prim(Primitive::scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
+                        lights = painter.prim(Primitive::and(lighting_plane, lights));
                         // Only add the base (and shift the lights up)
                         // for boss-rooms pillars
                         if room.kind == RoomKind::Boss {
-                            lights = prim(Primitive::Translate(lights, 3 * Vec3::unit_z()));
-                            pillar = prim(Primitive::Or(pillar, base));
+                            lights = painter.prim(Primitive::translate(lights, 3 * Vec3::unit_z()));
+                            pillar = painter.prim(Primitive::or(pillar, base));
                         }
                         pillars.push((tile_center, pillar, lights));
                     }
@@ -1348,39 +1342,39 @@ impl Floor {
             }
 
             // Carve out the room's air inside the walls
-            let tile_air = prim(Primitive::Aabb(aabr_with_z(
+            let tile_air = painter.prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
                 floor_z..floor_z + height,
             )));
-            let tile_air = prim(Primitive::Diff(tile_air, wall_contours));
-            fill(tile_air, Fill::Block(vacant));
+            let tile_air = painter.prim(Primitive::diff(tile_air, wall_contours));
+            painter.fill(tile_air, Fill::Block(vacant));
 
             // Place torches on the walls with the aforementioned spacing
-            let sconces_layer = prim(Primitive::And(tile_air, lighting_plane));
-            let sconces_layer = prim(Primitive::And(sconces_layer, wall_contour_surface));
-            fill(sconces_layer, sconces_wall.clone());
+            let sconces_layer = painter.prim(Primitive::and(tile_air, lighting_plane));
+            let sconces_layer = painter.prim(Primitive::and(sconces_layer, wall_contour_surface));
+            painter.fill(sconces_layer, sconces_wall.clone());
 
             // Defer chest/floor sprite placement
             if let Some((chest_sprite, chest_sprite_fill)) = chests {
-                let chest_sprite = prim(Primitive::Diff(chest_sprite, wall_contours));
+                let chest_sprite = painter.prim(Primitive::diff(chest_sprite, wall_contours));
                 sprites.push((chest_sprite, chest_sprite_fill));
             }
 
-            let floor_sprite = prim(Primitive::And(sprite_layer, floor_sprite));
+            let floor_sprite = painter.prim(Primitive::and(sprite_layer, floor_sprite));
             sprites.push((floor_sprite, floor_sprite_fill.clone()));
         }
 
         // Place a glowing purple septagonal star inscribed in a circle in the boss room
         if let Some(boss_room_center) = boss_room_center {
-            let magic_circle_bb = prim(Primitive::Cylinder(Aabb {
+            let magic_circle_bb = painter.prim(Primitive::Cylinder(Aabb {
                 min: (boss_room_center - 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z - 1),
                 max: (boss_room_center + 3 * Vec2::broadcast(TILE_SIZE) / 2).with_z(floor_z),
             }));
-            let magic_circle = prim(Primitive::Sampling(
+            let magic_circle = painter.prim(Primitive::sampling(
                 magic_circle_bb,
                 inscribed_polystar(boss_room_center, 1.4 * TILE_SIZE as f32, 7),
             ));
-            fill(magic_circle, Fill::Block(stone_purple));
+            painter.fill(magic_circle, Fill::Block(stone_purple));
         }
 
         // Place pillars and pillar lights facing the pillars
@@ -1391,38 +1385,32 @@ impl Floor {
                     continue;
                 }
             }
-            fill(*lights, sconces_inward.clone());
-            fill(*pillar, Fill::Block(stone));
+            painter.fill(*lights, sconces_inward.clone());
+            painter.fill(*pillar, Fill::Block(stone));
         }
         // Carve out space for the stairs
         for stair_bb in stairs_bb.iter() {
-            fill(*stair_bb, Fill::Block(vacant));
+            painter.fill(*stair_bb, Fill::Block(vacant));
             // Prevent sprites from floating above the stairs
-            let stair_bb_up = prim(Primitive::Translate(*stair_bb, Vec3::unit_z()));
+            let stair_bb_up = painter.prim(Primitive::translate(*stair_bb, Vec3::unit_z()));
             for (sprite, _) in sprites.iter_mut() {
-                *sprite = prim(Primitive::Diff(*sprite, stair_bb_up));
+                *sprite = painter.prim(Primitive::diff(*sprite, stair_bb_up));
             }
         }
         // Place the stairs themselves, and lights within the stairwells
         for (stair, lights) in stairs.iter() {
-            fill(*lights, sconces_outward.clone());
-            fill(*stair, Fill::Block(stone));
+            painter.fill(*lights, sconces_outward.clone());
+            painter.fill(*stair, Fill::Block(stone));
         }
         // Place the sprites
         for (sprite, sprite_fill) in sprites.into_iter() {
-            fill(sprite, sprite_fill);
+            painter.fill(sprite, sprite_fill);
         }
     }
 }
 
 impl SiteStructure for Dungeon {
-    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
-        &self,
-        _site: &site2::Site,
-        land: &Land,
-        mut prim: F,
-        mut fill: G,
-    ) {
+    fn render(&self, _site: &site2::Site, land: &Land, painter: &Painter) {
         let origin = (self.origin + Vec2::broadcast(TILE_SIZE / 2)).with_z(self.alt + ALT_OFFSET);
 
         lazy_static! {
@@ -1445,9 +1433,9 @@ impl SiteStructure for Dungeon {
         let entrances = entrances.read();
         let entrance = entrances[self.seed as usize % entrances.len()].clone();
 
-        let entrance_prim = prim(Primitive::Prefab(Box::new(entrance.clone())));
-        let entrance_prim = prim(Primitive::Translate(entrance_prim, origin));
-        fill(
+        let entrance_prim = painter.prim(Primitive::Prefab(Box::new(entrance.clone())));
+        let entrance_prim = painter.prim(Primitive::translate(entrance_prim, origin));
+        painter.fill(
             entrance_prim,
             Fill::Prefab(Box::new(entrance), origin, self.seed),
         );
@@ -1456,7 +1444,7 @@ impl SiteStructure for Dungeon {
         for floor in &self.floors {
             z -= floor.total_depth();
 
-            floor.render(&mut prim, &mut fill, self, z);
+            floor.render(painter, self, z);
         }
     }
 }

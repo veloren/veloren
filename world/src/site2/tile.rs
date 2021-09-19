@@ -192,6 +192,7 @@ pub enum TileKind {
 pub struct Tile {
     pub(crate) kind: TileKind,
     pub(crate) plot: Option<Id<Plot>>,
+    pub(crate) hard_alt: Option<i32>,
 }
 
 impl Tile {
@@ -199,11 +200,18 @@ impl Tile {
         Self {
             kind: TileKind::Empty,
             plot: None,
+            hard_alt: None,
         }
     }
 
     /// Create a tile that is not associated with any plot.
-    pub const fn free(kind: TileKind) -> Self { Self { kind, plot: None } }
+    pub const fn free(kind: TileKind) -> Self {
+        Self {
+            kind,
+            plot: None,
+            hard_alt: None,
+        }
+    }
 
     pub fn is_empty(&self) -> bool { self.kind == TileKind::Empty }
 
