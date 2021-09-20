@@ -3,7 +3,6 @@
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
-    array_map,
     array_methods,
     array_zip,
     bool_to_option,

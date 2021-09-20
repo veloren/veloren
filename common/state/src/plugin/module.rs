@@ -25,6 +25,7 @@ pub struct PluginModule {
     events: HashSet<String>,
     allocator: Function,
     memory: Memory,
+    #[allow(dead_code)]
     name: String,
 }
 
