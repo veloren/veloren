@@ -10,7 +10,6 @@
 #![feature(
     arbitrary_enum_discriminant,
     bool_to_option,
-    const_generics,
     const_panic,
     label_break_value,
     array_map

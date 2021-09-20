@@ -1,5 +1,5 @@
 use libloading::Library;
-use notify::{immediate_watcher, EventKind, RecursiveMode, Watcher};
+use notify::{recommended_watcher, EventKind, RecursiveMode, Watcher};
 use std::{
     process::{Command, Stdio},
     sync::{mpsc, Mutex},
@@ -130,7 +130,7 @@ pub fn init(
     let (reload_send, reload_recv) = mpsc::channel();
 
     // Start watcher
-    let mut watcher = immediate_watcher(move |res| event_fn(res, &reload_send)).unwrap();
+    let mut watcher = recommended_watcher(move |res| event_fn(res, &reload_send)).unwrap();
 
     // Search for the source directory of the package being hot-reloaded.
     let watch_dir = Search::Kids(1)
@@ -142,7 +142,7 @@ pub fn init(
             )
         });
 
-    watcher.watch(watch_dir, RecursiveMode::Recursive).unwrap();
+    watcher.watch(&watch_dir, RecursiveMode::Recursive).unwrap();
 
     // Start reloader that watcher signals
     // "Debounces" events since I can't find the option to do this in the latest
