@@ -271,6 +271,8 @@ impl TradePricing {
             _ if name.starts_with("common.items.boss_drops.") => &self.other.entries,
             _ if name.starts_with("common.items.crafting_tools.") => &self.other.entries,
             _ if name.starts_with("common.items.lantern.") => &self.other.entries,
+            // WECW
+            _ if name.starts_with("common.items.WECW.") => &self.other.entries,
             _ => {
                 warn!("unknown loot item {}", name);
                 &self.other.entries
