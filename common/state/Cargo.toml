@@ -31,7 +31,7 @@ specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "s
 scopeguard = "1.1.0"
 serde = { version = "1.0.110", features = ["derive"], optional = true }
 toml = { version = "0.5.7", optional = true }
-tar = { version = "0.4.30", optional = true }
+tar = { version = "0.4.37", optional = true }
 wasmer = { version = "2.0.0", optional = true, default-features = false, features = ["wat", "default-cranelift", "default-universal"] }
 bincode = { version = "1.3.1", optional = true }
 plugin-api = { package = "veloren-plugin-api", path = "../../plugin/api", optional = true }

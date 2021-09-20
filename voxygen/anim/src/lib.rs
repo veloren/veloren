@@ -1,4 +1,3 @@
-#![feature(const_generics)]
 #![feature(generic_associated_types)]
 #![allow(incomplete_features)]
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]

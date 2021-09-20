@@ -7,7 +7,6 @@
     array_methods,
     array_zip,
     bool_to_option,
-    const_generics,
     drain_filter,
     once_cell,
     trait_alias

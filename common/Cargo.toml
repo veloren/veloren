@@ -24,7 +24,7 @@ common-base = { package = "veloren-common-base", path = "base" }
 serde = { version = "1.0.110", features = ["derive", "rc"] }
 
 # Util
-enum-iterator = "0.6"
+enum-iterator = "0.7"
 vek = { version = "=0.14.1", features = ["serde"] }
 
 # Strum

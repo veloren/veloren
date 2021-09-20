@@ -31,12 +31,12 @@ common-base = { package = "veloren-common-base", path = "../common/base" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 common-frontend = { package = "veloren-common-frontend", path = "../common/frontend" }
 
-tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
+tokio = { version = "1.11", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 ansi-parser = "0.8"
 clap = "2.33"
 structopt = "0.3.13"
-crossterm = "0.20"
+crossterm = "0.21"
 lazy_static = "1"
 signal-hook = "0.3.6"
 shell-words = "1.0.0"
