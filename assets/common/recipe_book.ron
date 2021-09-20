@@ -1,7 +1,60 @@
 {
 
-    // ===================================收购===================================
-
+    // ===================================出售===================================
+    // 月钟花
+    "moonbell": (
+        output: ("common.items.utility.coins", 500),
+        inputs: [
+            (Item("common.items.flowers.moonbell"), 1),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    // 热水华
+    "pyrebloom": (
+        output: ("common.items.utility.coins", 500),
+        inputs: [
+            (Item("common.items.flowers.pyrebloom"), 1),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    // 骨裂
+    "glider_purp": (
+        output: ("common.items.glider.glider_purp", 1),
+        inputs: [
+            (Item("common.items.WECW.coins2"), 359),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    // 魔法提灯
+    "lantern": (
+        output: ("common.items.boss_drops.lantern", 1),
+        inputs: [
+            (Item("common.items.WECW.coins2"), 359),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    // 清凉的蓝提灯
+    "blue_0": (
+        output: ("common.items.lantern.blue_0", 1),
+        inputs: [
+            (Item("common.items.WECW.coins2"), 99),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    // 青柠提灯
+    "green_0": (
+        output: ("common.items.lantern.green_0", 1),
+        inputs: [
+            (Item("common.items.WECW.coins2"), 199),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
     "Sell_Cultist_Ring": (
         output: ("common.items.WECW.coins2", 5),
         inputs: [
@@ -444,7 +497,7 @@
         output: ("common.items.WECW.exbow", 1),
         inputs: [
             (Item("common.items.WECW.bow"), 1),
-            (Item("common.items.crafting_ing.hide.dragon_scale"), 5),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 15),
             (Item("common.items.crafting_ing.mindflayer_bag_damaged"),10),
             (Item("common.items.mineral.ingot.orichalcum"), 10),
             (Item("common.items.crafting_ing.cloth.sunsilk"), 10),
@@ -459,7 +512,7 @@
         output: ("common.items.WECW.caladbolgG", 1),
         inputs: [
             (Item("common.items.WECW.stormgreatsword"), 1),
-            (Item("common.items.crafting_ing.hide.dragon_scale"), 5),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 10),
             (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 15),
             (Item("common.items.mineral.ingot.orichalcum"), 5),
             (Item("common.items.crafting_ing.cloth.sunsilk"), 5),
