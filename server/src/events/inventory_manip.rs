@@ -282,14 +282,17 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 if let Some(pos) =
                                     state.ecs().read_storage::<comp::Pos>().get(entity)
                                 {
+                                    let controllers =
+                                        state.ecs().read_storage::<comp::Controller>();
+                                    let controller = controllers.get(entity);
+                                    let look_dir = controller
+                                        .map_or_else(Vec3::zero, |c| c.inputs.look_dir.to_vec());
                                     thrown_items.push((
                                         *pos,
                                         state
                                             .read_component_copied::<comp::Vel>(entity)
                                             .unwrap_or_default(),
-                                        state
-                                            .read_component_copied::<comp::Ori>(entity)
-                                            .unwrap_or_default(),
+                                        look_dir,
                                         *kind,
                                     ));
                                 }
@@ -657,19 +660,14 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     let mut rng = rand::thread_rng();
 
     // Throw items
-    for (pos, vel, ori, kind) in thrown_items {
+    for (pos, vel, look_dir, kind) in thrown_items {
         let vel = match kind {
             item::Throwable::Firework(_) => Vec3::new(
                 rng.gen_range(-15.0..15.0),
                 rng.gen_range(-15.0..15.0),
                 rng.gen_range(80.0..110.0),
             ),
-            _ => {
-                vel.0
-                    + *ori.look_dir() * 20.0
-                    + Vec3::unit_z() * 15.0
-                    + Vec3::<f32>::zero().map(|_| rand::thread_rng().gen::<f32>() - 0.5) * 4.0
-            },
+            _ => vel.0 + look_dir * 20.0,
         };
 
         let uid = state.read_component_copied::<Uid>(entity);
