@@ -7,7 +7,7 @@ use core::f32::consts::PI;
 pub struct RunAnimation;
 
 impl Animation for RunAnimation {
-    type Dependency<'a> = (Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
+    type Dependency<'a> = (Vec3<f32>, Vec3<f32>, Vec3<f32>, Vec3<f32>, f32);
     type Skeleton = BirdLargeSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
@@ -16,7 +16,7 @@ impl Animation for RunAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_run")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (velocity, orientation, last_ori, acc_vel): Self::Dependency<'a>,
+        (velocity, orientation, last_ori, avg_vel, acc_vel): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -64,6 +64,7 @@ impl Animation for RunAnimation {
         } else {
             0.0
         } * 1.3;
+        let x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * speednorm;
 
         next.head.scale = Vec3::one() * 0.99;
         next.neck.scale = Vec3::one() * 1.01;
@@ -110,9 +111,9 @@ impl Animation for RunAnimation {
             next.chest.position = Vec3::new(
                 0.0,
                 s_a.chest.0,
-                s_a.chest.1 + short * 0.5 + speednorm * -2.0,
+                s_a.chest.1 + short * 0.5 + x_tilt * 10.0 + speednorm * -2.0,
             ) * s_a.scaler;
-            next.chest.orientation = Quaternion::rotation_x(-0.1 + short * 0.07)
+            next.chest.orientation = Quaternion::rotation_x(-0.1 + short * 0.07 + x_tilt)
                 * Quaternion::rotation_y(tilt * 0.8)
                 * Quaternion::rotation_z(shortalt * 0.10);
 
@@ -177,9 +178,9 @@ impl Animation for RunAnimation {
             next.chest.position = Vec3::new(
                 0.0,
                 s_a.chest.0,
-                s_a.chest.1 + short * 0.5 + 0.5 * speednorm,
+                s_a.chest.1 + short * 0.5 + x_tilt * 10.0 + 0.5 * speednorm,
             ) * s_a.scaler;
-            next.chest.orientation = Quaternion::rotation_x(short * 0.07)
+            next.chest.orientation = Quaternion::rotation_x(short * 0.07 + x_tilt)
                 * Quaternion::rotation_y(tilt * 0.8)
                 * Quaternion::rotation_z(shortalt * 0.10);
 
