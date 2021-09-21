@@ -593,7 +593,7 @@ impl Body {
                 _ => 1000,
             },
             Body::Golem(golem) => match golem.species {
-                golem::Species::ClayGolem => 450,
+                golem::Species::ClayGolem => 450 * 2,
                 _ => 1000,
             },
             Body::Theropod(theropod) => match theropod.species {
