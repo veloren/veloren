@@ -218,6 +218,18 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                     (uids.get(inviter).copied(), uids.get(entity).copied())
                 {
                     let mut trades = state.ecs().write_resource::<Trades>();
+                    // check if the person that invited me has started a new trade since the
+                    // invitation was sent
+                    if trades.entity_trades.get(&inviter_uid).copied().is_some() {
+                        for client in clients.get(entity).into_iter().chain(clients.get(inviter)) {
+                            client.send_fallible(ServerGeneral::server_msg(
+                                ChatType::Meta,
+                                "Trade failed, inviter initiated new trade since sending trade \
+                                 request.",
+                            ));
+                        }
+                        return;
+                    }
                     let id = trades.begin_trade(inviter_uid, invitee_uid);
                     let trade = trades.trades[&id].clone();
                     if let Some(agent) = agents.get_mut(inviter) {
