@@ -3,9 +3,12 @@
 /// Localization for Vietnamese (Vietnam)
 (
     string_map: {
+        "esc_menu.logout": "Đăng Xuất",
+        "esc_menu.quit_game": "Thoát Trò Chơi",
     },
 
 
     vector_map: {
     }
 )
+
