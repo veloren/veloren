@@ -393,7 +393,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
                     * 300.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 18.0
                     {
                         1.0
@@ -408,7 +408,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             (
                 MUSH_FACT
                     * 600.0
-                    * if col.water_level < CONFIG.sea_level && (col.water_level - col.alt) < 3.0 {
+                    * if col.water_level <= CONFIG.sea_level && (col.water_level - col.alt) < 3.0 {
                         1.0
                     } else {
                         0.0
@@ -422,7 +422,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
                     * 50.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 11.0
                     {
                         1.0
@@ -438,7 +438,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, 1.0, 0.95)
                     * MUSH_FACT
                     * 50.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 11.0
                     {
                         1.0
@@ -453,7 +453,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             (
                 MUSH_FACT
                     * 250.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
                     {
                         1.0
@@ -468,7 +468,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             (
                 MUSH_FACT
                     * 250.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
                     {
                         1.0
@@ -484,7 +484,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, 1.0, 0.95)
                     * MUSH_FACT
                     * 500.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
                     {
                         1.0
@@ -500,7 +500,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
                     * 125.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM - 9.0
                     {
                         1.0
@@ -516,7 +516,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
                     * 220.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM - 9.0
                     {
                         1.0
@@ -532,7 +532,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, CONFIG.temperate_temp, 0.7)
                     * MUSH_FACT
                     * 300.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 3.0
                     {
                         1.0
@@ -548,7 +548,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, 1.0, 0.9)
                     * MUSH_FACT
                     * 160.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
                     {
                         1.0
@@ -564,7 +564,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 close(col.temp, 1.0, 0.9)
                     * MUSH_FACT
                     * 120.0
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 10.0
                     {
                         1.0
@@ -579,7 +579,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             (
                 (c.rockiness - 0.5).max(0.0)
                     * 1.0e-3
-                    * if col.water_level < CONFIG.sea_level
+                    * if col.water_level <= CONFIG.sea_level
                         && col.alt < col.water_level - DEPTH_WATER_NORM + 20.0
                     {
                         1.0
@@ -604,7 +604,6 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     ];
 
     canvas.foreach_col(|canvas, wpos2d, col| {
-        // TODO: Why do we need to add 1.0 here? Idk...
         let underwater = col.water_level.floor() > col.alt;
 
         let kind = scatter

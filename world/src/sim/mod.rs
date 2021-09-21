@@ -2324,11 +2324,15 @@ impl SimChunk {
                 const SOIL_SCALE: f32 = 16.0;
                 let soil = soil_nz * SOIL_SCALE * tree_density.sqrt() * humidity.sqrt();
 
-                // Prevent dunes pushing the altitude underwater
-                if alt + dune + soil < water_alt {
+                let warp_factor = ((alt - CONFIG.sea_level) / 16.0).clamped(0.0, 1.0);
+
+                let warp = (dune + soil) * warp_factor;
+
+                // Prevent warping pushing the altitude underwater
+                if alt + warp < water_alt {
                     alt
                 } else {
-                    alt + dune + soil
+                    alt + warp
                 }
             };
 
