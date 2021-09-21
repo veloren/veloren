@@ -1,0 +1,9 @@
+ItemDef(
+    name: "土符文",
+    description: "T4军阀的哨兵抢走的符文，其蕴含万物之土元素，可铸造神物。",
+    kind: Ingredient(
+        kind: "土Rune",
+    ),
+    quality: Legendary,
+    tags: [],
+)

@@ -1,4 +1,6 @@
 [
+    // 暗金冲击锤
+    (0.01, Item("common.items.WECW.darkhammer")),
     // 遗忘战斧
     (0.01, Item("common.items.WECW.forgottenaxe")),
     // 暗金切割者

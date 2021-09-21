@@ -1,0 +1,21 @@
+ItemDef(
+    name: "放逐之刃",
+    description: "断剑重铸之日，骑士归来之时。\n特效（巨型武器）：攻击距离提升，更容易击晕敌人！",
+    kind: Tool((
+        kind: Sword,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.5,
+            power: 3.5,
+            effect_power: 3.5,
+            speed: 1.2,
+            crit_chance: 1.0,
+            range: 1.2,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+    ability_spec: Some(Custom("放逐之刃技能组")),
+)

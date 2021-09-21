@@ -1,0 +1,9 @@
+ItemDef(
+    name: "水符文",
+    description: "古老的潮汐勇士的符文，被他的手下偷走了\n其蕴含万物之水原，可铸造神物。",
+    kind: Ingredient(
+        kind: "水Rune",
+    ),
+    quality: Legendary,
+    tags: [],
+)

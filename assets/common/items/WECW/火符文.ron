@@ -1,0 +1,9 @@
+ItemDef(
+    name: "火符文",
+    description: "六千年前雪兽杀死了他的死对头炎魔获得的符文，但被由于具有反噬作用被他的手下拥有了\n其蕴含万物之能量，可铸造神之物。",
+    kind: Ingredient(
+        kind: "火Rune",
+    ),
+    quality: Legendary,
+    tags: [],
+)

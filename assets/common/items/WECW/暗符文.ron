@@ -1,0 +1,9 @@
+ItemDef(
+    name: "暗符文",
+    description: "恶魔的低语....#@&*!@&%)#$*&@)!%@#",
+    kind: Ingredient(
+        kind: "暗Rune",
+    ),
+    quality: Legendary,
+    tags: [],
+)

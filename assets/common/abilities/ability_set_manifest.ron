@@ -15,6 +15,13 @@
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spingreat"),
         ],
     ),
+    Custom("放逐之刃技能组"): (
+        primary: "common.abilities.sword.triplestrikegreatEX",
+        secondary: "common.abilities.sword.dashgreatEX",
+        abilities: [
+            (Some(Sword(UnlockSpin)), "common.abilities.sword.spingreatEX"),
+        ],
+    ),
     Custom("EXSword"): (
         primary: "common.abilities.sword.triplestrikegreatEX",
         secondary: "common.abilities.sword.dashgreatEX",

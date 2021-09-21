@@ -1,4 +1,5 @@
 [
+    (0.001, Item("common.items.WECW.木符文")),
     // 蓝色武器系列
     (0.25, LootTable("common.loot_tables.weapons.tier-5")),
     // 普通蓝色武器系列

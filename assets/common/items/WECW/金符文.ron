@@ -1,0 +1,9 @@
+ItemDef(
+    name: "金符文",
+    description: "被T5地牢蚁人盗走的符文，其蕴含着万物之金元素，能铸造不可思议的物品。",
+    kind: Ingredient(
+        kind: "金Rune",
+    ),
+    quality: Legendary,
+    tags: [],
+)

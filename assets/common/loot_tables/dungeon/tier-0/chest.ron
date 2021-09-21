@@ -1,4 +1,5 @@
 [
+    (0.001, Item("common.items.WECW.木符文")),
     // Gear
     (0.5, LootTable("common.loot_tables.weapons.tier-0")),
     (0.5, LootTable("common.loot_tables.armor.cloth")),

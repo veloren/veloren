@@ -1,0 +1,9 @@
+ItemDef(
+    name: "木符文",
+    description: "T1的恶霸收割者击杀了符文的上一名拥有者并拾走了\n其蕴含万物之生命元素，可铸造蕴含生命之物。",
+    kind: Ingredient(
+        kind: "木Rune",
+    ),
+    quality: Legendary,
+    tags: [],
+)

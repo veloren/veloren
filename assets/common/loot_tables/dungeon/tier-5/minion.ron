@@ -1,4 +1,5 @@
 [
+    (0.001, Item("common.items.WECW.暗符文")),
     // Crafting Ingredients
     (3.0, LootTable("common.loot_tables.materials.common")),
     (3.0, ItemQuantity("common.items.utility.coins",50,100)),

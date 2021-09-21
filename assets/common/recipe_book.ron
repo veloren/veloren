@@ -1,6 +1,54 @@
 {
 
     // ===================================出售===================================
+    "金符文": (
+        output: ("common.items.WECW.金符文", 1),
+        inputs: [
+            (Item("common.items.WECW.coins3"), 10),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    "木符文": (
+        output: ("common.items.WECW.木符文", 1),
+        inputs: [
+            (Item("common.items.WECW.coins3"), 10),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    "水符文": (
+        output: ("common.items.WECW.水符文", 1),
+        inputs: [
+            (Item("common.items.WECW.coins3"), 10),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    "火符文": (
+        output: ("common.items.WECW.火符文", 1),
+        inputs: [
+            (Item("common.items.WECW.coins3"), 10),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    "土符文": (
+        output: ("common.items.WECW.土符文", 1),
+        inputs: [
+            (Item("common.items.WECW.coins3"), 10),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
+    "暗符文": (
+        output: ("common.items.WECW.暗符文", 1),
+        inputs: [
+            (Item("common.items.WECW.coins3"), 10),
+        ],
+        craft_sprite: None,
+        is_recycling: true,
+    ),
     // 月钟花
     "moonbell": (
         output: ("common.items.utility.coins", 500),
@@ -493,6 +541,95 @@
     // ==========================================================================
 
     // ===================================觉醒===================================
+    "灵魂风暴": (
+        output: ("common.items.WECW.caladbolgex", 1),
+        inputs: [
+            (Item("common.items.WECW.darksteel"), 1),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 10),
+            (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 20),
+            (Item("common.items.mineral.ingot.orichalcum"), 5),
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 5),
+            (Item("common.items.mineral.gem.diamond"), 50),
+            (Item("common.items.WECW.coins3"), 5),
+            (Item("common.items.WECW.金符文"), 1),
+            (Item("common.items.WECW.暗符文"), 3),
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "乌菲尔": (
+        output: ("common.items.WECW.caladbolgEXG", 1),
+        inputs: [
+            (Item("common.items.WECW.caladbolgex"), 1),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 30),
+            (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 40),
+            (Item("common.items.mineral.ingot.orichalcum"), 20),
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 20),
+            (Item("common.items.mineral.gem.diamond"), 200),
+            (Item("common.items.WECW.coins3"), 10),
+            (Item("common.items.WECW.金符文"), 5),
+            (Item("common.items.WECW.土符文"), 5),
+            (Item("common.items.WECW.暗符文"), 10),
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "放逐之刃": (
+        output: ("common.items.WECW.放逐之刃", 1),
+        inputs: [
+            (Item("common.items.WECW.caladbolgex"), 1),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 30),
+            (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 40),
+            (Item("common.items.mineral.ingot.orichalcum"), 20),
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 20),
+            (Item("common.items.mineral.gem.diamond"), 200),
+            (Item("common.items.WECW.coins3"), 10),
+            (Item("common.items.WECW.金符文"), 5),
+            (Item("common.items.WECW.木符文"), 10),
+            (Item("common.items.WECW.暗符文"), 5),
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "埃尔安多": (
+        output: ("common.items.WECW.eriandor", 1),
+        inputs: [
+            (Item("common.items.WECW.forgottenaxe"), 1),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 30),
+            (Item("common.items.crafting_ing.mindflayer_bag_damaged"),40),
+            (Item("common.items.mineral.ingot.orichalcum"), 20),
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 20),
+            (Item("common.items.mineral.gem.diamond"), 200),
+            (Item("common.items.WECW.coins3"), 10),
+            (Item("common.items.WECW.金符文"), 10),
+            (Item("common.items.WECW.火符文"), 10),
+            (Item("common.items.WECW.暗符文"), 5),
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
+    "熔火之心": (
+        output: ("common.items.WECW.darkhammerex", 1),
+        inputs: [
+            (Item("common.items.WECW.darkhammer"), 1),
+            (Item("common.items.crafting_ing.hide.dragon_scale"), 40),
+            (Item("common.items.crafting_ing.mindflayer_bag_damaged"),50),
+            (Item("common.items.mineral.ingot.orichalcum"), 20),
+            (Item("common.items.crafting_ing.cloth.sunsilk"), 20),
+            (Item("common.items.mineral.gem.diamond"), 200),
+            (Item("common.items.WECW.coins3"), 20),
+            (Item("common.items.WECW.金符文"), 5),
+            (Item("common.items.WECW.火符文"), 10),
+            (Item("common.items.WECW.暗符文"), 5),
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+        is_recycling: false,
+    ),
     "exbow": (
         output: ("common.items.WECW.exbow", 1),
         inputs: [
@@ -503,6 +640,11 @@
             (Item("common.items.crafting_ing.cloth.sunsilk"), 10),
             (Item("common.items.mineral.gem.diamond"), 50),
             (Item("common.items.WECW.coins3"), 10),
+            (Item("common.items.WECW.金符文"), 2),
+            (Item("common.items.WECW.水符文"), 2),
+            (Item("common.items.WECW.火符文"), 1),
+            (Item("common.items.WECW.土符文"), 1),
+            (Item("common.items.WECW.暗符文"), 2),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
         craft_sprite: Some(Anvil),
@@ -518,6 +660,12 @@
             (Item("common.items.crafting_ing.cloth.sunsilk"), 5),
             (Item("common.items.mineral.gem.diamond"), 50),
             (Item("common.items.WECW.coins3"), 5),
+            (Item("common.items.WECW.金符文"), 1),
+            (Item("common.items.WECW.木符文"), 1),
+            (Item("common.items.WECW.水符文"), 1),
+            (Item("common.items.WECW.火符文"), 1),
+            (Item("common.items.WECW.土符文"), 1),
+            (Item("common.items.WECW.暗符文"), 1),
             (Item("common.items.tool.craftsman_hammer"), 0),
         ],
         craft_sprite: Some(Anvil),

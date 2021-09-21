@@ -79,6 +79,10 @@
         vox_spec: ("armor.warlordG.darksteel", (-1.5, -5.5, -8.5)),
         color: None
     ),
+    "common.items.WECW.放逐之刃": (
+        vox_spec: ("armor.warlordG.放逐之刃", (-1.5, -5.5, -8.5)),
+        color: None
+    ),
     "common.items.WECW.darksteel2": (
         vox_spec: ("armor.warlordG.darksteel2", (-1.5, -9.5, -6.0)),
         color: None

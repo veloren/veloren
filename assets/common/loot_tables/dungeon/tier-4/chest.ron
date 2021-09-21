@@ -1,4 +1,5 @@
 [
+    (0.001, Item("common.items.WECW.金符文")),
     // Gear
     // Don't put progression items until we have progression gates
     // such as skill requirements or opening chest animations
