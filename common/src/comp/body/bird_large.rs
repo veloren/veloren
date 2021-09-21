@@ -37,6 +37,7 @@ make_case_elim!(
         Phoenix = 0,
         Cockatrice = 1,
         Roc = 2,
+        FlameWyvern = 3,
     }
 );
 
@@ -48,6 +49,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub phoenix: SpeciesMeta,
     pub cockatrice: SpeciesMeta,
     pub roc: SpeciesMeta,
+    pub wyvern_flame: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -59,11 +61,17 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Phoenix => &self.phoenix,
             Species::Cockatrice => &self.cockatrice,
             Species::Roc => &self.roc,
+            Species::FlameWyvern => &self.wyvern_flame,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 3] = [Species::Phoenix, Species::Cockatrice, Species::Roc];
+pub const ALL_SPECIES: [Species; 4] = [
+    Species::Phoenix,
+    Species::Cockatrice,
+    Species::Roc,
+    Species::FlameWyvern,
+];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
     type IntoIter = std::iter::Copied<std::slice::Iter<'static, Self::Item>>;

@@ -3336,6 +3336,9 @@ impl FigureMgr {
                             FigureState::new(renderer, BirdLargeSkeleton::default(), body)
                         });
 
+                    // Average velocity relative to the current ground
+                    let rel_avg_vel = state.avg_vel - physics.ground_vel;
+
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
                         _ => continue,
@@ -3366,6 +3369,7 @@ impl FigureMgr {
                                 // TODO: Update to use the quaternion.
                                 ori * anim::vek::Vec3::<f32>::unit_y(),
                                 state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                rel_avg_vel,
                                 state.acc_vel,
                             ),
                             state.state_time,
@@ -3427,6 +3431,7 @@ impl FigureMgr {
                             anim::bird_large::BreatheAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    rel_vel,
                                     time,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
@@ -3465,6 +3470,8 @@ impl FigureMgr {
                                 &target_base,
                                 (
                                     Some(s.stage_section),
+                                    time,
+                                    state.state_time,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                     physics.on_ground.is_some(),
@@ -3490,6 +3497,7 @@ impl FigureMgr {
                             anim::bird_large::ShootAnimation::update_skeleton(
                                 &target_base,
                                 (
+                                    rel_vel,
                                     time,
                                     Some(s.stage_section),
                                     state.state_time,

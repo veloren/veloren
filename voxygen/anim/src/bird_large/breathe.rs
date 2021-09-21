@@ -7,6 +7,7 @@ use common::{states::utils::StageSection, util::Dir};
 pub struct BreatheAnimation;
 
 type BreatheAnimationDependency = (
+    Vec3<f32>,
     f32,
     Vec3<f32>,
     Vec3<f32>,
@@ -26,7 +27,7 @@ impl Animation for BreatheAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "bird_large_breathe")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (global_time, orientation, last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'a>,
+        (velocity,global_time, _orientation, _last_ori, stage_section, timer, look_dir, on_ground): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -51,13 +52,6 @@ impl Animation for BreatheAnimation {
 
         let wave_slow_cos = (anim_time * 4.5).cos();
 
-        next.head.scale = Vec3::one() * 0.98;
-        next.neck.scale = Vec3::one() * 1.02;
-        next.leg_l.scale = Vec3::one() * 0.98;
-        next.leg_r.scale = Vec3::one() * 0.98;
-        next.foot_l.scale = Vec3::one() * 1.02;
-        next.foot_r.scale = Vec3::one() * 1.02;
-
         next.chest.position = Vec3::new(
             0.0,
             s_a.chest.0,
@@ -65,7 +59,8 @@ impl Animation for BreatheAnimation {
         );
 
         next.neck.position = Vec3::new(0.0, s_a.neck.0, s_a.neck.1);
-        next.neck.orientation = Quaternion::rotation_x(movement1abs * 0.5 - movement2abs * 0.5);
+        next.neck.orientation =
+            Quaternion::rotation_x(movement1abs * 0.8 - movement2abs * 0.5 + twitch2 * -0.02);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation =
@@ -76,17 +71,19 @@ impl Animation for BreatheAnimation {
 
         if on_ground {
             next.chest.orientation =
-                Quaternion::rotation_x(movement1abs * 0.1 - movement2abs * 0.1);
-
+                Quaternion::rotation_x(movement1abs * 0.2 - movement2abs * 0.5 + twitch2 * 0.03);
+            next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + movement2abs * -3.0);
             next.wing_in_l.position = Vec3::new(-s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
             next.wing_in_r.position = Vec3::new(s_a.wing_in.0, s_a.wing_in.1, s_a.wing_in.2);
 
             next.wing_in_l.orientation =
-                Quaternion::rotation_y(-1.0 + movement1abs * 0.8 - movement2abs * 0.4)
-                    * Quaternion::rotation_z(0.2 - movement1abs * 0.8 + movement2abs * 0.4);
+                Quaternion::rotation_y(
+                    -1.0 + movement1abs * 0.8 - movement2abs * 0.4 + twitch2 * 0.03,
+                ) * Quaternion::rotation_z(0.2 - movement1abs * 0.8 + movement2abs * 0.4);
             next.wing_in_r.orientation =
-                Quaternion::rotation_y(1.0 - movement1abs * 0.8 + movement2abs * 0.4)
-                    * Quaternion::rotation_z(-0.2 + movement1abs * 0.8 - movement2abs * 0.4);
+                Quaternion::rotation_y(
+                    1.0 - movement1abs * 0.8 + movement2abs * 0.4 + twitch2 * -0.03,
+                ) * Quaternion::rotation_z(-0.2 + movement1abs * 0.8 - movement2abs * 0.4);
 
             next.wing_mid_l.position = Vec3::new(-s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
             next.wing_mid_r.position = Vec3::new(s_a.wing_mid.0, s_a.wing_mid.1, s_a.wing_mid.2);
@@ -104,28 +101,21 @@ impl Animation for BreatheAnimation {
 
             next.tail_front.position = Vec3::new(0.0, s_a.tail_front.0, s_a.tail_front.1);
             next.tail_front.orientation =
-                Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * 0.02);
+                Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * 0.1);
             next.tail_rear.position = Vec3::new(0.0, s_a.tail_rear.0, s_a.tail_rear.1);
             next.tail_rear.orientation =
-                Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * 0.02);
+                Quaternion::rotation_x(-movement1abs * 0.1 + movement2abs * 0.1 + twitch2 * -0.2);
         } else {
-            let ori: Vec2<f32> = Vec2::from(orientation);
-            let last_ori = Vec2::from(last_ori);
-            let tilt = if ::vek::Vec2::new(ori, last_ori)
-                .map(|o| o.magnitude_squared())
-                .map(|m| m > 0.001 && m.is_finite())
-                .reduce_and()
-                && ori.angle_between(last_ori).is_finite()
-            {
-                ori.angle_between(last_ori).min(0.2)
-                    * last_ori.determine_side(Vec2::zero(), ori).signum()
-            } else {
-                0.0
-            } * 1.3;
+            next.neck.orientation = Quaternion::rotation_x(
+                movement1abs * -0.4
+                    + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0),
+            );
 
-            next.chest.orientation =
-                Quaternion::rotation_x(movement1abs * 0.1 - movement2abs * 0.1)
-                    * Quaternion::rotation_y(tilt * 1.8);
+            next.head.orientation = Quaternion::rotation_x(
+                movement1abs * 0.5
+                    + movement2abs * (-0.5 + velocity.xy().magnitude() * 0.2).min(0.0)
+                    + look_dir.z * 0.4,
+            );
         }
 
         next
