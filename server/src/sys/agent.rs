@@ -28,7 +28,7 @@ use common::{
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
-    states::{basic_beam, basic_ranged, charged_ranged, repeater_ranged, utils::StageSection},
+    states::{basic_beam, utils::StageSection},
     terrain::{Block, TerrainGrid},
     time::DayPeriod,
     trade::{TradeAction, TradePhase, TradeResult},
@@ -1832,7 +1832,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            charged_ranged::projectile_offsets(body, self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec())
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1847,7 +1847,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            basic_ranged::projectile_offsets(body, self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec())
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
@@ -1862,7 +1862,7 @@ impl<'a> AgentData<'a> {
                     projectile_speed,
                     self.pos.0
                         + self.body.map_or(Vec3::zero(), |body| {
-                            repeater_ranged::projectile_offsets(body, self.ori.look_vec())
+                            body.projectile_offsets(self.ori.look_vec())
                         }),
                     Vec3::new(
                         tgt_data.pos.0.x,
