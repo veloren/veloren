@@ -53,7 +53,12 @@ impl Entity {
                             .into()
                     },
                     x if x < 0.50 => {
-                        let species = *(&comp::bird_large::ALL_SPECIES)
+                        let species = *(&[
+                            // Flame Wyvern not incuded until proper introduction
+                            comp::bird_large::Species::Phoenix,
+                            comp::bird_large::Species::Cockatrice,
+                            comp::bird_large::Species::Roc,
+                        ])
                             .choose(&mut self.rng(PERM_SPECIES))
                             .unwrap();
                         comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species)
