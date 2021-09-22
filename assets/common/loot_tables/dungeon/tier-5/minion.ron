@@ -2,7 +2,7 @@
     // Currency
     (50.0, ItemQuantity("common.items.utility.coins", 50, 100)),
     // Nothing
-    (50.0, None),
+    (50.0, Nothing),
     // Special
     (1.0, Item("common.items.food.spore_corruption")),
 ]

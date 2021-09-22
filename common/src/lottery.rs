@@ -85,37 +85,47 @@ pub enum LootSpec<T: AsRef<str>> {
     /// Loot table
     LootTable(T),
     /// No loot given
-    None,
+    Nothing,
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
     pub fn to_item(&self) -> Option<Item> {
         match self {
-            Self::Item(item) => Item::new_from_asset(item.as_ref()).ok(),
+            Self::Item(item) => Item::new_from_asset(item.as_ref()).map_or_else(
+                |e| {
+                    warn!(?e, "Invalid item path");
+                    None
+                },
+                |i| Some(i),
+            ),
             Self::ItemQuantity(item, lower, upper) => {
                 let range = *lower..=*upper;
                 let quantity = thread_rng().gen_range(range);
-                if let Ok(mut item) = Item::new_from_asset(item.as_ref()) {
-                    // TODO: Handle multiple of an item that is unstackable
-                    if item.set_amount(quantity).is_err() {
-                        warn!("Tried to set quantity on non stackable item");
-                    }
-                    Some(item)
-                } else {
-                    None
+                match Item::new_from_asset(item.as_ref()) {
+                    Ok(mut item) => {
+                        // TODO: Handle multiple of an item that is unstackable
+                        if item.set_amount(quantity).is_err() {
+                            warn!("Tried to set quantity on non stackable item");
+                        }
+                        Some(item)
+                    },
+                    Err(e) => {
+                        warn!(?e, "Invalid item path");
+                        None
+                    },
                 }
             },
             Self::LootTable(table) => Lottery::<LootSpec<String>>::load_expect(table.as_ref())
                 .read()
                 .choose()
                 .to_item(),
-            Self::None => None,
+            Self::Nothing => None,
         }
     }
 }
 
 impl Default for LootSpec<String> {
-    fn default() -> Self { Self::None }
+    fn default() -> Self { Self::Nothing }
 }
 
 #[cfg(test)]
@@ -148,7 +158,7 @@ pub mod tests {
                 let loot_table = Lottery::<LootSpec<String>>::load_expect_cloned(loot_table);
                 validate_table_contents(loot_table);
             },
-            LootSpec::None => {},
+            LootSpec::Nothing => {},
         }
     }
 
