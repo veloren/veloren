@@ -13,6 +13,7 @@ use common::{
     comp::{self, agent, bird_medium, BehaviorCapability, ForceUpdate, Pos, Waypoint},
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
+    lottery::LootSpec,
     resources::Time,
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
@@ -357,7 +358,7 @@ pub enum NpcData {
         body: comp::Body,
         alignment: comp::Alignment,
         scale: comp::Scale,
-        drop_item: Option<comp::Item>,
+        drop_item: Option<LootSpec<String>>,
     },
     Waypoint(Vec3<f32>),
 }

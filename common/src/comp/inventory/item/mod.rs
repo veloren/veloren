@@ -13,6 +13,7 @@ use crate::{
         CharacterAbility,
     },
     effect::Effect,
+    lottery::LootSpec,
     recipe::RecipeInput,
     terrain::Block,
 };
@@ -862,10 +863,17 @@ impl Component for Item {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ItemDrop(pub Item);
+// #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+// pub struct ItemDrop<T: AsRef<str>>(pub LootSpec<T>);
 
-impl Component for ItemDrop {
+// impl<T: 'static + Send + Sync + AsRef<str>> Component for ItemDrop<T> {
+//     type Storage = IdvStorage<Self>;
+// }
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ItemDrop<T: AsRef<str>>(pub LootSpec<T>);
+
+impl Component for ItemDrop<String> {
     type Storage = IdvStorage<Self>;
 }
 

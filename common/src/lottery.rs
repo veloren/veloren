@@ -114,44 +114,52 @@ impl<T: AsRef<str>> LootSpec<T> {
     }
 }
 
+impl Default for LootSpec<String> {
+    fn default() -> Self { Self::None }
+}
+
 #[cfg(test)]
-mod tests {
+pub mod tests {
     use super::*;
     use crate::{assets, comp::Item};
 
+    #[cfg(test)]
+    pub fn validate_loot_spec(item: &LootSpec<String>) {
+        match item {
+            LootSpec::Item(item) => {
+                Item::new_from_asset_expect(item);
+            },
+            LootSpec::ItemQuantity(item, lower, upper) => {
+                assert!(
+                    *lower > 0,
+                    "Lower quantity must be more than 0. It is {}.",
+                    lower
+                );
+                assert!(
+                    upper >= lower,
+                    "Upper quantity must be at least the value of lower quantity. Upper value: \
+                     {}, low value: {}.",
+                    upper,
+                    lower
+                );
+                Item::new_from_asset_expect(item);
+            },
+            LootSpec::LootTable(loot_table) => {
+                let loot_table = Lottery::<LootSpec<String>>::load_expect_cloned(loot_table);
+                validate_table_contents(loot_table);
+            },
+            LootSpec::None => {},
+        }
+    }
+
+    fn validate_table_contents(table: Lottery<LootSpec<String>>) {
+        for (_, item) in table.iter() {
+            validate_loot_spec(item);
+        }
+    }
+
     #[test]
     fn test_loot_tables() {
-        fn validate_table_contents(table: Lottery<LootSpec<String>>) {
-            for (_, item) in table.iter() {
-                match item {
-                    LootSpec::Item(item) => {
-                        Item::new_from_asset_expect(item);
-                    },
-                    LootSpec::ItemQuantity(item, lower, upper) => {
-                        assert!(
-                            *lower > 0,
-                            "Lower quantity must be more than 0. It is {}.",
-                            lower
-                        );
-                        assert!(
-                            upper >= lower,
-                            "Upper quantity must be at least the value of lower quantity. Upper \
-                             value: {}, low value: {}.",
-                            upper,
-                            lower
-                        );
-                        Item::new_from_asset_expect(item);
-                    },
-                    LootSpec::LootTable(loot_table) => {
-                        let loot_table =
-                            Lottery::<LootSpec<String>>::load_expect_cloned(loot_table);
-                        validate_table_contents(loot_table);
-                    },
-                    LootSpec::None => {},
-                }
-            }
-        }
-
         let loot_tables =
             assets::read_expect_dir::<Lottery<LootSpec<String>>>("common.loot_tables", true);
         for loot_table in loot_tables {

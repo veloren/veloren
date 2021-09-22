@@ -354,7 +354,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
-        let lottery = || {
+        let _ = || {
             Lottery::<LootSpec<String>>::load_expect(match old_body {
                 Some(common::comp::Body::Humanoid(_)) => "common.loot_tables.creature.humanoid",
                 Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
@@ -503,13 +503,15 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             })
         };
 
-        if let Some(item) = {
-            let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
-            item_drops.remove(entity).map_or_else(
-                || lottery().read().choose().to_item(),
-                |item_drop| Some(item_drop.0),
+        let loot_spec = {
+            let mut item_drop = state.ecs().write_storage::<comp::ItemDrop<String>>();
+            item_drop.remove(entity).map_or_else(
+                || LootSpec::LootTable("common.loot_tables.fallback".to_string()),
+                |item| item.0,
             )
-        } {
+        };
+
+        if let Some(item) = loot_spec.to_item() {
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
