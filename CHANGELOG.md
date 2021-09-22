@@ -10,8 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added a setting to always show health and energy bars
+- Added a crafting station icon to the crafting menu sidebar for items that could be crafted at a crafting station
 
 ### Changed
+
 - Made dungeon tiers 3, 4, and 5 more common
 
 ### Removed
@@ -658,8 +660,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `/object` command can create any object in comp::object::Body
 - The `/help` command takes an optional argument. `/help /sudo` will show you information about only the sudo command.
 
-### Removed
-
 ## [0.5.0] - 2020-01-31
 
 ### Added
@@ -798,7 +798,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Only send physics updates for entities within view distance
 - Fix for headphones and invalid device parameters
 - Fixed asset names for consistancy
-- Fixes animals jumping after their target no matter how far\
+- Fixes animals jumping after their target no matter how far
 - Improved SFX in caves
 - Better combat, movement, and animations
 - Many performance optimizations
