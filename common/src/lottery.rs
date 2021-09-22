@@ -96,7 +96,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                     warn!(?e, "Invalid item path");
                     None
                 },
-                |i| Some(i),
+                Option::Some,
             ),
             Self::ItemQuantity(item, lower, upper) => {
                 let range = *lower..=*upper;
