@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("tarasque"),
     alignment: Alignment(Enemy),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.quad_medium.carapace"),
 
     hands: Uninit,
 

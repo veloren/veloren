@@ -166,6 +166,8 @@ impl<'a> System<'a> for Sys {
                         comp::Body::Ship(_) => comp::Scale(comp::ship::AIRSHIP_SCALE),
                         _ => comp::Scale(1.0),
                     },
+                    // FIXME;
+                    // Drop loot
                     drop_item: None,
                     anchor: None,
                     rtsim_entity,

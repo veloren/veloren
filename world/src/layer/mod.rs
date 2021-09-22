@@ -440,7 +440,8 @@ pub fn apply_caves_supplement<'a>(
                 // Abs units
                 let cave_base = (cave.alt + cave_floor) as i32;
 
-                let cave_depth = (col_sample.alt - cave.alt).max(0.0); //slightly different from earlier cave depth?
+                // slightly different from earlier cave depth?
+                let cave_depth = (col_sample.alt - cave.alt).max(0.0);
 
                 // Scatter things in caves
                 if let Some(z) = (-4..8).map(|z| cave_base + z).find(|z| {
@@ -505,6 +506,8 @@ pub fn apply_caves_supplement<'a>(
                                 })
                                 .with_automatic_name();
 
+                        // FIXME:
+                        // Drop something.
                         supplement.add_entity(entity);
                     }
                 }
