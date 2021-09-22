@@ -1,5 +1,5 @@
 use crate::{
-    comp::{Body, CharacterState, LightEmitter, ProjectileConstructor, StateUpdate},
+    comp::{Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -83,6 +83,9 @@ impl CharacterBehavior for Data {
                     );
                     // Shoots all projectiles simultaneously
                     for i in 0..self.static_data.num_projectiles {
+                        // Gets offsets
+                        let body_offsets = data.body.projectile_offsets(update.ori.look_vec());
+                        let pos = Pos(data.pos.0 + body_offsets);
                         // Adds a slight spread to the projectiles. First projectile has no spread,
                         // and spread increases linearly with number of projectiles created.
                         let dir = Dir::from_unnormalized(data.inputs.look_dir.map(|x| {
@@ -95,6 +98,7 @@ impl CharacterBehavior for Data {
                         // Tells server to create and shoot the projectile
                         update.server_events.push_front(ServerEvent::Shoot {
                             entity: data.entity,
+                            pos,
                             dir,
                             body: self.static_data.projectile_body,
                             projectile: projectile.clone(),

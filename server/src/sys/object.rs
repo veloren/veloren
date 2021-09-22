@@ -115,6 +115,7 @@ impl<'a> System<'a> for Sys {
                                 .expect("nonzero vector should normalize");
                                 server_emitter.emit(ServerEvent::Shoot {
                                     entity,
+                                    pos: *pos,
                                     dir,
                                     body: Body::Object(object::Body::for_firework(*reagent)),
                                     light: Some(LightEmitter {

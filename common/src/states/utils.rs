@@ -238,6 +238,32 @@ impl Body {
     /// Returns how well a body can move backwards while strafing (0.0 = not at
     /// all, 1.0 = same as forward)
     pub fn reverse_move_factor(&self) -> f32 { 0.45 }
+
+    /// Returns the position where a projectile should be fired relative to this
+    /// body
+    pub fn projectile_offsets(&self, ori: Vec3<f32>) -> Vec3<f32> {
+        let body_offsets_z = match self {
+            Body::Golem(_) => self.height() * 0.4,
+            _ => self.eye_height(),
+        };
+
+        let dim = self.dimensions();
+        // The width (shoulder to shoulder) and length (nose to tail)
+        let (width, length) = (dim.x, dim.y);
+        let body_radius = if length > width {
+            // Dachshund-like
+            self.max_radius()
+        } else {
+            // Cyclops-like
+            self.min_radius()
+        };
+
+        Vec3::new(
+            body_radius * ori.x * 1.1,
+            body_radius * ori.y * 1.1,
+            body_offsets_z,
+        )
+    }
 }
 
 /// Handles updating `Components` to move player based on state of `JoinData`

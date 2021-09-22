@@ -13,7 +13,7 @@ use common::{
 use common_state::BlockChange;
 use hashbrown::HashMap;
 use specs::{join::Join, Entity, Read, Write};
-use vek::Rgb;
+use vek::{Rgb, Vec3};
 
 pub fn dispatch_actions(system_data: &mut WiringData) {
     let WiringData {
@@ -113,6 +113,7 @@ fn dispatch_action_spawn_projectile(
     // NOTE: constr in RFC is about Arrow projectile
     server_emitter.emit(ServerEvent::Shoot {
         entity,
+        pos: Pos(Vec3::zero()),
         dir: Dir::forward(),
         body: Body::Object(object::Body::Arrow),
         projectile: constr.create_projectile(None, 0.0, 1.0, 1.0),
