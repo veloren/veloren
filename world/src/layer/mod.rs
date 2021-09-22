@@ -453,61 +453,71 @@ pub fn apply_caves_supplement<'a>(
                     if RandomField::new(index.seed).chance(wpos2d.into(), 0.0014)
                         && cave_base < surface_z as i32 - 40
                     {
-                        let is_hostile: bool;
-                        let entity =
-                            EntityInfo::at(Vec3::new(wpos2d.x as f32, wpos2d.y as f32, z as f32))
-                                .with_body(if cave_depth < 70.0 {
-                                    is_hostile = false;
-                                    let species = match dynamic_rng.gen_range(0..4) {
-                                        0 => comp::quadruped_small::Species::Truffler,
-                                        1 => comp::quadruped_small::Species::Dodarock,
-                                        2 => comp::quadruped_small::Species::Holladon,
-                                        _ => comp::quadruped_small::Species::Batfox,
-                                    };
-                                    comp::quadruped_small::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                } else if cave_depth < 120.0 {
-                                    is_hostile = true;
-                                    let species = match dynamic_rng.gen_range(0..3) {
-                                        0 => comp::quadruped_low::Species::Rocksnapper,
-                                        1 => comp::quadruped_low::Species::Salamander,
-                                        _ => comp::quadruped_low::Species::Asp,
-                                    };
-                                    comp::quadruped_low::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                } else if cave_depth < 190.0 {
-                                    is_hostile = true;
-                                    let species = match dynamic_rng.gen_range(0..3) {
-                                        0 => comp::quadruped_low::Species::Rocksnapper,
-                                        1 => comp::quadruped_low::Species::Lavadrake,
-                                        _ => comp::quadruped_low::Species::Basilisk,
-                                    };
-                                    comp::quadruped_low::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                } else {
-                                    is_hostile = true;
-                                    let species = match dynamic_rng.gen_range(0..5) {
-                                        0 => comp::biped_large::Species::Ogre,
-                                        1 => comp::biped_large::Species::Cyclops,
-                                        2 => comp::biped_large::Species::Wendigo,
-                                        3 => match dynamic_rng.gen_range(0..2) {
-                                            0 => comp::biped_large::Species::Blueoni,
-                                            _ => comp::biped_large::Species::Redoni,
-                                        },
-                                        _ => comp::biped_large::Species::Cavetroll,
-                                    };
-                                    comp::biped_large::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                })
-                                .with_alignment(if is_hostile {
-                                    comp::Alignment::Enemy
-                                } else {
-                                    comp::Alignment::Wild
-                                })
-                                .with_automatic_name();
+                        let entity = EntityInfo::at(wpos2d.map(|e| e as f32).with_z(z as f32));
+                        let entity = if cave_depth < 70.0 {
+                            let species = match dynamic_rng.gen_range(0..4) {
+                                0 => comp::quadruped_small::Species::Truffler,
+                                1 => comp::quadruped_small::Species::Dodarock,
+                                2 => comp::quadruped_small::Species::Holladon,
+                                _ => comp::quadruped_small::Species::Batfox,
+                            };
+                            let body =
+                                comp::quadruped_small::Body::random_with(dynamic_rng, &species);
+                            // FIXME:
+                            // Drop something.
+                            entity
+                                .with_body(body.into())
+                                .with_alignment(comp::Alignment::Wild)
+                                .with_automatic_name()
+                        } else if cave_depth < 120.0 {
+                            let species = match dynamic_rng.gen_range(0..3) {
+                                0 => comp::quadruped_low::Species::Rocksnapper,
+                                1 => comp::quadruped_low::Species::Salamander,
+                                _ => comp::quadruped_low::Species::Asp,
+                            };
+                            let body =
+                                comp::quadruped_low::Body::random_with(dynamic_rng, &species);
+                            // FIXME:
+                            // Drop something.
+                            entity
+                                .with_body(body.into())
+                                .with_alignment(comp::Alignment::Enemy)
+                                .with_automatic_name()
+                        } else if cave_depth < 190.0 {
+                            let species = match dynamic_rng.gen_range(0..3) {
+                                0 => comp::quadruped_low::Species::Rocksnapper,
+                                1 => comp::quadruped_low::Species::Lavadrake,
+                                _ => comp::quadruped_low::Species::Basilisk,
+                            };
+                            let body =
+                                comp::quadruped_low::Body::random_with(dynamic_rng, &species);
+                            // FIXME:
+                            // Drop something.
+                            entity
+                                .with_body(body.into())
+                                .with_alignment(comp::Alignment::Enemy)
+                                .with_automatic_name()
+                        } else {
+                            let species = match dynamic_rng.gen_range(0..5) {
+                                0 => comp::biped_large::Species::Ogre,
+                                1 => comp::biped_large::Species::Cyclops,
+                                2 => comp::biped_large::Species::Wendigo,
+                                3 => match dynamic_rng.gen_range(0..2) {
+                                    0 => comp::biped_large::Species::Blueoni,
+                                    _ => comp::biped_large::Species::Redoni,
+                                },
+                                _ => comp::biped_large::Species::Cavetroll,
+                            };
 
-                        // FIXME:
-                        // Drop something.
+                            let body = comp::biped_large::Body::random_with(dynamic_rng, &species);
+                            // FIXME:
+                            // Drop something.
+                            entity
+                                .with_body(body.into())
+                                .with_alignment(comp::Alignment::Enemy)
+                                .with_automatic_name()
+                        };
+
                         supplement.add_entity(entity);
                     }
                 }
