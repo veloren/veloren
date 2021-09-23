@@ -112,6 +112,9 @@ impl CharacterBehavior for Data {
             },
         }
 
+        // Allow attacks and abilities to interrupt
+        handle_wield(data, &mut update);
+
         // At end of state logic so an interrupt isn't overwritten
         handle_state_interrupt(data, &mut update, false);
 
