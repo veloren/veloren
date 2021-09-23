@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("llama"),
     alignment: Alignment(Wild),
 
-    loot: LootTable("common.loot_tables.creature.quad_medium.wool")
+    loot: LootTable("common.loot_tables.creature.quad_medium.wool"),
 
     hands: Uninit,
 

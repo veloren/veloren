@@ -3,7 +3,7 @@ EntityConfig (
     body: Exact(QuadrupedSmall(Body(species: Hare, body_type: Male))),
     alignment: Alignment(Wild),
 
-    loot: LootTable("common.loot_tables.creature.quad_small.fur")
+    loot: LootTable("common.loot_tables.creature.quad_small.fur"),
 
     hands: Uninit,
 

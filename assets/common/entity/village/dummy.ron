@@ -3,7 +3,7 @@ EntityConfig (
     body: Exact(Object(TrainingDummy)),
     alignment: Alignment(Passive),
 
-    loot: None,
+    loot: Nothing,
 
     hands: Uninit,
 

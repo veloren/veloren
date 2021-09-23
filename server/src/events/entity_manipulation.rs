@@ -2,16 +2,14 @@ use crate::{
     client::Client,
     comp::{
         agent::{Agent, AgentEvent, Sound, SoundKind},
-        biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
-        theropod, BuffKind, BuffSource, PhysicsState,
+        BuffKind, BuffSource, PhysicsState,
     },
     rtsim::RtSim,
     sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
 use common::{
-    assets::AssetExt,
     combat,
     comp::{
         self, aura, buff,
@@ -21,7 +19,7 @@ use common::{
         Inventory, Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
-    lottery::{LootSpec, Lottery},
+    lottery::LootSpec,
     outcome::Outcome,
     resources::Time,
     rtsim::RtSimEntity,
