@@ -12,6 +12,7 @@ use guillotiere::{size2, SimpleAtlasAllocator};
 use hashbrown::{hash_map::Entry, HashMap};
 use image::{DynamicImage, RgbaImage};
 use pixel_art::resize_pixel_art;
+use slab::Slab;
 use std::{hash::Hash, sync::Arc};
 use tracing::warn;
 use vek::*;
@@ -118,7 +119,9 @@ impl CachedDetails {
     }
 
     /// Attempt to invalidate this cache entry.
-    pub fn invalidate(&mut self) -> Result<(), ()> {
+    /// If invalidation is not possible this returns the index of the texture to
+    /// deallocate
+    fn invalidate(&mut self) -> Result<(), usize> {
         match self {
             Self::Atlas { ref mut valid, .. } => {
                 *valid = false;
@@ -128,7 +131,7 @@ impl CachedDetails {
                 *valid = false;
                 Ok(())
             },
-            Self::Immutable { .. } => Err(()),
+            Self::Immutable { index } => Err(*index),
         }
     }
 }
@@ -142,7 +145,7 @@ pub struct GraphicCache {
 
     // Atlases with the index of their texture in the textures vec
     atlases: Vec<(SimpleAtlasAllocator, usize)>,
-    textures: Vec<(Texture, UiTextureBindGroup)>,
+    textures: Slab<(Texture, UiTextureBindGroup)>,
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
 
@@ -157,7 +160,7 @@ impl GraphicCache {
             graphic_map: HashMap::default(),
             next_id: 0,
             atlases: vec![(atlas, 0)],
-            textures: vec![texture],
+            textures: core::iter::once((0, texture)).collect(),
             cache_map: HashMap::default(),
             keyed_jobs: KeyedJobs::new("IMAGE_PROCESSING"),
         }
@@ -179,12 +182,20 @@ impl GraphicCache {
             return;
         }
 
+        // TODO: remove with Rust 2021 edition
+        let cache_map = &mut self.cache_map;
+        let textures = &mut self.textures;
+
         // Remove from caches
         // Maybe make this more efficient if replace graphic is used more often
-        self.cache_map.retain(|&(key_id, _key_dims), details| {
+        cache_map.retain(|&(key_id, _key_dims), details| {
             // If the entry does not reference id, or it does but we can successfully
             // invalidate, retain the entry; otherwise, discard this entry completely.
-            key_id != id || details.invalidate().is_ok()
+            key_id != id
+                || details
+                    .invalidate()
+                    .map_err(|index| textures.remove(index))
+                    .is_ok()
         });
     }
 
@@ -221,7 +232,7 @@ impl GraphicCache {
 
         let (atlas, texture) = create_atlas_texture(renderer);
         self.atlases = vec![(atlas, 0)];
-        self.textures = vec![texture];
+        self.textures = core::iter::once((0, texture)).collect();
     }
 
     /// Source rectangle should be from 0 to 1, and represents a bounding box
@@ -316,8 +327,7 @@ impl GraphicCache {
             // Create a new immutable texture.
             let texture = create_image(renderer, image, border_color);
             // NOTE: All mutations happen only after the upload succeeds!
-            let index = textures.len();
-            textures.push(texture);
+            let index = textures.insert(texture);
             CachedDetails::Immutable { index }
         } else if atlas_size
             .map2(dims, |a, d| a as f32 * ATLAS_CUTOFF_FRAC >= d as f32)
@@ -351,9 +361,8 @@ impl GraphicCache {
                         .map(aabr_from_alloc_rect)
                         .unwrap();
                     // NOTE: All mutations happen only after the texture creation succeeds!
-                    let tex_idx = textures.len();
+                    let tex_idx = textures.insert(texture);
                     let atlas_idx = atlases.len();
-                    textures.push(texture);
                     atlases.push((atlas, tex_idx));
                     upload_image(renderer, aabr, &textures[tex_idx].0, &image);
                     CachedDetails::Atlas {
@@ -371,8 +380,7 @@ impl GraphicCache {
                 (tex, bind)
             };
             // NOTE: All mutations happen only after the texture creation succeeds!
-            let index = textures.len();
-            textures.push(texture);
+            let index = textures.insert(texture);
             upload_image(
                 renderer,
                 Aabr {
