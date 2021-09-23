@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Swordepic2")),
+    ability_spec: Some(Custom("卡拉伯格技能组")),
 )

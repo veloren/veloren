@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [],
-    ability_spec: Some(Custom("Staffex")),
+    ability_spec: Some(Custom("奥拉西斯技能组")),
 )

@@ -1,12 +1,10 @@
 [
-    (0.01, Item("common.items.WECW.暗符文")),
-    // armor
-    (2.0, ItemQuantity("common.items.utility.coins",5000,15000)),
-    (0.02, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
-    (0.02, Item("common.items.crafting_ing.hide.dragon_scale")),
+    (0.015, Item("common.items.WECW.暗符文")),
+    (0.035, Item("common.items.crafting_ing.hide.dragon_scale")),
+    (0.05, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    (0.05, LootTable("common.loot_tables.weapons.epic")),
+    (0.25, LootTable("common.loot_tables.weapons.tier-5")),
     (0.5, ItemQuantity("common.items.boss_drops.potions",10,15)),
     (0.5, ItemQuantity("common.items.boss_drops.exp_flask",10,15)),
-    // weapons
-    (0.02, LootTable("common.loot_tables.weapons.epic")),
-    (0.25, LootTable("common.loot_tables.weapons.tier-5")),
+    (1.0, ItemQuantity("common.items.utility.coins",5000,15000)),
 ]

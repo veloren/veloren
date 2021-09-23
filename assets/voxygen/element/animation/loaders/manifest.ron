@@ -22,8 +22,8 @@
     ]),
     (6.0, [
         "voxygen.element.animation.loaders.coins1",
-        "voxygen.element.animation.loaders.coins2",
-        "voxygen.element.animation.loaders.coins3",
+        "voxygen.element.animation.loaders.白金币",
+        "voxygen.element.animation.loaders.暗金币",
         "voxygen.element.animation.loaders.coins4",
         "voxygen.element.animation.loaders.coins5",
     ]),

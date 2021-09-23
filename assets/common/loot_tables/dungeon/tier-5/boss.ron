@@ -9,25 +9,29 @@
     // 灾厄
     (0.01, Item("common.items.weapons.staff.laevateinn")),
     // 灵魂
-    (0.01, Item("common.items.WECW.mind")),
+    (0.01, Item("common.items.WECW.灵魂权杖")),
     // 萨顿
-    (0.01, Item("common.items.WECW.darksteel")),
+    (0.01, Item("common.items.WECW.萨顿的末日战刃")),
     // 暗灵项链
     (0.01, Item("common.items.WECW.neck.epicneck")),
     // 暗灵指环
     (0.01, Item("common.items.WECW.ring.skullg")),
     // 紫晶
     (0.01, Item("common.items.lantern.geode_purp")),
+    // 2-3个龙鳞
+    (0.05, ItemQuantity("common.items.crafting_ing.hide.dragon_scale",2,3)),
     // 龙鳞
-    (0.2, ItemQuantity("common.items.crafting_ing.hide.dragon_scale",1,3)),
+    (0.2, Item("common.items.crafting_ing.hide.dragon_scale")),
     // 紫灯
     (0.2, Item("common.items.boss_drops.lantern")),
     // 滑翔伞
     (0.2, Item("common.items.glider.glider_purp")),
+    // 2-4个破布
+    (0.2, ItemQuantity("common.items.crafting_ing.mindflayer_bag_damaged",2,4)),
     // 无敌药水
     (0.3, ItemQuantity("common.items.boss_drops.xp_potion",1,5)),
     // 破布
-    (0.4, ItemQuantity("common.items.crafting_ing.mindflayer_bag_damaged",1,3)),
+    (0.4, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
     // 白金
-    (1.0, ItemQuantity("common.items.WECW.coins2",66,200)),
+    (1.0, ItemQuantity("common.items.WECW.白金币",66,200)),
 ]

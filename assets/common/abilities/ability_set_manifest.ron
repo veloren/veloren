@@ -8,7 +8,7 @@
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
         ],
     ),
-    Custom("greatSword"): (
+    Custom("金单双手剑技能组"): (
         primary: "common.abilities.sword.triplestrikegreat",
         secondary: "common.abilities.sword.dashgreat",
         abilities: [
@@ -22,28 +22,28 @@
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spingreatEX"),
         ],
     ),
-    Custom("EXSword"): (
+    Custom("乌菲尔技能组"): (
         primary: "common.abilities.sword.triplestrikegreatEX",
         secondary: "common.abilities.sword.dashgreatEX",
         abilities: [
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spingreatEX"),
         ],
     ),
-    Custom("windSword"): (
+    Custom("风暴使者技能组"): (
         primary: "common.abilities.sword.triplestrikegreat",
         secondary: "common.abilities.sword.dash",
         abilities: [
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spinwind"),
         ],
     ),
-    Custom("Swordepic"): (
+    Custom("附魔的巨剑技能组"): (
         primary: "common.abilities.sword.triplestrikeepic",
         secondary: "common.abilities.sword.dash",
         abilities: [
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
         ],
     ),
-    Custom("Swordepic2"): (
+    Custom("卡拉伯格技能组"): (
         primary: "common.abilities.sword.triplestrike",
         secondary: "common.abilities.sword.dash",
         abilities: [
@@ -58,7 +58,7 @@
             (Some(Axe(UnlockLeap)), "common.abilities.axe.cripplingstrike"),
         ],
     ),
-    Custom("Axeepic"): (
+    Custom("孔雀石斧技能组"): (
         primary: "common.abilities.axe.doublestrike",
         secondary: "common.abilities.axe.spin",
         abilities: [
@@ -66,7 +66,7 @@
             (Some(Axe(UnlockLeap)), "common.abilities.axe.cripplingstrikeex"),
         ],
     ),
-    Custom("greatAxe"): (
+    Custom("深蓝-遗忘-埃尔技能组"): (
         primary: "common.abilities.axe.doublestrikegreat",
         secondary: "common.abilities.axe.spingreat",
         abilities: [
@@ -82,7 +82,7 @@
             (Some(Hammer(UnlockLeap)), "common.abilities.hammer.shockwave"),
         ],
     ),
-    Custom("fireHammer"): (
+    Custom("熔火之心技能组"): (
         primary: "common.abilities.hammer.firesinglestrike",
         secondary: "common.abilities.hammer.firecharged",
         abilities: [
@@ -90,7 +90,7 @@
             (Some(Hammer(UnlockLeap)), "common.abilities.hammer.fireshockwave"),
         ],
     ),
-    Custom("holyHammer"): (
+    Custom("帕拉丁战锤技能组"): (
         primary: "common.abilities.hammer.singlestrikeholy",
         secondary: "common.abilities.hammer.chargedgreat",
         abilities: [
@@ -98,7 +98,7 @@
             (Some(Hammer(UnlockLeap)), "common.abilities.hammer.holy"),
         ],
     ),
-    Custom("greatHammer"): (
+    Custom("山铜锤技能组"): (
         primary: "common.abilities.hammer.greatsinglestrike",
         secondary: "common.abilities.hammer.greatcharged",
         abilities: [
@@ -106,7 +106,7 @@
             (Some(Hammer(UnlockLeap)), "common.abilities.hammer.shockwave"),
         ],
     ),
-    Custom("Hammerice"): (
+    Custom("冰风暴技能组"): (
         primary: "common.abilities.hammer.icesinglestrike",
         secondary: "common.abilities.hammer.icecharged",
         abilities: [
@@ -114,7 +114,7 @@
             (Some(Hammer(UnlockLeap)), "common.abilities.hammer.iceshockwave"),
         ],
     ),
-    Custom("Hammerdark"): (
+    Custom("冲击锤技能组"): (
         primary: "common.abilities.hammer.singlestrike",
         secondary: "common.abilities.hammer.charged",
         abilities: [
@@ -129,21 +129,21 @@
             (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
         ],
     ),
-    Custom("Bowepic"): (
+    Custom("魔法弓技能组"): (
         primary: "common.abilities.bow.charged",
         secondary: "common.abilities.bow.repeater",
         abilities: [
             (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgunepic"),
         ],
     ),
-    Custom("Bowex"): (
+    Custom("旭日弓技能组"): (
         primary: "common.abilities.bow.charged",
         secondary: "common.abilities.bow.repeater",
         abilities: [
             (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgunexg"),
         ],
     ),
-    Custom("Bowexg"): (
+    Custom("奥能旭日技能组"): (
         primary: "common.abilities.bow.chargedexg",
         secondary: "common.abilities.bow.repeaterexg",
         abilities: [
@@ -199,21 +199,21 @@
             (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
         ],
     ),
-    Custom("Staffp"): (
+    Custom("凤凰之杖技能组"): (
         primary: "common.abilities.staff.firebomb_damage",
         secondary: "common.abilities.staff.flamethrower",
         abilities: [
             (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwaveg"),
         ],
     ),
-    Custom("Staffl"): (
+    Custom("灾厄之杖技能组"): (
         primary: "common.abilities.staff.firebomb_speed",
         secondary: "common.abilities.staff.flamethrowerg",
         abilities: [
             (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
         ],
     ),
-    Custom("Staffex"): (
+    Custom("奥拉西斯技能组"): (
         primary: "common.abilities.staff.firebombex",
         secondary: "common.abilities.staff.frozenflames",
         abilities: [
@@ -228,21 +228,21 @@
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
     ),
-    Custom("Sceptreepic"): (
+    Custom("恶魔权杖技能组"): (
         primary: "common.abilities.sceptre.lifestealbeam",
         secondary: "common.abilities.sceptre.healingauraepic",
         abilities: [
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
     ),
-    Custom("Sceptreepic2"): (
+    Custom("灵魂权杖技能组"): (
         primary: "common.abilities.sceptre.lifestealbeam",
         secondary: "common.abilities.sceptre.healingaura",
         abilities: [
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingauraepic"),
         ],
     ),
-    Custom("Sceptreex"): (
+    Custom("理智的摧残者权杖技能组"): (
         primary: "common.abilities.staff.mindflayer",
         secondary: "common.abilities.staff.cursedflames",
         abilities: [
@@ -250,7 +250,7 @@
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingauraexg"),
         ],
     ),
-    Custom("Sceptremp"): (
+    Custom("魔法权杖技能组"): (
         primary: "common.abilities.sceptre.lifestealbeam",
         secondary: "common.abilities.sceptre.healingaura",
         abilities: [
@@ -258,7 +258,7 @@
             (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingauraexmp"),
         ],
     ),
-    Custom("Sceptrehp"): (
+    Custom("神使权杖技能组"): (
         primary: "common.abilities.sceptre.lifestealbeam",
         secondary: "common.abilities.sceptre.healingaura",
         abilities: [

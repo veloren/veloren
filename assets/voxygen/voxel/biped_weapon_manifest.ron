@@ -27,88 +27,88 @@
         vox_spec: ("weapon.sword.cultist", (-1.5, -4.0, -6.0)),
         color: None
     ),
-    "common.items.WECW.mindflayer": (
-        vox_spec: ("armor.warlordG.mindflayer", (-5.5, -3.5, -8.0)),
+    "common.items.WECW.理智的摧残者": (
+        vox_spec: ("armor.warlordG.理智的摧残者", (-5.5, -3.5, -8.0)),
         color: None
     ),
-    "common.items.WECW.mind": (
-        vox_spec: ("armor.warlordG.mind", (-3.5, -5.5, -8.0)),
+    "common.items.WECW.灵魂权杖": (
+        vox_spec: ("armor.warlordG.灵魂权杖", (-3.5, -5.5, -8.0)),
         color: None
     ),
-    "common.items.WECW.stormgreatsword": (
-        vox_spec: ("armor.warlordG.stormgreatsword", (-3.5, -4.5, -4.0)),
+    "common.items.WECW.风暴大剑": (
+        vox_spec: ("armor.warlordG.风暴大剑", (-3.5, -4.5, -4.0)),
         color: None
     ),
-    "common.items.WECW.forgottenaxe": (
-        vox_spec: ("armor.warlordG.forgottenaxe", (-2.5, -12.0, -9.0)),
+    "common.items.WECW.遗忘战斧": (
+        vox_spec: ("armor.warlordG.遗忘战斧", (-2.5, -12.0, -9.0)),
         color: None
     ),
-    "common.items.WECW.exsteelaxe": (
-        vox_spec: ("armor.warlordG.exsteelaxe", (-2.5, -10.0, -6.0)),
+    "common.items.WECW.深蓝使者": (
+        vox_spec: ("armor.warlordG.深蓝使者", (-2.5, -10.0, -6.0)),
         color: None
     ),
-    "common.items.WECW.eriandor": (
-        vox_spec: ("armor.warlordG.eriandor", (-3.5, -14.0, -12.0)),
+    "common.items.WECW.埃尔安多": (
+        vox_spec: ("armor.warlordG.埃尔安多", (-3.5, -14.0, -12.0)),
         color: None
     ),
-    "common.items.WECW.caladbolgG": (
-        vox_spec: ("armor.warlordG.caladbolgG", (-2.5, -7.0, -7.0)),
+    "common.items.WECW.风暴使者": (
+        vox_spec: ("armor.warlordG.风暴使者", (-2.5, -7.0, -7.0)),
         color: None
     ),
-    "common.items.WECW.caladbolgEXG": (
+    "common.items.WECW.乌菲尔": (
         vox_spec: ("armor.warlordG.goldsword", (-2.5, -5.5, -6.8)),
         color: None
     ),
-    "common.items.WECW.caladbolgex": (
+    "common.items.WECW.灵魂风暴": (
         vox_spec: ("armor.warlordG.HGX", (-2.5, -5.5, -6.5)),
         color: None
     ),
-    "common.items.WECW.darkhammerex": (
-        vox_spec: ("armor.warlordG.darkhammerex", (-4.5, -11.5, -5.5)),
+    "common.items.WECW.熔火之心": (
+        vox_spec: ("armor.warlordG.熔火之心", (-4.5, -11.5, -5.5)),
         color: None
     ),
-    "common.items.WECW.holyhammer": (
-        vox_spec: ("armor.warlordG.holyhammer", (-3.5, -8.5, -7.0)),
+    "common.items.WECW.帕拉丁战锤": (
+        vox_spec: ("armor.warlordG.帕拉丁战锤", (-3.5, -8.5, -7.0)),
         color: None
     ),
-    "common.items.WECW.holysword": (
-        vox_spec: ("armor.warlordG.holysword", (-1.5, -6.5, -6.5)),
+    "common.items.WECW.白金巨剑": (
+        vox_spec: ("armor.warlordG.白金巨剑", (-1.5, -6.5, -6.5)),
         color: None
     ),
-    "common.items.WECW.darksteel": (
-        vox_spec: ("armor.warlordG.darksteel", (-1.5, -5.5, -8.5)),
+    "common.items.WECW.萨顿的末日战刃": (
+        vox_spec: ("armor.warlordG.萨顿的末日战刃", (-1.5, -5.5, -8.5)),
         color: None
     ),
     "common.items.WECW.放逐之刃": (
         vox_spec: ("armor.warlordG.放逐之刃", (-1.5, -5.5, -8.5)),
         color: None
     ),
-    "common.items.WECW.darksteel2": (
-        vox_spec: ("armor.warlordG.darksteel2", (-1.5, -9.5, -6.0)),
+    "common.items.WECW.暗金巨像刃": (
+        vox_spec: ("armor.warlordG.暗金巨像刃", (-1.5, -9.5, -6.0)),
         color: None
     ),
-    "common.items.WECW.darkaxe": (
-        vox_spec: ("armor.warlordG.darkaxe", (-1.0, -7.0, -9.5)),
+    "common.items.WECW.暗金切割者": (
+        vox_spec: ("armor.warlordG.暗金切割者", (-1.0, -7.0, -9.5)),
         color: None
     ),
-    "common.items.WECW.darkhammer": (
-        vox_spec: ("armor.warlordG.darkhammer", (-4.5, -11.0, -4.0)),
+    "common.items.WECW.暗金冲击锤": (
+        vox_spec: ("armor.warlordG.暗金冲击锤", (-4.5, -11.0, -4.0)),
         color: None
     ),
-    "common.items.WECW.icehammer": (
-        vox_spec: ("armor.warlordG.icehammer", (-3.0, -9.0, -4.0)),
+    "common.items.WECW.冰风暴": (
+        vox_spec: ("armor.warlordG.冰风暴", (-3.0, -9.0, -4.0)),
         color: None
     ),
-    "common.items.WECW.bow": (
-        vox_spec: ("armor.warlordG.bow", (-7.0, -10.5, -19.5)),
+    "common.items.WECW.旭日击破者": (
+        vox_spec: ("armor.warlordG.旭日击破者", (-7.0, -10.5, -19.5)),
         color: None
     ),
-    "common.items.WECW.exbow": (
-        vox_spec: ("armor.warlordG.exbow", (-7.0, -11.0, -23.0)),
+    "common.items.WECW.旭日击破者-觉醒": (
+        vox_spec: ("armor.warlordG.旭日击破者-觉醒", (-7.0, -11.0, -23.0)),
         color: None
     ),
-    "common.items.WECW.exbowg": (
-        vox_spec: ("armor.warlordG.exbowg", (-6.0, -16.0, -25.0)),
+    "common.items.WECW.旭日击破者-奥能": (
+        vox_spec: ("armor.warlordG.旭日击破者-奥能", (-6.0, -16.0, -25.0)),
         color: None
     ),
     "common.items.WECW.velorite.staffex": (

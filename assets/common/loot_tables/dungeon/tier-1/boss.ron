@@ -14,5 +14,5 @@
     // 蓝灯
     (0.8, Item("common.items.lantern.blue_0")),
     // 白金币
-    (1.0, ItemQuantity("common.items.WECW.coins2", 10, 20)),
+    (1.0, ItemQuantity("common.items.WECW.白金币", 10, 20)),
 ]

@@ -6,10 +6,6 @@
 //
 // Please keep it sorted by rarity so it's easier to reason about things
 [
-    // Stones
-    (0.25, Item("common.items.mineral.ore.velorite")),
-    (0.5, Item("common.items.mineral.ore.veloritefrag")),
-    (4.0, Item("common.items.crafting_ing.stones")),
 
     // Ores
     (0.5, Item("common.items.mineral.ore.velorite")),

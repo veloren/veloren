@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [],
-    ability_spec: Some(Custom("Staffp")),
+    ability_spec: Some(Custom("凤凰之杖技能组")),
 )

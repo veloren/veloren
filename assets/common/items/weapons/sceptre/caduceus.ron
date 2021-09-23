@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [],
-    ability_spec: Some(Custom("Sceptrehp")),
+    ability_spec: Some(Custom("神使权杖技能组")),
 )

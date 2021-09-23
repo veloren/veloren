@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Legendary,
     tags: [],
-    ability_spec: Some(Custom("Sceptreepic")),
+    ability_spec: Some(Custom("恶魔权杖技能组")),
 )

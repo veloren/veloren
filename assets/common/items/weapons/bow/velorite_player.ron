@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Bowepic")),
+    ability_spec: Some(Custom("魔法弓技能组")),
 )

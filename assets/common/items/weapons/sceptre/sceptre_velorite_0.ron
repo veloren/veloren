@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Sceptremp")),
+    ability_spec: Some(Custom("魔法权杖技能组")),
 )

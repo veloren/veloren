@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Swordepic")),
+    ability_spec: Some(Custom("附魔的巨剑技能组")),
 )

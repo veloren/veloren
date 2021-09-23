@@ -40,4 +40,5 @@
 * DONE 减少T1本难度
 * TODO 创建Veloren国内论坛
 * TODO 调整Spot站点
-* TODO 添加觉醒武器专属合成
+* DONE 添加觉醒武器专属合成
+* TODO 将所有WECW文件更改为汉字

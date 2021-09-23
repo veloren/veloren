@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("greatHammer")),
+    ability_spec: Some(Custom("山铜锤技能组")),
 )

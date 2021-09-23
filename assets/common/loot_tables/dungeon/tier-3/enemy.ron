@@ -1,7 +1,7 @@
 [
-    (0.001, Item("common.items.WECW.土符文")),
-    (1.0, LootTable("common.loot_tables.humanoids")),
+    (0.0025, Item("common.items.WECW.土符文")),
+    (0.15, LootTable("common.loot_tables.weapons.tier-4")),
     (0.25, LootTable("common.loot_tables.weapons.tier-3")),
-    (0.05, LootTable("common.loot_tables.weapons.tier-4")),
-    (3.5, ItemQuantity("common.items.utility.coins", 150, 350)),
+    (0.5, LootTable("common.loot_tables.humanoids")),
+    (1.0, ItemQuantity("common.items.utility.coins", 150, 350)),
 ]

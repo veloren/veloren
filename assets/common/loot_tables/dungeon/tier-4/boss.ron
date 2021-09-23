@@ -1,10 +1,10 @@
 [
     // 暗金冲击锤
-    (0.01, Item("common.items.WECW.darkhammer")),
+    (0.01, Item("common.items.WECW.暗金冲击锤")),
     // 遗忘战斧
-    (0.01, Item("common.items.WECW.forgottenaxe")),
+    (0.01, Item("common.items.WECW.遗忘战斧")),
     // 暗金切割者
-    (0.01, Item("common.items.WECW.darkaxe")),
+    (0.01, Item("common.items.WECW.暗金切割者")),
     // 暗灵项链
     (0.01, Item("common.items.WECW.neck.epicneck")),
     // 暗灵戒指
@@ -19,10 +19,12 @@
     (0.2, Item("common.items.boss_drops.lantern")),
     // 龙鳞
     (0.2, Item("common.items.crafting_ing.hide.dragon_scale")),
+    // 2-4个破布
+    (0.2, ItemQuantity("common.items.crafting_ing.mindflayer_bag_damaged",2,3)),
     // 无敌药水
     (0.3, ItemQuantity("common.items.boss_drops.xp_potion",1,5)),
     // 破布
     (0.4, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
     // 白金币
-    (1.0, ItemQuantity("common.items.WECW.coins2", 50, 100)),
+    (1.0, ItemQuantity("common.items.WECW.白金币", 50, 100)),
 ]

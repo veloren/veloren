@@ -1,12 +1,11 @@
 [
-    (0.01, Item("common.items.WECW.金符文")),
     // weapons
-    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (0.01, Item("common.items.WECW.darksteel2")),
+    (0.01, Item("common.items.WECW.暗金巨像刃")),
+    (0.015, Item("common.items.WECW.金符文")),
     // materials
-    (3.0, ItemQuantity("common.items.utility.coins", 2000, 15000)),
     (0.5, ItemQuantity("common.items.consumable.potion_med", 5, 10)),
-    (0.03, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
     (0.5, Item("common.items.armor.misc.back.dungeon_purple")),
     (0.5, Item("common.items.armor.misc.ring.skull")),
+    (1.0, ItemQuantity("common.items.utility.coins", 2000, 15000)),
+    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
 ]

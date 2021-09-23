@@ -1,13 +1,10 @@
 [
-    (0.001, Item("common.items.WECW.暗符文")),
+    (0.003, Item("common.items.WECW.暗符文")),
+    (0.03, Item("common.items.crafting_ing.hide.dragon_scale")),
+    (0.05, Item("common.items.armor.misc.back.backpack")),
     (0.05, LootTable("common.loot_tables.weapons.tier-5")),
-    (0.05, Item("common.items.glider.glider_blue")),
-    (0.005, Item("common.items.armor.misc.back.backpack")),
     (0.1, Item("common.items.boss_drops.potions")),
     (0.1, Item("common.items.boss_drops.exp_flask")),
     (0.5, Item("common.items.food.cheese")),
-    (0.001, Item("common.items.crafting_ing.hide.dragon_scale")),
-    (0.001, ItemQuantity("common.items.boss_drops.potions",10,25)),
-    (0.001, ItemQuantity("common.items.boss_drops.exp_flask",10,25)),
-    (3.5, ItemQuantity("common.items.utility.coins",300,900)),
+    (1.0, ItemQuantity("common.items.utility.coins",300,900)),
 ]

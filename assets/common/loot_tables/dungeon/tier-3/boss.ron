@@ -1,6 +1,6 @@
 [
     // 风暴大剑
-    (0.01, Item("common.items.WECW.stormgreatsword")),
+    (0.01, Item("common.items.WECW.风暴大剑")),
     // 守护项链
     (0.1, Item("common.items.WECW.neck.highneck")),
     // 祝福项链
@@ -22,5 +22,5 @@
     // 大药水
     (0.6, ItemQuantity("common.items.consumable.potion_big", 15, 45)),
     // 白金币
-    (1.0, ItemQuantity("common.items.WECW.coins2", 20, 50)),
+    (1.0, ItemQuantity("common.items.WECW.白金币", 20, 50)),
 ]

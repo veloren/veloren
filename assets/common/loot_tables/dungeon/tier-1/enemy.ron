@@ -1,8 +1,8 @@
 [
-    (0.001, Item("common.items.WECW.火符文")),
-    (1.0, LootTable("common.loot_tables.humanoids")),
-    (0.5, LootTable("common.loot_tables.armor.leather")),
+    (0.0025, Item("common.items.WECW.火符文")),
     (0.25, LootTable("common.loot_tables.weapons.tier-1")),
-    (1.0, Item("common.items.crafting_ing.sticky_thread")),
-    (5.0, ItemQuantity("common.items.utility.coins", 10, 150)),
+    (0.5, LootTable("common.loot_tables.armor.leather")),
+    (0.5, LootTable("common.loot_tables.humanoids")),
+    (0.7, Item("common.items.crafting_ing.sticky_thread")),
+    (1.0, ItemQuantity("common.items.utility.coins", 10, 150)),
 ]

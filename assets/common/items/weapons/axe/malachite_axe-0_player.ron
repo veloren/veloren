@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Axeepic")),
+    ability_spec: Some(Custom("孔雀石斧技能组")),
 )
