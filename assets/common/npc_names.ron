@@ -1120,6 +1120,10 @@
                 keyword: "roc",
                 generic: "Roc"
             ),
+            wyvern_flame: (
+                keyword: "wyvern_flame",
+                generic: "Flame Wyvern"
+            ),
         )
     ),
     quadruped_low: (

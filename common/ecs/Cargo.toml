@@ -16,4 +16,4 @@ specs = { git = "https://github.com/amethyst/specs.git", features = ["serde", "s
 
 [dev-dependencies]
 #bench
-float-cmp = "0.8.0"
+float-cmp = "0.9.0"

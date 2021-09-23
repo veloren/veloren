@@ -37,13 +37,6 @@ impl Animation for StunnedAnimation {
         let twitch2 = mirror * (twitch * 20.0).sin() * pullback;
         let movement1abs = movement1base * pullback;
 
-        next.head.scale = Vec3::one() * 0.98;
-        next.neck.scale = Vec3::one() * 1.02;
-        next.leg_l.scale = Vec3::one() * 0.98;
-        next.leg_r.scale = Vec3::one() * 0.98;
-        next.foot_l.scale = Vec3::one() * 1.02;
-        next.foot_r.scale = Vec3::one() * 1.02;
-
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + wave_slow_cos * 0.06);
         next.chest.orientation = Quaternion::rotation_x(movement1base * 0.5);
 

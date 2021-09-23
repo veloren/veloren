@@ -66,6 +66,7 @@ pub enum ServerEvent {
     Respawn(EcsEntity),
     Shoot {
         entity: EcsEntity,
+        pos: Pos,
         dir: Dir,
         body: comp::Body,
         light: Option<comp::LightEmitter>,

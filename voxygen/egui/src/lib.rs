@@ -3,7 +3,9 @@
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
 
+mod admin;
 mod character_states;
+mod widgets;
 
 use client::{Client, Join, World, WorldExt};
 use common::{
@@ -14,17 +16,17 @@ use core::mem;
 use egui::{
     plot::{Plot, Value},
     widgets::plot::Curve,
-    CollapsingHeader, Color32, Grid, Label, Pos2, ScrollArea, Slider, Ui, Window,
+    CollapsingHeader, Color32, Grid, Pos2, ScrollArea, Slider, Ui, Window,
 };
 
-fn two_col_row(ui: &mut Ui, label: impl Into<Label>, content: impl Into<Label>) {
-    ui.label(label);
-    ui.label(content);
-    ui.end_row();
-}
-
-use crate::character_states::draw_char_state_group;
-use common::comp::{aura::AuraKind::Buff, Body, Fluid};
+use crate::{
+    admin::draw_admin_commands_window, character_states::draw_char_state_group,
+    widgets::two_col_row,
+};
+use common::{
+    cmd::ChatCommand,
+    comp::{aura::AuraKind::Buff, Body, Fluid},
+};
 use egui_winit_platform::Platform;
 use std::time::Duration;
 #[cfg(feature = "use-dyn-lib")]
@@ -58,6 +60,24 @@ impl SelectedEntityInfo {
     }
 }
 
+pub struct AdminCommandState {
+    give_item_qty: u32,
+    give_item_selected_idx: usize,
+    give_item_search_text: String,
+    kits_selected_idx: usize,
+}
+
+impl AdminCommandState {
+    fn new() -> Self {
+        Self {
+            give_item_qty: 1,
+            give_item_selected_idx: 0,
+            give_item_search_text: String::new(),
+            kits_selected_idx: 0,
+        }
+    }
+}
+
 pub struct EguiDebugInfo {
     pub frame_time: Duration,
     pub ping_ms: f64,
@@ -65,13 +85,16 @@ pub struct EguiDebugInfo {
 
 pub struct EguiInnerState {
     selected_entity_info: Option<SelectedEntityInfo>,
+    admin_command_state: AdminCommandState,
     max_entity_distance: f32,
     selected_entity_cylinder_height: f32,
     frame_times: Vec<f32>,
+    windows: EguiWindows,
 }
 
 #[derive(Clone, Default)]
 pub struct EguiWindows {
+    admin_commands: bool,
     egui_inspection: bool,
     egui_settings: bool,
     egui_memory: bool,
@@ -82,15 +105,17 @@ pub struct EguiWindows {
 impl Default for EguiInnerState {
     fn default() -> Self {
         Self {
+            admin_command_state: AdminCommandState::new(),
             selected_entity_info: None,
             max_entity_distance: 100000.0,
             selected_entity_cylinder_height: 10.0,
             frame_times: Vec::new(),
+            windows: EguiWindows::default(),
         }
     }
 }
 
-pub enum DebugShapeAction {
+pub enum EguiDebugShapeAction {
     AddCylinder {
         radius: f32,
         height: f32,
@@ -103,9 +128,14 @@ pub enum DebugShapeAction {
     },
 }
 
+pub enum EguiAction {
+    ChatCommand { cmd: ChatCommand, args: Vec<String> },
+    DebugShape(EguiDebugShapeAction),
+}
+
 #[derive(Default)]
 pub struct EguiActions {
-    pub actions: Vec<DebugShapeAction>,
+    pub actions: Vec<EguiAction>,
 }
 
 #[cfg(feature = "use-dyn-lib")]
@@ -114,7 +144,6 @@ pub fn init() { lazy_static::initialize(&LIB); }
 pub fn maintain(
     platform: &mut Platform,
     egui_state: &mut EguiInnerState,
-    egui_windows: &mut EguiWindows,
     client: &Client,
     debug_info: Option<EguiDebugInfo>,
     added_cylinder_shape_id: Option<u64>,
@@ -124,7 +153,6 @@ pub fn maintain(
         maintain_egui_inner(
             platform,
             egui_state,
-            egui_windows,
             client,
             debug_info,
             added_cylinder_shape_id,
@@ -141,7 +169,6 @@ pub fn maintain(
             fn(
                 &mut Platform,
                 &mut EguiInnerState,
-                &mut EguiWindows,
                 &Client,
                 Option<EguiDebugInfo>,
                 Option<u64>,
@@ -160,7 +187,6 @@ pub fn maintain(
         maintain_fn(
             platform,
             egui_state,
-            egui_windows,
             client,
             debug_info,
             added_cylinder_shape_id,
@@ -172,7 +198,6 @@ pub fn maintain(
 pub fn maintain_egui_inner(
     platform: &mut Platform,
     egui_state: &mut EguiInnerState,
-    egui_windows: &mut EguiWindows,
     client: &Client,
     debug_info: Option<EguiDebugInfo>,
     added_cylinder_shape_id: Option<u64>,
@@ -184,6 +209,7 @@ pub fn maintain_egui_inner(
     let mut previous_selected_entity: Option<SelectedEntityInfo> = None;
     let mut max_entity_distance = egui_state.max_entity_distance;
     let mut selected_entity_cylinder_height = egui_state.selected_entity_cylinder_height;
+    let mut windows = egui_state.windows.clone();
 
     // If a debug cylinder was added in the last frame, store it against the
     // selected entity
@@ -216,8 +242,9 @@ pub fn maintain_egui_inner(
             });
             ui.group(|ui| {
                 ui.vertical(|ui| {
-                    ui.checkbox(&mut egui_windows.ecs_entities, "ECS Entities");
-                    ui.checkbox(&mut egui_windows.frame_time, "Frame Time");
+                    ui.checkbox(&mut windows.admin_commands, "Admin Commands");
+                    ui.checkbox(&mut windows.ecs_entities, "ECS Entities");
+                    ui.checkbox(&mut windows.frame_time, "Frame Time");
                 });
             });
 
@@ -225,36 +252,36 @@ pub fn maintain_egui_inner(
                 ui.vertical(|ui| {
                     ui.label("Show EGUI Windows");
                     ui.horizontal(|ui| {
-                        ui.checkbox(&mut egui_windows.egui_inspection, "🔍 Inspection");
-                        ui.checkbox(&mut egui_windows.egui_settings, "🔧 Settings");
-                        ui.checkbox(&mut egui_windows.egui_memory, "📝 Memory");
+                        ui.checkbox(&mut windows.egui_inspection, "🔍 Inspection");
+                        ui.checkbox(&mut windows.egui_settings, "🔧 Settings");
+                        ui.checkbox(&mut windows.egui_memory, "📝 Memory");
                     })
                 })
             });
         });
 
     Window::new("🔧 Settings")
-        .open(&mut egui_windows.egui_settings)
+        .open(&mut windows.egui_settings)
         .scroll(true)
         .show(ctx, |ui| {
             ctx.settings_ui(ui);
         });
     Window::new("🔍 Inspection")
-        .open(&mut egui_windows.egui_inspection)
+        .open(&mut windows.egui_inspection)
         .scroll(true)
         .show(ctx, |ui| {
             ctx.inspection_ui(ui);
         });
 
     Window::new("📝 Memory")
-        .open(&mut egui_windows.egui_memory)
+        .open(&mut windows.egui_memory)
         .resizable(false)
         .show(ctx, |ui| {
             ctx.memory_ui(ui);
         });
 
     Window::new("Frame Time")
-        .open(&mut egui_windows.frame_time)
+        .open(&mut windows.frame_time)
         .default_width(200.0)
         .default_height(200.0)
         .show(ctx, |ui| {
@@ -268,14 +295,14 @@ pub fn maintain_egui_inner(
             ui.add(plot);
         });
 
-    if egui_windows.ecs_entities {
+    if windows.ecs_entities {
         let ecs = client.state().ecs();
 
         let positions = client.state().ecs().read_storage::<comp::Pos>();
         let client_pos = positions.get(client.entity());
 
         egui::Window::new("ECS Entities")
-            .open(&mut egui_windows.ecs_entities)
+            .open(&mut windows.ecs_entities)
             .default_width(500.0)
             .default_height(500.0)
             .show(ctx, |ui| {
@@ -333,10 +360,12 @@ pub fn maintain_egui_inner(
                                         mem::take(&mut egui_state.selected_entity_info);
 
                                     if pos.is_some() {
-                                        egui_actions.actions.push(DebugShapeAction::AddCylinder {
-                                            radius: 1.0,
-                                            height: egui_state.selected_entity_cylinder_height,
-                                        });
+                                        egui_actions.actions.push(EguiAction::DebugShape(
+                                            EguiDebugShapeAction::AddCylinder {
+                                                radius: 1.0,
+                                                height: egui_state.selected_entity_cylinder_height,
+                                            },
+                                        ));
                                     }
                                     egui_state.selected_entity_info =
                                         Some(SelectedEntityInfo::new(entity.id()));
@@ -403,11 +432,20 @@ pub fn maintain_egui_inner(
         }
     }
 
+    draw_admin_commands_window(
+        ctx,
+        &mut egui_state.admin_command_state,
+        &mut windows,
+        &mut egui_actions,
+    );
+
     if let Some(previous) = previous_selected_entity {
         if let Some(debug_shape_id) = previous.debug_shape_id {
             egui_actions
                 .actions
-                .push(DebugShapeAction::RemoveShape(debug_shape_id));
+                .push(EguiAction::DebugShape(EguiDebugShapeAction::RemoveShape(
+                    debug_shape_id,
+                )));
         }
     };
 
@@ -416,19 +454,22 @@ pub fn maintain_egui_inner(
             if (egui_state.selected_entity_cylinder_height - selected_entity_cylinder_height).abs()
                 > f32::EPSILON
             {
-                egui_actions
-                    .actions
-                    .push(DebugShapeAction::RemoveShape(debug_shape_id));
-                egui_actions.actions.push(DebugShapeAction::AddCylinder {
-                    radius: 1.0,
-                    height: selected_entity_cylinder_height,
-                });
+                egui_actions.actions.push(EguiAction::DebugShape(
+                    EguiDebugShapeAction::RemoveShape(debug_shape_id),
+                ));
+                egui_actions.actions.push(EguiAction::DebugShape(
+                    EguiDebugShapeAction::AddCylinder {
+                        radius: 1.0,
+                        height: selected_entity_cylinder_height,
+                    },
+                ));
             }
         }
     };
 
     egui_state.max_entity_distance = max_entity_distance;
     egui_state.selected_entity_cylinder_height = selected_entity_cylinder_height;
+    egui_state.windows = windows;
     egui_actions
 }
 
@@ -481,11 +522,13 @@ fn selected_entity_window(
     {
         if let Some(pos) = pos {
             if let Some(shape_id) = selected_entity_info.debug_shape_id {
-                egui_actions.actions.push(DebugShapeAction::SetPosAndColor {
-                    id: shape_id,
-                    color: [1.0, 1.0, 0.0, 0.5],
-                    pos: [pos.0.x, pos.0.y, pos.0.z + 2.0, 0.0],
-                });
+                egui_actions.actions.push(EguiAction::DebugShape(
+                    EguiDebugShapeAction::SetPosAndColor {
+                        id: shape_id,
+                        color: [1.0, 1.0, 0.0, 0.5],
+                        pos: [pos.0.x, pos.0.y, pos.0.z + 2.0, 0.0],
+                    },
+                ));
             }
         };
 

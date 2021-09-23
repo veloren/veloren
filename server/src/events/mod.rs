@@ -71,13 +71,16 @@ impl Server {
                 ServerEvent::Bonk { pos, owner, target } => handle_bonk(self, pos, owner, target),
                 ServerEvent::Shoot {
                     entity,
+                    pos,
                     dir,
                     body,
                     light,
                     projectile,
                     speed,
                     object,
-                } => handle_shoot(self, entity, dir, body, light, projectile, speed, object),
+                } => handle_shoot(
+                    self, entity, pos, dir, body, light, projectile, speed, object,
+                ),
                 ServerEvent::Shockwave {
                     properties,
                     pos,

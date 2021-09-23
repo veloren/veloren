@@ -286,7 +286,11 @@ impl<'frame> Drawer<'frame> {
         (0..bloom::NUM_SIZES - 1).for_each(|index| {
             let bind = &bloom_binds[index].bind_group;
             let view = &bloom_tgts[index + 1];
-            // Do filtering out of non-bright things during the first downsample
+            // Do filtering during the first downsample
+            // NOTE: We currently blur all things without filtering by brightness.
+            // This is left in for those that might want to experminent with filtering by
+            // brightness, and it is used to filter out NaNs/Infs that would infect all the
+            // pixels they are blurred with.
             let (label, pipeline) = if index == 0 {
                 (
                     format!("downsample filtered {}", index + 1),

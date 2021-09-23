@@ -33,7 +33,7 @@ num_cpus = "1.0"
 tracing = "0.1"
 vek = { version = "0.14.1", features = ["serde"] }
 futures-util = "0.3.7"
-tokio = { version = "1", default-features = false, features = ["rt"] }
+tokio = { version = "1.11", default-features = false, features = ["rt"] }
 prometheus-hyper = "0.1.2"
 quinn = "0.7.2"
 atomicwrites = "0.3.0"

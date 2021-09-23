@@ -1,6 +1,6 @@
 use crate::client::Client;
 use common::{
-    comp::{Player, Pos, Waypoint, WaypointArea},
+    comp::{PhysicsState, Player, Pos, Vel, Waypoint, WaypointArea},
     resources::Time,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -24,6 +24,8 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Waypoint>,
         ReadStorage<'a, Client>,
         Read<'a, Time>,
+        ReadStorage<'a, PhysicsState>,
+        ReadStorage<'a, Vel>,
     );
 
     const NAME: &'static str = "waypoint";
@@ -40,17 +42,33 @@ impl<'a> System<'a> for Sys {
             mut waypoints,
             clients,
             time,
+            physics_states,
+            velocities,
         ): Self::SystemData,
     ) {
-        for (entity, player_pos, _, client) in (&entities, &positions, &players, &clients).join() {
-            for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
-                if player_pos.0.distance_squared(waypoint_pos.0) < waypoint_area.radius().powi(2) {
-                    if let Ok(wp_old) = waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
+        for (entity, player_pos, _, client, physics, velocity) in (
+            &entities,
+            &positions,
+            &players,
+            &clients,
+            physics_states.maybe(),
+            &velocities,
+        )
+            .join()
+        {
+            if physics.map_or(true, |ps| ps.on_ground.is_some()) && velocity.0.z >= 0.0 {
+                for (waypoint_pos, waypoint_area) in (&positions, &waypoint_areas).join() {
+                    if player_pos.0.distance_squared(waypoint_pos.0)
+                        < waypoint_area.radius().powi(2)
                     {
-                        if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
-                            client.send_fallible(ServerGeneral::Notification(
-                                Notification::WaypointSaved,
-                            ));
+                        if let Ok(wp_old) =
+                            waypoints.insert(entity, Waypoint::new(player_pos.0, *time))
+                        {
+                            if wp_old.map_or(true, |w| w.elapsed(*time) > NOTIFY_TIME) {
+                                client.send_fallible(ServerGeneral::Notification(
+                                    Notification::WaypointSaved,
+                                ));
+                            }
                         }
                     }
                 }

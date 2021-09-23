@@ -173,6 +173,7 @@ pub fn handle_create_ship(
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,
+    pos: Pos,
     dir: Dir,
     body: Body,
     light: Option<LightEmitter>,
@@ -182,11 +183,7 @@ pub fn handle_shoot(
 ) {
     let state = server.state_mut();
 
-    let mut pos = if let Some(pos) = state.ecs().read_storage::<Pos>().get(entity) {
-        pos.0
-    } else {
-        return;
-    };
+    let pos = pos.0;
 
     let vel = *dir * speed
         + state
@@ -200,18 +197,6 @@ pub fn handle_shoot(
         .ecs()
         .write_resource::<Vec<Outcome>>()
         .push(Outcome::ProjectileShot { pos, body, vel });
-
-    let eye_height =
-        state
-            .ecs()
-            .read_storage::<comp::Body>()
-            .get(entity)
-            .map_or(0.0, |b| match b {
-                comp::Body::Golem(_) => b.height() * 0.45,
-                _ => b.eye_height(),
-            });
-
-    pos.z += eye_height;
 
     let mut builder = state.create_projectile(Pos(pos), Vel(vel), body, projectile);
     if let Some(light) = light {

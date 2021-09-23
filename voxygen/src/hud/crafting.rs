@@ -55,6 +55,7 @@ widget_ids! {
         recipe_list_btns[],
         recipe_list_labels[],
         recipe_list_quality_indicators[],
+        recipe_list_materials_indicators[],
         recipe_img_frame[],
         recipe_img[],
         ingredients[],
@@ -285,7 +286,7 @@ impl<'a> Widget for Crafting<'a> {
         Image::new(self.imgs.crafting_window)
             .bottom_right_with_margins_on(ui.window, 308.0, 450.0)
             .color(Some(UI_MAIN))
-            .w_h(456.0, 460.0)
+            .w_h(470.0, 460.0)
             .set(state.ids.window, ui);
         // Window
         Image::new(self.imgs.crafting_frame)
@@ -321,7 +322,7 @@ impl<'a> Widget for Crafting<'a> {
             .set(state.ids.title_main, ui);
 
         // Alignment
-        Rectangle::fill_with([170.0, 378.0], color::TRANSPARENT)
+        Rectangle::fill_with([184.0, 378.0], color::TRANSPARENT)
             .top_left_with_margins_on(state.ids.window_frame, 74.0, 5.0)
             .scroll_kids_vertically()
             .set(state.ids.align_rec, ui);
@@ -406,8 +407,9 @@ impl<'a> Widget for Crafting<'a> {
                 .set(state.ids.category_imgs[i], ui);
         }
 
-        // First available recipes, then unavailable ones, each alphabetically
-        // In the triples, "name" is the recipe book key, and "recipe.output.0.name()"
+        // First available recipes, then ones with available materials,
+        // then unavailable ones, each sorted by quality and then alphabetically
+        // In the tuple, "name" is the recipe book key, and "recipe.output.0.name()"
         // is the display name (as stored in the item descriptors)
         let mut ordered_recipes: Vec<_> = self
             .client
@@ -425,6 +427,7 @@ impl<'a> Widget for Crafting<'a> {
                 }
             })
             .map(|(name, recipe)| {
+                let has_materials = self.client.available_recipes().get(name.as_str()).is_some();
                 let is_craftable =
                     self.client
                         .available_recipes()
@@ -434,11 +437,16 @@ impl<'a> Widget for Crafting<'a> {
                                 Some(cs) == self.show.craft_sprite.map(|(_, s)| s)
                             })
                         });
-                (name, recipe, is_craftable)
+                (name, recipe, is_craftable, has_materials)
             })
             .collect();
-        ordered_recipes.sort_by_key(|(_, recipe, state)| {
-            (!state, recipe.output.0.quality(), recipe.output.0.name())
+        ordered_recipes.sort_by_key(|(_, recipe, is_craftable, has_materials)| {
+            (
+                !is_craftable,
+                !has_materials,
+                recipe.output.0.quality(),
+                recipe.output.0.name(),
+            )
         });
 
         // Recipe list
@@ -466,9 +474,18 @@ impl<'a> Widget for Crafting<'a> {
                 )
             });
         }
-        for (i, (name, recipe, is_craftable)) in ordered_recipes
+        if state.ids.recipe_list_materials_indicators.len() < self.client.recipe_book().iter().len()
+        {
+            state.update(|state| {
+                state.ids.recipe_list_materials_indicators.resize(
+                    self.client.recipe_book().iter().len(),
+                    &mut ui.widget_id_generator(),
+                )
+            });
+        }
+        for (i, (name, recipe, is_craftable, has_materials)) in ordered_recipes
             .into_iter()
-            .filter(|(_, recipe, _)| self.show.crafting_tab.satisfies(recipe))
+            .filter(|(_, recipe, _, _)| self.show.crafting_tab.satisfies(recipe))
             .enumerate()
         {
             let button = Button::image(if state.selected_recipe.as_ref() == Some(name) {
@@ -483,7 +500,7 @@ impl<'a> Widget for Crafting<'a> {
                     button.down_from(state.ids.recipe_list_btns[i - 1], 5.0)
                 }
             })
-            .w(157.0)
+            .w(171.0)
             .hover_image(self.imgs.selection_hover)
             .press_image(self.imgs.selection_press)
             .image_color(color::rgba(1.0, 0.82, 0.27, 1.0));
@@ -496,7 +513,7 @@ impl<'a> Widget for Crafting<'a> {
                 })
                 .font_size(self.fonts.cyri.scale(12))
                 .font_id(self.fonts.cyri.conrod_id)
-                .w(149.0)
+                .w(163.0)
                 .mid_top_with_margin_on(state.ids.recipe_list_btns[i], 3.0)
                 .graphics_for(state.ids.recipe_list_btns[i])
                 .center_justify();
@@ -505,9 +522,10 @@ impl<'a> Widget for Crafting<'a> {
                 Dimension::Absolute(y) => y,
                 _ => 0.0,
             };
+            let button_height = (text_height + 7.0).max(20.0);
 
             if button
-                .h((text_height + 7.0).max(20.0))
+                .h(button_height)
                 .set(state.ids.recipe_list_btns[i], ui)
                 .was_clicked()
             {
@@ -536,11 +554,39 @@ impl<'a> Widget for Crafting<'a> {
 
             Button::image(self.imgs.quality_indicator)
                 .image_color(quality_col)
-                .h_of(state.ids.recipe_list_btns[i])
-                .w(4.0)
+                .w_h(4.0, button_height)
                 .left_from(state.ids.recipe_list_btns[i], 1.0)
                 .graphics_for(state.ids.recipe_list_btns[i])
                 .set(state.ids.recipe_list_quality_indicators[i], ui);
+
+            // Sidebar crafting tool icon
+            if has_materials && !is_craftable {
+                let station_img = match recipe.craft_sprite {
+                    Some(SpriteKind::Anvil) => Some("Anvil"),
+                    Some(SpriteKind::Cauldron) => Some("Cauldron"),
+                    Some(SpriteKind::CookingPot) => Some("CookingPot"),
+                    Some(SpriteKind::CraftingBench) => Some("CraftingBench"),
+                    Some(SpriteKind::Forge) => Some("Forge"),
+                    Some(SpriteKind::Loom) => Some("Loom"),
+                    Some(SpriteKind::SpinningWheel) => Some("SpinningWheel"),
+                    Some(SpriteKind::TanningRack) => Some("TanningRack"),
+                    _ => None,
+                };
+
+                if let Some(station_img_str) = station_img {
+                    Button::image(animate_by_pulse(
+                        &self
+                            .item_imgs
+                            .img_ids_or_not_found_img(Tool(station_img_str.to_string())),
+                        self.pulse,
+                    ))
+                    .image_color(color::LIGHT_RED)
+                    .w_h(button_height - 8.0, button_height - 8.0)
+                    .top_left_with_margins_on(state.ids.recipe_list_btns[i], 4.0, 4.0)
+                    .graphics_for(state.ids.recipe_list_btns[i])
+                    .set(state.ids.recipe_list_materials_indicators[i], ui);
+                }
+            }
         }
 
         // Selected Recipe
@@ -913,7 +959,7 @@ impl<'a> Widget for Crafting<'a> {
             {
                 events.push(Event::SearchRecipe(None));
             }
-            Rectangle::fill([148.0, 20.0])
+            Rectangle::fill([162.0, 20.0])
                 .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 16.0)
                 .hsla(0.0, 0.0, 0.0, 0.7)
                 .depth(1.0)
@@ -921,7 +967,7 @@ impl<'a> Widget for Crafting<'a> {
                 .set(state.ids.input_bg_search, ui);
             if let Some(string) = TextEdit::new(key.as_str())
                 .top_left_with_margins_on(state.ids.btn_close_search, -2.0, 18.0)
-                .w_h(124.0, 20.0)
+                .w_h(138.0, 20.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
                 .color(TEXT_COLOR)

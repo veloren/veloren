@@ -126,6 +126,14 @@ impl Block {
     }
 
     #[inline]
+    pub const fn lava(sprite: SpriteKind) -> Self {
+        Self {
+            kind: BlockKind::Lava,
+            attr: [sprite as u8, 0, 0],
+        }
+    }
+
+    #[inline]
     pub const fn empty() -> Self { Self::air(SpriteKind::Empty) }
 
     /// TODO: See if we can generalize this somehow.

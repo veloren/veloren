@@ -97,7 +97,7 @@ crossbeam-channel = "0.5"
 # TODO: remove
 directories-next = "2.0"
 dot_vox = "4.0"
-enum-iterator = "0.6"
+enum-iterator = "0.7"
 guillotiere = "0.6"
 hashbrown = {version = "0.11", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.12", default-features = false, features = ["ico", "png"]}
@@ -113,7 +113,7 @@ serde = {version = "1.0", features = [ "rc", "derive" ]}
 strum = { version = "0.21", features = ["derive"] }
 strum_macros = "0.21"
 treeculler = "0.2"
-tokio = { version = "1", default-features = false, features = ["rt-multi-thread"] }
+tokio = { version = "1.11", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 # vec_map = { version = "0.8.2" }
 # inline_tweak = "1.0.2"

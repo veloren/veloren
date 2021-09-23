@@ -31,7 +31,8 @@ pub struct Health {
     // still having the advantages of being an integer. The scaling of 256 was chosen so that max
     // health could be u16::MAX - 1, and then the scaled health could fit inside an f32 with no
     // precision loss
-    /// Current health is how much health the entity currently has
+    /// Current health is how much health the entity currently has. Current
+    /// health *must* be lower than or equal to maximum health.
     current: u32,
     /// Base max is the amount of health the entity has without considering
     /// temporary modifiers such as buffs
@@ -81,6 +82,8 @@ impl Health {
             // NaN does not need to be handled here as rust will automatically change to 0 when casting to u32
             .clamp(0.0, Self::MAX_SCALED_HEALTH as f32) as u32;
         self.maximum = maximum;
+        // Clamp the current health to enforce the current <= maximum invariant.
+        self.current = self.current.min(maximum);
     }
 
     #[cfg(not(target_arch = "wasm32"))]
