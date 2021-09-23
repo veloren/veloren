@@ -1,0 +1,20 @@
+ItemDef(
+    name: "旭日击破者",
+    description: "重型魔法弓，大量不稳定的魔法蕴含在核心中，每次蓄能射击可以够轻易击穿敌人！",
+    kind: Tool((
+        kind: Bow,
+        hands: Two,
+        stats: Direct((
+            equip_time_secs: 0.4,
+            power: 3.0,
+            effect_power: 3.0,
+            speed: 1.0,
+            crit_chance: 0.15,
+            range: 1.1,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        )),
+    )),
+    quality: Legendary,
+    tags: [],
+)

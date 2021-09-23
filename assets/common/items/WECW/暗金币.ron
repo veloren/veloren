@@ -1,0 +1,10 @@
+ItemDef(
+    name: "暗金币",
+    description: "用于玩家之间交易的货币，在合成表里兑换，暗金/白金/金进制是1000.",
+    kind: Ingredient(
+        kind: "Coins3",
+    ),
+    quality: Epic,
+    tags: [],
+)
+
