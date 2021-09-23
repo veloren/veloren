@@ -468,7 +468,7 @@ impl TradePricing {
             if table.is_empty()
                 || (selling && table.iter().filter(|(_, _, can_sell)| *can_sell).count() == 0)
             {
-                warn!("Good: {:?}, was unreachable.", good);
+                // warn!("Good: {:?}, was unreachable.", good);
                 return None;
             }
             let upper = table.len();
