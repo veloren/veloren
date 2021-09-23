@@ -68,17 +68,21 @@ vec4 filteredDownsample(vec2 uv, vec2 halfpixel) {
     return sum / 32.0;
 }
 
-vec4 simplesample(vec2 uv) {
-    return textureLod(sampler2D(t_src_color, s_src_color), uv, 0);
+vec4 naninf_filter_sample(vec2 uv) {
+    vec4 color = textureLod(sampler2D(t_src_color, s_src_color), uv, 0);
+    // TODO: ensure NaNs/Infs are not produced in the first place
+    bvec4 nan = isnan(color);
+    bvec4 inf = isinf(color);
+    return mix(mix(color, vec4(0.0), nan), vec4(100.0), inf);
 }
 
 // From: https://community.arm.com/cfs-file/__key/communityserver-blogs-components-weblogfiles/00-00-00-20-66/siggraph2015_2D00_mmg_2D00_marius_2D00_notes.pdf
 vec4 downsample(vec2 uv, vec2 halfpixel) {
-    vec4 sum = simplesample(uv) * 4.0;
-    sum += simplesample(uv - halfpixel.xy);
-    sum += simplesample(uv + halfpixel.xy);
-    sum += simplesample(uv + vec2(halfpixel.x, -halfpixel.y));
-    sum += simplesample(uv - vec2(halfpixel.x, -halfpixel.y));
+    vec4 sum = naninf_filter_sample(uv) * 4.0;
+    sum += naninf_filter_sample(uv - halfpixel.xy);
+    sum += naninf_filter_sample(uv + halfpixel.xy);
+    sum += naninf_filter_sample(uv + vec2(halfpixel.x, -halfpixel.y));
+    sum += naninf_filter_sample(uv - vec2(halfpixel.x, -halfpixel.y));
 
     return sum / 8.0;
 }
