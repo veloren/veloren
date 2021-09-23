@@ -26,3 +26,8 @@ UPDATE item SET item_definition_id= "common.items.WECW.深蓝使者" WHERE item_
 UPDATE item SET item_definition_id= "common.items.WECW.遗忘战斧" WHERE item_definition_id="common.items.WECW.forgottenaxe";
 UPDATE item SET item_definition_id= "common.items.WECW.埃尔安多" WHERE item_definition_id="common.items.WECW.eriandor";
 UPDATE item SET item_definition_id= "common.items.WECW.暗金切割者" WHERE item_definition_id="common.items.WECW.darkaxe";
+
+
+-- 金币
+UPDATE item SET item_definition_id= "common.items.WECW.白金币" WHERE item_definition_id="common.items.WECW.coins2";
+UPDATE item SET item_definition_id= "common.items.WECW.暗金币" WHERE item_definition_id="common.items.WECW.coins3";
