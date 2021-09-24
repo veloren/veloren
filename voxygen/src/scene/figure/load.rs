@@ -359,7 +359,7 @@ struct HumArmorLanternSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorGliderSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 #[derive(Deserialize)]
-struct HumArmorHeadSpec(ArmorVoxSpecMap<(Species, String), ArmorVoxSpec>);
+struct HumArmorHeadSpec(ArmorVoxSpecMap<(Species, BodyType, String), ArmorVoxSpec>);
 #[derive(Deserialize)]
 struct HumArmorTabardSpec(ArmorVoxSpecMap<String, ArmorVoxSpec>);
 
@@ -969,7 +969,11 @@ impl HumArmorLanternSpec {
 }
 impl HumArmorHeadSpec {
     fn load_head(&self, body: &Body, head: Option<&str>) -> Option<(Segment, Vec3<i32>)> {
-        match self.0.map.get(&(body.species, head?.to_string())) {
+        match self
+            .0
+            .map
+            .get(&(body.species, body.body_type, head?.to_string()))
+        {
             Some(spec) => Some((
                 graceful_load_segment(&spec.vox_spec.0),
                 Vec3::<f32>::from(spec.vox_spec.1).as_(),
@@ -981,6 +985,7 @@ impl HumArmorHeadSpec {
         }
     }
 }
+
 impl HumArmorTabardSpec {
     /// FIXME: Either use this, or remove it.
     #[allow(dead_code)]
