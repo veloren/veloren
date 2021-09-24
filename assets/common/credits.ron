@@ -1,0 +1,23 @@
+(
+    music: [(
+        name: "Desert jams",
+        authors: ["AuthorOne", "author two"],
+    )],
+   fonts: [(
+       name: "Wizard",
+       license: "cc-by-sa 3",
+   )],
+   other_art: [(
+       name: "Voxel shrooms",
+       authors: ["AuthorOne", "author two"],
+   )],
+   contributors: [
+       (
+           name: "Example",
+           contributions: "An example note",
+        ),
+        (
+            name: "Example Two", 
+        ),
+    ],
+)

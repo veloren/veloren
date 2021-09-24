@@ -61,6 +61,14 @@ https://veloren.net/account/."#,
         "main.login.client_version": "Client Version",
         "main.login.server_version": "Server Version",
         "main.servers.select_server": "Select a server",
+
+        // Credits screen
+        "main.credits": "Credits",
+        "main.credits.music": "Music",
+        "main.credits.fonts": "Fonts",
+        "main.credits.other_art": "Other Art",
+        "main.credits.contributors": "Contributors",
+
         /// End Main screen section
     },
 
