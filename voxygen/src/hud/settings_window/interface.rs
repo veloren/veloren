@@ -40,6 +40,8 @@ widget_ids! {
         hitboxes_button_label,
         chat_button,
         chat_button_label,
+        hotkey_hints_button,
+        hotkey_hints_button_label,
         ch_title,
         ch_transp_slider,
         ch_transp_value,
@@ -221,6 +223,7 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.load_tips_button)
             .color(TEXT_COLOR)
             .set(state.ids.load_tips_button_label, ui);
+
         // Debug
         let show_debug = ToggleButton::new(
             self.show.debug,
@@ -293,9 +296,33 @@ impl<'a> Widget for Interface<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.chat_button_label, ui);
 
+        // Hotkey hints
+        let show_hotkey_hints = ToggleButton::new(
+            self.global_state.settings.interface.toggle_hotkey_hints,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.chat_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.hotkey_hints_button, ui);
+
+        if self.global_state.settings.interface.toggle_hotkey_hints != show_hotkey_hints {
+            events.push(ToggleHotkeyHints(show_hotkey_hints));
+        }
+
+        Text::new(self.localized_strings.get("hud.settings.show_hotkey_hints"))
+            .right_from(state.ids.hotkey_hints_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.hotkey_hints_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.hotkey_hints_button_label, ui);
+
         // Ui Scale
         Text::new(self.localized_strings.get("hud.settings.ui_scale"))
-            .down_from(state.ids.chat_button, 20.0)
+            .down_from(state.ids.hotkey_hints_button, 20.0)
             .font_size(self.fonts.cyri.scale(18))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
