@@ -6280,6 +6280,7 @@ dependencies = [
  "ron",
  "serde",
  "shaderc",
+ "slab",
  "specs",
  "specs-idvs",
  "strum",
