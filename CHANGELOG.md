@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added a setting to always show health and energy bars
 - Added a crafting station icon to the crafting menu sidebar for items that could be crafted at a crafting station
+- Added a setting to disable the hotkey hints
 
 ### Changed
 
