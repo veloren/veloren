@@ -378,6 +378,7 @@ impl Controls {
                         .position(|i| i.character.id == Some(id))
                 });
 
+                #[allow(clippy::if_same_then_else)]
                 if let Some(error) = error {
                     // TODO: use more user friendly errors with suggestions on potential solutions
                     // instead of directly showing error message here

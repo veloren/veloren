@@ -136,11 +136,11 @@ pub mod con_settings {
         pub scroll_y: Axis,
     }
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[serde(default)]
     pub struct GameAnalogButton {}
 
-    #[derive(Clone, Debug, Serialize, Deserialize)]
+    #[derive(Clone, Debug, Default, Serialize, Deserialize)]
     #[serde(default)]
     pub struct MenuAnalogButton {}
 
@@ -245,13 +245,5 @@ pub mod con_settings {
                 scroll_y: Axis::Simple(GilAxis::LeftStickY),
             }
         }
-    }
-
-    impl Default for GameAnalogButton {
-        fn default() -> Self { Self {} }
-    }
-
-    impl Default for MenuAnalogButton {
-        fn default() -> Self { Self {} }
     }
 }

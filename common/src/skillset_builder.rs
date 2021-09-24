@@ -54,11 +54,8 @@ fn skills_from_nodes(nodes: &[SkillNode]) -> Vec<(Skill, Option<u16>)> {
     skills
 }
 
+#[derive(Default)]
 pub struct SkillSetBuilder(SkillSet);
-
-impl Default for SkillSetBuilder {
-    fn default() -> Self { Self(SkillSet::default()) }
-}
 
 impl SkillSetBuilder {
     /// Creates `SkillSetBuilder` from `asset_specifier`

@@ -87,7 +87,7 @@ impl Animation for SpinAnimation {
             next.head.orientation = Quaternion::rotation_y(movement1 * 0.1 - movement2 * -0.1)
                 * Quaternion::rotation_z(1.07 + movement1 * 0.4 + movement2 * -1.5);
 
-            next.torso.orientation = Quaternion::rotation_z(movement2 * 6.28);
+            next.torso.orientation = Quaternion::rotation_z(movement2 * std::f32::consts::TAU);
         }
 
         if let Some(ToolKind::Axe | ToolKind::Hammer | ToolKind::Dagger) = active_tool_kind {

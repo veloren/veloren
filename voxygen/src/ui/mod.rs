@@ -875,12 +875,7 @@ impl Ui {
                     switch_to_plain_state!();
 
                     // Mesh should already be cached.
-                    mesh.push_mesh(
-                        text_cache
-                            .get(&widget_id)
-                            .as_deref()
-                            .unwrap_or(&Mesh::new()),
-                    );
+                    mesh.push_mesh(text_cache.get(&widget_id).unwrap_or(&Mesh::new()));
                 },
                 PrimitiveKind::Rectangle { color } => {
                     let color = srgba_to_linear(color.to_fsa().into());

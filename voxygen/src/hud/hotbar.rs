@@ -27,19 +27,10 @@ pub enum SlotContents {
     Ability4,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Default)]
 pub struct State {
     pub slots: [Option<SlotContents>; 10],
     inputs: [bool; 10],
-}
-
-impl Default for State {
-    fn default() -> Self {
-        Self {
-            slots: [None; 10],
-            inputs: [false; 10],
-        }
-    }
 }
 
 impl State {

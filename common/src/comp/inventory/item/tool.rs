@@ -375,6 +375,7 @@ impl<T> AbilitySet<T> {
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for AbilitySet<CharacterAbility> {
     fn default() -> Self {
         AbilitySet {

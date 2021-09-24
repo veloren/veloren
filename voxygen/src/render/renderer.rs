@@ -310,7 +310,7 @@ impl Renderer {
                     | (adapter.features() & wgpu_profiler::GpuProfiler::REQUIRED_WGPU_FEATURES),
                 limits,
             },
-            trace_path.as_deref(),
+            trace_path,
         ))?;
 
         // Set error handler for wgpu errors
