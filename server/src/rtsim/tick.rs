@@ -1,9 +1,11 @@
 #![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
 
 use super::*;
+use crate::sys::terrain::NpcData;
 use common::{
-    comp::{self, inventory::loadout_builder::LoadoutBuilder, Behavior, BehaviorCapability},
+    comp,
     event::{EventBus, ServerEvent},
+    generation::EntityInfo,
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
 };
@@ -106,75 +108,62 @@ impl<'a> System<'a> for Sys {
         for id in to_reify {
             rtsim.reify_entity(id);
             let entity = &rtsim.entities[id];
+            let entity_config = entity.get_entity_config();
+            let rtsim_entity = Some(RtSimEntity(id));
             let body = entity.get_body();
-            let alignment = match body {
-                comp::Body::Humanoid(_) => match entity.kind {
-                    RtSimEntityKind::Random => comp::Alignment::Npc,
-                    RtSimEntityKind::Cultist => comp::Alignment::Enemy,
-                },
-                comp::Body::BirdLarge(bird_large) => match bird_large.species {
-                    comp::bird_large::Species::Roc => comp::Alignment::Enemy,
-                    comp::bird_large::Species::Cockatrice => comp::Alignment::Enemy,
-                    _ => comp::Alignment::Wild,
-                },
-                _ => comp::Alignment::Wild,
-            };
             let spawn_pos = terrain
                 .find_space(entity.pos.map(|e| e.floor() as i32))
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
             let pos = comp::Pos(spawn_pos);
-            let mut agent = Some(comp::Agent::from_body(&body).with_behavior(
-                if matches!(body, comp::Body::Humanoid(_)) {
-                    Behavior::from(BehaviorCapability::SPEAK)
-                } else {
-                    Behavior::default()
-                },
-            ));
-
-            if matches!(alignment, comp::Alignment::Enemy) {
-                agent = agent.map(|a| a.with_aggro_no_warn());
-            }
-
-            let rtsim_entity = Some(RtSimEntity(id));
-
-            // TODO: this should be a bit more intelligent
-            let loadout = match body {
-                comp::Body::Humanoid(_) => entity.get_loadout(),
-                _ => LoadoutBuilder::empty().with_default_maintool(&body).build(),
-            };
-
-            let event = match body {
-                comp::Body::Ship(ship) => ServerEvent::CreateShip {
-                    pos,
-                    ship,
-                    mountable: false,
-                    agent,
-                    rtsim_entity,
-                },
-                _ => ServerEvent::CreateNpc {
-                    pos: comp::Pos(spawn_pos),
-                    stats: comp::Stats::new(entity.get_name()),
-                    skill_set: comp::SkillSet::default(),
-                    health: Some(comp::Health::new(body, 10)),
-                    loadout,
-                    poise: comp::Poise::new(body),
-                    body,
-                    agent,
-                    alignment,
-                    scale: match body {
-                        comp::Body::Ship(_) => comp::Scale(comp::ship::AIRSHIP_SCALE),
-                        _ => comp::Scale(1.0),
+            let mut loadout_rng = entity.loadout_rng();
+            let entity_info = NpcData::from_entity_info(
+                EntityInfo::at(pos.0).with_asset_expect(entity_config),
+                &mut loadout_rng,
+            );
+            if let NpcData::Data {
+                pos,
+                stats,
+                skill_set,
+                health,
+                poise,
+                loadout,
+                agent,
+                // Body discarded here so that species and body type are consistent between
+                // reifications
+                body: _,
+                alignment,
+                scale,
+                drop_item,
+            } = entity_info
+            {
+                let event = match body {
+                    comp::Body::Ship(ship) => ServerEvent::CreateShip {
+                        pos,
+                        ship,
+                        mountable: false,
+                        agent,
+                        rtsim_entity,
                     },
-                    // FIXME;
-                    // Drop loot
-                    drop_item: None,
-                    anchor: None,
-                    rtsim_entity,
-                    projectile: None,
-                },
-            };
-            server_emitter.emit(event);
+                    _ => ServerEvent::CreateNpc {
+                        pos,
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        loadout,
+                        agent,
+                        body,
+                        alignment,
+                        scale,
+                        anchor: None,
+                        drop_item,
+                        rtsim_entity,
+                        projectile: None,
+                    },
+                };
+                server_emitter.emit(event);
+            }
         }
 
         // Update rtsim with real entity data

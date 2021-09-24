@@ -1,6 +1,5 @@
 use super::*;
 use common::{
-    comp::inventory::loadout_builder::LoadoutBuilder,
     resources::Time,
     rtsim::{Memory, MemoryItem},
     store::Id,
@@ -38,6 +37,8 @@ const PERM_GENUS: u32 = 4;
 
 impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
+
+    pub fn loadout_rng(&self) -> impl Rng { self.rng(PERM_LOADOUT) }
 
     pub fn get_body(&self) -> comp::Body {
         match self.kind {
@@ -81,47 +82,30 @@ impl Entity {
         }
     }
 
-    pub fn get_name(&self) -> String {
-        match self.kind {
-            RtSimEntityKind::Random => {
-                use common::{generation::get_npc_name, npc::NPC_NAMES};
-                let npc_names = NPC_NAMES.read();
-                match self.get_body() {
-                    comp::Body::BirdMedium(b) => {
-                        get_npc_name(&npc_names.bird_medium, b.species).to_string()
-                    },
-                    comp::Body::BirdLarge(b) => {
-                        get_npc_name(&npc_names.bird_large, b.species).to_string()
-                    },
-                    comp::Body::Dragon(b) => get_npc_name(&npc_names.dragon, b.species).to_string(),
-                    comp::Body::Humanoid(b) => {
-                        get_npc_name(&npc_names.humanoid, b.species).to_string()
-                    },
-                    comp::Body::Ship(_) => "Veloren Air".to_string(),
-                    //TODO: finish match as necessary
-                    _ => unimplemented!(),
-                }
+    pub fn get_entity_config(&self) -> &str {
+        match self.get_body() {
+            comp::Body::Humanoid(_) => match self.kind {
+                RtSimEntityKind::Cultist => "",
+                RtSimEntityKind::Random => "",
             },
-            RtSimEntityKind::Cultist => "Cultist Raider".to_string(),
-        }
-    }
-
-    pub fn get_loadout(&self) -> comp::inventory::loadout::Loadout {
-        let mut rng = self.rng(PERM_LOADOUT);
-        match self.kind {
-            RtSimEntityKind::Random => {
-                LoadoutBuilder::from_asset_expect("common.loadout.world.traveler", Some(&mut rng))
-                    .bag(
-                        comp::inventory::slot::ArmorSlot::Bag1,
-                        Some(comp::inventory::loadout_builder::make_potion_bag(100)),
-                    )
-                    .build()
+            comp::Body::BirdMedium(b) => match b.species {
+                comp::bird_medium::Species::Duck => "",
+                comp::bird_medium::Species::Chicken => "",
+                comp::bird_medium::Species::Goose => "",
+                comp::bird_medium::Species::Peacock => "",
+                comp::bird_medium::Species::Eagle => "",
+                comp::bird_medium::Species::Owl => "",
+                comp::bird_medium::Species::Parrot => "",
             },
-            RtSimEntityKind::Cultist => LoadoutBuilder::from_asset_expect(
-                "common.loadout.dungeon.tier-5.cultist",
-                Some(&mut rng),
-            )
-            .build(),
+            comp::Body::BirdLarge(b) => match b.species {
+                comp::bird_large::Species::Phoenix => "",
+                comp::bird_large::Species::Cockatrice => "",
+                comp::bird_large::Species::Roc => "",
+                // Wildcard match used here as there is an array above which limits what species are
+                // used
+                _ => unimplemented!(),
+            },
+            _ => unimplemented!(),
         }
     }
 

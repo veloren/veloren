@@ -364,7 +364,7 @@ pub enum NpcData {
 }
 
 impl NpcData {
-    pub fn from_entity_info(entity: EntityInfo, rng: &mut impl Rng) -> Self {
+    pub fn from_entity_info(entity: EntityInfo, loadout_rng: &mut impl Rng) -> Self {
         let EntityInfo {
             // flags
             is_waypoint,
@@ -423,7 +423,7 @@ impl NpcData {
             // If there is config, apply it.
             // If not, use default equipement for this body.
             if let Some(asset) = loadout_asset {
-                loadout_builder = loadout_builder.with_asset_expect(&asset, rng);
+                loadout_builder = loadout_builder.with_asset_expect(&asset, loadout_rng);
             } else {
                 loadout_builder = loadout_builder.with_default_equipment(&body);
             }
@@ -464,6 +464,14 @@ impl NpcData {
                 .with_patrol_origin(pos)
                 .with_no_flee(!matches!(agent_mark, Some(agent::Mark::Guard)))
         });
+
+        let agent = if matches!(alignment, comp::Alignment::Enemy)
+            && matches!(body, comp::Body::Humanoid(_))
+        {
+            agent.map(|a| a.with_aggro_no_warn())
+        } else {
+            agent
+        };
 
         NpcData::Data {
             pos: Pos(pos),
