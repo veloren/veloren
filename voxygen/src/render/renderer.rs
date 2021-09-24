@@ -292,7 +292,7 @@ impl Renderer {
                 path.read_dir()
                     .expect("Could not read the directory that is specified by WGPU_TRACE_DIR")
                     .next()
-                    .is_some(),
+                    .is_none(),
                 "WGPU_TRACE_DIR is set to the path \"{}\" which already contains other files",
                 path.display()
             );
