@@ -28,6 +28,7 @@ network = { package = "veloren-network", path = "../network", features = ["metri
 specs = { git = "https://github.com/amethyst/specs.git", features = ["shred-derive"], rev = "f985bec5d456f7b0dd8aae99848f9473c2cd9d46" }
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "8be2abcddf8f524cb5876e8dd20a7e47cfaf7573" }
 
+strum = { version = "0.21", features = ["derive"] }
 bincode = "1.3.2"
 num_cpus = "1.0"
 tracing = "0.1"

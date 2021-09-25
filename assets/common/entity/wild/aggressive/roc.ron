@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("roc"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.bird_large.roc"),
+
+    hands: Uninit,
+
+    meta: [],
+)

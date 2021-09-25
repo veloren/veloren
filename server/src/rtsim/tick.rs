@@ -108,44 +108,49 @@ impl<'a> System<'a> for Sys {
         for id in to_reify {
             rtsim.reify_entity(id);
             let entity = &rtsim.entities[id];
-            let entity_config = entity.get_entity_config();
             let rtsim_entity = Some(RtSimEntity(id));
+
             let body = entity.get_body();
             let spawn_pos = terrain
                 .find_space(entity.pos.map(|e| e.floor() as i32))
                 .map(|e| e as f32)
                 + Vec3::new(0.5, 0.5, body.flying_height());
+
             let pos = comp::Pos(spawn_pos);
-            let mut loadout_rng = entity.loadout_rng();
-            let entity_info = NpcData::from_entity_info(
-                EntityInfo::at(pos.0).with_asset_expect(entity_config),
-                &mut loadout_rng,
-            );
-            if let NpcData::Data {
-                pos,
-                stats,
-                skill_set,
-                health,
-                poise,
-                loadout,
-                agent,
-                // Body discarded here so that species and body type are consistent between
-                // reifications
-                body: _,
-                alignment,
-                scale,
-                drop_item,
-            } = entity_info
-            {
-                let event = match body {
-                    comp::Body::Ship(ship) => ServerEvent::CreateShip {
+
+            let event = if let comp::Body::Ship(ship) = body {
+                ServerEvent::CreateShip {
+                    pos,
+                    ship,
+                    mountable: false,
+                    agent: Some(comp::Agent::from_body(&body)),
+                    rtsim_entity,
+                }
+            } else {
+                let entity_config = entity.get_entity_config();
+                let mut loadout_rng = entity.loadout_rng();
+                let ad_hoc_loadout = entity.get_adhoc_loadout();
+                // Body is rewritten so that body parameters
+                // are consistent between reifications
+                let entity_info = EntityInfo::at(pos.0)
+                    .with_asset_expect(entity_config)
+                    .with_lazy_loadout(ad_hoc_loadout)
+                    .with_body(body)
+                    .with_health_scaling(10);
+                match NpcData::from_entity_info(entity_info, &mut loadout_rng) {
+                    NpcData::Data {
                         pos,
-                        ship,
-                        mountable: false,
+                        stats,
+                        skill_set,
+                        health,
+                        poise,
+                        loadout,
                         agent,
-                        rtsim_entity,
-                    },
-                    _ => ServerEvent::CreateNpc {
+                        body,
+                        alignment,
+                        scale,
+                        drop_item,
+                    } => ServerEvent::CreateNpc {
                         pos,
                         stats,
                         skill_set,
@@ -161,9 +166,10 @@ impl<'a> System<'a> for Sys {
                         rtsim_entity,
                         projectile: None,
                     },
-                };
-                server_emitter.emit(event);
-            }
+                    NpcData::Waypoint(_) => unimplemented!(),
+                }
+            };
+            server_emitter.emit(event);
         }
 
         // Update rtsim with real entity data

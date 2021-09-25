@@ -110,8 +110,8 @@ pub struct EntityConfig {
     /// Hands:
     /// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
     /// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
-    /// - Mix { mainhand: ItemSpec, offhand: ItemSpec,
-    /// } for two different 1h weapons,
+    /// - Mix { mainhand: ItemSpec, offhand: ItemSpec, }
+    ///  for two different 1h weapons,
     /// - Uninit which means that tool should be specified somewhere in code,
     /// Where ItemSpec is taken from loadout_builder module
     // TODO: better name for this?

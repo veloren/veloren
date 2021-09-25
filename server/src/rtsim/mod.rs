@@ -166,7 +166,8 @@ pub fn init(
                             .iter()
                             .filter(|&(site_id, site)| {
                                 site.is_settlement()
-                                    // TODO: Remove this later, starting town should not be special-cased
+                                    // TODO: Remove this later, starting town should not be
+                                    // special-cased
                                     && spawn_town_id.map_or(false, |spawn_id| spawn_id != site_id)
                             })
                             .min_by_key(|(_, site)| {

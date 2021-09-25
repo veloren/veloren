@@ -1,9 +1,11 @@
 use super::*;
 use common::{
+    comp::inventory::{loadout_builder::make_potion_bag, slot::ArmorSlot},
     resources::Time,
     rtsim::{Memory, MemoryItem},
     store::Id,
     terrain::TerrainGrid,
+    trade, LoadoutBuilder,
 };
 use rand_distr::{Distribution, Normal};
 use std::f32::consts::PI;
@@ -24,10 +26,18 @@ pub struct Entity {
     pub brain: Brain,
 }
 
+#[derive(Clone, Copy, strum::EnumIter)]
 pub enum RtSimEntityKind {
     Random,
     Cultist,
 }
+
+const BIRD_LARGE_ROSTER: &[comp::bird_large::Species] = &[
+    // Flame Wyvern not incuded until proper introduction
+    comp::bird_large::Species::Phoenix,
+    comp::bird_large::Species::Cockatrice,
+    comp::bird_large::Species::Roc,
+];
 
 const PERM_SPECIES: u32 = 0;
 const PERM_BODY: u32 = 1;
@@ -54,12 +64,7 @@ impl Entity {
                             .into()
                     },
                     x if x < 0.50 => {
-                        let species = *(&[
-                            // Flame Wyvern not incuded until proper introduction
-                            comp::bird_large::Species::Phoenix,
-                            comp::bird_large::Species::Cockatrice,
-                            comp::bird_large::Species::Roc,
-                        ])
+                        let species = *BIRD_LARGE_ROSTER
                             .choose(&mut self.rng(PERM_SPECIES))
                             .unwrap();
                         comp::bird_large::Body::random_with(&mut self.rng(PERM_BODY), &species)
@@ -84,28 +89,23 @@ impl Entity {
 
     pub fn get_entity_config(&self) -> &str {
         match self.get_body() {
-            comp::Body::Humanoid(_) => match self.kind {
-                RtSimEntityKind::Cultist => "",
-                RtSimEntityKind::Random => "",
-            },
-            comp::Body::BirdMedium(b) => match b.species {
-                comp::bird_medium::Species::Duck => "",
-                comp::bird_medium::Species::Chicken => "",
-                comp::bird_medium::Species::Goose => "",
-                comp::bird_medium::Species::Peacock => "",
-                comp::bird_medium::Species::Eagle => "",
-                comp::bird_medium::Species::Owl => "",
-                comp::bird_medium::Species::Parrot => "",
-            },
-            comp::Body::BirdLarge(b) => match b.species {
-                comp::bird_large::Species::Phoenix => "",
-                comp::bird_large::Species::Cockatrice => "",
-                comp::bird_large::Species::Roc => "",
-                // Wildcard match used here as there is an array above which limits what species are
-                // used
-                _ => unimplemented!(),
-            },
+            comp::Body::Humanoid(_) => humanoid_config(self.kind),
+            comp::Body::BirdMedium(b) => bird_medium_config(b),
+            comp::Body::BirdLarge(b) => bird_large_config(b),
             _ => unimplemented!(),
+        }
+    }
+
+    pub fn get_adhoc_loadout(
+        &self,
+    ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {
+        let body = self.get_body();
+        let kind = &self.kind;
+        // give potions to traveler humanoids or return loadout as is otherwise
+        if let (comp::Body::Humanoid(_), RtSimEntityKind::Random) = (body, kind) {
+            |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+        } else {
+            |l, _| l
         }
     }
 
@@ -704,5 +704,88 @@ impl Brain {
                 &memory.item,
                 MemoryItem::CharacterFight { name, .. } if name == name_to_remember)
         })
+    }
+}
+
+fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
+    match kind {
+        RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
+        RtSimEntityKind::Random => "common.entity.world.traveler",
+    }
+}
+
+fn bird_medium_config(body: comp::bird_medium::Body) -> &'static str {
+    match body.species {
+        comp::bird_medium::Species::Duck => "common.entity.wild.peaceful.duck",
+        comp::bird_medium::Species::Chicken => "common.entity.wild.peaceful.chicken",
+        comp::bird_medium::Species::Goose => "common.entity.wild.peaceful.goose",
+        comp::bird_medium::Species::Peacock => "common.entity.wild.peaceful.peacock",
+        comp::bird_medium::Species::Eagle => "common.entity.wild.peaceful.eagle",
+        comp::bird_medium::Species::Owl => "common.entity.wild.peaceful.owl",
+        comp::bird_medium::Species::Parrot => "common.entity.wild.peaceful.parrot",
+    }
+}
+
+fn bird_large_config(body: comp::bird_large::Body) -> &'static str {
+    match body.species {
+        comp::bird_large::Species::Phoenix => "common.entity.wild.peaceful.phoenix",
+        comp::bird_large::Species::Cockatrice => "common.entity.wild.aggressive.cockatrice",
+        comp::bird_large::Species::Roc => "common.entity.wild.aggressive.roc",
+        // Wildcard match used here as there is an array above
+        // which limits what species are used
+        _ => unimplemented!(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use common::generation::EntityInfo;
+    use strum::IntoEnumIterator;
+
+    // Brief, Incomplete and Mostly Wrong Test that all entity configs do exist.
+    //
+    // NOTE: Doesn't checks for ships, because we don't produce entity configs
+    // for them yet.
+    #[test]
+    fn test_entity_configs() {
+        let dummy_pos = Vec3::new(0.0, 0.0, 0.0);
+        // Bird Large test
+        for bird_large_species in BIRD_LARGE_ROSTER {
+            let female_body = comp::bird_large::Body {
+                species: *bird_large_species,
+                body_type: comp::bird_large::BodyType::Female,
+            };
+            let male_body = comp::bird_large::Body {
+                species: *bird_large_species,
+                body_type: comp::bird_large::BodyType::Male,
+            };
+
+            let female_config = bird_large_config(female_body);
+            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(female_config));
+            let male_config = bird_large_config(male_body);
+            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(male_config));
+        }
+        // Bird Medium test
+        for bird_med_species in comp::bird_medium::ALL_SPECIES {
+            let female_body = comp::bird_medium::Body {
+                species: bird_med_species,
+                body_type: comp::bird_medium::BodyType::Female,
+            };
+            let male_body = comp::bird_medium::Body {
+                species: bird_med_species,
+                body_type: comp::bird_medium::BodyType::Male,
+            };
+
+            let female_config = bird_medium_config(female_body);
+            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(female_config));
+            let male_config = bird_medium_config(male_body);
+            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(male_config));
+        }
+        // Humanoid test
+        for kind in RtSimEntityKind::iter() {
+            let config = humanoid_config(kind);
+            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config));
+        }
     }
 }
