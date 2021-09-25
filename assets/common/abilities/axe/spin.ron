@@ -12,7 +12,7 @@ SpinMelee(
         strength: DamageFraction(0.1),
         chance: 0.1,
     ))),
-    energy_cost: 100,
+    energy_cost: 10.0,
     is_infinite: true,
     movement_behavior: AxeHover,
     is_interruptible: false,

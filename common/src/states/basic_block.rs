@@ -20,7 +20,7 @@ pub struct StaticData {
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Energy consumed to initiate the block
-    pub energy_cost: i32,
+    pub energy_cost: f32,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

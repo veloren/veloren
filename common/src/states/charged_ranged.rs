@@ -1,7 +1,6 @@
 use crate::{
     comp::{
-        projectile::ProjectileConstructor, Body, CharacterState, EnergyChange, EnergySource,
-        LightEmitter, Pos, StateUpdate,
+        projectile::ProjectileConstructor, Body, CharacterState, LightEmitter, Pos, StateUpdate,
     },
     event::ServerEvent,
     states::{
@@ -147,10 +146,9 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and input is held down
-                    update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        source: EnergySource::Ability,
-                    });
+                    update
+                        .energy
+                        .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else if input_is_pressed(data, self.static_data.ability_info.input) {
                     // Holds charge
                     update.character = CharacterState::ChargedRanged(Data {
@@ -159,10 +157,9 @@ impl CharacterBehavior for Data {
                     });
 
                     // Consumes energy if there's enough left and RMB is held down
-                    update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0 / 5.0) as i32,
-                        source: EnergySource::Ability,
-                    });
+                    update
+                        .energy
+                        .change_by(-self.static_data.energy_drain * data.dt.0 / 5.0);
                 }
             },
             StageSection::Recover => {

@@ -6,7 +6,7 @@ use common::{
             Buffs,
         },
         fluid_dynamics::{Fluid, LiquidKind},
-        Energy, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState, Stats,
+        Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
     resources::DeltaTime,
@@ -28,7 +28,6 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     healths: ReadStorage<'a, Health>,
     physics_states: ReadStorage<'a, PhysicsState>,
-    energies: ReadStorage<'a, Energy>,
 }
 
 #[derive(Default)]
@@ -74,10 +73,9 @@ impl<'a> System<'a> for Sys {
                 light_emitters.remove(entity);
             }
         }
-        for (entity, mut buff_comp, energy, mut stat, health, physics_state) in (
+        for (entity, mut buff_comp, mut stat, health, physics_state) in (
             &read_data.entities,
             &mut buffs,
-            &read_data.energies,
             &mut stats,
             &read_data.healths,
             read_data.physics_states.maybe(),
@@ -228,10 +226,10 @@ impl<'a> System<'a> for Sys {
                             },
                             BuffEffect::MaxEnergyModifier { value, kind } => match kind {
                                 ModifierKind::Additive => {
-                                    stat.max_energy_modifier += *value / (energy.base_max() as f32);
+                                    stat.max_energy_modifiers.add_mod += *value;
                                 },
                                 ModifierKind::Fractional => {
-                                    stat.max_energy_modifier *= *value;
+                                    stat.max_energy_modifiers.mult_mod *= *value;
                                 },
                             },
                             BuffEffect::DamageReduction(dr) => {

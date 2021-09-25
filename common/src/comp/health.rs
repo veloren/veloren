@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 #[cfg(not(target_arch = "wasm32"))]
 use specs_idvs::IdvStorage;
+use std::ops::Mul;
 
 /// Specifies what and how much changed current health
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
@@ -78,12 +79,13 @@ impl Health {
     /// Updates the maximum value for health
     pub fn update_maximum(&mut self, modifiers: comp::stats::StatsModifier) {
         let maximum = modifiers
-            .compute_maximum(self.base_max as f32)
+            .compute_maximum(self.base_max())
+            .mul(Self::SCALING_FACTOR_FLOAT)
             // NaN does not need to be handled here as rust will automatically change to 0 when casting to u32
             .clamp(0.0, Self::MAX_SCALED_HEALTH as f32) as u32;
         self.maximum = maximum;
         // Clamp the current health to enforce the current <= maximum invariant.
-        self.current = self.current.min(maximum);
+        self.current = self.current.min(self.maximum);
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -119,8 +121,7 @@ impl Health {
     #[cfg(not(target_arch = "wasm32"))]
     pub fn change_by(&mut self, change: HealthChange) {
         self.current = (((self.current() + change.amount).clamp(0.0, f32::from(Self::MAX_HEALTH))
-            as u32
-            * Self::SCALING_FACTOR_INT) as u32)
+            * Self::SCALING_FACTOR_FLOAT) as u32)
             .min(self.maximum);
         self.last_change = (0.0, change);
     }

@@ -2136,12 +2136,12 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
-            } else if agent.action_state.timer > 2.5 && has_energy(10) {
+            } else if agent.action_state.timer > 2.5 && has_energy(10.0) {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if has_leap() && has_energy(450) && thread_rng().gen_bool(0.5) {
+            } else if has_leap() && has_energy(45.0) && thread_rng().gen_bool(0.5) {
                 controller
                     .actions
                     .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -2156,7 +2156,7 @@ impl<'a> AgentData<'a> {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
             if attack_data.dist_sqrd < 32.0f32.powi(2)
                 && has_leap()
-                && has_energy(500)
+                && has_energy(50.0)
                 && can_see_tgt(
                     &read_data.terrain,
                     self.pos,
@@ -2212,7 +2212,7 @@ impl<'a> AgentData<'a> {
                     .actions
                     .push(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
-            } else if has_leap() && has_energy(500) && thread_rng().gen_bool(0.9) {
+            } else if has_leap() && has_energy(50.0) && thread_rng().gen_bool(0.9) {
                 use_leap(controller);
                 agent.action_state.timer += read_data.dt.0;
             } else {
@@ -2225,7 +2225,7 @@ impl<'a> AgentData<'a> {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
             if attack_data.dist_sqrd < 32.0f32.powi(2)
                 && has_leap()
-                && has_energy(500)
+                && has_energy(50.0)
                 && can_see_tgt(
                     &read_data.terrain,
                     self.pos,
@@ -2262,7 +2262,7 @@ impl<'a> AgentData<'a> {
                 .skill_set
                 .has_skill(Skill::Sword(SwordSkill::UnlockSpin))
                 && agent.action_state.timer < 2.0
-                && self.energy.current() > 600
+                && self.energy.current() > 60.0
             {
                 controller
                     .actions
@@ -2317,7 +2317,7 @@ impl<'a> AgentData<'a> {
     ) {
         const MIN_CHARGE_FRAC: f32 = 0.5;
         const OPTIMAL_TARGET_VELOCITY: f32 = 5.0;
-        const DESIRED_ENERGY_LEVEL: u32 = 500;
+        const DESIRED_ENERGY_LEVEL: f32 = 50.0;
         // Logic to use abilities
         if let CharacterState::ChargedRanged(c) = self.char_state {
             if !matches!(c.stage_section, StageSection::Recover) {
@@ -2339,7 +2339,7 @@ impl<'a> AgentData<'a> {
                 }
                 // Else don't send primary input to release the shot
             }
-        } else if matches!(self.char_state, CharacterState::RepeaterRanged(c) if self.energy.current() > 50 && !matches!(c.stage_section, StageSection::Recover))
+        } else if matches!(self.char_state, CharacterState::RepeaterRanged(c) if self.energy.current() > 5.0 && !matches!(c.stage_section, StageSection::Recover))
         {
             // If in repeater ranged, have enough energy, and aren't in recovery, try to
             // keep firing
@@ -2360,7 +2360,7 @@ impl<'a> AgentData<'a> {
             if self
                 .skill_set
                 .has_skill(Skill::Bow(BowSkill::UnlockShotgun))
-                && self.energy.current() > 450
+                && self.energy.current() > 45.0
                 && thread_rng().gen_bool(0.5)
             {
                 // Use shotgun if target close and have sufficient energy
@@ -2635,7 +2635,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        const DESIRED_ENERGY_LEVEL: u32 = 500;
+        const DESIRED_ENERGY_LEVEL: f32 = 50.0;
         const DESIRED_COMBO_LEVEL: u32 = 8;
         // Logic to use abilities
         if attack_data.dist_sqrd > attack_data.min_attack_dist.powi(2)
@@ -3535,7 +3535,7 @@ impl<'a> AgentData<'a> {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         }
         // If energy higher than 600 and random chance
-        else if self.energy.current() > 600 && thread_rng().gen_bool(0.4) {
+        else if self.energy.current() > 60.0 && thread_rng().gen_bool(0.4) {
             // Shockwave
             controller
                 .actions
@@ -3642,7 +3642,7 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_z = 1.0;
         } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
-        } else if self.energy.current() > 600
+        } else if self.energy.current() > 60.0
             && agent.action_state.timer < 3.0
             && attack_data.angle < 15.0
         {

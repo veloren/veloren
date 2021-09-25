@@ -131,7 +131,7 @@ impl<'a> Widget for BuffsBar<'a> {
                 || (self.health.current() - self.health.maximum()).abs() > Health::HEALTH_EPSILON
                 || decayed_health > 0.0;
             let show_energy = self.global_state.settings.interface.always_show_bars
-                || self.energy.current() != self.energy.maximum();
+                || (self.energy.current() - self.energy.maximum()).abs() > Energy::ENERGY_EPSILON;
             let offset = if show_energy && show_health {
                 140.0
             } else if show_health || show_energy {

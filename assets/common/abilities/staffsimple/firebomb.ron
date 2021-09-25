@@ -5,7 +5,7 @@ BasicRanged(
     projectile: Fireball(
         damage: 6.0,
         radius: 5.0,
-        energy_regen: 50,
+        energy_regen: 5.0,
     ),
     projectile_body: Object(BoltFire),
     /*projectile_light: Some(LightEmitter {

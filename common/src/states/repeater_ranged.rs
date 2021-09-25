@@ -1,8 +1,5 @@
 use crate::{
-    comp::{
-        Body, CharacterState, EnergyChange, EnergySource, LightEmitter, Pos, ProjectileConstructor,
-        StateUpdate,
-    },
+    comp::{Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -85,7 +82,7 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
                 } else if input_is_pressed(data, self.static_data.ability_info.input)
-                    && update.energy.current() as f32 >= self.static_data.energy_cost
+                    && update.energy.current() >= self.static_data.energy_cost
                 {
                     // Fire if input is pressed still
                     let (crit_chance, crit_mult) =
@@ -114,10 +111,7 @@ impl CharacterBehavior for Data {
                     // Removes energy from character when arrow is fired
                     update.server_events.push_front(ServerEvent::EnergyChange {
                         entity: data.entity,
-                        change: EnergyChange {
-                            amount: -self.static_data.energy_cost as i32,
-                            source: EnergySource::Ability,
-                        },
+                        change: -self.static_data.energy_cost,
                     });
 
                     // Sets new speed of shoot. Scales based off of the number of projectiles fired.

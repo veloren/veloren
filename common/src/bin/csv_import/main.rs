@@ -122,7 +122,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                         "Could not unwrap max energy value for {:?}",
                                         item.item_definition_id()
                                     );
-                                    0
+                                    0.0
                                 };
 
                             let energy_reward = if let Some(energy_reward_raw) =

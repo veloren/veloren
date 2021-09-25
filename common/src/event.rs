@@ -162,7 +162,7 @@ pub enum ServerEvent {
     },
     EnergyChange {
         entity: EcsEntity,
-        change: comp::EnergyChange,
+        change: f32,
     },
     ComboChange {
         entity: EcsEntity,
@@ -170,7 +170,7 @@ pub enum ServerEvent {
     },
     Parry {
         entity: EcsEntity,
-        energy_cost: i32,
+        energy_cost: f32,
     },
     RequestSiteInfo {
         entity: EcsEntity,

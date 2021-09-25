@@ -35,9 +35,7 @@ pub struct Stats {
     /// poise damage reduction using (prot / (60 + prot))
     poise_resilience: Protection,
     /// Energy max is summed, and then applied directly to the max energy stat
-    /// (multiply values by 10 for expected results, as energy internally is 10x
-    /// larger to allow smaller changes to occur with an integer)
-    energy_max: i32,
+    energy_max: f32,
     /// Energy recovery is summed, and then added to 1.0. When attacks reward
     /// energy, it is then multiplied by this value before the energy is
     /// rewarded.
@@ -54,7 +52,7 @@ impl Stats {
     pub fn new(
         protection: Protection,
         poise_resilience: Protection,
-        energy_max: i32,
+        energy_max: f32,
         energy_reward: f32,
         crit_power: f32,
         stealth: f32,
@@ -73,7 +71,7 @@ impl Stats {
 
     pub fn poise_resilience(&self) -> Protection { self.poise_resilience }
 
-    pub fn energy_max(&self) -> i32 { self.energy_max }
+    pub fn energy_max(&self) -> f32 { self.energy_max }
 
     pub fn energy_reward(&self) -> f32 { self.energy_reward }
 
@@ -145,7 +143,7 @@ impl Armor {
 
     pub fn poise_resilience(&self) -> Protection { self.stats.poise_resilience }
 
-    pub fn energy_max(&self) -> i32 { self.stats.energy_max }
+    pub fn energy_max(&self) -> f32 { self.stats.energy_max }
 
     pub fn energy_reward(&self) -> f32 { self.stats.energy_reward }
 
@@ -164,7 +162,7 @@ impl Armor {
             stats: Stats {
                 protection,
                 poise_resilience,
-                energy_max: 0,
+                energy_max: 0.0,
                 energy_reward: 0.0,
                 crit_power: 0.0,
                 stealth: 0.0,

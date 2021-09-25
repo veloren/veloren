@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
-    comp::{tool::ToolKind, CharacterState, EnergyChange, EnergySource, Melee, StateUpdate},
+    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -102,7 +102,7 @@ impl CharacterBehavior for Data {
                 if self.timer < self.charge_end_timer
                     && (input_is_pressed(data, self.static_data.ability_info.input)
                         || (self.auto_charge && self.timer < self.static_data.charge_duration))
-                    && update.energy.current() > 0
+                    && update.energy.current() > 0.0
                 {
                     // Forward movement
                     let charge_frac = (self.timer.as_secs_f32()
@@ -233,10 +233,9 @@ impl CharacterBehavior for Data {
                     }
 
                     // Consumes energy if there's enough left and charge has not stopped
-                    update.energy.change_by(EnergyChange {
-                        amount: -(self.static_data.energy_drain as f32 * data.dt.0) as i32,
-                        source: EnergySource::Ability,
-                    });
+                    update
+                        .energy
+                        .change_by(-self.static_data.energy_drain * data.dt.0);
                 } else {
                     // Transitions to swing section of stage
                     update.character = CharacterState::DashMelee(Data {

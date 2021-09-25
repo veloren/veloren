@@ -474,20 +474,20 @@ impl Body {
     /// Height from the bottom to the top (in metres)
     pub fn height(&self) -> f32 { self.dimensions().z }
 
-    pub fn base_energy(&self) -> u32 {
+    pub fn base_energy(&self) -> u16 {
         match self {
             Body::BipedLarge(biped_large) => match biped_large.species {
-                biped_large::Species::Dullahan => 4000,
-                _ => 3000,
+                biped_large::Species::Dullahan => 400,
+                _ => 300,
             },
             Body::BirdLarge(body) => match body.species {
-                bird_large::Species::Cockatrice => 4000,
-                bird_large::Species::Phoenix => 6000,
-                bird_large::Species::Roc => 5000,
-                bird_large::Species::FlameWyvern => 6000,
+                bird_large::Species::Cockatrice => 400,
+                bird_large::Species::Phoenix => 600,
+                bird_large::Species::Roc => 500,
+                bird_large::Species::FlameWyvern => 600,
             },
-            Body::Humanoid(_) => 750,
-            _ => 1000,
+            Body::Humanoid(_) => 75,
+            _ => 100,
         }
     }
 

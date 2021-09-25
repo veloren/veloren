@@ -5,7 +5,7 @@ BasicRanged(
     projectile: Fireball(
         damage: 9.0,
         radius: 4.0,
-        energy_regen: 60,
+        energy_regen: 6.0,
     ),
     projectile_body: Object(BoltFire),
     projectile_speed: 60.0,

@@ -312,10 +312,7 @@ impl Sys {
         *join.vel = state_update.vel;
         *join.ori = state_update.ori;
         *join.density = state_update.density;
-        // Note: might be changed every tick by timer anyway
-        if *join.energy != state_update.energy {
-            *join.energy = state_update.energy
-        };
+        *join.energy = state_update.energy;
         join.controller
             .queued_inputs
             .append(&mut state_update.queued_inputs);

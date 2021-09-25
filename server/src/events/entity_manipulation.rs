@@ -17,9 +17,8 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
-        object, Alignment, Auras, Body, CharacterState, Energy, EnergyChange, EnergySource, Group,
-        Health, HealthChange, Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, SkillSet,
-        Stats,
+        object, Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange,
+        Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
     lottery::{LootSpec, Lottery},
@@ -342,7 +341,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             .get_mut(entity)
             .map(|mut energy| {
                 let energy = &mut *energy;
-                energy.set_to(energy.maximum(), comp::EnergySource::Revive)
+                energy.refresh()
             });
         let _ = state
             .ecs()
@@ -1130,7 +1129,7 @@ pub fn handle_buff(server: &mut Server, entity: EcsEntity, buff_change: buff::Bu
     }
 }
 
-pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: EnergyChange) {
+pub fn handle_energy_change(server: &Server, entity: EcsEntity, change: f32) {
     let ecs = &server.state.ecs();
     if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
         energy.change_by(change);
@@ -1196,16 +1195,13 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     }
 }
 
-pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: i32) {
+pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: f32) {
     let ecs = &server.state.ecs();
     if let Some(mut character) = ecs.write_storage::<comp::CharacterState>().get_mut(entity) {
         *character = CharacterState::Wielding;
     };
     if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
-        energy.change_by(EnergyChange {
-            amount: energy_cost,
-            source: EnergySource::Ability,
-        });
+        energy.change_by(energy_cost);
     }
 }
 

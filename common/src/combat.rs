@@ -12,8 +12,8 @@ use crate::{
         },
         poise::PoiseChange,
         skills::SkillGroupKind,
-        Alignment, Body, CharacterState, Combo, Energy, EnergyChange, EnergySource, Health,
-        HealthChange, Inventory, Ori, Player, Poise, SkillSet, Stats,
+        Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
+        Player, Poise, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -251,12 +251,7 @@ impl Attack {
                             if let Some(attacker) = attacker {
                                 emit(ServerEvent::EnergyChange {
                                     entity: attacker.entity,
-                                    change: EnergyChange {
-                                        amount: (*ec
-                                            * compute_energy_reward_mod(attacker.inventory))
-                                            as i32,
-                                        source: EnergySource::HitEnemy,
-                                    },
+                                    change: *ec * compute_energy_reward_mod(attacker.inventory),
                                 });
                             }
                         },
@@ -335,14 +330,11 @@ impl Attack {
                         ..
                     }) = attacker
                     {
-                        let sufficient_energy = e.current() as f32 >= *r;
+                        let sufficient_energy = e.current() >= *r;
                         if sufficient_energy {
                             emit(ServerEvent::EnergyChange {
                                 entity,
-                                change: EnergyChange {
-                                    amount: -(*r as i32),
-                                    source: EnergySource::Ability,
-                                },
+                                change: -*r,
                             });
                         }
 
@@ -387,11 +379,7 @@ impl Attack {
                         if let Some(attacker) = attacker {
                             emit(ServerEvent::EnergyChange {
                                 entity: attacker.entity,
-                                change: EnergyChange {
-                                    amount: (ec * compute_energy_reward_mod(attacker.inventory))
-                                        as i32,
-                                    source: EnergySource::HitEnemy,
-                                },
+                                change: ec * compute_energy_reward_mod(attacker.inventory),
                             });
                         }
                     },
@@ -915,10 +903,8 @@ pub fn combat_rating(
         / 100.0
         / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
 
-    let energy_rating = energy.maximum() as f32
-        * (1.0 + compute_max_energy_mod(energy, Some(inventory)))
-        * compute_energy_reward_mod(Some(inventory))
-        / 200.0;
+    // Assumes a "standard" max energy of 100 and energy reward multiplier of 1.0
+    let energy_rating = 5.0 * energy.maximum() * compute_energy_reward_mod(Some(inventory)) / 100.0;
 
     let poise_rating = 10.0 / (1.0 - Poise::compute_poise_damage_reduction(inventory)).max(0.00001);
 
@@ -986,12 +972,12 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
     })
 }
 
-/// Computes the modifier that should be applied to max energy from the
+/// Computes the additive modifier that should be applied to max energy from the
 /// currently equipped items
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_max_energy_mod(energy: &Energy, inventory: Option<&Inventory>) -> f32 {
+pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
     // Defaults to a value of 0 if no inventory is present
-    let energy_increase = inventory.map_or(0, |inv| {
+    inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
@@ -1001,10 +987,5 @@ pub fn compute_max_energy_mod(energy: &Energy, inventory: Option<&Inventory>) ->
                 }
             })
             .sum()
-    });
-    // Returns the energy increase divided by base max of energy.
-    // This value is then added to the max_energy_modifier field on stats component.
-    // Adding is important here, as it ensures that a flat modifier is applied
-    // correctly.
-    energy_increase as f32 / energy.base_max() as f32
+    })
 }

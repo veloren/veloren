@@ -489,10 +489,10 @@ impl<'a> Widget for Group<'a> {
                             .color(if is_leader { ERROR_COLOR } else { GROUP_COLOR })
                             .w(300.0) // limit name length display
                             .set(state.ids.member_panels_txt[i], ui);
-                    let stam_perc = energy.current() as f64 / energy.maximum() as f64;
+                    let stam_perc = energy.current() / energy.maximum();
                     // Energy
                     Image::new(self.imgs.bar_content)
-                        .w_h(100.0 * stam_perc, 8.0)
+                        .w_h(100.0 * f64::from(stam_perc), 8.0)
                         .color(Some(STAMINA_COLOR))
                         .top_left_with_margins_on(state.ids.member_panels_bg[i], 26.0, 2.0)
                         .set(state.ids.member_energy[i], ui);
