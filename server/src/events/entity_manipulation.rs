@@ -18,7 +18,7 @@ use common::{
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
         object, Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange,
-        Inventory, Player, Poise, PoiseChange, PoiseSource, Pos, SkillSet, Stats,
+        Inventory, Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
     lottery::{LootSpec, Lottery},
@@ -40,12 +40,7 @@ use specs::{join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity,
 use tracing::error;
 use vek::{Vec2, Vec3};
 
-pub fn handle_poise(
-    server: &Server,
-    entity: EcsEntity,
-    change: PoiseChange,
-    knockback_dir: Vec3<f32>,
-) {
+pub fn handle_poise(server: &Server, entity: EcsEntity, change: f32, knockback_dir: Vec3<f32>) {
     let ecs = &server.state.ecs();
     if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
         // Entity is invincible to poise change during stunned/staggered character state
@@ -620,11 +615,8 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         }
         // Handle poise change
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
-            let poise_damage = PoiseChange {
-                amount: -(mass.0 * vel.magnitude_squared() / 1500.0) as i32,
-                source: PoiseSource::Falling,
-            };
-            let poise_change = poise_damage.modify_poise_damage(inventories.get(entity));
+            let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
+            let poise_change = Poise::apply_poise_reduction(poise_damage, inventories.get(entity));
             poise.change_by(poise_change, Vec3::unit_z());
         }
     }

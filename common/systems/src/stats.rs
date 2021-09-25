@@ -3,8 +3,8 @@ use common::{
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, PoiseChange, PoiseSource,
-        Pos, SkillSet, Stats, StatsModifier,
+        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, Pos, SkillSet, Stats,
+        StatsModifier,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -75,15 +75,10 @@ impl<'a> System<'a> for Sys {
 
         // Increment last change timer
         healths.set_event_emission(false); // avoid unnecessary syncing
-        poises.set_event_emission(false); // avoid unnecessary syncing
         for mut health in (&mut healths).join() {
             health.last_change.0 += f64::from(dt);
         }
-        for mut poise in (&mut poises).join() {
-            poise.last_change.0 += f64::from(dt);
-        }
         healths.set_event_emission(true);
-        poises.set_event_emission(true);
 
         // Update stats
         for (entity, uid, stats, mut skill_set, mut health, pos, mut energy, inventory) in (
@@ -217,15 +212,7 @@ impl<'a> System<'a> for Sys {
 
                     if res_poise {
                         let poise = &mut *poise;
-                        poise.change_by(
-                            PoiseChange {
-                                amount: (poise.regen_rate * dt
-                                    + POISE_REGEN_ACCEL * dt.powi(2) / 2.0)
-                                    as i32,
-                                source: PoiseSource::Regen,
-                            },
-                            Vec3::zero(),
-                        );
+                        poise.change_by(poise.regen_rate * dt, Vec3::zero());
                         poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);
                     }
                 },

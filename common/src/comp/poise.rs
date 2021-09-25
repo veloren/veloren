@@ -1,92 +1,40 @@
-use crate::comp::{
-    inventory::item::{armor::Protection, ItemKind},
-    Body, Inventory,
+use crate::{
+    comp::{
+        self,
+        inventory::item::{armor::Protection, ItemKind},
+        Inventory,
+    },
+    util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
+use std::ops::Mul;
 use vek::*;
 
-/// A change in the poise component. Stores the amount as a signed
-/// integer to allow for added or removed poise. Also has a field to
-/// label where the poise change came from.
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub struct PoiseChange {
-    /// Value of the change in poise
-    pub amount: i32,
-    /// Source of change in poise
-    pub source: PoiseSource,
-}
-
-impl PoiseChange {
-    /// Alters poise damage as a result of armor poise damage reduction
-    pub fn modify_poise_damage(self, inventory: Option<&Inventory>) -> PoiseChange {
-        let poise_damage_reduction = inventory.map_or(0.0, Poise::compute_poise_damage_reduction);
-        let poise_damage = self.amount as f32 * (1.0 - poise_damage_reduction);
-        // Add match on poise source when different calculations per source
-        // are needed/wanted
-        PoiseChange {
-            amount: poise_damage as i32,
-            source: self.source,
-        }
-    }
-
-    /// Creates a poise change from a float
-    pub fn from_value(poise_damage: f32, inventory: Option<&Inventory>) -> Self {
-        let poise_damage_reduction = inventory.map_or(0.0, Poise::compute_poise_damage_reduction);
-        let poise_change = -poise_damage * (1.0 - poise_damage_reduction);
-        Self {
-            amount: poise_change as i32,
-            source: PoiseSource::Attack,
-        }
-    }
-}
-
-/// Sources of poise change
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub enum PoiseSource {
-    LevelUp,
-    Attack,
-    Explosion,
-    Falling,
-    Revive,
-    Regen,
-    Other,
-}
-
-/// Poise component
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+/// Poise is represented by u32s within the module, but treated as a float by
+/// the rest of the game.
+// As a general rule, all input and output values to public functions should be
+// floats rather than integers.
 pub struct Poise {
-    /// Base poise amount for this entity
-    base_max: u32,
-    /// Poise of entity at any given moment
+    // Current and base_max are scaled by 256 within this module compared to what is visible to
+    // outside this module. The scaling is done to allow poise to function as a fixed point while
+    // still having the advantages of being an integer. The scaling of 256 was chosen so that max
+    // poise could be u16::MAX - 1, and then the scaled poise could fit inside an f32 with no
+    // precision loss
+    /// Current poise is how much poise the entity currently has
     current: u32,
-    /// Maximum poise of entity at a given time
+    /// Base max is the amount of poise the entity has without considering
+    /// temporary modifiers such as buffs
+    base_max: u32,
+    /// Maximum is the amount of poise the entity has after temporary modifiers
+    /// are considered
     maximum: u32,
-    /// Last poise change, storing time since last change, the change itself,
-    /// and the knockback direction vector
-    pub last_change: (f64, PoiseChange, Vec3<f32>),
+    /// Direction that the last poise change came from
+    pub last_change: Dir,
     /// Rate of poise regeneration per tick. Starts at zero and accelerates.
     pub regen_rate: f32,
-}
-
-impl Default for Poise {
-    fn default() -> Self {
-        Self {
-            current: 0,
-            maximum: 0,
-            base_max: 0,
-            last_change: (
-                0.0,
-                PoiseChange {
-                    amount: 0,
-                    source: PoiseSource::Revive,
-                },
-                Vec3::zero(),
-            ),
-            regen_rate: 0.0,
-        }
-    }
 }
 
 /// States to define effects of a poise change
@@ -105,95 +53,77 @@ pub enum PoiseState {
 }
 
 impl Poise {
-    /// Creates a new poise struct based on the body it is being assigned to
-    pub fn new(body: Body) -> Self {
-        let mut poise = Poise::default();
-        poise.update_base_max(Some(body));
-        poise.set_maximum(poise.base_max);
-        poise.set_to(poise.maximum, PoiseSource::Revive);
+    /// Maximum value allowed for poise before scaling
+    const MAX_POISE: u16 = u16::MAX - 1;
+    /// The maximum value allowed for current and maximum poise
+    /// Maximum value is (u16:MAX - 1) * 256, which only requires 24 bits. This
+    /// can fit into an f32 with no loss to precision
+    // Cast to u32 done as u32::from cannot be called inside constant
+    const MAX_SCALED_POISE: u32 = Self::MAX_POISE as u32 * Self::SCALING_FACTOR_INT;
+    /// Used when comparisons to poise are needed outside this module.
+    // This value is chosen as anything smaller than this is more precise than our
+    // units of poise.
+    pub const POISE_EPSILON: f32 = 0.5 / Self::MAX_SCALED_POISE as f32;
+    /// The amount poise is scaled by within this module
+    const SCALING_FACTOR_FLOAT: f32 = 256.;
+    const SCALING_FACTOR_INT: u32 = Self::SCALING_FACTOR_FLOAT as u32;
 
-        poise
+    /// Returns the current value of poise casted to a float
+    pub fn current(&self) -> f32 { self.current as f32 / Self::SCALING_FACTOR_FLOAT }
+
+    /// Returns the base maximum value of poise casted to a float
+    pub fn base_max(&self) -> f32 { self.base_max as f32 / Self::SCALING_FACTOR_FLOAT }
+
+    /// Returns the maximum value of poise casted to a float
+    pub fn maximum(&self) -> f32 { self.maximum as f32 / Self::SCALING_FACTOR_FLOAT }
+
+    /// Returns the fraction of poise an entity has remaining
+    pub fn fraction(&self) -> f32 { self.current() / self.maximum().max(1.0) }
+
+    /// Updates the maximum value for poise
+    pub fn update_maximum(&mut self, modifiers: comp::stats::StatsModifier) {
+        let maximum = modifiers
+            .compute_maximum(self.base_max())
+            .mul(Self::SCALING_FACTOR_FLOAT)
+            // NaN does not need to be handled here as rust will automatically change to 0 when casting to u32
+            .clamp(0.0, Self::MAX_SCALED_POISE as f32) as u32;
+        self.maximum = maximum;
+        self.current = self.current.min(self.maximum);
     }
 
-    /// Returns knockback as a Vec3
-    pub fn knockback(&self) -> Vec3<f32> { self.last_change.2 }
-
-    /// Defines the poise states based on fraction of maximum poise
-    pub fn poise_state(&self) -> PoiseState {
-        if self.current >= 7 * self.maximum / 10 {
-            PoiseState::Normal
-        } else if self.current >= 5 * self.maximum / 10 {
-            PoiseState::Interrupted
-        } else if self.current >= 4 * self.maximum / 10 {
-            PoiseState::Stunned
-        } else if self.current >= 2 * self.maximum / 10 {
-            PoiseState::Dazed
-        } else {
-            PoiseState::KnockedDown
+    pub fn new(body: comp::Body) -> Self {
+        let poise = u32::from(body.base_poise()) * Self::SCALING_FACTOR_INT;
+        Poise {
+            current: poise,
+            base_max: poise,
+            maximum: poise,
+            last_change: Dir::default(),
+            regen_rate: 0.0,
         }
     }
 
-    /// Gets the current poise value
-    pub fn current(&self) -> u32 { self.current }
-
-    /// Gets the maximum poise value
-    pub fn maximum(&self) -> u32 { self.maximum }
-
-    /// Gets the base_max value
-    pub fn base_max(&self) -> u32 { self.base_max }
-
-    /// Sets the poise value to a provided value. First cuts off the value
-    /// at the maximum. In most cases change_by() should be used.
-    pub fn set_to(&mut self, amount: u32, cause: PoiseSource) {
-        let amount = amount.min(self.maximum);
-        self.last_change = (
-            0.0,
-            PoiseChange {
-                amount: amount as i32 - self.current as i32,
-                source: cause,
-            },
-            Vec3::zero(),
-        );
-        self.current = amount;
+    pub fn change_by(&mut self, change: f32, impulse: Vec3<f32>) {
+        self.current = (((self.current() + change).clamp(0.0, f32::from(Self::MAX_POISE))
+            * Self::SCALING_FACTOR_FLOAT) as u32)
+            .min(self.maximum);
+        self.last_change = Dir::from_unnormalized(impulse).unwrap_or_default();
     }
 
-    /// Changes the current poise due to an in-game effect.
-    pub fn change_by(&mut self, change: PoiseChange, impulse: Vec3<f32>) {
-        self.current = ((self.current as i32 + change.amount).max(0) as u32).min(self.maximum);
-        self.last_change = (
-            0.0,
-            PoiseChange {
-                amount: change.amount,
-                source: change.source,
-            },
-            impulse,
-        );
-    }
-
-    /// Resets current value to maximum
     pub fn reset(&mut self) { self.current = self.maximum; }
 
-    /// Sets the maximum and updates the current value to max out at the new
-    /// maximum
-    pub fn set_maximum(&mut self, amount: u32) {
-        self.maximum = amount;
-        self.current = self.current.min(self.maximum);
-    }
+    /// Returns knockback as a Dir
+    /// Kept as helper function should additional fields ever be added to last
+    /// change
+    pub fn knockback(&self) -> Dir { self.last_change }
 
-    /// Sets the `Poise` base_max
-    fn set_base_max(&mut self, amount: u32) {
-        self.base_max = amount;
-        self.current = self.current.min(self.maximum);
-    }
-
-    /// Resets the maximum to the base_max. Example use would be a potion
-    /// wearing off
-    pub fn reset_max(&mut self) { self.maximum = self.base_max; }
-
-    /// Sets the base_max based on the entity `Body`
-    pub fn update_base_max(&mut self, body: Option<Body>) {
-        if let Some(body) = body {
-            self.set_base_max(body.base_poise());
+    /// Defines the poise states based on current poise value
+    pub fn poise_state(&self) -> PoiseState {
+        match self.current() {
+            x if x > 70.0 => PoiseState::Normal,
+            x if x > 50.0 => PoiseState::Interrupted,
+            x if x > 40.0 => PoiseState::Stunned,
+            x if x > 20.0 => PoiseState::Dazed,
+            _ => PoiseState::KnockedDown,
         }
     }
 
@@ -217,6 +147,14 @@ impl Poise {
             Some(dr) => dr / (60.0 + dr.abs()),
             None => 1.0,
         }
+    }
+
+    /// Modifies a poise change when optionally given an inventory to aid in
+    /// calculation of poise damage reduction
+    pub fn apply_poise_reduction(value: f32, inventory: Option<&Inventory>) -> f32 {
+        inventory.map_or(value, |inv| {
+            value * (1.0 - Poise::compute_poise_damage_reduction(inv))
+        })
     }
 }
 

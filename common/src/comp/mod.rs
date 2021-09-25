@@ -91,7 +91,7 @@ pub use self::{
     },
     player::DisconnectReason,
     player::Player,
-    poise::{Poise, PoiseChange, PoiseSource, PoiseState},
+    poise::{Poise, PoiseState},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
     skills::{Skill, SkillGroup, SkillGroupKind, SkillSet},

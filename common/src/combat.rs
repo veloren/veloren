@@ -10,7 +10,6 @@ use crate::{
             },
             slot::EquipSlot,
         },
-        poise::PoiseChange,
         skills::SkillGroupKind,
         Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
         Player, Poise, SkillSet, Stats,
@@ -281,8 +280,8 @@ impl Attack {
                             }
                         },
                         CombatEffect::Poise(p) => {
-                            let change = PoiseChange::from_value(*p, target.inventory);
-                            if change.amount != 0 {
+                            let change = -Poise::apply_poise_reduction(*p, target.inventory);
+                            if change.abs() > Poise::POISE_EPSILON {
                                 emit(ServerEvent::PoiseChange {
                                     entity: target.entity,
                                     change,
@@ -409,8 +408,8 @@ impl Attack {
                         }
                     },
                     CombatEffect::Poise(p) => {
-                        let change = PoiseChange::from_value(p, target.inventory);
-                        if change.amount != 0 {
+                        let change = -Poise::apply_poise_reduction(p, target.inventory);
+                        if change.abs() > Poise::POISE_EPSILON {
                             emit(ServerEvent::PoiseChange {
                                 entity: target.entity,
                                 change,
