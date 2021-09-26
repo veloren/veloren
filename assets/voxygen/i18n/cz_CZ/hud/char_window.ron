@@ -6,11 +6,13 @@
         /// Start character window section
         "character_window.character_name": "Jméno postavy",
         // Charater stats
-        "character_window.character_stats": r#"Síla
+        "character_window.character_stats": r#"Výdrž
 
 Zdatnost
 
 Síla vůle
+
+Ochrana
 "#,
     },
 

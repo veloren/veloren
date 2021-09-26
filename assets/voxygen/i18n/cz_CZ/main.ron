@@ -4,8 +4,12 @@
 (
     string_map: {
         /// Start Main screen section
+        "main.username": "Jméno",
+        "main.server": "Server",
+        "main.password": "Heslo",
         "main.connecting": "Připojování",
         "main.creating_world": "Tvorba Světa",
+        "main.tip": "Tip:",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Vítejte v alfa verzi Veloren!
@@ -27,8 +31,6 @@ Děkujeme za přečtení této zprávy a doufáme, že se vám tato hra bude lí
         // Login process description
         "main.login_process": r#"Informace o procesu přihlášení:
 
-Pokud máte problémy s přihlášením:
-
 Nezapomeňte, že k připojení na server
 se zapnutým ověřením potřebujete účet.
 
@@ -37,27 +39,26 @@ se zapnutým ověřením potřebujete účet.
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Server nenalezen",
         "main.login.authentication_error": "Chyba ověření",
+        "main.login.internal_error": "Interní chyba klienta (nejspíše byla smazána postava hráče)",
+        "main.login.failed_auth_server_url_invalid": "Chyba v připojení k autentifikačnímu serveru",
+        "main.login.insecure_auth_scheme": "Ověření přes HTTP není podporováno. Není to bezpečné! Pro účely vývoje je HTTP povoleno pro 'localhost' nebo pro ladění",
         "main.login.server_full": "Server je plný",
         "main.login.untrusted_auth_server": "Ověřovací server je nedůvěryhodný",
         "main.login.outdated_client_or_server": "ServerWentMad: Pravděpodobně jsou verze nekompatibilní, zkontrolujte aktualizace!",
-        "main.login.network_wrong_version": "Server běží na jiné verzy hry. Aktualizuj si klienta.",
         "main.login.timeout": "Timeout: Server neodpověděl včas. (Přetížení nebo chyby v síti).",
         "main.login.server_shut_down": "Server Uzavřen",
         "main.login.network_error": "Chyba sítě.",
+        "main.login.network_wrong_version": "Server běží na jiné verzy hry. Aktualizuj si klienta.",
         "main.login.failed_sending_request": "Dotaz na ověřovací server se nezdařil",
-        "main.login.client_crashed": "Pád klienta",
-        "main.servers.select_server": "Výběr serveru",
-        "main.server": "Server",
-        "main.password": "Heslo",
-        "main.username": "Jméno",
-        "main.tip":"Rada:",
         "main.login.invalid_character": "Vybraná postava je neplatná",
+        "main.login.client_crashed": "Pád klienta",
         "main.login.not_on_whitelist": "Potřebuješ být ve whitelistu. Kontaktuj Admina serveru.",
         "main.login.banned": "Byl/a si zabanován/á z tohoto důvodu",
         "main.login.kicked": "Byl/a si vyhozen/á z tohoto důvodu",
         "main.login.select_language": "Vyber si svůj Jazyk",
-        "main.login.insecure_auth_scheme": "Schéma ověření HTTP NENÍ podporováno. Je to nejisté! Pro účely vývoje je HTTP povolen pro „localhost“ nebo pro ladění",
-        "main.login.failed_auth_server_url_invalid": "Připojení k ověřovacímu serveru se nezdařilo.",
+        "main.login.client_version": "Verze klienta",
+        "main.login.server_version": "Verze serveru",
+        "main.servers.select_server": "Výběr serveru",
         /// End Main screen section
     },
 
@@ -74,15 +75,16 @@ https://veloren.net/account/."#,
             "Dávej si pozor na jídlo, truhly a jiný kořisti rozmístěné po celém světě!",
             "Inventář plný jídla? Zkus vytvořit z toho lepší jídlo!",
             "Přemýšlíš co dělat? Zkus nějakou Kobku označenou na mapě!",
-            "Nezapomeň si nastavit Grafiku pro svůj systém. Klávesou 'N' otevřeš Nastavení.",
+            "Nezapomeň si nastavit Grafiku pro svůj systém. Klávesou 'F10' otevřeš Nastavení.",
             "Hraní s hráči je zábava! Klávesou 'O' se podívej kdo je Online.",
             "Klávesou 'J' začneš Tancovat. Párty!",
-            "Klávesou 'L-Shift' otevřeš Kluzák a můžeš dobýt nebesa.",
+            "Klávesou 'L-Ctrl' otevřeš Kluzák a můžeš dobýt nebesa.",
             "Veloren je stále v Pre-Alpha. Snažíme se hru zlepšit co to jde!",
             "Jestli se chceš napojit k dev teamu nebo jen si napsat, připoj se na náš Discord server.",
             "Můžeš povolit zobrazení tvého životu v healthbaru v Nastavení.",
             "Sedni si k Táboráku (Klávesa 'K') pro pomalé léčení.",
             "Potřebuješ více tašek, či lepší zbroj pro vaše dobrodrušství? Klávesou 'C' otevřeš nabídku Tvorby!",
+            "Zkus skončit, když děláš kotrmelec skrz nestvůry."
         ],
     }
 )

@@ -3,6 +3,9 @@
 /// Localization for Čeština
 (
     string_map: {
+        // SCT outputs
+        "hud.sct.experience": "{amount} Zk.",
+        "hud.sct.block": "BLOKOVÁNO",
     },
 
 

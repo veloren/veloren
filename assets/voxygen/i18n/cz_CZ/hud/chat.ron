@@ -3,33 +3,44 @@
 /// Localization for Čeština
 (
     string_map: {
-        "hud.chat.online_msg": "[{name}] je online",
-        "hud.chat.offline_msg": "[{name}] šel/šla offline",
+      "hud.chat.all": "Vše",
+      "hud.chat.chat_tab_hover_tooltip": "Pravý klik pro nastavení",
 
-        "hud.chat.default_death_msg": "[{name}] zemřel",
-        "hud.chat.environmental_kill_msg": "[{name}] zemřel v {environment}",
-        "hud.chat.fall_kill_msg": "[{name}] zemřel z pádu",
-        "hud.chat.suicide_msg": "[{name}] zemřel díky svému zapříčinění",
+      // Debuff outcomes
+      "hud.outcome.burning": "uhořel/a",
+      "hud.outcome.curse": "zemřel/a kletbou",
+      "hud.outcome.bleeding": "vykrvácel/a",
+      "hud.outcome.crippled": "zemřel/a zmrzačením",
+      "hud.outcome.frozen": "umrzl/a",
 
-        "hud.chat.pvp_buff_kill_msg": "[{victim}] zemřel z {buff} od [{attacker}]",
-        "hud.chat.pvp_melee_kill_msg": "[{attacker}] porazil [{victim}]",
-        "hud.chat.pvp_ranged_kill_msg": "[{attacker}] postřelil [{victim}]",
-        "hud.chat.pvp_explosion_kill_msg": "[{attacker}] odpálil [{victim}]",
-        "hud.chat.pvp_energy_kill_msg": "[{attacker}] zabil [{victim}] pomocí magie",
+      // Chat outputs
+      "hud.chat.online_msg": "[{name}] je teď online",
+      "hud.chat.offline_msg": "[{name}] se odhlásil",
 
-        "hud.chat.nonexistent_buff_kill_msg": "[{victim}] zemřel pomocí {buff}",
+      "hud.chat.default_death_msg": "[{name}] zemřel/a",
+      "hud.chat.environmental_kill_msg": "[{name}] zemřel/a v {environment}",
+      "hud.chat.fall_kill_msg": "[{name}] zemřel/a pádem",
+      "hud.chat.suicide_msg": "[{name}] si způsobil/a zranění a zemřel/a",
 
-        "hud.chat.npc_buff_kill_msg": "[{victim}] died of {buff} od {attacker}",
-        "hud.chat.npc_melee_kill_msg": "{attacker} zabil [{victim}]",
-        "hud.chat.npc_ranged_kill_msg": "{attacker} postřelil [{victim}]",
-        "hud.chat.npc_explosion_kill_msg": "{attacker} odpálil [{victim}]",
-        "hud.chat.npc_energy_kill_msg": "{attacker} zabil [{victim}] pomocí magie",
-        "hud.chat.npc_other_kill_msg": "{attacker} zabil [{victim}]",
+      "hud.chat.died_of_pvp_buff_msg": "[{victim}] {died_of_buff} způsobeno [{attacker}]",
+      "hud.chat.pvp_melee_kill_msg": "[{attacker}] porazil/a [{victim}]",
+      "hud.chat.pvp_ranged_kill_msg": "[{attacker}] zastřelil/a [{victim}]",
+      "hud.chat.pvp_explosion_kill_msg": "[{attacker}] vyhodil/a do vzduchu [{victim}]",
+      "hud.chat.pvp_energy_kill_msg": "[{attacker}] zabil/a [{victim}] kouzlem",
 
-        "hud.chat.loot_msg": "Sebral si [{item}]",
-        "hud.chat.loot_fail": "Tvůj inventář je plný!",
-        "hud.chat.goodbye": "nashledanou!",
-        "hud.chat.connection_lost": "Spojení ztraceno. Odpojuji za {time} sekund.",
+      "hud.chat.died_of_buff_nonexistent_msg": "[{victim}] {died_of_buff}",
+
+      "hud.chat.died_of_npc_buff_msg": "[{victim}] {died_of_buff} způsobeno {attacker}",
+      "hud.chat.npc_melee_kill_msg": "{attacker} zabil/a [{victim}]",
+      "hud.chat.npc_ranged_kill_msg": "{attacker} zastřelil/a [{victim}]",
+      "hud.chat.npc_explosion_kill_msg": "{attacker} vyhodil/a do vzduchu [{victim}]",
+      "hud.chat.npc_energy_kill_msg": "{attacker} zabil/a [{victim}] kouzlem",
+      "hud.chat.npc_other_kill_msg": "{attacker} zabil/a [{victim}]",
+
+      "hud.chat.loot_msg": "Sebral/a jsi [{item}]",
+      "hud.chat.loot_fail": "Máš plný inventář!",
+      "hud.chat.goodbye": "Nashledanou!",
+      "hud.chat.connection_lost": "Připojení ztraceno. Ukončuji za {time} sekund.",
     },
 
 
