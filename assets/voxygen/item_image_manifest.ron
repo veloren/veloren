@@ -2686,51 +2686,51 @@
     ),
     // Gliders
     Glider("Starter"): VoxTrans(
-        "voxel.glider.glider_starter",
+        "voxel.glider.starter",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
     Glider("PlainCloth"): VoxTrans(
-        "voxel.glider.glider_basic_white",
+        "voxel.glider.basic_white",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
     Glider("RedCloth"): VoxTrans(
-        "voxel.glider.glider_basic_red",
+        "voxel.glider.basic_red",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
     Glider("Blue0"): VoxTrans(
-        "voxel.glider.glider_blue",
+        "voxel.glider.blue",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("ButterflyMorpho"): VoxTrans(
-        "voxel.glider.glider_butterfly1",
+        "voxel.glider.butterfly1",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("ButterflyMonarch"): VoxTrans(
-        "voxel.glider.glider_butterfly2",
+        "voxel.glider.butterfly2",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("MothLuna"): VoxTrans(
-        "voxel.glider.glider_moth",
+        "voxel.glider.moth",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("SandRaptor"): VoxTrans(
-        "voxel.glider.glider_sandraptor",
+        "voxel.glider.sandraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("SnowRaptor"): VoxTrans(
-        "voxel.glider.glider_snowraptor",
+        "voxel.glider.snowraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("WoodRaptor"): VoxTrans(
-        "voxel.glider.glider_woodraptor",
+        "voxel.glider.woodraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("Purple0"): VoxTrans(
-        "voxel.glider.glider_cultists",
+        "voxel.glider.cultists",
         (5.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("Leaves"): VoxTrans(
-        "voxel.glider.glider_leaves",
+        "voxel.glider.leaves",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     // Debug Items

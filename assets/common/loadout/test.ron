@@ -24,7 +24,7 @@
     // Misc
     Lantern: Item("common.items.lantern.black_0"),
     Armor(Tabard): Item("common.items.debug.admin"),
-    Glider: Item("common.items.glider.glider_basic_red"),
+    Glider: Item("common.items.glider.basic_red"),
     Armor(Bag1): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
     Armor(Bag2): Item("common.items.armor.misc.bag.tiny_leather_pouch"),
     Armor(Bag3): Item("common.items.armor.misc.bag.tiny_leather_pouch"),

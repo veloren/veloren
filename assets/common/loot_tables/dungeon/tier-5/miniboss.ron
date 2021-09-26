@@ -8,5 +8,5 @@
     // Cosmetic items
     (1.0, Item("common.items.armor.misc.back.dungeon_purple")),
     (1.0, Item("common.items.armor.misc.ring.skull")),
-    (1.0, Item("common.items.glider.glider_blue")),
+    (1.0, Item("common.items.glider.blue")),
 ]

@@ -8,7 +8,7 @@
     (1.0, LootTable("common.loot_tables.weapons.cave")),
     // Rare misc items
     (1.0, Item("common.items.boss_drops.lantern")),
-    (1.0, Item("common.items.glider.glider_purp")),
+    (1.0, Item("common.items.glider.skullgrin")),
     // Legendary weapons
     (1.0, LootTable("common.loot_tables.weapons.legendary")),
     // Crafting material
