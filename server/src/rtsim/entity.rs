@@ -96,6 +96,9 @@ impl Entity {
         }
     }
 
+    /// Escape hatch for runtime creation of loadout not covered by entity config.
+    // NOTE: Signature is part of interface of EntityInfo, and site information
+    // is not used for RtSim as of now.
     pub fn get_adhoc_loadout(
         &self,
     ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {

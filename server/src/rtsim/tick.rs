@@ -166,6 +166,9 @@ impl<'a> System<'a> for Sys {
                         rtsim_entity,
                         projectile: None,
                     },
+                    // EntityConfig can't represent Waypoints at all
+                    // as of now, and if someone will try to spawn
+                    // rtsim waypoint it is definitely error.
                     NpcData::Waypoint(_) => unimplemented!(),
                 }
             };
