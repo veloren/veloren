@@ -93,7 +93,7 @@ impl<T: AsRef<str>> LootSpec<T> {
         match self {
             Self::Item(item) => Item::new_from_asset(item.as_ref()).map_or_else(
                 |e| {
-                    warn!(?e, "Invalid item path");
+                    warn!(?e, "error while loading item: {}", item.as_ref());
                     None
                 },
                 Option::Some,
@@ -110,7 +110,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                         Some(item)
                     },
                     Err(e) => {
-                        warn!(?e, "Invalid item path");
+                        warn!(?e, "error while loading item: {}", item.as_ref());
                         None
                     },
                 }
