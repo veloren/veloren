@@ -78,7 +78,7 @@ pub enum BanErrorKind {
 #[allow(dead_code)]
 pub struct BanError {
     kind: BanErrorKind,
-    /// Uuid of affected
+    /// Uuid of affected user
     uuid: Uuid,
     /// Username of affected user (as of ban/unban time).
     username: String,
