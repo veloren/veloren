@@ -430,7 +430,7 @@
         is_recycling: false,
     ),
     "Plain Cloth Glider": (
-        output: ("common.items.glider.glider_basic_white", 1),
+        output: ("common.items.glider.basic_white", 1),
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 5),
             (Item("common.items.crafting_ing.leather.leather_strips"), 5),
@@ -442,7 +442,7 @@
         is_recycling: false,
     ),
     "Red Cloth Glider": (
-        output: ("common.items.glider.glider_basic_red", 1),
+        output: ("common.items.glider.basic_red", 1),
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 5),
             (Item("common.items.crafting_ing.cloth.linen_red"), 10),
@@ -454,7 +454,7 @@
         is_recycling: false,
     ),
     "Leaves Glider": (
-        output: ("common.items.glider.glider_leaves", 1),
+        output: ("common.items.glider.leaves", 1),
         inputs: [
             (Item("common.items.crafting_ing.twigs"), 5),
             (Item("common.items.crafting_ing.leather.thick_leather"), 4),
@@ -467,7 +467,7 @@
         is_recycling: false,
     ),
     "Sand Raptor Wings": (
-        output: ("common.items.glider.glider_sandraptor", 1),
+        output: ("common.items.glider.sandraptor", 1),
         inputs: [
             (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 6),
             (Item("common.items.crafting_ing.twigs"), 5),
@@ -480,7 +480,7 @@
         is_recycling: false,
     ),
     "Snow Raptor Wings": (
-        output: ("common.items.glider.glider_snowraptor", 1),
+        output: ("common.items.glider.snowraptor", 1),
         inputs: [
             (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 6),
             (Item("common.items.crafting_ing.twigs"), 5),
@@ -494,7 +494,7 @@
         is_recycling: false,
     ),
     "Wood Raptor Wings": (
-        output: ("common.items.glider.glider_woodraptor", 1),
+        output: ("common.items.glider.woodraptor", 1),
         inputs: [
             (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 6),
             (Item("common.items.crafting_ing.twigs"), 5),

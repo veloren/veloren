@@ -9,11 +9,11 @@
 [
     /// Non-craftable gliders
     // Butterfly gliders
-    (5, Item("common.items.glider.glider_morpho")),
-    (5, Item("common.items.glider.glider_monarch")),
-    (5, Item("common.items.glider.glider_moth")),
+    (5, Item("common.items.glider.morpho")),
+    (5, Item("common.items.glider.monarch")),
+    (5, Item("common.items.glider.moth")),
     // Skullgrin
-    (2, Item("common.items.glider.glider_purp")),
+    (2, Item("common.items.glider.skullgrin")),
 
     /// Lanterns
     (5, Item("common.items.lantern.geode_purp")),

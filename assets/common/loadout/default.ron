@@ -5,5 +5,5 @@
     Armor(Feet): Item("common.items.armor.misc.foot.sandals"),
 
     Lantern: Item("common.items.lantern.black_0"),
-    Glider: Item("common.items.glider.glider_cloverleaf"),
+    Glider: Item("common.items.glider.cloverleaf"),
 })

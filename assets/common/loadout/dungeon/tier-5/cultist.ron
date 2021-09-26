@@ -13,7 +13,7 @@
         (2.0, None),
     ]),
 
-    Glider: Item("common.items.glider.glider_purp"),
+    Glider: Item("common.items.glider.skullgrin"),
 
     ActiveMainhand: Choice([
         (2.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
