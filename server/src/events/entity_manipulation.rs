@@ -189,6 +189,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
         let bodies = state.ecs().read_storage::<Body>();
+        let poises = state.ecs().read_storage::<comp::Poise>();
         let by = if let Some(by) = last_change.by {
             by
         } else {
@@ -199,30 +200,27 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         } else {
             return;
         };
-        let (entity_skill_set, entity_health, entity_energy, entity_inventory, entity_body) =
-            if let (
-                Some(entity_skill_set),
-                Some(entity_health),
-                Some(entity_energy),
-                Some(entity_inventory),
-                Some(entity_body),
-            ) = (
-                skill_set.get(entity),
-                healths.get(entity),
-                energies.get(entity),
-                inventories.get(entity),
-                bodies.get(entity),
-            ) {
-                (
-                    entity_skill_set,
-                    entity_health,
-                    entity_energy,
-                    entity_inventory,
-                    entity_body,
-                )
-            } else {
-                return;
-            };
+
+        let (
+            entity_skill_set,
+            entity_health,
+            entity_energy,
+            entity_inventory,
+            entity_body,
+            entity_poise,
+        ) = match (|| {
+            Some((
+                skill_set.get(entity)?,
+                healths.get(entity)?,
+                energies.get(entity)?,
+                inventories.get(entity)?,
+                bodies.get(entity)?,
+                poises.get(entity)?,
+            ))
+        })() {
+            Some(comps) => comps,
+            None => return,
+        };
 
         let groups = state.ecs().read_storage::<Group>();
         let attacker_group = groups.get(attacker);
@@ -244,10 +242,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             entity_inventory,
             entity_health,
             entity_energy,
+            entity_poise,
             entity_skill_set,
             *entity_body,
             &msm,
-        ) * 2.5;
+        ) * 20.0;
 
         // Distribute EXP to group
         let positions = state.ecs().read_storage::<Pos>();

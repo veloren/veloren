@@ -759,15 +759,15 @@ impl Body {
         match self {
             Body::Object(_) | Body::Ship(_) => 0.0,
             Body::BipedLarge(b) => match b.species {
-                biped_large::Species::Mindflayer => 4.8,
-                biped_large::Species::Minotaur => 3.2,
-                biped_large::Species::Tidalwarrior => 2.25,
-                biped_large::Species::Yeti => 2.0,
-                biped_large::Species::Harvester => 2.4,
+                biped_large::Species::Mindflayer => 4.35,
+                biped_large::Species::Minotaur => 4.05,
+                biped_large::Species::Tidalwarrior => 2.75,
+                biped_large::Species::Yeti => 2.25,
+                biped_large::Species::Harvester => 2.1,
                 _ => 1.0,
             },
             Body::Golem(g) => match g.species {
-                golem::Species::ClayGolem => 2.0,
+                golem::Species::ClayGolem => 2.45,
                 _ => 1.0,
             },
             _ => 1.0,

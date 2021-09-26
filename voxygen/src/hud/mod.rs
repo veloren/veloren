@@ -1110,6 +1110,7 @@ impl Hud {
             let msm = ecs.read_resource::<MaterialStatManifest>();
             let entities = ecs.entities();
             let me = client.entity();
+            let poises = ecs.read_storage::<comp::Poise>();
 
             if (client.pending_trade().is_some() && !self.show.trade)
                 || (client.pending_trade().is_none() && self.show.trade)
@@ -1722,6 +1723,7 @@ impl Hud {
                 &uids,
                 &inventories,
                 players.maybe(),
+                poises.maybe(),
             )
                 .join()
                 .filter(|t| {
@@ -1745,6 +1747,7 @@ impl Hud {
                         uid,
                         inventory,
                         player,
+                        poise,
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -1784,9 +1787,11 @@ impl Hud {
                             health,
                             buffs,
                             energy,
-                            combat_rating: if let (Some(health), Some(energy)) = (health, energy) {
+                            combat_rating: if let (Some(health), Some(energy), Some(poise)) =
+                                (health, energy, poise)
+                            {
                                 combat::combat_rating(
-                                    inventory, health, energy, skill_set, *body, &msm,
+                                    inventory, health, energy, poise, skill_set, *body, &msm,
                                 )
                             } else {
                                 0.0
@@ -2663,6 +2668,7 @@ impl Hud {
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
         let bodies = ecs.read_storage::<comp::Body>();
+        let poises = ecs.read_storage::<comp::Poise>();
         // Combo floater stuffs
         self.floaters
             .combo_floaters
@@ -2720,12 +2726,20 @@ impl Hud {
         }
         // Bag contents
         if self.show.bag {
-            if let (Some(player_stats), Some(skill_set), Some(health), Some(energy), Some(body)) = (
+            if let (
+                Some(player_stats),
+                Some(skill_set),
+                Some(health),
+                Some(energy),
+                Some(body),
+                Some(poise),
+            ) = (
                 stats.get(client.entity()),
                 skill_sets.get(client.entity()),
                 healths.get(entity),
                 energies.get(entity),
                 bodies.get(entity),
+                poises.get(entity),
             ) {
                 match Bag::new(
                     client,
@@ -2746,6 +2760,7 @@ impl Hud {
                     &self.show,
                     body,
                     &msm,
+                    poise,
                 )
                 .set(self.ids.bag, ui_widgets)
                 {
