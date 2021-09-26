@@ -1662,9 +1662,9 @@ impl<'a> AgentData<'a> {
                     Some((entity, *e_pos))
                 } else if let Some(villain_info) = guard_duty(e_health, e_alignment) {
                     Some(villain_info)
-                } else if rtsim_remember(e_stats, agent, event_emitter) {
-                    Some((entity, *e_pos))
-                } else if npc_sees_cultist(e_stats, e_inventory, agent, event_emitter) {
+                } else if rtsim_remember(e_stats, agent, event_emitter)
+                    || npc_sees_cultist(e_stats, e_inventory, agent, event_emitter)
+                {
                     Some((entity, *e_pos))
                 } else {
                     None

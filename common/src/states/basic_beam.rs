@@ -148,7 +148,7 @@ impl CharacterBehavior for Data {
                         // and applying `pitch` to get needed orientation.
                         let look_dir = data.inputs.look_dir;
                         let xy_dir = Dir::from_unnormalized(Vec3::new(look_dir.x, look_dir.y, 0.0))
-                            .unwrap_or_else(Dir::default);
+                            .unwrap_or_default();
                         let pitch = xy_dir.rotation_between(look_dir);
 
                         Ori::from(Vec3::new(

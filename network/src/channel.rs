@@ -525,6 +525,7 @@ pub struct QuicDrain {
 #[cfg(feature = "quic")]
 #[derive(Debug)]
 pub struct QuicSink {
+    #[allow(dead_code)]
     con: quinn::Connection,
     bi: quinn::IncomingBiStreams,
     recvstreams_r: mpsc::UnboundedReceiver<QuicStream>,

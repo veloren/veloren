@@ -274,24 +274,14 @@ impl<V: Copy + Default> LaborMap<V> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct AreaResources {
     pub resource_sum: GoodMap<f32>,
     pub resource_chunks: GoodMap<f32>,
     pub chunks: u32,
 }
 
-impl Default for AreaResources {
-    fn default() -> Self {
-        Self {
-            resource_sum: GoodMap::default(),
-            resource_chunks: GoodMap::default(),
-            chunks: 0,
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct NaturalResources {
     // resources per distance, we should increase labor cost for far resources
     pub per_area: Vec<AreaResources>,
@@ -299,16 +289,6 @@ pub struct NaturalResources {
     // computation simplifying cached values
     pub chunks_per_resource: GoodMap<f32>,
     pub average_yield_per_chunk: GoodMap<f32>,
-}
-
-impl Default for NaturalResources {
-    fn default() -> Self {
-        Self {
-            per_area: Vec::new(),
-            chunks_per_resource: GoodMap::default(),
-            average_yield_per_chunk: GoodMap::default(),
-        }
-    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -383,19 +363,10 @@ pub struct TradeDelivery {
     pub supply: GoodMap<f32>, // maximum amount available, at the time of interaction
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct TradeInformation {
     pub orders: DHashMap<Id<Site>, Vec<TradeOrder>>, // per provider
     pub deliveries: DHashMap<Id<Site>, Vec<TradeDelivery>>, // per receiver
-}
-
-impl Default for TradeInformation {
-    fn default() -> Self {
-        Self {
-            orders: Default::default(),
-            deliveries: Default::default(),
-        }
-    }
 }
 
 #[derive(Debug)]

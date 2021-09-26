@@ -14,6 +14,7 @@ use std::{
 struct StreamInfo {
     pub(crate) guaranteed_bandwidth: Bandwidth,
     pub(crate) prio: Prio,
+    #[allow(dead_code)]
     pub(crate) promises: Promises,
     pub(crate) messages: VecDeque<OTMessage>,
 }

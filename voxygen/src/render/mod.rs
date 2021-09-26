@@ -209,6 +209,7 @@ pub enum ShadowMode {
     Cheap,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for ShadowMode {
     fn default() -> Self { ShadowMode::Map(Default::default()) }
 }

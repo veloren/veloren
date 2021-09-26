@@ -4,11 +4,9 @@
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
-    arbitrary_enum_discriminant,
     associated_type_defaults,
     bool_to_option,
     fundamental,
-    iter_map_while,
     label_break_value,
     option_zip,
     trait_alias,

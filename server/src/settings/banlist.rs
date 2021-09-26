@@ -75,6 +75,7 @@ pub enum BanErrorKind {
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct BanError {
     kind: BanErrorKind,
     /// Uuid of affected user

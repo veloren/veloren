@@ -19,7 +19,7 @@ impl Background {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Style {
     background: Option<Background>,
     check: Option<image::Handle>,
@@ -80,14 +80,5 @@ impl Style {
 
     pub fn bg_default(&self) -> Option<image::Handle> {
         self.background.as_ref().map(|b| b.default)
-    }
-}
-
-impl Default for Style {
-    fn default() -> Self {
-        Self {
-            background: None,
-            check: None,
-        }
     }
 }

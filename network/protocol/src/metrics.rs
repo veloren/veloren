@@ -74,6 +74,7 @@ pub struct ProtocolMetricCache {
     sdata_frames_b: GenericCounter<AtomicU64>,
     rdata_frames_t: GenericCounter<AtomicU64>,
     rdata_frames_b: GenericCounter<AtomicU64>,
+    #[allow(dead_code)]
     ping: GenericGauge<AtomicI64>,
 }
 

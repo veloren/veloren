@@ -34,6 +34,7 @@ pub struct PluginData {
 pub struct Plugin {
     data: PluginData,
     modules: Vec<PluginModule>,
+    #[allow(dead_code)]
     files: HashMap<PathBuf, Vec<u8>>,
 }
 
