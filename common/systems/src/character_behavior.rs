@@ -173,7 +173,7 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
-                            impulse: 5.0 * poise.knockback(),
+                            impulse: 5.0 * *poise.knockback(),
                         });
                     },
                     PoiseState::Dazed => {
@@ -195,7 +195,7 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
-                            impulse: 10.0 * poise.knockback(),
+                            impulse: 10.0 * *poise.knockback(),
                         });
                     },
                     PoiseState::KnockedDown => {
@@ -217,7 +217,7 @@ impl<'a> System<'a> for Sys {
                         });
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
-                            impulse: 10.0 * poise.knockback(),
+                            impulse: 10.0 * *poise.knockback(),
                         });
                     },
                 }

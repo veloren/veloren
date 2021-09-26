@@ -774,7 +774,7 @@ impl Body {
         }
     }
 
-    pub fn base_poise(&self) -> u32 {
+    pub fn base_poise(&self) -> u16 {
         match self {
             Body::Humanoid(_) => 100,
             Body::BipedLarge(biped_large) => match biped_large.species {

@@ -142,9 +142,9 @@ impl StateExt for State {
                     .get_mut(entity)
                     .map(|mut health| health.change_by(change));
             },
-            Effect::PoiseChange(poise_damage) => {
+            Effect::Poise(poise) => {
                 let inventories = self.ecs().read_storage::<Inventory>();
-                let change = poise_damage.modify_poise_damage(inventories.get(entity));
+                let change = Poise::apply_poise_reduction(poise, inventories.get(entity));
                 // Check to make sure the entity is not already stunned
                 if let Some(character_state) = self
                     .ecs()

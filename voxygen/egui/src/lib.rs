@@ -603,8 +603,8 @@ fn selected_entity_window(
                                     ui.label("State");
                                     poise_state_label(ui, poise);
                                     ui.end_row();
-                                    two_col_row(ui, "Current", format!("{}/{}", poise.current(), poise.maximum()));
-                                    two_col_row(ui, "Base Max", poise.base_max().to_string());
+                                    two_col_row(ui, "Current", format!("{:.1}/{:.1}", poise.current(), poise.maximum()));
+                                    two_col_row(ui, "Base Max", format!("{:.1}", poise.base_max()));
                                 });
                         });
                 }
