@@ -205,6 +205,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         } else {
             return;
         };
+
         let (
             entity_skill_set,
             entity_health,
@@ -212,31 +213,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             entity_inventory,
             entity_body,
             entity_poise,
-        ) = if let (
-            Some(entity_skill_set),
-            Some(entity_health),
-            Some(entity_energy),
-            Some(entity_inventory),
-            Some(entity_body),
-            Some(entity_poise),
-        ) = (
-            skill_set.get(entity),
-            healths.get(entity),
-            energies.get(entity),
-            inventories.get(entity),
-            bodies.get(entity),
-            poises.get(entity),
-        ) {
-            (
-                entity_skill_set,
-                entity_health,
-                entity_energy,
-                entity_inventory,
-                entity_body,
-                entity_poise,
-            )
-        } else {
-            return;
+        ) = match (|| {
+            Some((
+                skill_set.get(entity)?,
+                healths.get(entity)?,
+                energies.get(entity)?,
+                inventories.get(entity)?,
+                bodies.get(entity)?,
+                poises.get(entity)?,
+            ))
+        })() {
+            Some(comps) => comps,
+            None => return,
         };
 
         let groups = state.ecs().read_storage::<Group>();
