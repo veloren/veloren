@@ -346,18 +346,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             Some(comp::Alignment::Owned(_))
         )
     {
-        // Only drop loot if entity has agency (not a player), and if it is not owned by
-        // another entity (not a pet)
+        // Only drop loot if entity has agency (not a player),
+        // and if it is not owned by another entity (not a pet)
 
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
 
-        let loot_spec = {
+        let item = {
             let mut item_drop = state.ecs().write_storage::<comp::ItemDrop>();
             item_drop.remove(entity).map(|comp::ItemDrop(item)| item)
         };
 
-        if let Some(item) = loot_spec {
+        if let Some(item) = item {
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
