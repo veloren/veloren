@@ -267,7 +267,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
             LootSpec::LootTable(table) => {
                 wtr.write_record(&[&chance, "LootTable", table, "", ""])?
             },
-            LootSpec::None => wtr.write_record(&[&chance, "None", "", ""])?,
+            LootSpec::Nothing => wtr.write_record(&[&chance, "Nothing", "", ""])?,
         }
     }
 
