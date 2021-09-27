@@ -219,7 +219,7 @@ impl<'a> System<'a> for Sys {
                         body,
                         alignment,
                         scale,
-                        drop_item,
+                        loot,
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
@@ -233,7 +233,7 @@ impl<'a> System<'a> for Sys {
                             alignment,
                             scale,
                             anchor: Some(comp::Anchor::Chunk(key)),
-                            drop_item,
+                            loot,
                             rtsim_entity: None,
                             projectile: None,
                         });
@@ -358,7 +358,7 @@ pub enum NpcData {
         body: comp::Body,
         alignment: comp::Alignment,
         scale: comp::Scale,
-        drop_item: Option<LootSpec<String>>,
+        loot: LootSpec<String>,
     },
     Waypoint(Vec3<f32>),
 }
@@ -377,7 +377,7 @@ impl NpcData {
             scale,
             pos,
             health_scaling,
-            loot_drop,
+            loot,
             // tools and skills
             skillset_asset,
             main_tool,
@@ -484,7 +484,7 @@ impl NpcData {
             body,
             alignment,
             scale: comp::Scale(scale),
-            drop_item: loot_drop,
+            loot,
         }
     }
 }

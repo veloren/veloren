@@ -13,7 +13,6 @@ use crate::{
         CharacterAbility,
     },
     effect::Effect,
-    lottery::LootSpec,
     recipe::RecipeInput,
     terrain::Block,
 };
@@ -871,9 +870,9 @@ impl Component for Item {
 // }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ItemDrop<T: AsRef<str>>(pub LootSpec<T>);
+pub struct ItemDrop(pub Item);
 
-impl Component for ItemDrop<String> {
+impl Component for ItemDrop {
     type Storage = IdvStorage<Self>;
 }
 

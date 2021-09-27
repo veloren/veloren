@@ -152,7 +152,7 @@ impl Server {
                     alignment,
                     scale,
                     anchor: home_chunk,
-                    drop_item,
+                    loot,
                     rtsim_entity,
                     projectile,
                 } => handle_create_npc(
@@ -167,7 +167,7 @@ impl Server {
                     agent,
                     alignment,
                     scale,
-                    drop_item,
+                    loot,
                     home_chunk,
                     rtsim_entity,
                     projectile,

@@ -189,7 +189,7 @@ impl State {
         ecs.register::<comp::Waypoint>();
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Melee>();
-        ecs.register::<comp::ItemDrop<String>>();
+        ecs.register::<comp::ItemDrop>();
         ecs.register::<comp::ChatMode>();
         ecs.register::<comp::Faction>();
         ecs.register::<comp::invite::Invite>();

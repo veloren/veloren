@@ -63,7 +63,7 @@ pub fn handle_create_npc(
     agent: impl Into<Option<Agent>>,
     alignment: Alignment,
     scale: Scale,
-    drop_item: Option<LootSpec<String>>,
+    loot: LootSpec<String>,
     home_chunk: Option<Anchor>,
     rtsim_entity: Option<RtSimEntity>,
     projectile: Option<Projectile>,
@@ -82,7 +82,7 @@ pub fn handle_create_npc(
         entity
     };
 
-    let entity = if let Some(drop_item) = drop_item {
+    let entity = if let Some(drop_item) = loot.to_item() {
         entity.with(ItemDrop(drop_item))
     } else {
         entity

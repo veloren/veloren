@@ -19,7 +19,6 @@ use common::{
         Inventory, Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
-    lottery::LootSpec,
     outcome::Outcome,
     resources::Time,
     rtsim::RtSimEntity,
@@ -354,14 +353,11 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
 
         let loot_spec = {
-            let mut item_drop = state.ecs().write_storage::<comp::ItemDrop<String>>();
-            item_drop.remove(entity).map_or_else(
-                || LootSpec::LootTable("common.loot_tables.fallback".to_string()),
-                |item| item.0,
-            )
+            let mut item_drop = state.ecs().write_storage::<comp::ItemDrop>();
+            item_drop.remove(entity).map(|comp::ItemDrop(item)| item)
         };
 
-        if let Some(item) = loot_spec.to_item() {
+        if let Some(item) = loot_spec {
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {

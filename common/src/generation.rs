@@ -160,7 +160,7 @@ pub struct EntityInfo {
     pub scale: f32,
     // TODO: Properly give NPCs skills
     pub health_scaling: Option<u16>,
-    pub loot_drop: Option<LootSpec<String>>,
+    pub loot: LootSpec<String>,
     pub loadout_asset: Option<String>,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
     pub skillset_asset: Option<String>,
@@ -184,7 +184,7 @@ impl EntityInfo {
             second_tool: None,
             scale: 1.0,
             health_scaling: None,
-            loot_drop: None,
+            loot: LootSpec::Nothing,
             loadout_asset: None,
             make_loadout: None,
             skillset_asset: None,
@@ -337,7 +337,7 @@ impl EntityInfo {
     }
 
     pub fn with_loot_drop(mut self, loot_drop: LootSpec<String>) -> Self {
-        self.loot_drop = Some(loot_drop);
+        self.loot = loot_drop;
         self
     }
 

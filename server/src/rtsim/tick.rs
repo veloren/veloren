@@ -149,7 +149,7 @@ impl<'a> System<'a> for Sys {
                         body,
                         alignment,
                         scale,
-                        drop_item,
+                        loot,
                     } => ServerEvent::CreateNpc {
                         pos,
                         stats,
@@ -162,7 +162,7 @@ impl<'a> System<'a> for Sys {
                         alignment,
                         scale,
                         anchor: None,
-                        drop_item,
+                        loot,
                         rtsim_entity,
                         projectile: None,
                     },

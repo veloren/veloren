@@ -134,7 +134,7 @@ pub enum ServerEvent {
         alignment: comp::Alignment,
         scale: comp::Scale,
         anchor: Option<comp::Anchor>,
-        drop_item: Option<LootSpec<String>>,
+        loot: LootSpec<String>,
         rtsim_entity: Option<RtSimEntity>,
         projectile: Option<comp::Projectile>,
     },
