@@ -124,6 +124,8 @@ pub struct Ui {
     scale_factor_changed: Option<f64>,
     // Used to delay cache resizing until after current frame is drawn
     need_cache_resize: bool,
+    // Whether a graphic was replaced with replaced_graphic since the last maintain call
+    graphic_replaced: bool,
     // Scaling of the ui
     scale: Scale,
     // Tooltips
@@ -177,6 +179,7 @@ impl Ui {
             window_resized: None,
             scale_factor_changed: None,
             need_cache_resize: false,
+            graphic_replaced: false,
             scale,
             tooltip_manager,
             item_tooltip_manager,
@@ -235,6 +238,7 @@ impl Ui {
         };
         self.cache.replace_graphic(graphic_id, graphic);
         self.image_map.replace(id, (graphic_id, Rotation::None));
+        self.graphic_replaced = true;
     }
 
     pub fn new_font(&mut self, font: crate::ui::ice::RawFont) -> font::Id {
@@ -385,8 +389,11 @@ impl Ui {
         span!(_guard, "internal", "Ui::maintain_internal");
         let (graphic_cache, text_cache, glyph_cache, cache_tex) = self.cache.cache_mut_and_tex();
 
-        let mut primitives = if *retry {
+        let mut primitives = if *retry || self.graphic_replaced {
             // If this is a retry, always redraw.
+            // Also redraw if a texture was swapped out by replace_graphic in order to
+            // regenerate invalidated textures and clear out any invalid `TexId`s
+            self.graphic_replaced = false;
             self.ui.draw()
         } else {
             // Otherwise, redraw only if widgets were actually updated.
