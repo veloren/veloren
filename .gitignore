@@ -38,6 +38,8 @@ heaptrack.*
 
 # allow asset hud settings
 !assets/voxygen/i18n/*/hud/settings.ron
+# 不追踪资产
+assets/
 
 # Export data
 *.csv
