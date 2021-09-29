@@ -2145,6 +2145,27 @@
         "voxel.armor.misc.back.backpack",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
+    //Hats
+    Armor(Head("Witch")): VoxTrans(
+        "voxel.armor.witch.hat",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Pirate")): VoxTrans(
+        "voxel.armor.pirate.hat",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Thief")): VoxTrans(
+        "voxel.armor.misc.head.bandana.thief",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Red")): VoxTrans(
+        "voxel.armor.misc.head.bandana.red",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Straw")): VoxTrans(
+        "voxel.armor.misc.head.straw",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
     // Rings
     Armor(Ring("Scratched")): VoxTrans(
         "voxel.armor.misc.ring.scratched",
