@@ -39,18 +39,27 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
             }
         }
 
-        // Get events for the ui.
-        if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
-            global_state.window.send_event(Event::Ui(event));
-        }
-        // iced ui events
-        // TODO: no clone
-        if let winit::event::Event::WindowEvent { event, .. } = &event {
-            let window = &mut global_state.window;
-            if let Some(event) =
-                ui::ice::window_event(event, window.scale_factor(), window.modifiers())
-            {
-                window.send_event(Event::IcedUi(event));
+        // Don't pass resize events to the ui, `Window` is responsible for:
+        // - deduplicating them
+        // - generating resize events for the ui
+        // - ensuring consistent sizes are passed to the ui and to the renderer
+        if !matches!(&event, winit::event::Event::WindowEvent {
+            event: winit::event::WindowEvent::Resized(_),
+            ..
+        }) {
+            // Get events for the ui.
+            if let Some(event) = ui::Event::try_from(&event, global_state.window.window()) {
+                global_state.window.send_event(Event::Ui(event));
+            }
+            // iced ui events
+            // TODO: no clone
+            if let winit::event::Event::WindowEvent { event, .. } = &event {
+                let window = &mut global_state.window;
+                if let Some(event) =
+                    ui::ice::window_event(event, window.scale_factor(), window.modifiers())
+                {
+                    window.send_event(Event::IcedUi(event));
+                }
             }
         }
 
