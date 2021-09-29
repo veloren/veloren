@@ -378,6 +378,9 @@ pub struct Window {
     pub mouse_y_inversion: bool,
     fullscreen: FullScreenSettings,
     modifiers: winit::event::ModifiersState,
+    // Track if at least one Resized event has occured since the last `fetch_events` call
+    // Used for deduplication of resizes.
+    resized: bool,
     scale_factor: f64,
     needs_refresh_resize: bool,
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
@@ -479,6 +482,7 @@ impl Window {
             fullscreen: FullScreenSettings::default(),
             modifiers: Default::default(),
             scale_factor,
+            resized: false,
             needs_refresh_resize: false,
             keypress_map,
             remapping_keybindings: None,
@@ -537,6 +541,36 @@ impl Window {
             self.events
                 .push(Event::ScaleFactorChanged(self.scale_factor));
             self.needs_refresh_resize = false;
+        }
+
+        // Handle deduplicated resizing that occured
+        if self.resized {
+            self.resized = false;
+            // We don't use the size provided by the event because more resize events could
+            // have happened since, making the value outdated, so we must query directly
+            // from the window to prevent errors
+            let physical = self.window.inner_size();
+
+            self.renderer
+                .on_resize(Vec2::new(physical.width, physical.height));
+            // TODO: update users of this event with the fact that it is now the physical
+            // size
+            let winit::dpi::PhysicalSize { width, height } = physical;
+            self.events
+                .push(Event::Resize(Vec2::new(width as u32, height as u32)));
+
+            // Emit event for the UI
+            let logical_size = Vec2::from(Into::<(f64, f64)>::into(
+                physical.to_logical::<f64>(self.window.scale_factor()),
+            ));
+            self.events
+                .push(Event::Ui(ui::Event::new_resize(logical_size)));
+            self.events.push(Event::IcedUi(iced::Event::Window(
+                iced::window::Event::Resized {
+                    width: logical_size.x as u32,
+                    height: logical_size.y as u32,
+                },
+            )));
         }
 
         // Receive any messages sent through the message channel
@@ -788,18 +822,7 @@ impl Window {
         match event {
             WindowEvent::CloseRequested => self.events.push(Event::Close),
             WindowEvent::Resized(_) => {
-                // We don't use the event provided size because since this event
-                // more could have happened making the value wrong so we query
-                // directly from the window, this prevents some errors
-                let physical = self.window.inner_size();
-
-                self.renderer
-                    .on_resize(Vec2::new(physical.width, physical.height));
-                // TODO: update users of this event with the fact that it is now the physical
-                // size
-                let winit::dpi::PhysicalSize { width, height } = physical;
-                self.events
-                    .push(Event::Resize(Vec2::new(width as u32, height as u32)));
+                self.resized = true;
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
                 // TODO: is window resized event emitted? or do we need to handle that here?
