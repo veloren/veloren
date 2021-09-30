@@ -7,7 +7,7 @@ use crate::{
     },
 };
 use i18n::Localization;
-use iced::{button, scrollable, Column, Container, Length, Scrollable, Space};
+use iced::{button, scrollable, Column, Container, HorizontalAlignment, Length, Scrollable, Space};
 
 /// Connecting screen for the main menu
 pub struct Screen {
@@ -31,14 +31,18 @@ impl Screen {
         button_style: style::button::Style,
     ) -> Element<Message> {
         use core::fmt::Write;
-        // TODO: i18n and better formating
         let format_art_credit = |credit: &crate::credits::Art| -> Result<String, core::fmt::Error> {
             let mut text = String::new();
-            text.push_str(&credit.name);
+            write!(&mut text, "\"{}\"", &credit.name)?;
 
             let mut authors = credit.authors.iter();
             if let Some(author) = authors.next() {
-                write!(&mut text, " created by {}", author)?;
+                write!(
+                    &mut text,
+                    " {} {}",
+                    i18n.get("main.credits.created_by"),
+                    author
+                )?;
             }
             authors.try_for_each(|author| write!(&mut text, ", {}", author))?;
 
@@ -65,97 +69,89 @@ impl Screen {
         let other_art_header_color = iced::Color::from_rgb8(0xc5, 0xe9, 0x80);
         let contributors_header_color = iced::Color::from_rgb8(0x4a, 0xa6, 0x7b);
 
+        fn credit_section<'a, T>(
+            header_i18n_key: &str,
+            header_color: iced::Color,
+            credit_iter: impl Iterator<Item = T>,
+            format_credit: impl Fn(T) -> Result<String, core::fmt::Error>,
+            fonts: &Fonts,
+            i18n: &Localization,
+        ) -> Element<'a, Message> {
+            Column::with_children(
+                core::iter::once(
+                    iced::Text::new(i18n.get(header_i18n_key))
+                        .font(fonts.cyri.id)
+                        .size(fonts.cyri.scale(30))
+                        .color(header_color)
+                        .width(Length::Fill)
+                        .horizontal_alignment(HorizontalAlignment::Center)
+                        .into(),
+                )
+                .chain(credit_iter.map(|credit| {
+                    let text = format_credit(credit).expect("Formatting failed!!!");
+                    iced::Text::new(text)
+                        .font(fonts.cyri.id)
+                        .size(fonts.cyri.scale(23))
+                        .width(Length::Fill)
+                        .horizontal_alignment(HorizontalAlignment::Center)
+                        .into()
+                }))
+                .chain(core::iter::once(
+                    Space::new(Length::Fill, Length::Units(15)).into(),
+                ))
+                .collect(),
+            )
+            .width(Length::Fill)
+            .into()
+        }
+
+        let art_section = |header_i18n_key, header_color, art: &[_]| {
+            credit_section(
+                header_i18n_key,
+                header_color,
+                art.iter(),
+                format_art_credit,
+                fonts,
+                i18n,
+            )
+        };
+
         Container::new(
             Container::new(
                 Column::with_children(vec![
                     iced::Text::new(i18n.get("main.credits"))
                         .font(fonts.alkhemi.id)
                         .size(fonts.alkhemi.scale(35))
+                        .width(Length::Fill)
+                        .horizontal_alignment(HorizontalAlignment::Center)
                         .into(),
                     Space::new(Length::Fill, Length::Units(25)).into(),
                     Scrollable::new(&mut self.scroll)
-                        .push(Column::with_children(
-                            core::iter::once(
-                                iced::Text::new(i18n.get("main.credits.music"))
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(30))
-                                    .color(music_header_color)
-                                    .into(),
-                            )
-                            .chain(credits.music.iter().map(|credit| {
-                                let text = format_art_credit(credit).expect("Formatting failed!!!");
-                                iced::Text::new(text)
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(23))
-                                    .into()
-                            }))
-                            .chain(core::iter::once(
-                                Space::new(Length::Fill, Length::Units(15)).into(),
-                            ))
-                            .collect(),
+                        .push(art_section(
+                            "main.credits.music",
+                            music_header_color,
+                            &credits.music,
                         ))
-                        .push(Column::with_children(
-                            core::iter::once(
-                                iced::Text::new(i18n.get("main.credits.fonts"))
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(30))
-                                    .color(fonts_header_color)
-                                    .into(),
-                            )
-                            .chain(credits.fonts.iter().map(|credit| {
-                                let text = format_art_credit(credit).expect("Formatting failed!!!");
-                                iced::Text::new(text)
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(23))
-                                    .into()
-                            }))
-                            .chain(core::iter::once(
-                                Space::new(Length::Fill, Length::Units(15)).into(),
-                            ))
-                            .collect(),
+                        .push(art_section(
+                            "main.credits.fonts",
+                            fonts_header_color,
+                            &credits.fonts,
                         ))
-                        .push(Column::with_children(
-                            core::iter::once(
-                                iced::Text::new(i18n.get("main.credits.other_art"))
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(30))
-                                    .color(other_art_header_color)
-                                    .into(),
-                            )
-                            .chain(credits.other_art.iter().map(|credit| {
-                                let text = format_art_credit(credit).expect("Formatting failed!!!");
-                                iced::Text::new(text)
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(23))
-                                    .into()
-                            }))
-                            .chain(core::iter::once(
-                                Space::new(Length::Fill, Length::Units(15)).into(),
-                            ))
-                            .collect(),
+                        .push(art_section(
+                            "main.credits.other_art",
+                            other_art_header_color,
+                            &credits.other_art,
                         ))
-                        .push(Column::with_children(
-                            core::iter::once(
-                                iced::Text::new(i18n.get("main.credits.contributors"))
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(30))
-                                    .color(contributors_header_color)
-                                    .into(),
-                            )
-                            .chain(credits.contributors.iter().map(|credit| {
-                                let text = format_contributor_credit(credit)
-                                    .expect("Formatting failed!!!");
-                                iced::Text::new(text)
-                                    .font(fonts.cyri.id)
-                                    .size(fonts.cyri.scale(23))
-                                    .into()
-                            }))
-                            .chain(core::iter::once(
-                                Space::new(Length::Fill, Length::Units(15)).into(),
-                            ))
-                            .collect(),
+                        .push(credit_section(
+                            "main.credits.contributors",
+                            contributors_header_color,
+                            credits.contributors.iter(),
+                            format_contributor_credit,
+                            fonts,
+                            i18n,
                         ))
                         .height(Length::FillPortion(1))
+                        .width(Length::Fill)
                         .into(),
                     Container::new(
                         Container::new(neat_button(

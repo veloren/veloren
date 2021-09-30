@@ -64,6 +64,7 @@ https://veloren.net/account/."#,
 
         // Credits screen
         "main.credits": "Credits",
+        "main.credits.created_by": "created by",
         "main.credits.music": "Music",
         "main.credits.fonts": "Fonts",
         "main.credits.other_art": "Other Art",

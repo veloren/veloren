@@ -1,23 +1,117 @@
 (
+    // See best attribution practices for creative commons licenses:
+    // https://wiki.creativecommons.org/wiki/Best_practices_for_attribution
+
+    // TODO: remove placeholder entries when actual ones are added for a section
+    //
+    // TODO: split this into a file for each of common/voxygen/server assets (applications will
+    // need to ensure to properly combine them)
+    //
+    /// Entry format:
+    /// ```
+    /// (
+    ///     name: "Name of art",
+    ///     // Provide if the asset is from or derived from an external source that can be
+    ///     // linked.
+    ///     source_link: "https://fonts.com/fancyfont/",
+    ///     // Can be omitted if no authors are listed for some reason.
+    ///     // TODO: differentiate original authors and authors of derivative work / modifications?
+    ///     // Maybe for now this can be noted in parentheses like: "AuthorOne (source), AuthorTwo (derivative)"?
+    ///     authors: ["Art creator, Art co-creator"],
+    ///     // Must point to file that actually exists
+    ///     // TODO: would it make sense to allow having a list of files here?
+    ///     asset_path: "relative/path/to/asset.ext",
+    ///     // Can be omitted, but assumed to be GPL3 if not provided.
+    ///     license: "cc-by-sa 3",
+    ///     // Link to the license, can be omitted if the license can't be linked and/or a
+    ///     // local copy is provided.
+    ///     license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+    ///     // Note any modifcations if the original work has been modified
+    ///     modfications: "Added additional characters to the font.",
+    ///     // Any additional attribution notes that may be desired and/or required by the
+    ///     // respective license that can't be conveyed or would be awkward to convey with the
+    ///     // fields above.
+    ///     notes: "Some other information",
+    /// )
+    /// ```
     music: [(
-        name: "Desert jams",
-        authors: ["AuthorOne", "author two"],
+        name: "Placeholder jams",
+        authors: ["Placeholder author", "Placeholder author two"],
+        asset_path: "common/credits.ron", // placeholder don't use this for actual entries
     )],
-   fonts: [(
-       name: "Wizard",
-       license: "cc-by-sa 3",
-   )],
-   other_art: [(
-       name: "Voxel shrooms",
-       authors: ["AuthorOne", "author two"],
-   )],
-   contributors: [
-       (
-           name: "Example",
-           contributions: "An example note",
-        ),
-        (
-            name: "Example Two", 
-        ),
-    ],
+    fonts: [(
+        name: "Alkhemikal",
+        source_link: "https://fontenddev.com/fonts/alkhemikal/",
+        authors: ["jeti"],
+        asset_path: "voxygen/font/Alkhemikal.ttf",
+        license: "CC BY 4.0",
+        license_link: "https://creativecommons.org/licenses/by/4.0/",
+    ), (
+        name: "bdfUMplus outline",
+        authors: ["hikaen2"],
+        asset_path: "voxygen/font/bdfUMplus-outline.ttf",
+        // License text file included alongside font which should satisfy the requirements.
+        license: "MIT",
+    ), (
+        name: "HaxrCorp 4089 Cyrillic AltGr",
+        source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
+        authors: ["sahwar"],
+        asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr.ttf",
+        license: "CC BY-SA 3.0",
+        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+    ), (
+        name: "HaxrCorp 4089 Cyrillic AltGr Extended",
+        source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
+        authors: ["sahwar (source)"],
+        asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr_extended.ttf",
+        license: "CC BY-SA 3.0",
+        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+        modifications: "Added additional characters.",
+    ), (
+        name: "Metamorphous",
+        authors: ["Sorkin Type Co"],
+        asset_path: "voxygen/font/Metamorphous-Regular.ttf",
+        // License appears to be satisfied by inclusion of its text file.
+        license: "OFL",
+        license_link: "https://scripts.sil.org/OFL",
+    ), (
+        name: "Open Sans",
+        authors: [""],
+        asset_path: "voxygen/font/OpenSans-Regular.ttf",
+        // License appears to be satisfied by inclusion of its text file.
+        license: "Apache 2.0",
+        license_link: "http://www.apache.org/licenses/LICENSE-2.0",
+    ), (
+        name: "WenQuanYi Zen Hei",
+        source_link: "http://wenq.org/wqy2/index.cgi?ZenHei%28en%29",
+        authors: ["Qianqian Fang", "WenQuanYi project"],
+        asset_path: "voxygen/font/WenQuanYiZenHei.ttf",
+        license: "GPL2",
+        license_link: "http://wenq.org/wqy2/index.cgi?GPL",
+    ), (
+        name: "Wizard",
+        source_link: "https://fontstruct.com/fontstructions/show/1506403/wizard-5",
+        authors: ["Omegaville"],
+        asset_path: "voxygen/font/wizard.ttf",
+        license: "CC BY-SA 3.0",
+        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+    )],
+    other_art: [(
+        name: "Placeholder voxels",
+        authors: ["Placeholder"],
+        asset_path: "common/credits.ron", // placeholder don't use this for actual entries
+    )],
+    /// Entry format:
+    /// ```
+    /// (
+    ///     name: "Contributor name",
+    ///     contributions: "Note about what contributor contributed", // optional, field can be omitted
+    /// )
+    /// ```
+    contributors: [(
+        name: "Placeholder",
+        contributions: "An example note",
+    ), (
+        name: "Example Two",
+    )],
 )
