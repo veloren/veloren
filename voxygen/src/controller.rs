@@ -96,6 +96,9 @@ impl From<&crate::settings::GamepadSettings> for ControllerSettings {
                 map.entry(settings.game_buttons.slot9)
                     .or_default()
                     .push(GameInput::Slot9);
+                map.entry(settings.game_buttons.slot10)
+                    .or_default()
+                    .push(GameInput::Slot10);
                 map.entry(settings.game_buttons.toggle_cursor)
                     .or_default()
                     .push(GameInput::ToggleCursor);
