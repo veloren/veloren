@@ -107,7 +107,7 @@ enum Screen {
         screen: credits::Screen,
     },
     Login {
-        screen: login::Screen,
+        screen: Box<login::Screen>, // boxed to avoid large variant
         // Error to display in a box
         error: Option<String>,
     },
@@ -186,7 +186,7 @@ impl Controls {
             }
         } else { */
             Screen::Login {
-                screen: login::Screen::new(),
+                screen: Box::new(login::Screen::new()),
                 error: None,
             };
         //};
@@ -334,7 +334,7 @@ impl Controls {
             Message::Quit => events.push(Event::Quit),
             Message::Back => {
                 self.screen = Screen::Login {
-                    screen: login::Screen::new(),
+                    screen: Box::new(login::Screen::new()),
                     error: None,
                 };
             },
@@ -431,7 +431,7 @@ impl Controls {
     fn exit_connect_screen(&mut self) {
         if matches!(&self.screen, Screen::Connecting { .. }) {
             self.screen = Screen::Login {
-                screen: login::Screen::new(),
+                screen: Box::new(login::Screen::new()),
                 error: None,
             }
         }
@@ -457,7 +457,7 @@ impl Controls {
     fn connection_error(&mut self, error: String) {
         if matches!(&self.screen, Screen::Connecting { .. }) {
             self.screen = Screen::Login {
-                screen: login::Screen::new(),
+                screen: Box::new(login::Screen::new()),
                 error: Some(error),
             }
         }
