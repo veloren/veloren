@@ -113,7 +113,7 @@ where
     if let Some((path, file)) = log_path_file {
         match fs::create_dir_all(path) {
             Ok(_) => {
-                let file_appender = tracing_appender::rolling::daily(path, file);
+                let file_appender = tracing_appender::rolling::never(path, file); // It is actually rolling daily since the log name is changing daily
                 let (non_blocking_file, file_guard) = tracing_appender::non_blocking(file_appender);
                 guards.push(file_guard);
                 file_setup = true;
