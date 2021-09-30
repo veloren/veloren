@@ -19,6 +19,7 @@ use veloren_voxygen::{
     GlobalState,
 };
 
+use chrono::Utc;
 #[cfg(feature = "hot-reloading")]
 use common::assets;
 use common::clock::Clock;
@@ -39,8 +40,9 @@ fn main() {
         .unwrap_or_else(|| userdata_dir.join("voxygen").join("logs"));
 
     // Init logging and hold the guards.
-    const LOG_FILENAME: &str = "voxygen.log";
-    let _guards = common_frontend::init_stdout(Some((&logs_dir, LOG_FILENAME)));
+    let now = Utc::now();
+    let log_filename = format!("{}_voxygen.log", now.format("%Y-%m-%d"));
+    let _guards = common_frontend::init_stdout(Some((&logs_dir, &log_filename)));
 
     info!("Using userdata dir at: {}", userdata_dir.display());
 
@@ -117,7 +119,7 @@ fn main() {
             Panic Payload: {:?}\n\
             PanicInfo: {}\n\
             Game version: {} [{}]",
-            logs_dir.join("voxygen.log.<date>").display(),
+            logs_dir.join(&log_filename).display(),
             reason,
             panic_info,
             common::util::GIT_HASH.to_string(),
