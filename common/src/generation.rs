@@ -5,7 +5,7 @@ use crate::{
         inventory::loadout_builder::{ItemSpec, LoadoutBuilder},
         Alignment, Body, Item,
     },
-    lottery::{LootSpec, Lottery},
+    lottery::LootSpec,
     npc::{self, NPC_NAMES},
     trade,
     trade::SiteInformation,
@@ -35,17 +35,6 @@ enum AlignmentMark {
 
 impl Default for AlignmentMark {
     fn default() -> Self { Self::Alignment(Alignment::Wild) }
-}
-
-#[derive(Debug, Deserialize, Clone)]
-enum LootKind {
-    Item(String),
-    LootTable(String),
-    Uninit,
-}
-
-impl Default for LootKind {
-    fn default() -> Self { Self::Uninit }
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -115,16 +104,14 @@ pub struct EntityConfig {
     alignment: AlignmentMark,
 
     /// Loot
-    /// Can be Item (with asset_specifier for item)
-    /// or LootTable (with asset_specifier for loot table)
-    /// or Uninit (means it should be specified something in the code)
-    loot: LootKind,
+    /// See LootSpec in lottery
+    loot: LootSpec<String>,
 
     /// Hands:
     /// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
     /// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
-    /// - Mix { mainhand: ItemSpec, offhand: ItemSpec,
-    /// } for two different 1h weapons,
+    /// - Mix { mainhand: ItemSpec, offhand: ItemSpec, }
+    ///  for two different 1h weapons,
     /// - Uninit which means that tool should be specified somewhere in code,
     /// Where ItemSpec is taken from loadout_builder module
     // TODO: better name for this?
@@ -173,7 +160,7 @@ pub struct EntityInfo {
     pub scale: f32,
     // TODO: Properly give NPCs skills
     pub health_scaling: Option<u16>,
-    pub loot_drop: Option<Item>,
+    pub loot: LootSpec<String>,
     pub loadout_asset: Option<String>,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
     pub skillset_asset: Option<String>,
@@ -197,7 +184,7 @@ impl EntityInfo {
             second_tool: None,
             scale: 1.0,
             health_scaling: None,
-            loot_drop: None,
+            loot: LootSpec::Nothing,
             loadout_asset: None,
             make_loadout: None,
             skillset_asset: None,
@@ -253,21 +240,7 @@ impl EntityInfo {
             self = self.with_alignment(alignment);
         }
 
-        match loot {
-            LootKind::Item(asset) => {
-                if let Ok(item) = Item::new_from_asset(&asset) {
-                    self = self.with_loot_drop(item);
-                }
-            },
-            LootKind::LootTable(asset) => {
-                if let Ok(table) = Lottery::<LootSpec<String>>::load(&asset) {
-                    if let Some(drop) = table.read().choose().to_item() {
-                        self = self.with_loot_drop(drop);
-                    }
-                }
-            },
-            LootKind::Uninit => {},
-        }
+        self = self.with_loot_drop(loot);
 
         let rng = &mut rand::thread_rng();
         match hands {
@@ -363,8 +336,8 @@ impl EntityInfo {
         self
     }
 
-    pub fn with_loot_drop(mut self, loot_drop: Item) -> Self {
-        self.loot_drop = Some(loot_drop);
+    pub fn with_loot_drop(mut self, loot_drop: LootSpec<String>) -> Self {
+        self.loot = loot_drop;
         self
     }
 
@@ -469,6 +442,7 @@ mod tests {
         }
     }
 
+    #[cfg(test)]
     fn validate_hands(hands: Hands, _config_asset: &str) {
         match hands {
             Hands::TwoHanded(main_tool) => {
@@ -486,6 +460,7 @@ mod tests {
         }
     }
 
+    #[cfg(test)]
     fn validate_body_and_name(body: BodyBuilder, name: NameKind, config_asset: &str) {
         match body {
             BodyBuilder::RandomWith(string) => {
@@ -511,30 +486,13 @@ mod tests {
         }
     }
 
-    fn validate_loot(loot: LootKind, config_asset: &str) {
-        match loot {
-            LootKind::Item(asset) => {
-                if let Err(e) = Item::new_from_asset(&asset) {
-                    panic!(
-                        "Unable to parse loot item ({}) in {}. Err: {:?}",
-                        asset, config_asset, e
-                    );
-                }
-            },
-            LootKind::LootTable(asset) => {
-                // we need to just load it check if it exists,
-                // because all loot tables are tested in Lottery module
-                if let Err(e) = Lottery::<LootSpec<String>>::load(&asset) {
-                    panic!(
-                        "Unable to parse loot table ({}) in {}. Err: {:?}",
-                        asset, config_asset, e
-                    );
-                }
-            },
-            LootKind::Uninit => {},
-        }
+    #[cfg(test)]
+    fn validate_loot(loot: LootSpec<String>, _config_asset: &str) {
+        use crate::lottery;
+        lottery::tests::validate_loot_spec(&loot);
     }
 
+    #[cfg(test)]
     fn validate_meta(meta: Vec<Meta>, config_asset: &str) {
         let mut meta_counter = HashMap::new();
         for field in meta {

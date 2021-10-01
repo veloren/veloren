@@ -2,16 +2,14 @@ use crate::{
     client::Client,
     comp::{
         agent::{Agent, AgentEvent, Sound, SoundKind},
-        biped_large, bird_large, quadruped_low, quadruped_medium, quadruped_small,
         skills::SkillGroupKind,
-        theropod, BuffKind, BuffSource, PhysicsState,
+        BuffKind, BuffSource, PhysicsState,
     },
     rtsim::RtSim,
     sys::terrain::SAFE_ZONE_RADIUS,
     Server, SpawnPoint, StateExt,
 };
 use common::{
-    assets::AssetExt,
     combat,
     comp::{
         self, aura, buff,
@@ -21,7 +19,6 @@ use common::{
         Inventory, Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
-    lottery::{LootSpec, Lottery},
     outcome::Outcome,
     resources::Time,
     rtsim::RtSimEntity,
@@ -349,170 +346,22 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             Some(comp::Alignment::Owned(_))
         )
     {
-        // Only drop loot if entity has agency (not a player), and if it is not owned by
-        // another entity (not a pet)
+        // Only drop loot if entity has agency (not a player),
+        // and if it is not owned by another entity (not a pet)
 
         // Decide for a loot drop before turning into a lootbag
         let old_body = state.ecs().write_storage::<Body>().remove(entity);
-        let lottery = || {
-            Lottery::<LootSpec<String>>::load_expect(match old_body {
-                Some(common::comp::Body::Humanoid(_)) => "common.loot_tables.creature.humanoid",
-                Some(common::comp::Body::QuadrupedSmall(quadruped_small)) => {
-                    match quadruped_small.species {
-                        quadruped_small::Species::Dodarock => {
-                            "common.loot_tables.creature.quad_small.dodarock"
-                        },
-                        quadruped_small::Species::Truffler | quadruped_small::Species::Fungome => {
-                            "common.loot_tables.creature.quad_small.mushroom"
-                        },
-                        quadruped_small::Species::Sheep | quadruped_small::Species::Goat => {
-                            "common.loot_tables.creature.quad_small.wool"
-                        },
-                        quadruped_small::Species::Skunk
-                        | quadruped_small::Species::Quokka
-                        | quadruped_small::Species::Beaver
-                        | quadruped_small::Species::Jackalope
-                        | quadruped_small::Species::Hare => {
-                            "common.loot_tables.creature.quad_small.fur"
-                        },
-                        quadruped_small::Species::Frog
-                        | quadruped_small::Species::Axolotl
-                        | quadruped_small::Species::Gecko
-                        | quadruped_small::Species::Turtle => {
-                            "common.loot_tables.creature.quad_small.ooze"
-                        },
-                        _ => "common.loot_tables.creature.quad_small.generic",
-                    }
-                },
-                Some(Body::QuadrupedMedium(quadruped_medium)) => match quadruped_medium.species {
-                    quadruped_medium::Species::Frostfang | quadruped_medium::Species::Roshwalr => {
-                        "common.loot_tables.creature.quad_medium.ice"
-                    },
-                    quadruped_medium::Species::Catoblepas => {
-                        "common.loot_tables.creature.quad_medium.catoblepas"
-                    },
-                    quadruped_medium::Species::Bear
-                    | quadruped_medium::Species::Snowleopard
-                    | quadruped_medium::Species::Tiger
-                    | quadruped_medium::Species::Lion => {
-                        "common.loot_tables.creature.quad_medium.clawed"
-                    },
-                    quadruped_medium::Species::Tarasque
-                    | quadruped_medium::Species::Bonerattler => {
-                        "common.loot_tables.creature.quad_medium.carapace"
-                    },
-                    quadruped_medium::Species::Dreadhorn => {
-                        "common.loot_tables.creature.quad_medium.dreadhorn"
-                    },
-                    quadruped_medium::Species::Camel
-                    | quadruped_medium::Species::Deer
-                    | quadruped_medium::Species::Hirdrasil
-                    | quadruped_medium::Species::Horse
-                    | quadruped_medium::Species::Highland
-                    | quadruped_medium::Species::Zebra
-                    | quadruped_medium::Species::Donkey
-                    | quadruped_medium::Species::Antelope
-                    | quadruped_medium::Species::Kelpie
-                    | quadruped_medium::Species::Cattle
-                    | quadruped_medium::Species::Yak => {
-                        "common.loot_tables.creature.quad_medium.gentle"
-                    },
-                    quadruped_medium::Species::Mouflon
-                    | quadruped_medium::Species::Llama
-                    | quadruped_medium::Species::Alpaca => {
-                        "common.loot_tables.creature.quad_medium.wool"
-                    },
-                    quadruped_medium::Species::Ngoubou => {
-                        "common.loot_tables.creature.quad_medium.horned"
-                    },
-                    quadruped_medium::Species::Mammoth => {
-                        "common.loot_tables.creature.quad_medium.mammoth"
-                    },
-                    _ => "common.loot_tables.creature.quad_medium.fanged",
-                },
-                Some(common::comp::Body::BirdMedium(_)) => {
-                    "common.loot_tables.creature.bird_medium"
-                },
-                Some(common::comp::Body::BirdLarge(bird_large)) => match bird_large.species {
-                    bird_large::Species::Cockatrice => {
-                        "common.loot_tables.creature.bird_large.cockatrice"
-                    },
-                    bird_large::Species::Roc => "common.loot_tables.creature.bird_large.roc",
-                    _ => "common.loot_tables.creature.bird_large.phoenix",
-                },
-                Some(common::comp::Body::FishMedium(_)) => "common.loot_tables.creature.fish",
-                Some(common::comp::Body::FishSmall(_)) => "common.loot_tables.creature.fish",
-                Some(common::comp::Body::BipedLarge(biped_large)) => match biped_large.species {
-                    biped_large::Species::Wendigo => {
-                        "common.loot_tables.creature.biped_large.wendigo"
-                    },
-                    biped_large::Species::Cavetroll
-                    | biped_large::Species::Mountaintroll
-                    | biped_large::Species::Swamptroll => {
-                        "common.loot_tables.creature.biped_large.troll"
-                    },
-                    biped_large::Species::Occultsaurok
-                    | biped_large::Species::Mightysaurok
-                    | biped_large::Species::Slysaurok => {
-                        "common.loot_tables.creature.biped_large.saurok"
-                    },
-                    _ => "common.loot_tables.creature.biped_large.default",
-                },
-                Some(common::comp::Body::Golem(_)) => "common.loot_tables.creature.golem",
-                Some(common::comp::Body::Theropod(theropod)) => match theropod.species {
-                    theropod::Species::Sandraptor
-                    | theropod::Species::Snowraptor
-                    | theropod::Species::Woodraptor
-                    | theropod::Species::Sunlizard => "common.loot_tables.creature.theropod.raptor",
-                    theropod::Species::Archaeos
-                    | theropod::Species::Ntouka
-                    | theropod::Species::Yale => "common.loot_tables.creature.theropod.horned",
-                    _ => "common.loot_tables.creature.theropod.generic",
-                },
-                Some(common::comp::Body::Dragon(_)) => "common.loot_tables.creature.dragon",
-                Some(common::comp::Body::QuadrupedLow(quadruped_low)) => {
-                    match quadruped_low.species {
-                        quadruped_low::Species::Maneater => {
-                            "common.loot_tables.creature.quad_low.maneater"
-                        },
-                        quadruped_low::Species::Lavadrake
-                        | quadruped_low::Species::Rocksnapper
-                        | quadruped_low::Species::Sandshark => {
-                            "common.loot_tables.creature.quad_low.carapace"
-                        },
-                        quadruped_low::Species::Asp => {
-                            "common.loot_tables.creature.quad_low.venemous"
-                        },
-                        quadruped_low::Species::Hakulaq => {
-                            "common.loot_tables.creature.quad_low.fanged"
-                        },
-                        quadruped_low::Species::Deadwood => {
-                            "common.loot_tables.creature.quad_low.deadwood"
-                        },
-                        quadruped_low::Species::Basilisk => {
-                            "common.loot_tables.creature.quad_low.basilisk"
-                        },
-                        quadruped_low::Species::Salamander => {
-                            "common.loot_tables.creature.quad_low.salamander"
-                        },
-                        _ => "common.loot_tables.creature.quad_low.generic",
-                    }
-                },
-                Some(common::comp::Body::BipedSmall(_)) => "common.loot_tables.nothing",
-                _ => "common.loot_tables.fallback",
-            })
+
+        let item = {
+            let mut item_drop = state.ecs().write_storage::<comp::ItemDrop>();
+            item_drop.remove(entity).map(|comp::ItemDrop(item)| item)
         };
 
-        if let Some(item) = {
-            let mut item_drops = state.ecs().write_storage::<comp::ItemDrop>();
-            item_drops.remove(entity).map_or_else(
-                || lottery().read().choose().to_item(),
-                |item_drop| Some(item_drop.0),
-            )
-        } {
+        if let Some(item) = item {
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
+                // FIXME: Please, no BeastMeat from Possesed Turret
                 let _ = state
                     .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
                         Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,

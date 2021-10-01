@@ -113,7 +113,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
-                    LootSpec::None => Vec::new().into_iter(),
+                    LootSpec::Nothing => Vec::new().into_iter(),
                 })
                 .collect(),
         }

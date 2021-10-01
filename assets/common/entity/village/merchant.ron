@@ -3,8 +3,8 @@ EntityConfig (
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
 
-    // considering giving some gold/gems/materials?
-    loot: Uninit,
+    // TODO: consider giving some gold/gems/materials?
+    loot: LootTable("common.loot_tables.creature.humanoid"),
 
     hands: TwoHanded(Item("common.items.weapons.bow.eldwood-0")),
 

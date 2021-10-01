@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("ogre"),
     alignment: Alignment(Enemy),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.biped_large.default"),
 
     hands: Uninit,
 

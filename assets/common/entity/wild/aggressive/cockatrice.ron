@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("cockatrice"),
     alignment: Alignment(Enemy),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.bird_large.cockatrice"),
 
     hands: Uninit,
 

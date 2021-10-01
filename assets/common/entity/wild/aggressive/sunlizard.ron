@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("sunlizard"),
     alignment: Alignment(Enemy),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.theropod.raptor"),
 
     hands: Uninit,
 

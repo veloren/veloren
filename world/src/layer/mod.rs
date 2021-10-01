@@ -12,7 +12,6 @@ use crate::{
 };
 use common::{
     assets::AssetExt,
-    comp,
     generation::{ChunkSupplement, EntityInfo},
     lottery::Lottery,
     terrain::{Block, BlockKind, SpriteKind},
@@ -440,7 +439,8 @@ pub fn apply_caves_supplement<'a>(
                 // Abs units
                 let cave_base = (cave.alt + cave_floor) as i32;
 
-                let cave_depth = (col_sample.alt - cave.alt).max(0.0); //slightly different from earlier cave depth?
+                // slightly different from earlier cave depth?
+                let cave_depth = (col_sample.alt - cave.alt).max(0.0);
 
                 // Scatter things in caves
                 if let Some(z) = (-4..8).map(|z| cave_base + z).find(|z| {
@@ -452,58 +452,41 @@ pub fn apply_caves_supplement<'a>(
                     if RandomField::new(index.seed).chance(wpos2d.into(), 0.0014)
                         && cave_base < surface_z as i32 - 40
                     {
-                        let is_hostile: bool;
-                        let entity =
-                            EntityInfo::at(Vec3::new(wpos2d.x as f32, wpos2d.y as f32, z as f32))
-                                .with_body(if cave_depth < 70.0 {
-                                    is_hostile = false;
-                                    let species = match dynamic_rng.gen_range(0..4) {
-                                        0 => comp::quadruped_small::Species::Truffler,
-                                        1 => comp::quadruped_small::Species::Dodarock,
-                                        2 => comp::quadruped_small::Species::Holladon,
-                                        _ => comp::quadruped_small::Species::Batfox,
-                                    };
-                                    comp::quadruped_small::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                } else if cave_depth < 120.0 {
-                                    is_hostile = true;
-                                    let species = match dynamic_rng.gen_range(0..3) {
-                                        0 => comp::quadruped_low::Species::Rocksnapper,
-                                        1 => comp::quadruped_low::Species::Salamander,
-                                        _ => comp::quadruped_low::Species::Asp,
-                                    };
-                                    comp::quadruped_low::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                } else if cave_depth < 190.0 {
-                                    is_hostile = true;
-                                    let species = match dynamic_rng.gen_range(0..3) {
-                                        0 => comp::quadruped_low::Species::Rocksnapper,
-                                        1 => comp::quadruped_low::Species::Lavadrake,
-                                        _ => comp::quadruped_low::Species::Basilisk,
-                                    };
-                                    comp::quadruped_low::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                } else {
-                                    is_hostile = true;
-                                    let species = match dynamic_rng.gen_range(0..5) {
-                                        0 => comp::biped_large::Species::Ogre,
-                                        1 => comp::biped_large::Species::Cyclops,
-                                        2 => comp::biped_large::Species::Wendigo,
-                                        3 => match dynamic_rng.gen_range(0..2) {
-                                            0 => comp::biped_large::Species::Blueoni,
-                                            _ => comp::biped_large::Species::Redoni,
-                                        },
-                                        _ => comp::biped_large::Species::Cavetroll,
-                                    };
-                                    comp::biped_large::Body::random_with(dynamic_rng, &species)
-                                        .into()
-                                })
-                                .with_alignment(if is_hostile {
-                                    comp::Alignment::Enemy
-                                } else {
-                                    comp::Alignment::Wild
-                                })
-                                .with_automatic_name();
+                        let entity = EntityInfo::at(wpos2d.map(|e| e as f32).with_z(z as f32));
+                        let entity = {
+                            let asset = if cave_depth < 70.0 {
+                                match dynamic_rng.gen_range(0..4) {
+                                    0 => "common.entity.wild.peaceful.truffler",
+                                    1 => "common.entity.wild.aggressive.dodarock",
+                                    2 => "common.entity.wild.peaceful.holladon",
+                                    _ => "common.entity.wild.aggressive.batfox",
+                                }
+                            } else if cave_depth < 120.0 {
+                                match dynamic_rng.gen_range(0..3) {
+                                    0 => "common.entity.wild.aggressive.rocksnapper",
+                                    1 => "common.entity.wild.aggressive.cave_salamander",
+                                    _ => "common.entity.wild.aggressive.asp",
+                                }
+                            } else if cave_depth < 190.0 {
+                                match dynamic_rng.gen_range(0..3) {
+                                    0 => "common.entity.wild.aggressive.rocksnapper",
+                                    1 => "common.entity.wild.aggressive.lavadrake",
+                                    _ => "common.entity.wild.aggressive.basilisk",
+                                }
+                            } else {
+                                match dynamic_rng.gen_range(0..5) {
+                                    0 => "common.entity.wild.aggressive.ogre",
+                                    1 => "common.entity.wild.aggressive.cyclops",
+                                    2 => "common.entity.wild.aggressive.wendigo",
+                                    3 => match dynamic_rng.gen_range(0..2) {
+                                        0 => "common.entity.wild.aggressive.blue_oni",
+                                        _ => "common.entity.wild.aggressive.red_oni",
+                                    },
+                                    _ => "common.entity.wild.aggressive.cave_troll",
+                                }
+                            };
+                            entity.with_asset_expect(asset)
+                        };
 
                         supplement.add_entity(entity);
                     }

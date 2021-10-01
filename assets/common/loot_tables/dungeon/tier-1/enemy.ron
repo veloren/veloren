@@ -4,7 +4,7 @@
     // Food
     (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
     // Nothing
-    (2.0, None),
+    (2.0, Nothing),
     // Placeholder Drop Location
     (1.0, Item("common.items.crafting_ing.sticky_thread")),
 ]

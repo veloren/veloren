@@ -13,6 +13,7 @@ use common::{
     comp::{self, agent, bird_medium, BehaviorCapability, ForceUpdate, Pos, Waypoint},
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
+    lottery::LootSpec,
     resources::Time,
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
@@ -218,7 +219,7 @@ impl<'a> System<'a> for Sys {
                         body,
                         alignment,
                         scale,
-                        drop_item,
+                        loot,
                     } => {
                         server_emitter.emit(ServerEvent::CreateNpc {
                             pos,
@@ -232,7 +233,7 @@ impl<'a> System<'a> for Sys {
                             alignment,
                             scale,
                             anchor: Some(comp::Anchor::Chunk(key)),
-                            drop_item,
+                            loot,
                             rtsim_entity: None,
                             projectile: None,
                         });
@@ -357,13 +358,13 @@ pub enum NpcData {
         body: comp::Body,
         alignment: comp::Alignment,
         scale: comp::Scale,
-        drop_item: Option<comp::Item>,
+        loot: LootSpec<String>,
     },
     Waypoint(Vec3<f32>),
 }
 
 impl NpcData {
-    pub fn from_entity_info(entity: EntityInfo, rng: &mut impl Rng) -> Self {
+    pub fn from_entity_info(entity: EntityInfo, loadout_rng: &mut impl Rng) -> Self {
         let EntityInfo {
             // flags
             is_waypoint,
@@ -376,7 +377,7 @@ impl NpcData {
             scale,
             pos,
             health_scaling,
-            loot_drop,
+            loot,
             // tools and skills
             skillset_asset,
             main_tool,
@@ -422,7 +423,7 @@ impl NpcData {
             // If there is config, apply it.
             // If not, use default equipement for this body.
             if let Some(asset) = loadout_asset {
-                loadout_builder = loadout_builder.with_asset_expect(&asset, rng);
+                loadout_builder = loadout_builder.with_asset_expect(&asset, loadout_rng);
             } else {
                 loadout_builder = loadout_builder.with_default_equipment(&body);
             }
@@ -464,6 +465,14 @@ impl NpcData {
                 .with_no_flee(!matches!(agent_mark, Some(agent::Mark::Guard)))
         });
 
+        let agent = if matches!(alignment, comp::Alignment::Enemy)
+            && matches!(body, comp::Body::Humanoid(_))
+        {
+            agent.map(|a| a.with_aggro_no_warn())
+        } else {
+            agent
+        };
+
         NpcData::Data {
             pos: Pos(pos),
             stats,
@@ -475,7 +484,7 @@ impl NpcData {
             body,
             alignment,
             scale: comp::Scale(scale),
-            drop_item: loot_drop,
+            loot,
         }
     }
 }

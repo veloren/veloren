@@ -187,7 +187,7 @@ impl CharacterBehavior for Data {
                                 .scale
                                 .unwrap_or(comp::Scale(1.0)),
                             anchor: None,
-                            drop_item: None,
+                            loot: crate::lottery::LootSpec::Nothing,
                             rtsim_entity: None,
                             projectile,
                         });

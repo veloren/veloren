@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("saurok_mighty"),
     alignment: Alignment(Enemy),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
 
     hands: Uninit,
 

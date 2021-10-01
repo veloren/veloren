@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("troll_cave"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.biped_large.troll"),
+
+    hands: Uninit,
+
+    meta: [],
+)

@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("batfox"),
     alignment: Alignment(Enemy),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.quad_small.generic"),
 
     hands: Uninit,
 

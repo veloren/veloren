@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("catoblepas"),
     alignment: Alignment(Wild),
 
-    loot: Uninit,
+    loot: LootTable("common.loot_tables.creature.quad_medium.catoblepas"),
 
     hands: Uninit,
 

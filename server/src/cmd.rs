@@ -605,7 +605,7 @@ fn handle_make_npc(
                 agent,
                 alignment,
                 scale,
-                drop_item,
+                loot,
             } => {
                 let inventory = Inventory::new_with_loadout(loadout);
 
@@ -621,7 +621,7 @@ fn handle_make_npc(
                     entity_builder = entity_builder.with(agent);
                 }
 
-                if let Some(drop_item) = drop_item {
+                if let Some(drop_item) = loot.to_item() {
                     entity_builder = entity_builder.with(comp::ItemDrop(drop_item));
                 }
 

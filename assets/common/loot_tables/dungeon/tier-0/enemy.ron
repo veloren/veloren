@@ -4,5 +4,5 @@
     // Food
     (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
     // Nothing
-    (2.0, None),
+    (2.0, Nothing),
 ]

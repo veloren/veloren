@@ -1,9 +1,9 @@
 EntityConfig (
     name: Name("Pirate"),
     body: Exact(Humanoid(Body(
-        species: Human, 
-        body_type: Female, 
-        hair_style: 2, 
+        species: Human,
+        body_type: Female,
+        hair_style: 2,
         beard: 0,
         eyes: 0,
         accessory: 0,
