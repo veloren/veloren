@@ -102,6 +102,7 @@ pub fn handle_process_trade_action(
                                 AgentEvent::FinishedTrade(result.clone()),
                             );
                         }
+                        trades.entity_trades.remove_entry(party);
                     }
                 } else {
                     let mut entities: [Option<specs::Entity>; 2] = [None, None];
