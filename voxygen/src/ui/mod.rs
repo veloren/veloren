@@ -118,8 +118,8 @@ pub struct Ui {
     interface_locals: UiBoundLocals,
     // Consts to specify positions of ingame elements (e.g. Nametags)
     ingame_locals: Vec<UiBoundLocals>,
-    // Window size for updating scaling
-    window_resized: Option<Vec2<f64>>,
+    // Whether the window was resized since the last maintain, for updating scaling
+    window_resized: bool,
     // Scale factor changed
     scale_factor_changed: Option<f64>,
     // Used to delay cache resizing until after current frame is drawn
@@ -138,12 +138,17 @@ pub struct Ui {
 
 impl Ui {
     pub fn new(window: &mut Window) -> Result<Self, Error> {
-        let scale = Scale::new(window, ScaleMode::Absolute(1.0), 1.0);
-        let win_dims = scale.scaled_resolution().into_array();
-
+        let scale_factor = window.scale_factor();
         let renderer = window.renderer_mut();
-
         let physical_resolution = renderer.resolution();
+        let scale = Scale::new(
+            physical_resolution,
+            scale_factor,
+            ScaleMode::Absolute(1.0),
+            1.0,
+        );
+
+        let win_dims = scale.scaled_resolution().into_array();
 
         let mut ui = UiBuilder::new(win_dims).build();
         // NOTE: Since we redraw the actual frame each time whether or not the UI needs
@@ -176,7 +181,7 @@ impl Ui {
             model: renderer.create_dynamic_model(100),
             interface_locals,
             ingame_locals: Vec::new(),
-            window_resized: None,
+            window_resized: false,
             scale_factor_changed: None,
             need_cache_resize: false,
             graphic_replaced: false,
@@ -290,7 +295,7 @@ impl Ui {
         match event.0 {
             Input::Resize(w, h) => {
                 if w > 0.0 && h > 0.0 {
-                    self.window_resized = Some(Vec2::new(w, h))
+                    self.window_resized = true;
                 }
             },
             Input::Touch(touch) => self.ui.handle_event(Input::Touch(Touch {
@@ -342,12 +347,14 @@ impl Ui {
         };
 
         // Handle window resizing.
-        let need_resize = if let Some(new_dims) = self.window_resized.take() {
+        let need_resize = if self.window_resized {
+            self.window_resized = false;
+            let surface_resolution = renderer.resolution();
             let (old_w, old_h) = self.scale.scaled_resolution().into_tuple();
-            self.scale.window_resized(new_dims);
+            self.scale.surface_resized(surface_resolution);
             let (w, h) = self.scale.scaled_resolution().into_tuple();
             self.ui.handle_event(Input::Resize(w, h));
-            self.window_scissor = default_scissor(renderer.resolution());
+            self.window_scissor = default_scissor(surface_resolution);
 
             // Avoid panic in graphic cache when minimizing.
             // Avoid resetting cache if window size didn't change

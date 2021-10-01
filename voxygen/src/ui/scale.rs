@@ -1,4 +1,3 @@
-use crate::window::Window;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
@@ -22,20 +21,23 @@ pub struct Scale {
     mode: ScaleMode,
     // Current dpi factor
     scale_factor: f64,
-    // Current logical window size
-    window_dims: Vec2<f64>,
+    // Current pixel size of the window
+    physical_resolution: Vec2<u32>,
     // TEMP
     extra_factor: f64,
 }
 
 impl Scale {
-    pub fn new(window: &Window, mode: ScaleMode, extra_factor: f64) -> Self {
-        let window_dims = window.logical_size();
-        let scale_factor = window.scale_factor();
+    pub fn new(
+        physical_resolution: Vec2<u32>,
+        scale_factor: f64,
+        mode: ScaleMode,
+        extra_factor: f64,
+    ) -> Self {
         Scale {
             mode,
             scale_factor,
-            window_dims,
+            physical_resolution,
             extra_factor,
         }
     }
@@ -56,36 +58,38 @@ impl Scale {
     // Get scaling mode transformed to be relative to the window with the same
     // aspect ratio as the current window
     pub fn scaling_mode_as_relative(&self) -> ScaleMode {
-        let scale = self.scale_factor_logical();
-        ScaleMode::RelativeToWindow(self.window_dims.map(|e| e / scale))
-    }
-
-    /// Calculate factor to transform between logical coordinates and our scaled
-    /// coordinates.
-    /// Multiply by scaled coordinates to get the logical coordinates
-    pub fn scale_factor_logical(&self) -> f64 {
-        self.extra_factor
-            * match self.mode {
-                ScaleMode::Absolute(scale) => scale / self.scale_factor,
-                ScaleMode::DpiFactor => 1.0,
-                ScaleMode::RelativeToWindow(dims) => {
-                    (self.window_dims.x / dims.x).min(self.window_dims.y / dims.y)
-                },
-            }
+        ScaleMode::RelativeToWindow(self.scaled_resolution())
     }
 
     /// Calculate factor to transform between physical coordinates and our
     /// scaled coordinates.
     /// Multiply by scaled coordinates to get the physical coordinates
-    pub fn scale_factor_physical(&self) -> f64 { self.scale_factor_logical() * self.scale_factor }
+    pub fn scale_factor_physical(&self) -> f64 {
+        self.extra_factor
+            * match self.mode {
+                ScaleMode::Absolute(scale) => scale,
+                ScaleMode::DpiFactor => 1.0 * self.scale_factor,
+                ScaleMode::RelativeToWindow(dims) => (f64::from(self.physical_resolution.x)
+                    / dims.x)
+                    .min(f64::from(self.physical_resolution.y) / dims.y),
+            }
+    }
+
+    /// Calculate factor to transform between logical coordinates and our scaled
+    /// coordinates.
+    /// Multiply by scaled coordinates to get the logical coordinates
+    ///
+    /// Used to scale coordinates from window events (e.g. the mouse cursor
+    /// position)
+    pub fn scale_factor_logical(&self) -> f64 { self.scale_factor_physical() / self.scale_factor }
 
     /// Updates window size
     /// Returns true if the value was changed
     #[allow(clippy::float_cmp)]
-    pub fn window_resized(&mut self, new_dims: Vec2<f64>) -> bool {
-        let old_window_dims = self.window_dims;
-        self.window_dims = new_dims;
-        old_window_dims != self.window_dims
+    pub fn surface_resized(&mut self, new_res: Vec2<u32>) -> bool {
+        let old_res = self.physical_resolution;
+        self.physical_resolution = new_res;
+        old_res != self.physical_resolution
     }
 
     /// Updates scale factor
@@ -98,10 +102,9 @@ impl Scale {
     }
 
     /// Get scaled window size.
-    pub fn scaled_resolution(&self) -> Vec2<f64> { self.window_dims / self.scale_factor_logical() }
-
-    /// Get logical window size
-    pub fn logical_resolution(&self) -> Vec2<f64> { self.window_dims }
+    pub fn scaled_resolution(&self) -> Vec2<f64> {
+        self.physical_resolution.map(f64::from) / self.scale_factor_physical()
+    }
 
     // Transform point from logical to scaled coordinates.
     pub fn scale_point(&self, point: Vec2<f64>) -> Vec2<f64> { point / self.scale_factor_logical() }
