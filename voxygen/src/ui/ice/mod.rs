@@ -42,11 +42,12 @@ impl IcedUi {
         default_font: Font,
         scale_mode: ScaleMode,
     ) -> Result<Self, Error> {
-        let scale = Scale::new(window, scale_mode, 1.2);
+        let scale_factor = window.scale_factor();
         let renderer = window.renderer_mut();
+        let physical_resolution = renderer.resolution();
+        let scale = Scale::new(physical_resolution, scale_factor, scale_mode, 1.2);
 
         let scaled_resolution = scale.scaled_resolution().map(|e| e as f32);
-        let physical_resolution = renderer.resolution();
 
         // TODO: examine how much mem fonts take up and reduce clones if significant
         Ok(Self {
@@ -97,16 +98,9 @@ impl IcedUi {
         use iced::window;
         match event {
             // Intercept resizing events
-            // TODO: examine if we are handling dpi properly here
-            // ideally these values should be the logical ones
-            Event::Window(window::Event::Resized { width, height }) => {
-                if width != 0 && height != 0 {
-                    let new_dims = Vec2::new(width, height);
-                    // TODO maybe use u32 in Scale to be consistent with iced
-                    // Avoid resetting cache if window size didn't change
-                    self.scale_changed |= self.scale.window_resized(new_dims.map(|e| e as f64));
-                }
-            },
+            // We check if the resolution of the renderer has changed to determine if a resize has
+            // occured
+            Event::Window(window::Event::Resized { .. }) => {},
             // Scale cursor movement events
             // Note: in some cases the scaling could be off if a resized event occured in the same
             // frame, in practice this shouldn't be an issue
@@ -151,9 +145,15 @@ impl IcedUi {
         clipboard: &mut Clipboard,
     ) -> (Vec<M>, mouse::Interaction) {
         span!(_guard, "maintain", "IcedUi::maintain");
+        // There could have been a series of resizes that put us back at the original
+        // resolution.
+        // Avoid resetting cache if window size didn't actually change.
+        let resolution_changed = self.scale.surface_resized(renderer.resolution());
+
         // Handle window resizing, dpi factor change, and scale mode changing
-        if self.scale_changed {
+        if self.scale_changed || resolution_changed {
             self.scale_changed = false;
+
             let scaled_resolution = self.scale.scaled_resolution().map(|e| e as f32);
             self.events
                 .push(Event::Window(iced::window::Event::Resized {
