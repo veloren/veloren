@@ -1,0 +1,92 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Catalan (Catalonia)
+(
+    string_map: {
+        /// Start Main screen section
+        "main.username": "Nom d'Usuari",
+        "main.server": "Servidor",
+        "main.password": "Contrasenya",
+        "main.connecting": "Connectant",
+        "main.creating_world": "Creant món",
+        "main.tip": "Consell:",
+
+        // Welcome notice that appears the first time Veloren is started
+        "main.notice": r#"Benvingut a la versió alfa de Veloren!
+
+Abans de començar a divertir-te, si us plau tinguis les següents coses en ment:
+
+- Aquesta és una versió alfa molt recent. Espera errors, jugabilitat extremadament inacabada, mecàniques per polir i manca d'elements.
+
+- Si tens algun feedback constructiu o vols reportar un error, pot posar-te en contacte amb nosaltres mitjançant Reddit, GitLab, o el nostre servidor de Discord.
+
+- Veloren està llicenciat sota una llicència de codi obert GPL 3. Això significa que ets lliure de jugar, modificar, i redistribuir el joc de la manera
+ que desitges (sempre que aquest producte derivat es trobi sota una llicència GPL 3).
+
+- Veloren és un projecte comunitari sense ànim de lucre i tothom qui hi treballa en ell és un voluntari.
+Si t'agrada el que hi veus, ets benvingut a unir-te a l'equip de desenvolupament o artístic!
+
+Gràcies per prendre't el temps per llegir aquest avís, esperem que gaudeixis del joc!
+
+~ Els Desenvolupadors de Veloren"#,
+
+        // Login process description
+        "main.login_process": r#"Informació sobre el procés d'Inici de Sessió:
+
+Si us plau, tinguis en compte que necessites un compte
+per jugar a servidors amb autentificació activada.
+
+Pots crear un compte a
+
+https://veloren.net/account/."#,
+        "main.login.server_not_found": "No s'ha trobat el Servidor",
+        "main.login.authentication_error": "Error d'Autentificació al Servidor",
+        "main.login.internal_error": "Error intern en el client (probablement el personatge del jugador ha estat esborrat)",
+        "main.login.failed_auth_server_url_invalid": "No s'ha pogut connectar al Servidor d'Autentificació",
+        "main.login.insecure_auth_scheme": "L'esquema d'autentificació HTTP NO és suportat. És insegur! Per al desenvolupament, HTTP està permès per a 'localhost' o versions de depuració",
+        "main.login.server_full": "El Servidor és ple",
+        "main.login.untrusted_auth_server": "Servidor d'Autentificació poc fiable",
+        "main.login.outdated_client_or_server": "ServerEmbogit: Probablement les versions són incompatibles, comprova si hi ha actualitzacions.",
+        "main.login.timeout": "Fora de Temps: el Servidor no ha donat resposta a temps. (Sobrecàrrega o problemes de xarxa).",
+        "main.login.server_shut_down": "Servidor Apagat",
+        "main.login.network_error": "Error de Xarxa",
+        "main.login.network_wrong_version": "La versió del servidor i la del client no coincideixen, si us plau actualitzeu el vostre joc.",
+        "main.login.failed_sending_request": "La petició al servidor d'autentificació ha fallat",
+        "main.login.invalid_character": "El personatge seleccionat no és vàlid",
+        "main.login.client_crashed": "El client s'ha tancat inesperadament",
+        "main.login.not_on_whitelist": "Necessites l'aprovació d'un Administrador per a entrar",
+        "main.login.banned": "Se t'ha vetat l'entrada per aquesta raó",
+        "main.login.kicked": "Se t'ha expulsat per aquesta raó",
+        "main.login.select_language": "Selecciona Idioma",
+        "main.login.client_version": "Versió del Client",
+        "main.login.server_version": "Versió del Servidor",
+        "main.servers.select_server": "Selecciona un Servidor",
+        /// End Main screen section
+    },
+
+
+    vector_map: {
+        "loading.tips": [
+            "Prem 'G' per encendre la llanterna.",
+            "Prem 'F1' per veure controls del teclat per defecte.",
+            "Pots escriure /say o /s per a parlar sols amb jugadors directament al teu voltant.",
+            "Pots escriure /region o /r per a parlar sols amb jugadors a uns quants centenars de blocs de tu.",
+            "Els Administradors poden usar el comandament /build per a entrar en el mode construcció.",
+            "Pots escriure /group o /g per a parlar sols amb els jugadors del teu grup actual.",
+            "Per a enviar missatges privats, escriu /tell tot seguit del nom del jugador i el teu missatge.",
+            "Estigues sempre alerta i busca menjar, baguls i altres tresors repartits arreu del món!",
+            "Tens la bossa plena de menjar? Intenta cuinar menjar encara millor amb ell!",
+            "Et preguntes que hi ha per fer? Prova una de les masmorres marcades al mapa!",
+            "No te n'oblidis d'ajustar els gràfics del teu sistema. Prem 'N' per obrir les opcions.",
+            "Jugar amb altres jugadors és divertit! Prem 'O' per veure qui és connectat.",
+            "Prem 'J' per ballar. Que comenci la festa!",
+            "Prem 'Shift Esquerre' per obrir el teu planador i conquerir els cels!",
+            "Veloren roman encara en estat pre-Alfa. Estem fent tot el possible per millorar-lo cada dia!",
+            "Si vols unir-te a l'equip de desenvolupadors o sols xarrar amb nosaltres, uneix-te al nostre servidor de Discord.",
+            "Pots tirar si mostrar la teva quantitat de salut a la barra de salut o no des de les opcions.",
+            "Seu prop d'una foguera (prement 'K') i recuperaràs salut lentament.",
+            "Necessites més bosses o millor armadura per continuar el teu viatge? Prem 'C' per obrir el menú d'elaboració!",
+            "Intenta saltar quan fas tombarelles entre criatures.",
+        ],
+    }
+)

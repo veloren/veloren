@@ -1,0 +1,38 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Catalan (Catalonia)
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Mapa",
+        "hud.map.qlog_title": "Missions",
+        "hud.map.topo_map": "Topogràfic",
+        "hud.map.difficulty": "Dificultat",
+        "hud.map.towns": "Pobles",
+        "hud.map.castles": "Castells",
+        "hud.map.dungeons": "Masmorres",
+        "hud.map.caves": "Coves",
+        "hud.map.cave": "Cova",
+        "hud.map.peaks": "Muntanyes",
+        "hud.map.voxel_map": "Mapa Voxel",
+        "hud.map.trees": "Arbres Gegants",
+        "hud.map.tree": "Arbre Gegant",
+        "hud.map.town": "Poble",
+        "hud.map.castle": "Castell",
+        "hud.map.dungeon": "Masmorra",
+        "hud.map.difficulty_dungeon": "Masmorra\n\nDificultat: {difficulty}",
+        "hud.map.drag": "Arrossegar",
+        "hud.map.zoom": "Zoom",
+        "hud.map.mid_click": "Situar Punt d'Acampada",
+        "hud.map.recenter": "Recentrar",
+        "hud.map.marked_location": "Localització Marcada",
+        "hud.map.marked_location_remove": "Click per a eliminar",
+        "hud.map.change_map_mode": "Cambiar Mapa",
+        "hud.map.toggle_minimap_voxel": "Alternar Minimapa Voxel",
+        "hud.map.zoom_minimap_explanation": "Fes Zoom al Minimapa per veure\nl'àrea al teu voltant amb més detall",
+    },
+
+
+    vector_map: {
+    }
+)
