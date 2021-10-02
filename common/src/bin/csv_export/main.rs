@@ -14,7 +14,7 @@ use veloren_common::{
         item::{
             armor::{ArmorKind, Protection},
             tool::{Hands, MaterialStatManifest, Tool, ToolKind},
-            ItemKind,
+            Item, ItemKind,
         },
     },
     generation::EntityConfig,
@@ -312,7 +312,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
             }
         });
         for (chance, loot_table) in sub_tables {
-            let loot_table = Lottery::<LootSpec<String>>::load_expect(&loot_table).read();
+            let loot_table = Lottery::<LootSpec<String>>::load_expect(loot_table).read();
             // Converts from lottery's weight addition for each consecutive entry to keep
             // the weights as they are in the ron file
             let loot_table: Vec<_> = loot_table
@@ -355,16 +355,25 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
             .round()
             .div(10_f32.powi(2))
             .to_string();
-        let (item, quantity) = match item {
-            LootSpec::Item(item) => (item.to_string(), "1".to_string()),
+
+        let (item_asset, quantity) = match item {
+            LootSpec::Item(item) => (Some(item), "1".to_string()),
             LootSpec::ItemQuantity(item, lower, upper) => {
-                (item.to_string(), format!("{}-{}", lower, upper))
+                (Some(item), format!("{}-{}", lower, upper))
             },
             LootSpec::LootTable(_) => panic!("Shouldn't exist"),
-            LootSpec::Nothing => ("Nothing".to_string(), "-".to_string()),
+            LootSpec::Nothing => (None, "-".to_string()),
         };
 
-        wtr.write_record(&[&percent_chance, &item, &quantity])?
+        let item = item_asset.map(|asset| Item::new_from_asset_expect(asset));
+
+        let item_name = if let Some(item) = &item {
+            item.name()
+        } else {
+            "Nothing"
+        };
+
+        wtr.write_record(&[&percent_chance, item_name, &quantity])?
     }
 
     wtr.flush()?;
