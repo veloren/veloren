@@ -105,7 +105,7 @@ pub struct EntityConfig {
 
     /// Loot
     /// See LootSpec in lottery
-    loot: LootSpec<String>,
+    pub loot: LootSpec<String>,
 
     /// Hands:
     /// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
