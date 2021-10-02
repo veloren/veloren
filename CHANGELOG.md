@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shrubs, a system for spawning smaller tree-like plants into the world.
 - Waterfalls
 - Sailing boat (currently requires spawning in)
+- Added catalan (Catalonia) language translation
 
 ### Changed
 
