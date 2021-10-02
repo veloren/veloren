@@ -2,9 +2,7 @@
     // See best attribution practices for creative commons licenses:
     // https://wiki.creativecommons.org/wiki/Best_practices_for_attribution
 
-    // TODO: remove placeholder entries when actual ones are added for a section
-    //
-    // TODO: split this into a file for each of common/voxygen/server assets (applications will
+    // TODO: consider splitting this into a file for each of common/voxygen/server assets (applications will
     // need to ensure to properly combine them)
     //
     /// Entry format:
@@ -34,11 +32,7 @@
     ///     notes: "Some other information",
     /// )
     /// ```
-    music: [(
-        name: "Placeholder jams",
-        authors: ["Placeholder author", "Placeholder author two"],
-        asset_path: "common/credits.ron", // placeholder don't use this for actual entries
-    )],
+    music: [],
     fonts: [(
         name: "Alkhemikal",
         source_link: "https://fontenddev.com/fonts/alkhemikal/",
@@ -96,11 +90,7 @@
         license: "CC BY-SA 3.0",
         license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
     )],
-    other_art: [(
-        name: "Placeholder voxels",
-        authors: ["Placeholder"],
-        asset_path: "common/credits.ron", // placeholder don't use this for actual entries
-    )],
+    other_art: [],
     /// Entry format:
     /// ```
     /// (
@@ -109,9 +99,30 @@
     /// )
     /// ```
     contributors: [(
-        name: "Placeholder",
-        contributions: "An example note",
+        name: "zesterer",
     ), (
-        name: "Example Two",
+        name: "XVar",
+    ), (
+        name: "xMAC94",
+    ), (
+        name: "Timo",
+    ), (
+        name: "Songtronix",
+    ), (
+        name: "Snowram",
+    ), (
+        name: "Slipped",
+    ), (
+        name: "Sharp",
+    ), (
+        name: "Sam",
+    ), (
+        name: "Pfau",
+    ), (
+        name: "imbris",
+    ), (
+        name: "Christof",
+    ), (
+        name: "AngelOnFira",
     )],
 )

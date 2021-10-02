@@ -58,7 +58,7 @@ impl Screen {
                 text.push_str(&credit.name);
 
                 if !credit.contributions.is_empty() {
-                    write!(&mut text, ": {}", &credit.contributions)?;
+                    write!(&mut text, "- {}", &credit.contributions)?;
                 }
 
                 Ok(text)
