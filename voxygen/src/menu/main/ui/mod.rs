@@ -1,10 +1,12 @@
 mod connecting;
 // Note: Keeping in case we re-add the disclaimer
 //mod disclaimer;
+mod credits;
 mod login;
 mod servers;
 
 use crate::{
+    credits::Credits,
     render::UiDrawer,
     ui::{
         self,
@@ -101,8 +103,11 @@ enum Screen {
     /*Disclaimer {
         screen: disclaimer::Screen,
     },*/
+    Credits {
+        screen: credits::Screen,
+    },
     Login {
-        screen: login::Screen,
+        screen: Box<login::Screen>, // boxed to avoid large variant
         // Error to display in a box
         error: Option<String>,
     },
@@ -124,6 +129,7 @@ struct Controls {
     version: String,
     // Alpha disclaimer
     alpha: String,
+    credits: Credits,
 
     selected_server_index: Option<usize>,
     login_info: LoginInfo,
@@ -141,6 +147,7 @@ enum Message {
     Quit,
     Back,
     ShowServers,
+    ShowCredits,
     #[cfg(feature = "singleplayer")]
     Singleplayer,
     Multiplayer,
@@ -170,6 +177,8 @@ impl Controls {
         let version = common::util::DISPLAY_VERSION_LONG.clone();
         let alpha = format!("Veloren {}", common::util::DISPLAY_VERSION.as_str());
 
+        let credits = Credits::load_expect_cloned("common.credits");
+
         // Note: Keeping in case we re-add the disclaimer
         let screen = /* if settings.show_disclaimer {
             Screen::Disclaimer {
@@ -177,7 +186,7 @@ impl Controls {
             }
         } else { */
             Screen::Login {
-                screen: login::Screen::new(),
+                screen: Box::new(login::Screen::new()),
                 error: None,
             };
         //};
@@ -205,6 +214,7 @@ impl Controls {
             i18n,
             version,
             alpha,
+            credits,
 
             selected_server_index,
             login_info,
@@ -263,6 +273,9 @@ impl Controls {
         let content = match &mut self.screen {
             // Note: Keeping in case we re-add the disclaimer
             //Screen::Disclaimer { screen } => screen.view(&self.fonts, &self.i18n, button_style),
+            Screen::Credits { screen } => {
+                screen.view(&self.fonts, &self.i18n.read(), &self.credits, button_style)
+            },
             Screen::Login { screen, error } => screen.view(
                 &self.fonts,
                 &self.imgs,
@@ -321,7 +334,7 @@ impl Controls {
             Message::Quit => events.push(Event::Quit),
             Message::Back => {
                 self.screen = Screen::Login {
-                    screen: login::Screen::new(),
+                    screen: Box::new(login::Screen::new()),
                     error: None,
                 };
             },
@@ -333,6 +346,11 @@ impl Controls {
                         screen: servers::Screen::new(),
                     };
                 }
+            },
+            Message::ShowCredits => {
+                self.screen = Screen::Credits {
+                    screen: credits::Screen::new(),
+                };
             },
             #[cfg(feature = "singleplayer")]
             Message::Singleplayer => {
@@ -413,7 +431,7 @@ impl Controls {
     fn exit_connect_screen(&mut self) {
         if matches!(&self.screen, Screen::Connecting { .. }) {
             self.screen = Screen::Login {
-                screen: login::Screen::new(),
+                screen: Box::new(login::Screen::new()),
                 error: None,
             }
         }
@@ -439,7 +457,7 @@ impl Controls {
     fn connection_error(&mut self, error: String) {
         if matches!(&self.screen, Screen::Connecting { .. }) {
             self.screen = Screen::Login {
-                screen: login::Screen::new(),
+                screen: Box::new(login::Screen::new()),
                 error: Some(error),
             }
         }

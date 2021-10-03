@@ -16,6 +16,7 @@
 pub mod ui;
 pub mod audio;
 pub mod controller;
+mod credits;
 mod ecs;
 pub mod error;
 pub mod game_input;

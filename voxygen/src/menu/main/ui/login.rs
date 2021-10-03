@@ -26,6 +26,7 @@ pub struct Screen {
     quit_button: button::State,
     settings_button: button::State,
     servers_button: button::State,
+    credits_button: button::State,
     language_select_button: button::State,
 
     error_okay_button: button::State,
@@ -38,6 +39,7 @@ impl Screen {
     pub fn new() -> Self {
         Self {
             servers_button: Default::default(),
+            credits_button: Default::default(),
             settings_button: Default::default(),
             quit_button: Default::default(),
             language_select_button: Default::default(),
@@ -84,6 +86,13 @@ impl Screen {
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::OpenLanguageMenu),
+            ),
+            neat_button(
+                &mut self.credits_button,
+                i18n.get("main.credits"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::ShowCredits),
             ),
             neat_button(
                 &mut self.quit_button,
