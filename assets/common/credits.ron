@@ -14,13 +14,13 @@
     ///     source_link: "https://fonts.com/fancyfont/",
     ///     // Can be omitted if no authors are listed for some reason.
     ///     // TODO: differentiate original authors and authors of derivative work / modifications?
-    ///     // Maybe for now this can be noted in parentheses like: "AuthorOne (source), AuthorTwo (derivative)"?
+    ///     // Maybe for now this can be noted in parentheses like: "AuthorOne (original), AuthorTwo (derivative)"?
     ///     authors: ["Art creator, Art co-creator"],
     ///     // Must point to file that actually exists
     ///     // TODO: would it make sense to allow having a list of files here?
     ///     asset_path: "relative/path/to/asset.ext",
     ///     // Can be omitted, but assumed to be GPL3 if not provided.
-    ///     license: "cc-by-sa 3",
+    ///     license: "CC BY-SA 3.0",
     ///     // Link to the license, can be omitted if the license can't be linked and/or a
     ///     // local copy is provided.
     ///     license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
@@ -29,7 +29,7 @@
     ///     // Any additional attribution notes that may be desired and/or required by the
     ///     // respective license that can't be conveyed or would be awkward to convey with the
     ///     // fields above.
-    ///     notes: "Some other information",
+    ///     notes: "Other information",
     /// )
     /// ```
     music: [],
@@ -55,12 +55,14 @@
         license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
     ), (
         name: "HaxrCorp 4089 Cyrillic AltGr Extended",
+        // original
         source_link: "https://fontstruct.com/fontstructions/show/330387/haxrcorp_4089_cyrillic_altgr",
-        authors: ["sahwar (source)"],
+        authors: ["sahwar (original)"],
         asset_path: "voxygen/font/haxrcorp_4089_cyrillic_altgr_extended.ttf",
         license: "CC BY-SA 3.0",
         license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
         modifications: "Added additional characters.",
+        notes: "Derived from HaxrCorp 4089 Cyrillic AltGr",
     ), (
         name: "Metamorphous",
         authors: ["Sorkin Type Co"],
