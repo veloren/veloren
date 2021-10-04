@@ -41,7 +41,15 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
                 path.push("userdata");
                 Some(path)
             },
-            Some(_) => None, // TODO: panic? catch during compilation?
+            Some(s) => {
+                warn!(
+                    "Compiled with an invalid VELOREN_USERDATA_STRATEGY: \"{}\". \
+                    Valid values are unset, \"system\", and \"executable\". \
+                    Falling back to unset case.",
+                    s,
+                );
+                None
+            },
             _ => None,
         })
         // 3. The CARGO_MANIFEST_DIR/userdata or CARGO_MANIFEST_DIR/../userdata depending on if a
@@ -61,10 +69,23 @@ pub fn userdata_dir(workspace: bool, strategy: Option<&str>, manifest_dir: &str)
                 path
             } else {
                 // otherwise warn and fallback to the executable strategy
-                warn!("This binary was moved to outside the project folder where it was compiled and was not compiled with VELOREN_USERDATA_STRATEGY set to \"system\" or \"executable\". Falling back the to the \"executable\" strategy (the userdata folder will be placed in the same folder as the executable)");
+                let project_path = path;
                 let mut path = exe_path;
                 path.pop();
                 path.push("userdata");
+                warn!(
+                    "This binary is outside the project folder where it was compiled ({}) \
+                    and was not compiled with VELOREN_USERDATA_STRATEGY set to \"system\" or \"executable\". \
+                    Falling back the to the \"executable\" strategy (the userdata folder will be placed in the \
+                    same folder as the executable: {}) \n\
+                    NOTE: You can manually select a userdata folder (overriding this automatic selection) by \
+                    setting the environment variable {} to the desired directory before running. \n\
+                    NOTE: If you have not moved the executable this can occur when using a custom cargo \
+                    target-dir that is not inside the project folder.",
+                    project_path.display(),
+                    path.display(),
+                    VELOREN_USERDATA_ENV,
+                );
                 path
             }
         })
