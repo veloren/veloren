@@ -44,6 +44,9 @@ fn main() {
     let log_filename = format!("{}_voxygen.log", now.format("%Y-%m-%d"));
     let _guards = common_frontend::init_stdout(Some((&logs_dir, &log_filename)));
 
+    // Re-run userdata selection so any warnings will be logged
+    common_base::userdata_dir_workspace!();
+
     info!("Using userdata dir at: {}", userdata_dir.display());
 
     // Determine Voxygen's config directory either by env var or placed in veloren's
