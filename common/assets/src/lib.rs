@@ -101,10 +101,6 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
 
 /// Loads directory and all files in it
 ///
-/// NOTE: If you call `.iter()` on it, all failed files will be ignored
-/// If you want to handle errors, call `.ids()` which will return
-/// iterator over assets specifiers
-///
 /// # Errors
 /// An error is returned if the given id does not match a valid readable
 /// directory.

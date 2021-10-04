@@ -118,8 +118,10 @@ impl common_assets::Compound for Language {
             .ids()
         {
             // Don't try to load manifests
-            if id.ends_with(&[".", LANG_MANIFEST_FILE].concat()) {
-                continue;
+            if let Some(id) = id.strip_suffix(LANG_MANIFEST_FILE) {
+                if id.ends_with('.') {
+                    continue;
+                }
             }
 
             match cache.load(id) {
