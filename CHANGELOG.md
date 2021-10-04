@@ -13,12 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a crafting station icon to the crafting menu sidebar for items that could be crafted at a crafting station
 - Added a setting to disable the hotkey hints
 - Added a credits screen in the main menu which shows attributions for assets
+- Shrubs, a system for spawning smaller tree-like plants into the world.
+- Waterfalls
+- Sailing boat (currently requires spawning in)
 
 ### Changed
 
 - Made dungeon tiers 3, 4, and 5 more common
 - Put date at the begining of the log file instead of the end to allow MIME type recognition
 - Tweaked CR and exp calculation formula
+- Sprite spawn rates
 
 ### Removed
 
@@ -27,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The menu map now properly handles dragging the map, zooming, and setting the waypoint when hovering icons
 - Falling through an airship in flight should no longer be possible (although many issues with airship physics remain)
 - Avoided black hexagons when bloom is enabled by suppressing NaN/Inf pixels during the first bloom blur pass
+- Many know water generation problems
 
 ## [0.11.0] - 2021-09-11
 

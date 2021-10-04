@@ -293,7 +293,53 @@ pub fn river_spline_coeffs(
 pub fn quadratic_nearest_point(
     spline: &Vec3<Vec2<f64>>,
     point: Vec2<f64>,
+    _line: Vec2<Vec2<f64>>, // Used for alternative distance functions below
 ) -> Option<(f64, Vec2<f64>, f64)> {
+    //let eval_at = |t: f64| spline.x * t * t + spline.y * t + spline.z;
+
+    // Linear
+
+    // let line = LineSegment2 {
+    //     start: line.x,
+    //     end: line.y,
+    // };
+    // let len_sq = line.start.distance_squared(line.end);
+    // let t = ((point - line.start).dot(line.end - line.start) /
+    // len_sq).clamped(0.0, 1.0); let pos = line.start + (line.end - line.start)
+    // * t; return Some((t, pos, pos.distance_squared(point)));
+
+    // Quadratic
+
+    // let curve = QuadraticBezier2 {
+    //     start: line.x,
+    //     ctrl: eval_at(0.5),
+    //     end: line.y,
+    // };
+    // let (t, pos) = curve.binary_search_point_by_steps(point, 16, 0.001);
+    // let t = t.clamped(0.0, 1.0);
+    // let pos = curve.evaluate(t);
+    // return Some((t, pos, pos.distance_squared(point)));
+
+    // Cubic
+
+    // let ctrl_at = |t: f64, end: f64| {
+    //     let a = eval_at(end);
+    //     let b = eval_at(Lerp::lerp(end, t, 0.1));
+    //     let dir = (b - a).normalized();
+    //     let exact = eval_at(t);
+    //     a + dir * exact.distance(a)
+    // };
+    // let curve = CubicBezier2 {
+    //     start: line.x,
+    //     ctrl0: ctrl_at(0.33, 0.0),
+    //     ctrl1: ctrl_at(0.66, 1.0),
+    //     end: line.y,
+    // };
+    // let (t, pos) = curve.binary_search_point_by_steps(point, 12, 0.01);
+    // let t = t.clamped(0.0, 1.0);
+    // let pos = curve.evaluate(t);
+    // return Some((t, pos, pos.distance_squared(point)));
+
     let a = spline.z.x;
     let b = spline.y.x;
     let c = spline.x.x;
@@ -328,18 +374,14 @@ pub fn quadratic_nearest_point(
     let min_root = roots
         .iter()
         .copied()
-        .filter_map(|root| {
+        .map(|root| {
             let river_point = spline.x * root * root + spline.y * root + spline.z;
-            let river_zero = spline.z;
-            let river_one = spline.x + spline.y + spline.z;
             if root > 0.0 && root < 1.0 {
-                Some((root, river_point))
-            } else if river_point.distance_squared(river_zero) < 0.5 {
-                Some((root, /*river_point*/ river_zero))
-            } else if river_point.distance_squared(river_one) < 0.5 {
-                Some((root, /*river_point*/ river_one))
+                (root, river_point)
             } else {
-                None
+                let root = root.clamped(0.0, 1.0);
+                let river_point = spline.x * root * root + spline.y * root + spline.z;
+                (root, river_point)
             }
         })
         .map(|(root, river_point)| {

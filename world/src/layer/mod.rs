@@ -1,9 +1,12 @@
 pub mod scatter;
+pub mod shrub;
 pub mod spot;
 pub mod tree;
 pub mod wildlife;
 
-pub use self::{scatter::apply_scatter_to, spot::apply_spots_to, tree::apply_trees_to};
+pub use self::{
+    scatter::apply_scatter_to, shrub::apply_shrubs_to, spot::apply_spots_to, tree::apply_trees_to,
+};
 
 use crate::{
     column::ColumnSample,

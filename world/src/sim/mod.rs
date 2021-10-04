@@ -1563,8 +1563,10 @@ impl WorldSim {
                         let dist = rpos.map(|e| e as f32).magnitude();
                         if let Some(c) = self.get_mut(cliff + rpos) {
                             let warp = 1.0 / (1.0 + dist);
-                            c.tree_density *= 1.0 - warp;
-                            c.cliff_height = Lerp::lerp(44.0, 0.0, -1.0 + dist / 3.5);
+                            if !c.river.near_water() {
+                                c.tree_density *= 1.0 - warp;
+                                c.cliff_height = Lerp::lerp(44.0, 0.0, -1.0 + dist / 3.5);
+                            }
                         }
                     });
             }
@@ -2054,47 +2056,45 @@ impl WorldSim {
         self.get_nearest_way(wpos, |chunk| Some(chunk.cave))
     }
 
+    /// Create a [`Lottery<Option<ForestKind>>`] that generates [`ForestKind`]s
+    /// according to the conditions at the given position. If no or fewer
+    /// trees are appropriate for the conditions, `None` may be generated.
+    pub fn make_forest_lottery(&self, wpos: Vec2<i32>) -> Lottery<Option<ForestKind>> {
+        let chunk = if let Some(chunk) = self.get_wpos(wpos) {
+            chunk
+        } else {
+            return Lottery::from(vec![(1.0, None)]);
+        };
+        let env = chunk.get_environment();
+        Lottery::from(
+            ForestKind::into_enum_iter()
+                .enumerate()
+                .map(|(i, fk)| {
+                    const CLUSTER_SIZE: f64 = 48.0;
+                    let nz = (FastNoise2d::new(i as u32 * 37)
+                        .get(wpos.map(|e| e as f64) / CLUSTER_SIZE)
+                        + 1.0)
+                        / 2.0;
+                    (fk.proclivity(&env) * nz, Some(fk))
+                })
+                .chain(std::iter::once((0.001, None)))
+                .collect::<Vec<_>>(),
+        )
+    }
+
     /// Return an iterator over candidate tree positions (note that only some of
     /// these will become trees since environmental parameters may forbid
     /// them spawning).
     pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = TreeAttr> + '_ {
         // Deterministic based on wpos
         let normal_trees = std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
-            .filter_map(move |(pos, seed)| {
-                let chunk = self.get_wpos(pos)?;
-                let env = Environment {
-                    humid: chunk.humidity,
-                    temp: chunk.temp,
-                    near_water: if chunk.river.is_lake()
-                        || chunk.river.near_river()
-                        || chunk.alt < CONFIG.sea_level + 6.0
-                    // Close to sea in altitude
-                    {
-                        1.0
-                    } else {
-                        0.0
-                    },
-                };
+            .filter_map(move |(wpos, seed)| {
+                let lottery = self.make_forest_lottery(wpos);
                 Some(TreeAttr {
-                    pos,
+                    pos: wpos,
                     seed,
                     scale: 1.0,
-                    forest_kind: *Lottery::from(
-                        ForestKind::into_enum_iter()
-                            .enumerate()
-                            .map(|(i, fk)| {
-                                const CLUSTER_SIZE: f64 = 48.0;
-                                let nz = (FastNoise2d::new(i as u32 * 37)
-                                    .get(pos.map(|e| e as f64) / CLUSTER_SIZE)
-                                    + 1.0)
-                                    / 2.0;
-                                (fk.proclivity(&env) * nz, Some(fk))
-                            })
-                            .chain(std::iter::once((0.001, None)))
-                            .collect::<Vec<_>>(),
-                    )
-                    .choose_seeded(seed)
-                    .as_ref()?,
+                    forest_kind: *lottery.choose_seeded(seed).as_ref()?,
                     inhabited: false,
                 })
             });
@@ -2219,7 +2219,8 @@ impl SimChunk {
         } else {
             Some(
                 uniform_idx_as_vec2(map_size_lg, downhill_pre as usize)
-                    * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                    * TerrainChunkSize::RECT_SIZE.map(|e| e as i32)
+                    + TerrainChunkSize::RECT_SIZE.map(|e| e as i32 / 2),
             )
         };
 
@@ -2295,10 +2296,10 @@ impl SimChunk {
             .min(1.0);
 
         // Add geologically short timescale undulation to the world for various reasons
-        let alt = alt
+        let alt =
             // Don't add undulation to rivers, mainly because this could accidentally result in rivers flowing uphill
-            + if river.near_water() {
-                0.0
+            if river.near_water() {
+                alt
             } else {
                 // Sand dunes (formed over a short period of time, so we don't care about erosion sim)
                 let warp = Vec2::new(
@@ -2323,7 +2324,16 @@ impl SimChunk {
                 const SOIL_SCALE: f32 = 16.0;
                 let soil = soil_nz * SOIL_SCALE * tree_density.sqrt() * humidity.sqrt();
 
-                dune + soil
+                let warp_factor = ((alt - CONFIG.sea_level) / 16.0).clamped(0.0, 1.0);
+
+                let warp = (dune + soil) * warp_factor;
+
+                // Prevent warping pushing the altitude underwater
+                if alt + warp < water_alt {
+                    alt
+                } else {
+                    alt + warp
+                }
             };
 
         Self {
@@ -2415,4 +2425,20 @@ impl SimChunk {
     }
 
     pub fn near_cliffs(&self) -> bool { self.cliff_height > 0.0 }
+
+    pub fn get_environment(&self) -> Environment {
+        Environment {
+            humid: self.humidity,
+            temp: self.temp,
+            near_water: if self.river.is_lake()
+                || self.river.near_river()
+                || self.alt < CONFIG.sea_level + 6.0
+            // Close to sea in altitude
+            {
+                1.0
+            } else {
+                0.0
+            },
+        }
+    }
 }

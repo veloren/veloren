@@ -147,23 +147,27 @@ impl<'a> BlockGen<'a> {
             } else {
                 Some(Block::new(BlockKind::Earth, col))
             }
-        } else if (wposf.z as f32) < height {
+        } else if wposf.z as i32 <= height as i32 {
             let grass_factor = (wposf.z as f32 - (height - grass_depth))
                 .div(grass_depth)
                 .sqrt();
-            let col = Lerp::lerp(sub_surface_color, surface_color, grass_factor);
             // Surface
-            Some(Block::new(
-                if snow_cover {
+            Some(if water_level > height.ceil() {
+                Block::new(
+                    BlockKind::Sand,
+                    sub_surface_color.map(|e| (e * 255.0) as u8),
+                )
+            } else {
+                let col = Lerp::lerp(sub_surface_color, surface_color, grass_factor);
+                if grass_factor < 0.7 {
+                    Block::new(BlockKind::Earth, col.map(|e| (e * 255.0) as u8))
+                } else if snow_cover {
                     //if temp < CONFIG.snow_temp + 0.031 {
-                    BlockKind::Snow
-                } else if grass_factor > 0.7 {
-                    BlockKind::Grass
+                    Block::new(BlockKind::Snow, col.map(|e| (e * 255.0) as u8))
                 } else {
-                    BlockKind::Earth
-                },
-                col.map(|e| (e * 255.0) as u8),
-            ))
+                    Block::new(BlockKind::Grass, col.map(|e| (e * 255.0) as u8))
+                }
+            })
         } else {
             None
         }
