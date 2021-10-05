@@ -35,7 +35,7 @@ impl Interactable {
     }
 }
 
-/// Select interactable to hightlight, display interaction text for, and to
+/// Select interactable to highlight, display interaction text for, and to
 /// interact with if the interact key is pressed
 /// Selected in the following order:
 /// 1) Targeted items, in order of nearest under cursor:

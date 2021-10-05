@@ -1,6 +1,9 @@
 use crate::{
     combat::Attack,
-    comp::{tool::ToolKind, ControlAction, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel},
+    comp::{
+        item::ConsumableKind, tool::ToolKind, ControlAction, Density, Energy, InputAttr, InputKind,
+        Ori, Pos, Vel,
+    },
     event::{LocalEvent, ServerEvent},
     states::{
         self,
@@ -217,6 +220,23 @@ impl CharacterState {
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
             || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
             || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
+    }
+
+    pub fn is_sitting(&self) -> bool {
+        use use_item::{Data, ItemUseKind, StaticData};
+        matches!(
+            self,
+            CharacterState::Sit
+                | CharacterState::UseItem(Data {
+                    static_data: StaticData {
+                        item_kind: ItemUseKind::Consumable(
+                            ConsumableKind::ComplexFood | ConsumableKind::Food
+                        ),
+                        ..
+                    },
+                    ..
+                })
+        )
     }
 
     /// Compares for shallow equality (does not check internal struct equality)

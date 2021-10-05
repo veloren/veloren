@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Put date at the begining of the log file instead of the end to allow MIME type recognition
 - Tweaked CR and exp calculation formula
 - Sprite spawn rates
+- The Interact button can be used on campfires to sit
 
 ### Removed
 

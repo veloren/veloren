@@ -163,11 +163,12 @@ fn activate_aura(
     let should_activate = match aura.aura_kind {
         AuraKind::Buff { kind, source, .. } => {
             let conditions_held = match kind {
-                BuffKind::CampfireHeal => {
-                    let target_state = read_data.char_states.get(target);
-                    matches!(target_state, Some(CharacterState::Sit))
-                        && health.current() < health.maximum()
-                },
+                BuffKind::CampfireHeal => read_data
+                    .char_states
+                    .get(target)
+                    .map_or(false, |target_state| {
+                        target_state.is_sitting() && health.current() < health.maximum()
+                    }),
                 // Add other specific buff conditions here
                 _ => true,
             };
@@ -175,7 +176,7 @@ fn activate_aura(
             // TODO: this check will disable friendly fire with PvE switch.
             //
             // Which means that you can't apply debuffs on you and your group
-            // even if it's intented mechanic.
+            // even if it's intended mechanic.
             //
             // We don't have this for now, but think about this
             // when we will add this.
