@@ -1,6 +1,7 @@
 use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
+        inventory::slot::InvSlotId,
         item::{modular, tool::AbilityMap, ItemDef, ItemTag, MaterialStatManifest},
         Inventory, Item,
     },
@@ -32,7 +33,7 @@ impl Recipe {
         inv: &mut Inventory,
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
-    ) -> Result<Option<(Item, u32)>, Vec<(&RecipeInput, u32)>> {
+    ) -> Result<(Item, u32), Vec<(&RecipeInput, u32)>> {
         // Get ingredient cells from inventory,
         let mut components = Vec::new();
 
@@ -47,21 +48,51 @@ impl Recipe {
                 })
             });
 
-        for i in 0..self.output.1 {
-            let crafted_item =
-                Item::new_from_item_def(Arc::clone(&self.output.0), &components, ability_map, msm);
-            if let Err(item) = inv.push(crafted_item) {
-                return Ok(Some((item, self.output.1 - i)));
-            }
-        }
+        let crafted_item =
+            Item::new_from_item_def(Arc::clone(&self.output.0), &components, ability_map, msm);
 
-        Ok(None)
+        Ok((crafted_item, self.output.1))
+
+        // for i in 0..self.output.1 {
+        //     if let Err(item) = inv.push(crafted_item) {
+        //         return Ok(Some((item, self.output.1 - i)));
+        //     }
+        // }
+
+        // Ok(None)
     }
 
     pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
         self.inputs
             .iter()
             .map(|(item_def, amount)| (item_def, *amount))
+    }
+}
+
+pub enum SalvageError {
+    NotSalvageable,
+}
+
+pub fn try_salvage(
+    inv: &mut Inventory,
+    slot: InvSlotId,
+    ability_map: &AbilityMap,
+    msm: &MaterialStatManifest,
+) -> Result<Vec<Item>, SalvageError> {
+    if inv.get(slot).map_or(false, |item| item.is_salvageable()) {
+        let salvage_item = inv
+            .take(slot, ability_map, msm)
+            .expect("Expected item to exist in inventory");
+        match salvage_item.try_salvage() {
+            Ok(items) => Ok(items),
+            Err(item) => {
+                inv.push(item)
+                    .expect("Item taken from inventory just before");
+                Err(SalvageError::NotSalvageable)
+            },
+        }
+    } else {
+        Err(SalvageError::NotSalvageable)
     }
 }
 

@@ -13,7 +13,7 @@ pub mod character_state;
 #[cfg(not(target_arch = "wasm32"))] pub mod combo;
 pub mod compass;
 #[cfg(not(target_arch = "wasm32"))]
-mod controller;
+pub mod controller;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod dialogue;
 #[cfg(not(target_arch = "wasm32"))] mod energy;

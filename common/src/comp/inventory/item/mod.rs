@@ -170,6 +170,41 @@ impl Material {
             | Material::Dragonscale => MaterialKind::Hide,
         }
     }
+
+    pub fn asset_identifier(&self) -> &'static str {
+        match self {
+            Material::Bronze => "common.items.mineral.ingot.bronze",
+            Material::Iron => "common.items.mineral.ingot.iron",
+            Material::Steel => "common.items.mineral.ingot.steel",
+            Material::Cobalt => "common.items.mineral.ingot.cobalt",
+            Material::Bloodsteel => "common.items.mineral.ingot.bloodsteel",
+            Material::Orichalcum => "common.items.mineral.ingot.orichalcum",
+            Material::Wood
+            | Material::Bamboo
+            | Material::Hardwood
+            | Material::Ironwood
+            | Material::Frostwood
+            | Material::Eldwood => unreachable!(),
+            Material::Rock
+            | Material::Granite
+            | Material::Bone
+            | Material::Basalt
+            | Material::Obsidian
+            | Material::Velorite => unreachable!(),
+            Material::Linen => "common.items.crafting_ing.cloth.linen",
+            Material::Wool => "common.items.crafting_ing.cloth.wool",
+            Material::Silk => "common.items.crafting_ing.cloth.silk",
+            Material::Lifecloth => "common.items.crafting_ing.cloth.lifecloth",
+            Material::Moonweave => "common.items.crafting_ing.cloth.moonweave",
+            Material::Sunsilk => "common.items.crafting_ing.cloth.sunsilk",
+            Material::Rawhide => "common.items.crafting_ing.leather.simple_leather",
+            Material::Leather => "common.items.crafting_ing.leather.thick_leather",
+            Material::Scale => "common.items.crafting_ing.leather.scales",
+            Material::Carapace => "common.items.crafting_ing.leather.carapace",
+            Material::Plate => "common.items.crafting_ing.leather.plate",
+            Material::Dragonscale => "common.items.crafting_ing.leather.dragon_scale",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -202,6 +237,7 @@ pub enum ItemTag {
     CraftingTool, // Pickaxe, Craftsman-Hammer, Sewing-Set
     Utility,
     Bag,
+    SalvageInto(Material),
 }
 
 impl TagExampleInfo for ItemTag {
@@ -219,6 +255,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::CraftingTool => "tool",
             ItemTag::Utility => "utility",
             ItemTag::Bag => "bag",
+            ItemTag::SalvageInto(_) => "salvage",
         }
     }
 
@@ -237,6 +274,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::CraftingTool => "common.items.tag_examples.placeholder",
             ItemTag::Utility => "common.items.tag_examples.placeholder",
             ItemTag::Bag => "common.items.tag_examples.placeholder",
+            ItemTag::SalvageInto(_) => "common.items.tag_examples.placeholder",
         }
     }
 }
@@ -756,6 +794,43 @@ impl Item {
         match recipe_input {
             RecipeInput::Item(item_def) => self.is_same_item_def(item_def),
             RecipeInput::Tag(tag) => self.item_def.tags.contains(tag),
+        }
+    }
+
+    pub fn is_salvageable(&self) -> bool {
+        self.item_def
+            .tags
+            .iter()
+            .any(|tag| matches!(tag, ItemTag::SalvageInto(_)))
+    }
+
+    // Attempts to salvage an item, returning the salvaged items if salvageable,
+    // else the original item is not Theoretically supports returning multiple
+    // items, only returns one per tag in the item for now
+    pub fn try_salvage(self) -> Result<Vec<Item>, Item> {
+        if !self.is_salvageable() {
+            return Err(self);
+        }
+
+        let salvaged_items: Vec<_> = self
+            .item_def
+            .tags
+            .iter()
+            .filter_map(|tag| {
+                if let ItemTag::SalvageInto(material) = tag {
+                    Some(material)
+                } else {
+                    None
+                }
+            })
+            .map(|material| material.asset_identifier())
+            .map(|asset| Item::new_from_asset_expect(asset))
+            .collect();
+
+        if salvaged_items.is_empty() {
+            Err(self)
+        } else {
+            Ok(salvaged_items)
         }
     }
 

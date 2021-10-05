@@ -23,6 +23,7 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
+        controller::CraftEvent,
         group,
         invite::{InviteKind, InviteResponse},
         skills::Skill,
@@ -1004,7 +1005,7 @@ impl Client {
         if can_craft && has_sprite {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
-                    recipe: recipe.to_string(),
+                    craft_event: CraftEvent::Simple(recipe.to_string()),
                     craft_sprite: craft_sprite.map(|(pos, _)| pos),
                 },
             )));

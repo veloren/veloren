@@ -1927,15 +1927,15 @@
         craft_sprite: Some(Anvil),
         is_recycling: false,
     ),
-    "linen": (
-        output: ("common.items.crafting_ing.cloth.linen", 1),
-        inputs: [
-            (Tag(Material(Linen)), 1),
-            (Item("common.items.crafting_tools.sewing_set"), 0),
-        ],
-        craft_sprite: None,
-        is_recycling: true,
-    ),
+    // "linen": (
+    //     output: ("common.items.crafting_ing.cloth.linen", 1),
+    //     inputs: [
+    //         (Tag(Material(Linen)), 1),
+    //         (Item("common.items.crafting_tools.sewing_set"), 0),
+    //     ],
+    //     craft_sprite: None,
+    //     is_recycling: true,
+    // ),
     "wool": (
         output: ("common.items.crafting_ing.cloth.wool", 1),
         inputs: [

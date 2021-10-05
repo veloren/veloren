@@ -23,7 +23,7 @@ pub enum InventoryEvent {
     SplitDrop(InvSlotId),
     Sort,
     CraftRecipe {
-        recipe: String,
+        craft_event: CraftEvent,
         craft_sprite: Option<Vec3<i32>>,
     },
 }
@@ -48,7 +48,7 @@ pub enum InventoryManip {
     SplitDrop(Slot),
     Sort,
     CraftRecipe {
-        recipe: String,
+        craft_event: CraftEvent,
         craft_sprite: Option<Vec3<i32>>,
     },
     SwapEquippedWeapons,
@@ -80,14 +80,20 @@ impl From<InventoryEvent> for InventoryManip {
             InventoryEvent::SplitDrop(inv) => Self::SplitDrop(Slot::Inventory(inv)),
             InventoryEvent::Sort => Self::Sort,
             InventoryEvent::CraftRecipe {
-                recipe,
+                craft_event,
                 craft_sprite,
             } => Self::CraftRecipe {
-                recipe,
+                craft_event,
                 craft_sprite,
             },
         }
     }
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum CraftEvent {
+    Simple(String),
+    Salvage(InvSlotId),
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
