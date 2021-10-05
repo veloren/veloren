@@ -14,16 +14,17 @@ use veloren_common::{
         item::{
             armor::{ArmorKind, Protection},
             tool::{Hands, MaterialStatManifest, Tool, ToolKind},
-            ItemKind,
+            Item, ItemKind,
         },
     },
+    generation::EntityConfig,
     lottery::{LootSpec, Lottery},
 };
 
 #[derive(StructOpt)]
 struct Cli {
     /// Available arguments: "armor-stats", "weapon-stats", "all-items",
-    /// "loot-table"
+    /// "loot-table", "entity-drops"
     function: String,
 }
 
@@ -275,6 +276,110 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
+    let mut wtr = csv::Writer::from_path("drop_table.csv")?;
+    wtr.write_record(&["Percent Chance", "Item Path", "Quantity"])?;
+
+    let entity_config = "common.entity.".to_owned() + entity_config;
+
+    let entity_config = EntityConfig::load_expect(&entity_config).read();
+
+    // Create initial entry in drop table
+    let entry: (f32, LootSpec<String>) = (1.0, entity_config.loot.clone());
+
+    let mut table = vec![entry];
+
+    // Keep converting loot table lootspecs into non-loot table lootspecs until no
+    // more loot tables
+    while table
+        .iter()
+        .any(|(_, loot_spec)| matches!(loot_spec, LootSpec::LootTable(_)))
+    {
+        // Partition table of loot specs into a table of items and nothings, and another
+        // table of loot tables
+        let (sub_tables, main_table): (Vec<_>, Vec<_>) = table
+            .into_iter()
+            .partition(|(_, loot_spec)| matches!(loot_spec, LootSpec::LootTable(_)));
+        table = main_table;
+
+        // Change table of loot tables to only contain the string that loads the loot
+        // table
+        let sub_tables = sub_tables.iter().filter_map(|(chance, loot_spec)| {
+            if let LootSpec::LootTable(loot_table) = loot_spec {
+                Some((chance, loot_table))
+            } else {
+                None
+            }
+        });
+        for (chance, loot_table) in sub_tables {
+            let loot_table = Lottery::<LootSpec<String>>::load_expect(loot_table).read();
+            // Converts from lottery's weight addition for each consecutive entry to keep
+            // the weights as they are in the ron file
+            let loot_table: Vec<_> = loot_table
+                .iter()
+                .enumerate()
+                .map(|(i, (chance, item))| {
+                    let chance = if let Some((next_chance, _)) = loot_table.iter().nth(i + 1) {
+                        next_chance - chance
+                    } else {
+                        loot_table.total() - chance
+                    };
+                    (chance, item)
+                })
+                .collect();
+            // Gets sum of all weights to use in normalization of entries
+            let weights_sum: f32 = loot_table.iter().map(|(chance, _)| chance).sum();
+            // Normalizes each entry in sub-loot table
+            let loot_table = loot_table
+                .iter()
+                .map(|(chance, item)| (chance / weights_sum, item));
+            for (sub_chance, &item) in loot_table {
+                // Multiplies normalized entry within each loot table by the chance for the loot
+                // table to drop in the above table
+                let entry = (chance * sub_chance, item.clone());
+                table.push(entry);
+            }
+        }
+    }
+
+    // Normalizes each item drop entry so that everything adds to 1
+    let table_weight_sum: f32 = table.iter().map(|(chance, _)| chance).sum();
+    let table = table
+        .iter()
+        .map(|(chance, item)| (chance / table_weight_sum, item));
+
+    for (chance, item) in table {
+        // Changes normalized weight to add to 100, and rounds at 2nd decimal
+        let percent_chance = chance
+            .mul(10_f32.powi(4))
+            .round()
+            .div(10_f32.powi(2))
+            .to_string();
+
+        let (item_asset, quantity) = match item {
+            LootSpec::Item(item) => (Some(item), "1".to_string()),
+            LootSpec::ItemQuantity(item, lower, upper) => {
+                (Some(item), format!("{}-{}", lower, upper))
+            },
+            LootSpec::LootTable(_) => panic!("Shouldn't exist"),
+            LootSpec::Nothing => (None, "-".to_string()),
+        };
+
+        let item = item_asset.map(|asset| Item::new_from_asset_expect(asset));
+
+        let item_name = if let Some(item) = &item {
+            item.name()
+        } else {
+            "Nothing"
+        };
+
+        wtr.write_record(&[&percent_chance, item_name, &quantity])?
+    }
+
+    wtr.flush()?;
+    Ok(())
+}
+
 fn main() {
     let args = Cli::from_args();
     if args.function.eq_ignore_ascii_case("armor-stats") {
@@ -295,6 +400,14 @@ fn main() {
              directory: assets.common.loot_tables.\n",
         );
         if let Err(e) = loot_table(&loot_table_name) {
+            println!("Error: {}\n", e)
+        }
+    } else if args.function.eq_ignore_ascii_case("entity-drops") {
+        let entity_config = get_input(
+            "Specify the name of the entity to export loot drops to csv. Assumes entity config is \
+             in directory: assets.common.entity.\n",
+        );
+        if let Err(e) = entity_drops(&entity_config) {
             println!("Error: {}\n", e)
         }
     } else {
