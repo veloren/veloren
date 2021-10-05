@@ -36,6 +36,7 @@ make_case_elim!(
         Sprite(kind: SpriteKind) = 18,
         Chestnut = 19,
         Baobab = 20,
+        BirchWood = 21,
     }
 );
 

@@ -323,5 +323,18 @@ pub fn block_from_structure(
                 )
             })
         },
+        StructureBlock::BirchWood => {
+            let wpos = pos + structure_pos;
+            if field.chance(
+                (wpos + Vec3::new(wpos.z, wpos.z, 0) / 2)
+                    / Vec3::new(1 + wpos.z % 2, 1 + (wpos.z + 1) % 2, 1),
+                0.25,
+            ) && wpos.z % 2 == 0
+            {
+                Some(Block::new(BlockKind::Wood, Rgb::new(70, 35, 25)))
+            } else {
+                Some(Block::new(BlockKind::Wood, Rgb::new(220, 170, 160)))
+            }
+        },
     }
 }
