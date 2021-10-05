@@ -27,7 +27,7 @@ pub enum BuffKind {
     /// Strength should be the healing per second
     Potion,
     /// Applied when sitting at a campfire
-    /// Strength is fraction of health resotred per second
+    /// Strength is fraction of health restored per second
     CampfireHeal,
     /// Raises maximum energy
     /// Strength should be 10x the effect to max energy

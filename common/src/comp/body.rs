@@ -150,6 +150,8 @@ impl<
 impl Body {
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
+    pub fn is_campfire(&self) -> bool { matches!(self, Body::Object(object::Body::CampfireLit)) }
+
     /// Average density of the body
     // Units are based on kg/m³
     pub fn density(&self) -> Density {

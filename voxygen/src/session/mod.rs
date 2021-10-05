@@ -732,6 +732,15 @@ impl PlayState for SessionState {
                                                     .is_some()
                                                 {
                                                     client.pick_up(entity);
+                                                } else if client
+                                                    .state()
+                                                    .ecs()
+                                                    .read_storage::<comp::Body>()
+                                                    .get(entity)
+                                                    .map_or(false, |b| b.is_campfire())
+                                                {
+                                                    // TODO: maybe start crafting instead?
+                                                    client.toggle_sit();
                                                 } else {
                                                     client.npc_interact(entity);
                                                 }
