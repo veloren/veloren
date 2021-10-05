@@ -1,7 +1,10 @@
 use super::utils::*;
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
-    states::behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        idle,
+    },
 };
 use serde::{Deserialize, Serialize};
 
@@ -17,7 +20,7 @@ impl CharacterBehavior for Data {
 
         // Try to Fall/Stand up/Move
         if data.physics.on_ground.is_none() || data.inputs.move_dir.magnitude_squared() > 0.0 {
-            update.character = CharacterState::Idle;
+            update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         }
 
         update
@@ -49,7 +52,7 @@ impl CharacterBehavior for Data {
     fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move
-        update.character = CharacterState::Idle;
+        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         update
     }
 }

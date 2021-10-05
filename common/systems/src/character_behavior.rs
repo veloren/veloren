@@ -13,7 +13,10 @@ use common::{
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     resources::DeltaTime,
-    states::behavior::{JoinData, JoinStruct},
+    states::{
+        behavior::{JoinData, JoinStruct},
+        idle,
+    },
     terrain::TerrainGrid,
     uid::Uid,
 };
@@ -269,7 +272,7 @@ impl<'a> System<'a> for Sys {
             // Mounted occurs after control actions have been handled
             // If mounted, character state is controlled by mount
             if let Some(Mounting(_)) = read_data.mountings.get(entity) {
-                let idle_state = CharacterState::Idle {};
+                let idle_state = CharacterState::Idle(idle::Data { is_sneaking: false });
                 if *join_struct.char_state != idle_state {
                     *join_struct.char_state = idle_state;
                 }

@@ -2,7 +2,10 @@ use super::utils::*;
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, InventoryManip, StateUpdate},
     event::ServerEvent,
-    states::behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        idle, wielding,
+    },
     terrain::SpriteKind,
     util::Dir,
 };
@@ -95,18 +98,21 @@ impl CharacterBehavior for Data {
                     let inv_manip = InventoryManip::Collect(self.static_data.sprite_pos);
                     output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
                     // Done
-                    if self.static_data.was_wielded {
-                        update.character = CharacterState::Wielding;
-                    } else if self.static_data.was_sneak {
-                        update.character = CharacterState::Sneak;
+
+                    update.character = if self.static_data.was_wielded {
+                        CharacterState::Wielding(wielding::Data {
+                            is_sneaking: self.static_data.was_sneak,
+                        })
                     } else {
-                        update.character = CharacterState::Idle;
+                        CharacterState::Idle(idle::Data {
+                            is_sneaking: self.static_data.was_sneak,
+                        })
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Idle;
+                update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
             },
         }
 

@@ -5,6 +5,7 @@ use crate::{
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
+        wielding,
     },
     terrain::{Block, SpriteKind},
     vol::ReadVol,
@@ -150,12 +151,13 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character = CharacterState::Wielding;
+                    update.character =
+                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding;
+                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
             },
         }
 

@@ -1,21 +1,32 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, InventoryAction, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
+use serde::{Deserialize, Serialize};
 
-pub struct Data;
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    pub is_sneaking: bool,
+}
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 1.0);
+        handle_move(data, &mut update, if self.is_sneaking { 0.4 } else { 1.0 });
         handle_jump(data, output_events, &mut update, 1.0);
         handle_wield(data, &mut update);
         handle_climb(data, &mut update);
         handle_dodge_input(data, &mut update);
+
+        // Try to Fall/Stand up/Move
+        if self.is_sneaking
+            && (data.physics.on_ground.is_none() || data.physics.in_liquid().is_some())
+        {
+            update.character = CharacterState::Idle(Data { is_sneaking: false });
+        }
 
         update
     }
@@ -63,13 +74,19 @@ impl CharacterBehavior for Data {
 
     fn sneak(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_sneak(data, &mut update);
+        update.character = CharacterState::Idle(Data { is_sneaking: true });
         update
     }
 
     fn talk(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_talk(data, &mut update);
+        update
+    }
+
+    fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Idle(Data { is_sneaking: false });
         update
     }
 }

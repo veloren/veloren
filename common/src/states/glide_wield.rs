@@ -6,7 +6,7 @@ use crate::{
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
-        glide,
+        glide, idle,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -72,7 +72,7 @@ impl CharacterBehavior for Data {
                     ..*self
                 })
             } else {
-                CharacterState::Idle
+                CharacterState::Idle(idle::Data { is_sneaking: false })
             };
         }
 
@@ -92,7 +92,7 @@ impl CharacterBehavior for Data {
 
     fn unwield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle;
+        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         update
     }
 

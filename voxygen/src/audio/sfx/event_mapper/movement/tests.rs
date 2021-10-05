@@ -93,7 +93,7 @@ fn same_previous_event_elapsed_emits() {
 #[test]
 fn maps_idle() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -115,7 +115,7 @@ fn maps_idle() {
 #[test]
 fn maps_run_with_sufficient_velocity() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -137,7 +137,7 @@ fn maps_run_with_sufficient_velocity() {
 #[test]
 fn does_not_map_run_with_insufficient_velocity() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -159,7 +159,7 @@ fn does_not_map_run_with_insufficient_velocity() {
 #[test]
 fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -190,7 +190,7 @@ fn maps_roll() {
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,
             was_wielded: true,
-            was_sneak: false,
+            is_sneaking: false,
             was_combo: None,
         }),
         &PhysicsState {
@@ -214,7 +214,7 @@ fn maps_roll() {
 #[test]
 fn maps_land_on_ground_to_run() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -274,7 +274,7 @@ fn maps_glide() {
 #[test]
 fn maps_glider_close_when_closing_mid_flight() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Glide,
@@ -294,7 +294,7 @@ fn maps_glider_close_when_closing_mid_flight() {
 #[ignore]
 fn maps_glider_close_when_landing() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle {},
+        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()

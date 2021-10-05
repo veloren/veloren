@@ -194,7 +194,6 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Talk { .. }
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
-                | CharacterState::Sneak { .. }
                 | CharacterState::Glide { .. }
                 | CharacterState::GlideWield { .. }
                 | CharacterState::Wielding { .. }

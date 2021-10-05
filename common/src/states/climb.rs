@@ -8,6 +8,7 @@ use crate::{
     event::LocalEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
+        idle,
         utils::*,
     },
     util::Dir,
@@ -78,7 +79,7 @@ impl CharacterBehavior for Data {
                     CLIMB_BOOST_JUMP_FACTOR * impulse / data.mass.0,
                 ));
             };
-            update.character = CharacterState::Idle {};
+            update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
             return update;
         };
         // Move player
@@ -102,7 +103,7 @@ impl CharacterBehavior for Data {
             .try_change_by(-energy_use * data.dt.0)
             .is_err()
         {
-            update.character = CharacterState::Idle {};
+            update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         }
 
         // Set orientation direction based on wall direction

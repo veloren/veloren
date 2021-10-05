@@ -25,6 +25,7 @@ fn maps_wield_while_equipping() {
                 buildup_duration: Duration::from_millis(10),
             },
             timer: Duration::default(),
+            is_sneaking: false,
         }),
         &PreviousEntityState {
             event: SfxEvent::Idle,

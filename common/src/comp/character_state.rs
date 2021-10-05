@@ -66,12 +66,11 @@ impl From<&JoinData<'_>> for StateUpdate {
 }
 #[derive(Clone, Debug, Display, PartialEq, Serialize, Deserialize)]
 pub enum CharacterState {
-    Idle,
+    Idle(idle::Data),
     Climb(climb::Data),
     Sit,
     Dance,
     Talk,
-    Sneak,
     Glide(glide::Data),
     GlideWield(glide_wield::Data),
     /// A stunned state
@@ -81,7 +80,7 @@ pub enum CharacterState {
     /// Player is busy equipping or unequipping weapons
     Equipping(equipping::Data),
     /// Player is holding a weapon and can perform other actions
-    Wielding,
+    Wielding(wielding::Data),
     /// A dodge where player can roll
     Roll(roll::Data),
     /// A basic melee attack (e.g. sword)
@@ -131,7 +130,7 @@ impl CharacterState {
     pub fn is_wield(&self) -> bool {
         matches!(
             self,
-            CharacterState::Wielding
+            CharacterState::Wielding(_)
                 | CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
@@ -153,7 +152,18 @@ impl CharacterState {
     }
 
     pub fn is_stealthy(&self) -> bool {
-        matches!(self, CharacterState::Sneak | CharacterState::Roll(_))
+        matches!(
+            self,
+            CharacterState::Idle(idle::Data { is_sneaking: true })
+                | CharacterState::Wielding(wielding::Data {
+                    is_sneaking: true,
+                    ..
+                })
+                | CharacterState::Roll(roll::Data {
+                    is_sneaking: true,
+                    ..
+                })
+        )
     }
 
     pub fn is_attack(&self) -> bool {
@@ -194,7 +204,7 @@ impl CharacterState {
                 | CharacterState::BasicBeam(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::UseItem(_)
-                | CharacterState::Wielding
+                | CharacterState::Wielding(_)
                 | CharacterState::Talk
         )
     }
@@ -258,7 +268,7 @@ impl CharacterState {
 
     pub fn behavior(&self, j: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         match &self {
-            CharacterState::Idle => states::idle::Data.behavior(j, output_events),
+            CharacterState::Idle(data) => data.behavior(j, output_events),
             CharacterState::Talk => states::talk::Data.behavior(j, output_events),
             CharacterState::Climb(data) => data.behavior(j, output_events),
             CharacterState::Glide(data) => data.behavior(j, output_events),
@@ -270,12 +280,9 @@ impl CharacterState {
             CharacterState::Dance => {
                 states::dance::Data::behavior(&states::dance::Data, j, output_events)
             },
-            CharacterState::Sneak => {
-                states::sneak::Data::behavior(&states::sneak::Data, j, output_events)
-            },
             CharacterState::BasicBlock(data) => data.behavior(j, output_events),
             CharacterState::Roll(data) => data.behavior(j, output_events),
-            CharacterState::Wielding => states::wielding::Data.behavior(j, output_events),
+            CharacterState::Wielding(data) => data.behavior(j, output_events),
             CharacterState::Equipping(data) => data.behavior(j, output_events),
             CharacterState::ComboMelee(data) => data.behavior(j, output_events),
             CharacterState::BasicMelee(data) => data.behavior(j, output_events),
@@ -306,7 +313,7 @@ impl CharacterState {
         action: ControlAction,
     ) -> StateUpdate {
         match &self {
-            CharacterState::Idle => states::idle::Data.handle_event(j, output_events, action),
+            CharacterState::Idle(data) => data.handle_event(j, output_events, action),
             CharacterState::Talk => states::talk::Data.handle_event(j, output_events, action),
             CharacterState::Climb(data) => data.handle_event(j, output_events, action),
             CharacterState::Glide(data) => data.handle_event(j, output_events, action),
@@ -318,14 +325,9 @@ impl CharacterState {
             CharacterState::Dance => {
                 states::dance::Data::handle_event(&states::dance::Data, j, output_events, action)
             },
-            CharacterState::Sneak => {
-                states::sneak::Data::handle_event(&states::sneak::Data, j, output_events, action)
-            },
             CharacterState::BasicBlock(data) => data.handle_event(j, output_events, action),
             CharacterState::Roll(data) => data.handle_event(j, output_events, action),
-            CharacterState::Wielding => {
-                states::wielding::Data.handle_event(j, output_events, action)
-            },
+            CharacterState::Wielding(data) => data.handle_event(j, output_events, action),
             CharacterState::Equipping(data) => data.handle_event(j, output_events, action),
             CharacterState::ComboMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicMelee(data) => data.handle_event(j, output_events, action),
@@ -351,7 +353,7 @@ impl CharacterState {
 }
 
 impl Default for CharacterState {
-    fn default() -> Self { Self::Idle }
+    fn default() -> Self { Self::Idle(idle::Data { is_sneaking: false }) }
 }
 
 impl Component for CharacterState {

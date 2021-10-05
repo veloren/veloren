@@ -201,7 +201,7 @@ impl MovementEventMapper {
         {
             return if matches!(character_state, CharacterState::Roll(_)) {
                 SfxEvent::Roll
-            } else if matches!(character_state, CharacterState::Sneak) {
+            } else if character_state.is_stealthy() {
                 SfxEvent::Sneak
             } else {
                 match underfoot_block_kind {

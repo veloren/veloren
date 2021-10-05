@@ -5,19 +5,33 @@ use crate::{
         slot::{EquipSlot, Slot},
         CharacterState, InventoryAction, StateUpdate,
     },
-    states::behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        idle,
+    },
 };
+use serde::{Deserialize, Serialize};
 
-pub struct Data;
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Data {
+    pub is_sneaking: bool,
+}
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 1.0);
+        handle_move(data, &mut update, if self.is_sneaking { 0.4 } else { 1.0 });
         handle_climb(data, &mut update);
         attempt_input(data, output_events, &mut update);
+        handle_jump(data, output_events, &mut update, 1.0);
+
+        if self.is_sneaking
+            && (data.physics.on_ground.is_none() || data.physics.in_liquid().is_some())
+        {
+            update.character = CharacterState::Wielding(Data { is_sneaking: false });
+        }
 
         update
     }
@@ -42,7 +56,9 @@ impl CharacterBehavior for Data {
                 _,
                 Slot::Equip(EquipSlot::ActiveMainhand | EquipSlot::ActiveOffhand),
             ) => {
-                update.character = CharacterState::Idle;
+                update.character = CharacterState::Idle(idle::Data {
+                    is_sneaking: self.is_sneaking,
+                });
             },
             _ => (),
         }
@@ -58,7 +74,9 @@ impl CharacterBehavior for Data {
 
     fn unwield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle;
+        update.character = CharacterState::Idle(idle::Data {
+            is_sneaking: self.is_sneaking,
+        });
         update
     }
 
@@ -76,7 +94,15 @@ impl CharacterBehavior for Data {
 
     fn sneak(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        attempt_sneak(data, &mut update);
+        if data.physics.on_ground.is_some() && data.body.is_humanoid() {
+            update.character = CharacterState::Wielding(Data { is_sneaking: true });
+        }
+        update
+    }
+
+    fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        update.character = CharacterState::Wielding(Data { is_sneaking: false });
         update
     }
 }

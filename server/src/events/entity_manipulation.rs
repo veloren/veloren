@@ -1038,7 +1038,8 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
 pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: f32) {
     let ecs = &server.state.ecs();
     if let Some(mut character) = ecs.write_storage::<comp::CharacterState>().get_mut(entity) {
-        *character = CharacterState::Wielding;
+        *character =
+            CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
     };
     if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
         energy.change_by(energy_cost);
@@ -1082,7 +1083,7 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
             *char_state,
             CharacterState::SpriteInteract(_) | CharacterState::UseItem(_)
         ) {
-            *char_state = CharacterState::Idle;
+            *char_state = CharacterState::Idle(common::states::idle::Data { is_sneaking: false });
         }
     }
 

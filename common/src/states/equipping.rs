@@ -1,7 +1,10 @@
 use super::utils::*;
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, StateUpdate},
-    states::behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        wielding,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -20,6 +23,7 @@ pub struct Data {
     pub static_data: StaticData,
     /// Timer for each stage
     pub timer: Duration,
+    pub is_sneaking: bool,
 }
 
 impl CharacterBehavior for Data {
@@ -27,7 +31,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
-        handle_move(data, &mut update, 1.0);
+        handle_move(data, &mut update, if self.is_sneaking { 0.4 } else { 1.0 });
         handle_jump(data, output_events, &mut update, 1.0);
 
         if self.timer < self.static_data.buildup_duration {
@@ -38,7 +42,9 @@ impl CharacterBehavior for Data {
             });
         } else {
             // Done
-            update.character = CharacterState::Wielding;
+            update.character = CharacterState::Wielding(wielding::Data {
+                is_sneaking: self.is_sneaking,
+            });
         }
 
         update
