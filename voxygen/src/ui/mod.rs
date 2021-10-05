@@ -235,15 +235,13 @@ impl Ui {
     }
 
     pub fn replace_graphic(&mut self, id: ImageId, graphic: Graphic) {
-        let graphic_id = if let Some((graphic_id, _)) = self.image_map.get(&id) {
-            *graphic_id
+        if let Some(&(graphic_id, _)) = self.image_map.get(&id) {
+            self.cache.replace_graphic(graphic_id, graphic);
+            self.image_map.replace(id, (graphic_id, Rotation::None));
+            self.graphic_replaced = true;
         } else {
-            error!("Failed to replace graphic the provided id is not in use");
-            return;
+            error!("Failed to replace graphic, the provided id is not in use.");
         };
-        self.cache.replace_graphic(graphic_id, graphic);
-        self.image_map.replace(id, (graphic_id, Rotation::None));
-        self.graphic_replaced = true;
     }
 
     pub fn new_font(&mut self, font: crate::ui::ice::RawFont) -> font::Id {
@@ -346,6 +344,10 @@ impl Ui {
             false
         };
 
+        // Used to tell if we need to clear out the draw commands (which contain scissor
+        // commands that can be invalidated by this change)
+        let physical_resolution_changed = renderer.resolution() != self.scale.physical_resolution();
+
         // Handle window resizing.
         let need_resize = if self.window_resized {
             self.window_resized = false;
@@ -379,10 +381,16 @@ impl Ui {
         }
 
         let mut retry = false;
-        self.maintain_internal(renderer, pool, view_projection_mat, &mut retry);
+        self.maintain_internal(
+            renderer,
+            pool,
+            view_projection_mat,
+            &mut retry,
+            physical_resolution_changed,
+        );
         if retry {
             // Update the glyph cache and try again.
-            self.maintain_internal(renderer, pool, view_projection_mat, &mut retry);
+            self.maintain_internal(renderer, pool, view_projection_mat, &mut retry, false);
         }
     }
 
@@ -392,14 +400,27 @@ impl Ui {
         pool: Option<&SlowJobPool>,
         view_projection_mat: Option<Mat4<f32>>,
         retry: &mut bool,
+        physical_resolution_changed: bool,
     ) {
         span!(_guard, "internal", "Ui::maintain_internal");
         let (graphic_cache, text_cache, glyph_cache, cache_tex) = self.cache.cache_mut_and_tex();
 
-        let mut primitives = if *retry || self.graphic_replaced {
+        // If the physical resolution changed draw commands need to be cleared since
+        // scissors commands will be invalid. A resize usually means everything
+        // needs to be redrawn anyway but certain error cases below can cause an
+        // early return.
+        if physical_resolution_changed {
+            self.draw_commands.clear();
+        }
+
+        let mut primitives = if *retry || self.graphic_replaced || physical_resolution_changed {
             // If this is a retry, always redraw.
+            //
             // Also redraw if a texture was swapped out by replace_graphic in order to
-            // regenerate invalidated textures and clear out any invalid `TexId`s
+            // regenerate invalidated textures and clear out any invalid `TexId`s.
+            //
+            // Also redraw if the physical resolution changed since we need to regenerate
+            // the invalid scissor rect commands.
             self.graphic_replaced = false;
             self.ui.draw()
         } else {

@@ -101,6 +101,9 @@ impl Scale {
         old_scale_factor != self.scale_factor
     }
 
+    /// Get physical resolution.
+    pub fn physical_resolution(&self) -> Vec2<u32> { self.physical_resolution }
+
     /// Get scaled window size.
     pub fn scaled_resolution(&self) -> Vec2<f64> {
         self.physical_resolution.map(f64::from) / self.scale_factor_physical()
