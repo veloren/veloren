@@ -374,30 +374,27 @@ impl TradePricing {
         let mut ordered_recipes: Vec<RememberedRecipe> = Vec::new();
         for (_, recipe) in book.iter() {
             let (ref asset_path, amount) = recipe.output;
-            // Trading don't know how to work with recycling yet
-            if !recipe.is_recycling {
-                ordered_recipes.push(RememberedRecipe {
-                    output: asset_path.id().into(),
-                    amount,
-                    material_cost: Self::UNAVAILABLE_PRICE,
-                    input: recipe
-                        .inputs
-                        .iter()
-                        .filter_map(|&(ref recipe_input, count)| {
-                            if let RecipeInput::Item(it) = recipe_input {
-                                // If item is not consumed in craft, ignore it
-                                if count == 0 {
-                                    None
-                                } else {
-                                    Some((it.id().into(), count))
-                                }
-                            } else {
+            ordered_recipes.push(RememberedRecipe {
+                output: asset_path.id().into(),
+                amount,
+                material_cost: Self::UNAVAILABLE_PRICE,
+                input: recipe
+                    .inputs
+                    .iter()
+                    .filter_map(|&(ref recipe_input, count)| {
+                        if let RecipeInput::Item(it) = recipe_input {
+                            // If item is not consumed in craft, ignore it
+                            if count == 0 {
                                 None
+                            } else {
+                                Some((it.id().into(), count))
                             }
-                        })
-                        .collect(),
-                });
-            }
+                        } else {
+                            None
+                        }
+                    })
+                    .collect(),
+            });
         }
 
         // re-evaluate prices based on crafting tables

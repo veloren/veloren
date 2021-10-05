@@ -15,5 +15,6 @@ ItemDef(
     quality: Common,
     tags: [
         Material(Wool),
+        SalvageInto(Wool),
     ],
 )

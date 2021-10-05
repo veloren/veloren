@@ -15,5 +15,6 @@ ItemDef(
     quality: High,
     tags: [
         Material(Leather),
+        SalvageInto(Leather),
     ],
 )

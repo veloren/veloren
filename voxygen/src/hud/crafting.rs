@@ -195,11 +195,10 @@ impl CraftingTab {
             CraftingTab::Glider => matches!(item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
             CraftingTab::ProcessedMaterial => {
-                (item.tags().contains(&ItemTag::MetalIngot)
+                item.tags().contains(&ItemTag::MetalIngot)
                     || item.tags().contains(&ItemTag::Textile)
                     || item.tags().contains(&ItemTag::Leather)
-                    || item.tags().contains(&ItemTag::BaseMaterial))
-                    && !recipe.is_recycling
+                    || item.tags().contains(&ItemTag::BaseMaterial)
             },
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
@@ -208,7 +207,8 @@ impl CraftingTab {
                 ItemKind::Tool(_) => !item.tags().contains(&ItemTag::CraftingTool),
                 _ => false,
             },
-            CraftingTab::Dismantle => recipe.is_recycling,
+            // Only has salavging UI which doesn't use recipes
+            CraftingTab::Dismantle => false,
         }
     }
 }

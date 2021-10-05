@@ -22,7 +22,6 @@ pub struct Recipe {
     pub output: (Arc<ItemDef>, u32),
     pub inputs: Vec<(RecipeInput, u32)>,
     pub craft_sprite: Option<SpriteKind>,
-    pub is_recycling: bool,
 }
 
 #[allow(clippy::type_complexity)]
@@ -126,7 +125,6 @@ pub(crate) struct RawRecipe {
     pub(crate) output: (String, u32),
     pub(crate) inputs: Vec<(RawRecipeInput, u32)>,
     pub(crate) craft_sprite: Option<SpriteKind>,
-    pub(crate) is_recycling: bool,
 }
 
 #[derive(Clone, Deserialize)]
@@ -180,7 +178,6 @@ impl assets::Compound for RecipeBook {
                         output,
                         inputs,
                         craft_sprite,
-                        is_recycling,
                     },
                 )| {
                     let inputs = inputs
@@ -192,7 +189,6 @@ impl assets::Compound for RecipeBook {
                         output,
                         inputs,
                         craft_sprite: *craft_sprite,
-                        is_recycling: *is_recycling,
                     }))
                 },
             )
