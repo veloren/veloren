@@ -16,8 +16,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use itertools::Either;
-use rayon::iter::ParallelIterator;
-use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use vek::*;
 
 /// This system will send physics updates to the client
@@ -115,7 +114,7 @@ impl<'a> System<'a> for Sys {
                 &subscriptions,
                 &positions,
             )
-                .par_join()
+                .join()
                 .filter_map(|(client, entity, presence, subscription, pos)| {
                     if presence.is_some() && subscription.regions.contains(&key) {
                         Some((client, &subscription.regions, entity, *pos))
@@ -322,36 +321,32 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        (&inventories, &inventory_updates, &clients)
-            .par_join()
-            .for_each(|(inventory, update, client)| {
-                client.send_fallible(ServerGeneral::InventoryUpdate(
-                    inventory.clone(),
-                    update.event(),
-                ));
-            });
+        for (inventory, update, client) in (&inventories, &inventory_updates, &clients).join() {
+            client.send_fallible(ServerGeneral::InventoryUpdate(
+                inventory.clone(),
+                update.event(),
+            ));
+        }
 
         // Sync outcomes
-        (presences.maybe(), positions.maybe(), &clients)
-            .par_join()
-            .for_each(|(presence, pos, client)| {
-                let is_near = |o_pos: Vec3<f32>| {
-                    pos.zip_with(presence, |pos, presence| {
-                        pos.0.xy().distance_squared(o_pos.xy())
-                            < (presence.view_distance as f32 * TerrainChunkSize::RECT_SIZE.x as f32)
-                                .powi(2)
-                    })
-                };
+        for (presence, pos, client) in (presences.maybe(), positions.maybe(), &clients).join() {
+            let is_near = |o_pos: Vec3<f32>| {
+                pos.zip_with(presence, |pos, presence| {
+                    pos.0.xy().distance_squared(o_pos.xy())
+                        < (presence.view_distance as f32 * TerrainChunkSize::RECT_SIZE.x as f32)
+                            .powi(2)
+                })
+            };
 
-                let outcomes = outcomes
-                    .iter()
-                    .filter(|o| o.get_pos().and_then(&is_near).unwrap_or(true))
-                    .cloned()
-                    .collect::<Vec<_>>();
-                if !outcomes.is_empty() {
-                    client.send_fallible(ServerGeneral::Outcomes(outcomes));
-                }
-            });
+            let outcomes = outcomes
+                .iter()
+                .filter(|o| o.get_pos().and_then(&is_near).unwrap_or(true))
+                .cloned()
+                .collect::<Vec<_>>();
+            if !outcomes.is_empty() {
+                client.send_fallible(ServerGeneral::Outcomes(outcomes));
+            }
+        }
         outcomes.clear();
 
         // Remove all force flags.
