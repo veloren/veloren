@@ -647,24 +647,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Craft),
                 );
             }
-
-            // Drop the item if there wasn't enough space
-            // if let Some(Some((item, amount))) = craft_result {
-            //     let ability_map = &state.ecs().read_resource::<AbilityMap>();
-            //     let msm =
-            // state.ecs().read_resource::<MaterialStatManifest>();
-            //     for _ in 0..amount {
-            //         dropped_items.push((
-            //             state
-            //                 .read_component_copied::<comp::Pos>(entity)
-            //                 .unwrap_or_default(),
-            //             state
-            //                 .read_component_copied::<comp::Ori>(entity)
-            //                 .unwrap_or_default(),
-            //             item.duplicate(ability_map, &msm),
-            //         ));
-            //     }
-            // }
         },
         comp::InventoryManip::Sort => {
             inventory.sort();

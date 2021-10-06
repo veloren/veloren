@@ -804,14 +804,14 @@ impl Item {
             .any(|tag| matches!(tag, ItemTag::SalvageInto(_)))
     }
 
-    // Attempts to salvage an item, returning the salvaged items if salvageable,
-    // else the original item is not Theoretically supports returning multiple
-    // items, only returns one per tag in the item for now
+    // Attempts to salvage an item by consuming it, returns the salvaged items if
+    // salvageable, else the original item
     pub fn try_salvage(self) -> Result<Vec<Item>, Item> {
         if !self.is_salvageable() {
             return Err(self);
         }
 
+        // Creates one item for every salvage tag in the target item
         let salvaged_items: Vec<_> = self
             .item_def
             .tags

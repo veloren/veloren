@@ -37,6 +37,11 @@ impl Recipe {
         let mut recipe_inputs = Vec::new();
         let mut unsatisfied_requirements = Vec::new();
 
+        // Checks each input against a slot in the inventory. If the slot contains an
+        // item that fulfills the need of the input, takes from the inventory up to the
+        // quantity needed for the crafting input. If the item either cannot be used, or
+        // there is insufficient quantity, adds input and number of materials needed to
+        // unsatisfied requirements.
         self.inputs
             .iter()
             .enumerate()
@@ -65,10 +70,12 @@ impl Recipe {
                 }
             });
 
+        // If there are no unsatisfied requirements, create the items produced by the
+        // recipe in the necessary quantity, else insert the ingredients back into the
+        // inventory
         if unsatisfied_requirements.is_empty() {
             let (item_def, quantity) = &self.output;
-            let crafted_item =
-                Item::new_from_item_def(Arc::clone(item_def), &[], ability_map, msm);
+            let crafted_item = Item::new_from_item_def(Arc::clone(item_def), &[], ability_map, msm);
             let mut crafted_items = Vec::with_capacity(*quantity as usize);
             for _ in 0..*quantity {
                 crafted_items.push(crafted_item.duplicate(ability_map, msm));
