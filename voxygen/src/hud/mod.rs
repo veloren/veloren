@@ -75,7 +75,7 @@ use common::{
     combat,
     comp::{
         self, fluid_dynamics,
-        inventory::trade_pricing::TradePricing,
+        inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
         BuffData, BuffKind, Item,
@@ -521,6 +521,7 @@ pub enum Event {
         recipe: String,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     },
+    SalvageItem(InvSlotId),
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -3329,10 +3330,18 @@ impl Hud {
                 slot::Event::Used(from) => {
                     // Item used (selected and then clicked again)
                     if let Some(from) = to_slot(from) {
-                        events.push(Event::UseSlot {
-                            slot: from,
-                            bypass_dialog: false,
-                        });
+                        if self.show.crafting
+                            && matches!(self.show.crafting_tab, CraftingTab::Dismantle)
+                        {
+                            if let Slot::Inventory(slot) = from {
+                                events.push(Event::SalvageItem(slot))
+                            }
+                        } else {
+                            events.push(Event::UseSlot {
+                                slot: from,
+                                bypass_dialog: false,
+                            });
+                        }
                     } else if let Hotbar(h) = from {
                         // Used from hotbar
                         self.hotbar.get(h).map(|s| {

@@ -27,7 +27,7 @@ use common::{
         group,
         invite::{InviteKind, InviteResponse},
         skills::Skill,
-        slot::Slot,
+        slot::{InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
         UtteranceKind,
@@ -1013,6 +1013,26 @@ impl Client {
         } else {
             false
         }
+    }
+
+    pub fn can_salvage_item(&self, slot: InvSlotId) -> bool {
+        self.inventories()
+            .get(self.entity())
+            .and_then(|inv| inv.get(slot))
+            .map_or(false, |item| item.is_salvageable())
+    }
+
+    pub fn salvage_item(&mut self, slot: InvSlotId) -> bool {
+        let is_salvageable = self.can_salvage_item(slot);
+        if is_salvageable {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe {
+                    craft_event: CraftEvent::Salvage(slot),
+                    craft_sprite: None,
+                },
+            )));
+        }
+        is_salvageable
     }
 
     fn update_available_recipes(&mut self) {
