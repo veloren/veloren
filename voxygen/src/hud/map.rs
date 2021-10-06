@@ -748,36 +748,45 @@ impl<'a> Widget for Map<'a> {
             });
         }
 
-        let wpos_to_rpos = |wpos: Vec2<f32>| {
-            // Site pos in world coordinates relative to the player
-            let rwpos = wpos - player_pos;
-            // Convert to chunk coordinates
-            let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
+        let wpos_to_rpos_fade =
+            |wpos: Vec2<f32>, bounding_rect_size: Vec2<f32>, fade_start: f32| {
+                // Site pos in world coordinates relative to the player
+                let rwpos = wpos - player_pos;
+                // Convert to chunk coordinates
+                let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
                 // Add map dragging
                 + drag.map(|e| e as f32);
-            // Convert to relative pixel coordinates from the center of the map
-            // Accounting for zooming
-            let rpos = rcpos.map(|e| e * zoom as f32);
+                // Convert to relative pixel coordinates from the center of the map
+                // Accounting for zooming
+                let rpos = rcpos.map(|e| e * zoom as f32);
 
-            if rpos
-                .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
-                .reduce_or()
-            {
-                None
-            } else {
-                Some(rpos)
-            }
-        };
+                let dist_to_closest_map_edge =
+                    (rpos.map2(map_size, |e, sz| sz as f32 / 2.0 - e.abs()) - bounding_rect_size)
+                        .reduce_partial_min();
+                match dist_to_closest_map_edge {
+                    x if x <= 0.0 => None,
+                    x if x < fade_start => Some((
+                        rpos,
+                        // Easing function
+                        1.0 - 2.0_f32.powf(-10.0 * x / fade_start),
+                    )),
+                    _ => Some((rpos, 1.0)),
+                }
+            };
 
         for (i, site_rich) in self.client.sites().values().enumerate() {
             let site = &site_rich.site;
 
-            let rpos = match wpos_to_rpos(site.wpos.map(|e| e as f32)) {
+            let rside = zoom as f32 * 8.0 * 1.2;
+
+            let (rpos, fade) = match wpos_to_rpos_fade(
+                site.wpos.map(|e| e as f32),
+                Vec2::from(rside / 2.0),
+                rside / 2.0,
+            ) {
                 Some(rpos) => rpos,
                 None => continue,
             };
-
-            let rside = zoom * 8.0;
 
             let title = site.name.as_deref().unwrap_or_else(|| match &site.kind {
                 SiteKind::Town => i18n.get("hud.map.town"),
@@ -810,7 +819,7 @@ impl<'a> Widget for Map<'a> {
                 position::Relative::Scalar(rpos.x as f64),
                 position::Relative::Scalar(rpos.y as f64),
             )
-            .w_h(rside * 1.2, rside * 1.2)
+            .w_h(rside as f64, rside as f64)
             .hover_image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
                 SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_hover,
@@ -818,7 +827,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
             })
-            .image_color(UI_HIGHLIGHT_0)
+            .image_color(UI_HIGHLIGHT_0.alpha(fade))
             .with_tooltip(
                 self.tooltip_manager,
                 title,
@@ -942,7 +951,13 @@ impl<'a> Widget for Map<'a> {
             }
         }
         for (i, poi) in self.client.pois().iter().enumerate() {
-            let rpos = match wpos_to_rpos(poi.wpos.map(|e| e as f32)) {
+            // TODO: computation of text size to pass to wpos_to_rpos_fade, so it can
+            // determine when it's going past the edge of the map screen
+            let (rpos, fade) = match wpos_to_rpos_fade(
+                poi.wpos.map(|e| e as f32),
+                Vec2::from(zoom as f32 * 3.0),
+                zoom as f32 * 5.0,
+            ) {
                 Some(rpos) => rpos,
                 None => continue,
             };
@@ -960,14 +975,14 @@ impl<'a> Widget for Map<'a> {
                             .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                             .font_id(self.fonts.cyri.conrod_id)
                             .graphics_for(state.ids.map_layers[0])
-                            .color(TEXT_BG)
+                            .color(TEXT_BG.alpha(fade))
                             .set(state.ids.mmap_poi_title_bgs[i], ui);
                         Text::new(title)
                                 .bottom_left_with_margins_on(state.ids.mmap_poi_title_bgs[i], 1.0, 1.0)
                                 .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                                 .font_id(self.fonts.cyri.conrod_id)
                                 //.graphics_for(state.ids.map_layers[0])
-                                .color(TEXT_COLOR)
+                                .color(TEXT_COLOR.alpha(fade))
                                 .set(state.ids.mmap_poi_titles[i], ui);
 
                         handle_widget_mouse_events(
@@ -992,14 +1007,14 @@ impl<'a> Widget for Map<'a> {
                                 .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .graphics_for(state.ids.map_layers[0])
-                                .color(TEXT_BG)
+                                .color(TEXT_BG.alpha(fade))
                                 .set(state.ids.peaks_txt_bg, ui);
                             Text::new(&height)
                                 .bottom_left_with_margins_on(state.ids.peaks_txt_bg, 1.0, 1.0)
                                 .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .graphics_for(state.ids.map_layers[0])
-                                .color(TEXT_COLOR)
+                                .color(TEXT_COLOR.alpha(fade))
                                 .set(state.ids.peaks_txt, ui);
                         }
                     }
@@ -1028,7 +1043,7 @@ impl<'a> Widget for Map<'a> {
                             )
                             .font_id(self.fonts.cyri.conrod_id)
                             .graphics_for(state.ids.map_layers[0])
-                            .color(TEXT_BLUE_COLOR)
+                            .color(TEXT_BLUE_COLOR.alpha(fade))
                             .set(state.ids.mmap_poi_icons[i], ui);
                     }
                 },
@@ -1070,12 +1085,18 @@ impl<'a> Widget for Map<'a> {
             };
 
             if let Some(member_pos) = member_pos {
-                let rpos = match wpos_to_rpos(member_pos.0.xy().map(|e| e as f32)) {
-                    Some(rpos) => rpos,
+                let factor = 1.2;
+                let side_length = 20.0 * factor;
+
+                let (rpos, fade) = match wpos_to_rpos_fade(
+                    member_pos.0.xy().map(|e| e as f32),
+                    Vec2::from(side_length / 2.0),
+                    side_length / 2.0,
+                ) {
+                    Some(x) => x,
                     None => continue,
                 };
 
-                let factor = 1.2;
                 let z_comparison = (member_pos.0.z - player_pos.z) as i32;
 
                 Button::image(match z_comparison {
@@ -1088,7 +1109,8 @@ impl<'a> Widget for Map<'a> {
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
-                .w_h(20.0 * factor, 20.0 * factor)
+                .w_h(side_length as f64, side_length as f64)
+                .image_color(Color::Rgba(1.0, 1.0, 1.0, fade))
                 .floating(true)
                 .with_tooltip(self.tooltip_manager, &name, "", &site_tooltip, TEXT_COLOR)
                 .set(state.ids.member_indicators[i], ui);
@@ -1105,19 +1127,23 @@ impl<'a> Widget for Map<'a> {
 
         // Location marker
         if self.show.map_marker {
-            if let Some((lm, rpos)) = self
-                .location_marker
-                .and_then(|lm| Some(lm).zip(wpos_to_rpos(lm)))
-            {
-                let factor = 1.4;
-
+            let factor = 1.4;
+            let side_length = 20.0 * factor;
+            if let Some((lm, (rpos, fade))) = self.location_marker.and_then(|lm| {
+                Some(lm).zip(wpos_to_rpos_fade(
+                    lm,
+                    Vec2::from(side_length / 2.0),
+                    side_length / 2.0,
+                ))
+            }) {
                 if Button::image(self.imgs.location_marker)
                     .x_y_position_relative_to(
                         state.ids.map_layers[0],
                         position::Relative::Scalar(rpos.x as f64),
-                        position::Relative::Scalar(rpos.y as f64 + 10.0 * factor),
+                        position::Relative::Scalar(rpos.y as f64 + 10.0 * factor as f64),
                     )
-                    .w_h(20.0 * factor, 20.0 * factor)
+                    .w_h(side_length as f64, side_length as f64)
+                    .image_color(Color::Rgba(1.0, 1.0, 1.0, fade))
                     .floating(true)
                     .with_tooltip(
                         self.tooltip_manager,
@@ -1151,21 +1177,14 @@ impl<'a> Widget for Map<'a> {
         // Cursor stops moving on an axis as soon as it's position exceeds the maximum
         // // size of the widget
 
-        // Offset from map center due to dragging
-        let rcpos = drag.map(|e| e as f32);
-        // Convert to relative pixel coordinates from the center of the map
-        // Accounting for zooming
-        let rpos = rcpos.map(|e| e * zoom as f32);
         // Don't show if outside or near the edge of the map
         let arrow_sz = {
             let scale = 0.5;
             Vec2::new(36.0, 37.0) * scale
         };
         // Hide if icon could go off of the edge of the map
-        let arrow_mag = arrow_sz.map(|e| e as f32 / 2.0).magnitude();
-        if !rpos
-            .map2(map_size, |e, sz| e.abs() + arrow_mag > sz as f32 / 2.0)
-            .reduce_or()
+        if let Some((rpos, fade)) =
+            wpos_to_rpos_fade(player_pos.xy(), arrow_sz, arrow_sz.reduce_partial_min())
         {
             Image::new(self.rot_imgs.indicator_mmap_small.target_north)
                 .x_y_position_relative_to(
@@ -1173,8 +1192,8 @@ impl<'a> Widget for Map<'a> {
                     position::Relative::Scalar(rpos.x as f64),
                     position::Relative::Scalar(rpos.y as f64),
                 )
-                .w_h(arrow_sz.x, arrow_sz.y)
-                .color(Some(UI_HIGHLIGHT_0))
+                .w_h(arrow_sz.x as f64, arrow_sz.y as f64)
+                .color(Some(UI_HIGHLIGHT_0.alpha(fade)))
                 .set(state.ids.indicator, ui);
 
             handle_widget_mouse_events(

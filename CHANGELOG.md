@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tweaked CR and exp calculation formula
 - Sprite spawn rates
 - The Interact button can be used on campfires to sit
+- Made map icons fade out when near the edge of the map display
 
 ### Removed
 
