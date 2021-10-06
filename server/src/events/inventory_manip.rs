@@ -572,7 +572,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
 
             let crafted_items = match craft_event {
-                CraftEvent::Simple(recipe) => recipe_book
+                CraftEvent::Simple { recipe, slots } => recipe_book
                     .get(&recipe)
                     .filter(|r| {
                         if let Some(needed_sprite) = r.craft_sprite {
@@ -604,19 +604,13 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         }
                     })
                     .and_then(|r| {
-                        r.perform(
+                        r.craft_simple(
                             &mut inventory,
+                            slots,
                             &state.ecs().read_resource::<AbilityMap>(),
                             &state.ecs().read_resource::<item::MaterialStatManifest>(),
                         )
                         .ok()
-                    })
-                    .map(|(crafted_item, amount)| {
-                        let mut crafted_items = Vec::with_capacity(amount as usize);
-                        for _ in 0..amount {
-                            crafted_items.push(crafted_item.duplicate(ability_map, &msm));
-                        }
-                        crafted_items
                     }),
                 CraftEvent::Salvage(slot) => {
                     recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()

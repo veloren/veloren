@@ -27,44 +27,112 @@ pub struct Recipe {
 #[allow(clippy::type_complexity)]
 impl Recipe {
     /// Perform a recipe, returning a list of missing items on failure
-    pub fn perform(
+    pub fn craft_simple(
         &self,
         inv: &mut Inventory,
+        slots: Vec<InvSlotId>,
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
-    ) -> Result<(Item, u32), Vec<(&RecipeInput, u32)>> {
-        // Get ingredient cells from inventory,
-        let mut components = Vec::new();
+    ) -> Result<Vec<Item>, Vec<(&RecipeInput, u32)>> {
+        let mut recipe_inputs = Vec::new();
+        let mut unsatisfied_requirements = Vec::new();
 
-        inv.contains_ingredients(self)?
-            .into_iter()
-            .for_each(|(pos, n)| {
-                (0..n).for_each(|_| {
-                    let component = inv
-                        .take(pos, ability_map, msm)
-                        .expect("Expected item to exist in inventory");
-                    components.push(component);
-                })
+        self.inputs
+            .iter()
+            .enumerate()
+            .for_each(|(i, (input, amount))| {
+                let valid_input = if let Some(item) = slots.get(i).and_then(|slot| inv.get(*slot)) {
+                    item.matches_recipe_input(input)
+                } else {
+                    false
+                };
+
+                if let Some(slot) = slots.get(i) {
+                    if !valid_input {
+                        unsatisfied_requirements.push((input, *amount));
+                    } else {
+                        for taken in 0..*amount {
+                            if let Some(item) = inv.take(*slot, ability_map, msm) {
+                                recipe_inputs.push(item);
+                            } else {
+                                unsatisfied_requirements.push((input, *amount - taken));
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    unsatisfied_requirements.push((input, *amount));
+                }
             });
 
-        let crafted_item =
-            Item::new_from_item_def(Arc::clone(&self.output.0), &components, ability_map, msm);
-
-        Ok((crafted_item, self.output.1))
-
-        // for i in 0..self.output.1 {
-        //     if let Err(item) = inv.push(crafted_item) {
-        //         return Ok(Some((item, self.output.1 - i)));
-        //     }
-        // }
-
-        // Ok(None)
+        if unsatisfied_requirements.is_empty() {
+            let (item_def, quantity) = &self.output;
+            let crafted_item =
+                Item::new_from_item_def(Arc::clone(item_def), &[], ability_map, msm);
+            let mut crafted_items = Vec::with_capacity(*quantity as usize);
+            for _ in 0..*quantity {
+                crafted_items.push(crafted_item.duplicate(ability_map, msm));
+            }
+            Ok(crafted_items)
+        } else {
+            for item in recipe_inputs {
+                inv.push(item)
+                    .expect("Item was in inventory before craft attempt");
+            }
+            Err(unsatisfied_requirements)
+        }
     }
 
     pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
         self.inputs
             .iter()
             .map(|(item_def, amount)| (item_def, *amount))
+    }
+
+    /// Determine whether the inventory contains the ingredients for a recipe.
+    /// If it does, return a vec of  inventory slots that contain the
+    /// ingredients needed, whose positions correspond to particular recipe
+    /// inputs. If items are missing, return the missing items, and how many
+    /// are missing.
+    pub fn inventory_contains_ingredients<'a>(
+        &self,
+        inv: &'a Inventory,
+    ) -> Result<Vec<InvSlotId>, Vec<(&RecipeInput, u32)>> {
+        let mut slot_claims = HashMap::<InvSlotId, u32>::new();
+        // Important to be a vec and to remain separate from slot_claims as it must
+        // remain ordered, unlike the hashmap
+        let mut slots = Vec::<InvSlotId>::new();
+        let mut missing = Vec::<(&RecipeInput, u32)>::new();
+
+        for (input, mut needed) in self.inputs() {
+            let mut contains_any = false;
+
+            for (inv_slot_id, slot) in inv.slots_with_id() {
+                if let Some(item) = slot
+                    .as_ref()
+                    .filter(|item| item.matches_recipe_input(&*input))
+                {
+                    let claim = slot_claims.entry(inv_slot_id).or_insert(0);
+                    slots.push(inv_slot_id);
+                    // FIXME: Fishy, looks like it can underflow before min which can trigger an
+                    // overflow check.
+                    let can_claim = (item.amount() - *claim).min(needed);
+                    *claim += can_claim;
+                    needed -= can_claim;
+                    contains_any = true;
+                }
+            }
+
+            if needed > 0 || !contains_any {
+                missing.push((input, needed));
+            }
+        }
+
+        if missing.is_empty() {
+            Ok(slots)
+        } else {
+            Err(missing)
+        }
     }
 }
 
@@ -108,7 +176,7 @@ impl RecipeBook {
     pub fn get_available(&self, inv: &Inventory) -> Vec<(String, Recipe)> {
         self.recipes
             .iter()
-            .filter(|(_, recipe)| inv.contains_ingredients(recipe).is_ok())
+            .filter(|(_, recipe)| recipe.inventory_contains_ingredients(inv).is_ok())
             .map(|(name, recipe)| (name.clone(), recipe.clone()))
             .collect()
     }

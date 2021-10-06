@@ -92,7 +92,10 @@ impl From<InventoryEvent> for InventoryManip {
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum CraftEvent {
-    Simple(String),
+    Simple {
+        recipe: String,
+        slots: Vec<InvSlotId>,
+    },
     Salvage(InvSlotId),
 }
 

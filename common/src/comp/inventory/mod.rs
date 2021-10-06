@@ -2,7 +2,7 @@ use core::ops::Not;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{collections::HashMap, convert::TryFrom, mem, ops::Range};
+use std::{convert::TryFrom, mem, ops::Range};
 use tracing::{debug, trace, warn};
 use vek::Vec3;
 
@@ -16,7 +16,6 @@ use crate::{
         slot::{InvSlotId, SlotId},
         Item,
     },
-    recipe::{Recipe, RecipeInput},
     uid::Uid,
     LoadoutBuilder,
 };
@@ -458,48 +457,6 @@ impl Inventory {
             .filter(|it| it.is_same_item_def(item_def))
             .map(|it| u64::from(it.amount()))
             .sum()
-    }
-
-    /// Determine whether the inventory contains the ingredients for a recipe.
-    /// If it does, return a vector of numbers, where is number corresponds
-    /// to an inventory slot, along with the number of items that need
-    /// removing from it. It items are missing, return the missing items, and
-    /// how many are missing.
-    pub fn contains_ingredients<'a>(
-        &self,
-        recipe: &'a Recipe,
-    ) -> Result<HashMap<InvSlotId, u32>, Vec<(&'a RecipeInput, u32)>> {
-        let mut slot_claims = HashMap::<InvSlotId, u32>::new();
-        let mut missing = Vec::<(&RecipeInput, u32)>::new();
-
-        for (input, mut needed) in recipe.inputs() {
-            let mut contains_any = false;
-
-            for (inv_slot_id, slot) in self.slots_with_id() {
-                if let Some(item) = slot
-                    .as_ref()
-                    .filter(|item| item.matches_recipe_input(&*input))
-                {
-                    let claim = slot_claims.entry(inv_slot_id).or_insert(0);
-                    // FIXME: Fishy, looks like it can underflow before min which can trigger an
-                    // overflow check.
-                    let can_claim = (item.amount() - *claim).min(needed);
-                    *claim += can_claim;
-                    needed -= can_claim;
-                    contains_any = true;
-                }
-            }
-
-            if needed > 0 || !contains_any {
-                missing.push((input, needed));
-            }
-        }
-
-        if missing.is_empty() {
-            Ok(slot_claims)
-        } else {
-            Err(missing)
-        }
     }
 
     /// Adds a new item to the first empty slot of the inventory. Returns the

@@ -988,7 +988,7 @@ impl Client {
             .zip(self.inventories().get(self.entity()))
             .map(|(recipe, inv)| {
                 (
-                    inv.contains_ingredients(&*recipe).is_ok(),
+                    recipe.inventory_contains_ingredients(inv).is_ok(),
                     recipe.craft_sprite,
                 )
             })
@@ -998,6 +998,7 @@ impl Client {
     pub fn craft_recipe(
         &mut self,
         recipe: &str,
+        slots: Vec<InvSlotId>,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     ) -> bool {
         let (can_craft, required_sprite) = self.can_craft_recipe(recipe);
@@ -1005,7 +1006,10 @@ impl Client {
         if can_craft && has_sprite {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
-                    craft_event: CraftEvent::Simple(recipe.to_string()),
+                    craft_event: CraftEvent::Simple {
+                        recipe: recipe.to_string(),
+                        slots,
+                    },
                     craft_sprite: craft_sprite.map(|(pos, _)| pos),
                 },
             )));
