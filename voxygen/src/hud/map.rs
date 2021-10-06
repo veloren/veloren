@@ -103,6 +103,7 @@ pub struct Map<'a> {
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
     location_marker: Option<Vec2<f32>>,
+    map_drag: Vec2<f64>,
 }
 impl<'a> Map<'a> {
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
@@ -118,6 +119,7 @@ impl<'a> Map<'a> {
         global_state: &'a GlobalState,
         tooltip_manager: &'a mut TooltipManager,
         location_marker: Option<Vec2<f32>>,
+        map_drag: Vec2<f64>,
     ) -> Self {
         Self {
             show,
@@ -132,6 +134,7 @@ impl<'a> Map<'a> {
             global_state,
             tooltip_manager,
             location_marker,
+            map_drag,
         }
     }
 }
@@ -145,6 +148,7 @@ pub enum Event {
     Close,
     RequestSiteInfo(SiteId),
     SetLocationMarker(Vec2<f32>),
+    MapDrag(Vec2<f64>),
     ToggleMarker,
 }
 
@@ -197,7 +201,6 @@ impl<'a> Widget for Map<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Map::update");
         let widget::UpdateArgs { state, ui, .. } = args;
-        let drag = self.global_state.settings.interface.map_drag;
         let zoom = self.global_state.settings.interface.map_zoom;
         let show_difficulty = self.global_state.settings.interface.map_show_difficulty;
         let show_towns = self.global_state.settings.interface.map_show_towns;
@@ -318,7 +321,7 @@ impl<'a> Widget for Map<'a> {
             player_pos.xy().map(|x| x as f64) / TerrainChunkSize::RECT_SIZE.map(|x| x as f64);
         let min_drag = player_pos_chunks - worldsize.map(|x| x as f64);
         let max_drag = player_pos_chunks;
-        let drag = drag.clamped(min_drag, max_drag);
+        let drag = self.map_drag.clamped(min_drag, max_drag);
 
         let handle_widget_mouse_events = |widget,
                                           wpos: Option<Vec2<f32>>,
@@ -360,7 +363,7 @@ impl<'a> Widget for Map<'a> {
                     let mouse_pos = Vec2::from_slice(&cursor_pos);
                     let drag_new = drag + mouse_pos * (1.0 / new_zoom_lvl - 1.0 / zoom);
                     if drag_new != drag {
-                        events.push(Event::SettingsChange(MapDrag(drag_new)));
+                        events.push(Event::MapDrag(drag_new));
                     }
                 }
             }
@@ -375,7 +378,7 @@ impl<'a> Widget for Map<'a> {
             // Drag represents offset of view from the player_pos in chunk coords
             let drag_new = drag + dragged / zoom;
             if drag_new != drag {
-                events.push(Event::SettingsChange(MapDrag(drag_new)));
+                events.push(Event::MapDrag(drag_new));
             }
         };
 
@@ -1238,7 +1241,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.recenter_button, ui)
             .was_clicked()
         {
-            events.push(Event::SettingsChange(MapDrag(Vec2::zero())));
+            events.push(Event::MapDrag(Vec2::zero()));
         };
 
         Image::new(self.imgs.m_move_ico)

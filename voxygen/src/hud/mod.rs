@@ -930,6 +930,7 @@ pub struct Hud {
     crosshair_opacity: f32,
     floaters: Floaters,
     voxel_minimap: VoxelMinimap,
+    map_drag: Vec2<f64>,
 }
 
 impl Hud {
@@ -1052,6 +1053,7 @@ impl Hud {
                 combo_floaters: VecDeque::new(),
                 block_floaters: Vec::new(),
             },
+            map_drag: Vec2::zero(),
         }
     }
 
@@ -3064,6 +3066,7 @@ impl Hud {
                 global_state,
                 tooltip_manager,
                 self.show.location_marker,
+                self.map_drag,
             )
             .set(self.ids.map, ui_widgets)
             {
@@ -3082,6 +3085,9 @@ impl Hud {
                     map::Event::SetLocationMarker(pos) => {
                         self.show.location_marker = Some(pos);
                     },
+                    map::Event::MapDrag(new_drag) => {
+                        self.map_drag = new_drag;
+                    },
                     map::Event::ToggleMarker => {
                         self.show.map_marker = !self.show.map_marker;
                     },
@@ -3089,12 +3095,7 @@ impl Hud {
             }
         } else {
             // Reset the map position when it's not showing
-            let drag = &global_state.settings.interface.map_drag;
-            if drag.x != 0.0 || drag.y != 0.0 {
-                events.push(Event::SettingsChange(
-                    InterfaceChange::MapDrag(Vec2::zero()).into(),
-                ))
-            }
+            self.map_drag = Vec2::zero();
         }
 
         if self.show.esc_menu {
