@@ -150,8 +150,13 @@ pub fn init(
                 .iter()
                 .filter(|(_, site)| site.is_settlement())
                 .min_by_key(|(_, site)| {
-                    let wpos = site.center * TerrainChunk::RECT_SIZE.map(|x| x as i32);
-                    wpos.distance_squared(spawn_point.0.xy().map(|x| x as i32))
+                    let wpos = site
+                        .center
+                        .as_::<i64>()
+                        .map2(TerrainChunk::RECT_SIZE.as_::<i64>(), |e, sz| {
+                            e * sz + sz / 2
+                        });
+                    wpos.distance_squared(spawn_point.0.xy().map(|x| x as i64))
                 })
                 .map(|(id, _)| id);
             #[allow(clippy::single_match)]

@@ -312,20 +312,13 @@ impl<'a> Widget for Map<'a> {
             .get(self.client.entity())
             .map_or(Vec3::zero(), |pos| pos.0);
 
-        let max_zoom = worldsize
-            .reduce_partial_max() as f64/*.min(f64::MAX)*/;
-
         let map_size = Vec2::new(760.0, 760.0);
 
-        let w_src = max_zoom / zoom;
-        let h_src = max_zoom / zoom;
-
-        // player pos from -1 to 1
-        let relative_player_pos =
-            player_pos.xy() / (TerrainChunkSize::RECT_SIZE * worldsize).map(|x| x as f32) * 2.0
-                - 1.0;
-        let min_drag = (relative_player_pos.map(|x| x as f64) / 2.0 - 1.0) * map_size;
-        let max_drag = (relative_player_pos.map(|x| x as f64) / 2.0 + 1.0) * map_size;
+        let player_pos_chunks =
+            player_pos.xy().map(|x| x as f64) / TerrainChunkSize::RECT_SIZE.map(|x| x as f64);
+        let min_drag = player_pos_chunks - worldsize.map(|x| x as f64);
+        let max_drag = player_pos_chunks;
+        let drag = drag.clamped(min_drag, max_drag);
 
         let handle_widget_mouse_events = |widget,
                                           wpos: Option<Vec2<f32>>,
@@ -337,8 +330,7 @@ impl<'a> Widget for Map<'a> {
                 match wpos {
                     Some(ref wpos) => events.push(Event::SetLocationMarker(*wpos)),
                     None => {
-                        let tmp: Vec2<f64> =
-                            Vec2::<f64>::from(click.xy) / map_size / zoom * max_zoom - drag;
+                        let tmp: Vec2<f64> = Vec2::<f64>::from(click.xy) / zoom - drag;
                         let wpos = tmp
                             .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as f32 * sz as f32)
                             + player_pos;
@@ -355,24 +347,18 @@ impl<'a> Widget for Map<'a> {
                 .map(|scroll| scroll.y)
                 .sum();
             if scrolled != 0.0 {
+                let min_zoom = map_size.x as f64 / worldsize.reduce_partial_max() as f64 / 2.0;
                 let new_zoom_lvl: f64 = (f64::log2(zoom) - scrolled * 0.03)
                     .exp2()
-                    .clamped(1.0, max_zoom / 64.0);
+                    .clamp(min_zoom, 16.0);
                 events.push(Event::SettingsChange(MapZoom(new_zoom_lvl)));
                 let cursor_mouse_pos = ui
                     .widget_input(map_widget)
                     .mouse()
                     .map(|mouse| mouse.rel_xy());
                 if let Some(cursor_pos) = cursor_mouse_pos {
-                    // First we calc the new zoomed rect. Then we find out its mid.
-                    // The diff between both mids is the new drag.
-                    let w_src2 = max_zoom / new_zoom_lvl;
-                    let h_src2 = max_zoom / new_zoom_lvl;
-                    // range -0.5 to 0.5
-                    let relative_mouse_pos = Vec2::from_slice(&cursor_pos) / map_size;
-                    let drag_new = (drag
-                        + relative_mouse_pos * Vec2::new(w_src2 - w_src, h_src2 - h_src))
-                    .clamped(min_drag, max_drag);
+                    let mouse_pos = Vec2::from_slice(&cursor_pos);
+                    let drag_new = drag + mouse_pos * (1.0 / new_zoom_lvl - 1.0 / zoom);
                     if drag_new != drag {
                         events.push(Event::SettingsChange(MapDrag(drag_new)));
                     }
@@ -387,8 +373,7 @@ impl<'a> Widget for Map<'a> {
                 .map(|drag| Vec2::<f64>::from(drag.delta_xy))
                 .sum();
             // Drag represents offset of view from the player_pos in chunk coords
-            let drag_new =
-                (drag + dragged / map_size / zoom * max_zoom).clamped(min_drag, max_drag);
+            let drag_new = drag + dragged / zoom;
             if drag_new != drag {
                 events.push(Event::SettingsChange(MapDrag(drag_new)));
             }
@@ -408,7 +393,7 @@ impl<'a> Widget for Map<'a> {
                 (worldsize.y as f64 - (player_pos.y as f64 / TerrainChunkSize::RECT_SIZE.y as f64))
                     + drag.y,
             ],
-            [w_src, h_src],
+            [map_size.x / zoom, map_size.y / zoom],
         );
 
         // X-Button
@@ -770,11 +755,9 @@ impl<'a> Widget for Map<'a> {
             let rcpos = rwpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz| e / sz as f32)
                 // Add map dragging
                 + drag.map(|e| e as f32);
-            // Convert to fractional coordinates relative to the worldsize
-            let rfpos = rcpos / max_zoom as f32;
             // Convert to relative pixel coordinates from the center of the map
             // Accounting for zooming
-            let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+            let rpos = rcpos.map(|e| e * zoom as f32);
 
             if rpos
                 .map2(map_size, |e, sz| e.abs() > sz as f32 / 2.0)
@@ -794,7 +777,7 @@ impl<'a> Widget for Map<'a> {
                 None => continue,
             };
 
-            let rside = zoom * 6.0;
+            let rside = zoom * 8.0;
 
             let title = site.name.as_deref().unwrap_or_else(|| match &site.kind {
                 SiteKind::Town => i18n.get("hud.map.town"),
@@ -885,7 +868,7 @@ impl<'a> Widget for Map<'a> {
             // Difficulty from 0-6
             // 0 = towns and places without a difficulty level
             if show_difficulty {
-                let rsize = zoom * 1.8; // Size factor for difficulty indicators
+                let rsize = zoom * 2.4; // Size factor for difficulty indicators
                 let dif_img = Image::new(match difficulty {
                     Some(0) => self.imgs.map_dif_1,
                     Some(1) => self.imgs.map_dif_2,
@@ -967,21 +950,21 @@ impl<'a> Widget for Map<'a> {
             match poi.kind {
                 PoiKind::Peak(alt) => {
                     let height = format!("{} m", alt);
-                    if show_peaks && zoom > 3.0 {
+                    if show_peaks && zoom > 2.0 {
                         Text::new(title)
                             .x_y_position_relative_to(
                                 state.ids.map_layers[0],
                                 position::Relative::Scalar(rpos.x as f64),
-                                position::Relative::Scalar(rpos.y as f64 + zoom * 3.0),
+                                position::Relative::Scalar(rpos.y as f64 + zoom * 4.0),
                             )
-                            .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                            .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                             .font_id(self.fonts.cyri.conrod_id)
                             .graphics_for(state.ids.map_layers[0])
                             .color(TEXT_BG)
                             .set(state.ids.mmap_poi_title_bgs[i], ui);
                         Text::new(title)
                                 .bottom_left_with_margins_on(state.ids.mmap_poi_title_bgs[i], 1.0, 1.0)
-                                .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                                .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                                 .font_id(self.fonts.cyri.conrod_id)
                                 //.graphics_for(state.ids.map_layers[0])
                                 .color(TEXT_COLOR)
@@ -1004,16 +987,16 @@ impl<'a> Widget for Map<'a> {
                             Text::new(&height)
                                 .mid_bottom_with_margin_on(
                                     state.ids.mmap_poi_title_bgs[i],
-                                    -zoom * 2.5,
+                                    zoom * 3.5,
                                 )
-                                .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                                .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .graphics_for(state.ids.map_layers[0])
                                 .color(TEXT_BG)
                                 .set(state.ids.peaks_txt_bg, ui);
                             Text::new(&height)
                                 .bottom_left_with_margins_on(state.ids.peaks_txt_bg, 1.0, 1.0)
-                                .font_size(self.fonts.cyri.scale((zoom * 2.0) as u32))
+                                .font_size(self.fonts.cyri.scale((zoom * 3.0) as u32))
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .graphics_for(state.ids.map_layers[0])
                                 .color(TEXT_COLOR)
@@ -1022,7 +1005,7 @@ impl<'a> Widget for Map<'a> {
                     }
                 },
                 PoiKind::Lake(size) => {
-                    if zoom.powi(2) * size as f64 > 37.0 {
+                    if zoom.powi(2) * size as f64 > 30.0 {
                         let font_scale_factor = if size > 20 {
                             size as f64 / 25.0
                         } else if size > 10 {
@@ -1170,11 +1153,9 @@ impl<'a> Widget for Map<'a> {
 
         // Offset from map center due to dragging
         let rcpos = drag.map(|e| e as f32);
-        // Convert to fractional coordinates relative to the worldsize
-        let rfpos = rcpos / max_zoom as f32;
         // Convert to relative pixel coordinates from the center of the map
         // Accounting for zooming
-        let rpos = rfpos.map2(map_size, |e, sz| e * sz as f32 * zoom as f32);
+        let rpos = rcpos.map(|e| e * zoom as f32);
         // Don't show if outside or near the edge of the map
         let arrow_sz = {
             let scale = 0.5;

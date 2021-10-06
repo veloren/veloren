@@ -86,7 +86,13 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                 *OAK_STUMPS
                             },
                             ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
-                                *FRUIT_TREES
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::apple(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::TemperateLeaves,
+                                );
                             },
                             ForestKind::Palm => *PALMS,
                             ForestKind::Acacia => {
@@ -143,7 +149,15 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::PineLeaves,
                                 );
                             },
-                            ForestKind::Birch => *BIRCHES,
+                            ForestKind::Birch => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::birch(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::TemperateLeaves,
+                                );
+                            },
                             ForestKind::Mangrove => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -226,9 +240,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                                     StructureBlock::Filled(BlockKind::Wood, Rgb::new(150, 98, 41))
                                 },
                                 (_, _, _, true) => StructureBlock::None,
-                                (true, _, _, _) => {
-                                    StructureBlock::Filled(BlockKind::Wood, t.config.wood_color)
-                                },
+                                (true, _, _, _) => t.config.trunk_block,
                                 (_, true, _, _) => *leaf_block,
                                 _ => StructureBlock::None,
                             },
@@ -330,7 +342,7 @@ pub struct TreeConfig {
     pub inhabited: bool,
     pub hanging_sprites: &'static [(f32, SpriteKind)],
     /// The colour of branches and the trunk.
-    pub wood_color: Rgb<u8>,
+    pub trunk_block: StructureBlock,
 }
 
 impl TreeConfig {
@@ -355,7 +367,32 @@ impl TreeConfig {
             proportionality: 0.0,
             inhabited: false,
             hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
-            wood_color: Rgb::new(90, 45, 15),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
+        }
+    }
+
+    pub fn apple(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 3.0 * scale,
+            trunk_radius: 1.5 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.9,
+            branch_child_radius_lerp: true,
+            leaf_radius: 2.0 * log_scale..3.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.4,
+            max_depth: 6,
+            splits: 1.0..3.0,
+            split_range: 0.5..2.0,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.7,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.03, SpriteKind::Apple), (0.02, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
         }
     }
 
@@ -380,7 +417,7 @@ impl TreeConfig {
             proportionality: 0.8,
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive), (0.015, SpriteKind::Liana)],
-            wood_color: Rgb::new(118, 67, 42),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(118, 67, 42)),
         }
     }
 
@@ -405,7 +442,7 @@ impl TreeConfig {
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
-            wood_color: Rgb::new(125, 60, 6),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(125, 60, 6)),
         }
     }
 
@@ -430,7 +467,32 @@ impl TreeConfig {
             proportionality: 0.0,
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
-            wood_color: Rgb::new(110, 68, 65),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 68, 65)),
+        }
+    }
+
+    pub fn birch(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 24.0 * scale,
+            trunk_radius: 1.2 * scale,
+            branch_child_len: 0.4,
+            branch_child_radius: 0.75,
+            branch_child_radius_lerp: true,
+            leaf_radius: 4.0 * log_scale..5.0 * log_scale,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.6,
+            max_depth: 4,
+            splits: 1.75..2.5,
+            split_range: 0.6..1.2,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 0.5,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::BirchWood,
         }
     }
 
@@ -455,7 +517,7 @@ impl TreeConfig {
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.00005, SpriteKind::Beehive)],
-            wood_color: Rgb::new(150, 95, 65),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(150, 95, 65)),
         }
     }
 
@@ -480,7 +542,7 @@ impl TreeConfig {
             proportionality: 0.5,
             inhabited: false,
             hanging_sprites: &[(0.00007, SpriteKind::Beehive)],
-            wood_color: Rgb::new(110, 42, 28),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 42, 28)),
         }
     }
 
@@ -505,7 +567,7 @@ impl TreeConfig {
             proportionality: 1.0,
             inhabited: false,
             hanging_sprites: &[(0.0001, SpriteKind::Beehive)],
-            wood_color: Rgb::new(90, 35, 15),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 35, 15)),
         }
     }
 
@@ -529,7 +591,7 @@ impl TreeConfig {
             proportionality: 0.0,
             inhabited,
             hanging_sprites: &[(0.00025, SpriteKind::Apple), (0.00025, SpriteKind::Beehive)],
-            wood_color: Rgb::new(110, 68, 22),
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 68, 22)),
         }
     }
 }
