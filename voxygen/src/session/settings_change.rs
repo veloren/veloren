@@ -15,7 +15,6 @@ use crate::{
     GlobalState,
 };
 use i18n::{LanguageMetadata, LocalizationHandle};
-use vek::*;
 
 #[derive(Clone)]
 pub enum Audio {
@@ -118,7 +117,6 @@ pub enum Interface {
     MinimapZoom(f64),
     //Map settings
     MapZoom(f64),
-    MapDrag(Vec2<f64>),
     MapShowTopoMap(bool),
     MapShowDifficulty(bool),
     MapShowTowns(bool),
@@ -496,9 +494,6 @@ impl SettingsChange {
                     },
                     Interface::MapZoom(map_zoom) => {
                         settings.interface.map_zoom = map_zoom;
-                    },
-                    Interface::MapDrag(map_drag) => {
-                        settings.interface.map_drag = map_drag;
                     },
                     Interface::MapShowTopoMap(map_show_topo_map) => {
                         settings.interface.map_show_topo_map = map_show_topo_map;

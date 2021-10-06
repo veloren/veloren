@@ -3,7 +3,6 @@ use crate::{
     ui::ScaleMode,
 };
 use serde::{Deserialize, Serialize};
-use vek::*;
 
 /// `InterfaceSettings` contains UI, HUD and Map options.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -29,7 +28,6 @@ pub struct InterfaceSettings {
     pub always_show_bars: bool,
     pub ui_scale: ScaleMode,
     pub map_zoom: f64,
-    pub map_drag: Vec2<f64>,
     pub map_show_topo_map: bool,
     pub map_show_difficulty: bool,
     pub map_show_towns: bool,
@@ -68,7 +66,6 @@ impl Default for InterfaceSettings {
             always_show_bars: false,
             ui_scale: ScaleMode::RelativeToWindow([1920.0, 1080.0].into()),
             map_zoom: 10.0,
-            map_drag: Vec2 { x: 0.0, y: 0.0 },
             map_show_topo_map: true,
             map_show_difficulty: true,
             map_show_towns: true,
