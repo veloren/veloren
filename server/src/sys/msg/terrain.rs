@@ -2,6 +2,7 @@ use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence};
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
+    spiral::Spiral2d,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
 };
@@ -103,6 +104,24 @@ impl<'a> System<'a> for Sys {
                     }
                     Ok(())
                 });
+
+                // Load a minimum radius of chunks around each player.
+                // This is used to prevent view distance reloading exploits and make sure that
+                // entity simulation occurs within a minimum radius around the
+                // player.
+                if let Some(pos) = positions.get(entity) {
+                    let player_chunk = pos
+                        .0
+                        .xy()
+                        .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as i32 / sz as i32);
+                    for rpos in Spiral2d::new().take((crate::MIN_VD.start as usize + 1).pow(2)) {
+                        let key = player_chunk + rpos;
+                        if terrain.get_key(key).is_none() {
+                            events.push(ServerEvent::ChunkRequest(entity, key));
+                        }
+                    }
+                }
+
                 events
             })
             .flatten()
