@@ -96,7 +96,7 @@ use prometheus_hyper::Server as PrometheusServer;
 use specs::{join::Join, Builder, Entity as EcsEntity, Entity, SystemData, WorldExt};
 use std::{
     i32,
-    ops::{Deref, DerefMut},
+    ops::{Deref, DerefMut, Range},
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -132,6 +132,12 @@ pub struct SpawnPoint(pub Vec3<f32>);
 impl Default for SpawnPoint {
     fn default() -> Self { Self(Vec3::new(0.0, 0.0, 256.0)) }
 }
+
+// This is the minimum chunk range that is kept loaded around each player
+// server-side. This is independent of the client's view distance and exists to
+// avoid exploits such as small view distance chunk reloading and also to keep
+// various mechanics working fluidly (i.e: not unloading nearby entities).
+pub const MIN_VD: Range<u32> = 5..6;
 
 // Tick count used for throttling network updates
 // Note this doesn't account for dt (so update rate changes with tick rate)
