@@ -1,5 +1,10 @@
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
+#[cfg(not(feature = "worldgen"))]
+use test_world::{IndexOwned, World};
+#[cfg(feature = "worldgen")]
+use world::{IndexOwned, World};
+
 use crate::{
     chunk_generator::ChunkGenerator,
     client::Client,
@@ -7,14 +12,15 @@ use crate::{
     presence::{Presence, RepositionOnChunkLoad},
     rtsim::RtSim,
     settings::Settings,
-    SpawnPoint, Tick,
+    ChunkRequest, SpawnPoint, Tick,
 };
 use common::{
     comp::{self, agent, bird_medium, BehaviorCapability, ForceUpdate, Pos, Waypoint},
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
     lottery::LootSpec,
-    resources::Time,
+    resources::{Time, TimeOfDay},
+    slowjob::SlowJobPool,
     terrain::TerrainGrid,
     LoadoutBuilder, SkillSetBuilder,
 };
@@ -104,10 +110,15 @@ impl<'a> System<'a> for Sys {
         Read<'a, Tick>,
         Read<'a, SpawnPoint>,
         Read<'a, Settings>,
+        Read<'a, TimeOfDay>,
+        ReadExpect<'a, SlowJobPool>,
+        ReadExpect<'a, IndexOwned>,
+        ReadExpect<'a, Arc<World>>,
         ReadExpect<'a, NetworkRequestMetrics>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
+        Write<'a, Vec<ChunkRequest>>,
         WriteExpect<'a, RtSim>,
         TerrainPersistenceData<'a>,
         WriteStorage<'a, Pos>,
@@ -131,10 +142,15 @@ impl<'a> System<'a> for Sys {
             tick,
             spawn_point,
             server_settings,
+            time_of_day,
+            slow_jobs,
+            index,
+            world,
             network_metrics,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
+            mut chunk_requests,
             mut rtsim,
             mut _terrain_persistence,
             mut positions,
@@ -148,6 +164,22 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         let mut server_emitter = server_event_bus.emitter();
+
+        // Generate requested chunks
+        //
+        // Submit requests for chunks right before receiving finished chunks so that we
+        // don't create duplicate work for chunks that just finished but are not
+        // yet added to the terrain.
+        chunk_requests.drain(..).for_each(|request| {
+            chunk_generator.generate_chunk(
+                Some(request.entity),
+                request.key,
+                &slow_jobs,
+                Arc::clone(&world),
+                index.clone(),
+                *time_of_day,
+            )
+        });
 
         // Fetch any generated `TerrainChunk`s and insert them into the terrain.
         // Also, send the chunk data to anybody that is close by.

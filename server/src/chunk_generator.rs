@@ -65,14 +65,17 @@ impl ChunkGenerator {
     }
 
     pub fn recv_new_chunk(&mut self) -> Option<ChunkGenResult> {
-        if let Ok((key, res)) = self.chunk_rx.try_recv() {
-            self.pending_chunks.remove(&key);
-            self.metrics.chunks_served.inc();
-            // TODO: do anything else if res is an Err?
-            Some((key, res))
-        } else {
-            None
+        // Make sure chunk wasn't cancelled and if it was check to see if there are more
+        // chunks to receive
+        while let Ok((key, res)) = self.chunk_rx.try_recv() {
+            if self.pending_chunks.remove(&key).is_some() {
+                self.metrics.chunks_served.inc();
+                // TODO: do anything else if res is an Err?
+                return Some((key, res));
+            }
         }
+
+        None
     }
 
     pub fn pending_chunks(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {

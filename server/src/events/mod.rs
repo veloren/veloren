@@ -51,7 +51,6 @@ impl Server {
         span!(_guard, "handle_events", "Server::handle_events");
         let mut frontend_events = Vec::new();
 
-        let mut requested_chunks = Vec::new();
         let mut commands = Vec::new();
         let mut chat_messages = Vec::new();
 
@@ -191,10 +190,6 @@ impl Server {
                         true,
                     ))
                 },
-
-                ServerEvent::ChunkRequest(entity, key) => {
-                    requested_chunks.push((entity, key));
-                },
                 ServerEvent::Command(entity, name, args) => {
                     commands.push((entity, name, args));
                 },
@@ -243,11 +238,6 @@ impl Server {
                     handle_entity_attacked_hook(self, entity)
                 },
             }
-        }
-
-        // Generate requested chunks
-        for (entity, key) in requested_chunks {
-            self.generate_chunk(entity, key);
         }
 
         for (entity, name, args) in commands {

@@ -1,7 +1,6 @@
-use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence};
+use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest};
 use common::{
     comp::Pos,
-    event::{EventBus, ServerEvent},
     spiral::Spiral2d,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
@@ -9,7 +8,7 @@ use common::{
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use common_net::msg::{ClientGeneral, SerializedTerrainChunk, ServerGeneral};
 use rayon::iter::ParallelIterator;
-use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage};
+use specs::{Entities, Join, ParJoin, ReadExpect, ReadStorage, Write};
 use tracing::{debug, trace};
 
 /// This system will handle new messages from clients
@@ -19,9 +18,9 @@ impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
-        Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, NetworkRequestMetrics>,
+        Write<'a, Vec<ChunkRequest>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -35,21 +34,19 @@ impl<'a> System<'a> for Sys {
         job: &mut Job<Self>,
         (
             entities,
-            server_event_bus,
             terrain,
             network_metrics,
+            mut chunk_requests,
             positions,
             presences,
             clients,
         ): Self::SystemData,
     ) {
-        let mut server_emitter = server_event_bus.emitter();
-
         job.cpu_stats.measure(ParMode::Rayon);
-        let mut events = (&entities, &clients, (&presences).maybe())
+        let mut new_chunk_requests = (&entities, &clients, (&presences).maybe())
             .par_join()
             .map(|(entity, client, maybe_presence)| {
-                let mut events = Vec::new();
+                let mut chunk_requests = Vec::new();
                 let _ = super::try_recv_all(client, 5, |client, msg| {
                     let presence = match maybe_presence {
                         Some(g) => g,
@@ -93,7 +90,7 @@ impl<'a> System<'a> for Sys {
                                     },
                                     None => {
                                         network_metrics.chunks_generation_triggered.inc();
-                                        events.push(ServerEvent::ChunkRequest(entity, key));
+                                        chunk_requests.push(ChunkRequest { entity, key });
                                     },
                                 }
                             } else {
@@ -117,19 +114,21 @@ impl<'a> System<'a> for Sys {
                     for rpos in Spiral2d::new().take((crate::MIN_VD as usize + 1).pow(2)) {
                         let key = player_chunk + rpos;
                         if terrain.get_key(key).is_none() {
-                            events.push(ServerEvent::ChunkRequest(entity, key));
+                            // TODO: @zesterer do we want to be sending these chunk to the client
+                            // even if they aren't requested? If we don't we could replace the
+                            // entity here with Option<Entity> and pass in None.
+                            chunk_requests.push(ChunkRequest { entity, key });
                         }
                     }
                 }
 
-                events
+                chunk_requests
             })
             .flatten()
             .collect::<Vec<_>>();
 
         job.cpu_stats.measure(ParMode::Single);
-        for event in events.drain(..) {
-            server_emitter.emit(event);
-        }
+
+        chunk_requests.append(&mut new_chunk_requests);
     }
 }
