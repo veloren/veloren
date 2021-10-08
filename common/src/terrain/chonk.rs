@@ -57,8 +57,10 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     pub fn meta(&self) -> &M { &self.meta }
 
+    #[inline]
     pub fn get_min_z(&self) -> i32 { self.z_offset }
 
+    #[inline]
     pub fn get_max_z(&self) -> i32 {
         self.z_offset + (self.sub_chunks.len() as u32 * SubChunkSize::<S>::SIZE.z) as i32
     }
@@ -71,6 +73,7 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
 
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
+    #[inline]
     fn sub_chunk_idx(&self, z: i32) -> i32 {
         let diff = z - self.z_offset;
         diff >> (SubChunkSize::<S>::SIZE.z - 1).count_ones()
@@ -166,7 +169,7 @@ impl<V, S: RectVolSize, M: Clone> ReadVol for Chonk<V, S, M> {
 
     /// Call provided closure with each block in the supplied Aabb
     /// Portions of the Aabb outside this chonk are ignored
-    //#[inline]
+    #[inline]
     fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, V))
     where
         V: Copy,
