@@ -657,6 +657,7 @@ pub struct Show {
     prompt_dialog: Option<PromptDialogSettings>,
     location_marker: Option<Vec2<f32>>,
     map_marker: bool,
+    salvage: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -1036,6 +1037,7 @@ impl Hud {
                 prompt_dialog: None,
                 location_marker: None,
                 map_marker: false,
+                salvage: false,
             },
             to_focus: None,
             //never_show: false,
@@ -1077,6 +1079,8 @@ impl Hud {
         camera: &Camera,
         interactable: Option<Interactable>,
     ) -> Vec<Event> {
+        self.show.salvage =
+            self.show.crafting && matches!(self.show.crafting_tab, CraftingTab::Dismantle);
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
         if global_state.settings.interface.map_show_voxel_map {

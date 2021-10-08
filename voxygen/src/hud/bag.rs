@@ -87,6 +87,7 @@ pub struct InventoryScroller<'a> {
     is_us: bool,
     inventory: &'a Inventory,
     bg_ids: &'a BackgroundIds,
+    show_salvage: bool,
 }
 
 impl<'a> InventoryScroller<'a> {
@@ -109,6 +110,7 @@ impl<'a> InventoryScroller<'a> {
         is_us: bool,
         inventory: &'a Inventory,
         bg_ids: &'a BackgroundIds,
+        show_salvage: bool,
     ) -> Self {
         InventoryScroller {
             client,
@@ -129,6 +131,7 @@ impl<'a> InventoryScroller<'a> {
             is_us,
             inventory,
             bg_ids,
+            show_salvage,
         }
     }
 
@@ -355,6 +358,10 @@ impl<'a> InventoryScroller<'a> {
 
             // Highlight slots are provided by the loadout item that the mouse is over
             if mouseover_loadout_slots.contains(&i) {
+                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
+            }
+
+            if self.show_salvage && item.as_ref().map_or(false, |item| item.is_salvageable()) {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
@@ -727,6 +734,7 @@ impl<'a> Widget for Bag<'a> {
             true,
             inventory,
             &state.bg_ids,
+            self.show.salvage,
         )
         .set(state.ids.inventory_scroller, ui);
 

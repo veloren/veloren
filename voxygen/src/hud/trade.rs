@@ -326,6 +326,7 @@ impl<'a> Trade<'a> {
                 false,
                 inventory,
                 &state.bg_ids,
+                false,
             )
             .set(state.ids.inventory_scroller, ui);
         }
