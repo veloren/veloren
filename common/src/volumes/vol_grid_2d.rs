@@ -56,7 +56,7 @@ impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
 
     // /// Call provided closure with each block in the supplied Aabb
     // /// Areas outside loaded chunks are ignored
-    #[inline(always)]
+    #[inline]
     fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
     where
         Self::Vox: Copy,
