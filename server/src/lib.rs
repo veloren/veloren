@@ -96,7 +96,7 @@ use prometheus_hyper::Server as PrometheusServer;
 use specs::{join::Join, Builder, Entity as EcsEntity, Entity, SystemData, WorldExt};
 use std::{
     i32,
-    ops::{Deref, DerefMut, Range},
+    ops::{Deref, DerefMut},
     sync::Arc,
     time::{Duration, Instant},
 };
@@ -137,7 +137,7 @@ impl Default for SpawnPoint {
 // server-side. This is independent of the client's view distance and exists to
 // avoid exploits such as small view distance chunk reloading and also to keep
 // various mechanics working fluidly (i.e: not unloading nearby entities).
-pub const MIN_VD: Range<u32> = 5..6;
+pub const MIN_VD: u32 = 6;
 
 // Tick count used for throttling network updates
 // Note this doesn't account for dt (so update rate changes with tick rate)
