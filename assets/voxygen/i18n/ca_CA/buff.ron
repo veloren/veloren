@@ -1,0 +1,52 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Catalan (Catalonia)
+(
+    string_map: {
+        // Buffs
+        "buff.remove": "Clica per a eliminar",
+        "buff.title.missing": "Sense Títol",
+        "buff.desc.missing": "Sense Descripció",
+        "buff.title.heal": "Sanació",
+        "buff.desc.heal": "Restableix Salut durant un temps.",
+        "buff.title.potion": "Poció",
+        "buff.desc.potion": "Bevent...",
+        "buff.title.saturation": "Saturació",
+        "buff.desc.saturation": "Restableix Salut durant un temps pels consumibles.",
+        "buff.title.campfire_heal": "Curació per Foguera",
+        "buff.desc.campfire_heal": "Descansar prop d'una foguera cura un {rate}% per segon.",
+        "buff.title.invulnerability": "Invulnerabilitat",
+        "buff.desc.invulnerability": "No pots ser ferit per cap atac.",
+        "buff.title.protectingward": "Custòdia protectora",
+        "buff.desc.protectingward": "D'alguna manera, estàs sent protegit dels atacs.",
+        "buff.title.frenzied": "Frenesí",
+        "buff.desc.frenzied": "Posseeixes una velocitat sobrenatural i pots ignorar ferides menors.",
+        // Debuffs
+        "buff.title.bleed": "Sagnant",
+        "buff.desc.bleed": "Infligeix dany regularment.",
+        "buff.title.cursed": "Maleït",
+        "buff.desc.cursed": "Estás maleït.",
+        "buff.title.burn": "En Flames",
+        "buff.desc.burn": "Et cremes viu",
+        "buff.title.crippled": "Mutilat",
+        "buff.desc.crippled": "Els teus moviments són força ineficients perquè les teves cames estan greument danyades.",
+        "buff.title.frozen": "Congelat",
+        "buff.desc.frozen": "Els teus moviments i atacs s'alenteixen.",
+        "buff.title.wet": "Banyat",
+        "buff.desc.wet": "El sol rellisca, fent que parar sigui difícil.",
+        "buff.title.ensnared": "Atrapat",
+        "buff.desc.ensnared": "Plantes s'emboliquen a les teves cames, impedint els teus moviments.",
+        // Buffs stats
+        "buff.stat.health": "Restaura {str_total} Salut",
+        "buff.stat.increase_max_energy": "Augmenta l'Energia màxima en {strength}",
+        "buff.stat.increase_max_health": "Augmenta la Salut màxima en {strength}",
+        "buff.stat.invulnerability": "Concedeix invulnerabilitat",
+        // Text
+        "buff.text.over_seconds": "al llarg de {dur_secs} segons",
+        "buff.text.for_seconds": "durant {dur_secs} segons",
+    },
+
+
+    vector_map: {
+    }
+)
