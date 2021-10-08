@@ -495,13 +495,17 @@ pub fn chunk_in_vd(
     terrain: &TerrainGrid,
     vd: u32,
 ) -> bool {
+    // This fuzzy threshold prevents chunks rapidly unloading and reloading when
+    // players move over a chunk border.
+    const UNLOAD_THRESHOLD: u32 = 2;
+
     let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
 
     let adjusted_dist_sqr = (player_chunk_pos - chunk_pos)
-        .map(|e: i32| (e.abs() as u32).saturating_sub(2))
+        .map(|e: i32| e.abs() as u32)
         .magnitude_squared();
 
-    adjusted_dist_sqr <= vd.max(crate::MIN_VD.end).pow(2)
+    adjusted_dist_sqr <= (vd.max(crate::MIN_VD) + UNLOAD_THRESHOLD).pow(2)
 }
 
 fn is_spawn_chunk(chunk_pos: Vec2<i32>, spawn_pos: SpawnPoint, terrain: &TerrainGrid) -> bool {
