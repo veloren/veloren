@@ -28,7 +28,7 @@ pub mod util;
 // Reexports
 pub use crate::{
     canvas::{Canvas, CanvasInfo},
-    config::CONFIG,
+    config::{Features, CONFIG},
     land::Land,
 };
 pub use block::BlockGen;
@@ -347,13 +347,27 @@ impl World {
             entities: Vec::new(),
         };
 
-        layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_paths_to(&mut canvas);
-        layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
+        if index.features.caverns {
+            layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.caves {
+            layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.shrubs {
+            layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.trees {
+            layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.scatter {
+            layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.paths {
+            layer::apply_paths_to(&mut canvas);
+        }
+        if index.features.spots {
+            layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
+        }
         // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation

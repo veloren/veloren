@@ -1,3 +1,6 @@
+use common::assets;
+use serde::Deserialize;
+
 pub struct Config {
     pub sea_level: f32,
     pub mountain_scale: f32,
@@ -69,3 +72,20 @@ pub const CONFIG: Config = Config {
     river_min_height: 0.25,
     river_width_to_depth: 8.0,
 };
+
+#[derive(Deserialize)]
+pub struct Features {
+    pub caverns: bool,
+    pub caves: bool,
+    pub shrubs: bool,
+    pub trees: bool,
+    pub scatter: bool,
+    pub paths: bool,
+    pub spots: bool,
+}
+
+impl assets::Asset for Features {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}

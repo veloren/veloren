@@ -851,7 +851,7 @@ impl Server {
             let ecs = self.state.ecs_mut();
             let slow_jobs = ecs.write_resource::<SlowJobPool>();
 
-            index.reload_colors_if_changed(|index| {
+            index.reload_if_changed(|index| {
                 let mut chunk_generator = ecs.write_resource::<ChunkGenerator>();
                 let client = ecs.read_storage::<Client>();
                 let mut terrain = ecs.write_resource::<common::terrain::TerrainGrid>();
