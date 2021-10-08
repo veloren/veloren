@@ -391,7 +391,7 @@ impl TreeConfig {
             leaf_vertical_scale: 0.7,
             proportionality: 0.0,
             inhabited: false,
-            hanging_sprites: &[(0.03, SpriteKind::Apple), (0.02, SpriteKind::Beehive)],
+            hanging_sprites: &[(0.03, SpriteKind::Apple), (0.007, SpriteKind::Beehive)],
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
         }
     }
