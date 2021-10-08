@@ -56,6 +56,7 @@ impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
 
     // /// Call provided closure with each block in the supplied Aabb
     // /// Areas outside loaded chunks are ignored
+    #[inline(always)]
     fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
     where
         Self::Vox: Copy,
@@ -151,7 +152,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         }
     }
 
-    //#[inline]
+    #[inline(always)]
     pub fn chunk_size() -> Vec2<u32> { V::RECT_SIZE }
 
     //#[inline]
@@ -159,7 +160,7 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         self.chunks.insert(key, chunk)
     }
 
-    //#[inline]
+    #[inline(always)]
     pub fn get_key(&self, key: Vec2<i32>) -> Option<&V> {
         self.chunks.get(&key).map(|arc_chunk| arc_chunk.as_ref())
     }
@@ -174,10 +175,10 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     //#[inline]
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
-    //#[inline]
+    #[inline(always)]
     pub fn key_pos(&self, key: Vec2<i32>) -> Vec2<i32> { key * V::RECT_SIZE.map(|e| e as i32) }
 
-    //#[inline]
+    #[inline(always)]
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
 
     //#[inline]
