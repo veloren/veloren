@@ -180,6 +180,11 @@ impl BattleModeBuffer {
     }
 }
 
+pub struct ChunkRequest {
+    entity: EcsEntity,
+    key: Vec2<i32>,
+}
+
 pub struct Server {
     state: State,
     world: Arc<World>,
@@ -234,6 +239,7 @@ impl Server {
             path: data_dir.to_owned(),
         });
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
+        state.ecs_mut().insert(Vec::<ChunkRequest>::new());
         state.ecs_mut().insert(LoginProvider::new(
             settings.auth_server_address.clone(),
             Arc::clone(&runtime),
@@ -1071,7 +1077,7 @@ impl Server {
 
     pub fn generate_chunk(&mut self, entity: EcsEntity, key: Vec2<i32>) {
         let ecs = self.state.ecs();
-        let slow_jobs = ecs.write_resource::<SlowJobPool>();
+        let slow_jobs = ecs.read_resource::<SlowJobPool>();
         ecs.write_resource::<ChunkGenerator>().generate_chunk(
             Some(entity),
             key,
