@@ -969,7 +969,11 @@ impl Window {
                     d.y as f64 + self.cursor_position.y,
                 ))
             {
-                error!("Error setting cursor position: {:?}", err);
+                // Log this error once rather than every frame
+                static SPAM_GUARD: std::sync::Once = std::sync::Once::new();
+                SPAM_GUARD.call_once(|| {
+                    error!("Error setting cursor position: {:?}", err);
+                })
             }
         }
     }
@@ -994,7 +998,11 @@ impl Window {
                 dimensions[1] / (2_f64),
             ))
         {
-            error!("Error centering cursor position: {:?}", err);
+            // Log this error once rather than every frame
+            static SPAM_GUARD: std::sync::Once = std::sync::Once::new();
+            SPAM_GUARD.call_once(|| {
+                error!("Error centering cursor position: {:?}", err);
+            })
         }
     }
 
