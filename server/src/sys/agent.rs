@@ -1081,10 +1081,21 @@ impl<'a> AgentData<'a> {
                                             };
                                         self.chat_general(msg, event_emitter);
                                     } else if agent.behavior.can_trade() {
-                                        self.chat_general(
-                                            "npc.speech.merchant_advertisement",
-                                            event_emitter,
-                                        );
+                                        if !agent.behavior.is(BehaviorState::TRADING) {
+                                            controller.events.push(ControlEvent::InitiateInvite(
+                                                by,
+                                                InviteKind::Trade,
+                                            ));
+                                            self.chat_general(
+                                                "npc.speech.merchant_advertisement",
+                                                event_emitter,
+                                            );
+                                        } else {
+                                            self.chat_general(
+                                                "npc.speech.merchant_busy",
+                                                event_emitter,
+                                            );
+                                        }
                                     } else {
                                         self.chat_general("npc.speech.villager", event_emitter);
                                     }
