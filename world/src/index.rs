@@ -84,6 +84,8 @@ impl Index {
 
     pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
 
+    pub fn features(&self) -> AssetHandle<Arc<Features>> { self.features }
+
     pub fn get_site_prices(&self, site_id: SiteId) -> Option<SitePrices> {
         self.sites
             .recreate_id(site_id)

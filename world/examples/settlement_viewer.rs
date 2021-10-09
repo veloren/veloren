@@ -17,7 +17,12 @@ fn main() {
     let mut focus = Vec2::<f32>::zero();
     let mut zoom = 1.0;
     let colors = &**index.colors().read();
-    let index = IndexRef { colors, index };
+    let features = &**index.features().read();
+    let index = IndexRef {
+        colors,
+        features,
+        index,
+    };
 
     while win.is_open() {
         let mut buf = vec![0; W * H];

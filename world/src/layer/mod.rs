@@ -701,7 +701,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             let warp_amp = Vec3::new(12.0, 12.0, 12.0);
             let wposf_warped = wposf.map(|e| e as f32)
                 + Vec3::new(
-                    FastNoise::new(seed + 0).get(wposf * warp_freq) as f32,
+                    FastNoise::new(seed).get(wposf * warp_freq) as f32,
                     FastNoise::new(seed + 1).get(wposf * warp_freq) as f32,
                     FastNoise::new(seed + 2).get(wposf * warp_freq) as f32,
                 ) * warp_amp
