@@ -6,6 +6,7 @@ use vek::{Rgb, Vec3};
 use common::{
     comp::{
         self,
+        group::members,
         item::{self, tool::AbilityMap, MaterialStatManifest},
         slot::{self, Slot},
     },
@@ -20,11 +21,12 @@ use common_net::sync::WorldSyncExt;
 use common_state::State;
 use comp::LightEmitter;
 
-use crate::{Server, StateExt};
+use crate::{client::Client, Server, StateExt};
 use common::{
-    comp::pet::is_tameable,
+    comp::{pet::is_tameable, ChatType, Group},
     event::{EventBus, ServerEvent},
 };
+use common_net::msg::ServerGeneral;
 
 pub fn swap_lantern(
     storage: &mut WriteStorage<comp::LightEmitter>,
@@ -173,6 +175,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         "We knew item_entity existed since we just successfully removed its Item \
                          component.",
                     );
+                    let ecs = state.ecs();
+                    if let Some(group_id) = ecs.read_storage::<comp::Group>().get(entity) {
+                        announce_loot_to_group(group_id, ecs, entity, &item_msg.name);
+                    }
                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item_msg))
                 },
             };
@@ -195,12 +201,20 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             &state.ecs().read_resource::<MaterialStatManifest>(),
                         );
                         let (event, item_was_added) = match inventory.push(item) {
-                            Ok(_) => (
-                                Some(comp::InventoryUpdate::new(
-                                    comp::InventoryUpdateEvent::Collected(item_msg),
-                                )),
-                                true,
-                            ),
+                            Ok(_) => {
+                                let ecs = state.ecs();
+                                if let Some(group_id) =
+                                    ecs.read_storage::<comp::Group>().get(entity)
+                                {
+                                    announce_loot_to_group(group_id, ecs, entity, &item_msg.name);
+                                }
+                                (
+                                    Some(comp::InventoryUpdate::new(
+                                        comp::InventoryUpdateEvent::Collected(item_msg),
+                                    )),
+                                    true,
+                                )
+                            },
                             // The item we created was in some sense "fake" so it's safe to
                             // drop it.
                             Err(_) => (
@@ -722,6 +736,34 @@ fn within_pickup_range<S: FindDist<find_dist::Cylinder>>(
             shape_fn().map(|shape| shape.min_distance(entity_cylinder) < MAX_PICKUP_RANGE)
         })
         .unwrap_or(false)
+}
+
+fn announce_loot_to_group(
+    group_id: &Group,
+    ecs: &specs::World,
+    entity: EcsEntity,
+    item_name: &str,
+) {
+    let clients = ecs.read_storage::<Client>();
+
+    members(
+        *group_id,
+        &ecs.read_storage(),
+        &ecs.entities(),
+        &ecs.read_storage(),
+        &ecs.read_storage::<Uid>(),
+    )
+    .filter(|(member_e, _)| member_e != &entity)
+    .for_each(|(e, _)| {
+        clients.get(e).and_then(|c| {
+            ecs.read_storage::<comp::Stats>().get(entity).map(|stats| {
+                c.send_fallible(ServerGeneral::server_msg(
+                    ChatType::Meta,
+                    format!("{} picked up {}", stats.name, item_name),
+                ));
+            })
+        });
+    });
 }
 
 #[cfg(test)]
