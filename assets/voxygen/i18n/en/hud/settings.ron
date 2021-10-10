@@ -61,6 +61,7 @@
         "hud.settings.sprites_view_distance": "Sprites View Distance",
         "hud.settings.figures_view_distance": "Entities View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",
+        "hud.settings.background_fps": "Background FPS",
         "hud.settings.present_mode": "Present Mode",
         "hud.settings.present_mode.fifo": "Fifo",
         "hud.settings.present_mode.mailbox": "Mailbox",

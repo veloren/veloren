@@ -386,7 +386,7 @@ pub struct Window {
     keypress_map: HashMap<GameInput, winit::event::ElementState>,
     pub remapping_keybindings: Option<GameInput>,
     events: Vec<Event>,
-    focused: bool,
+    pub focused: bool,
     gilrs: Option<Gilrs>,
     pub controller_settings: ControllerSettings,
     cursor_position: winit::dpi::PhysicalPosition<f64>,

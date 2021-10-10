@@ -73,6 +73,7 @@ pub enum Graphics {
     AdjustFigureLoDRenderDistance(u32),
 
     ChangeMaxFPS(Fps),
+    ChangeMaxBackgroundFPS(Fps),
     ChangeFOV(u16),
 
     ChangeGamma(f32),
@@ -347,6 +348,9 @@ impl SettingsChange {
                     },
                     Graphics::ChangeMaxFPS(fps) => {
                         settings.graphics.max_fps = fps;
+                    },
+                    Graphics::ChangeMaxBackgroundFPS(fps) => {
+                        settings.graphics.max_background_fps = fps;
                     },
                     Graphics::ChangeFOV(new_fov) => {
                         settings.graphics.fov = new_fov;
