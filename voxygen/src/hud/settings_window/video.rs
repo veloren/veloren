@@ -51,6 +51,9 @@ widget_ids! {
         max_fps_slider,
         max_fps_text,
         max_fps_value,
+        max_background_fps_slider,
+        max_background_fps_text,
+        max_background_fps_value,
         present_mode_text,
         present_mode_list,
         fov_slider,
@@ -144,17 +147,44 @@ pub struct State {
     // Resolution, Bit Depth and Refresh Rate
     video_modes: Vec<VideoMode>,
 }
-const FPS_CHOICES: [Fps; 12] = [
+const FPS_CHOICES: [Fps; 17] = [
     Fps::Max(15),
     Fps::Max(30),
     Fps::Max(40),
     Fps::Max(50),
     Fps::Max(60),
+    Fps::Max(75),
     Fps::Max(90),
+    Fps::Max(100),
     Fps::Max(120),
     Fps::Max(144),
+    Fps::Max(165),
+    Fps::Max(200),
     Fps::Max(240),
-    Fps::Max(300),
+    Fps::Max(280),
+    Fps::Max(360),
+    Fps::Max(500),
+    Fps::Unlimited,
+];
+const BG_FPS_CHOICES: [Fps; 20] = [
+    Fps::Max(5),
+    Fps::Max(10),
+    Fps::Max(15),
+    Fps::Max(20),
+    Fps::Max(30),
+    Fps::Max(40),
+    Fps::Max(50),
+    Fps::Max(60),
+    Fps::Max(75),
+    Fps::Max(90),
+    Fps::Max(100),
+    Fps::Max(120),
+    Fps::Max(144),
+    Fps::Max(165),
+    Fps::Max(200),
+    Fps::Max(240),
+    Fps::Max(280),
+    Fps::Max(360),
     Fps::Max(500),
     Fps::Unlimited,
 ];
@@ -306,13 +336,58 @@ impl<'a> Widget for Video<'a> {
             .color(TEXT_COLOR)
             .set(state.ids.max_fps_value, ui);
 
+        // Max Background FPS
+        Text::new(self.localized_strings.get("hud.settings.background_fps"))
+            .down_from(state.ids.vd_slider, 10.0)
+            .right_from(state.ids.max_fps_value, 30.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.max_background_fps_text, ui);
+
+        if let Some(which) = ImageSlider::discrete(
+            BG_FPS_CHOICES
+                .iter()
+                .position(|&x| x == self.global_state.settings.graphics.max_background_fps)
+                .unwrap_or(5),
+            0,
+            BG_FPS_CHOICES.len() - 1,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.max_background_fps_text, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.max_background_fps_slider, ui)
+        {
+            events.push(GraphicsChange::ChangeMaxBackgroundFPS(
+                BG_FPS_CHOICES[which],
+            ));
+        }
+
+        Text::new(
+            &self
+                .global_state
+                .settings
+                .graphics
+                .max_background_fps
+                .to_string(),
+        )
+        .right_from(state.ids.max_background_fps_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.max_background_fps_value, ui);
+
         // Get render mode
         let render_mode = &self.global_state.settings.graphics.render_mode;
 
         // Present Mode
         Text::new(self.localized_strings.get("hud.settings.present_mode"))
             .down_from(state.ids.vd_slider, 10.0)
-            .right_from(state.ids.max_fps_value, 30.0)
+            .right_from(state.ids.max_background_fps_value, 30.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
