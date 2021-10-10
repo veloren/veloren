@@ -181,6 +181,7 @@ make_case_elim!(
 );
 
 impl SpriteKind {
+    #[inline]
     pub fn solid_height(&self) -> Option<f32> {
         // Beware: the height *must* be <= `MAX_HEIGHT` or the collision system will not
         // properly detect it!
@@ -268,6 +269,7 @@ impl SpriteKind {
     }
 
     /// What loot table does collecting this sprite draw from?
+    #[inline]
     pub fn collectible_id(&self) -> Option<LootSpec<&'static str>> {
         let item = |id: &'static str| LootSpec::Item(id);
         let table = |id: &'static str| LootSpec::LootTable(id);
@@ -336,16 +338,19 @@ impl SpriteKind {
     }
 
     /// Can this sprite be picked up to yield an item without a tool?
+    #[inline]
     pub fn is_collectible(&self) -> bool {
         self.collectible_id().is_some() && self.mine_tool().is_none()
     }
 
     /// Is the sprite a container that will emit a mystery item?
+    #[inline]
     pub fn is_container(&self) -> bool {
         matches!(self.collectible_id(), Some(LootSpec::LootTable(_)))
     }
 
     /// Which tool (if any) is needed to collect this sprite?
+    #[inline]
     pub fn mine_tool(&self) -> Option<ToolKind> {
         match self {
             SpriteKind::Velorite
@@ -375,6 +380,7 @@ impl SpriteKind {
         }
     }
 
+    #[inline]
     pub fn has_ori(&self) -> bool {
         matches!(
             self,
@@ -446,5 +452,6 @@ lazy_static! {
 impl<'a> TryFrom<&'a str> for SpriteKind {
     type Error = ();
 
+    #[inline]
     fn try_from(s: &'a str) -> Result<Self, Self::Error> { SPRITE_KINDS.get(s).copied().ok_or(()) }
 }
