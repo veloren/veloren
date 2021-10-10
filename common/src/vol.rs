@@ -114,7 +114,6 @@ pub trait ReadVol: BaseVol {
 
     /// Call provided closure with each block in the supplied Aabb
     /// Portions of the Aabb outside the volume are ignored
-    //#[inline]
     fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
     where
         Self::Vox: Copy,

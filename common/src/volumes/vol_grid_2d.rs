@@ -54,9 +54,8 @@ impl<V: RectRasterableVol + ReadVol + Debug> ReadVol for VolGrid2d<V> {
             })
     }
 
-    // /// Call provided closure with each block in the supplied Aabb
-    // /// Areas outside loaded chunks are ignored
-    #[inline]
+    /// Call provided closure with each block in the supplied Aabb
+    /// Areas outside loaded chunks are ignored
     fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
     where
         Self::Vox: Copy,
@@ -155,7 +154,6 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     #[inline(always)]
     pub fn chunk_size() -> Vec2<u32> { V::RECT_SIZE }
 
-    //#[inline]
     pub fn insert(&mut self, key: Vec2<i32>, chunk: Arc<V>) -> Option<Arc<V>> {
         self.chunks.insert(key, chunk)
     }
@@ -165,14 +163,12 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
         self.chunks.get(&key).map(|arc_chunk| arc_chunk.as_ref())
     }
 
-    //#[inline]
     pub fn get_key_arc(&self, key: Vec2<i32>) -> Option<&Arc<V>> { self.chunks.get(&key) }
 
     pub fn clear(&mut self) { self.chunks.clear(); }
 
     pub fn drain(&mut self) -> hash_map::Drain<Vec2<i32>, Arc<V>> { self.chunks.drain() }
 
-    //#[inline]
     pub fn remove(&mut self, key: Vec2<i32>) -> Option<Arc<V>> { self.chunks.remove(&key) }
 
     #[inline(always)]
@@ -181,14 +177,12 @@ impl<V: RectRasterableVol> VolGrid2d<V> {
     #[inline(always)]
     pub fn pos_key(&self, pos: Vec3<i32>) -> Vec2<i32> { Self::chunk_key(pos) }
 
-    //#[inline]
     pub fn iter(&self) -> ChunkIter<V> {
         ChunkIter {
             iter: self.chunks.iter(),
         }
     }
 
-    //#[inline]
     pub fn cached(&self) -> CachedVolGrid2d<V> { CachedVolGrid2d::new(self) }
 }
 

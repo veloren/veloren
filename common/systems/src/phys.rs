@@ -1342,7 +1342,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         clippy::cast_possible_truncation,
         clippy::cast_sign_loss
     )]
-    prof_span!("box_voxel_collision");
+    //prof_span!("box_voxel_collision");
 
     // Convience function to compute the player aabb
     fn player_aabb(pos: Vec3<f32>, radius: f32, z_range: Range<f32>) -> Aabb<f32> {
@@ -1362,9 +1362,9 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     // Function for determining whether the player at a specific position collides
     // with blocks with the given criteria
-    fn collision_with<'a, T: BaseVol<Vox = Block> + ReadVol>(
+    fn collision_with<T: BaseVol<Vox = Block> + ReadVol>(
         pos: Vec3<f32>,
-        terrain: &'a T,
+        terrain: &T,
         hit: impl Fn(&Block) -> bool,
         near_aabb: Aabb<i32>,
         radius: f32,
@@ -1430,12 +1430,12 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         .clamped(1, MAX_INCREMENTS);
     let old_pos = pos.0;
     for _ in 0..increments {
-        prof_span!("increment");
+        //prof_span!("increment");
         const MAX_ATTEMPTS: usize = 16;
         pos.0 += pos_delta / increments as f32;
 
         let try_colliding_block = |pos: &Pos| {
-            prof_span!("most colliding check");
+            //prof_span!("most colliding check");
             // Calculate the player's AABB
             let player_aabb = player_aabb(pos.0, radius, z_range.clone());
 
@@ -1530,7 +1530,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             && dir.z < -0.1
             // ...and the space above is free...
             && {
-                prof_span!("space above free");
+                //prof_span!("space above free");
                 !collision_with(
                     Vec3::new(pos.0.x, pos.0.y, (pos.0.z + 0.1).ceil()),
                     &terrain,
@@ -1542,7 +1542,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             }
             // ...and there is a collision with a block beneath our current hitbox...
             && {
-                prof_span!("collision beneath");
+                //prof_span!("collision beneath");
                 collision_with(
                     pos.0 + resolve_dir - Vec3::unit_z() * 1.25,
                     &terrain,
@@ -1596,7 +1596,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
         physics_state.on_ground = on_ground;
     // If the space below us is free, then "snap" to the ground
     } else if vel.0.z <= 0.0 && was_on_ground && block_snap && {
-        prof_span!("snap check");
+        //prof_span!("snap check");
         collision_with(
             pos.0 - Vec3::unit_z() * 1.1,
             &terrain,
@@ -1606,7 +1606,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             z_range.clone(),
         )
     } {
-        prof_span!("snap!!");
+        //prof_span!("snap!!");
         let snap_height = terrain
             .get(Vec3::new(pos.0.x, pos.0.y, pos.0.z - 0.1).map(|e| e.floor() as i32))
             .ok()
@@ -1643,7 +1643,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
 
     let mut liquid = None::<(LiquidKind, f32)>;
     let mut wall_dir_collisions = [false; 4];
-    prof_span!(guard, "liquid/walls");
+    //prof_span!(guard, "liquid/walls");
     terrain.for_each_in(near_aabb, |block_pos, block| {
         // Check for liquid blocks
         if let Some(block_liquid) = block.liquid_kind() {
@@ -1680,7 +1680,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
             }
         }
     });
-    drop(guard);
+    //drop(guard);
 
     // Use wall collision results to determine if we are against a wall
     let mut on_wall = None;

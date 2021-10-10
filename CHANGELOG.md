@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sprite spawn rates
 - The Interact button can be used on campfires to sit
 - Made map icons fade out when near the edge of the map display
+- Roughly doubled the speed of entity vs terrain physics checks
 
 ### Removed
 
