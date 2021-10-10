@@ -278,14 +278,13 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
 fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("drop_table.csv")?;
+    wtr.write_record(&["Entity Path", "Percent Chance", "Item Path", "Quantity"])?;
 
     fn write_entity_loot<W: std::io::Write>(
         wtr: &mut csv::Writer<W>,
         asset_path: &str,
     ) -> Result<(), Box<dyn Error>> {
-        wtr.write_record(&["Percent Chance", "Item Path", "Quantity"])?;
-
-        let entity_config = EntityConfig::load_expect(&asset_path).read();
+        let entity_config = EntityConfig::load_expect(asset_path).read();
 
         // Create initial entry in drop table
         let entry: (f32, LootSpec<String>) = (1.0, entity_config.loot.clone());
@@ -362,7 +361,8 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
             let (item_asset, quantity) = match item {
                 LootSpec::Item(item) => (Some(item), "1".to_string()),
                 LootSpec::ItemQuantity(item, lower, upper) => {
-                    (Some(item), format!("{}-{}", lower, upper))
+                    // Tab needed so excel doesn't think it is a date...
+                    (Some(item), format!("{}-{}\t", lower, upper))
                 },
                 LootSpec::LootTable(_) => panic!("Shouldn't exist"),
                 LootSpec::Nothing => (None, "-".to_string()),
@@ -376,7 +376,7 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                 "Nothing"
             };
 
-            wtr.write_record(&[&percent_chance, item_name, &quantity])?
+            wtr.write_record(&[asset_path, &percent_chance, item_name, &quantity])?
         }
 
         Ok(())
@@ -387,7 +387,6 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
             .expect("Entity files moved somewhere else maybe?")
             .ids();
         for config in configs {
-            wtr.write_record(&[config, "", ""])?;
             write_entity_loot(&mut wtr, config)?;
         }
     } else {
