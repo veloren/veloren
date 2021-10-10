@@ -3216,6 +3216,17 @@ Loom: Some((
     ],
     wind_sway: 0.0,
 )),
+// SalvagingBench
+SalvagingBench: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",
+            offset: (-8.5, -7.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 SpinningWheel: Some((
     variations: [
         (
