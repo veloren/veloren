@@ -217,6 +217,21 @@ pub struct State {
     selected_recipe: Option<String>,
 }
 
+enum SearchFilter {
+    None,
+    Input,
+    Nonexistant,
+}
+
+impl SearchFilter {
+    fn parse_from_str(string: &str) -> Self {
+        match string {
+            "input" => Self::Input,
+            _ => Self::Nonexistant,
+        }
+    }
+}
+
 impl<'a> Widget for Crafting<'a> {
     type Event = Vec<Event>;
     type State = State;
@@ -407,6 +422,29 @@ impl<'a> Widget for Crafting<'a> {
                 .set(state.ids.category_imgs[i], ui);
         }
 
+        // TODO: Consider UX for filtering searches, maybe a checkbox or a dropdown if
+        // more filters gets added
+        let mut _lower_case_search = String::new();
+        let (search_filter, search_keys) = {
+            if let Some(key) = &self.show.crafting_search_key {
+                _lower_case_search = key.as_str().to_lowercase();
+                _lower_case_search
+                    .split_once(':')
+                    .map(|(filter, key)| {
+                        (
+                            SearchFilter::parse_from_str(filter),
+                            key.split_whitespace().collect(),
+                        )
+                    })
+                    .unwrap_or((
+                        SearchFilter::None,
+                        _lower_case_search.split_whitespace().collect(),
+                    ))
+            } else {
+                (SearchFilter::None, vec![])
+            }
+        };
+
         // First available recipes, then ones with available materials,
         // then unavailable ones, each sorted by quality and then alphabetically
         // In the tuple, "name" is the recipe book key, and "recipe.output.0.name()"
@@ -415,16 +453,24 @@ impl<'a> Widget for Crafting<'a> {
             .client
             .recipe_book()
             .iter()
-            .filter(|(_, recipe)| {
-                let output_name = recipe.output.0.name.to_lowercase();
-                if let Some(key) = &self.show.crafting_search_key {
-                    key.as_str()
-                        .to_lowercase()
-                        .split_whitespace()
-                        .all(|substring| output_name.contains(substring))
-                } else {
-                    true
-                }
+            .filter(|(_, recipe)| match search_filter {
+                SearchFilter::None => {
+                    let output_name = recipe.output.0.name.to_lowercase();
+                    search_keys
+                        .iter()
+                        .all(|&substring| output_name.contains(substring))
+                },
+                SearchFilter::Input => recipe.inputs().any(|(input, _)| {
+                    let input_name = match input {
+                        RecipeInput::Item(def) => def.name.as_str(),
+                        RecipeInput::Tag(tag) => tag.name(),
+                    }
+                    .to_lowercase();
+                    search_keys
+                        .iter()
+                        .all(|&substring| input_name.contains(substring))
+                }),
+                _ => false,
             })
             .map(|(name, recipe)| {
                 let has_materials = self.client.available_recipes().get(name.as_str()).is_some();
