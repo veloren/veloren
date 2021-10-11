@@ -5,7 +5,7 @@ use crate::sys::terrain::NpcData;
 use common::{
     comp,
     event::{EventBus, ServerEvent},
-    generation::EntityInfo,
+    generation::{BodyBuilder, EntityConfig, EntityInfo},
     resources::{DeltaTime, Time},
     terrain::TerrainGrid,
 };
@@ -127,15 +127,17 @@ impl<'a> System<'a> for Sys {
                     rtsim_entity,
                 }
             } else {
-                let entity_config = entity.get_entity_config();
+                let entity_config_path = entity.get_entity_config();
                 let mut loadout_rng = entity.loadout_rng();
                 let ad_hoc_loadout = entity.get_adhoc_loadout();
                 // Body is rewritten so that body parameters
                 // are consistent between reifications
+                let entity_config = EntityConfig::from_asset_expect(entity_config_path)
+                    .with_body(BodyBuilder::Exact(body));
+
                 let entity_info = EntityInfo::at(pos.0)
-                    .with_asset_expect(entity_config)
+                    .with_entity_config(entity_config, Some(entity_config_path))
                     .with_lazy_loadout(ad_hoc_loadout)
-                    .with_body(body)
                     .with_health_scaling(10);
                 match NpcData::from_entity_info(entity_info, &mut loadout_rng) {
                     NpcData::Data {
