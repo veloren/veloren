@@ -690,8 +690,10 @@ impl Body {
                 ),
                 _ => false,
             },
-            BuffKind::Ensnared => {
-                matches!(self, Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Harvester))
+            BuffKind::Ensnared => match self {
+                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Harvester),
+                Body::Arthropod(_) => true,
+                _ => false,
             },
             _ => false,
         }
