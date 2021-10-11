@@ -199,10 +199,10 @@ impl Material {
             Material::Sunsilk => "common.items.crafting_ing.cloth.sunsilk",
             Material::Rawhide => "common.items.crafting_ing.leather.simple_leather",
             Material::Leather => "common.items.crafting_ing.leather.thick_leather",
-            Material::Scale => "common.items.crafting_ing.leather.scales",
-            Material::Carapace => "common.items.crafting_ing.leather.carapace",
-            Material::Plate => "common.items.crafting_ing.leather.plate",
-            Material::Dragonscale => "common.items.crafting_ing.leather.dragon_scale",
+            Material::Scale => "common.items.crafting_ing.hide.scales",
+            Material::Carapace => "common.items.crafting_ing.hide.carapace",
+            Material::Plate => "common.items.crafting_ing.hide.plate",
+            Material::Dragonscale => "common.items.crafting_ing.hide.dragon_scale",
         }
     }
 }
