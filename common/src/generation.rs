@@ -14,21 +14,21 @@ use serde::Deserialize;
 use vek::*;
 
 #[derive(Debug, Deserialize, Clone)]
-enum NameKind {
+pub enum NameKind {
     Name(String),
     Automatic,
     Uninit,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum BodyBuilder {
+pub enum BodyBuilder {
     RandomWith(String),
     Exact(Body),
     Uninit,
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum AlignmentMark {
+pub enum AlignmentMark {
     Alignment(Alignment),
     Uninit,
 }
@@ -38,7 +38,7 @@ impl Default for AlignmentMark {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum Hands {
+pub enum Hands {
     TwoHanded(ItemSpec),
     Paired(ItemSpec),
     Mix {
@@ -53,7 +53,7 @@ impl Default for Hands {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum Meta {
+pub enum Meta {
     LoadoutAsset(String),
     SkillSetAsset(String),
 }
@@ -92,16 +92,17 @@ pub struct EntityConfig {
     /// Can be Name(String) with given name
     /// or Automatic which will call automatic name depend on Body
     /// or Uninit (means it should be specified somewhere in code)
+    // Hidden, because its behaviour depends on `body` field.
     name: NameKind,
 
     /// Body
     /// Can be Exact (Body with all fields e.g BodyType, Species, Hair color and
     /// such) or RandomWith (will generate random body or species)
     /// or Uninit (means it should be specified somewhere in code)
-    body: BodyBuilder,
+    pub body: BodyBuilder,
 
     /// Alignment, can be Uninit
-    alignment: AlignmentMark,
+    pub alignment: AlignmentMark,
 
     /// Loot
     /// See LootSpec in lottery
@@ -117,14 +118,14 @@ pub struct EntityConfig {
     // TODO: better name for this?
     // wielding? equipped? what do you think Tigers are wielding?
     // should we use this field for animals without visible weapons at all?
-    hands: Hands,
+    pub hands: Hands,
 
     /// Meta Info for optional fields
     /// Possible fields:
     /// LoadoutAsset(String) with asset_specifier for loadout
     /// SkillSetAsset(String) with asset_specifier for skillset
     #[serde(default)]
-    meta: Vec<Meta>,
+    pub meta: Vec<Meta>,
 }
 
 impl assets::Asset for EntityConfig {
@@ -134,9 +135,15 @@ impl assets::Asset for EntityConfig {
 }
 
 impl EntityConfig {
-    pub fn from_asset_expect(asset_specifier: &str) -> EntityConfig {
+    pub fn from_asset_expect(asset_specifier: &str) -> Self {
         Self::load_owned(asset_specifier)
             .unwrap_or_else(|e| panic!("Failed to load {}. Error: {}", asset_specifier, e))
+    }
+
+    pub fn with_body(mut self, body: BodyBuilder) -> Self {
+        self.body = body;
+
+        self
     }
 }
 
@@ -193,14 +200,15 @@ impl EntityInfo {
         }
     }
 
+    /// Helper function for applying config from asset
     pub fn with_asset_expect(self, asset_specifier: &str) -> Self {
         let config = EntityConfig::load_expect(asset_specifier).read().clone();
 
         self.with_entity_config(config, Some(asset_specifier))
     }
 
-    // helper function to apply config
-    fn with_entity_config(mut self, config: EntityConfig, config_asset: Option<&str>) -> Self {
+    /// Evaluate and apply EntityConfig
+    pub fn with_entity_config(mut self, config: EntityConfig, config_asset: Option<&str>) -> Self {
         let EntityConfig {
             name,
             body,
