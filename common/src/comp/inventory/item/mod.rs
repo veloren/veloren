@@ -804,16 +804,8 @@ impl Item {
             .any(|tag| matches!(tag, ItemTag::SalvageInto(_)))
     }
 
-    // Attempts to salvage an item by consuming it, returns the salvaged items if
-    // salvageable, else the original item
-    pub fn try_salvage(self) -> Result<Vec<Item>, Item> {
-        if !self.is_salvageable() {
-            return Err(self);
-        }
-
-        // Creates one item for every salvage tag in the target item
-        let salvaged_items: Vec<_> = self
-            .item_def
+    pub fn salvage_output(&self) -> impl Iterator<Item = &str> {
+        self.item_def
             .tags
             .iter()
             .filter_map(|tag| {
@@ -824,6 +816,18 @@ impl Item {
                 }
             })
             .map(|material| material.asset_identifier())
+    }
+
+    // Attempts to salvage an item by consuming it, returns the salvaged items if
+    // salvageable, else the original item
+    pub fn try_salvage(self) -> Result<Vec<Item>, Item> {
+        if !self.is_salvageable() {
+            return Err(self);
+        }
+
+        // Creates one item for every salvage tag in the target item
+        let salvaged_items: Vec<_> = self
+            .salvage_output()
             .map(|asset| Item::new_from_asset_expect(asset))
             .collect();
 
