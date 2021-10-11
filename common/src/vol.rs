@@ -111,6 +111,23 @@ pub trait ReadVol: BaseVol {
     {
         Ray::new(self, from, to, |_| true)
     }
+
+    /// Call provided closure with each block in the supplied Aabb
+    /// Portions of the Aabb outside the volume are ignored
+    fn for_each_in(&self, aabb: Aabb<i32>, mut f: impl FnMut(Vec3<i32>, Self::Vox))
+    where
+        Self::Vox: Copy,
+    {
+        for z in aabb.min.z..aabb.max.z + 1 {
+            for y in aabb.min.y..aabb.max.y + 1 {
+                for x in aabb.min.x..aabb.max.x + 1 {
+                    if let Ok(block) = self.get(Vec3::new(x, y, z)) {
+                        f(Vec3::new(x, y, z), *block);
+                    }
+                }
+            }
+        }
+    }
 }
 
 /// A volume that provides the ability to sample (i.e., clone a section of) its

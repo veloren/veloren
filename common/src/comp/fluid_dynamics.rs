@@ -19,6 +19,7 @@ impl LiquidKind {
     /// If an entity is in multiple overlapping liquid blocks, which one takes
     /// precedence? (should be a rare edge case, since checkerboard patterns of
     /// water and lava shouldn't show up in worldgen)
+    #[inline]
     pub fn merge(self, other: LiquidKind) -> LiquidKind {
         use LiquidKind::{Lava, Water};
         match (self, other) {
