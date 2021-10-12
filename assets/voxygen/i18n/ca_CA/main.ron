@@ -14,7 +14,7 @@
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Benvingut a la versió alfa de Veloren!
 
-Abans de començar a divertir-te, si us plau tinguis les següents coses en ment:
+Abans de començar a divertir-te, si us plau tingues les següents coses en ment:
 
 - Aquesta és una versió alfa molt recent. Espera errors, jugabilitat extremadament inacabada, mecàniques per polir i manca d'elements.
 
@@ -33,7 +33,7 @@ Gràcies per prendre't el temps per llegir aquest avís, esperem que gaudeixis d
         // Login process description
         "main.login_process": r#"Informació sobre el procés d'Inici de Sessió:
 
-Si us plau, tinguis en compte que necessites un compte
+Si us plau, tingues en compte que necessites un compte
 per jugar a servidors amb autentificació activada.
 
 Pots crear un compte a
@@ -43,7 +43,7 @@ https://veloren.net/account/."#,
         "main.login.authentication_error": "Error d'Autentificació al Servidor",
         "main.login.internal_error": "Error intern en el client (probablement el personatge del jugador ha estat esborrat)",
         "main.login.failed_auth_server_url_invalid": "No s'ha pogut connectar al Servidor d'Autentificació",
-        "main.login.insecure_auth_scheme": "L'esquema d'autentificació HTTP NO és suportat. És insegur! Per al desenvolupament, HTTP està permès per a 'localhost' o versions de depuració",
+        "main.login.insecure_auth_scheme": "L'esquema d'autentificació HTTP NO és suportat. És insegur! Per al desenvolupament, HTTP està permès per a l'ordinador local (localhost) o versions de depuració",
         "main.login.server_full": "El Servidor és ple",
         "main.login.untrusted_auth_server": "Servidor d'Autentificació poc fiable",
         "main.login.outdated_client_or_server": "ServerEmbogit: Probablement les versions són incompatibles, comprova si hi ha actualitzacions.",

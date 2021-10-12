@@ -24,7 +24,7 @@
         "char_selection.eyeshape": "Detalls dels Ulls",
         "char_selection.accessories": "Accessoris",
         "char_selection.create_info_name": "El teu Personatge necessita un nom!",
-        "char_selection.version_mismatch": "ATENCIÓ! Aquest servidor corre una versió diferent del joc que possiblement és incompatible. Si us plau, actualitzeu el joc.",
+        "char_selection.version_mismatch": "ATENCIÓ! Aquest servidor corre una versió diferent del joc que potser és incompatible. Si us plau, actualitzeu el joc.",
     },
 
     vector_map: {

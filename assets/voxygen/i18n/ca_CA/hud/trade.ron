@@ -4,7 +4,7 @@
 (
     string_map: {
         "hud.trade.trade_window": "Comerç",
-        "hud.trade.phase1_description": "Arrastra els objectes amb els que vulguis comerciar\n a l'àrea corresponent.",
+        "hud.trade.phase1_description": "Arrossega els objectes amb què vulguis comerciar\n a l'àrea corresponent.",
         "hud.trade.phase2_description": "L'intercanvi està ara blocat per donar-te\n temps per revisar-lo.",
         /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
         "hud.trade.phase3_description": "L'intercanvi s'està processant.",
@@ -19,10 +19,10 @@
         "hud.trade.buy_price": "Preu de Compra",
         "hud.trade.sell_price": "Preu de Venda",
         "hud.trade.coin": "Diner(s)",
-        "hud.trade.tooltip_hint_1": "<Shift-Click per Afegir/Eliminar del Intercanvi.>",
-        "hud.trade.tooltip_hint_2": "<Ctrl-Click per Auto-Balancejar amb açò.>",
+        "hud.trade.tooltip_hint_1": "<Shift-Clic per Afegir/Eliminar de l'Intercanvi.>",
+        "hud.trade.tooltip_hint_2": "<Ctrl-Clic per Auto-Balancejar amb açò.>",
         "hud.trade.your_offer": "La teva oferta",
-        "hud.trade.their_offer": "La seua oferta",
+        "hud.trade.their_offer": "La seva oferta",
     },
 
 
