@@ -12,6 +12,7 @@ use common::{
     },
     consts::MAX_PICKUP_RANGE,
     recipe::{self, default_recipe_book},
+    terrain::SpriteKind,
     trade::Trades,
     uid::Uid,
     util::find_dist::{self, FindDist},
@@ -613,7 +614,33 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         .ok()
                     }),
                 CraftEvent::Salvage(slot) => {
-                    recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()
+                    let sprite = craft_sprite
+                        .filter(|pos| {
+                            let entity_cylinder = get_cylinder(state, entity);
+                            if !within_pickup_range(entity_cylinder, || {
+                                Some(find_dist::Cube {
+                                    min: pos.as_(),
+                                    side_length: 1.0,
+                                })
+                            }) {
+                                debug!(
+                                    ?entity_cylinder,
+                                    "Failed to craft recipe as not within range of required \
+                                     sprite, sprite pos: {}",
+                                    pos
+                                );
+                                false
+                            } else {
+                                true
+                            }
+                        })
+                        .and_then(|pos| state.terrain().get(pos).ok().copied())
+                        .and_then(|block| block.get_sprite());
+                    if matches!(sprite, Some(SpriteKind::SalvagingBench)) {
+                        recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()
+                    } else {
+                        None
+                    }
                 },
             };
 

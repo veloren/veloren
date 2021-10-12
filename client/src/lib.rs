@@ -1026,13 +1026,13 @@ impl Client {
             .map_or(false, |item| item.is_salvageable())
     }
 
-    pub fn salvage_item(&mut self, slot: InvSlotId) -> bool {
+    pub fn salvage_item(&mut self, slot: InvSlotId, salvage_pos: Vec3<i32>) -> bool {
         let is_salvageable = self.can_salvage_item(slot);
         if is_salvageable {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
                     craft_event: CraftEvent::Salvage(slot),
-                    craft_sprite: None,
+                    craft_sprite: Some(salvage_pos),
                 },
             )));
         }

@@ -1412,8 +1412,8 @@ impl PlayState for SessionState {
                                 .craft_recipe(&recipe, slots, craft_sprite);
                         }
                     },
-                    HudEvent::SalvageItem(slot) => {
-                        self.client.borrow_mut().salvage_item(slot);
+                    HudEvent::SalvageItem { slot, salvage_pos } => {
+                        self.client.borrow_mut().salvage_item(slot, salvage_pos);
                     },
                     HudEvent::InviteMember(uid) => {
                         self.client.borrow_mut().send_invite(uid, InviteKind::Group);

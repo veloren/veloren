@@ -521,7 +521,10 @@ pub enum Event {
         recipe: String,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     },
-    SalvageItem(InvSlotId),
+    SalvageItem {
+        slot: InvSlotId,
+        salvage_pos: Vec3<i32>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -725,6 +728,7 @@ impl Show {
         self.selected_crafting_tab(tab);
         self.crafting(true);
         self.craft_sprite = self.craft_sprite.or(craft_sprite);
+        self.salvage = matches!(craft_sprite, Some((_, SpriteKind::SalvagingBench)));
     }
 
     fn diary(&mut self, open: bool) {
@@ -1079,8 +1083,6 @@ impl Hud {
         camera: &Camera,
         interactable: Option<Interactable>,
     ) -> Vec<Event> {
-        self.show.salvage =
-            self.show.crafting && matches!(self.show.crafting_tab, CraftingTab::Dismantle);
         span!(_guard, "update_layout", "Hud::update_layout");
         let mut events = core::mem::take(&mut self.events);
         if global_state.settings.interface.map_show_voxel_map {
@@ -3334,11 +3336,13 @@ impl Hud {
                 slot::Event::Used(from) => {
                     // Item used (selected and then clicked again)
                     if let Some(from) = to_slot(from) {
-                        if self.show.crafting
+                        if self.show.salvage
                             && matches!(self.show.crafting_tab, CraftingTab::Dismantle)
                         {
-                            if let Slot::Inventory(slot) = from {
-                                events.push(Event::SalvageItem(slot))
+                            if let (Slot::Inventory(slot), Some((salvage_pos, _sprite_kind))) =
+                                (from, self.show.craft_sprite)
+                            {
+                                events.push(Event::SalvageItem { slot, salvage_pos })
                             }
                         } else {
                             events.push(Event::UseSlot {
