@@ -3,7 +3,7 @@
 /// Localization for RUS
 (
     string_map: {
-        "hud.trade.trade_window": "Окно торговли",
+        "hud.trade.trade_window": "Торговля",
         "hud.trade.phase1_description": "Перетащите предметы, которые вы хотите обменять\nв соответствующую область.",
         "hud.trade.phase2_description": "Сделка теперь заблокирована, чтобы у вас было время\nеё просмотреть.",
         /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
@@ -21,6 +21,8 @@
         "hud.trade.coin": "монеты",
         "hud.trade.tooltip_hint_1": "<Shift-Click чтобы Добавить/Удалить из сделки...>",
         "hud.trade.tooltip_hint_2": "<Ctrl-Click для автоматической балансировки с этим.>",
+		"hud.trade.your_offer": "Ваше предложение",									 
+		"hud.trade.their_offer": "Предложение скупщика",									   
     },
 
 
