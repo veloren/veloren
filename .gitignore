@@ -34,7 +34,13 @@ maps
 screenshots
 todo.txt
 userdata
+
+# Profiling and traces
 heaptrack.*
+cargo-timing*
+flamegraph.*
+perf.*
+wgpu-trace/
 
 # allow asset hud settings
 !assets/voxygen/i18n/*/hud/settings.ron
