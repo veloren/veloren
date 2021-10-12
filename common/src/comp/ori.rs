@@ -149,25 +149,25 @@ impl Ori {
     }
 
     pub fn to_horizontal(self) -> Self {
-        let fw = self.look_dir();
-        Dir::from_unnormalized(fw.xy().into())
-            .or_else(|| {
-                // if look_dir is straight down, pitch up, or if straight up, pitch down
-                Dir::from_unnormalized(
-                    if fw.dot(Vec3::unit_z()) < 0.0 {
-                        self.up()
-                    } else {
-                        self.down()
-                    }
-                    .xy()
-                    .into(),
-                )
-            })
-            .map(|dir| dir.into())
-            .expect(
-                "If the horizontal component of a Dir can not be normalized, the horizontal \
-                 component of a Dir perpendicular to it must be",
-            )
+        // We don't use Self::look_dir to avoid the extra normalization step within
+        // Dir's Quaternion Mul impl (since we will normalize later below)
+        let fw = self.to_quat() * Dir::default().to_vec();
+        // Check that dir is not straight up/down
+        // Uses a multiple of EPSILON to be safe
+        // We can just check z since beyond floating point errors `fw` should be
+        // normalized
+        let xy = if 1.0 - fw.z.abs() > f32::EPSILON * 4.0 {
+            fw.xy().normalized()
+        } else {
+            // if look_dir is straight down, pitch up, or if straight up, pitch down
+            // xy should essentially be normalized so no need to normalize
+            if fw.z < 0.0 { self.up() } else { self.down() }.xy()
+        };
+        // We know direction lies in the xy plane so we only need to compute a rotation
+        // about the z-axis
+        let yaw = xy.y.acos() * fw.x.signum() * -1.0;
+
+        Self(Quaternion::rotation_z(yaw))
     }
 
     /// Find the angle between two `Ori`s
@@ -255,15 +255,16 @@ impl Ori {
 
     fn is_normalized(&self) -> bool { self.0.into_vec4().is_normalized() }
 }
+
 impl From<Dir> for Ori {
     fn from(dir: Dir) -> Self {
         // Check that dir is not straight up/down
         // Uses a multiple of EPSILON to be safe
-        let quat = if dir.z.abs() - 1.0 > f32::EPSILON * 4.0 {
+        let quat = if 1.0 - dir.z.abs() > f32::EPSILON * 4.0 {
             // Compute rotation that will give an "upright" orientation (no rolling):
 
             // Rotation to get to this projected point from the default direction of y+
-            let yaw = dir.xy().normalized().y.acos() * dir.x.signum();
+            let yaw = dir.xy().normalized().y.acos() * dir.x.signum() * -1.0;
             // Rotation to then rotate up/down to the match the input direction
             let pitch = dir.z.asin();
 
@@ -271,9 +272,9 @@ impl From<Dir> for Ori {
         } else {
             // Nothing in particular can be considered upright if facing up or down
             // so we just produce a quaternion that will rotate to that direction
-            let from = Dir::default();
-            // This calls normalized() internally
-            Quaternion::<f32>::rotation_from_to_3d(*from, *dir)
+            // (once again rotating from y+)
+            let pitch = PI / 2.0 * dir.z.signum();
+            Quaternion::rotation_x(pitch)
         };
 
         Self(quat)
@@ -365,33 +366,76 @@ impl Component for Ori {
 mod tests {
     use super::*;
 
+    // Helper method to produce Dirs at different angles to test
+    fn dirs() -> impl Iterator<Item = Dir> {
+        let angles = 32;
+        (0..angles).flat_map(move |i| {
+            let theta = PI * 2.0 * (i as f32) / (angles as f32);
+
+            let v = Vec3::unit_y();
+            let q = Quaternion::rotation_x(theta);
+            let dir_1 = Dir::new(q * v);
+
+            let v = Vec3::unit_z();
+            let q = Quaternion::rotation_y(theta);
+            let dir_2 = Dir::new(q * v);
+
+            let v = Vec3::unit_x();
+            let q = Quaternion::rotation_z(theta);
+            let dir_3 = Dir::new(q * v);
+
+            [dir_1, dir_2, dir_3]
+        })
+    }
+
+    #[test]
+    fn to_horizontal() {
+        let to_horizontal = |dir: Dir| {
+            let ori = Ori::from(dir);
+
+            let horizontal = ori.to_horizontal();
+
+            approx::assert_relative_eq!(horizontal.look_dir().xy().magnitude(), 1.0);
+            approx::assert_relative_eq!(horizontal.look_dir().z, 0.0);
+        };
+
+        dirs().for_each(to_horizontal);
+    }
+
+    #[test]
+    fn angle_between() {
+        let angle_between = |(dir_a, dir_b): (Dir, Dir)| {
+            let ori_a = Ori::from(dir_a);
+            let ori_b = Ori::from(dir_b);
+
+            approx::assert_relative_eq!(ori_a.angle_between(ori_b), dir_a.angle_between(*dir_b));
+        };
+
+        dirs()
+            .flat_map(|dir| dirs().map(move |dir_two| (dir, dir_two)))
+            .for_each(angle_between)
+    }
+
     #[test]
     fn from_to_dir() {
         let from_to = |dir: Dir| {
             let ori = Ori::from(dir);
 
             assert!(ori.is_normalized(), "ori {:?}\ndir {:?}", ori, dir);
-            approx::assert_relative_eq!(ori.look_dir().dot(*dir), 1.0);
+            assert!(
+                approx::relative_eq!(ori.look_dir().dot(*dir), 1.0),
+                "Ori::from(dir).look_dir() != dir\ndir: {:?}\nOri::from(dir).look_dir(): {:?}",
+                dir,
+                ori.look_dir(),
+            );
             approx::assert_relative_eq!((ori.to_quat() * Dir::default()).dot(*dir), 1.0);
         };
 
-        let angles = 32;
-        for i in 0..angles {
-            let theta = PI * 2. * (i as f32) / (angles as f32);
-            let v = Vec3::unit_y();
-            let q = Quaternion::rotation_x(theta);
-            from_to(Dir::new(q * v));
-            let v = Vec3::unit_z();
-            let q = Quaternion::rotation_y(theta);
-            from_to(Dir::new(q * v));
-            let v = Vec3::unit_x();
-            let q = Quaternion::rotation_z(theta);
-            from_to(Dir::new(q * v));
-        }
+        dirs().for_each(from_to);
     }
 
     #[test]
-    fn dirs() {
+    fn orthogonal_dirs() {
         let ori = Ori::default();
         let def = Dir::default();
         for dir in &[ori.up(), ori.down(), ori.left(), ori.right()] {
