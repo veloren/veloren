@@ -33,7 +33,7 @@
         "hud.bag.energy": "Energia",
         "hud.bag.combat_rating": "Puntuació de Combat",
         "hud.bag.protection": "Protecció",
-        "hud.bag.stun_res": "Resistència al Atordiment",
+        "hud.bag.stun_res": "Resistència a l'Atordiment",
         "hud.bag.combat_rating_desc": "Calculat pel teu\nequipament i salut.",
         "hud.bag.protection_desc": "Reducció de danys per Armadura",
         "hud.bag.stun_res_desc": "Resistència contra atordiment per cops consecutius.\nEs regenera com a Energia.",
