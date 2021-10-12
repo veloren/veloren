@@ -238,7 +238,7 @@
         "hud.skill.axe_leap_cost": "Уменьшает затраты выносливости на скачок {boost}%{SP}",
         "hud.skill.axe_leap_distance_title": "Скачок: Дистанция",
         "hud.skill.axe_leap_distance": "Увеличивает дистанцию скачка на {boost}%{SP}",
-		// Mining
+        // Mining
         "hud.skill.mining_title": "Добыча",
         "hud.skill.pick_strike_title": "Удар киркой",
         "hud.skill.pick_strike": "Разбивай камни киркой что бы получить руду, самоцветы и опыт",
@@ -247,7 +247,7 @@
         "hud.skill.pick_strike_oregain_title": "Больше руды",
         "hud.skill.pick_strike_oregain": "Шанс на получение бонусной руды ({boost}% per level){SP}",
         "hud.skill.pick_strike_gemgain_title": "Больше самоцветов",
-        "hud.skill.pick_strike_gemgain": "Шанс на получение бонусных самоцветов ({boost}% per level){SP}",		 										  																							  
+        "hud.skill.pick_strike_gemgain": "Шанс на получение бонусных самоцветов ({boost}% per level){SP}",
     },
 
 

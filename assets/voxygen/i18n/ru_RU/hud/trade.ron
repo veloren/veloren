@@ -21,8 +21,8 @@
         "hud.trade.coin": "монеты",
         "hud.trade.tooltip_hint_1": "<Shift-Click чтобы Добавить/Удалить из сделки...>",
         "hud.trade.tooltip_hint_2": "<Ctrl-Click для автоматической балансировки с этим.>",
-		"hud.trade.your_offer": "Ваше предложение",									 
-		"hud.trade.their_offer": "Предложение скупщика",									   
+        "hud.trade.your_offer": "Ваше предложение",
+        "hud.trade.their_offer": "Предложение скупщика",
     },
 
 
