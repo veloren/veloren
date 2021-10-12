@@ -60,6 +60,14 @@ https://veloren.net/account/."#,
         "main.login.client_version": "Версия клиента",
         "main.login.server_version": "Версия сервера",
         "main.servers.select_server": "Выбор сервера",
+        // Credits screen
+        "main.credits": "Благодарности",
+        "main.credits.created_by": "сделано",
+        "main.credits.music": "Музыка",
+        "main.credits.fonts": "Шрифты",
+        "main.credits.other_art": "Другие работы",
+        "main.credits.contributors": "Авторы",
+        
         /// End Main screen section
     },
 

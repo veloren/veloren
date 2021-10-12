@@ -21,6 +21,8 @@
         "gameinput.help": "ВКЛ/ВЫКЛ окно помощи",
         "gameinput.toggleinterface": "ВКЛ/ВЫКЛ интерфейс",
         "gameinput.toggledebug": "ВКЛ/ВЫКЛ FPS и отладочную информацию",
+        "gameinput.toggle_egui_debug": "Показать информацию для отладки EGUI",
+        "gameinput.togglechat": "Переключить чат",
         "gameinput.screenshot": "Сделать скриншот",
         "gameinput.toggleingameui": "ВЫКЛ/ВЫКЛ никнеймы и имена",
         "gameinput.fullscreen": "ВКЛ/ВЫКЛ полноэкранный режим",
@@ -65,6 +67,7 @@
         "gameinput.swimup": "Всплыть",
         "gameinput.mapzoomin": "Увеличение масштаба карты",
         "gameinput.mapzoomout": "Уменьшение масштаба карты",
+        "gameinput.greet": "Поприветствовать",
     },
 
 
