@@ -37,6 +37,7 @@ pub struct StateUpdate {
 
 impl From<&JoinData<'_>> for StateUpdate {
     fn from(data: &JoinData) -> Self {
+        common_base::prof_span!("StateUpdate::from");
         StateUpdate {
             pos: *data.pos,
             vel: *data.vel,

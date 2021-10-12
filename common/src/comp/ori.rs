@@ -170,6 +170,18 @@ impl Ori {
             )
     }
 
+    /// Find the angle between two `Ori`s
+    ///
+    /// Returns angle in radians
+    pub fn angle_between(self, other: Self) -> f32 {
+        // Compute quaternion from one ori to the other
+        // https://www.mathworks.com/matlabcentral/answers/476474-how-to-find-the-angle-between-two-quaternions#answer_387973
+        let between = self.to_quat().conjugate() * other.to_quat();
+        // Then compute it's angle
+        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
+        2.0 * between.w.acos()
+    }
+
     pub fn pitched_up(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_x(angle_radians))
     }
@@ -239,38 +251,37 @@ impl Ori {
     /// let ang2 = pd_rr.up().angle_between(zenith);
     /// assert!((ang1 - ang2).abs() <= std::f32::EPSILON);
     /// ```
-    pub fn uprighted(self) -> Self {
-        let fw = self.look_dir();
-        match Dir::up().projected(&Plane::from(fw)) {
-            Some(dir_p) => {
-                let up = self.up();
-                let go_right_s = fw.cross(*up).dot(*dir_p).signum();
-                self.rolled_right(up.angle_between(*dir_p) * go_right_s)
-            },
-            None => self,
-        }
-    }
+    pub fn uprighted(self) -> Self { self.look_dir().into() }
 
     fn is_normalized(&self) -> bool { self.0.into_vec4().is_normalized() }
 }
-
 impl From<Dir> for Ori {
     fn from(dir: Dir) -> Self {
-        let from = Dir::default();
-        let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
+        // Check that dir is not straight up/down
+        // Uses a multiple of EPSILON to be safe
+        let quat = if dir.z.abs() - 1.0 > f32::EPSILON * 4.0 {
+            // Compute rotation that will give an "upright" orientation (no rolling):
 
-        Self(q).uprighted()
+            // Rotation to get to this projected point from the default direction of y+
+            let yaw = dir.xy().normalized().y.acos() * dir.x.signum();
+            // Rotation to then rotate up/down to the match the input direction
+            let pitch = dir.z.asin();
+
+            (Quaternion::rotation_z(yaw) * Quaternion::rotation_x(pitch)).normalized()
+        } else {
+            // Nothing in particular can be considered upright if facing up or down
+            // so we just produce a quaternion that will rotate to that direction
+            let from = Dir::default();
+            // This calls normalized() internally
+            Quaternion::<f32>::rotation_from_to_3d(*from, *dir)
+        };
+
+        Self(quat)
     }
 }
 
 impl From<Vec3<f32>> for Ori {
-    fn from(dir: Vec3<f32>) -> Self {
-        let dir = Dir::from_unnormalized(dir).unwrap_or_default();
-        let from = Dir::default();
-        let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
-
-        Self(q).uprighted()
-    }
+    fn from(dir: Vec3<f32>) -> Self { Dir::from_unnormalized(dir).unwrap_or_default().into() }
 }
 
 impl From<Quaternion<f32>> for Ori {
@@ -359,6 +370,7 @@ mod tests {
         let from_to = |dir: Dir| {
             let ori = Ori::from(dir);
 
+            assert!(ori.is_normalized(), "ori {:?}\ndir {:?}", ori, dir);
             approx::assert_relative_eq!(ori.look_dir().dot(*dir), 1.0);
             approx::assert_relative_eq!((ori.to_quat() * Dir::default()).dot(*dir), 1.0);
         };

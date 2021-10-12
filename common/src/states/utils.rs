@@ -387,24 +387,29 @@ pub fn handle_orientation(
     efficiency: f32,
     dir_override: Option<Dir>,
 ) {
+    common_base::prof_span!("handle_orientation");
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
     // else the current horizontal movement direction is used
-    let dir = if let Some(dir_override) = dir_override {
-        dir_override
+    let target_ori = if let Some(dir_override) = dir_override {
+        dir_override.into()
     } else if is_strafing(data, update) || update.character.is_attack() {
-        data.inputs.look_dir.to_horizontal().unwrap_or_default()
+        data.inputs
+            .look_dir
+            .to_horizontal()
+            .unwrap_or_default()
+            .into()
     } else {
         Dir::from_unnormalized(data.inputs.move_dir.into())
-            .unwrap_or_else(|| data.ori.to_horizontal().look_dir())
+            .map_or_else(|| data.ori.to_horizontal(), |dir| dir.into())
     };
     let rate = {
-        let angle = update.ori.look_dir().angle_between(*dir);
+        let angle = update.ori.angle_between(target_ori);
         data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
     };
     update.ori = update
         .ori
-        .slerped_towards(dir.into(), (data.dt.0 * rate).min(1.0));
+        .slerped_towards(target_ori, (data.dt.0 * rate).min(1.0));
 }
 
 /// Updates components to move player as if theyre swimming
