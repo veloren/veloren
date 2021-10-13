@@ -196,9 +196,7 @@ pub fn load_character_data(
             Ok(SkillGroup {
                 entity_id: char_id,
                 skill_group_kind: row.get(0)?,
-                exp: row.get(1)?,
-                available_sp: row.get(2)?,
-                earned_sp: row.get(3)?,
+                earned_exp: row.get(1)?,
             })
         })?
         .filter_map(Result::ok)
@@ -442,19 +440,15 @@ pub fn create_character(
         "
         INSERT INTO skill_group (entity_id,
                                  skill_group_kind,
-                                 exp,
-                                 available_sp,
-                                 earned_sp)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+                                 earned_exp)
+        VALUES (?1, ?2, ?3)",
     )?;
 
     for skill_group in db_skill_groups {
         stmt.execute(&[
             &character_id as &dyn ToSql,
             &skill_group.skill_group_kind,
-            &skill_group.exp,
-            &skill_group.available_sp,
-            &skill_group.earned_sp,
+            &skill_group.earned_exp,
         ])?;
     }
     drop(stmt);
@@ -1023,19 +1017,15 @@ pub fn update(
         REPLACE
         INTO    skill_group (entity_id,
                              skill_group_kind,
-                             exp,
-                             available_sp,
-                             earned_sp)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+                             earned_exp)
+        VALUES (?1, ?2, ?3)",
     )?;
 
     for skill_group in db_skill_groups {
         stmt.execute(&[
             &skill_group.entity_id as &dyn ToSql,
             &skill_group.skill_group_kind,
-            &skill_group.exp,
-            &skill_group.available_sp,
-            &skill_group.earned_sp,
+            &skill_group.earned_exp,
         ])?;
     }
 

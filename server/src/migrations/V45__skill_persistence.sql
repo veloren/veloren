@@ -1,0 +1,1 @@
+-- Do skill group change of storing (available_exp, available_sp, and earned_sp) to earned_exp

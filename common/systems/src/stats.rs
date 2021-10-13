@@ -16,6 +16,7 @@ use hashbrown::HashSet;
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
 };
+use tracing::warn;
 use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;
@@ -132,14 +133,18 @@ impl<'a> System<'a> for Sys {
                 .skill_groups
                 .iter()
                 .filter_map(|s_g| {
-                    (s_g.exp >= skill_set.skill_point_cost(s_g.skill_group_kind))
+                    (s_g.available_experience() >= skill_set.skill_point_cost(s_g.skill_group_kind))
                         .then(|| s_g.skill_group_kind)
                 })
                 .collect::<HashSet<_>>();
 
             if !skills_to_level.is_empty() {
                 for skill_group in skills_to_level {
-                    skill_set.earn_skill_point(skill_group);
+                    if skill_set.earn_skill_point(skill_group).is_err() {
+                        warn!(
+                            "Attempted to add skill point to group which is inelgible to earn one"
+                        );
+                    }
                     outcomes.push(Outcome::SkillPointGain {
                         uid: *uid,
                         skill_tree: skill_group,

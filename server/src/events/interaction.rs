@@ -301,7 +301,7 @@ fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&
 }
 
 #[derive(Deserialize)]
-struct ResourceExperienceManifest(HashMap<String, i32>);
+struct ResourceExperienceManifest(HashMap<String, u32>);
 
 impl assets::Asset for ResourceExperienceManifest {
     type Loader = assets::RonLoader;
@@ -339,7 +339,7 @@ pub fn handle_mine_block(
                             .0
                             .get(item.item_definition_id()),
                     ) {
-                        skillset.change_experience(SkillGroupKind::Weapon(tool), *exp_reward);
+                        skillset.add_experience(SkillGroupKind::Weapon(tool), *exp_reward);
                         state
                             .ecs()
                             .write_resource::<Vec<Outcome>>()

@@ -435,7 +435,7 @@ pub struct BuffInfo {
 
 pub struct ExpFloater {
     pub owner: Uid,
-    pub exp_change: i32,
+    pub exp_change: u32,
     pub timer: f32,
     pub rand_offset: (f32, f32),
     pub xp_pools: HashSet<SkillGroupKind>,

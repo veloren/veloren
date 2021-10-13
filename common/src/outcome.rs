@@ -36,7 +36,7 @@ pub enum Outcome {
     },
     ExpChange {
         uid: Uid,
-        exp: i32,
+        exp: u32,
         xp_pools: HashSet<SkillGroupKind>,
     },
     SkillPointGain {

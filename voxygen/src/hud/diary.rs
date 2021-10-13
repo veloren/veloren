@@ -464,7 +464,7 @@ impl<'a> Widget for Diary<'a> {
         }
 
         // Exp Bars and Rank Display
-        let current_exp = self.skill_set.experience(*sel_tab) as f64;
+        let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
         let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
         let exp_percentage = current_exp / max_exp;
         let rank = self.skill_set.earned_sp(*sel_tab);

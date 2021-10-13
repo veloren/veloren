@@ -659,7 +659,7 @@ pub enum SkillGroupKind {
 
 impl SkillGroupKind {
     /// Gets the cost in experience of earning a skill point
-    pub fn skill_point_cost(self, level: u16) -> u16 {
+    pub fn skill_point_cost(self, level: u16) -> u32 {
         const EXP_INCREMENT: f32 = 10.0;
         const STARTING_EXP: f32 = 70.0;
         const EXP_CEILING: f32 = 1000.0;
@@ -670,7 +670,7 @@ impl SkillGroupKind {
                 / (1.0
                     + std::f32::consts::E.powf(-SCALING_FACTOR * level as f32)
                         * (EXP_CEILING / STARTING_EXP - 1.0)))
-                .floor()) as u16
+                .floor()) as u32
     }
 
     /// Gets the total amount of skill points that can be spent in a particular
@@ -694,7 +694,10 @@ impl SkillGroupKind {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct SkillGroup {
     pub skill_group_kind: SkillGroupKind,
-    pub exp: u16,
+    // How much exp has been used for skill points
+    pub spent_exp: u32,
+    // How much exp has been earned in total
+    pub earned_exp: u32,
     pub available_sp: u16,
     pub earned_sp: u16,
 }
@@ -703,9 +706,27 @@ impl SkillGroup {
     fn new(skill_group_kind: SkillGroupKind) -> SkillGroup {
         SkillGroup {
             skill_group_kind,
-            exp: 0,
+            spent_exp: 0,
+            earned_exp: 0,
             available_sp: 0,
             earned_sp: 0,
+        }
+    }
+
+    /// Returns the available experience that could be used to earn another
+    /// skill point in a particular skill group.
+    pub fn available_experience(&self) -> u32 { self.earned_exp - self.spent_exp }
+
+    /// Adds a skill point while subtracting the necessary amount of experience
+    pub fn earn_skill_point(&mut self) -> Result<(), SpRewardError> {
+        let sp_cost = self.skill_group_kind.skill_point_cost(self.earned_sp);
+        if self.available_experience() >= sp_cost {
+            self.spent_exp = self.spent_exp.saturating_add(sp_cost);
+            self.available_sp = self.available_sp.saturating_add(1);
+            self.earned_sp = self.earned_sp.saturating_add(1);
+            Ok(())
+        } else {
+            Err(SpRewardError::InsufficientExp)
         }
     }
 }
@@ -882,12 +903,14 @@ impl SkillSet {
     }
 
     /// Adds a skill point while subtracting the necessary amount of experience
-    pub fn earn_skill_point(&mut self, skill_group_kind: SkillGroupKind) {
-        let sp_cost = self.skill_point_cost(skill_group_kind);
-        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.exp = skill_group.exp.saturating_sub(sp_cost);
-            skill_group.available_sp = skill_group.available_sp.saturating_add(1);
-            skill_group.earned_sp = skill_group.earned_sp.saturating_add(1);
+    pub fn earn_skill_point(
+        &mut self,
+        skill_group_kind: SkillGroupKind,
+    ) -> Result<(), SpRewardError> {
+        if let Some(skill_group) = self.skill_group_mut(skill_group_kind) {
+            skill_group.earn_skill_point()
+        } else {
+            Err(SpRewardError::UnavailableSkillGroup)
         }
     }
 
@@ -901,9 +924,9 @@ impl SkillSet {
 
     /// Adds/subtracts experience to the skill group within an entity's skill
     /// set
-    pub fn change_experience(&mut self, skill_group_kind: SkillGroupKind, amount: i32) {
+    pub fn add_experience(&mut self, skill_group_kind: SkillGroupKind, amount: u32) {
         if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.exp = (skill_group.exp as i32 + amount) as u16;
+            skill_group.earned_exp = skill_group.earned_exp.saturating_add(amount);
         } else {
             warn!("Tried to add experience to a skill group that player does not have");
         }
@@ -943,8 +966,9 @@ impl SkillSet {
     }
 
     /// Gets the available experience for a particular skill group
-    pub fn experience(&self, skill_group: SkillGroupKind) -> u16 {
-        self.skill_group(skill_group).map_or(0, |s_g| s_g.exp)
+    pub fn available_experience(&self, skill_group: SkillGroupKind) -> u32 {
+        self.skill_group(skill_group)
+            .map_or(0, |s_g| s_g.available_experience())
     }
 
     /// Gets skill point cost to purchase skill of next level
@@ -980,7 +1004,7 @@ impl SkillSet {
     }
 
     /// Checks how much experience is needed for the next skill point in a tree
-    pub fn skill_point_cost(&self, skill_group: SkillGroupKind) -> u16 {
+    pub fn skill_point_cost(&self, skill_group: SkillGroupKind) -> u32 {
         if let Some(level) = self.skill_group(skill_group).map(|sg| sg.earned_sp) {
             skill_group.skill_point_cost(level)
         } else {
@@ -1054,6 +1078,11 @@ impl Skill {
     pub fn skill_group_kind(&self) -> Option<SkillGroupKind> {
         SKILL_GROUP_LOOKUP.get(self).copied()
     }
+}
+
+pub enum SpRewardError {
+    InsufficientExp,
+    UnavailableSkillGroup,
 }
 
 #[cfg(test)]

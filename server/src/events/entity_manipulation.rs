@@ -1117,11 +1117,11 @@ fn handle_exp_gain(
     add_tool_from_slot(EquipSlot::InactiveOffhand);
     let num_pools = xp_pools.len() as f32;
     for pool in xp_pools.iter() {
-        skill_set.change_experience(*pool, (exp_reward / num_pools).ceil() as i32);
+        skill_set.add_experience(*pool, (exp_reward / num_pools).ceil() as u32);
     }
     outcomes.push(Outcome::ExpChange {
         uid: *uid,
-        exp: exp_reward as i32,
+        exp: exp_reward as u32,
         xp_pools,
     });
 }
