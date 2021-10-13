@@ -1,0 +1,5 @@
+[
+    (1.0, Item("common.items.weapons.sword.caladbolg")),
+    (1.0, Item("common.items.weapons.hammer.mjolnir")),
+    (1.0, Item("common.items.weapons.axe.parashu")),
+]
