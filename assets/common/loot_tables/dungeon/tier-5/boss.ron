@@ -1,16 +1,17 @@
 [
     // TODO: Make this loot table less cluttered
     // tier equipment (technically worse than other weapons here until modular weapons)
-    (10.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (10.0, LootTable("common.loot_tables.armor.tier-5")),
-    // weapons (find somewhere better to put these)
-    (1.0, LootTable("common.loot_tables.weapons.cultist")),
-    (1.0, LootTable("common.loot_tables.weapons.cave")),
+    (5.0, LootTable("common.loot_tables.weapons.cultist")),
+    (5.0, LootTable("common.loot_tables.weapons.cave")),
+    (10.0, LootTable("common.loot_tables.armor.cultist")),
     // Rare misc items
     (1.0, Item("common.items.boss_drops.lantern")),
     (1.0, Item("common.items.glider.skullgrin")),
     // Legendary weapons
-    (1.0, LootTable("common.loot_tables.weapons.legendary")),
+    (1.0, LootTable("common.loot_tables.weapons.legendary_ranged")),
     // Crafting material
     (1.0, Item("common.items.crafting_ing.mindflayer_bag_damaged")),
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.sunsilk", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.dragon_scale", 3, 10)),
+    (1.0, ItemQuantity("common.items.mineral.ingot.orichalcum", 3, 10)),
 ]

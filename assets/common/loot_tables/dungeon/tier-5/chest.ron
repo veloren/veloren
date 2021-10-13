@@ -1,13 +1,13 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.tier-5")),
-    (1.0, LootTable("common.loot_tables.armor.tier-5")),
+    (1.0, LootTable("common.loot_tables.weapons.tier-4")),
+    (1.0, LootTable("common.loot_tables.armor.tier-4")),
     // Currency
-    (3.0, ItemQuantity("common.items.utility.coins", 500, 1000)),
+    (3.0, ItemQuantity("common.items.utility.coins", 200, 500)),
     // Materials
-    (1.0, ItemQuantity("common.items.crafting_ing.cloth.sunsilk", 3, 10)),
-    (1.0, ItemQuantity("common.items.crafting_ing.hide.dragon_scale", 3, 10)),
-    (1.0, ItemQuantity("common.items.mineral.ingot.orichalcum", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.moonweave", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.plate", 3, 10)),
+    (1.0, ItemQuantity("common.items.mineral.ingot.bloodsteel", 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.good")),
 ]
