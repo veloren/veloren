@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -34,7 +34,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
@@ -52,7 +52,7 @@ impl CharacterBehavior for Data {
                     // provided
                     if let Some(input_attr) = self.static_data.ability_info.input_attr {
                         if let Some(target) = input_attr.target_entity {
-                            update.server_events.push_front(ServerEvent::TeleportTo {
+                            output_events.emit_server(ServerEvent::TeleportTo {
                                 entity: data.entity,
                                 target,
                                 max_range: Some(self.static_data.max_range),

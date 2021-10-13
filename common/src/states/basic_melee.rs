@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -53,12 +53,12 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -161,7 +161,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Done
                     if input_is_pressed(data, self.static_data.ability_info.input) {
-                        reset_state(self, data, &mut update);
+                        reset_state(self, data, output_events, &mut update);
                     } else {
                         update.character = CharacterState::Wielding;
                     }
@@ -184,6 +184,16 @@ impl CharacterBehavior for Data {
     }
 }
 
-fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input);
+fn reset_state(
+    data: &Data,
+    join: &JoinData,
+    output_events: &mut OutputEvents,
+    update: &mut StateUpdate,
+) {
+    handle_input(
+        join,
+        output_events,
+        update,
+        data.static_data.ability_info.input,
+    );
 }

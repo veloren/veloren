@@ -3,7 +3,10 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget,
     },
-    comp::{beam, body::biped_large, Body, CharacterState, Ori, Pos, StateUpdate},
+    comp::{
+        beam, body::biped_large, character_state::OutputEvents, Body, CharacterState, Ori, Pos,
+        StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -60,14 +63,14 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         let ori_rate = self.static_data.ori_rate;
 
         handle_orientation(data, &mut update, ori_rate, None);
         handle_move(data, &mut update, 0.4);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -171,7 +174,7 @@ impl CharacterBehavior for Data {
                     let pos = Pos(data.pos.0 + body_offsets);
 
                     // Create beam segment
-                    update.server_events.push_front(ServerEvent::BeamSegment {
+                    output_events.emit_server(ServerEvent::BeamSegment {
                         properties,
                         pos,
                         ori: beam_ori,

@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -23,12 +23,12 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 1.0);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         if self.timer < self.static_data.buildup_duration {
             // Draw weapon

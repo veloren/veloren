@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
+        character_state::OutputEvents,
         CharacterState, InputKind, StateUpdate,
     },
     event::ServerEvent,
@@ -47,7 +48,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         // You should not be able to strafe while rolling
@@ -67,7 +68,7 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Remove burning effect if active
-                    update.server_events.push_front(ServerEvent::Buff {
+                    output_events.emit_server(ServerEvent::Buff {
                         entity: data.entity,
                         buff_change: BuffChange::RemoveByKind(BuffKind::Burning),
                     });
@@ -109,7 +110,7 @@ impl CharacterBehavior for Data {
                 handle_move(data, &mut update, 1.0);
                 // Allows for jumps to interrupt recovery in roll
                 if self.timer < self.static_data.recover_duration
-                    && !handle_jump(data, &mut update, 1.5)
+                    && !handle_jump(data, output_events, &mut update, 1.5)
                 {
                     // Recover
                     update.character = CharacterState::Roll(Data {
@@ -120,7 +121,7 @@ impl CharacterBehavior for Data {
                     // Done
                     if let Some((input, stage)) = self.was_combo {
                         if input_is_pressed(data, input) {
-                            handle_input(data, &mut update, input);
+                            handle_input(data, output_events, &mut update, input);
                             // If other states are introduced that progress through stages, add them
                             // here
                             if let CharacterState::ComboMelee(c) = &mut update.character {

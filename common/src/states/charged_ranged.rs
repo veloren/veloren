@@ -1,6 +1,7 @@
 use crate::{
     comp::{
-        projectile::ProjectileConstructor, Body, CharacterState, LightEmitter, Pos, StateUpdate,
+        character_state::OutputEvents, projectile::ProjectileConstructor, Body, CharacterState,
+        LightEmitter, Pos, StateUpdate,
     },
     event::ServerEvent,
     states::{
@@ -70,12 +71,12 @@ impl Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, self.static_data.move_speed);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -118,7 +119,7 @@ impl CharacterBehavior for Data {
                         crit_mult,
                         buff_strength,
                     );
-                    update.server_events.push_front(ServerEvent::Shoot {
+                    output_events.emit_server(ServerEvent::Shoot {
                         entity: data.entity,
                         pos,
                         dir: data.inputs.look_dir,

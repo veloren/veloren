@@ -2,6 +2,7 @@ use crate::{
     combat::GroupTarget,
     comp::{
         aura::{AuraBuffConstructor, AuraChange, AuraKind, AuraTarget, Specifier},
+        character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
@@ -52,12 +53,12 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.8);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -89,12 +90,12 @@ impl CharacterBehavior for Data {
                                     1.0 + (self.static_data.combo_at_cast.max(1) as f32).log(2.0);
                             },
                         }
-                        update.server_events.push_front(ServerEvent::ComboChange {
+                        output_events.emit_server(ServerEvent::ComboChange {
                             entity: data.entity,
                             change: -(self.static_data.combo_at_cast as i32),
                         });
                     }
-                    update.server_events.push_front(ServerEvent::Aura {
+                    output_events.emit_server(ServerEvent::Aura {
                         entity: data.entity,
                         aura_change: AuraChange::Add(aura),
                     });

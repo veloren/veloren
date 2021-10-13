@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        character_state::OutputEvents,
         skills::{ClimbSkill::*, Skill, SKILL_MODIFIERS},
         CharacterState, Climb, InputKind, Ori, StateUpdate,
     },
@@ -54,7 +55,7 @@ impl Default for Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         // If no wall is in front of character or we stopped climbing;
@@ -72,7 +73,7 @@ impl CharacterBehavior for Data {
                 // How strong the climb boost is relative to a normal jump
                 const CLIMB_BOOST_JUMP_FACTOR: f32 = 0.5;
                 // They've climbed atop something, give them a boost
-                update.local_events.push_front(LocalEvent::Jump(
+                output_events.emit_local(LocalEvent::Jump(
                     data.entity,
                     CLIMB_BOOST_JUMP_FACTOR * impulse / data.mass.0,
                 ));

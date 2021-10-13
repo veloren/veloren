@@ -5,11 +5,12 @@ use specs::{
 
 use common::{
     comp::{
-        self, inventory::item::MaterialStatManifest, Beam, Body, CharacterState, Combo, Controller,
-        Density, Energy, Health, Inventory, InventoryManip, Mass, Melee, Mounting, Ori,
-        PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate, Stats, Vel,
+        self, character_state::OutputEvents, inventory::item::MaterialStatManifest, Beam, Body,
+        CharacterState, Combo, Controller, Density, Energy, Health, Inventory, InventoryManip,
+        Mass, Melee, Mounting, Ori, PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate,
+        Stats, Vel,
     },
-    event::{Emitter, EventBus, LocalEvent, ServerEvent},
+    event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
     resources::DeltaTime,
     states::behavior::{JoinData, JoinStruct},
@@ -86,6 +87,10 @@ impl<'a> System<'a> for Sys {
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let mut local_emitter = read_data.local_bus.emitter();
+
+        let mut local_events = Vec::new();
+        let mut server_events = Vec::new();
+        let mut output_events = OutputEvents::new(&mut local_events, &mut server_events);
 
         for (
             entity,
@@ -259,13 +264,8 @@ impl<'a> System<'a> for Sys {
                     &read_data.dt,
                     &read_data.msm,
                 );
-                let state_update = j.character.handle_event(&j, action);
-                Self::publish_state_update(
-                    &mut join_struct,
-                    state_update,
-                    &mut local_emitter,
-                    &mut server_emitter,
-                );
+                let state_update = j.character.handle_event(&j, &mut output_events, action);
+                Self::publish_state_update(&mut join_struct, state_update, &mut output_events);
             }
 
             // Mounted occurs after control actions have been handled
@@ -285,14 +285,12 @@ impl<'a> System<'a> for Sys {
                 &read_data.msm,
             );
 
-            let state_update = j.character.behavior(&j);
-            Self::publish_state_update(
-                &mut join_struct,
-                state_update,
-                &mut local_emitter,
-                &mut server_emitter,
-            );
+            let state_update = j.character.behavior(&j, &mut output_events);
+            Self::publish_state_update(&mut join_struct, state_update, &mut output_events);
         }
+
+        local_emitter.append_vec(local_events);
+        server_emitter.append_vec(server_events);
     }
 }
 
@@ -300,12 +298,8 @@ impl Sys {
     fn publish_state_update(
         join: &mut JoinStruct,
         mut state_update: StateUpdate,
-        local_emitter: &mut Emitter<LocalEvent>,
-        server_emitter: &mut Emitter<ServerEvent>,
+        output_events: &mut OutputEvents,
     ) {
-        local_emitter.append(&mut state_update.local_events);
-        server_emitter.append(&mut state_update.server_events);
-
         // TODO: if checking equality is expensive use optional field in StateUpdate
         if *join.char_state != state_update.character {
             *join.char_state = state_update.character
@@ -322,7 +316,7 @@ impl Sys {
             join.controller.queued_inputs.remove(&input);
         }
         if state_update.swap_equipped_weapons {
-            server_emitter.emit(ServerEvent::InventoryManip(
+            output_events.emit_server(ServerEvent::InventoryManip(
                 join.entity,
                 InventoryManip::SwapEquippedWeapons,
             ));

@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
-    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
     event::LocalEvent,
     outcome::Outcome,
     states::{
@@ -69,12 +69,12 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Charge => {
@@ -190,13 +190,11 @@ impl CharacterBehavior for Data {
 
                     if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {
                         // Send local event used for frontend shenanigans
-                        update.local_events.push_front(LocalEvent::CreateOutcome(
-                            Outcome::GroundSlam {
-                                pos: data.pos.0
-                                    + *data.ori.look_dir()
-                                        * (data.body.max_radius() + self.static_data.range),
-                            },
-                        ));
+                        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::GroundSlam {
+                            pos: data.pos.0
+                                + *data.ori.look_dir()
+                                    * (data.body.max_radius() + self.static_data.range),
+                        }));
                     }
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings

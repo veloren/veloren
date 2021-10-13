@@ -1,6 +1,6 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
-    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -74,7 +74,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.1);

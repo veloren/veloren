@@ -1,5 +1,8 @@
 use crate::{
-    comp::{Body, CharacterState, LightEmitter, Pos, ProjectileConstructor, StateUpdate},
+    comp::{
+        character_state::OutputEvents, Body, CharacterState, LightEmitter, Pos,
+        ProjectileConstructor, StateUpdate,
+    },
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -49,7 +52,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.3);
@@ -97,7 +100,7 @@ impl CharacterBehavior for Data {
                         crit_mult,
                         buff_strength,
                     );
-                    update.server_events.push_front(ServerEvent::Shoot {
+                    output_events.emit_server(ServerEvent::Shoot {
                         entity: data.entity,
                         pos,
                         dir: data.inputs.look_dir,
@@ -109,7 +112,7 @@ impl CharacterBehavior for Data {
                     });
 
                     // Removes energy from character when arrow is fired
-                    update.server_events.push_front(ServerEvent::EnergyChange {
+                    output_events.emit_server(ServerEvent::EnergyChange {
                         entity: data.entity,
                         change: -self.static_data.energy_cost,
                     });

@@ -10,7 +10,8 @@
     label_break_value,
     option_zip,
     trait_alias,
-    type_alias_impl_trait
+    type_alias_impl_trait,
+    extend_one
 )]
 
 /// Re-exported crates

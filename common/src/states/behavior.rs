@@ -1,8 +1,9 @@
 use crate::{
     comp::{
-        self, item::MaterialStatManifest, Beam, Body, CharacterState, Combo, ControlAction,
-        Controller, ControllerInputs, Density, Energy, Health, InputAttr, InputKind, Inventory,
-        InventoryAction, Mass, Melee, Ori, PhysicsState, Pos, SkillSet, StateUpdate, Stats, Vel,
+        self, character_state::OutputEvents, item::MaterialStatManifest, Beam, Body,
+        CharacterState, Combo, ControlAction, Controller, ControllerInputs, Density, Energy,
+        Health, InputAttr, InputKind, Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState,
+        Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     resources::DeltaTime,
     terrain::TerrainGrid,
@@ -12,20 +13,47 @@ use specs::{storage::FlaggedAccessMut, Entity, LazyUpdate};
 use vek::*;
 
 pub trait CharacterBehavior {
-    fn behavior(&self, data: &JoinData) -> StateUpdate;
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate;
     // Impl these to provide behavior for these inputs
-    fn swap_equipped_weapons(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn manipulate_loadout(&self, data: &JoinData, _inv_action: InventoryAction) -> StateUpdate {
+    fn swap_equipped_weapons(
+        &self,
+        data: &JoinData,
+        _output_events: &mut OutputEvents,
+    ) -> StateUpdate {
         StateUpdate::from(data)
     }
-    fn wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn glide_wield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn unwield(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn sit(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn dance(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn sneak(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn stand(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
-    fn talk(&self, data: &JoinData) -> StateUpdate { StateUpdate::from(data) }
+    fn manipulate_loadout(
+        &self,
+        data: &JoinData,
+        _output_events: &mut OutputEvents,
+        _inv_action: InventoryAction,
+    ) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn wield(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn glide_wield(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn unwield(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn sit(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn dance(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn sneak(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn stand(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
+    fn talk(&self, data: &JoinData, _output_events: &mut OutputEvents) -> StateUpdate {
+        StateUpdate::from(data)
+    }
     fn start_input(
         &self,
         data: &JoinData,
@@ -45,18 +73,25 @@ pub trait CharacterBehavior {
         update.removed_inputs.push(input);
         update
     }
-    fn handle_event(&self, data: &JoinData, event: ControlAction) -> StateUpdate {
+    fn handle_event(
+        &self,
+        data: &JoinData,
+        output_events: &mut OutputEvents,
+        event: ControlAction,
+    ) -> StateUpdate {
         match event {
-            ControlAction::SwapEquippedWeapons => self.swap_equipped_weapons(data),
-            ControlAction::InventoryAction(inv_action) => self.manipulate_loadout(data, inv_action),
-            ControlAction::Wield => self.wield(data),
-            ControlAction::GlideWield => self.glide_wield(data),
-            ControlAction::Unwield => self.unwield(data),
-            ControlAction::Sit => self.sit(data),
-            ControlAction::Dance => self.dance(data),
-            ControlAction::Sneak => self.sneak(data),
-            ControlAction::Stand => self.stand(data),
-            ControlAction::Talk => self.talk(data),
+            ControlAction::SwapEquippedWeapons => self.swap_equipped_weapons(data, output_events),
+            ControlAction::InventoryAction(inv_action) => {
+                self.manipulate_loadout(data, output_events, inv_action)
+            },
+            ControlAction::Wield => self.wield(data, output_events),
+            ControlAction::GlideWield => self.glide_wield(data, output_events),
+            ControlAction::Unwield => self.unwield(data, output_events),
+            ControlAction::Sit => self.sit(data, output_events),
+            ControlAction::Dance => self.dance(data, output_events),
+            ControlAction::Sneak => self.sneak(data, output_events),
+            ControlAction::Stand => self.stand(data, output_events),
+            ControlAction::Talk => self.talk(data, output_events),
             ControlAction::StartInput {
                 input,
                 target_entity,
