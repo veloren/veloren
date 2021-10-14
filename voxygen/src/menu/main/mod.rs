@@ -88,6 +88,9 @@ impl PlayState for MainMenuState {
     fn tick(&mut self, global_state: &mut GlobalState, events: Vec<Event>) -> PlayStateResult {
         span!(_guard, "tick", "<MainMenuState as PlayState>::tick");
 
+        // Pull in localizations
+        let localized_strings = &global_state.i18n.read();
+
         // Poll server creation
         #[cfg(feature = "singleplayer")]
         {
@@ -102,6 +105,7 @@ impl PlayState for MainMenuState {
                             ConnectionArgs::Mpsc(14004),
                             &mut self.init,
                             &global_state.tokio_runtime,
+                            &global_state.i18n,
                         );
                     },
                     Ok(Err(e)) => {
@@ -109,7 +113,11 @@ impl PlayState for MainMenuState {
                         global_state.singleplayer = None;
                         self.init = InitState::None;
                         self.main_menu_ui.cancel_connection();
-                        self.main_menu_ui.show_info(format!("Error: {:?}", e));
+                        global_state.info_message = Some(
+                            localized_strings
+                                .get("main.servers.singleplayer_error")
+                                .to_owned(),
+                        );
                     },
                     Err(_) => (),
                 }
@@ -143,7 +151,11 @@ impl PlayState for MainMenuState {
                 // Log error for possible additional use later or incase that the error
                 // displayed is cut of.
                 error!(?e, "Client Init failed");
-                global_state.info_message = Some(e);
+                global_state.info_message = Some(
+                    localized_strings
+                        .get("main.login.client_init_failed")
+                        .to_owned(),
+                );
             },
             Some(InitMsg::IsAuthTrusted(auth_server)) => {
                 if global_state
@@ -163,7 +175,6 @@ impl PlayState for MainMenuState {
         }
 
         // Tick the client to keep the connection alive if we are waiting on pipelines
-        let localized_strings = &global_state.i18n.read();
         if let InitState::Pipeline(client) = &mut self.init {
             match client.tick(
                 comp::ControllerInputs::default(),
@@ -262,6 +273,7 @@ impl PlayState for MainMenuState {
                         connection_args,
                         &mut self.init,
                         &global_state.tokio_runtime,
+                        &global_state.i18n,
                     );
                 },
                 MainMenuEvent::CancelLoginAttempt => {
@@ -451,9 +463,27 @@ fn attempt_login(
     connection_args: ConnectionArgs,
     init: &mut InitState,
     runtime: &Arc<runtime::Runtime>,
+    localized_strings: &LocalizationHandle,
 ) {
+    let localization = localized_strings.read();
     if let Err(err) = comp::Player::alias_validate(&username) {
-        *info_message = Some(err.to_string());
+        match err {
+            comp::AliasError::ForbiddenCharacters => {
+                *info_message = Some(
+                    localization
+                        .get("main.login.username_bad_characters")
+                        .to_owned(),
+                );
+            },
+            comp::AliasError::TooLong => {
+                *info_message = Some(
+                    localization
+                        .get("main.login.username_too_long")
+                        .to_owned()
+                        .replace("{max_len}", comp::MAX_ALIAS_LEN.to_string().as_str()),
+                );
+            },
+        }
         return;
     }
 
