@@ -10,7 +10,7 @@ use vek::*;
 use client::Client;
 use common::{
     comp::{
-        inventory::item::{MaterialStatManifest, Quality},
+        inventory::item::{ItemDesc, MaterialStatManifest, Quality},
         Inventory, Stats,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
@@ -393,7 +393,12 @@ impl<'a> Trade<'a> {
 
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_item_tooltip(self.item_tooltip_manager, vec![item], prices, &item_tooltip)
+                    .with_item_tooltip(
+                        self.item_tooltip_manager,
+                        core::iter::once(item as &dyn ItemDesc),
+                        prices,
+                        &item_tooltip,
+                    )
                     .set(slot_id, ui);
             } else {
                 slot_widget.set(slot_id, ui);

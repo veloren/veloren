@@ -6,7 +6,7 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
-use common::comp::inventory::item::{ItemDef, MaterialStatManifest, Quality};
+use common::comp::inventory::item::{ItemDef, ItemDesc, MaterialStatManifest, Quality};
 use conrod_core::{
     color,
     position::Dimension,
@@ -335,7 +335,7 @@ impl<'a> Widget for LootScroller<'a> {
                 .middle_of(state.ids.message_icon_bgs[i])
                 .with_item_tooltip(
                     self.item_tooltip_manager,
-                    vec![&**item],
+                    core::iter::once(&**item as &dyn ItemDesc),
                     &None,
                     &item_tooltip,
                 )

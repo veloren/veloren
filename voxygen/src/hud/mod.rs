@@ -728,7 +728,8 @@ impl Show {
         self.selected_crafting_tab(tab);
         self.crafting(true);
         self.craft_sprite = self.craft_sprite.or(craft_sprite);
-        self.salvage = matches!(craft_sprite, Some((_, SpriteKind::SalvagingBench)));
+        self.salvage = matches!(self.craft_sprite, Some((_, SpriteKind::SalvagingBench)))
+            && matches!(tab, CraftingTab::Dismantle);
     }
 
     fn diary(&mut self, open: bool) {

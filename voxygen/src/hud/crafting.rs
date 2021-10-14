@@ -724,7 +724,7 @@ impl<'a> Widget for Crafting<'a> {
             .middle_of(state.ids.output_img_frame)
             .with_item_tooltip(
                 self.item_tooltip_manager,
-                vec![&*recipe.output.0],
+                core::iter::once(&*recipe.output.0 as &dyn ItemDesc),
                 &None,
                 &item_tooltip,
             )
@@ -970,7 +970,7 @@ impl<'a> Widget for Crafting<'a> {
                 .graphics_for(state.ids.ingredient_btn[i])
                 .with_item_tooltip(
                     self.item_tooltip_manager,
-                    vec![&*item_def],
+                    core::iter::once(&*item_def as &dyn ItemDesc),
                     &None,
                     &item_tooltip,
                 )

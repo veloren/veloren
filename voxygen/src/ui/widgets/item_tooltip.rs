@@ -24,7 +24,10 @@ use conrod_core::{
 };
 use i18n::Localization;
 use lazy_static::lazy_static;
-use std::time::{Duration, Instant};
+use std::{
+    borrow::Borrow,
+    time::{Duration, Instant},
+};
 
 #[derive(Copy, Clone)]
 struct Hover(widget::Id, [f64; 2]);
@@ -105,16 +108,18 @@ impl ItemTooltipManager {
     }
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
-    fn set_tooltip(
+    fn set_tooltip<'a, I>(
         &mut self,
-        tooltip: &ItemTooltip,
-        items: Vec<&dyn ItemDesc>,
-        prices: &Option<SitePrices>,
+        tooltip: &'a ItemTooltip,
+        items: impl Iterator<Item = I>,
+        prices: &'a Option<SitePrices>,
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
         ui: &mut UiCell,
-    ) {
+    ) where
+        I: Borrow<dyn ItemDesc>,
+    {
         let mut y_offset = 0.0;
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
         for item in items {
@@ -125,7 +130,7 @@ impl ItemTooltipManager {
                 // spacing
                 let tooltip = tooltip
                     .clone()
-                    .item(item)
+                    .item(item.borrow())
                     .prices(prices)
                     .image(img_id)
                     .image_dims(image_dims);
@@ -178,17 +183,18 @@ impl ItemTooltipManager {
     }
 }
 
-pub struct ItemTooltipped<'a, W> {
+pub struct ItemTooltipped<'a, W, I> {
     inner: W,
     tooltip_manager: &'a mut ItemTooltipManager,
 
-    items: Vec<&'a dyn ItemDesc>,
+    items: I,
     prices: &'a Option<SitePrices>,
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     tooltip: &'a ItemTooltip<'a>,
 }
-impl<'a, W: Widget> ItemTooltipped<'a, W> {
+
+impl<'a, W: Widget, I: Iterator> ItemTooltipped<'a, W, I> {
     pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
         self.img_id = Some(img_id);
         self
@@ -199,7 +205,10 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
         self
     }
 
-    pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event {
+    pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event
+    where
+        <I as Iterator>::Item: Borrow<dyn ItemDesc>,
+    {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
             self.tooltip,
@@ -216,27 +225,27 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
 
 pub trait ItemTooltipable {
     // If `Tooltip` is expensive to construct accept a closure here instead.
-    fn with_item_tooltip<'a>(
+    fn with_item_tooltip<'a, I>(
         self,
         tooltip_manager: &'a mut ItemTooltipManager,
 
-        items: Vec<&'a dyn ItemDesc>,
+        items: I,
 
         prices: &'a Option<SitePrices>,
 
         tooltip: &'a ItemTooltip<'a>,
-    ) -> ItemTooltipped<'a, Self>
+    ) -> ItemTooltipped<'a, Self, I>
     where
         Self: std::marker::Sized;
 }
 impl<W: Widget> ItemTooltipable for W {
-    fn with_item_tooltip<'a>(
+    fn with_item_tooltip<'a, I>(
         self,
         tooltip_manager: &'a mut ItemTooltipManager,
-        items: Vec<&'a dyn ItemDesc>,
+        items: I,
         prices: &'a Option<SitePrices>,
         tooltip: &'a ItemTooltip<'a>,
-    ) -> ItemTooltipped<'a, W> {
+    ) -> ItemTooltipped<'a, W, I> {
         ItemTooltipped {
             inner: self,
             tooltip_manager,
