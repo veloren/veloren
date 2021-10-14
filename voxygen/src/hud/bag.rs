@@ -21,7 +21,7 @@ use common::{
     combat::{combat_rating, Damage},
     comp::{
         inventory::InventorySortOrder,
-        item::{ItemDef, MaterialStatManifest, Quality},
+        item::{Item, ItemDef, ItemDesc, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
 };
@@ -382,6 +382,20 @@ impl<'a> InventoryScroller<'a> {
                     .pending_trade()
                     .as_ref()
                     .and_then(|(_, _, prices)| prices.clone());
+
+                let salvage_result: Vec<Item> = item
+                    .salvage_output()
+                    .map(|asset| Item::new_from_asset_expect(asset))
+                    .collect();
+
+                let item: Vec<&dyn ItemDesc> = if self.show_salvage {
+                    salvage_result
+                        .iter()
+                        .map(|item| item as &dyn ItemDesc)
+                        .collect()
+                } else {
+                    vec![item]
+                };
 
                 slot_widget
                     .filled_slot(quality_col_img)
@@ -851,7 +865,7 @@ impl<'a> Widget for Bag<'a> {
                 if let Some(item) = inventory.equipped($slot) {
                     let manager = &mut *self.item_tooltip_manager;
                     $slot_maker
-                        .with_item_tooltip(manager, item, &None, &item_tooltip)
+                        .with_item_tooltip(manager, vec![item], &None, &item_tooltip)
                         .set($slot_id, ui)
                 } else {
                     let manager = &mut *self.tooltip_manager;

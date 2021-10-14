@@ -645,7 +645,7 @@ impl<'a> Skillbar<'a> {
                 .position(entry.position);
             // if there is an item attached, show item tooltip
             if let Some(item) = slot_content(entry.slot) {
-                slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
+                slot.with_item_tooltip(self.item_tooltip_manager, vec![item], &None, &item_tooltip)
                     .set(entry.widget_id, ui);
             // if we can gather some text to display, show it
             } else if let Some((title, desc)) = tooltip_text(entry.slot) {

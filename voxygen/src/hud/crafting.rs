@@ -724,7 +724,7 @@ impl<'a> Widget for Crafting<'a> {
             .middle_of(state.ids.output_img_frame)
             .with_item_tooltip(
                 self.item_tooltip_manager,
-                &*recipe.output.0,
+                vec![&*recipe.output.0],
                 &None,
                 &item_tooltip,
             )
@@ -953,7 +953,7 @@ impl<'a> Widget for Crafting<'a> {
                     .w_h(22.0, 22.0)
                     .middle_of(state.ids.ingredient_frame[i])
                     .hover_image(self.imgs.wpn_icon_border_mo)
-                    .with_item_tooltip(self.item_tooltip_manager, &*item_def, &None, &item_tooltip)
+                    .with_item_tooltip(self.item_tooltip_manager, vec![&*item_def], &None, &item_tooltip)
                     .set(state.ids.ingredient_btn[i], ui)
                     .was_clicked()
                 {
@@ -968,6 +968,12 @@ impl<'a> Widget for Crafting<'a> {
                 .middle_of(state.ids.ingredient_btn[i])
                 .w_h(20.0, 20.0)
                 .graphics_for(state.ids.ingredient_btn[i])
+                .with_item_tooltip(
+                    self.item_tooltip_manager,
+                    vec![&*item_def],
+                    &None,
+                    &item_tooltip,
+                )
                 .set(state.ids.ingredient_img[i], ui);
 
                 // Ingredients text and amount

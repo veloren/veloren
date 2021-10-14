@@ -333,7 +333,12 @@ impl<'a> Widget for LootScroller<'a> {
                 .color(Some(shade_color(color::hsla(0.0, 0.0, 1.0, 1.0))))
                 .w_h(ICON_SIZE, ICON_SIZE)
                 .middle_of(state.ids.message_icon_bgs[i])
-                .with_item_tooltip(self.item_tooltip_manager, &**item, &None, &item_tooltip)
+                .with_item_tooltip(
+                    self.item_tooltip_manager,
+                    vec![&**item],
+                    &None,
+                    &item_tooltip,
+                )
                 .set(state.ids.message_icons[i], ui);
 
                 let label = if *amount == 1 {

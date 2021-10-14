@@ -393,7 +393,7 @@ impl<'a> Trade<'a> {
 
                 slot_widget
                     .filled_slot(quality_col_img)
-                    .with_item_tooltip(self.item_tooltip_manager, item, prices, &item_tooltip)
+                    .with_item_tooltip(self.item_tooltip_manager, vec![item], prices, &item_tooltip)
                     .set(slot_id, ui);
             } else {
                 slot_widget.set(slot_id, ui);
