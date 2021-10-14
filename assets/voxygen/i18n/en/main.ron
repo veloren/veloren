@@ -60,7 +60,11 @@ https://veloren.net/account/."#,
         "main.login.select_language": "Select a language",
         "main.login.client_version": "Client Version",
         "main.login.server_version": "Server Version",
+        "main.login.client_init_failed": "Client failed to initialize.",
+        "main.login.username_bad_characters": "Username contains invalid characters! (Only alphanumeric, '_' and '-' are allowed)",
+        "main.login.username_too_long": "Username is too long! Max length is: {max_len}",
         "main.servers.select_server": "Select a server",
+        "main.servers.singleplayer_error": "Failed to connect to internal server.",
 
         // Credits screen
         "main.credits": "Credits",

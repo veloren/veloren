@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::resources::{BattleMode, Time};
 
-const MAX_ALIAS_LEN: usize = 32;
+pub const MAX_ALIAS_LEN: usize = 32;
 
 #[derive(Debug)]
 pub enum DisconnectReason {

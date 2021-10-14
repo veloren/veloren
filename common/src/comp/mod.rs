@@ -90,7 +90,7 @@ pub use self::{
         Scale, Sticky, Vel,
     },
     player::DisconnectReason,
-    player::Player,
+    player::{AliasError, Player, MAX_ALIAS_LEN},
     poise::{Poise, PoiseState},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
