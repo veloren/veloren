@@ -23,7 +23,7 @@ use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
-    net::SocketAddr,
+    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
     path::{Path, PathBuf},
 };
 use tracing::{error, warn};
@@ -65,6 +65,12 @@ impl ServerBattleMode {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub enum Protocol {
+    Quic,
+    Tcp,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CalendarMode {
     None,
@@ -91,7 +97,7 @@ impl CalendarMode {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
-    pub gameserver_address: SocketAddr,
+    pub protocols_and_addresses: Vec<(Protocol, SocketAddr)>,
     pub metrics_address: SocketAddr,
     pub auth_server_address: Option<String>,
     pub quic_files: Option<X509FilePair>,
@@ -121,8 +127,17 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            gameserver_address: SocketAddr::from(([0; 4], 14004)),
-            metrics_address: SocketAddr::from(([0; 4], 14005)),
+            protocols_and_addresses: vec![
+                (
+                    Protocol::Tcp,
+                    SocketAddr::from((Ipv6Addr::UNSPECIFIED, 14004)),
+                ),
+                (
+                    Protocol::Tcp,
+                    SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14004)),
+                ),
+            ],
+            metrics_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             auth_server_address: Some("https://auth.veloren.net".into()),
             quic_files: None,
             world_seed: DEFAULT_WORLD_SEED,
@@ -195,14 +210,17 @@ impl Settings {
     pub fn singleplayer(path: &Path) -> Self {
         let load = Self::load(path);
         Self {
-            //BUG: theoretically another process can grab the port between here and server
-            // creation, however the timewindow is quite small
-            gameserver_address: SocketAddr::from((
-                [127, 0, 0, 1],
-                pick_unused_port().expect("Failed to find unused port!"),
-            )),
+            // BUG: theoretically another process can grab the port between here and server
+            // creation, however the time window is quite small.
+            protocols_and_addresses: vec![(
+                Protocol::Tcp,
+                SocketAddr::from((
+                    Ipv4Addr::LOCALHOST,
+                    pick_unused_port().expect("Failed to find unused port!"),
+                )),
+            )],
             metrics_address: SocketAddr::from((
-                [127, 0, 0, 1],
+                Ipv4Addr::LOCALHOST,
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
             auth_server_address: None,

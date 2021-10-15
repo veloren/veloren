@@ -154,7 +154,11 @@ fn main() -> io::Result<()> {
 
     info!("Starting server...");
 
-    let server_port = &server_settings.gameserver_address.port();
+    if no_auth {
+        server_settings.auth_server_address = None;
+    }
+
+    let protocols_and_addresses = server_settings.protocols_and_addresses.clone();
     let metrics_port = &server_settings.metrics_address.port();
     // Create server
     let mut server = Server::new(
@@ -166,11 +170,13 @@ fn main() -> io::Result<()> {
     )
     .expect("Failed to create server instance!");
 
-    info!(
-        ?server_port,
-        ?metrics_port,
-        "Server is ready to accept connections."
-    );
+    for (_, addr) in protocols_and_addresses {
+        info!(
+            ?addr,
+            ?metrics_port,
+            "Server is ready to accept connections."
+        );
+    }
 
     let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
 

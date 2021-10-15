@@ -115,6 +115,8 @@ use crate::{
 use hashbrown::HashMap;
 use std::sync::RwLock;
 
+use crate::settings::Protocol;
+
 #[cfg(feature = "plugins")]
 use {
     common::uid::UidAllocator,
@@ -463,9 +465,8 @@ impl Server {
             )
             .await
         });
-        runtime.block_on(network.listen(ListenAddr::Tcp(settings.gameserver_address)))?;
-        runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
-        if let Some(quic) = &settings.quic_files {
+
+        let quic_server_config = if let Some(quic) = &settings.quic_files {
             use rustls_pemfile::Item;
             use std::fs;
             match || -> Result<_, Box<dyn std::error::Error>> {
@@ -494,20 +495,42 @@ impl Server {
                 let server_config = quinn::ServerConfig::with_single_cert(cert_chain, key)?;
                 Ok(server_config)
             }() {
-                Ok(server_config) => {
-                    warn!(
-                        "QUIC is enabled. This is experimental and not recommended in production"
-                    );
-                    runtime.block_on(
-                        network
-                            .listen(ListenAddr::Quic(settings.gameserver_address, server_config)),
-                    )?;
-                },
+                Ok(server_config) => Some(server_config),
                 Err(e) => {
-                    error!(?e, ?settings.quic_files, "Failed to load Quic Certificate, run without Quic")
+                    error!(?e, ?settings.quic_files, "Failed to load the TLS certificate, running without QUIC");
+                    None
+                },
+            }
+        } else {
+            None
+        };
+
+        let mut printed_quic_warning = false;
+        for (protocol, address) in &settings.protocols_and_addresses {
+            match protocol {
+                Protocol::Tcp => {
+                    runtime.block_on(network.listen(ListenAddr::Tcp(*address)))?;
+                },
+                Protocol::Quic => {
+                    if let Some(server_config) = &quic_server_config {
+                        runtime.block_on(
+                            network.listen(ListenAddr::Quic(*address, server_config.clone())),
+                        )?;
+
+                        if !printed_quic_warning {
+                            warn!(
+                                "QUIC is enabled. This is experimental and not recommended in \
+                                 production"
+                            );
+                            printed_quic_warning = true;
+                        }
+                    }
                 },
             }
         }
+
+        runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
+
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
