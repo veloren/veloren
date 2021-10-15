@@ -200,7 +200,11 @@ impl Ori {
         let between = self.to_quat().conjugate() * other.to_quat();
         // Then compute it's angle
         // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
-        let angle = 2.0 * between.w.acos();
+        //
+        // NOTE: acos is very sensitive to errors at small angles
+        // - https://www.researchgate.net/post/How_do_I_calculate_the_smallest_angle_between_two_quaternions
+        // - see angle_between unit test epislons
+        let angle = 2.0 * between.w.min(1.0).acos();
         if angle < PI { angle } else { TAU - angle }
     }
 
@@ -473,6 +477,44 @@ mod tests {
         };
 
         dirs().for_each(to_horizontal);
+    }
+
+    #[test]
+    fn angle_between() {
+        let axis_list = (-16..17)
+            .map(|i| i as f32 / 16.0)
+            .flat_map(|fraction| {
+                [
+                    Vec3::new(1.0 - fraction, fraction, 0.0),
+                    Vec3::new(0.0, 1.0 - fraction, fraction),
+                    Vec3::new(fraction, 0.0, 1.0 - fraction),
+                ]
+            })
+            .collect::<Vec<_>>();
+        // Iterator over some angles between 0 and 180
+        let angles = (0..129).map(|i| i as f32 / 128.0 * PI);
+
+        for angle_a in angles.clone() {
+            for angle_b in angles.clone() {
+                for axis in axis_list.iter().copied() {
+                    let ori_a = Ori(Quaternion::rotation_3d(angle_a, axis));
+                    let ori_b = Ori(Quaternion::rotation_3d(angle_b, axis));
+
+                    let angle = (angle_a - angle_b).abs();
+                    let epsilon = match angle {
+                        angle if angle > 0.5 => f32::EPSILON * 20.0,
+                        angle if angle > 0.2 => 0.00001,
+                        angle if angle > 0.01 => 0.0001,
+                        _ => 0.002,
+                    };
+                    approx::assert_relative_eq!(
+                        ori_a.angle_between(ori_b),
+                        angle,
+                        epsilon = epsilon,
+                    );
+                }
+            }
+        }
     }
 
     #[test]
