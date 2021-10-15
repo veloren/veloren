@@ -327,8 +327,6 @@ pub enum SoundKind {
     Beam,
     Shockwave,
     Utterance(UtteranceKind, Body),
-    // TODO: unify VillagerAlarm with Utterance
-    VillagerAlarm,
 }
 
 #[derive(Clone, Copy, Debug)]
