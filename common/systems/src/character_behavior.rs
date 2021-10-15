@@ -17,7 +17,6 @@ use common::{
     terrain::TerrainGrid,
     uid::Uid,
 };
-use common_base::prof_span;
 use common_ecs::{Job, Origin, Phase, System};
 use std::time::Duration;
 
@@ -129,7 +128,6 @@ impl<'a> System<'a> for Sys {
         )
             .join()
         {
-            prof_span!("entity");
             // Being dead overrides all other states
             if health.map_or(false, |h| h.is_dead) {
                 // Do nothing

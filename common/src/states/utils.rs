@@ -388,7 +388,6 @@ pub fn handle_orientation(
     efficiency: f32,
     dir_override: Option<Dir>,
 ) {
-    common_base::prof_span!("handle_orientation");
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
     // else the current horizontal movement direction is used

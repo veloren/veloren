@@ -165,13 +165,25 @@ impl Ori {
 
             Self(quat)
         } else {
-            // TODO: optimize this more (see asm)
             // if the direction is straight down, pitch up, or if straight up, pitch down
             if fw.z < 0.0 {
                 self.pitched_up(FRAC_PI_2)
             } else {
                 self.pitched_down(FRAC_PI_2)
             }
+            // TODO: test this alternative for speed and correctness compared to
+            // current impl
+            //
+            // removes a branch
+            //
+            // use core::f32::consts::FRAC_1_SQRT_2;
+            // let cos = FRAC_1_SQRT_2;
+            // let sin = -FRAC_1_SQRT_2 * fw.z.signum();
+            // let axis = Vec3::unit_x();
+            // let scalar = cos;
+            // let vector = sin * axis;
+            // Self((self.0 * Quaternion::from_scalar_and_vec3((scalar,
+            // vector))).normalized())
         }
     }
 
@@ -291,26 +303,8 @@ impl From<Dir> for Ori {
         // Check that dir is not straight up/down
         // Uses a multiple of EPSILON to be safe
         let quat = if 1.0 - dir.z.abs() > f32::EPSILON * 4.0 {
-            // handle_orientation: mean: 168, median: 121
-            // move_dir(no subspans): mean: 74, median: 42
-            // move_dir: mean: 226, median: 197
-            // mean: 105, median: 90
-            // Compute rotation that will give an "upright" orientation (no rolling):
-            /*
-            // Rotation to get to this projected point from the default direction of y+
-            let yaw = dir.xy().normalized().y.acos() * dir.x.signum() * -1.0;
-            // Rotation to then rotate up/down to the match the input direction
-            let pitch = dir.z.asin();
-
-            (Quaternion::rotation_z(yaw) * Quaternion::rotation_x(pitch)).normalized()
-
-            // handle_orientation: mean: 167, median: 151
-            // move_dir(no subspans): mean: 83, median: 83
-            // move_dir: mean: 209, median: 186
-            // mean: 60, median: 46
             // Compute rotation that will give an "upright" orientation (no
             // rolling):
-            */
             let xy_len = dir.xy().magnitude();
             let xy_norm = dir.xy() / xy_len;
             // Rotation to get to this projected point from the default direction of y+
