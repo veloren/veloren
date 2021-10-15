@@ -937,14 +937,18 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
                 //Item Image
-                Button::image(animate_by_pulse(
+                if Button::image(animate_by_pulse(
                     &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),
                     self.pulse,
                 ))
                 .w_h(22.0, 22.0)
                 .middle_of(state.ids.ingredient_frame[i])
                 .with_item_tooltip(self.item_tooltip_manager, &*item_def, &None, &item_tooltip)
-                .set(state.ids.ingredient_img[i], ui);
+                .set(state.ids.ingredient_img[i], ui)
+                .was_clicked()
+                {
+                    events.push(Event::SearchRecipe(Some(item_def.name().to_string())));
+                }
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
                 let over9k = "99+";
