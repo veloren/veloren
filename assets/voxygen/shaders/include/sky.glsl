@@ -126,7 +126,12 @@ float magnetosphere = sin(time_of_day.x / (3600 * 24));
     vec3 magnetosphere_tint = _magnetosphere_change / length(_magnetosphere_change);
 #endif
 #if (CLOUD_MODE > CLOUD_MODE_NONE)
-    float emission_strength = clamp((magnetosphere - 0.8) / 0.1, 0, 1) * max(sun_dir.z, 0);
+    float emission_strength = clamp((magnetosphere - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
+    #if (CLOUD_MODE > CLOUD_MODE_MEDIUM)
+        float emission_br = abs(pow(fract(time_of_day.x * 0.000005) * 2 - 1, 2));
+    #else
+        float emission_br = 0.5;
+    #endif
 #endif
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
@@ -392,7 +397,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     vec3 emission = vec3(0);
     #if (CLOUD_MODE > CLOUD_MODE_NONE)
         if (emission_strength > 0.0) {
-            emission = normalize(pow(magnetosphere_tint, vec3(3))) * emission_strength * magnetosphere * 0.1;
+            emission = mix(vec3(0, 0.5, 1), vec3(1, 0, 0), emission_br) * emission_strength * 0.025;
         }
     #endif
 

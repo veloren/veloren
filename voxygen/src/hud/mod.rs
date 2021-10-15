@@ -4065,7 +4065,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Loom => "hud.crafting.loom",
         SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
         SpriteKind::TanningRack => "hud.crafting.tanning_rack",
-        sprite => return Cow::Owned(format!("{:?}", sprite)),
+        sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(Cow::Borrowed(localized_strings.get(i18n_key)))
 }

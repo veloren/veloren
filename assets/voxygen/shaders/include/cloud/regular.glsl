@@ -150,22 +150,15 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
                 + textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.0005 + nz * 0.5, 0).x * 0.3
                 - 0.5) * 2)
             * max(0, 1.0 - abs(textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00001, 0).x - 0.5) * 4)
-            , 2);
+            , 2) * emission_strength;
         float t = clamp((pos.z - emission_alt) / emission_height, 0, 1);
-        float br = 0.5; // blue vs red
-        #if (CLOUD_MODE > CLOUD_MODE_LOW)
-            br += (magnetosphere_tint.r - 0.6) * 4;
-        #else
-            br = 1.0;
-        #endif
-        br = clamp(br, 0, 1);
         t = pow(t - 0.5, 2) * sign(t - 0.5) + 0.5;
         float top = pow(t, 2);
         float bot = pow(max(0.8 - t, 0), 2) * 2;
         const vec3 cyan = vec3(0, 0.5, 1);
         const vec3 red = vec3(1, 0, 0);
         const vec3 green = vec3(0, 8, 0);
-        emission = 100 * emission_factor * nz * (cyan * top * max(0, 1 - br) + red * max(br, 0) + green * bot);
+        emission = 10 * emission_factor * nz * (cyan * top * max(0, 1 - emission_br) + red * max(emission_br, 0) + green * bot);
     }
 
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
@@ -247,8 +240,9 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         float cloud_scatter_factor = density_integrals.x;
         float global_scatter_factor = density_integrals.y;
 
-        float cloud_darken = pow(1.0 / (1.0 + cloud_scatter_factor), (ldist - cdist) * 0.01);
-        float global_darken = pow(1.0 / (1.0 + global_scatter_factor), (ldist - cdist) * 0.01);
+        float step = (ldist - cdist) * 0.01;
+        float cloud_darken = pow(1.0 / (1.0 + cloud_scatter_factor), step);
+        float global_darken = pow(1.0 / (1.0 + global_scatter_factor), step);
 
         surf_color =
             // Attenuate light passing through the clouds
@@ -257,7 +251,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
             moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
             sky_light * (1.0 - global_darken) * not_underground +
-            emission * density_integrals.y;
+            emission * density_integrals.y * step;
     }
 
     return surf_color;
