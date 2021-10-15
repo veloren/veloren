@@ -154,7 +154,8 @@ impl PlayState for MainMenuState {
                 global_state.info_message = Some(
                     localized_strings
                         .get("main.login.client_init_failed")
-                        .to_owned(),
+                        .to_owned()
+                        .replace("{init_fail_reason}", e.as_str()),
                 );
             },
             Some(InitMsg::IsAuthTrusted(auth_server)) => {
