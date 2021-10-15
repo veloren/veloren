@@ -142,14 +142,20 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
     if (emission_strength <= 0.0) {
         emission = vec3(0);
     } else {
-        float emission_alt = CLOUD_AVG_ALT * 2.0 + (noise_3d(vec3(wind_pos.xy * 0.0001 + cloud_tendency * 0.2, time_of_day.x * 0.0002)) - 0.5) * 6000;
-        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
-            emission_alt += (noise_3d(vec3(wind_pos.xy * 0.0005 + cloud_tendency * 0.2, emission_alt * 0.0001 + time_of_day.x * 0.001)) - 0.5) * 1000;
-        #endif
-        float tail = (textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005, 0).x - 0.5) * 4 + (pos.z - emission_alt) * 0.0001;
-        vec3 emission_col = vec3(0.8 + tail * 1.5, 0.5 - tail * 0.2, 0.3 + tail * 0.2);
-        float emission_nz = max(pow(textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.000015, 0).x, 8), 0.01) * 0.25 / (10.0 + abs(pos.z - emission_alt) / 80);
-        emission = emission_col * emission_nz * emission_strength * max(sun_dir.z, 0) * 500000 / (1000.0 + abs(pos.z - emission_alt) * 0.1);
+        float nz = textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00005 - time_of_day.x * 0.0001, 0).x;//noise_3d(vec3(wind_pos.xy * 0.00005 + cloud_tendency * 0.2, time_of_day.x * 0.0002));
+
+        float emission_alt = alt * 0.5 + 1000 + 1000 * nz;
+        float emission_height = 1000.0;
+        float emission_factor = pow(max(0.0, 1.0 - abs((pos.z - emission_alt) / emission_height - 1.0))
+            * max(0, 1.0 - abs(0.0
+                + textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.0001 + nz * 0.1, 0).x
+                + textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.0005 + nz * 0.5, 0).x * 0.3
+                - 0.5) * 2)
+            * max(0, 1.0 - abs(textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00001, 0).x - 0.5) * 4)
+            , 2);
+        float t = clamp((pos.z - emission_alt) / emission_height, 0, 1);
+
+        emission = vec3(t * 1, 2 - t * 2, 0) * 100 * emission_factor * nz;
     }
 
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
