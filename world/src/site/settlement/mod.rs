@@ -736,7 +736,7 @@ impl Settlement {
                         {
                             let diff = (surface_z - land_surface_z).abs();
 
-                            for z in -8 - diff..4 + diff {
+                            for z in -8 - diff..8 + diff {
                                 let pos = Vec3::new(offs.x, offs.y, surface_z + z);
                                 let block = if let Ok(&block) = vol.get(pos) {
                                     // TODO: Figure out whether extra filters are needed.
