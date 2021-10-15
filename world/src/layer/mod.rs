@@ -34,7 +34,7 @@ use vek::*;
 #[derive(Deserialize)]
 pub struct Colors {
     pub bridge: (u8, u8, u8),
-    pub stalagtite: (u8, u8, u8),
+    pub stalactite: (u8, u8, u8),
     pub cave_floor: (u8, u8, u8),
     pub cave_roof: (u8, u8, u8),
     pub dirt: (u8, u8, u8),
@@ -172,11 +172,11 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             let floor_dist = pit_condition as i32 * pit_depth as i32;
             let vein_condition =
                 cave_depth % 12.0 > 11.5 && cave_x > 0.1 && cave_x < 0.6 && cave_depth > 200.0;
-            let stalagtite_condition = cave_depth > 150.0;
+            let stalactite_condition = cave_depth > 150.0;
             let vein_depth = 3;
             let vein_floor = cave_base - vein_depth;
             // Stalagtites
-            let stalagtites = info
+            let stalactites = info
                 .index()
                 .noise
                 .cave_nz
@@ -190,18 +190,18 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 )
                 .mul(45.0) as i32;
 
-            // Generate stalagtites if there's something for them to hold on to
+            // Generate stalactites if there's something for them to hold on to
             if canvas
                 .get(Vec3::new(wpos2d.x, wpos2d.y, cave_roof))
                 .is_filled()
-                && stalagtite_condition
+                && stalactite_condition
             {
-                for z in cave_roof - stalagtites..cave_roof {
+                for z in cave_roof - stalactites..cave_roof {
                     canvas.set(
                         Vec3::new(wpos2d.x, wpos2d.y, z),
                         Block::new(
                             BlockKind::WeakRock,
-                            noisy_color(info.index().colors.layer.stalagtite.into(), 8),
+                            noisy_color(info.index().colors.layer.stalactite.into(), 8),
                         ),
                     );
                 }
@@ -617,7 +617,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
         let cavern_height = cavern * cavern_avg_height;
 
         // Stalagtites
-        let stalagtite = info
+        let stalactite = info
             .index()
             .noise
             .cave_nz
@@ -641,8 +641,8 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
         let cavern_top = (cavern_avg_alt + cavern_height) as i32;
         let cavern_avg_top = (cavern_avg_alt + cavern_avg_height) as i32;
 
-        // Stalagmites rise up to meet stalagtites
-        let stalagmite = stalagtite;
+        // Stalagmites rise up to meet stalactites
+        let stalagmite = stalactite;
 
         let floor = stalagmite as i32;
 
@@ -652,7 +652,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             cavern_avg_bottom,
             cavern_avg_top,
             floor,
-            stalagtite,
+            stalactite,
             cavern_avg_bottom as i32 + 16, // Water level
         )
     };
@@ -776,11 +776,11 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
             cavern_avg_bottom,
             cavern_avg_top,
             floor,
-            stalagtite,
+            stalactite,
             water_level,
         ) = cavern_at(wpos2d);
 
-        let mini_stalagtite = info
+        let mini_stalactite = info
             .index()
             .noise
             .cave_nz
@@ -793,7 +793,7 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                     .clamped(0.0, 1.0),
             )
             .mul(24.0 + (cavern_avg_top - cavern_avg_bottom) as f64 * 0.2);
-        let stalagtite_height = (stalagtite + mini_stalagtite) as i32;
+        let stalactite_height = (stalactite + mini_stalactite) as i32;
 
         let moss_common = 1.5;
         let moss = info
@@ -874,9 +874,9 @@ pub fn apply_caverns_to<R: Rng>(canvas: &mut Canvas, dynamic_rng: &mut R) {
                 }
             } else if z < cavern_bottom + floor {
                 Block::new(BlockKind::WeakRock, Rgb::new(110, 120, 150))
-            } else if z > cavern_top - stalagtite_height {
+            } else if z > cavern_top - stalactite_height {
                 if dynamic_rng.gen_bool(0.0035) {
-                    // Glowing rock in stalagtites
+                    // Glowing rock in stalactites
                     Block::new(BlockKind::GlowingRock, Rgb::new(30, 150, 120))
                 } else {
                     Block::new(BlockKind::WeakRock, Rgb::new(110, 120, 150))
