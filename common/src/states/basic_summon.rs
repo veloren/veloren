@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         self,
+        character_state::OutputEvents,
         inventory::loadout_builder::{self, LoadoutBuilder},
         Behavior, BehaviorCapability, CharacterState, Projectile, StateUpdate,
     },
@@ -54,7 +55,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         match self.stage_section {
@@ -167,7 +168,7 @@ impl CharacterBehavior for Data {
                         });
 
                         // Send server event to create npc
-                        update.server_events.push_front(ServerEvent::CreateNpc {
+                        output_events.emit_server(ServerEvent::CreateNpc {
                             pos: comp::Pos(collision_vector - Vec3::unit_z() * obstacle_z),
                             stats,
                             skill_set,
@@ -193,7 +194,7 @@ impl CharacterBehavior for Data {
                         });
 
                         // Send local event used for frontend shenanigans
-                        update.local_events.push_front(LocalEvent::CreateOutcome(
+                        output_events.emit_local(LocalEvent::CreateOutcome(
                             Outcome::SummonedCreature {
                                 pos: data.pos.0,
                                 body,

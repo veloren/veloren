@@ -1,8 +1,8 @@
 use crate::util::{Dir, Plane, Projection};
+use core::f32::consts::{FRAC_PI_2, PI, TAU};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
-use std::f32::consts::PI;
 use vek::{Quaternion, Vec2, Vec3};
 
 // Orientation
@@ -149,25 +149,59 @@ impl Ori {
     }
 
     pub fn to_horizontal(self) -> Self {
-        let fw = self.look_dir();
-        Dir::from_unnormalized(fw.xy().into())
-            .or_else(|| {
-                // if look_dir is straight down, pitch up, or if straight up, pitch down
-                Dir::from_unnormalized(
-                    if fw.dot(Vec3::unit_z()) < 0.0 {
-                        self.up()
-                    } else {
-                        self.down()
-                    }
-                    .xy()
-                    .into(),
-                )
-            })
-            .map(|dir| dir.into())
-            .expect(
-                "If the horizontal component of a Dir can not be normalized, the horizontal \
-                 component of a Dir perpendicular to it must be",
-            )
+        // We don't use Self::look_dir to avoid the extra normalization step within
+        // Dir's Quaternion Mul impl
+        let fw = self.to_quat() * Dir::default().to_vec();
+        // Check that dir is not straight up/down
+        // Uses a multiple of EPSILON to be safe
+        // We can just check z since beyond floating point errors `fw` should be
+        // normalized
+        if 1.0 - fw.z.abs() > f32::EPSILON * 4.0 {
+            // We know direction lies in the xy plane so we only need to compute a rotation
+            // about the z-axis
+            let Vec2 { x, y } = fw.xy().normalized();
+            // Negate x and swap coords since we want to compute the angle from y+
+            let quat = rotation_2d(Vec2::new(y, -x), Vec3::unit_z());
+
+            Self(quat)
+        } else {
+            // if the direction is straight down, pitch up, or if straight up, pitch down
+            if fw.z < 0.0 {
+                self.pitched_up(FRAC_PI_2)
+            } else {
+                self.pitched_down(FRAC_PI_2)
+            }
+            // TODO: test this alternative for speed and correctness compared to
+            // current impl
+            //
+            // removes a branch
+            //
+            // use core::f32::consts::FRAC_1_SQRT_2;
+            // let cos = FRAC_1_SQRT_2;
+            // let sin = -FRAC_1_SQRT_2 * fw.z.signum();
+            // let axis = Vec3::unit_x();
+            // let scalar = cos;
+            // let vector = sin * axis;
+            // Self((self.0 * Quaternion::from_scalar_and_vec3((scalar,
+            // vector))).normalized())
+        }
+    }
+
+    /// Find the angle between two `Ori`s
+    ///
+    /// NOTE: This finds the angle of the quaternion between the two `Ori`s
+    /// which can involve rolling and thus can be larger than simply the
+    /// angle between vectors at the start and end points.
+    ///
+    /// Returns angle in radians
+    pub fn angle_between(self, other: Self) -> f32 {
+        // Compute quaternion from one ori to the other
+        // https://www.mathworks.com/matlabcentral/answers/476474-how-to-find-the-angle-between-two-quaternions#answer_387973
+        let between = self.to_quat().conjugate() * other.to_quat();
+        // Then compute it's angle
+        // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
+        let angle = 2.0 * between.w.acos();
+        if angle < PI { angle } else { TAU - angle }
     }
 
     pub fn pitched_up(self, angle_radians: f32) -> Self {
@@ -239,38 +273,68 @@ impl Ori {
     /// let ang2 = pd_rr.up().angle_between(zenith);
     /// assert!((ang1 - ang2).abs() <= std::f32::EPSILON);
     /// ```
-    pub fn uprighted(self) -> Self {
-        let fw = self.look_dir();
-        match Dir::up().projected(&Plane::from(fw)) {
-            Some(dir_p) => {
-                let up = self.up();
-                let go_right_s = fw.cross(*up).dot(*dir_p).signum();
-                self.rolled_right(up.angle_between(*dir_p) * go_right_s)
-            },
-            None => self,
-        }
-    }
+    pub fn uprighted(self) -> Self { self.look_dir().into() }
 
     fn is_normalized(&self) -> bool { self.0.into_vec4().is_normalized() }
 }
 
+/// Produce a quaternion from an axis to rotate about and a 2D point on the unit
+/// circle to rotate to
+///
+/// NOTE: the provided axis and 2D vector must be normalized
+fn rotation_2d(Vec2 { x, y }: Vec2<f32>, axis: Vec3<f32>) -> Quaternion<f32> {
+    // Skip needing the angle for quaternion construction by computing cos/sin
+    // directly from the normalized x value
+    //
+    // scalar = cos(theta / 2)
+    // vector = axis * sin(theta / 2)
+    //
+    // cos(a / 2) = +/- ((1 + cos(a)) / 2)^0.5
+    // sin(a / 2) = +/- ((1 - cos(a)) / 2)^0.5
+    //
+    // scalar = +/- sqrt((1 + cos(a)) / 2)
+    // vector = vec3(0, 0, 1) * +/- sqrt((1 - cos(a)) / 2)
+    //
+    // cos(a) = x / |xy| => x (when normalized)
+    let scalar = ((1.0 + x) / 2.0).sqrt() * y.signum();
+    let vector = axis * ((1.0 - x) / 2.0).sqrt();
+
+    // This is normalized by our construction above
+    Quaternion::from_scalar_and_vec3((scalar, vector))
+}
+
 impl From<Dir> for Ori {
     fn from(dir: Dir) -> Self {
-        let from = Dir::default();
-        let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
+        // Check that dir is not straight up/down
+        // Uses a multiple of EPSILON to be safe
+        let quat = if 1.0 - dir.z.abs() > f32::EPSILON * 4.0 {
+            // Compute rotation that will give an "upright" orientation (no
+            // rolling):
+            let xy_len = dir.xy().magnitude();
+            let xy_norm = dir.xy() / xy_len;
+            // Rotation to get to this projected point from the default direction of y+
+            // Negate x and swap coords since we want to compute the angle from y+
+            let yaw = rotation_2d(Vec2::new(xy_norm.y, -xy_norm.x), Vec3::unit_z());
+            // Rotation to then rotate up/down to the match the input direction
+            // In this rotated space the xy_len becomes the distance along the x axis
+            // And since we rotated around the z-axis the z value is unchanged
+            let pitch = rotation_2d(Vec2::new(xy_len, dir.z), Vec3::unit_x());
 
-        Self(q).uprighted()
+            (yaw * pitch).normalized()
+        } else {
+            // Nothing in particular can be considered upright if facing up or down
+            // so we just produce a quaternion that will rotate to that direction
+            // (once again rotating from y+)
+            let pitch = PI / 2.0 * dir.z.signum();
+            Quaternion::rotation_x(pitch)
+        };
+
+        Self(quat)
     }
 }
 
 impl From<Vec3<f32>> for Ori {
-    fn from(dir: Vec3<f32>) -> Self {
-        let dir = Dir::from_unnormalized(dir).unwrap_or_default();
-        let from = Dir::default();
-        let q = Quaternion::<f32>::rotation_from_to_3d(*from, *dir).normalized();
-
-        Self(q).uprighted()
-    }
+    fn from(dir: Vec3<f32>) -> Self { Dir::from_unnormalized(dir).unwrap_or_default().into() }
 }
 
 impl From<Quaternion<f32>> for Ori {
@@ -354,32 +418,83 @@ impl Component for Ori {
 mod tests {
     use super::*;
 
+    // Helper method to produce Dirs at different angles to test
+    fn dirs() -> impl Iterator<Item = Dir> {
+        let angles = 32;
+        (0..angles).flat_map(move |i| {
+            let theta = PI * 2.0 * (i as f32) / (angles as f32);
+
+            let v = Vec3::unit_y();
+            let q = Quaternion::rotation_x(theta);
+            let dir_1 = Dir::new(q * v);
+
+            let v = Vec3::unit_z();
+            let q = Quaternion::rotation_y(theta);
+            let dir_2 = Dir::new(q * v);
+
+            let v = Vec3::unit_x();
+            let q = Quaternion::rotation_z(theta);
+            let dir_3 = Dir::new(q * v);
+
+            [dir_1, dir_2, dir_3]
+        })
+    }
+
+    #[test]
+    fn to_horizontal() {
+        let to_horizontal = |dir: Dir| {
+            let ori = Ori::from(dir);
+
+            let horizontal = ori.to_horizontal();
+
+            approx::assert_relative_eq!(horizontal.look_dir().xy().magnitude(), 1.0);
+            approx::assert_relative_eq!(horizontal.look_dir().z, 0.0);
+            // Check correctness by comparing with Dir::to_horizontal
+            if let Some(dir_h) = ori.look_dir().to_horizontal() {
+                let quat_correct = Quaternion::<f32>::rotation_from_to_3d(Dir::default(), dir_h);
+                #[rustfmt::skip]
+                assert!(
+                    dir_h
+                        .map2(*horizontal.look_dir(), |d, o| approx::relative_eq!(d, o, epsilon = f32::EPSILON * 4.0))
+                        .reduce_and(),
+                    "\n\
+                    Original: {:?}\n\
+                    Dir::to_horizontal: {:?}\n\
+                    Ori::to_horizontal(as dir): {:?}\n\
+                    Ori::to_horizontal(as quat): {:?}\n\
+                    Correct quaternion {:?}",
+                    ori.look_dir(),
+                    dir_h,
+                    horizontal.look_dir(),
+                    horizontal,
+                    quat_correct,
+                );
+            }
+        };
+
+        dirs().for_each(to_horizontal);
+    }
+
     #[test]
     fn from_to_dir() {
         let from_to = |dir: Dir| {
             let ori = Ori::from(dir);
 
-            approx::assert_relative_eq!(ori.look_dir().dot(*dir), 1.0);
+            assert!(ori.is_normalized(), "ori {:?}\ndir {:?}", ori, dir);
+            assert!(
+                approx::relative_eq!(ori.look_dir().dot(*dir), 1.0),
+                "Ori::from(dir).look_dir() != dir\ndir: {:?}\nOri::from(dir).look_dir(): {:?}",
+                dir,
+                ori.look_dir(),
+            );
             approx::assert_relative_eq!((ori.to_quat() * Dir::default()).dot(*dir), 1.0);
         };
 
-        let angles = 32;
-        for i in 0..angles {
-            let theta = PI * 2. * (i as f32) / (angles as f32);
-            let v = Vec3::unit_y();
-            let q = Quaternion::rotation_x(theta);
-            from_to(Dir::new(q * v));
-            let v = Vec3::unit_z();
-            let q = Quaternion::rotation_y(theta);
-            from_to(Dir::new(q * v));
-            let v = Vec3::unit_x();
-            let q = Quaternion::rotation_z(theta);
-            from_to(Dir::new(q * v));
-        }
+        dirs().for_each(from_to);
     }
 
     #[test]
-    fn dirs() {
+    fn orthogonal_dirs() {
         let ori = Ori::default();
         let def = Dir::default();
         for dir in &[ori.up(), ori.down(), ori.left(), ori.right()] {

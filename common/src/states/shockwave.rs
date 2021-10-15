@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{shockwave, CharacterState, StateUpdate},
+    comp::{character_state::OutputEvents, shockwave, CharacterState, StateUpdate},
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -62,7 +62,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_orientation(data, &mut update, 1.0, None);
@@ -117,7 +117,7 @@ impl CharacterBehavior for Data {
                         owner: Some(*data.uid),
                         specifier: self.static_data.specifier,
                     };
-                    update.server_events.push_front(ServerEvent::Shockwave {
+                    output_events.emit_server(ServerEvent::Shockwave {
                         properties,
                         pos: *data.pos,
                         ori: *data.ori,

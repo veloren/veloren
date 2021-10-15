@@ -1,5 +1,5 @@
 use crate::{
-    comp::{CharacterState, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     event::ServerEvent,
     spiral::Spiral2d,
     states::{
@@ -47,7 +47,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         match self.stage_section {
@@ -119,7 +119,7 @@ impl CharacterBehavior for Data {
                                     Vec3::new(sprite_pos.x as i32, sprite_pos.y as i32, z);
 
                                 // Send server event to create sprite
-                                update.server_events.push_front(ServerEvent::CreateSprite {
+                                output_events.emit_server(ServerEvent::CreateSprite {
                                     pos: sprite_pos,
                                     sprite: self.static_data.sprite,
                                 });

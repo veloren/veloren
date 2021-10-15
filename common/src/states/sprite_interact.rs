@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, InventoryManip, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, InventoryManip, StateUpdate},
     event::ServerEvent,
     states::behavior::{CharacterBehavior, JoinData},
     terrain::SpriteKind,
@@ -41,7 +41,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         let ori_dir = Dir::from_unnormalized(Vec3::from(
@@ -93,9 +93,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Create inventory manipulation event
                     let inv_manip = InventoryManip::Collect(self.static_data.sprite_pos);
-                    update
-                        .server_events
-                        .push_front(ServerEvent::InventoryManip(data.entity, inv_manip));
+                    output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
                     // Done
                     if self.static_data.was_wielded {
                         update.character = CharacterState::Wielding;

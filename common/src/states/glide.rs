@@ -1,8 +1,8 @@
 use super::utils::handle_climb;
 use crate::{
     comp::{
-        fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot, CharacterState, Ori,
-        StateUpdate, Vel,
+        character_state::OutputEvents, fluid_dynamics::angle_of_attack, inventory::slot::EquipSlot,
+        CharacterState, Ori, StateUpdate, Vel,
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -73,7 +73,7 @@ impl Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         // If player is on ground, end glide
@@ -199,7 +199,7 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn unwield(&self, data: &JoinData) -> StateUpdate {
+    fn unwield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
         update

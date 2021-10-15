@@ -3,6 +3,7 @@ use crate::{
     combat,
     comp::{
         biped_large, biped_small,
+        character_state::OutputEvents,
         inventory::slot::{EquipSlot, Slot},
         item::{Hands, ItemKind, Tool, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
@@ -390,21 +391,25 @@ pub fn handle_orientation(
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
     // else the current horizontal movement direction is used
-    let dir = if let Some(dir_override) = dir_override {
-        dir_override
+    let target_ori = if let Some(dir_override) = dir_override {
+        dir_override.into()
     } else if is_strafing(data, update) || update.character.is_attack() {
-        data.inputs.look_dir.to_horizontal().unwrap_or_default()
+        data.inputs
+            .look_dir
+            .to_horizontal()
+            .unwrap_or_default()
+            .into()
     } else {
         Dir::from_unnormalized(data.inputs.move_dir.into())
-            .unwrap_or_else(|| data.ori.to_horizontal().look_dir())
+            .map_or_else(|| data.ori.to_horizontal(), |dir| dir.into())
     };
     let rate = {
-        let angle = update.ori.look_dir().angle_between(*dir);
+        let angle = update.ori.angle_between(target_ori);
         data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
     };
     update.ori = update
         .ori
-        .slerped_towards(dir.into(), (data.dt.0 * rate).min(1.0));
+        .slerped_towards(target_ori, (data.dt.0 * rate).min(1.0));
 }
 
 /// Updates components to move player as if theyre swimming
@@ -627,6 +632,7 @@ pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpda
 /// Handles inventory manipulations that affect the loadout
 pub fn handle_manipulate_loadout(
     data: &JoinData<'_>,
+    output_events: &mut OutputEvents,
     update: &mut StateUpdate,
     inv_action: InventoryAction,
 ) {
@@ -659,9 +665,8 @@ pub fn handle_manipulate_loadout(
                 });
             } else {
                 // Else emit inventory action instantnaneously
-                update
-                    .server_events
-                    .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+                output_events
+                    .emit_server(ServerEvent::InventoryManip(data.entity, inv_action.into()));
             }
         },
         InventoryAction::Collect(sprite_pos) => {
@@ -768,9 +773,7 @@ pub fn handle_manipulate_loadout(
         },
         _ => {
             // Else just do event instantaneously
-            update
-                .server_events
-                .push_front(ServerEvent::InventoryManip(data.entity, inv_action.into()));
+            output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_action.into()));
         },
     }
 }
@@ -793,12 +796,18 @@ pub fn attempt_glide_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
 }
 
 /// Checks that player can jump and sends jump event if so
-pub fn handle_jump(data: &JoinData<'_>, update: &mut StateUpdate, strength: f32) -> bool {
+pub fn handle_jump(
+    data: &JoinData<'_>,
+    output_events: &mut OutputEvents,
+    // TODO: remove?
+    _update: &mut StateUpdate,
+    strength: f32,
+) -> bool {
     (input_is_pressed(data, InputKind::Jump) && data.physics.on_ground.is_some())
         .then(|| data.body.jump_impulse())
         .flatten()
         .map(|impulse| {
-            update.local_events.push_front(LocalEvent::Jump(
+            output_events.emit_local(LocalEvent::Jump(
                 data.entity,
                 strength * impulse / data.mass.0 * data.stats.move_speed_modifier,
             ));
@@ -876,24 +885,33 @@ pub fn handle_ability_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
-pub fn handle_input(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) {
+pub fn handle_input(
+    data: &JoinData<'_>,
+    output_events: &mut OutputEvents,
+    update: &mut StateUpdate,
+    input: InputKind,
+) {
     match input {
         InputKind::Primary | InputKind::Secondary | InputKind::Ability(_) => {
             handle_ability(data, update, input)
         },
         InputKind::Roll => handle_dodge_input(data, update),
         InputKind::Jump => {
-            handle_jump(data, update, 1.0);
+            handle_jump(data, output_events, update, 1.0);
         },
         InputKind::Block => handle_block_input(data, update),
         InputKind::Fly => {},
     }
 }
 
-pub fn attempt_input(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn attempt_input(
+    data: &JoinData<'_>,
+    output_events: &mut OutputEvents,
+    update: &mut StateUpdate,
+) {
     // TODO: look into using first() when it becomes stable
     if let Some(input) = data.controller.queued_inputs.keys().next() {
-        handle_input(data, update, *input);
+        handle_input(data, output_events, update, *input);
     }
 }
 

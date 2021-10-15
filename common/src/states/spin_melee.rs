@@ -3,7 +3,7 @@ use crate::{
         Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
         DamageSource, GroupTarget, Knockback,
     },
-    comp::{tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
     consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -71,7 +71,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.movement_behavior {

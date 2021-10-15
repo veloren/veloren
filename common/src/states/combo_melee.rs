@@ -1,6 +1,7 @@
 use crate::{
     combat::{Attack, AttackDamage, AttackEffect, CombatBuff, CombatEffect, CombatRequirement},
     comp::{
+        character_state::OutputEvents,
         tool::{Stats, ToolKind},
         CharacterState, Melee, StateUpdate,
     },
@@ -151,7 +152,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.4);
@@ -340,7 +341,7 @@ impl CharacterBehavior for Data {
                 } else {
                     // Done
                     if input_is_pressed(data, self.static_data.ability_info.input) {
-                        reset_state(self, data, &mut update);
+                        reset_state(self, data, output_events, &mut update);
                     } else {
                         update.character = CharacterState::Wielding;
                     }
@@ -363,8 +364,18 @@ impl CharacterBehavior for Data {
     }
 }
 
-fn reset_state(data: &Data, join: &JoinData, update: &mut StateUpdate) {
-    handle_input(join, update, data.static_data.ability_info.input);
+fn reset_state(
+    data: &Data,
+    join: &JoinData,
+    output_events: &mut OutputEvents,
+    update: &mut StateUpdate,
+) {
+    handle_input(
+        join,
+        output_events,
+        update,
+        data.static_data.ability_info.input,
+    );
 
     if let CharacterState::ComboMelee(c) = &mut update.character {
         c.stage = (data.stage % data.static_data.num_stages) + 1;

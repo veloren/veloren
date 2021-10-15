@@ -1,6 +1,7 @@
 use crate::{
     comp::{
         buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource},
+        character_state::OutputEvents,
         CharacterState, StateUpdate,
     },
     event::ServerEvent,
@@ -43,11 +44,11 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_move(data, &mut update, 0.8);
-        handle_jump(data, &mut update, 1.0);
+        handle_jump(data, output_events, &mut update, 1.0);
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -68,7 +69,7 @@ impl CharacterBehavior for Data {
                         Vec::new(),
                         BuffSource::Character { by: *data.uid },
                     );
-                    update.server_events.push_front(ServerEvent::Buff {
+                    output_events.emit_server(ServerEvent::Buff {
                         entity: data.entity,
                         buff_change: BuffChange::Add(buff),
                     });

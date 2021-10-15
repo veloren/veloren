@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{CharacterState, InventoryAction, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
@@ -11,7 +11,7 @@ const TURN_RATE: f32 = 40.0;
 pub struct Data;
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         handle_wield(data, &mut update);
@@ -20,33 +20,38 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn manipulate_loadout(&self, data: &JoinData, inv_action: InventoryAction) -> StateUpdate {
+    fn manipulate_loadout(
+        &self,
+        data: &JoinData,
+        output_events: &mut OutputEvents,
+        inv_action: InventoryAction,
+    ) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        handle_manipulate_loadout(data, &mut update, inv_action);
+        handle_manipulate_loadout(data, output_events, &mut update, inv_action);
         update
     }
 
-    fn wield(&self, data: &JoinData) -> StateUpdate {
+    fn wield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         attempt_wield(data, &mut update);
         update
     }
 
-    fn sit(&self, data: &JoinData) -> StateUpdate {
+    fn sit(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
         attempt_sit(data, &mut update);
         update
     }
 
-    fn dance(&self, data: &JoinData) -> StateUpdate {
+    fn dance(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle;
         attempt_dance(data, &mut update);
         update
     }
 
-    fn stand(&self, data: &JoinData) -> StateUpdate {
+    fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move
         update.character = CharacterState::Idle;

@@ -242,6 +242,9 @@ impl<'a, E> Emitter<'a, E> {
     pub fn emit(&mut self, event: E) { self.events.push_back(event); }
 
     pub fn append(&mut self, other: &mut VecDeque<E>) { self.events.append(other) }
+
+    // TODO: allow just emitting the whole vec of events at once? without copying
+    pub fn append_vec(&mut self, vec: Vec<E>) { self.events.extend(vec) }
 }
 
 impl<'a, E> Drop for Emitter<'a, E> {

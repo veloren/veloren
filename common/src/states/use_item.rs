@@ -2,6 +2,7 @@ use super::utils::*;
 use crate::{
     comp::{
         buff::{BuffChange, BuffKind},
+        character_state::OutputEvents,
         inventory::{
             item::{ConsumableKind, ItemKind},
             slot::{InvSlotId, Slot},
@@ -47,7 +48,7 @@ pub struct Data {
 }
 
 impl CharacterBehavior for Data {
-    fn behavior(&self, data: &JoinData) -> StateUpdate {
+    fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
         match self.static_data.item_kind {
@@ -86,7 +87,7 @@ impl CharacterBehavior for Data {
                     });
                     if let UsePoint::BuildupUse = use_point {
                         // Create inventory manipulation event
-                        use_item(data, &mut update, self);
+                        use_item(data, output_events, self);
                     }
                 }
             },
@@ -107,7 +108,7 @@ impl CharacterBehavior for Data {
                     });
                     if let UsePoint::UseRecover = use_point {
                         // Create inventory manipulation event
-                        use_item(data, &mut update, self);
+                        use_item(data, output_events, self);
                     }
                 }
             },
@@ -141,11 +142,11 @@ impl CharacterBehavior for Data {
 
         if matches!(update.character, CharacterState::Roll(_)) {
             // Remove potion/saturation effect if left the use item state early by rolling
-            update.server_events.push_front(ServerEvent::Buff {
+            output_events.emit_server(ServerEvent::Buff {
                 entity: data.entity,
                 buff_change: BuffChange::RemoveByKind(BuffKind::Potion),
             });
-            update.server_events.push_front(ServerEvent::Buff {
+            output_events.emit_server(ServerEvent::Buff {
                 entity: data.entity,
                 buff_change: BuffChange::RemoveByKind(BuffKind::Saturation),
             });
@@ -201,7 +202,7 @@ enum UsePoint {
     UseRecover,
 }
 
-fn use_item(data: &JoinData, update: &mut StateUpdate, state: &Data) {
+fn use_item(data: &JoinData, output_events: &mut OutputEvents, state: &Data) {
     // Check if the same item is in the slot
     let item_is_same = data
         .inventory
@@ -212,8 +213,6 @@ fn use_item(data: &JoinData, update: &mut StateUpdate, state: &Data) {
     if item_is_same {
         // Create inventory manipulation event
         let inv_manip = InventoryManip::Use(Slot::Inventory(state.static_data.inv_slot));
-        update
-            .server_events
-            .push_front(ServerEvent::InventoryManip(data.entity, inv_manip));
+        output_events.emit_server(ServerEvent::InventoryManip(data.entity, inv_manip));
     }
 }

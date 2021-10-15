@@ -8,7 +8,7 @@ pub mod anchor;
 #[cfg(not(target_arch = "wasm32"))] pub mod body;
 pub mod buff;
 #[cfg(not(target_arch = "wasm32"))]
-mod character_state;
+pub mod character_state;
 #[cfg(not(target_arch = "wasm32"))] pub mod chat;
 #[cfg(not(target_arch = "wasm32"))] pub mod combo;
 pub mod compass;
