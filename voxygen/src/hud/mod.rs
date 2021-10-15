@@ -1689,9 +1689,10 @@ impl Hud {
                         &self.fonts,
                     )
                     .set(overitem_id, ui_widgets);
-                } else if let Some(sprite) = block.get_sprite() {
+                } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
+                {
                     overitem::Overitem::new(
-                        get_sprite_desc(sprite, i18n),
+                        desc,
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -4053,8 +4054,9 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
     }
 }
 
-pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Cow<str> {
+pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> Option<Cow<str>> {
     let i18n_key = match sprite {
+        SpriteKind::Empty => return None,
         SpriteKind::Anvil => "hud.crafting.anvil",
         SpriteKind::Cauldron => "hud.crafting.cauldron",
         SpriteKind::CookingPot => "hud.crafting.cooking_pot",
@@ -4065,7 +4067,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::TanningRack => "hud.crafting.tanning_rack",
         sprite => return Cow::Owned(format!("{:?}", sprite)),
     };
-    Cow::Borrowed(localized_strings.get(i18n_key))
+    Some(Cow::Borrowed(localized_strings.get(i18n_key)))
 }
 
 pub fn get_buff_time(buff: BuffInfo) -> String {
