@@ -4358,7 +4358,12 @@ impl<'a> AgentData<'a> {
     fn emit_alarm(&self, time: f64, event_emitter: &mut Emitter<'_, ServerEvent>) {
         if let Some(body) = self.body {
             event_emitter.emit(ServerEvent::Sound {
-                sound: Sound::new(SoundKind::Utterance(UtteranceKind::Scream, *body), self.pos.0, 100.0, time),
+                sound: Sound::new(
+                    SoundKind::Utterance(UtteranceKind::Scream, *body),
+                    self.pos.0,
+                    100.0,
+                    time,
+                ),
             });
         }
     }
