@@ -2,7 +2,7 @@ use crate::util::{Dir, Plane, Projection};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
-use std::f32::consts::PI;
+use std::f32::consts::{FRAC_PI_2, PI};
 use vek::{Quaternion, Vec2, Vec3};
 
 // Orientation
@@ -150,24 +150,29 @@ impl Ori {
 
     pub fn to_horizontal(self) -> Self {
         // We don't use Self::look_dir to avoid the extra normalization step within
-        // Dir's Quaternion Mul impl (since we will normalize later below)
+        // Dir's Quaternion Mul impl
         let fw = self.to_quat() * Dir::default().to_vec();
         // Check that dir is not straight up/down
         // Uses a multiple of EPSILON to be safe
         // We can just check z since beyond floating point errors `fw` should be
         // normalized
-        let xy = if 1.0 - fw.z.abs() > f32::EPSILON * 4.0 {
-            fw.xy().normalized()
-        } else {
-            // if look_dir is straight down, pitch up, or if straight up, pitch down
-            // xy should essentially be normalized so no need to normalize
-            if fw.z < 0.0 { self.up() } else { self.down() }.xy()
-        };
-        // We know direction lies in the xy plane so we only need to compute a rotation
-        // about the z-axis
-        let yaw = xy.y.acos() * fw.x.signum() * -1.0;
+        if 1.0 - fw.z.abs() > f32::EPSILON * 4.0 {
+            // We know direction lies in the xy plane so we only need to compute a rotation
+            // about the z-axis
+            let Vec2 { x, y } = fw.xy().normalized();
+            // Negate x and swap coords since we want to compute the angle from y+
+            let quat = rotation_2d(Vec2::new(y, -x), Vec3::unit_z());
 
-        Self(Quaternion::rotation_z(yaw))
+            Self(quat)
+        } else {
+            // TODO: optimize this more (see asm)
+            // if the direction is straight down, pitch up, or if straight up, pitch down
+            if fw.z < 0.0 {
+                self.pitched_up(FRAC_PI_2)
+            } else {
+                self.pitched_down(FRAC_PI_2)
+            }
+        }
     }
 
     /// Find the angle between two `Ori`s
@@ -256,19 +261,67 @@ impl Ori {
     fn is_normalized(&self) -> bool { self.0.into_vec4().is_normalized() }
 }
 
+/// Produce a quaternion from an axis to rotate about and a 2D point on the unit
+/// circle to rotate to
+///
+/// NOTE: the provided axis and 2D vector must be normalized
+fn rotation_2d(Vec2 { x, y }: Vec2<f32>, axis: Vec3<f32>) -> Quaternion<f32> {
+    // Skip needing the angle for quaternion construction by computing cos/sin
+    // directly from the normalized x value
+    //
+    // scalar = cos(theta / 2)
+    // vector = axis * sin(theta / 2)
+    //
+    // cos(a / 2) = +/- ((1 + cos(a)) / 2)^0.5
+    // sin(a / 2) = +/- ((1 - cos(a)) / 2)^0.5
+    //
+    // scalar = +/- sqrt((1 + cos(a)) / 2)
+    // vector = vec3(0, 0, 1) * +/- sqrt((1 - cos(a)) / 2)
+    //
+    // cos(a) = x / |xy| => x (when normalized)
+    let scalar = ((1.0 + x) / 2.0).sqrt() * y.signum();
+    let vector = axis * ((1.0 - x) / 2.0).sqrt();
+
+    // This is normalized by our construction above
+    Quaternion::from_scalar_and_vec3((scalar, vector))
+}
+
 impl From<Dir> for Ori {
     fn from(dir: Dir) -> Self {
         // Check that dir is not straight up/down
         // Uses a multiple of EPSILON to be safe
         let quat = if 1.0 - dir.z.abs() > f32::EPSILON * 4.0 {
+            // handle_orientation: mean: 168, median: 121
+            // move_dir(no subspans): mean: 74, median: 42
+            // move_dir: mean: 226, median: 197
+            // mean: 105, median: 90
             // Compute rotation that will give an "upright" orientation (no rolling):
-
+            /*
             // Rotation to get to this projected point from the default direction of y+
             let yaw = dir.xy().normalized().y.acos() * dir.x.signum() * -1.0;
             // Rotation to then rotate up/down to the match the input direction
             let pitch = dir.z.asin();
 
             (Quaternion::rotation_z(yaw) * Quaternion::rotation_x(pitch)).normalized()
+
+            // handle_orientation: mean: 167, median: 151
+            // move_dir(no subspans): mean: 83, median: 83
+            // move_dir: mean: 209, median: 186
+            // mean: 60, median: 46
+            // Compute rotation that will give an "upright" orientation (no
+            // rolling):
+            */
+            let xy_len = dir.xy().magnitude();
+            let xy_norm = dir.xy() / xy_len;
+            // Rotation to get to this projected point from the default direction of y+
+            // Negate x and swap coords since we want to compute the angle from y+
+            let yaw = rotation_2d(Vec2::new(xy_norm.y, -xy_norm.x), Vec3::unit_z());
+            // Rotation to then rotate up/down to the match the input direction
+            // In this rotated space the xy_len becomes the distance along the x axis
+            // And since we rotated around the z-axis the z value is unchanged
+            let pitch = rotation_2d(Vec2::new(xy_len, dir.z), Vec3::unit_x());
+
+            (yaw * pitch).normalized()
         } else {
             // Nothing in particular can be considered upright if facing up or down
             // so we just produce a quaternion that will rotate to that direction
@@ -397,6 +450,27 @@ mod tests {
 
             approx::assert_relative_eq!(horizontal.look_dir().xy().magnitude(), 1.0);
             approx::assert_relative_eq!(horizontal.look_dir().z, 0.0);
+            // Check correctness by comparing with Dir::to_horizontal
+            if let Some(dir_h) = ori.look_dir().to_horizontal() {
+                let quat_correct = Quaternion::<f32>::rotation_from_to_3d(Dir::default(), dir_h);
+                #[rustfmt::skip]
+                assert!(
+                    dir_h
+                        .map2(*horizontal.look_dir(), |d, o| approx::relative_eq!(d, o, epsilon = f32::EPSILON * 4.0))
+                        .reduce_and(),
+                    "\n\
+                    Original: {:?}\n\
+                    Dir::to_horizontal: {:?}\n\
+                    Ori::to_horizontal(as dir): {:?}\n\
+                    Ori::to_horizontal(as quat): {:?}\n\
+                    Correct quaternion {:?}",
+                    ori.look_dir(),
+                    dir_h,
+                    horizontal.look_dir(),
+                    horizontal,
+                    quat_correct,
+                );
+            }
         };
 
         dirs().for_each(to_horizontal);
