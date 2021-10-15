@@ -5,8 +5,6 @@ float falloff(float x) {
     return pow(max(x > 0.577 ? (0.3849 / x - 0.1) : (0.9 - x * x), 0.0), 4);
 }
 
-float emission_strength = clamp((magnetosphere - 0.8) / 0.1, 0, 1);
-
 // Return the 'broad' density of the cloud at a position. This gets refined later with extra noise, but is important
 // for computing light access.
 float cloud_broad(vec3 pos) {
@@ -154,8 +152,20 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
             * max(0, 1.0 - abs(textureLod(sampler2D(t_noise, s_noise), wind_pos.xy * 0.00001, 0).x - 0.5) * 4)
             , 2);
         float t = clamp((pos.z - emission_alt) / emission_height, 0, 1);
-
-        emission = vec3(t * 1, 2 - t * 2, 0) * 100 * emission_factor * nz;
+        float br = 0.5; // blue vs red
+        #if (CLOUD_MODE > CLOUD_MODE_LOW)
+            br += (magnetosphere_tint.r - 0.6) * 4;
+        #else
+            br = 1.0;
+        #endif
+        br = clamp(br, 0, 1);
+        t = pow(t - 0.5, 2) * sign(t - 0.5) + 0.5;
+        float top = pow(t, 2);
+        float bot = pow(max(0.8 - t, 0), 2) * 2;
+        const vec3 cyan = vec3(0, 0.5, 1);
+        const vec3 red = vec3(1, 0, 0);
+        const vec3 green = vec3(0, 8, 0);
+        emission = 100 * emission_factor * nz * (cyan * top * max(0, 1 - br) + red * max(br, 0) + green * bot);
     }
 
     // We track vapor density and air density separately. Why? Because photons will ionize particles in air
