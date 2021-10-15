@@ -1,8 +1,8 @@
 use crate::util::{Dir, Plane, Projection};
+use core::f32::consts::{FRAC_PI_2, PI, TAU};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
-use std::f32::consts::{FRAC_PI_2, PI};
 use vek::{Quaternion, Vec2, Vec3};
 
 // Orientation
@@ -189,6 +189,10 @@ impl Ori {
 
     /// Find the angle between two `Ori`s
     ///
+    /// NOTE: This finds the angle of the quaternion between the two `Ori`s
+    /// which can involve rolling and thus can be larger than simply the
+    /// angle between vectors at the start and end points.
+    ///
     /// Returns angle in radians
     pub fn angle_between(self, other: Self) -> f32 {
         // Compute quaternion from one ori to the other
@@ -196,7 +200,8 @@ impl Ori {
         let between = self.to_quat().conjugate() * other.to_quat();
         // Then compute it's angle
         // http://www.euclideanspace.com/maths/geometry/rotations/conversions/quaternionToAngle/
-        2.0 * between.w.acos()
+        let angle = 2.0 * between.w.acos();
+        if angle < PI { angle } else { TAU - angle }
     }
 
     pub fn pitched_up(self, angle_radians: f32) -> Self {
@@ -468,20 +473,6 @@ mod tests {
         };
 
         dirs().for_each(to_horizontal);
-    }
-
-    #[test]
-    fn angle_between() {
-        let angle_between = |(dir_a, dir_b): (Dir, Dir)| {
-            let ori_a = Ori::from(dir_a);
-            let ori_b = Ori::from(dir_b);
-
-            approx::assert_relative_eq!(ori_a.angle_between(ori_b), dir_a.angle_between(*dir_b));
-        };
-
-        dirs()
-            .flat_map(|dir| dirs().map(move |dir_two| (dir, dir_two)))
-            .for_each(angle_between)
     }
 
     #[test]
