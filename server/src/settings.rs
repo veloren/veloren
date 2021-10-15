@@ -65,10 +65,16 @@ impl ServerBattleMode {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Protocol {
-    Quic,
-    Tcp,
+    Quic {
+        address: SocketAddr,
+        cert_file_path: PathBuf,
+        key_file_path: PathBuf,
+    },
+    Tcp {
+        address: SocketAddr,
+    },
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -97,10 +103,9 @@ impl CalendarMode {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
-    pub protocols_and_addresses: Vec<(Protocol, SocketAddr)>,
+    pub gameserver_protocols: Vec<Protocol>,
     pub metrics_address: SocketAddr,
     pub auth_server_address: Option<String>,
-    pub quic_files: Option<X509FilePair>,
     pub max_players: usize,
     pub world_seed: u32,
     pub battle_mode: ServerBattleMode,
@@ -127,19 +132,16 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            protocols_and_addresses: vec![
-                (
-                    Protocol::Tcp,
-                    SocketAddr::from((Ipv6Addr::UNSPECIFIED, 14004)),
-                ),
-                (
-                    Protocol::Tcp,
-                    SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14004)),
-                ),
+            gameserver_protocols: vec![
+                Protocol::Tcp {
+                    address: SocketAddr::from((Ipv6Addr::UNSPECIFIED, 14004)),
+                },
+                Protocol::Tcp {
+                    address: SocketAddr::from((Ipv4Addr::UNSPECIFIED, 14004)),
+                },
             ],
             metrics_address: SocketAddr::from((Ipv4Addr::LOCALHOST, 14005)),
             auth_server_address: Some("https://auth.veloren.net".into()),
-            quic_files: None,
             world_seed: DEFAULT_WORLD_SEED,
             server_name: "Veloren Alpha".into(),
             max_players: 100,
@@ -212,19 +214,17 @@ impl Settings {
         Self {
             // BUG: theoretically another process can grab the port between here and server
             // creation, however the time window is quite small.
-            protocols_and_addresses: vec![(
-                Protocol::Tcp,
-                SocketAddr::from((
+            gameserver_protocols: vec![Protocol::Tcp {
+                address: SocketAddr::from((
                     Ipv4Addr::LOCALHOST,
                     pick_unused_port().expect("Failed to find unused port!"),
                 )),
-            )],
+            }],
             metrics_address: SocketAddr::from((
                 Ipv4Addr::LOCALHOST,
                 pick_unused_port().expect("Failed to find unused port!"),
             )),
             auth_server_address: None,
-            quic_files: None,
             // If loading the default map file, make sure the seed is also default.
             world_seed: if load.map_file.is_some() {
                 load.world_seed
