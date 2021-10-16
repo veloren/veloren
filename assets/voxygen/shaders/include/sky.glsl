@@ -139,7 +139,7 @@ float get_sun_brightness(/*vec3 sun_dir*/) {
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.05;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.1;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
@@ -268,7 +268,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     vec3 moon_dir = moon_dir.xyz;
 
     float sun_light = get_sun_brightness(/*sun_dir*/) * sun_info.block;//sun_info.brightness;;
-    float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block;//moon_info.brightness;
+    float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block * ambiance;//moon_info.brightness;
 
     vec3 sun_color = get_sun_color(/*sun_dir*/) * SUN_COLOR_FACTOR;//sun_info.color * SUN_COLOR_FACTOR;
     vec3 moon_color = get_moon_color(/*moon_dir*/) * MOON_COLOR_FACTOR;//moon_info.color;
@@ -391,7 +391,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     // float ambient_sides = 0.5 - 0.5 * min(abs(dot(-norm, sun_dir)), abs(dot(-norm, moon_dir)));
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
-    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE * ambiance * 0.1 * MU_SCATTER;
+    emitted_light = light_frac;// + k_a * PERSISTENT_AMBIANCE * ambiance * 0.1 * MU_SCATTER;
     // emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
 
     vec3 emission = vec3(0);

@@ -149,7 +149,7 @@ impl Globals {
                 .unwrap_or_else(Vec4::zero)
                 .into_array(),
             gamma_exposure: [gamma, exposure, 0.0, 0.0],
-            ambiance,
+            ambiance: ambiance.clamped(0.0, 1.0),
             cam_mode: cam_mode as u32,
             sprite_render_distance,
             globals_dummy: 0.0,
