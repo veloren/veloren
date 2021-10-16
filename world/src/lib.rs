@@ -28,7 +28,7 @@ pub mod util;
 // Reexports
 pub use crate::{
     canvas::{Canvas, CanvasInfo},
-    config::CONFIG,
+    config::{Features, CONFIG},
     land::Land,
 };
 pub use block::BlockGen;
@@ -52,7 +52,8 @@ use common::{
     vol::{ReadVol, RectVolSize, WriteVol},
 };
 use common_net::msg::{world_msg, WorldMapMsg};
-use rand::Rng;
+use rand::{prelude::*, Rng};
+use rand_chacha::ChaCha8Rng;
 use serde::Deserialize;
 use std::time::Duration;
 use vek::*;
@@ -329,7 +330,7 @@ impl World {
         };
 
         // Only use for rng affecting dynamic elements like chests and entities!
-        let mut dynamic_rng = rand::thread_rng();
+        let mut dynamic_rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
         // Apply layers (paths, caves, etc.)
         let mut canvas = Canvas {
@@ -346,12 +347,27 @@ impl World {
             entities: Vec::new(),
         };
 
-        layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
-        layer::apply_paths_to(&mut canvas);
-        layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
+        if index.features.caverns {
+            layer::apply_caverns_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.caves {
+            layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.shrubs {
+            layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.trees {
+            layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.scatter {
+            layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
+        }
+        if index.features.paths {
+            layer::apply_paths_to(&mut canvas);
+        }
+        if index.features.spots {
+            layer::apply_spots_to(&mut canvas, &mut dynamic_rng);
+        }
         // layer::apply_coral_to(&mut canvas);
 
         // Apply site generation
@@ -364,7 +380,7 @@ impl World {
             entities: canvas.entities,
         };
 
-        let gen_entity_pos = |dynamic_rng: &mut rand::rngs::ThreadRng| {
+        let gen_entity_pos = |dynamic_rng: &mut ChaCha8Rng| {
             let lpos2d = TerrainChunkSize::RECT_SIZE
                 .map(|sz| dynamic_rng.gen::<u32>().rem_euclid(sz) as i32);
             let mut lpos = Vec3::new(

@@ -414,7 +414,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                     downhill_chunk.river.river_kind,
                     Some(RiverKind::Lake { .. })
                 ))
-                && (river_chunk.water_alt > downhill_chunk.water_alt + 8.0)
+                && (river_chunk.water_alt > downhill_chunk.water_alt + 0.0)
         }
 
         /// Determine the altitude of a river based on the altitude of the
@@ -452,7 +452,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // they do not result in artifacts, even in edge cases. The exact configuration
         // of this code is the product of hundreds of hours of testing and
         // refinement and I ask that you do not take that effort lightly.
-        let (river_water_level, in_river, lake_water_level, lake_dist, water_dist, unbounded_water_level) = neighbor_river_data.iter().copied().fold(
+        let (
+            river_water_level,
+            in_river,
+            lake_water_level,
+            lake_dist,
+            water_dist,
+            unbounded_water_level,
+        ) = neighbor_river_data.iter().copied().fold(
             (
                 WeightedSum::default().with_max(base_sea_level),
                 false,
@@ -461,7 +468,18 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 None,
                 WeightedSum::default().with_max(base_sea_level),
             ),
-            |(mut river_water_level, mut in_river, mut lake_water_level, mut lake_dist, water_dist, mut unbounded_water_level), (river_chunk_idx, river_chunk, river, dist_info)| match (river.river_kind, dist_info) {
+            |(
+                mut river_water_level,
+                mut in_river,
+                lake_water_level,
+                mut lake_dist,
+                water_dist,
+                mut unbounded_water_level,
+            ),
+             (river_chunk_idx, river_chunk, river, dist_info)| match (
+                river.river_kind,
+                dist_info,
+            ) {
                 (
                     Some(kind),
                     Some((_, _, river_width, (river_t, (river_pos, _), downhill_chunk))),
@@ -480,7 +498,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
                     match kind {
                         RiverKind::River { .. } => {
-                            // Alt of river water *is* the alt of land (ignoring gorge, which gets applied later)
+                            // Alt of river water *is* the alt of land (ignoring gorge, which gets
+                            // applied later)
                             let river_water_alt = river_water_alt(
                                 river_chunk.alt.max(river_chunk.water_alt),
                                 downhill_chunk.alt.max(downhill_chunk.water_alt),
@@ -488,14 +507,15 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                                 is_waterfall(river_chunk_idx, river_chunk, downhill_chunk),
                             );
 
-                            river_water_level = river_water_level
-                                .with(river_water_alt, near_center);
+                            river_water_level =
+                                river_water_level.with(river_water_alt, near_center);
 
                             if river_edge_dist <= 0.0 {
                                 in_river = true;
                             }
                         },
-                        // Slightly wider threshold is chosen in case the lake bounds are a bit wrong
+                        // Slightly wider threshold is chosen in case the lake bounds are a bit
+                        // wrong
                         RiverKind::Lake { .. } | RiverKind::Ocean => {
                             let lake_water_alt = if matches!(kind, RiverKind::Ocean) {
                                 base_sea_level
@@ -509,32 +529,63 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             };
 
                             if river_edge_dist > 0.0 && river_width > lake_width * 0.99 {
-                                let unbounded_water_alt = lake_water_alt - ((river_edge_dist - 8.0).max(0.0) / 5.0).powf(2.0);
+                                let unbounded_water_alt = lake_water_alt
+                                    - ((river_edge_dist - 8.0).max(0.0) / 5.0).powf(2.0);
                                 unbounded_water_level = unbounded_water_level
-                                    .with(unbounded_water_alt, 1.0 / (1.0 + river_edge_dist * 5.0))
-                                    .with_max(unbounded_water_alt);
+                                    .with(unbounded_water_alt, 1.0 / (1.0 + river_edge_dist * 5.0));
+                                //.with_max(unbounded_water_alt);
                             }
 
-                            river_water_level = river_water_level
-                                .with(lake_water_alt, near_center);
+                            river_water_level = river_water_level.with(lake_water_alt, near_center);
 
                             lake_dist = lake_dist.min(river_edge_dist);
 
-                            // Lake border prevents a lake failing to propagate its altitude to nearby rivers
-                            if river_edge_dist <= 0.0 {
-                                lake_water_level = lake_water_level
-                                    // Make sure the closest lake is prioritised
-                                    .with(lake_water_alt, near_center + 0.1 / (1.0 + river_edge_dist));
+                            // Lake border prevents a lake failing to propagate its altitude to
+                            // nearby rivers
+                            let off = 0.0;
+                            let len = 3.0;
+                            if river_edge_dist <= off {
+                                // lake_water_level = lake_water_level
+                                //     // Make sure the closest lake is prioritised
+                                //     .with(lake_water_alt, near_center + 0.1 / (1.0 +
+                                // river_edge_dist));     // .with_min(lake_water_alt);
+                                //
+                                river_water_level = river_water_level.with_min(
+                                    lake_water_alt
+                                        + ((((river_dist - river_width * 0.5) as f32 + len - off)
+                                            .max(0.0))
+                                            / len)
+                                            .powf(1.5)
+                                            * 32.0,
+                                );
                             }
                         },
                     };
 
                     let river_edge_dist_unclamped = (river_dist - river_width * 0.5) as f32;
-                    let water_dist = Some(water_dist.unwrap_or(river_edge_dist_unclamped).min(river_edge_dist_unclamped));
+                    let water_dist = Some(
+                        water_dist
+                            .unwrap_or(river_edge_dist_unclamped)
+                            .min(river_edge_dist_unclamped),
+                    );
 
-                    (river_water_level, in_river, lake_water_level, lake_dist, water_dist, unbounded_water_level)
+                    (
+                        river_water_level,
+                        in_river,
+                        lake_water_level,
+                        lake_dist,
+                        water_dist,
+                        unbounded_water_level,
+                    )
                 },
-                (_, _) => (river_water_level, in_river, lake_water_level, lake_dist, water_dist, unbounded_water_level),
+                (_, _) => (
+                    river_water_level,
+                    in_river,
+                    lake_water_level,
+                    lake_dist,
+                    water_dist,
+                    unbounded_water_level,
+                ),
             },
         );
         let unbounded_water_level = unbounded_water_level.eval_or(base_sea_level);
@@ -679,7 +730,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                             )
                             .with_min(min_alt.unwrap_or(riverbed_alt).min(riverbed_alt))
                         } else {
-                            const GORGE: f32 = 0.5;
+                            const GORGE: f32 = 0.25;
                             const BANK_SCALE: f32 = 24.0;
                             // Weighting of this riverbank on nearby terrain (higher when closer to
                             // the river). This 'pulls' the riverbank

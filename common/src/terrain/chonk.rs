@@ -71,6 +71,22 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
         self.sub_chunks.iter().map(SubChunk::num_groups).sum()
     }
 
+    /// Iterate through the voxels in this chunk, attempting to avoid those that
+    /// are unchanged (i.e: match the `below` and `above` voxels). This is
+    /// generally useful for performance reasons.
+    pub fn iter_changed(&self) -> impl Iterator<Item = (Vec3<i32>, &V)> + '_ {
+        self.sub_chunks
+            .iter()
+            .enumerate()
+            .filter(|(_, sc)| sc.num_groups() > 0)
+            .map(move |(i, sc)| {
+                let z_offset = self.z_offset + i as i32 * SubChunkSize::<S>::SIZE.z as i32;
+                sc.vol_iter(Vec3::zero(), SubChunkSize::<S>::SIZE.map(|e| e as i32))
+                    .map(move |(pos, vox)| (pos + Vec3::unit_z() * z_offset, vox))
+            })
+            .flatten()
+    }
+
     // Returns the index (in self.sub_chunks) of the SubChunk that contains
     // layer z; note that this index changes when more SubChunks are prepended
     #[inline]

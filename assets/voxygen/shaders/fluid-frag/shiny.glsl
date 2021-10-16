@@ -179,6 +179,10 @@ void main() {
     vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
     reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.1);
     reflect_color *= f_light;
+
+    // Prevent the sky affecting light when underground
+    float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
+    reflect_color *= not_underground;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));
     // NOTE: Linear RGB, attenuation coefficients for water at roughly R, G, B wavelengths.
@@ -254,6 +258,11 @@ void main() {
 
     float max_light = 0.0;
     max_light += get_sun_diffuse2(sun_info, moon_info, norm, /*time_of_day.x*/sun_view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, vec3(k_d), /*vec3(f_light * point_shadow)*//*reflect_color*/k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    emitted_light *= not_underground;
+    reflected_light *= not_underground;
+
+    // Global illumination when underground (silly)
+    emitted_light += (1.0 - not_underground) * 0.05;
     // Apply cloud layer to sky
     // reflected_light *= /*water_color_direct * */reflect_color * f_light * point_shadow * shade_frac;
     // emitted_light *= /*water_color_direct*//*ambient_attenuation * */f_light * point_shadow * max(shade_frac, MIN_SHADOW);

@@ -1,7 +1,7 @@
 use crate::{
     layer::wildlife::{self, DensityFn, SpawnEntry},
     site::{economy::TradeInformation, Site},
-    Colors,
+    Colors, Features,
 };
 use common::{
     assets::{AssetExt, AssetHandle},
@@ -13,6 +13,7 @@ use noise::{Seedable, SuperSimplex};
 use std::sync::Arc;
 
 const WORLD_COLORS_MANIFEST: &str = "world.style.colors";
+const WORLD_FEATURES_MANIFEST: &str = "world.features";
 
 pub struct Index {
     pub seed: u32,
@@ -22,6 +23,7 @@ pub struct Index {
     pub trade: TradeInformation,
     pub wildlife_spawns: Vec<(AssetHandle<SpawnEntry>, DensityFn)>,
     colors: AssetHandle<Arc<Colors>>,
+    features: AssetHandle<Arc<Features>>,
 }
 
 /// An owned reference to indexed data.
@@ -32,6 +34,7 @@ pub struct Index {
 #[derive(Clone)]
 pub struct IndexOwned {
     colors: Arc<Colors>,
+    features: Arc<Features>,
     index: Arc<Index>,
 }
 
@@ -47,6 +50,7 @@ impl Deref for IndexOwned {
 #[derive(Clone, Copy)]
 pub struct IndexRef<'a> {
     pub colors: &'a Colors,
+    pub features: &'a Features,
     pub index: &'a Index,
 }
 
@@ -60,6 +64,7 @@ impl Index {
     /// NOTE: Panics if the color manifest cannot be loaded.
     pub fn new(seed: u32) -> Self {
         let colors = Arc::<Colors>::load_expect(WORLD_COLORS_MANIFEST);
+        let features = Arc::<Features>::load_expect(WORLD_FEATURES_MANIFEST);
         let wildlife_spawns = wildlife::spawn_manifest()
             .into_iter()
             .map(|(e, f)| (SpawnEntry::load_expect(e), f))
@@ -73,10 +78,13 @@ impl Index {
             trade: Default::default(),
             wildlife_spawns,
             colors,
+            features,
         }
     }
 
     pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
+
+    pub fn features(&self) -> AssetHandle<Arc<Features>> { self.features }
 
     pub fn get_site_prices(&self, site_id: SiteId) -> Option<SitePrices> {
         self.sites
@@ -89,10 +97,12 @@ impl Index {
 impl IndexOwned {
     pub fn new(index: Index) -> Self {
         let colors = index.colors.cloned();
+        let features = index.features.cloned();
 
         Self {
             index: Arc::new(index),
             colors,
+            features,
         }
     }
 
@@ -103,13 +113,12 @@ impl IndexOwned {
     /// solution.
     ///
     /// Ideally, this should be called about once per tick.
-    pub fn reload_colors_if_changed<R>(
-        &mut self,
-        reload: impl FnOnce(&mut Self) -> R,
-    ) -> Option<R> {
-        self.index.colors.reloaded_global().then(move || {
-            // Reload the color from the asset handle, which is updated automatically
+    pub fn reload_if_changed<R>(&mut self, reload: impl FnOnce(&mut Self) -> R) -> Option<R> {
+        let reloaded = self.index.colors.reloaded_global() || self.index.features.reloaded_global();
+        reloaded.then(move || {
+            // Reload the fields from the asset handle, which is updated automatically
             self.colors = self.index.colors.cloned();
+            self.features = self.index.features.cloned();
             reload(self)
         })
     }
@@ -117,6 +126,7 @@ impl IndexOwned {
     pub fn as_index_ref(&self) -> IndexRef {
         IndexRef {
             colors: &self.colors,
+            features: &self.features,
             index: &self.index,
         }
     }

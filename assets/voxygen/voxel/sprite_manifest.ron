@@ -3258,6 +3258,7 @@ CookingPot: Some((
     ],
     wind_sway: 0.0,
 )),
+// Ensnaring Vines
 EnsnaringVines: Some((
     variations: [
         (
@@ -3309,5 +3310,165 @@ Bones: Some((
         ),
     ],
     wind_sway: 0.0,
+)),
+// Short Cavern Grass Blue
+CavernGrassBlueShort: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_short-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_short-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_short-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_short-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_short-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Medium Cavern Grass Blue
+CavernGrassBlueMedium: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_med-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_med-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_med-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_med-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Long Cavern Grass Blue
+CavernGrassBlueLong: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-6",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.grass_long-7",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Cavern Lillypads Blue
+CavernLillypadBlue: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cavern.lillypad-0",
+            offset: (-5.5, -5.5, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.lillypad-1",
+            offset: (-5.5, -5.5, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.lillypad-2",
+            offset: (-5.5, -5.5, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.lillypad-3",
+            offset: (-5.5, -5.5, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.lillypad-4",
+            offset: (-5.5, -5.5, -1.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+// Cavern Hanging Mycel Blue
+CavernMycelBlue: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.cavern.mycel-0",
+            offset: (-0.5, -0.5, -21.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.mycel-1",
+            offset: (-0.5, -0.5, -31.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.mycel-2",
+            offset: (-0.5, -0.5, -14.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.cavern.mycel-3",
+            offset: (-0.5, -0.5, -40.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.1,
 )),
 )

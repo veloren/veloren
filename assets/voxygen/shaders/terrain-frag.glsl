@@ -253,8 +253,12 @@ void main() {
 
     // Computing light attenuation from water.
     vec3 emitted_light, reflected_light;
+
+    // Prevent the sky affecting light when underground
+    float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
+
     // To account for prior saturation
-    /*float */f_light = faces_fluid ? 1.0 : f_light * sqrt(f_light);
+    /*float */f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
 
     emitted_light = vec3(1.0);
     reflected_light = vec3(1.0);
@@ -268,7 +272,7 @@ void main() {
     max_light *= f_light;
 
     // TODO: Apply AO after this
-    vec3 glow = glow_light(f_pos) * (pow(f_glow, 6) * 5 + pow(f_glow, 1.5) * 2);
+    vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2);
     reflected_light += glow;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);

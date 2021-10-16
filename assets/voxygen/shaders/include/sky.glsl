@@ -57,7 +57,7 @@ vec3 glow_light(vec3 pos) {
     #if (SHADOW_MODE <= SHADOW_MODE_NONE)
         return GLOW_COLOR;
     #else
-        return GLOW_COLOR * (1.0 + (noise_3d(vec3(pos.xy * 0.005, tick.x * 0.5)) - 0.5) * 1.0);
+        return GLOW_COLOR * (1.0 + (noise_3d(vec3(pos.xy * 0.005, tick.x * 0.5)) - 0.5) * 0.5);
     #endif
 }
 

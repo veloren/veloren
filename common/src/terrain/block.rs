@@ -48,7 +48,8 @@ make_case_elim!(
         // 0x32 <= x < 0x40 is reserved for future earths/muds/gravels/sands/etc.
         Wood = 0x40,
         Leaves = 0x41,
-        // 0x42 <= x < 0x50 is reserved for future tree parts
+        GlowingMushroom = 0x42,
+        // 0x43 <= x < 0x50 is reserved for future tree parts
         // Covers all other cases (we sometimes have bizarrely coloured misc blocks, and also we
         // often want to experiment with new kinds of block without allocating them a
         // dedicated block kind.
@@ -177,7 +178,8 @@ impl Block {
     pub fn get_glow(&self) -> Option<u8> {
         match self.kind() {
             BlockKind::Lava => Some(24),
-            BlockKind::GlowingRock | BlockKind::GlowingWeakRock => Some(12),
+            BlockKind::GlowingRock | BlockKind::GlowingWeakRock => Some(10),
+            BlockKind::GlowingMushroom => Some(20),
             _ => match self.get_sprite()? {
                 SpriteKind::StreetLamp | SpriteKind::StreetLampTall => Some(24),
                 SpriteKind::Ember => Some(20),
@@ -188,7 +190,11 @@ impl Block {
                 | SpriteKind::Orb => Some(16),
                 SpriteKind::Velorite
                 | SpriteKind::VeloriteFrag
-                | SpriteKind::Cauldron
+                | SpriteKind::CavernGrassBlueShort
+                | SpriteKind::CavernGrassBlueMedium
+                | SpriteKind::CavernGrassBlueLong
+                | SpriteKind::CavernLillypadBlue
+                | SpriteKind::CavernMycelBlue
                 | SpriteKind::CeilingMushroom => Some(6),
                 SpriteKind::CaveMushroom
                 | SpriteKind::CookingPot
