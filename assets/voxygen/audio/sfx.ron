@@ -448,6 +448,12 @@
             ],
             threshold: 2.5,
         ),
+        Inventory(CollectedTool(Sceptre)): (
+            files: [
+                "voxygen.audio.sfx.inventory.add_item",
+            ],
+            threshold: 0.3,
+        ),
 
         //
         // Dagger
@@ -507,6 +513,14 @@
         Inventory(CollectedTool(Shield)): (
             files: [
                 "voxygen.audio.sfx.inventory.pickup_sword",
+            ],
+            threshold: 0.3,
+        ),
+
+        // PickAxe Tool
+        Inventory(CollectedTool(Pick)): (
+            files: [
+                "voxygen.audio.sfx.inventory.add_item",
             ],
             threshold: 0.3,
         ),
