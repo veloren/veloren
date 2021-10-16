@@ -10,7 +10,7 @@ BasicMelee(
     max_angle: 60.0,
     damage_effect: Some(Buff((
         kind: Crippled,
-        dur_secs: 15.0,
+        dur_secs: 10.0,
         strength: Value(0.5),
         chance: 1.0,
     ))),
