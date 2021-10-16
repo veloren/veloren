@@ -404,8 +404,10 @@ pub fn handle_orientation(
             .map_or_else(|| data.ori.to_horizontal(), |dir| dir.into())
     };
     let rate = {
-        let angle = update.ori.angle_between(target_ori);
-        data.body.base_ori_rate() * efficiency * std::f32::consts::PI / angle
+        // Angle factor used to keep turning rate approximately constant by
+        // counteracting slerp turning more with a larger angle
+        let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
+        data.body.base_ori_rate() * efficiency * angle_factor
     };
     update.ori = update
         .ori
