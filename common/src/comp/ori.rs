@@ -208,7 +208,7 @@ impl Ori {
         if angle < PI { angle } else { TAU - angle }
     }
 
-    pub fn dot(self, other: Self) -> f32 { self.0.dot(other.0) }
+    pub fn dot(self, other: Self) -> f32 { self.look_vec().dot(other.look_vec()) }
 
     pub fn pitched_up(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_x(angle_radians))
