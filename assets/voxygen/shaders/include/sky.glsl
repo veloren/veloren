@@ -42,6 +42,7 @@ const vec3 NIGHT_LIGHT   = vec3(5.0, 0.75, 0.2);
 const vec3 MU_SCATTER = vec3(0.05, 0.10, 0.23) * 1.5;
 
 const float SUN_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
+const float MOON_COLOR_FACTOR = 5.0;//6.0;// * 1.5;//1.8;
 
 const float UNDERWATER_MIST_DIST = 100.0;
 
@@ -124,13 +125,21 @@ float magnetosphere = sin(time_of_day.x / (3600 * 24));
     ) * 0.4;
     vec3 magnetosphere_tint = _magnetosphere_change / length(_magnetosphere_change);
 #endif
+#if (CLOUD_MODE > CLOUD_MODE_NONE)
+    float emission_strength = clamp((magnetosphere - 0.3) * 1.3, 0, 1) * max(-moon_dir.z, 0);
+    #if (CLOUD_MODE > CLOUD_MODE_MEDIUM)
+        float emission_br = abs(pow(fract(time_of_day.x * 0.000005) * 2 - 1, 2));
+    #else
+        float emission_br = 0.5;
+    #endif
+#endif
 
 float get_sun_brightness(/*vec3 sun_dir*/) {
     return max(-sun_dir.z + 0.5, 0.0);
 }
 
 float get_moon_brightness(/*vec3 moon_dir*/) {
-    return max(-moon_dir.z + 0.6, 0.0) * 0.05;
+    return max(-moon_dir.z + 0.6, 0.0) * 0.1;
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
@@ -159,7 +168,7 @@ vec3 get_sky_color(/*vec3 sun_dir*/) {
 }
 
 vec3 get_moon_color(/*vec3 moon_dir*/) {
-    return vec3(0.05, 0.05, 1.6);
+    return vec3(0.5, 0.5, 1.6);
 }
 
 DirectionalLight get_sun_info(vec4 _dir, float shade_frac/*, vec4 light_pos[2]*/, /*vec4 sun_pos*/vec3 f_pos) {
@@ -259,10 +268,10 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     vec3 moon_dir = moon_dir.xyz;
 
     float sun_light = get_sun_brightness(/*sun_dir*/) * sun_info.block;//sun_info.brightness;;
-    float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block;//moon_info.brightness;
+    float moon_light = get_moon_brightness(/*moon_dir*/) * moon_info.block * ambiance;//moon_info.brightness;
 
     vec3 sun_color = get_sun_color(/*sun_dir*/) * SUN_COLOR_FACTOR;//sun_info.color * SUN_COLOR_FACTOR;
-    vec3 moon_color = get_moon_color(/*moon_dir*/);//moon_info.color;
+    vec3 moon_color = get_moon_color(/*moon_dir*/) * MOON_COLOR_FACTOR;//moon_info.color;
 
     // If the sun is facing the wrong way, we currently just want zero light, hence default point is wpos.
     vec3 sun_attenuation = compute_attenuation(wpos, -sun_dir, mu, surface_alt, wpos);
@@ -382,14 +391,22 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     // float ambient_sides = 0.5 - 0.5 * min(abs(dot(-norm, sun_dir)), abs(dot(-norm, moon_dir)));
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
     // float ambient_sides = clamp(mix(0.5, 0.0, abs(dot(-norm, sun_dir)) * mix(0.0, 1.0, abs(sun_dir.z) * 10000.0) * 10000.0), 0.0, 0.5);
-    emitted_light = light_frac + k_a * PERSISTENT_AMBIANCE * ambiance * 0.1 * MU_SCATTER;
+    emitted_light = light_frac;// + k_a * PERSISTENT_AMBIANCE * ambiance * 0.1 * MU_SCATTER;
     // emitted_light = k_a * light_frac * (/*ambient_sides + */SUN_AMBIANCE * /*sun_light*/sun_chroma + /*vec3(moon_light)*/MOON_AMBIANCE * moon_chroma) + PERSISTENT_AMBIANCE;
+
+    vec3 emission = vec3(0);
+    #if (CLOUD_MODE > CLOUD_MODE_NONE)
+        if (emission_strength > 0.0) {
+            emission = mix(vec3(0, 0.5, 1), vec3(1, 0, 0), emission_br) * emission_strength * 0.025;
+        }
+    #endif
 
     reflected_light = R_t_r * (
         (1.0 - SUN_AMBIANCE) * sun_chroma * sun_shadow * (light_reflection_factor(norm, dir, sun_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) /*+
                       light_reflection_factor(norm, dir, normalize(sun_dir + vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha) +
                       light_reflection_factor(norm, dir, normalize(sun_dir - vec3(0.0, 0.1, 0.0)), k_d, k_s, alpha)*/) +
-        (1.0 - MOON_AMBIANCE) * moon_chroma * moon_shadow * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting)
+        (1.0 - MOON_AMBIANCE) * moon_chroma * moon_shadow * 1.0 * /*4.0 * */light_reflection_factor(norm, dir, moon_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting) +
+        emission
     );
 
     /* light = sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;

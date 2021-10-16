@@ -568,13 +568,10 @@ impl<'a> Widget for Video<'a> {
         .set(state.ids.exposure_value, ui);
 
         //Ambiance Brightness
-        // 320.0 = maximum brightness in shaders
-        let min_ambiance = 10.0;
-        let max_ambiance = 80.0;
         if let Some(new_val) = ImageSlider::discrete(
-            self.global_state.settings.graphics.ambiance.round() as i32,
-            min_ambiance as i32,
-            max_ambiance as i32,
+            (self.global_state.settings.graphics.ambiance * 100.0).round() as i32,
+            0,
+            100,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
@@ -585,7 +582,7 @@ impl<'a> Widget for Video<'a> {
         .pad_track((5.0, 5.0))
         .set(state.ids.ambiance_slider, ui)
         {
-            events.push(GraphicsChange::ChangeAmbiance(new_val as f32));
+            events.push(GraphicsChange::ChangeAmbiance(new_val as f32 / 100.0));
         }
         Text::new(self.localized_strings.get("hud.settings.ambiance"))
             .up_from(state.ids.ambiance_slider, 8.0)
@@ -595,10 +592,7 @@ impl<'a> Widget for Video<'a> {
             .set(state.ids.ambiance_text, ui);
         Text::new(&format!(
             "{:.0}%",
-            ((self.global_state.settings.graphics.ambiance - min_ambiance)
-                / (max_ambiance - min_ambiance)
-                * 100.0)
-                .round()
+            (self.global_state.settings.graphics.ambiance * 100.0).round()
         ))
         .right_from(state.ids.ambiance_slider, 8.0)
         .font_size(self.fonts.cyri.scale(14))
