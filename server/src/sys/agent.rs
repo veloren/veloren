@@ -716,7 +716,7 @@ impl<'a> AgentData<'a> {
                     // Should the agent flee?
                     if agent.action_state.timer == 0.0 && can_speak(agent) {
                         self.chat_general("npc.speech.villager_under_attack", event_emitter);
-                        self.emit_alarm(read_data.time.0, event_emitter);
+                        self.emit_scream(read_data.time.0, event_emitter);
                         agent.action_state.timer = 0.01;
                     } else if agent.action_state.timer < FLEE_DURATION
                         || dist_sq < MAX_FLEE_DIST.powi(2)
@@ -4355,7 +4355,7 @@ impl<'a> AgentData<'a> {
         )));
     }
 
-    fn emit_alarm(&self, time: f64, event_emitter: &mut Emitter<'_, ServerEvent>) {
+    fn emit_scream(&self, time: f64, event_emitter: &mut Emitter<'_, ServerEvent>) {
         if let Some(body) = self.body {
             event_emitter.emit(ServerEvent::Sound {
                 sound: Sound::new(
