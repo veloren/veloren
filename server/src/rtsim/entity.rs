@@ -746,8 +746,8 @@ fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
     match kind {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
         RtSimEntityKind::Random => "common.entity.world.traveler",
-        RtSimEntityKind::Villager => "common.loadout.village.villager",
-        RtSimEntityKind::Merchant => "common.loadout.village.merchant",
+        RtSimEntityKind::Villager => "common.entity.village.villager",
+        RtSimEntityKind::Merchant => "common.entity.village.merchant",
     }
 }
 
