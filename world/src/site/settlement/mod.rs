@@ -1125,7 +1125,7 @@ fn ingredient_backpack(economy: Option<&trade::SiteInformation>, rng: &mut impl 
 
     // `to_skip` is ideologicaly boolean flag either to start from 0-th or 1-th slot
     let mut to_skip = 0;
-    if let Some(coins) = coins {
+    if let Some(coins) = coins.filter(|c| *c > 0) {
         let mut coin_item = Item::new_from_asset_expect("common.items.utility.coins");
         coin_item
             .set_amount(coins)

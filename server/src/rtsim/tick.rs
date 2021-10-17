@@ -129,16 +129,31 @@ impl<'a> System<'a> for Sys {
             } else {
                 let entity_config_path = entity.get_entity_config();
                 let mut loadout_rng = entity.loadout_rng();
-                let ad_hoc_loadout = entity.get_adhoc_loadout(&world, &index);
+                let ad_hoc_loadout = entity.get_adhoc_loadout();
                 // Body is rewritten so that body parameters
                 // are consistent between reifications
                 let entity_config = EntityConfig::from_asset_expect(entity_config_path)
                     .with_body(BodyBuilder::Exact(body));
 
-                let entity_info = EntityInfo::at(pos.0)
+                let mut entity_info = EntityInfo::at(pos.0)
                     .with_entity_config(entity_config, Some(entity_config_path))
                     .with_lazy_loadout(ad_hoc_loadout)
                     .with_health_scaling(10);
+                // Merchants can be traded with
+                if let Some(economy) = matches!(entity.kind, RtSimEntityKind::Merchant)
+                    .then(|| {
+                        entity
+                            .brain
+                            .begin_site()
+                            .and_then(|home| world.civs().sites[home].site_tmp)
+                            .and_then(|site| index.sites[site].trade_information(site.id()))
+                    })
+                    .flatten()
+                {
+                    entity_info = entity_info
+                        .with_agent_mark(comp::agent::Mark::Merchant)
+                        .with_economy(&economy);
+                }
                 match NpcData::from_entity_info(entity_info, &mut loadout_rng) {
                     NpcData::Data {
                         pos,

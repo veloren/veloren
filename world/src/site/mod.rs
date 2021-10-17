@@ -131,15 +131,17 @@ impl Site {
         site_id: common::trade::SiteId,
     ) -> Option<common::trade::SiteInformation> {
         match &self.kind {
-            SiteKind::Settlement(s) => Some(common::trade::SiteInformation {
-                id: site_id,
-                unconsumed_stock: self
-                    .economy
-                    .unconsumed_stock
-                    .iter()
-                    .map(|(g, a)| (g.into(), *a))
-                    .collect(),
-            }),
+            SiteKind::Settlement(_) | SiteKind::Refactor(_) => {
+                Some(common::trade::SiteInformation {
+                    id: site_id,
+                    unconsumed_stock: self
+                        .economy
+                        .unconsumed_stock
+                        .iter()
+                        .map(|(g, a)| (g.into(), *a))
+                        .collect(),
+                })
+            },
             _ => None,
         }
     }

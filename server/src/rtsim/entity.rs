@@ -104,8 +104,6 @@ impl Entity {
     // is not used for RtSim as of now.
     pub fn get_adhoc_loadout(
         &self,
-        world: &World,
-        index: &world::IndexOwned,
     ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {
         let body = self.get_body();
         let kind = self.kind;
