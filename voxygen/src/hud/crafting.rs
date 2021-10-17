@@ -60,6 +60,7 @@ widget_ids! {
         recipe_img[],
         ingredients[],
         ingredient_frame[],
+        ingredient_btn[],
         ingredient_img[],
         req_text[],
         ingredients_txt,
@@ -858,6 +859,14 @@ impl<'a> Widget for Crafting<'a> {
                         .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
                 });
             };
+            if state.ids.ingredient_btn.len() < recipe.inputs().len() {
+                state.update(|state| {
+                    state
+                        .ids
+                        .ingredient_btn
+                        .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
+                });
+            };
             if state.ids.ingredient_img.len() < recipe.inputs().len() {
                 state.update(|state| {
                     state
@@ -936,19 +945,28 @@ impl<'a> Widget for Crafting<'a> {
                     frame.down_from(frame_pos, 10.0 + frame_offset)
                 };
                 frame.set(state.ids.ingredient_frame[i], ui);
-                //Item Image
-                if Button::image(animate_by_pulse(
+                // Item button for auto search
+                if Button::image(self.imgs.wpn_icon_border)
+                    .w_h(22.0, 22.0)
+                    .middle_of(state.ids.ingredient_frame[i])
+                    .hover_image(self.imgs.wpn_icon_border_mo)
+                    .with_item_tooltip(self.item_tooltip_manager, &*item_def, &None, &item_tooltip)
+                    .set(state.ids.ingredient_btn[i], ui)
+                    .was_clicked()
+                {
+                    events.push(Event::ChangeCraftingTab(CraftingTab::All));
+                    events.push(Event::SearchRecipe(Some(item_def.name().to_string())));
+                }
+                // Item image
+                Image::new(animate_by_pulse(
                     &self.item_imgs.img_ids_or_not_found_img((&*item_def).into()),
                     self.pulse,
                 ))
-                .w_h(22.0, 22.0)
-                .middle_of(state.ids.ingredient_frame[i])
-                .with_item_tooltip(self.item_tooltip_manager, &*item_def, &None, &item_tooltip)
-                .set(state.ids.ingredient_img[i], ui)
-                .was_clicked()
-                {
-                    events.push(Event::SearchRecipe(Some(item_def.name().to_string())));
-                }
+                .middle_of(state.ids.ingredient_btn[i])
+                .w_h(20.0, 20.0)
+                .graphics_for(state.ids.ingredient_btn[i])
+                .set(state.ids.ingredient_img[i], ui);
+
                 // Ingredients text and amount
                 // Don't show inventory amounts above 999 to avoid the widget clipping
                 let over9k = "99+";
