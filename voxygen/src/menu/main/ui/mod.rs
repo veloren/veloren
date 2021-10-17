@@ -24,6 +24,7 @@ use crate::settings::Settings;
 use common::assets::{self, AssetExt};
 use rand::{seq::SliceRandom, thread_rng};
 use std::time::Duration;
+use tracing::warn;
 
 // TODO: what is this? (showed up in rebase)
 //const COL1: Color = Color::Rgba(0.07, 0.1, 0.1, 0.9);
@@ -455,11 +456,15 @@ impl Controls {
     }
 
     fn connection_error(&mut self, error: String) {
-        if matches!(&self.screen, Screen::Connecting { .. }) {
+        if matches!(&self.screen, Screen::Connecting { .. })
+            || matches!(&self.screen, Screen::Login { .. })
+        {
             self.screen = Screen::Login {
                 screen: Box::new(login::Screen::new()),
                 error: Some(error),
             }
+        } else {
+            warn!("connection_error invoked on unhandled screen!");
         }
     }
 
