@@ -77,7 +77,7 @@ use common::{
         self, fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
-        skills::{Skill, SkillGroupKind},
+        skillset::{skills::Skill, SkillGroupKind},
         BuffData, BuffKind, Item,
     },
     consts::MAX_PICKUP_RANGE,

@@ -16,7 +16,7 @@ use common::{
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
         },
-        skills, Body as CompBody, Waypoint, *,
+        skillset, Body as CompBody, Waypoint, *,
     },
     resources::Time,
 };
@@ -504,9 +504,10 @@ pub fn convert_skill_set_from_database(
     skills: &[Skill],
     skill_groups: &[SkillGroup],
 ) -> common::comp::SkillSet {
-    skills::SkillSet {
+    skillset::SkillSet {
         skill_groups: convert_skill_groups_from_database(skill_groups),
         skills: convert_skills_from_database(skills),
+        ordered_skills: Vec::new(),
         modify_health: true,
         modify_energy: true,
     }
@@ -521,11 +522,11 @@ fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, P
     })
 }
 
-fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills::SkillGroup> {
+fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skillset::SkillGroup> {
     let mut new_skill_groups = Vec::new();
     for skill_group in skill_groups.iter() {
         let skill_group_kind = json_models::db_string_to_skill_group(&skill_group.skill_group_kind);
-        let mut new_skill_group = skills::SkillGroup {
+        let mut new_skill_group = skillset::SkillGroup {
             skill_group_kind,
             earned_exp: skill_group.earned_exp as u32,
             spent_exp: 0,
@@ -543,15 +544,16 @@ fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills
 fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, Option<u16>> {
     let mut new_skills = HashMap::new();
     for skill in skills.iter() {
-        let new_skill = json_models::db_string_to_skill(&skill.skill);
-        new_skills.insert(new_skill, skill.level.map(|l| l as u16));
+        if let Some(new_skill) = json_models::db_string_to_skill(&skill.skill) {
+            new_skills.insert(new_skill, skill.level.map(|l| l as u16));
+        }
     }
     new_skills
 }
 
 pub fn convert_skill_groups_to_database(
     entity_id: CharacterId,
-    skill_groups: Vec<skills::SkillGroup>,
+    skill_groups: Vec<skillset::SkillGroup>,
 ) -> Vec<SkillGroup> {
     skill_groups
         .into_iter()

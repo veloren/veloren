@@ -12,7 +12,10 @@ use crate::{
             Inventory,
         },
         projectile::ProjectileConstructor,
-        skills::{self, Skill, SkillSet, SKILL_MODIFIERS},
+        skillset::{
+            skills::{self, Skill, SKILL_MODIFIERS},
+            SkillSet,
+        },
         Body, CharacterState, LightEmitter, StateUpdate,
     },
     states::{
@@ -1158,11 +1161,7 @@ impl CharacterAbility {
 
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     #[warn(clippy::pedantic)]
-    pub fn adjusted_by_skills(
-        mut self,
-        skillset: &skills::SkillSet,
-        tool: Option<ToolKind>,
-    ) -> Self {
+    pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
             Some(ToolKind::Sword) => self.adjusted_by_sword_skills(skillset),
             Some(ToolKind::Axe) => self.adjusted_by_axe_skills(skillset),
@@ -1178,7 +1177,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_mining_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_mining_skills(&mut self, skillset: &SkillSet) {
         use skills::MiningSkill::Speed;
 
         if let CharacterAbility::BasicMelee {
@@ -1200,7 +1199,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_general_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_general_skills(&mut self, skillset: &SkillSet) {
         if let CharacterAbility::Roll {
             ref mut energy_cost,
             ref mut roll_strength,
@@ -1225,7 +1224,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_sword_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_sword_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{Skill::Sword, SwordSkill::*};
 
@@ -1319,7 +1318,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_axe_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_axe_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{AxeSkill::*, Skill::Axe};
 
@@ -1405,7 +1404,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_hammer_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_hammer_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{HammerSkill::*, Skill::Hammer};
 
@@ -1497,7 +1496,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_bow_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_bow_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{BowSkill::*, Skill::Bow};
 
@@ -1598,7 +1597,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_staff_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_staff_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{Skill::Staff, StaffSkill::*};
 
@@ -1668,7 +1667,7 @@ impl CharacterAbility {
     }
 
     #[warn(clippy::pedantic)]
-    fn adjusted_by_sceptre_skills(&mut self, skillset: &skills::SkillSet) {
+    fn adjusted_by_sceptre_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{SceptreSkill::*, Skill::Sceptre};
 

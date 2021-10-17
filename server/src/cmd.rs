@@ -2854,8 +2854,8 @@ fn handle_skill_point(
     }
 }
 
-fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skills::SkillGroupKind> {
-    use comp::{item::tool::ToolKind, skills::SkillGroupKind};
+fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skillset::SkillGroupKind> {
+    use comp::{item::tool::ToolKind, skillset::SkillGroupKind};
     match skill_tree {
         "general" => Ok(SkillGroupKind::General),
         "sword" => Ok(SkillGroupKind::Weapon(ToolKind::Sword)),

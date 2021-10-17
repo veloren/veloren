@@ -40,7 +40,7 @@ pub mod projectile;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod shockwave;
 #[cfg(not(target_arch = "wasm32"))]
-pub mod skills;
+pub mod skillset;
 #[cfg(not(target_arch = "wasm32"))] mod stats;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod visual;
@@ -99,7 +99,10 @@ pub use self::{
     poise::{Poise, PoiseState},
     projectile::{Projectile, ProjectileConstructor},
     shockwave::{Shockwave, ShockwaveHitEntities},
-    skills::{Skill, SkillGroup, SkillGroupKind, SkillSet},
+    skillset::{
+        skills::{self, Skill},
+        SkillGroup, SkillGroupKind, SkillSet,
+    },
     stats::{Stats, StatsModifier},
     visual::{LightAnimation, LightEmitter},
 };

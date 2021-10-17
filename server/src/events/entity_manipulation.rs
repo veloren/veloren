@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     comp::{
         agent::{Agent, AgentEvent, Sound, SoundKind},
-        skills::SkillGroupKind,
+        skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
     rtsim::RtSim,

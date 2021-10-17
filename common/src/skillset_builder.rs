@@ -1,6 +1,6 @@
 #![warn(clippy::pedantic)]
 //#![warn(clippy::nursery)]
-use crate::comp::skills::{Skill, SkillGroupKind, SkillSet};
+use crate::comp::skillset::{skills::Skill, SkillGroupKind, SkillSet};
 
 use crate::assets::{self, AssetExt};
 use serde::{Deserialize, Serialize};

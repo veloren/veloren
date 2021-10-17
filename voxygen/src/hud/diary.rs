@@ -21,10 +21,9 @@ use common::{
         item::tool::ToolKind,
         skills::{
             self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
-            RollSkill, SceptreSkill, Skill, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
-            SKILL_MODIFIERS,
+            RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
-        SkillSet,
+        skillset::{SkillGroupKind, SkillSet},
     },
     consts::{ENERGY_PER_LEVEL, HUMANOID_HP_PER_LEVEL},
 };
@@ -242,7 +241,7 @@ impl<'a> Diary<'a> {
     }
 }
 
-pub type SelectedSkillTree = skills::SkillGroupKind;
+pub type SelectedSkillTree = SkillGroupKind;
 
 // TODO: make it enum?
 const TREES: [&str; 8] = [
@@ -642,7 +641,8 @@ impl<'a> Diary<'a> {
             skills_bot_l,
             skills_bot_r,
         );
-        use skills::{GeneralSkill::*, RollSkill::*, SkillGroupKind::*};
+        use skills::{GeneralSkill::*, RollSkill::*};
+        use SkillGroupKind::*;
         use ToolKind::*;
         // General Combat
         Image::new(animate_by_pulse(
