@@ -137,7 +137,7 @@ impl PlayState for MainMenuState {
                             server::Error::Other(e) => localized_strings
                                 .get("main.servers.other_error")
                                 .to_owned()
-                                .replace("{raw_error}", e.to_string().as_str()),
+                                .replace("{raw_error}", e.as_str()),
                         };
                         global_state.info_message = Some(
                             localized_strings
