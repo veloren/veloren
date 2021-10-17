@@ -186,15 +186,18 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         is_direct = true;
 #endif
         vec3 lrf = light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting);
-        vec3 direct_light = PI * color * strength * square_factor * pow(lrf, vec3(0.5)); // TODO: Don't use ^0.5, it's non-physical but helps with hill climbing
+        vec3 direct_light = PI * color * strength * square_factor * lrf;
+        /* is_direct = true; */
         float computed_shadow = ShadowCalculationPoint(i, -difference, wnorm, wpos/*, light_distance*/);
         // directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor : vec3(0.0);
+        // Non-physically emulate ambient light nearby
+        float ambiance = (dot(-wnorm, direct_light_dir) * 0.5 + 0.5) * strength * square_factor;
         #ifdef FIGURE_SHADER
-            vec3 ambiance = color * 0.5 / distance_2; // Non-physical hack, but it's pretty subtle and *damn* does it make shadows on characters look better
-        #else
-            vec3 ambiance = vec3(0.0);
+            // Non-physical hack. Subtle, but allows lanterns to glow nicely
+            // TODO: Make lanterns use glowing cells instead
+            ambiance += 1.0 / distance_2;
         #endif
-        directed_light += (is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0)) + ambiance;
+        directed_light += (is_direct ? mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor : vec3(0.0)) + ambiance * color;
         // directed_light += (is_direct ? 1.0 : LIGHT_AMBIANCE) * max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor;// : vec3(0.0);
         // directed_light += mix(LIGHT_AMBIANCE, 1.0, computed_shadow) * direct_light * square_factor;
         // ambient_light += is_direct ? vec3(0.0) : vec3(0.0); // direct_light * square_factor * LIGHT_AMBIANCE;
