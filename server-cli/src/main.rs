@@ -170,22 +170,23 @@ fn main() -> io::Result<()> {
     )
     .expect("Failed to create server instance!");
 
+    let mut gameserver_addresses = vec![];
     for protocol in protocols_and_addresses {
-        match protocol {
-            Protocol::Tcp { address } => {
-                info!(?address, "TCP socket is ready to accept connections.");
-            },
+        gameserver_addresses.push(match protocol {
+            Protocol::Tcp { address } => ("TCP", address),
             Protocol::Quic {
                 address,
                 cert_file_path: _,
                 key_file_path: _,
-            } => {
-                info!(?address, "QUIC socket is ready to accept connections.");
-            },
-        }
+            } => ("QUIC", address),
+        })
     }
 
-    info!(?metrics_port, "Server is ready to accept connections.");
+    info!(
+        ?metrics_port,
+        ?gameserver_addresses,
+        "Server is ready to accept connections."
+    );
 
     let mut shutdown_coordinator = ShutdownCoordinator::new(Arc::clone(&sigusr1_signal));
 

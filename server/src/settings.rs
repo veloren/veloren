@@ -37,12 +37,6 @@ const BANLIST_FILENAME: &str = "banlist.ron";
 const SERVER_DESCRIPTION_FILENAME: &str = "description.ron";
 const ADMINS_FILENAME: &str = "admins.ron";
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct X509FilePair {
-    pub cert: PathBuf,
-    pub key: PathBuf,
-}
-
 #[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum ServerBattleMode {
     Global(BattleMode),
