@@ -113,17 +113,43 @@ impl PlayState for MainMenuState {
                         global_state.singleplayer = None;
                         self.init = InitState::None;
                         self.main_menu_ui.cancel_connection();
+                        let server_err = match e {
+                            server::Error::NetworkErr(e) => localized_strings
+                                .get("main.servers.network_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
+                            server::Error::ParticipantErr(e) => localized_strings
+                                .get("main.servers.participant_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
+                            server::Error::StreamErr(e) => localized_strings
+                                .get("main.servers.stream_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
+                            server::Error::DatabaseErr(e) => localized_strings
+                                .get("main.servers.database_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
+                            server::Error::PersistenceErr(e) => localized_strings
+                                .get("main.servers.persistence_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
+                            server::Error::Other(e) => localized_strings
+                                .get("main.servers.other_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
+                        };
                         global_state.info_message = Some(
                             localized_strings
                                 .get("main.servers.singleplayer_error")
-                                .to_owned(),
+                                .to_owned()
+                                .replace("{sp_error}", server_err.as_str()),
                         );
                     },
                     Err(_) => (),
                 }
             }
         }
-
         // Handle window events.
         for event in events {
             // Pass all events to the ui first.
