@@ -60,7 +60,26 @@ https://veloren.net/account/."#,
         "main.login.select_language": "Escolha um Idioma",
         "main.login.client_version": "Versão do Cliente",
         "main.login.server_version": "Versão do Servidor",
+        "main.login.client_init_failed": "Cliente falhou ao inicializar: {init_fail_reason}",
+        "main.login.username_bad_characters": "Nome de usuário contém caracteres inválidos! (Apenas alfanuméricos, '_' e '-' são perimtidos)",
+        "main.login.username_too_long": "Nome de usuário muito longo! Tamanho máximo: {max_len}",
         "main.servers.select_server": "Escolha um servidor",
+        "main.servers.singleplayer_error": "Falha ao conetar no servidor interno: {sp_error}",
+        "main.servers.network_error": "Erro de socket/rede: {raw_error}",
+        "main.servers.participant_error": "Erro de rede/protocolo do participante: {raw_error}",
+        "main.servers.stream_error": "Erro de conexão/compressão/(de)serialização do cliente: {raw_error}",
+        "main.servers.database_error": "Erro de Base da dados do Servidor: {raw_error}",
+        "main.servers.persistence_error": "Erro de persistência do servidor (Possivelmente relacionado a Asset/Personagens): {raw_error}",
+        "main.servers.other_error": "Erro geral de servidor: {raw_error}",
+
+        // Tela de créditos
+        "main.credits": "Créditos",
+        "main.credits.created_by": "criado por",
+        "main.credits.music": "Música",
+        "main.credits.fonts": "Fontes",
+        "main.credits.other_art": "Outras Artes",
+        "main.credits.contributors": "Contribuidores",
+
         /// Fim da seção Main
     },
 
