@@ -169,7 +169,6 @@
         "hud.skill.hmr_single_strike_damage" : "Aumenta o dano de cada ataque contínuo{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Empurrão em Ataque Único",
         "hud.skill.hmr_single_strike_knockback" : "Aumenta o potencial de empurrar em {boost}% durante ataques contínuo{SP}",
-        "hud.skill." : "",
         // Espada
         "hud.skill.sw_trip_str_title": "Ataque triplo",
         "hud.skill.sw_trip_str": "Ataque até três vezes consecutivas",
