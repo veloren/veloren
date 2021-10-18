@@ -557,17 +557,20 @@ pub fn attempt_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
     };
 
     // Moves entity into equipping state if there is some equip time, else moves
-    // intantly into wield
+    // instantly into wield
     if let Some(equip_time) = equip_time {
         update.character = CharacterState::Equipping(equipping::Data {
             static_data: equipping::StaticData {
                 buildup_duration: equip_time,
             },
             timer: Duration::default(),
+            is_sneaking: update.character.is_stealthy(),
         });
     } else {
-        update.character = CharacterState::Wielding;
-    };
+        update.character = CharacterState::Wielding(wielding::Data {
+            is_sneaking: update.character.is_stealthy(),
+        });
+    }
 }
 
 /// Checks that player can `Sit` and updates `CharacterState` if so
@@ -591,7 +594,7 @@ pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
 
 pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
-        update.character = CharacterState::Sneak;
+        update.character = CharacterState::Idle(idle::Data { is_sneaking: true });
     }
 }
 
@@ -659,14 +662,14 @@ pub fn handle_manipulate_loadout(
                         inv_slot,
                         item_kind,
                         item_definition_id: item.item_definition_id().to_string(),
-                        was_wielded: matches!(data.character, CharacterState::Wielding),
-                        was_sneak: matches!(data.character, CharacterState::Sneak),
+                        was_wielded: matches!(data.character, CharacterState::Wielding(_)),
+                        was_sneak: data.character.is_stealthy(),
                     },
                     timer: Duration::default(),
                     stage_section: StageSection::Buildup,
                 });
             } else {
-                // Else emit inventory action instantnaneously
+                // Else emit inventory action instantaneously
                 output_events
                     .emit_server(ServerEvent::InventoryManip(data.entity, inv_action.into()));
             }
@@ -763,8 +766,8 @@ pub fn handle_manipulate_loadout(
                                 recover_duration,
                                 sprite_pos,
                                 sprite_kind: sprite_interact,
-                                was_wielded: matches!(data.character, CharacterState::Wielding),
-                                was_sneak: matches!(data.character, CharacterState::Sneak),
+                                was_wielded: matches!(data.character, CharacterState::Wielding(_)),
+                                was_sneak: data.character.is_stealthy(),
                             },
                             timer: Duration::default(),
                             stage_section: StageSection::Buildup,
@@ -948,18 +951,17 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
                 AbilityInfo::from_input(data, false, InputKind::Roll),
                 data,
             ));
-            if let CharacterState::ComboMelee(c) = data.character {
-                if let CharacterState::Roll(roll) = &mut update.character {
+            if let CharacterState::Roll(roll) = &mut update.character {
+                if let CharacterState::ComboMelee(c) = data.character {
                     roll.was_combo = Some((c.static_data.ability_info.input, c.stage));
                     roll.was_wielded = true;
-                }
-            } else if data.character.is_wield() {
-                if let CharacterState::Roll(roll) = &mut update.character {
-                    roll.was_wielded = true;
-                }
-            } else if data.character.is_stealthy() {
-                if let CharacterState::Roll(roll) = &mut update.character {
-                    roll.was_sneak = true;
+                } else {
+                    if data.character.is_wield() {
+                        roll.was_wielded = true;
+                    }
+                    if data.character.is_stealthy() {
+                        roll.is_sneaking = true;
+                    }
                 }
             }
         }

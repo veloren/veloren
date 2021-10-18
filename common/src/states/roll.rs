@@ -7,7 +7,9 @@ use crate::{
     event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
+        idle,
         utils::*,
+        wielding,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -41,8 +43,8 @@ pub struct Data {
     pub stage_section: StageSection,
     /// Had weapon
     pub was_wielded: bool,
-    /// Was sneaking
-    pub was_sneak: bool,
+    /// Is sneaking, true if previous state was also considered sneaking
+    pub is_sneaking: bool,
     /// Was in state with combo
     pub was_combo: Option<(InputKind, u32)>,
 }
@@ -128,20 +130,28 @@ impl CharacterBehavior for Data {
                                 c.stage = stage;
                             }
                         } else {
-                            update.character = CharacterState::Wielding;
+                            update.character = CharacterState::Wielding(wielding::Data {
+                                is_sneaking: self.is_sneaking,
+                            });
                         }
-                    } else if self.was_wielded {
-                        update.character = CharacterState::Wielding;
-                    } else if self.was_sneak {
-                        update.character = CharacterState::Sneak;
                     } else {
-                        update.character = CharacterState::Idle;
+                        update.character = if self.was_wielded {
+                            CharacterState::Wielding(wielding::Data {
+                                is_sneaking: self.is_sneaking,
+                            })
+                        } else {
+                            CharacterState::Idle(idle::Data {
+                                is_sneaking: self.is_sneaking,
+                            })
+                        }
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Idle;
+                update.character = CharacterState::Idle(idle::Data {
+                    is_sneaking: self.is_sneaking,
+                });
             },
         }
 

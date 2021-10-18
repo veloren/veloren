@@ -940,7 +940,7 @@ impl<'a> AgentData<'a> {
                 if thread_rng().gen_bool(0.1)
                     && matches!(
                         read_data.char_states.get(*self.entity),
-                        Some(CharacterState::Wielding)
+                        Some(CharacterState::Wielding(_))
                     )
                 {
                     controller.actions.push(ControlAction::Unwield);
@@ -988,7 +988,7 @@ impl<'a> AgentData<'a> {
             if thread_rng().gen_bool(0.1)
                 && matches!(
                     read_data.char_states.get(*self.entity),
-                    Some(CharacterState::Wielding)
+                    Some(CharacterState::Wielding(_))
                 )
             {
                 controller.actions.push(ControlAction::Unwield);
@@ -2531,7 +2531,7 @@ impl<'a> AgentData<'a> {
         } else if matches!(self.char_state, CharacterState::Shockwave(_)) {
             agent.action_state.condition = false;
         } else if agent.action_state.condition
-            && matches!(self.char_state, CharacterState::Wielding)
+            && matches!(self.char_state, CharacterState::Wielding(_))
         {
             controller
                 .actions
@@ -2552,7 +2552,7 @@ impl<'a> AgentData<'a> {
                 && self.energy.current() > shockwave_cost
             {
                 // if enemy is closing distance quickly, use shockwave to knock back
-                if matches!(self.char_state, CharacterState::Wielding) {
+                if matches!(self.char_state, CharacterState::Wielding(_)) {
                     controller
                         .actions
                         .push(ControlAction::basic_input(InputKind::Ability(0)));
@@ -3418,7 +3418,7 @@ impl<'a> AgentData<'a> {
                 if matches!(self.char_state, CharacterState::Blink(_)) {
                     *num_fireballs = rand::random::<u8>() % 4;
                 }
-            } else if matches!(self.char_state, CharacterState::Wielding) {
+            } else if matches!(self.char_state, CharacterState::Wielding(_)) {
                 *num_fireballs -= 1;
                 controller.actions.push(ControlAction::StartInput {
                     input: InputKind::Ability(1),

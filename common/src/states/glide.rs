@@ -6,7 +6,7 @@ use crate::{
     },
     states::{
         behavior::{CharacterBehavior, JoinData},
-        glide_wield,
+        glide_wield, idle,
     },
     util::{Dir, Plane, Projection},
 };
@@ -87,7 +87,7 @@ impl CharacterBehavior for Data {
                 .and_then(|inv| inv.equipped(EquipSlot::Glider))
                 .is_none()
         {
-            update.character = CharacterState::Idle;
+            update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         } else if !handle_climb(data, &mut update) {
             let air_flow = data
                 .physics
@@ -201,7 +201,7 @@ impl CharacterBehavior for Data {
 
     fn unwield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle;
+        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         update
     }
 }

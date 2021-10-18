@@ -22,12 +22,11 @@ pub fn draw_char_state_group(
         CharacterState::ChargedMelee(data) => charged_melee_grid(ui, data),
         // Character states with no associated data to display
         CharacterState::Dance
-        | CharacterState::Idle
+        | CharacterState::Idle(_)
         | CharacterState::Sit
         | CharacterState::GlideWield(_)
-        | CharacterState::Sneak
         | CharacterState::Talk
-        | CharacterState::Wielding => {},
+        | CharacterState::Wielding(_) => {},
         CharacterState::LeapMelee(data) => leap_melee_grid(ui, data),
         _ => {
             ui.label("<Rendering not yet implemented for this state>");

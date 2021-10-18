@@ -27,8 +27,9 @@ use common::{
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::Slot,
-        ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs, GroupManip, InputKind,
-        InventoryAction, InventoryEvent, InventoryUpdateEvent, UtteranceKind,
+        CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
+        GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
+        UtteranceKind,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -300,9 +301,7 @@ impl Client {
                 // Initialize `State`
                 let mut state = State::client();
                 // Client-only components
-                state
-                    .ecs_mut()
-                    .register::<comp::Last<comp::CharacterState>>();
+                state.ecs_mut().register::<comp::Last<CharacterState>>();
 
                 let entity = state.ecs_mut().apply_entity_package(entity_package);
                 *state.ecs_mut().write_resource() = time_of_day;
@@ -912,8 +911,8 @@ impl Client {
     pub fn is_dead(&self) -> bool { self.current::<comp::Health>().map_or(false, |h| h.is_dead) }
 
     pub fn is_gliding(&self) -> bool {
-        self.current::<comp::CharacterState>()
-            .map_or(false, |cs| matches!(cs, comp::CharacterState::Glide(_)))
+        self.current::<CharacterState>()
+            .map_or(false, |cs| matches!(cs, CharacterState::Glide(_)))
     }
 
     pub fn split_swap_slots(&mut self, a: comp::slot::Slot, b: comp::slot::Slot) {
@@ -1160,7 +1159,7 @@ impl Client {
     pub fn is_wielding(&self) -> Option<bool> {
         self.state
             .ecs()
-            .read_storage::<comp::CharacterState>()
+            .read_storage::<CharacterState>()
             .get(self.entity())
             .map(|cs| cs.is_wield())
     }
@@ -1177,9 +1176,9 @@ impl Client {
         let is_sitting = self
             .state
             .ecs()
-            .read_storage::<comp::CharacterState>()
+            .read_storage::<CharacterState>()
             .get(self.entity())
-            .map(|cs| matches!(cs, comp::CharacterState::Sit));
+            .map(|cs| matches!(cs, CharacterState::Sit));
 
         match is_sitting {
             Some(true) => self.control_action(ControlAction::Stand),
@@ -1192,9 +1191,9 @@ impl Client {
         let is_dancing = self
             .state
             .ecs()
-            .read_storage::<comp::CharacterState>()
+            .read_storage::<CharacterState>()
             .get(self.entity())
-            .map(|cs| matches!(cs, comp::CharacterState::Dance));
+            .map(|cs| matches!(cs, CharacterState::Dance));
 
         match is_dancing {
             Some(true) => self.control_action(ControlAction::Stand),
@@ -1211,9 +1210,9 @@ impl Client {
         let is_sneaking = self
             .state
             .ecs()
-            .read_storage::<comp::CharacterState>()
+            .read_storage::<CharacterState>()
             .get(self.entity())
-            .map(|cs| matches!(cs, comp::CharacterState::Sneak));
+            .map(CharacterState::is_stealthy);
 
         match is_sneaking {
             Some(true) => self.control_action(ControlAction::Stand),
@@ -1226,14 +1225,9 @@ impl Client {
         let using_glider = self
             .state
             .ecs()
-            .read_storage::<comp::CharacterState>()
+            .read_storage::<CharacterState>()
             .get(self.entity())
-            .map(|cs| {
-                matches!(
-                    cs,
-                    comp::CharacterState::GlideWield(_) | comp::CharacterState::Glide(_)
-                )
-            });
+            .map(|cs| matches!(cs, CharacterState::GlideWield(_) | CharacterState::Glide(_)));
 
         match using_glider {
             Some(true) => self.control_action(ControlAction::Unwield),
@@ -1439,11 +1433,11 @@ impl Client {
         {
             prof_span!("Last<CharacterState> comps update");
             let ecs = self.state.ecs();
-            let mut last_character_states = ecs.write_storage::<comp::Last<comp::CharacterState>>();
+            let mut last_character_states = ecs.write_storage::<comp::Last<CharacterState>>();
             for (entity, _, character_state) in (
                 &ecs.entities(),
                 &ecs.read_storage::<comp::Body>(),
-                &ecs.read_storage::<comp::CharacterState>(),
+                &ecs.read_storage::<CharacterState>(),
             )
                 .join()
             {

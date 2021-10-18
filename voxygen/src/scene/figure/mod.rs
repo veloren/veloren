@@ -34,7 +34,7 @@ use common::{
         LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
-    states::utils::StageSection,
+    states::{equipping, idle, utils::StageSection, wielding},
     terrain::TerrainChunk,
     uid::UidAllocator,
     vol::RectRasterableVol,
@@ -1117,7 +1117,7 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Sneak { .. } => {
+                        CharacterState::Idle(idle::Data { is_sneaking: true }) => {
                             anim::character::SneakAnimation::update_skeleton(
                                 &target_base,
                                 (
@@ -1502,19 +1502,36 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Equipping { .. } => {
-                            anim::character::EquipAnimation::update_skeleton(
-                                &target_base,
-                                (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    rel_vel.magnitude(),
-                                    time,
-                                ),
-                                state.state_time,
-                                &mut state_animation_rate,
-                                skeleton_attr,
-                            )
+                        CharacterState::Equipping(equipping::Data { is_sneaking, .. }) => {
+                            if *is_sneaking {
+                                anim::character::SneakEquipAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        rel_vel,
+                                        // TODO: Update to use the quaternion.
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::EquipAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        rel_vel.magnitude(),
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
                         },
                         CharacterState::Talk => anim::character::TalkAnimation::update_skeleton(
                             &target_base,
@@ -1529,7 +1546,7 @@ impl FigureMgr {
                             &mut state_animation_rate,
                             skeleton_attr,
                         ),
-                        CharacterState::Wielding { .. } => {
+                        CharacterState::Wielding(wielding::Data { is_sneaking, .. }) => {
                             if physics.in_liquid().is_some() {
                                 anim::character::SwimWieldAnimation::update_skeleton(
                                     &target_base,
@@ -1538,6 +1555,23 @@ impl FigureMgr {
                                         second_tool_kind,
                                         hands,
                                         rel_vel.magnitude(),
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else if *is_sneaking {
+                                anim::character::SneakWieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        hands,
+                                        rel_vel,
+                                        // TODO: Update to use the quaternion.
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
                                         time,
                                     ),
                                     state.state_time,
@@ -4594,9 +4628,16 @@ impl FigureMgr {
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
-                        _ => (&CharacterState::Idle, &Last {
-                            0: CharacterState::Idle,
-                        }),
+                        _ => (
+                            &CharacterState::Idle(common::states::idle::Data {
+                                is_sneaking: false,
+                            }),
+                            &Last {
+                                0: CharacterState::Idle(common::states::idle::Data {
+                                    is_sneaking: false,
+                                }),
+                            },
+                        ),
                     };
 
                     if !character.same_variant(&last_character.0) {
@@ -4712,9 +4753,16 @@ impl FigureMgr {
 
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
-                        _ => (&CharacterState::Idle, &Last {
-                            0: CharacterState::Idle,
-                        }),
+                        _ => (
+                            &CharacterState::Idle(common::states::idle::Data {
+                                is_sneaking: false,
+                            }),
+                            &Last {
+                                0: CharacterState::Idle(common::states::idle::Data {
+                                    is_sneaking: false,
+                                }),
+                            },
+                        ),
                     };
 
                     if !character.same_variant(&last_character.0) {

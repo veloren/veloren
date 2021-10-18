@@ -1,7 +1,10 @@
 use super::utils::*;
 use crate::{
     comp::{character_state::OutputEvents, CharacterState, InputKind, StateUpdate},
-    states::behavior::{CharacterBehavior, JoinData},
+    states::{
+        behavior::{CharacterBehavior, JoinData},
+        wielding,
+    },
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -83,12 +86,13 @@ impl CharacterBehavior for Data {
                     });
                 } else {
                     // Done
-                    update.character = CharacterState::Wielding;
+                    update.character =
+                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Wielding;
+                update.character = CharacterState::Wielding(wielding::Data { is_sneaking: false });
             },
         }
 
