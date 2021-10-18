@@ -46,6 +46,7 @@ const PERM_BODY: u32 = 1;
 const PERM_LOADOUT: u32 = 2;
 const PERM_LEVEL: u32 = 3;
 const PERM_GENUS: u32 = 4;
+const PERM_TRADE: u32 = 5;
 
 impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
@@ -87,6 +88,23 @@ impl Entity {
                 comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
             },
         }
+    }
+
+    pub fn get_trade_info(&self, world: &World, index: &world::IndexOwned) -> Option<trade::SiteInformation> {
+        let site = match self.kind {
+            RtSimEntityKind::Random if self.rng(PERM_TRADE).gen_bool(0.5) && false => match self.brain.route {
+                Travel::Path { target_id, .. } => Some(target_id),
+                _ => None,
+            },
+            RtSimEntityKind::Merchant => self.brain.begin_site(),
+            _ => None,
+        }?;
+
+        let site = world
+            .civs()
+            .sites[site]
+            .site_tmp?;
+        index.sites[site].trade_information(site.id())
     }
 
     pub fn get_entity_config(&self) -> &str {

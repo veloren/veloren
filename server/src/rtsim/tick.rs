@@ -140,16 +140,7 @@ impl<'a> System<'a> for Sys {
                     .with_lazy_loadout(ad_hoc_loadout)
                     .with_health_scaling(10);
                 // Merchants can be traded with
-                if let Some(economy) = matches!(entity.kind, RtSimEntityKind::Merchant)
-                    .then(|| {
-                        entity
-                            .brain
-                            .begin_site()
-                            .and_then(|home| world.civs().sites[home].site_tmp)
-                            .and_then(|site| index.sites[site].trade_information(site.id()))
-                    })
-                    .flatten()
-                {
+                if let Some(economy) = entity.get_trade_info(&world, &index) {
                     entity_info = entity_info
                         .with_agent_mark(comp::agent::Mark::Merchant)
                         .with_economy(&economy);
