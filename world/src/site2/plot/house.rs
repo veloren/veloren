@@ -625,12 +625,12 @@ impl Structure for House {
                                     )
                                     .with_z(alt + previous_height - 3),
                                     end: Vec2::new(
-                                        temp.x + 1,
-                                        self.bounds.max.y + storey_increase - self.overhang + 3,
+                                        temp.x,
+                                        self.bounds.max.y + storey_increase - self.overhang + 2,
                                     )
                                     .with_z(alt + previous_height),
                                 },
-                                1.0,
+                                0.75,
                             )),
                             //2 => {
                             //    painter.prim(Primitive::Segment(LineSegment3 {
@@ -675,12 +675,12 @@ impl Structure for House {
                                     )
                                     .with_z(alt + previous_height - 3),
                                     end: Vec2::new(
-                                        self.bounds.max.x + storey_increase - self.overhang + 3,
-                                        temp.y + 1,
+                                        self.bounds.max.x + storey_increase - self.overhang + 2,
+                                        temp.y,
                                     )
                                     .with_z(alt + previous_height),
                                 },
-                                1.0,
+                                0.75,
                             )),
                             2 => painter.prim(Primitive::Empty),
                             _ => painter.prim(Primitive::Segment(
@@ -691,12 +691,12 @@ impl Structure for House {
                                     )
                                     .with_z(alt + previous_height - 3),
                                     end: Vec2::new(
-                                        self.bounds.min.x - storey_increase + self.overhang - 3,
-                                        temp.y + 1,
+                                        self.bounds.min.x - storey_increase + self.overhang - 2,
+                                        temp.y,
                                     )
                                     .with_z(alt + previous_height),
                                 },
-                                1.0,
+                                0.75,
                             )),
                         };
                         if temp.y <= self.bounds.max.y && temp.y >= self.bounds.min.y {
