@@ -636,7 +636,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         })
                         .and_then(|pos| state.terrain().get(pos).ok().copied())
                         .and_then(|block| block.get_sprite());
-                    if matches!(sprite, Some(SpriteKind::SalvagingBench)) {
+                    if matches!(sprite, Some(SpriteKind::DismantlingBench)) {
                         recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()
                     } else {
                         None

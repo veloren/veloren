@@ -539,7 +539,7 @@ impl Archetype for House {
                             9 => SpriteKind::Loom,
                             10 => SpriteKind::SpinningWheel,
                             11 => SpriteKind::TanningRack,
-                            12 => SpriteKind::SalvagingBench,
+                            12 => SpriteKind::DismantlingBench,
                             _ => unreachable!(),
                         };
 

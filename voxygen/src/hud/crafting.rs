@@ -73,6 +73,10 @@ widget_ids! {
         category_bgs[],
         category_tabs[],
         category_imgs[],
+        dismantle_title,
+        dismantle_img,
+        dismantle_txt,
+        dismantle_highlight_txt,
     }
 }
 
@@ -617,7 +621,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Loom) => Some("Loom"),
                     Some(SpriteKind::SpinningWheel) => Some("SpinningWheel"),
                     Some(SpriteKind::TanningRack) => Some("TanningRack"),
-                    Some(SpriteKind::SalvagingBench) => Some("SalvagingBench"),
+                    Some(SpriteKind::DismantlingBench) => Some("DismantlingBench"),
                     _ => None,
                 };
 
@@ -793,7 +797,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Loom) => "Loom",
                     Some(SpriteKind::SpinningWheel) => "SpinningWheel",
                     Some(SpriteKind::TanningRack) => "TanningRack",
-                    Some(SpriteKind::SalvagingBench) => "SalvagingBench",
+                    Some(SpriteKind::DismantlingBench) => "DismantlingBench",
                     None => "CraftsmanHammer",
                     _ => "CraftsmanHammer",
                 };
@@ -817,7 +821,7 @@ impl<'a> Widget for Crafting<'a> {
                     Some(SpriteKind::Loom) => "hud.crafting.loom",
                     Some(SpriteKind::SpinningWheel) => "hud.crafting.spinning_wheel",
                     Some(SpriteKind::TanningRack) => "hud.crafting.tanning_rack",
-                    Some(SpriteKind::SalvagingBench) => "hud.crafting.salvaging_station",
+                    Some(SpriteKind::DismantlingBench) => "hud.crafting.salvaging_station",
                     _ => "",
                 };
                 Text::new(self.localized_strings.get(station_name))
@@ -953,7 +957,12 @@ impl<'a> Widget for Crafting<'a> {
                     .w_h(22.0, 22.0)
                     .middle_of(state.ids.ingredient_frame[i])
                     .hover_image(self.imgs.wpn_icon_border_mo)
-                    .with_item_tooltip(self.item_tooltip_manager, vec![&*item_def], &None, &item_tooltip)
+                    .with_item_tooltip(
+                        self.item_tooltip_manager,
+                        vec![&*item_def],
+                        &None,
+                        &item_tooltip,
+                    )
                     .set(state.ids.ingredient_btn[i], ui)
                     .was_clicked()
                 {
@@ -1023,39 +1032,39 @@ impl<'a> Widget for Crafting<'a> {
             }
         } else if *sel_crafting_tab == CraftingTab::Dismantle {
             // Title
-
-            Text::new("Dismantling")
-                .mid_top_with_margin_on(state.ids.align_ing, -40.0)
+            Text::new(self.localized_strings.get("hud.crafting.dismantle_title"))
+                .mid_top_with_margin_on(state.ids.align_ing, 0.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(24))
                 .color(TEXT_COLOR)
                 .parent(state.ids.window)
-                .set(state.ids.title_ing, ui);
+                .set(state.ids.dismantle_title, ui);
 
             // Bench Icon
-
+            let size = 140.0;
             Image::new(animate_by_pulse(
                 &self
                     .item_imgs
-                    .img_ids_or_not_found_img(Tool("SalvagingBench".to_string())),
+                    .img_ids_or_not_found_img(Tool("DismantlingBench".to_string())),
                 self.pulse,
             ))
-            .w_h(120.0, 120.0)
-            .mid_top_with_margin_on(state.ids.align_ing, 40.0)
+            .wh([size; 2])
+            .mid_top_with_margin_on(state.ids.align_ing, 50.0)
             .parent(state.ids.align_ing)
-            .set(state.ids.output_img_frame, ui);
+            .set(state.ids.dismantle_img, ui);
 
             // Explanation
 
-            Text::new("Explanation goes here")
-                .mid_bottom_with_margin_on(state.ids.output_img_frame, -40.0)
-                .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
-                .color(TEXT_COLOR)
-                .parent(state.ids.window)
-                .set(state.ids.ingredients_txt, ui);
-
-            // Colored Overlays
+            Text::new(
+                self.localized_strings
+                    .get("hud.crafting.dismantle_explanation"),
+            )
+            .mid_bottom_with_margin_on(state.ids.dismantle_img, -60.0)
+            .font_id(self.fonts.cyri.conrod_id)
+            .font_size(self.fonts.cyri.scale(14))
+            .color(TEXT_COLOR)
+            .parent(state.ids.window)
+            .set(state.ids.dismantle_txt, ui);
         }
 
         // Search / Title Recipes

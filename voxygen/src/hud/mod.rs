@@ -728,7 +728,7 @@ impl Show {
         self.selected_crafting_tab(tab);
         self.crafting(true);
         self.craft_sprite = self.craft_sprite.or(craft_sprite);
-        self.salvage = matches!(self.craft_sprite, Some((_, SpriteKind::SalvagingBench)))
+        self.salvage = matches!(self.craft_sprite, Some((_, SpriteKind::DismantlingBench)))
             && matches!(tab, CraftingTab::Dismantle);
     }
 
@@ -4083,7 +4083,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Loom => "hud.crafting.loom",
         SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
         SpriteKind::TanningRack => "hud.crafting.tanning_rack",
-        SpriteKind::SalvagingBench => "hud.crafting.salvaging_station",
+        SpriteKind::DismantlingBench => "hud.crafting.salvaging_station",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(Cow::Borrowed(localized_strings.get(i18n_key)))

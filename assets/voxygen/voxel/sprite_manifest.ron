@@ -3216,8 +3216,8 @@ Loom: Some((
     ],
     wind_sway: 0.0,
 )),
-// SalvagingBench
-SalvagingBench: Some((
+// DismantlingBench
+DismantlingBench: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.salvaging_station.salvaging_station-0",

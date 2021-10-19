@@ -135,7 +135,7 @@ impl BlocksOfInterest {
                         fires.push(pos);
                         interactables.push((pos, Interaction::Craft(CraftingTab::Food)))
                     },
-                    Some(SpriteKind::SalvagingBench) => {
+                    Some(SpriteKind::DismantlingBench) => {
                         fires.push(pos);
                         interactables.push((pos, Interaction::Craft(CraftingTab::Dismantle)))
                     },
