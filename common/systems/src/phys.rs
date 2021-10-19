@@ -172,15 +172,14 @@ impl<'a> PhysicsData<'a> {
         // Add PreviousPhysCache for all relevant entities
         for entity in (
             &self.read.entities,
+            &self.read.colliders,
             &self.write.velocities,
             &self.write.positions,
             !&self.write.previous_phys_cache,
             !&self.read.mountings,
-            !&self.read.beams,
-            !&self.read.shockwaves,
         )
             .join()
-            .map(|(e, _, _, _, _, _, _)| e)
+            .map(|(e, _, _, _, _, _)| e)
             .collect::<Vec<_>>()
         {
             let _ = self
@@ -200,30 +199,28 @@ impl<'a> PhysicsData<'a> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, mut phys_cache, collider, scale, cs, _, _, _) in (
+        for (_, vel, position, ori, mut phys_cache, collider, scale, cs, _) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
             &self.write.orientations,
             &mut self.write.previous_phys_cache,
-            self.read.colliders.maybe(),
+            &self.read.colliders,
             self.read.scales.maybe(),
             self.read.char_states.maybe(),
             !&self.read.mountings,
-            !&self.read.beams,
-            !&self.read.shockwaves,
         )
             .join()
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
-            let z_limits = calc_z_limit(cs, collider);
+            let z_limits = calc_z_limit(cs, Some(collider));
             let (z_min, z_max) = z_limits;
             let (z_min, z_max) = (z_min * scale, z_max * scale);
             let half_height = (z_max - z_min) / 2.0;
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
             let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
-            let flat_radius = collider.map_or(0.5, Collider::bounding_radius) * scale;
+            let flat_radius = collider.bounding_radius() * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
 
             // Move center to the middle between OLD and OLD+VEL_DT
@@ -234,14 +231,14 @@ impl<'a> PhysicsData<'a> {
             phys_cache.scaled_radius = flat_radius;
 
             let neighborhood_radius = match collider {
-                Some(Collider::CapsulePrism { radius, .. }) => radius * scale,
-                Some(Collider::Voxel { .. } | Collider::Point) | None => flat_radius,
+                Collider::CapsulePrism { radius, .. } => radius * scale,
+                Collider::Voxel { .. } | Collider::Point => flat_radius,
             };
             phys_cache.neighborhood_radius = neighborhood_radius;
 
             let ori = ori.to_quat();
             let origins = match collider {
-                Some(Collider::CapsulePrism { p0, p1, .. }) => {
+                Collider::CapsulePrism { p0, p1, .. } => {
                     let a = p1 - p0;
                     let len = a.magnitude();
                     // If origins are close enough, our capsule prism is cylinder
@@ -275,7 +272,7 @@ impl<'a> PhysicsData<'a> {
                         Some((p0, p1))
                     }
                 },
-                Some(Collider::Voxel { .. } | Collider::Point) | None => None,
+                Collider::Voxel { .. } | Collider::Point => None,
             };
             phys_cache.origins = origins;
             phys_cache.ori = ori;
@@ -338,7 +335,7 @@ impl<'a> PhysicsData<'a> {
             &mut write.velocities,
             previous_phys_cache,
             &read.masses,
-            read.colliders.maybe(),
+            &read.colliders,
             !&read.mountings,
             read.stickies.maybe(),
             &mut write.physics_states,
@@ -386,7 +383,7 @@ impl<'a> PhysicsData<'a> {
                         };
                     }
 
-                    let z_limits = calc_z_limit(char_state_maybe, collider);
+                    let z_limits = calc_z_limit(char_state_maybe, Some(collider));
 
                     // Resets touch_entities in physics
                     physics.touch_entities.clear();
@@ -482,7 +479,7 @@ impl<'a> PhysicsData<'a> {
                                         previous_cache_other,
                                         z_limits,
                                         z_limits_other,
-                                        collider,
+                                        Some(collider),
                                         collider_other,
                                         *mass,
                                         *mass_other,
