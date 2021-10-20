@@ -67,7 +67,6 @@ impl Segment {
                                 color,
                                 (13..16).contains(&voxel.i), // Glowy
                                 (8..13).contains(&voxel.i),  // Shiny
-                                voxel.i == 16,               // Hollow
                             ),
                         )
                         .unwrap();
@@ -99,7 +98,6 @@ impl Segment {
                     transform(rgb),
                     cell.is_glowy(),
                     cell.is_shiny(),
-                    cell.is_hollow(),
                 )
             })
         })
@@ -166,8 +164,9 @@ impl MatSegment {
         for (pos, vox) in self.full_vol_iter() {
             let data = match vox {
                 MatCell::None => continue,
-                MatCell::Mat(mat) => CellData::new(map(*mat), false, false, false),
+                MatCell::Mat(mat) => CellData::new(map(*mat), false, false),
                 MatCell::Normal(data) => *data,
+                MatCell::Hollow => continue,
             };
             vol.set(pos, Cell::Filled(data)).unwrap();
         }
@@ -220,6 +219,7 @@ impl MatSegment {
                     4 => MatCell::Mat(Material::SkinDark),
                     5 => MatCell::Mat(Material::SkinLight),
                     7 => MatCell::Mat(Material::EyeWhite),
+                    16 => MatCell::Hollow,
                     //6 => MatCell::Mat(Material::Clothing),
                     index => {
                         let color = palette
@@ -230,7 +230,6 @@ impl MatSegment {
                             color,
                             (13..16).contains(&index),
                             (8..13).contains(&index),
-                            index == 16, // Hollow
                         ))
                     },
                 };

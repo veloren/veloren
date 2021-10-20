@@ -1,16 +1,6 @@
 EntityConfig (
     name: Name("Witch"),
-    body: Exact(Humanoid(Body(
-        species: Human,
-        body_type: Female,
-        hair_style: 15,
-        beard: 0,
-        eyes: 0,
-        accessory: 0,
-        hair_color: 12,
-        skin: 0,
-        eye_color: 1,
-    ))),
+    body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
 
     loot: LootTable("common.loot_tables.spots.witch"),
