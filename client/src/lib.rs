@@ -753,7 +753,6 @@ impl Client {
                     | ClientGeneral::ExitInGame
                     | ClientGeneral::PlayerPhysics { .. }
                     | ClientGeneral::UnlockSkill(_)
-                    | ClientGeneral::RefundSkill(_)
                     | ClientGeneral::RequestSiteInfo(_)
                     | ClientGeneral::UnlockSkillGroup(_)
                     | ClientGeneral::RequestPlayerPhysics { .. }

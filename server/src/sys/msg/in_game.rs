@@ -250,11 +250,6 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut skill_set| skill_set.unlock_skill(skill));
             },
-            ClientGeneral::RefundSkill(skill) => {
-                skill_sets
-                    .get_mut(entity)
-                    .map(|mut skill_set| skill_set.refund_skill(skill));
-            },
             ClientGeneral::UnlockSkillGroup(skill_group_kind) => {
                 skill_sets
                     .get_mut(entity)

@@ -18,11 +18,12 @@ pub enum Skill {
     Bow(BowSkill),
     Staff(StaffSkill),
     Sceptre(SceptreSkill),
-    UnlockGroup(SkillGroupKind),
     Roll(RollSkill),
     Climb(ClimbSkill),
     Swim(SwimSkill),
     Pick(MiningSkill),
+    // TODO: Don't do this, maybe Sharp has idea?
+    UnlockGroup(SkillGroupKind),
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]

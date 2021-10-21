@@ -76,7 +76,6 @@ pub enum ClientGeneral {
         ori: comp::Ori,
     },
     UnlockSkill(Skill),
-    RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),
     RequestSiteInfo(SiteId),
     //Only in Game, via terrain stream
@@ -128,7 +127,6 @@ impl ClientMsg {
                         | ClientGeneral::PlayerPhysics { .. }
                         | ClientGeneral::TerrainChunkRequest { .. }
                         | ClientGeneral::UnlockSkill(_)
-                        | ClientGeneral::RefundSkill(_)
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }

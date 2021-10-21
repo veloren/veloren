@@ -16,7 +16,7 @@ use crate::{
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
             convert_skill_groups_to_database, convert_skill_set_from_database,
-            convert_skills_to_database, convert_stats_from_database,
+            convert_stats_from_database,
             convert_waypoint_from_database_json, convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
@@ -164,29 +164,9 @@ pub fn load_character_data(
 
     let mut stmt = connection.prepare_cached(
         "
-        SELECT  skill,
-                level
-        FROM    skill
-        WHERE   entity_id = ?1",
-    )?;
-
-    let skill_data = stmt
-        .query_map(&[char_id], |row| {
-            Ok(Skill {
-                entity_id: char_id,
-                skill: row.get(0)?,
-                level: row.get(1)?,
-            })
-        })?
-        .filter_map(Result::ok)
-        .collect::<Vec<Skill>>();
-
-    let mut stmt = connection.prepare_cached(
-        "
         SELECT  skill_group_kind,
-                exp,
-                available_sp,
-                earned_sp
+                earned_exp,
+                skills
         FROM    skill_group
         WHERE   entity_id = ?1",
     )?;
@@ -197,6 +177,7 @@ pub fn load_character_data(
                 entity_id: char_id,
                 skill_group_kind: row.get(0)?,
                 earned_exp: row.get(1)?,
+                skills: row.get(2)?
             })
         })?
         .filter_map(Result::ok)
@@ -252,7 +233,7 @@ pub fn load_character_data(
     Ok((
         convert_body_from_database(&body_data.variant, &body_data.body_data)?,
         convert_stats_from_database(character_data.alias),
-        convert_skill_set_from_database(&skill_data, &skill_group_data),
+        convert_skill_set_from_database(&skill_group_data),
         convert_inventory_from_database_items(
             character_containers.inventory_container_id,
             &inventory_items,
@@ -1027,39 +1008,6 @@ pub fn update(
             &skill_group.skill_group_kind,
             &skill_group.earned_exp,
         ])?;
-    }
-
-    let db_skills = convert_skills_to_database(char_id, char_skill_set.skills);
-
-    let known_skills = Rc::new(
-        db_skills
-            .iter()
-            .map(|x| Value::from(x.skill.clone()))
-            .collect::<Vec<Value>>(),
-    );
-
-    let mut stmt = transaction.prepare_cached(
-        "
-        DELETE
-        FROM    skill
-        WHERE   entity_id = ?1
-        AND     skill NOT IN rarray(?2)",
-    )?;
-
-    let delete_count = stmt.execute(&[&char_id as &dyn ToSql, &known_skills])?;
-    trace!("Deleted {} skills", delete_count);
-
-    let mut stmt = transaction.prepare_cached(
-        "
-        REPLACE
-        INTO    skill (entity_id,
-                       skill,
-                       level)
-        VALUES (?1, ?2, ?3)",
-    )?;
-
-    for skill in db_skills {
-        stmt.execute(&[&skill.entity_id as &dyn ToSql, &skill.skill, &skill.level])?;
     }
 
     let db_waypoint = convert_waypoint_to_database_json(char_waypoint);

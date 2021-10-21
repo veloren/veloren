@@ -1,6 +1,6 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Character, Item, Skill, SkillGroup},
+    models::{Character, Item, SkillGroup},
 };
 
 use crate::persistence::{
@@ -500,14 +500,10 @@ pub fn convert_stats_from_database(alias: String) -> common::comp::Stats {
     new_stats
 }
 
-pub fn convert_skill_set_from_database(
-    skills: &[Skill],
-    skill_groups: &[SkillGroup],
-) -> common::comp::SkillSet {
+pub fn convert_skill_set_from_database(skill_groups: &[SkillGroup]) -> common::comp::SkillSet {
     skillset::SkillSet {
         skill_groups: convert_skill_groups_from_database(skill_groups),
-        skills: convert_skills_from_database(skills),
-        ordered_skills: Vec::new(),
+        skills: HashMap::new(),
         modify_health: true,
         modify_energy: true,
     }
@@ -532,6 +528,7 @@ fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills
             spent_exp: 0,
             available_sp: 0,
             earned_sp: 0,
+            ordered_skills: Vec::new(),
         };
 
         while new_skill_group.earn_skill_point().is_ok() {}
@@ -539,16 +536,6 @@ fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills
         new_skill_groups.push(new_skill_group);
     }
     new_skill_groups
-}
-
-fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, Option<u16>> {
-    let mut new_skills = HashMap::new();
-    for skill in skills.iter() {
-        if let Some(new_skill) = json_models::db_string_to_skill(&skill.skill) {
-            new_skills.insert(new_skill, skill.level.map(|l| l as u16));
-        }
-    }
-    new_skills
 }
 
 pub fn convert_skill_groups_to_database(
@@ -561,20 +548,7 @@ pub fn convert_skill_groups_to_database(
             entity_id,
             skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
             earned_exp: sg.earned_exp as i32,
-        })
-        .collect()
-}
-
-pub fn convert_skills_to_database(
-    entity_id: CharacterId,
-    skills: HashMap<skills::Skill, Option<u16>>,
-) -> Vec<Skill> {
-    skills
-        .iter()
-        .map(|(s, l)| Skill {
-            entity_id,
-            skill: json_models::skill_to_db_string(*s),
-            level: l.map(|l| l as i32),
+            skills: sg.ordered_skills.iter().map(|s| json_models::skill_to_db_string(*s)).collect(),
         })
         .collect()
 }

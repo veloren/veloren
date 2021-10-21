@@ -145,6 +145,8 @@ pub struct SkillGroup {
     pub earned_exp: u32,
     pub available_sp: u16,
     pub earned_sp: u16,
+    // Used for persistence
+    pub ordered_skills: Vec<Skill>,
 }
 
 impl SkillGroup {
@@ -155,6 +157,7 @@ impl SkillGroup {
             earned_exp: 0,
             available_sp: 0,
             earned_sp: 0,
+            ordered_skills: Vec::new(),
         }
     }
 
@@ -183,7 +186,6 @@ impl SkillGroup {
 pub struct SkillSet {
     pub skill_groups: Vec<SkillGroup>,
     pub skills: HashMap<Skill, Option<u16>>,
-    pub ordered_skills: Vec<Skill>,
     pub modify_health: bool,
     pub modify_energy: bool,
 }
@@ -203,7 +205,6 @@ impl Default for SkillSet {
                 SkillGroup::new(SkillGroupKind::Weapon(ToolKind::Pick)),
             ],
             skills: HashMap::new(),
-            ordered_skills: Vec::new(),
             modify_health: false,
             modify_energy: false,
         }
@@ -229,70 +230,41 @@ impl SkillSet {
         }
     }
 
-    /// Unlocks a skill for a player, assuming they have the relevant skill
-    /// group unlocked and available SP in that skill group.
-    pub fn unlock_skill(&mut self, skill: Skill) {
-        if let Some(skill_group_kind) = skill.skill_group_kind() {
-            let next_level = self.next_skill_level(skill);
-            let prerequisites_met = self.prerequisites_met(skill);
-            if !matches!(self.skills.get(&skill), Some(level) if *level == skill.max_level()) {
-                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-                    if prerequisites_met {
-                        if skill_group.available_sp >= skill.skill_cost(next_level) {
-                            skill_group.available_sp -= skill.skill_cost(next_level);
-                            if let Skill::UnlockGroup(group) = skill {
-                                self.unlock_skill_group(group);
-                            }
-                            if matches!(skill, Skill::General(GeneralSkill::HealthIncrease)) {
-                                self.modify_health = true;
-                            }
-                            if matches!(skill, Skill::General(GeneralSkill::EnergyIncrease)) {
-                                self.modify_energy = true;
-                            }
-                            self.skills.insert(skill, next_level);
-                        } else {
-                            trace!("Tried to unlock skill for skill group with insufficient SP");
-                        }
-                    } else {
-                        trace!("Tried to unlock skill without meeting prerequisite skills");
-                    }
-                } else {
-                    trace!("Tried to unlock skill for a skill group that player does not have");
-                }
-            } else {
-                trace!("Tried to unlock skill the player already has")
-            }
+    /// Returns a reference to a particular skill group in a skillset
+    fn skill_group(&self, skill_group: SkillGroupKind) -> Option<&SkillGroup> {
+        self.skill_groups
+            .iter()
+            .find(|s_g| s_g.skill_group_kind == skill_group)
+    }
+
+    /// Returns a mutable reference to a particular skill group in a skillset
+    fn skill_group_mut(&mut self, skill_group: SkillGroupKind) -> Option<&mut SkillGroup> {
+        self.skill_groups
+            .iter_mut()
+            .find(|s_g| s_g.skill_group_kind == skill_group)
+    }
+
+    /// Adds experience to the skill group within an entity's skill set
+    pub fn add_experience(&mut self, skill_group_kind: SkillGroupKind, amount: u32) {
+        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
+            skill_group.earned_exp = skill_group.earned_exp.saturating_add(amount);
         } else {
-            warn!(
-                ?skill,
-                "Tried to unlock skill that does not exist in any skill group!"
-            );
+            warn!("Tried to add experience to a skill group that player does not have");
         }
     }
 
-    /// Removes a skill from a player and refunds 1 skill point in the relevant
-    /// skill group.
-    pub fn refund_skill(&mut self, skill: Skill) {
-        if let Ok(level) = self.skill_level(skill) {
-            if let Some(skill_group_kind) = skill.skill_group_kind() {
-                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-                    skill_group.available_sp += skill.skill_cost(level);
-                    if level.map_or(false, |l| l > 1) {
-                        self.skills.insert(skill, level.map(|l| l - 1));
-                    } else {
-                        self.skills.remove(&skill);
-                    }
-                } else {
-                    warn!("Tried to refund skill for a skill group that player does not have");
-                }
-            } else {
-                warn!(
-                    ?skill,
-                    "Tried to refund skill that does not exist in any skill group"
-                )
-            }
+    /// Gets the available experience for a particular skill group
+    pub fn available_experience(&self, skill_group: SkillGroupKind) -> u32 {
+        self.skill_group(skill_group)
+            .map_or(0, |s_g| s_g.available_experience())
+    }
+
+    /// Checks how much experience is needed for the next skill point in a tree
+    pub fn skill_point_cost(&self, skill_group: SkillGroupKind) -> u32 {
+        if let Some(level) = self.skill_group(skill_group).map(|sg| sg.earned_sp) {
+            skill_group.skill_point_cost(level)
         } else {
-            warn!("Tried to refund skill that has not been unlocked");
+            skill_group.skill_point_cost(0)
         }
     }
 
@@ -325,38 +297,6 @@ impl SkillSet {
         }
     }
 
-    /// Adds/subtracts experience to the skill group within an entity's skill
-    /// set
-    pub fn add_experience(&mut self, skill_group_kind: SkillGroupKind, amount: u32) {
-        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.earned_exp = skill_group.earned_exp.saturating_add(amount);
-        } else {
-            warn!("Tried to add experience to a skill group that player does not have");
-        }
-    }
-
-    /// Checks that the skill set contains all prerequisite skills for a
-    /// particular skill
-    pub fn prerequisites_met(&self, skill: Skill) -> bool {
-        skill
-            .prerequisite_skills()
-            .all(|(s, l)| self.skill_level(s).map_or(false, |l_b| l_b >= l))
-    }
-
-    /// Returns a reference to a particular skill group in a skillset
-    fn skill_group(&self, skill_group: SkillGroupKind) -> Option<&SkillGroup> {
-        self.skill_groups
-            .iter()
-            .find(|s_g| s_g.skill_group_kind == skill_group)
-    }
-
-    /// Returns a reference to a particular skill group in a skillset
-    fn skill_group_mut(&mut self, skill_group: SkillGroupKind) -> Option<&mut SkillGroup> {
-        self.skill_groups
-            .iter_mut()
-            .find(|s_g| s_g.skill_group_kind == skill_group)
-    }
-
     /// Gets the available points for a particular skill group
     pub fn available_sp(&self, skill_group: SkillGroupKind) -> u16 {
         self.skill_group(skill_group)
@@ -368,10 +308,11 @@ impl SkillSet {
         self.skill_group(skill_group).map_or(0, |s_g| s_g.earned_sp)
     }
 
-    /// Gets the available experience for a particular skill group
-    pub fn available_experience(&self, skill_group: SkillGroupKind) -> u32 {
-        self.skill_group(skill_group)
-            .map_or(0, |s_g| s_g.available_experience())
+    /// Checks that the skill set contains all prerequisite skills of the required level for a particular skill
+    pub fn prerequisites_met(&self, skill: Skill) -> bool {
+        skill
+            .prerequisite_skills()
+            .all(|(s, l)| self.skill_level(s).map_or(false, |l_b| l_b >= l))
     }
 
     /// Gets skill point cost to purchase skill of next level
@@ -398,21 +339,69 @@ impl SkillSet {
         }
     }
 
+    /// Checks the next level of a skill
+    fn next_skill_level(&self, skill: Skill) -> Option<u16> {
+        if let Ok(level) = self.skill_level(skill) {
+            // If already has skill, and that skill has levels, level + 1
+            level.map(|l| l + 1)
+        } else {
+            // Else if the skill has levels, 1
+            skill.max_level().map(|_| 1)
+        }
+    }
+
+    /// Unlocks a skill for a player, assuming they have the relevant skill
+    /// group unlocked and available SP in that skill group.
+    pub fn unlock_skill(&mut self, skill: Skill) {
+        if let Some(skill_group_kind) = skill.skill_group_kind() {
+            let next_level = self.next_skill_level(skill);
+            let prerequisites_met = self.prerequisites_met(skill);
+            // Check that skill is not yet at max level
+            if !matches!(self.skills.get(&skill), Some(level) if *level == skill.max_level()) {
+                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
+                    if prerequisites_met {
+                        if skill_group.available_sp >= skill.skill_cost(next_level) {
+                            skill_group.available_sp -= skill.skill_cost(next_level);
+                            skill_group.ordered_skills.push(skill);
+                            match skill {
+                                Skill::UnlockGroup(group) => {
+                                    self.unlock_skill_group(group);
+                                },
+                                Skill::General(GeneralSkill::HealthIncrease) => {
+                                    self.modify_health = true;
+                                },
+                                Skill::General(GeneralSkill::EnergyIncrease) => {
+                                    self.modify_energy = true;
+                                },
+                                _ => {},
+                            }
+                            self.skills.insert(skill, next_level);
+                        } else {
+                            trace!("Tried to unlock skill for skill group with insufficient SP");
+                        }
+                    } else {
+                        trace!("Tried to unlock skill without meeting prerequisite skills");
+                    }
+                } else {
+                    trace!("Tried to unlock skill for a skill group that player does not have");
+                }
+            } else {
+                trace!("Tried to unlock skill the player already has")
+            }
+        } else {
+            warn!(
+                ?skill,
+                "Tried to unlock skill that does not exist in any skill group!"
+            );
+        }
+    }
+
     /// Checks if the player has available SP to spend
     pub fn has_available_sp(&self) -> bool {
         self.skill_groups.iter().any(|sg| {
             sg.available_sp > 0
                 && (sg.earned_sp - sg.available_sp) < sg.skill_group_kind.total_skill_point_cost()
         })
-    }
-
-    /// Checks how much experience is needed for the next skill point in a tree
-    pub fn skill_point_cost(&self, skill_group: SkillGroupKind) -> u32 {
-        if let Some(level) = self.skill_group(skill_group).map(|sg| sg.earned_sp) {
-            skill_group.skill_point_cost(level)
-        } else {
-            skill_group.skill_point_cost(0)
-        }
     }
 
     /// Checks if the skill is at max level in a skill set
@@ -442,15 +431,6 @@ impl SkillSet {
             level
         } else {
             default
-        }
-    }
-
-    /// Checks the next level of a skill
-    fn next_skill_level(&self, skill: Skill) -> Option<u16> {
-        if let Ok(level) = self.skill_level(skill) {
-            level.map(|l| l + 1)
-        } else {
-            skill.max_level().map(|_| 1)
         }
     }
 }
