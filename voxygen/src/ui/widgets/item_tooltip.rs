@@ -600,9 +600,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                 // Speed
                 widget::Text::new(&format!(
-                    "{} : {:.1}",
+                    "{} : {:+.0}%",
                     i18n.get("common.stats.speed"),
-                    speed
+                    (speed - 1.0) * 100.0
                 ))
                 .graphics_for(id)
                 .parent(id)
@@ -693,7 +693,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             diff_text(text, power_diff.1, 0)
                         }
                         if diff.speed.abs() > f32::EPSILON {
-                            let text = format!("{} {:.1}", &speed_diff.0, &diff.speed);
+                            let text = format!("{} {:+.0}", &speed_diff.0, &diff.speed * 100.0);
                             diff_text(text, speed_diff.1, 1)
                         }
                         if diff.effect_power.abs() > f32::EPSILON {
@@ -738,7 +738,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         let protection = armor.protection();
                         let poise_res = armor.poise_resilience();
                         let energy_max = armor.energy_max();
-                        let energy_reward = armor.energy_reward() * 10.0;
+                        let energy_reward = armor.energy_reward() * 100.0;
                         let crit_power = armor.crit_power();
                         let stealth = armor.stealth();
 
@@ -790,7 +790,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                         // Energy Recovery
                         widget::Text::new(&format!(
-                            "{} : {:.1}",
+                            "{} : {:.1}%",
                             i18n.get("common.stats.energy_reward"),
                             energy_reward
                         ))
@@ -902,7 +902,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                             let text = format!(
                                 "{} {:.1}",
                                 &energy_reward_diff.0,
-                                diff.energy_reward() * 10.0
+                                diff.energy_reward() * 100.0
                             );
                             diff_text(text, energy_reward_diff.1, 2)
                         }
