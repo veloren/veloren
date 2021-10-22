@@ -308,7 +308,8 @@ impl SkillSet {
         self.skill_group(skill_group).map_or(0, |s_g| s_g.earned_sp)
     }
 
-    /// Checks that the skill set contains all prerequisite skills of the required level for a particular skill
+    /// Checks that the skill set contains all prerequisite skills of the
+    /// required level for a particular skill
     pub fn prerequisites_met(&self, skill: Skill) -> bool {
         skill
             .prerequisite_skills()
@@ -352,7 +353,7 @@ impl SkillSet {
 
     /// Unlocks a skill for a player, assuming they have the relevant skill
     /// group unlocked and available SP in that skill group.
-    pub fn unlock_skill(&mut self, skill: Skill) {
+    pub fn unlock_skill(&mut self, skill: Skill) -> Result<(), SkillUnlockError> {
         if let Some(skill_group_kind) = skill.skill_group_kind() {
             let next_level = self.next_skill_level(skill);
             let prerequisites_met = self.prerequisites_met(skill);
@@ -376,23 +377,29 @@ impl SkillSet {
                                 _ => {},
                             }
                             self.skills.insert(skill, next_level);
+                            Ok(())
                         } else {
                             trace!("Tried to unlock skill for skill group with insufficient SP");
+                            Err(SkillUnlockError::InsufficientSP)
                         }
                     } else {
                         trace!("Tried to unlock skill without meeting prerequisite skills");
+                        Err(SkillUnlockError::MissingPrerequisites)
                     }
                 } else {
                     trace!("Tried to unlock skill for a skill group that player does not have");
+                    Err(SkillUnlockError::UnavailableSkillGroup)
                 }
             } else {
-                trace!("Tried to unlock skill the player already has")
+                trace!("Tried to unlock skill the player already has");
+                Err(SkillUnlockError::SkillAlreadyUnlocked)
             }
         } else {
             warn!(
                 ?skill,
                 "Tried to unlock skill that does not exist in any skill group!"
             );
+            Err(SkillUnlockError::NoParentSkillTree)
         }
     }
 
@@ -437,6 +444,15 @@ impl SkillSet {
 
 pub enum SkillError {
     MissingSkill,
+}
+
+#[derive(Debug)]
+pub enum SkillUnlockError {
+    InsufficientSP,
+    MissingPrerequisites,
+    UnavailableSkillGroup,
+    SkillAlreadyUnlocked,
+    NoParentSkillTree,
 }
 
 pub enum SpRewardError {

@@ -116,7 +116,10 @@ impl SkillSetBuilder {
         }
         for _ in 0..level.unwrap_or(1) {
             skill_set.add_skill_points(group, skill_set.skill_cost(skill));
-            skill_set.unlock_skill(skill);
+            if let Err(err) = skill_set.unlock_skill(skill) {
+                let err_msg = format!("Failed to add skill: {:?}. Error: {:?}", skill, err);
+                common_base::dev_panic!(err_msg);
+            }
         }
         if !skill_is_applied(skill_set, skill, level) {
             let err = format!(

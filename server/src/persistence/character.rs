@@ -16,8 +16,8 @@ use crate::{
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
             convert_skill_groups_to_database, convert_skill_set_from_database,
-            convert_stats_from_database,
-            convert_waypoint_from_database_json, convert_waypoint_to_database_json,
+            convert_stats_from_database, convert_waypoint_from_database_json,
+            convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
@@ -177,7 +177,7 @@ pub fn load_character_data(
                 entity_id: char_id,
                 skill_group_kind: row.get(0)?,
                 earned_exp: row.get(1)?,
-                skills: row.get(2)?
+                skills: row.get(2)?,
             })
         })?
         .filter_map(Result::ok)
