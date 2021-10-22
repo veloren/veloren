@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Emerald Necklace",
+    description: "A cobalt necklace, bearing beautiful emerald gems.",
+    kind: Armor((
+        kind: Neck("Emerald"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 20.0,
+            energy_reward: -0.2,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

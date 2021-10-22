@@ -7,5 +7,5 @@
 // Please keep it sorted by rarity so it's easier to reason about things
 [
     (1, Item("common.items.armor.misc.back.dungeon_purple")),
-    (1, Item("common.items.armor.misc.ring.skull")),
+    (1, Item("common.items.armor.cultist.ring")),
 ]

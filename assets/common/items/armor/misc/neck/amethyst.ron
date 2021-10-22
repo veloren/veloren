@@ -1,13 +1,13 @@
 ItemDef(
-    name: "Amethyst Ring",
-    description: "A tin ring with an amethyst gem.",
+    name: "Amethyst Necklace",
+    description: "A tin necklace lined with amethyst gems.",
     kind: Armor((
-        kind: Ring("Amethyst"),
+        kind: Neck("Amethyst"),
         stats: (
-            protection: Normal(0.5),
+            protection: Normal(1.0),
             poise_resilience: Normal(0.0),
             energy_max: 0,
-            energy_reward: 0.05,
+            energy_reward: 0.1,
             crit_power: 0.0,
             stealth: 0.0,
         ),

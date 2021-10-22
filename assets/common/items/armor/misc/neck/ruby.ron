@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Ruby Necklace",
+    description: "An ornate silver necklace, embedded with beautiful rubies.",
+    kind: Armor((
+        kind: Neck("Ruby"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0.0,
+            energy_reward: 0.2,
+            crit_power: -0.06,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

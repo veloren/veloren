@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Cultist Signet Ring ",
-    description: "Once belonged to a cultist.",
+    name: "Haniwa Talisman",
+    description: "A talisman depicting a figure of unkown origin.",
     kind: Armor((
-        kind: Ring("Skull"),
+        kind: Neck("Haniwa"),
         stats: (
             protection: Normal(3.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(2.0),
             energy_max: 0,
             energy_reward: 0.0,
             crit_power: 0.0,

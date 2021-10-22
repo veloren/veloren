@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Plain Necklace",
-    description: "It's become tarnished with age.",
+    name: "Pendant of Protection",
+    description: "You feel as if something is always watching you...",
     kind: Armor((
-        kind: Neck("Plain0"),
+        kind: Neck("Pendant"),
         stats: (
             protection: Normal(1.0),
             poise_resilience: Normal(0.0),
@@ -13,7 +13,5 @@ ItemDef(
         ),
     )),
     quality: Common,
-    tags: [
-        Material(Iron)
-    ],
+    tags: [],
 )

@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Gem of lesser Protection",
+    name: "Gem of Resilience",
     description: "Surrounded by a discrete magical glow.",
     kind: Armor((
-        kind: Neck("Plain1"),
+        kind: Neck("ResilienceGem"),
         stats: (
             protection: Normal(2.0),
-            poise_resilience: Normal(0.0),
+            poise_resilience: Normal(1.0),
             energy_max: 0,
             energy_reward: 0.0,
             crit_power: 0.0,
@@ -13,7 +13,5 @@ ItemDef(
         ),
     )),
     quality: Moderate,
-    tags: [
-        Material(Steel)
-    ],
+    tags: [],
 )

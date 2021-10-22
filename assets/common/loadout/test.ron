@@ -17,7 +17,7 @@
 
     // Biju
     Armor(Back): Item("common.items.armor.misc.back.dungeon_purple"),
-    Armor(Neck): Item("common.items.armor.misc.neck.plain_1"),
+    Armor(Neck): Item("common.items.armor.misc.neck.gem_of_resilience"),
     Armor(Ring1): Item("common.items.armor.misc.ring.gold"),
     Armor(Ring2): Item("common.items.armor.misc.ring.gold"),
     

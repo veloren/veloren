@@ -2174,19 +2174,79 @@
         "voxel.armor.misc.ring.diamond",
         (0.0, 0.0, 0.0), (45.0, 20.0, 0.0), 0.9,
     ),
-    Armor(Ring("Skull")): VoxTrans(
-        "voxel.armor.misc.ring.skull",
+    Armor(Ring("Cultist")): VoxTrans(
+        "voxel.armor.cultist.ring",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
+    
     // Necks
-    Armor(Neck("Plain0")): Png(
-        "element.items.neck-0",
+    Armor(Neck("Ankh")): VoxTrans(
+        "voxel.armor.misc.neck.ankh_of_life",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Plain1")): Png(
-        "element.items.neck-1",
+    Armor(Neck("Carcanet")): VoxTrans(
+        "voxel.armor.misc.neck.carcanet_of_wrath",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Shell")): Png(
-        "element.items.neck-seashell",
+    Armor(Neck("Fang")): VoxTrans(
+        "voxel.armor.misc.neck.fang",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Honeycomb")): VoxTrans(
+        "voxel.armor.misc.neck.honeycomb_pendant",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Haniwa")): VoxTrans(
+        "voxel.armor.misc.neck.haniwa_talisman",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Pendant")): VoxTrans(
+        "voxel.armor.misc.neck.pendant_of_protection",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("ResilienceGem")): VoxTrans(
+        "voxel.armor.misc.neck.resilience_gem",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Shell")): VoxTrans(
+        "voxel.armor.misc.neck.shell",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Amethyst")): VoxTrans(
+        "voxel.armor.misc.neck.amethyst",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Diamond")): VoxTrans(
+        "voxel.armor.misc.neck.diamond",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Cultist")): VoxTrans(
+        "voxel.armor.cultist.necklace",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Ruby")): VoxTrans(
+        "voxel.armor.misc.neck.ruby",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Topaz")): VoxTrans(
+        "voxel.armor.misc.neck.topaz",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Emerald")): VoxTrans(
+        "voxel.armor.misc.neck.emerald",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Gold")): VoxTrans(
+        "voxel.armor.misc.neck.gold",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Sapphire")): VoxTrans(
+        "voxel.armor.misc.neck.sapphire",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Armor(Neck("Scratched")): VoxTrans(
+        "voxel.armor.misc.neck.scratched",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
 
     // Tabards

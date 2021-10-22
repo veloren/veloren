@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Ring("Scratched"),
         stats: (
-            protection: Normal(0.1),
+            protection: Normal(0.5),
             poise_resilience: Normal(0.0),
             energy_max: 0,
             energy_reward: 0.0,

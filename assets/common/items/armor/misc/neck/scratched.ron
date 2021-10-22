@@ -1,17 +1,17 @@
 ItemDef(
-    name: "Emerald Ring",
-    description: "A cobalt ring with an emerald gem.",
+    name: "Scratched Necklace",
+    description: "The string is about to snap...",
     kind: Armor((
-        kind: Ring("Emerald"),
+        kind: Neck("Scratched"),
         stats: (
             protection: Normal(0.5),
             poise_resilience: Normal(0.0),
-            energy_max: 10.0,
-            energy_reward: -0.1,
+            energy_max: 0,
+            energy_reward: 0.0,
             crit_power: 0.0,
             stealth: 0.0,
         ),
     )),
-    quality: Epic,
+    quality: Low,
     tags: [],
 )

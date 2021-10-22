@@ -7,6 +7,8 @@
     (1.0, LootTable("common.loot_tables.armor.cloth")),
     // Ring
     (0.02, Item("common.items.armor.misc.ring.gold")),
+    // Necklace
+    (0.02, Item("common.items.armor.misc.neck.gold")),
     // Utility
     (0.05, Item("common.items.utility.collar")),
     // Food
