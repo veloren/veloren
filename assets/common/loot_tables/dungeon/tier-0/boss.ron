@@ -1,4 +1,7 @@
 [
+    // Weapons
     (1.0, LootTable("common.loot_tables.weapons.tier-0")),
+    // Armor
     (1.0, LootTable("common.loot_tables.armor.tier-0")),
+    (1.0, Item("common.items.armor.misc.neck.scratched")),
 ]

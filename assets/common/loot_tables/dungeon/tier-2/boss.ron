@@ -2,6 +2,7 @@
     // Equipment
     (5.0, LootTable("common.loot_tables.weapons.tier-2")),
     (5.0, LootTable("common.loot_tables.armor.tier-2")),
+    (2.0, Item("common.items.armor.misc.neck.gem_of_resilience")),
     // Special Loot
     (1.0, Item("common.items.armor.misc.bag.heavy_seabag")),
 ]

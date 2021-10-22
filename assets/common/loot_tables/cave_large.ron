@@ -1,14 +1,20 @@
 [
-    // Misc
-    (0.25, Item("common.items.armor.misc.neck.plain_1")),
+    // Necklaces
+    (0.25, Item("common.items.armor.misc.neck.gem_of_resilience")),
+    (0.05, Item("common.items.armor.misc.neck.gold")),
+    // Materials
     (1.5, LootTable("common.loot_tables.materials.common")),
     (3.5, LootTable("common.loot_tables.materials.underground")),
+    // Gliders
     (0.1, Item("common.items.glider.blue")),
     (0.05, Item("common.items.glider.morpho")),
     (0.05, Item("common.items.glider.monarch")),
     (0.05, Item("common.items.glider.moth")),
+    // Ring
     (0.05, Item("common.items.armor.misc.ring.gold")),
+    // Lantern
     (0.1, Item("common.items.lantern.geode_purp")),
+    // Weapons
     (2.0, LootTable("common.loot_tables.weapons.tier-3")),
     (1.5, LootTable("common.loot_tables.weapons.tier-4")),
     (1.0, LootTable("common.loot_tables.weapons.tier-5")),

@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Ankh of Life",
+    description: "A unique necklace of unkown origin... You can feel the power flowing through it.",
+    kind: Armor((
+        kind: Neck("Ankh"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 20,
+            energy_reward: 0.1,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Legendary,
+    tags: [],
+)

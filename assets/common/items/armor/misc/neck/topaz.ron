@@ -1,12 +1,12 @@
 ItemDef(
-    name: "Topaz Ring",
-    description: "A copper ring with a topaz gem.",
+    name: "Topaz Necklace",
+    description: "A copper necklace, with topaz embedded in the center.",
     kind: Armor((
-        kind: Ring("Topaz"),
+        kind: Neck("Topaz"),
         stats: (
-            protection: Normal(0.5),
+            protection: Normal(1.0),
             poise_resilience: Normal(0.0),
-            energy_max: 5.0,
+            energy_max: 10.0,
             energy_reward: 0.00,
             crit_power: 0.0,
             stealth: 0.0,

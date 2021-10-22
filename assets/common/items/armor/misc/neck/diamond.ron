@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Diamond Necklace",
+    description: "An expensive gold necklace, ornate with exquisite diamonds.",
+    kind: Armor((
+        kind: Neck("Diamond"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: -0.1,
+            crit_power: 0.1,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Cultist Amulet",
+    description: "You can still feel the Mindflayer's presence within this amulet...",
+    kind: Armor((
+        kind: Neck("Cultist"),
+        stats: (
+            protection: Normal(2.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 10,
+            energy_reward: 0.05,
+            crit_power: 0.06,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [],
+)

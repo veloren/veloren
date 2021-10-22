@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Gold Necklace",
+    description: "An expensive gold necklace... looks stolen.",
+    kind: Armor((
+        kind: Neck("Gold"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 10,
+            energy_reward: 0.0,
+            crit_power: 0.02,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Moderate,
+    tags: [],
+)

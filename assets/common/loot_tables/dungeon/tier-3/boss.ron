@@ -1,4 +1,7 @@
 [
+    // Weapons
     (1.0, LootTable("common.loot_tables.weapons.tier-3")),
+    // Armor
     (1.0, LootTable("common.loot_tables.armor.tier-3")),
+    (0.3, Item("common.items.armor.misc.neck.haniwa_talisman")),
 ]

@@ -7,6 +7,8 @@
     // Rare misc items
     (1.0, Item("common.items.boss_drops.lantern")),
     (1.0, Item("common.items.glider.skullgrin")),
+    (1.0, Item("common.items.armor.cultist.necklace")),
+    (0.01, Item("common.items.armor.misc.neck.ankh_of_life")),
     // Legendary weapons
     (1.0, LootTable("common.loot_tables.weapons.legendary_ranged")),
     // Crafting material

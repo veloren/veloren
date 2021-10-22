@@ -46,29 +46,33 @@
     ],
     "jewellery": [
         // Necklace
+        ("common.items.armor.misc.neck.amethyst", 1),
+        ("common.items.armor.misc.neck.ankh_of_life", 1),
+        ("common.items.armor.misc.neck.carcanet_of_wrath", 1),
+        ("common.items.armor.misc.neck.diamond", 1),
+        ("common.items.armor.misc.neck.emerald", 1),
+        ("common.items.armor.misc.neck.fang", 1),
+        ("common.items.armor.misc.neck.gem_of_resilience", 1),
+        ("common.items.armor.misc.neck.gold", 1),
+        ("common.items.armor.misc.neck.haniwa_talisman", 1),
+        ("common.items.armor.misc.neck.honeycomb_pendant", 1),
+        ("common.items.armor.misc.neck.pendant_of_protection", 1),
+        ("common.items.armor.misc.neck.ruby", 1),
+        ("common.items.armor.misc.neck.sapphire", 1),
+        ("common.items.armor.misc.neck.scratched", 1),
         ("common.items.armor.misc.neck.shell", 1),
-        ("common.items.armor.misc.neck.plain_1", 1),
+        ("common.items.armor.misc.neck.topaz", 1),
 
         // Rings
-        // With effects
         ("common.items.armor.misc.ring.diamond", 2),
-
         ("common.items.armor.misc.ring.ruby", 2),
-
         ("common.items.armor.misc.ring.emerald", 2),
-
         ("common.items.armor.misc.ring.sapphire", 2),
-
         ("common.items.armor.misc.ring.topaz", 2),
-
         ("common.items.armor.misc.ring.amethyst", 2),
-
-        // Without effects
         ("common.items.armor.misc.ring.scratched", 2),
-
         ("common.items.armor.misc.ring.gold", 2),
-
-        ("common.items.armor.misc.ring.skull", 2),
+        ("common.items.armor.cultist.ring", 2),
     ],
     "endgame": [
         // Cultist weapons
