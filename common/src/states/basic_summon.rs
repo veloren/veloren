@@ -180,7 +180,7 @@ impl CharacterBehavior for Data {
                             agent: Some(
                                 comp::Agent::from_body(&body)
                                     .with_behavior(Behavior::from(BehaviorCapability::SPEAK))
-                                    .with_no_flee(true),
+                                    .with_no_flee_if(true),
                             ),
                             alignment: comp::Alignment::Owned(*data.uid),
                             scale: self
