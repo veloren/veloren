@@ -9,4 +9,7 @@
 
     // Repeater
     Skill((Bow(RDamage), Some(1))),
+    Skill((Bow(RCost), Some(1))),
+    Skill((Bow(RSpeed), Some(1))),
 ])
+

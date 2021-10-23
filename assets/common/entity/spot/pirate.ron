@@ -18,7 +18,7 @@ EntityConfig (
     hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
 
     meta: [
-        SkillSetAsset("common.skillset.dungeon.tier-5.sword"),
+        SkillSetAsset("common.skillset.dungeon.tier-3.sword"),
         LoadoutAsset("common.loadout.spots.pirate"),
     ],
 )

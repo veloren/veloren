@@ -1,5 +1,5 @@
 ([
-    Tree("common.skillset.dungeon.tier-5.sword"),
-    Tree("common.skillset.dungeon.tier-5.bow"),
-    Tree("common.skillset.dungeon.tier-5.axe"),
+    Tree("common.skillset.preset.max.sword"),
+    Tree("common.skillset.preset.max.bow"),
+    Tree("common.skillset.preset.max.axe"),
 ])
