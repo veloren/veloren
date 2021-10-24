@@ -583,6 +583,11 @@ impl<'a> Widget for Crafting<'a> {
                 if state.selected_recipe.as_ref() == Some(name) {
                     state.update(|s| s.selected_recipe = None);
                 } else {
+                    if matches!(self.show.crafting_tab, CraftingTab::Dismantle) {
+                        // If current tab is dismantle, and recipe is selected, change to general
+                        // tab, as in dismantle tab recipe gets deselected
+                        events.push(Event::ChangeCraftingTab(CraftingTab::All));
+                    }
                     state.update(|s| s.selected_recipe = Some(name.clone()));
                 }
             }
@@ -639,6 +644,12 @@ impl<'a> Widget for Crafting<'a> {
                     .set(state.ids.recipe_list_materials_indicators[i], ui);
                 }
             }
+        }
+
+        // Deselect recipe if current tab is dismantle, elsewhere if recipe selected
+        // while dismantling, tab is changed to general
+        if matches!(self.show.crafting_tab, CraftingTab::Dismantle) {
+            state.update(|s| s.selected_recipe = None);
         }
 
         // Selected Recipe
@@ -959,7 +970,7 @@ impl<'a> Widget for Crafting<'a> {
                     .hover_image(self.imgs.wpn_icon_border_mo)
                     .with_item_tooltip(
                         self.item_tooltip_manager,
-                        vec![&*item_def],
+                        core::iter::once(&*item_def as &dyn ItemDesc),
                         &None,
                         &item_tooltip,
                     )

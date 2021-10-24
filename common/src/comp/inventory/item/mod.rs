@@ -184,13 +184,13 @@ impl Material {
             | Material::Hardwood
             | Material::Ironwood
             | Material::Frostwood
-            | Material::Eldwood => unreachable!(),
+            | Material::Eldwood => unimplemented!(),
             Material::Rock
             | Material::Granite
             | Material::Bone
             | Material::Basalt
             | Material::Obsidian
-            | Material::Velorite => unreachable!(),
+            | Material::Velorite => unimplemented!(),
             Material::Linen => "common.items.crafting_ing.cloth.linen",
             Material::Wool => "common.items.crafting_ing.cloth.wool",
             Material::Silk => "common.items.crafting_ing.cloth.silk",
