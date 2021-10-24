@@ -372,6 +372,7 @@ impl Body {
                 quadruped_low::Species::Monitor => Vec3::new(1.0, 2.3, 1.5),
                 quadruped_low::Species::Pangolin => Vec3::new(1.0, 2.6, 1.1),
                 quadruped_low::Species::Rocksnapper => Vec3::new(1.0, 3.0, 2.9),
+                quadruped_low::Species::Sandshark => Vec3::new(1.1, 4.3, 1.7),
                 quadruped_low::Species::Basilisk => Vec3::new(1.8, 3.4, 2.9),
                 quadruped_low::Species::Salamander => Vec3::new(1.0, 2.4, 1.3),
                 quadruped_low::Species::Tortoise => Vec3::new(1.0, 1.8, 1.6),
