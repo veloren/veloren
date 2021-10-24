@@ -324,10 +324,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             .map(|e| error!(?e, ?entity, "Failed to insert ForceUpdate on dead client"));
         state
             .ecs()
-            .write_storage::<comp::LightEmitter>()
-            .remove(entity);
-        state
-            .ecs()
             .write_storage::<comp::Energy>()
             .get_mut(entity)
             .map(|mut energy| {

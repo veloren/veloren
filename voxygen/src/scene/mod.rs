@@ -560,15 +560,17 @@ impl Scene {
                     .state
                     .ecs()
                     .read_storage::<comp::LightAnimation>(),
+                &scene_data.state.ecs().read_storage::<comp::Health>(),
             )
                 .join()
-                .filter(|(pos, _, light_anim)| {
+                .filter(|(pos, _, light_anim, h)| {
                     light_anim.col != Rgb::zero()
                         && light_anim.strength > 0.0
                         && (pos.0.distance_squared(player_pos) as f32)
                             < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
+                        && !h.is_dead
                 })
-                .map(|(pos, interpolated, light_anim)| {
+                .map(|(pos, interpolated, light_anim, _)| {
                     // Use interpolated values if they are available
                     let pos = interpolated.map_or(pos.0, |i| i.pos);
                     Light::new(pos + light_anim.offset, light_anim.col, light_anim.strength)
