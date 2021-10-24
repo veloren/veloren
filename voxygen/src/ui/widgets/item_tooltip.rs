@@ -777,7 +777,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                         // Max Energy
                         widget::Text::new(&format!(
-                            "{} : {}",
+                            "{} : {:.1}",
                             i18n.get("common.stats.energy_max"),
                             energy_max
                         ))
@@ -790,7 +790,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                         // Energy Recovery
                         widget::Text::new(&format!(
-                            "{} : {}",
+                            "{} : {:.1}",
                             i18n.get("common.stats.energy_reward"),
                             energy_reward
                         ))
@@ -900,7 +900,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                         if diff.energy_reward() != 0.0_f32 {
                             let text = format!(
-                                "{} {}",
+                                "{} {:.1}",
                                 &energy_reward_diff.0,
                                 diff.energy_reward() * 10.0
                             );
