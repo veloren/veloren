@@ -1,0 +1,44 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.shrub.savannah.bush-0",
+        center: (5, 3, 8),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-1",
+        center: (5, 6, 6),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-2",
+        center: (4, 4, 3),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-3",
+        center: (5, 6, 3),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-4",
+        center: (7, 7, 5),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-5",
+        center: (4, 5, 4),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-6",
+        center: (3, 3, 3),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-7",
+        center: (3, 3, 3),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-8",
+        center: (2, 2, 3),
+    ),
+    (
+        specifier: "world.shrub.savannah.bush-9",
+        center: (4, 3, 3),
+    ),
+]

@@ -1,0 +1,12 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.gnarling_tree",
+        center: (32, 28, 15),
+        /// ( X, Y, Z, )
+        custom_indices: {
+            48: Sprite(Chest),
+         },
+    ),
+]

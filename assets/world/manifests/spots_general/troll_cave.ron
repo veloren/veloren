@@ -1,0 +1,9 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.structure.natural.troll_cave",
+        center: (23, 25, 12),
+        /// ( X, Y, Z, )
+    ),
+]

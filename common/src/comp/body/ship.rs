@@ -7,7 +7,12 @@ use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
 use vek::Vec3;
 
-pub const ALL_BODIES: [Body; 3] = [Body::DefaultAirship, Body::AirBalloon, Body::SailBoat];
+pub const ALL_BODIES: [Body; 4] = [
+    Body::DefaultAirship,
+    Body::AirBalloon,
+    Body::SailBoat,
+    Body::Galleon,
+];
 
 make_case_elim!(
     body,
@@ -17,6 +22,7 @@ make_case_elim!(
         DefaultAirship = 0,
         AirBalloon = 1,
         SailBoat = 2,
+        Galleon = 3,
     }
 );
 
@@ -37,6 +43,7 @@ impl Body {
             Body::DefaultAirship => "airship_human.structure",
             Body::AirBalloon => "air_balloon.structure",
             Body::SailBoat => "sail_boat.structure",
+            Body::Galleon => "galleon.structure",
         }
     }
 
@@ -45,6 +52,7 @@ impl Body {
             Body::DefaultAirship => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
             Body::SailBoat => Vec3::new(13.0, 31.0, 3.0),
+            Body::Galleon => Vec3::new(13.0, 31.0, 3.0), //replace with real vectors in a sec
         }
     }
 
