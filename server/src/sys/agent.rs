@@ -1,5 +1,6 @@
 use crate::rtsim::{Entity as RtSimData, RtSim};
 use common::{
+    combat,
     comp::{
         self,
         agent::{
@@ -168,7 +169,6 @@ const PARTIAL_PATH_DIST: f32 = 50.0;
 const SEPARATION_DIST: f32 = 10.0;
 const SEPARATION_BIAS: f32 = 0.8;
 const MAX_FLEE_DIST: f32 = 20.0;
-const SNEAK_COEFFICIENT: f32 = 0.25;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
 const HEALING_ITEM_THRESHOLD: f32 = 0.5;
@@ -1529,16 +1529,16 @@ impl<'a> AgentData<'a> {
         let max_search_dist = agent.psyche.search_dist();
         let max_sight_dist = agent.psyche.sight_dist;
         let max_listen_dist = agent.psyche.listen_dist;
-        let in_sight_dist = |e_pos: &Pos, e_char_state: Option<&CharacterState>| {
-            let search_dist = max_sight_dist
-                * if e_char_state.map_or(false, CharacterState::is_stealthy) {
-                    // TODO: make sneak more effective based on a stat like e_stats.fitness
-                    SNEAK_COEFFICIENT
-                } else {
-                    1.0
-                };
-            e_pos.0.distance_squared(self.pos.0) < search_dist.powi(2)
-        };
+        let in_sight_dist =
+            |e_pos: &Pos, e_char_state: Option<&CharacterState>, inventory: &Inventory| {
+                let search_dist = max_sight_dist
+                    / if e_char_state.map_or(false, CharacterState::is_stealthy) {
+                        combat::compute_stealth_coefficient(Some(inventory))
+                    } else {
+                        1.0
+                    };
+                e_pos.0.distance_squared(self.pos.0) < search_dist.powi(2)
+            };
 
         let within_fov = |e_pos: &Pos| {
             (e_pos.0 - self.pos.0)
@@ -1546,22 +1546,23 @@ impl<'a> AgentData<'a> {
                 .map_or(true, |v| v.dot(*controller.inputs.look_dir) > 0.15)
         };
 
-        let in_listen_dist = |e_pos: &Pos, e_char_state: Option<&CharacterState>| {
-            let listen_dist = max_listen_dist
-                * if e_char_state.map_or(false, CharacterState::is_stealthy) {
-                    // TODO: make sneak more effective based on a stat like e_stats.fitness
-                    SNEAK_COEFFICIENT
-                } else {
-                    1.0
-                };
-            // TODO implement proper sound system for agents
-            e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)
-        };
+        let in_listen_dist =
+            |e_pos: &Pos, e_char_state: Option<&CharacterState>, inventory: &Inventory| {
+                let listen_dist = max_listen_dist
+                    / if e_char_state.map_or(false, CharacterState::is_stealthy) {
+                        combat::compute_stealth_coefficient(Some(inventory))
+                    } else {
+                        1.0
+                    };
+                // TODO implement proper sound system for agents
+                e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)
+            };
 
-        let within_reach = |e_pos: &Pos, e_char_state: Option<&CharacterState>| {
-            (in_sight_dist(e_pos, e_char_state) && within_fov(e_pos))
-                || in_listen_dist(e_pos, e_char_state)
-        };
+        let within_reach =
+            |e_pos: &Pos, e_char_state: Option<&CharacterState>, e_inventory: &Inventory| {
+                (in_sight_dist(e_pos, e_char_state, e_inventory) && within_fov(e_pos))
+                    || in_listen_dist(e_pos, e_char_state, e_inventory)
+            };
 
         let owners_hostile = |e_alignment: Option<&Alignment>| {
             try_owner_alignment(self.alignment, read_data).map_or(false, |owner_alignment| {
@@ -1662,7 +1663,7 @@ impl<'a> AgentData<'a> {
                 Option<&Alignment>,
                 Option<&CharacterState>,
             )| {
-                let can_target = within_reach(e_pos, e_char_state)
+                let can_target = within_reach(e_pos, e_char_state, e_inventory)
                     && entity != *self.entity
                     && !e_health.is_dead
                     && !invulnerability_is_in_buffs(read_data.buffs.get(entity));

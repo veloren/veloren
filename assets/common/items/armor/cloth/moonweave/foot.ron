@@ -9,7 +9,7 @@ ItemDef(
             energy_max: 8.3,
             energy_reward: 0.084,
             crit_power: 0.0,
-            stealth: 0.0,
+            stealth: 0.084,
         ),
     )),
     quality: Epic,

@@ -994,3 +994,22 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
             .sum()
     })
 }
+
+/// Computes the sneak coefficient from armor. Agent perception distances are
+/// divided by the resulting f32.
+#[cfg(not(target_arch = "wasm32"))]
+pub fn compute_stealth_coefficient(inventory: Option<&Inventory>) -> f32 {
+    // Starts with a value of 2.0 when summing the stats from each armor piece, and
+    // defaults to a value of 2.0 if no inventory is equipped
+    inventory.map_or(2.0, |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    Some(armor.stealth())
+                } else {
+                    None
+                }
+            })
+            .fold(2.0, |a, b| a + b.max(0.0))
+    })
+}

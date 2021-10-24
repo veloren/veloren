@@ -43,6 +43,8 @@ pub struct Stats {
     /// Crit power is summed, and then added to the default crit multiplier of
     /// 1.25. Damage is multiplied by this value when an attack crits.
     crit_power: f32,
+    /// Stealth is summed along with the base stealth bonus (2.0), and then
+    /// the agent's perception distance is divided by this value
     stealth: f32,
 }
 

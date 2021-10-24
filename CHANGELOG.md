@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a filter search function for crafting menu, use "input:_____" to search for recipe inputs
 - Added catalan (Catalonia) language translation
 - Sneaking with weapons drawn
+- Stealth stat values on (some) armors
 
 ### Changed
 

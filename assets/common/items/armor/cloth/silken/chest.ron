@@ -9,7 +9,7 @@ ItemDef(
             energy_max: 14.9,
             energy_reward: 0.15,
             crit_power: 0.0,
-            stealth: 0.0,
+            stealth: 0.15,
         ),
     )),
     quality: Moderate,
