@@ -9,7 +9,7 @@ ItemDef(
             energy_max: 6.6,
             energy_reward: 0.066,
             crit_power: 0.0,
-            stealth: 0.0,
+            stealth: 0.066,
         ),
     )),
     quality: Common,
