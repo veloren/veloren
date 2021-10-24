@@ -1728,6 +1728,7 @@
         inputs: [
             (Item("common.items.mineral.ingot.orichalcum"), 3),
             (Item("common.items.crafting_ing.hide.plate"), 3),
+            (Item("common.items.crafting_ing.cloth.moonweave"), 2),
             (Item("common.items.mineral.gem.diamond"), 2),
             (Item("common.items.mineral.gem.sapphire"), 1),
         ],
