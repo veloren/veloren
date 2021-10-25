@@ -14,6 +14,7 @@ use crate::{
 use common::assets::{self, AssetExt};
 use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
+use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
 
 struct LoadingAnimation {
@@ -91,6 +92,7 @@ impl Screen {
         button_style: style::button::Style,
         show_tip: bool,
         controls: &ControlSettings,
+        key_layout: &Option<KeyLayout>,
     ) -> Element<Message> {
         // TODO: add built in support for animated images
         let frame_index = (time * self.loading_animation.speed_factor as f64)
@@ -116,7 +118,7 @@ impl Screen {
                                 new_tip.push_str(&tip[last_index..start]);
                                 new_tip.push_str(
                                     controls.keybindings[&game_input]
-                                        .display_string(&None)
+                                        .display_string(key_layout)
                                         .as_str(),
                                 );
                                 last_index = end + 1;
