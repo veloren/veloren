@@ -560,7 +560,11 @@ impl Scene {
                     .state
                     .ecs()
                     .read_storage::<comp::LightAnimation>(),
-                &scene_data.state.ecs().read_storage::<comp::Health>(),
+                scene_data
+                    .state
+                    .ecs()
+                    .read_storage::<comp::Health>()
+                    .maybe(),
             )
                 .join()
                 .filter(|(pos, _, light_anim, h)| {
@@ -568,7 +572,7 @@ impl Scene {
                         && light_anim.strength > 0.0
                         && (pos.0.distance_squared(player_pos) as f32)
                             < loaded_distance.powi(2) + LIGHT_DIST_RADIUS
-                        && !h.is_dead
+                        && h.map_or(true, |h| !h.is_dead)
                 })
                 .map(|(pos, interpolated, light_anim, _)| {
                     // Use interpolated values if they are available
