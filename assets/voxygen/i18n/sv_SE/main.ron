@@ -67,8 +67,8 @@ https://veloren.net/account/."#,
 
     vector_map: {
         "loading.tips": [
-            "Tryck 'G' för att tända din lykta.",
-            "Tryck 'F1' för att se alla standardgenvägar.",
+            "Tryck '{gameinput.togglelantern}' för att tända din lykta.",
+            "Tryck '{gameinput.help}' för att se alla standardgenvägar.",
             "Du kan skriva /say eller /s för att endast prata med spelare i din närhet.",
             "Du kan skriva /region eller /r to för att endast prata med spelare upp till hundra block bort.",
             "Administratörer kan använda kommandot /build för att växla till byggläget.",
@@ -77,15 +77,15 @@ https://veloren.net/account/."#,
             "Håll ett öga öppet för mat, kistor och andra fynd som finns utspridda över hela världen!",
             "Inventory filled with food? Try crafting better food from it!", /// TODO translate crafting
             "Wondering what there is to do? Try out one of the dungeons marked on the map!", /// TODO translate dungeon
-            "Glöm inte anpassa grafiken för din dator. Tryck 'N' för att öppna inställningarna.",
-            "Delad glädje är dubbel glädje! Tryck 'O' för att se vilka som spelar just nu.",
-            "Tryck 'J' för att dansa. Party!",
-            "Tryck på den vänstra Shift-tangenten för att använda din glidare och bli himlarnas härskare.",
+            "Glöm inte anpassa grafiken för din dator. Tryck '{gameinput.settings}' för att öppna inställningarna.",
+            "Delad glädje är dubbel glädje! Tryck '{gameinput.social}' för att se vilka som spelar just nu.",
+            "Tryck '{gameinput.dance}' för att dansa. Party!",
+            "Tryck '{gameinput.glide}' för att använda din glidare och bli himlarnas härskare.",
             "Veloren är fortfarande i Pre-Alpha-stadiet. Vi gör vårt yttersta för att förbättra spelet varje dag!",
             "Om du vill gå med i utvecklargruppen eller bara snacka med oss får du gärna logga in på vår Discord-server.",
             "Du kan välja att visa din hälsostatus i inställningarna.",
-            "Sitt nära en lägereld (tryck 'K') för att långsamt återhämta dig från skador.",
-            "Behöver du fler säckar eller bättre rustning för din fortsatta färd? Tryck 'C' för att öppna the crafting menu!", /// TODO translate crafting
+            "Sitt nära en lägereld (tryck '{gameinput.sit}') för att långsamt återhämta dig från skador.",
+            "Behöver du fler säckar eller bättre rustning för din fortsatta färd? Tryck '{gameinput.crafting}' för att öppna the crafting menu!", /// TODO translate crafting
             "Försök att hoppa när du rullar genom kreatur.",
         ],
     }
