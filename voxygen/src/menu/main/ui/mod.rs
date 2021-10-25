@@ -308,6 +308,7 @@ impl Controls {
                 &self.i18n.read(),
                 button_style,
                 settings.interface.loading_tips,
+                &settings.controls,
             ),
         };
 
