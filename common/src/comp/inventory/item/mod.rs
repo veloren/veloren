@@ -171,38 +171,38 @@ impl Material {
         }
     }
 
-    pub fn asset_identifier(&self) -> &'static str {
+    pub fn asset_identifier(&self) -> Option<&'static str> {
         match self {
-            Material::Bronze => "common.items.mineral.ingot.bronze",
-            Material::Iron => "common.items.mineral.ingot.iron",
-            Material::Steel => "common.items.mineral.ingot.steel",
-            Material::Cobalt => "common.items.mineral.ingot.cobalt",
-            Material::Bloodsteel => "common.items.mineral.ingot.bloodsteel",
-            Material::Orichalcum => "common.items.mineral.ingot.orichalcum",
+            Material::Bronze => Some("common.items.mineral.ingot.bronze"),
+            Material::Iron => Some("common.items.mineral.ingot.iron"),
+            Material::Steel => Some("common.items.mineral.ingot.steel"),
+            Material::Cobalt => Some("common.items.mineral.ingot.cobalt"),
+            Material::Bloodsteel => Some("common.items.mineral.ingot.bloodsteel"),
+            Material::Orichalcum => Some("common.items.mineral.ingot.orichalcum"),
             Material::Wood
             | Material::Bamboo
             | Material::Hardwood
             | Material::Ironwood
             | Material::Frostwood
-            | Material::Eldwood => unimplemented!(),
+            | Material::Eldwood => None,
             Material::Rock
             | Material::Granite
             | Material::Bone
             | Material::Basalt
             | Material::Obsidian
-            | Material::Velorite => unimplemented!(),
-            Material::Linen => "common.items.crafting_ing.cloth.linen",
-            Material::Wool => "common.items.crafting_ing.cloth.wool",
-            Material::Silk => "common.items.crafting_ing.cloth.silk",
-            Material::Lifecloth => "common.items.crafting_ing.cloth.lifecloth",
-            Material::Moonweave => "common.items.crafting_ing.cloth.moonweave",
-            Material::Sunsilk => "common.items.crafting_ing.cloth.sunsilk",
-            Material::Rawhide => "common.items.crafting_ing.leather.simple_leather",
-            Material::Leather => "common.items.crafting_ing.leather.thick_leather",
-            Material::Scale => "common.items.crafting_ing.hide.scales",
-            Material::Carapace => "common.items.crafting_ing.hide.carapace",
-            Material::Plate => "common.items.crafting_ing.hide.plate",
-            Material::Dragonscale => "common.items.crafting_ing.hide.dragon_scale",
+            | Material::Velorite => None,
+            Material::Linen => Some("common.items.crafting_ing.cloth.linen"),
+            Material::Wool => Some("common.items.crafting_ing.cloth.wool"),
+            Material::Silk => Some("common.items.crafting_ing.cloth.silk"),
+            Material::Lifecloth => Some("common.items.crafting_ing.cloth.lifecloth"),
+            Material::Moonweave => Some("common.items.crafting_ing.cloth.moonweave"),
+            Material::Sunsilk => Some("common.items.crafting_ing.cloth.sunsilk"),
+            Material::Rawhide => Some("common.items.crafting_ing.leather.simple_leather"),
+            Material::Leather => Some("common.items.crafting_ing.leather.thick_leather"),
+            Material::Scale => Some("common.items.crafting_ing.hide.scales"),
+            Material::Carapace => Some("common.items.crafting_ing.hide.carapace"),
+            Material::Plate => Some("common.items.crafting_ing.hide.plate"),
+            Material::Dragonscale => Some("common.items.crafting_ing.hide.dragon_scale"),
         }
     }
 }
@@ -815,27 +815,7 @@ impl Item {
                     None
                 }
             })
-            .map(|material| material.asset_identifier())
-    }
-
-    // Attempts to salvage an item by consuming it, returns the salvaged items if
-    // salvageable, else the original item
-    pub fn try_salvage(self) -> Result<Vec<Item>, Item> {
-        if !self.is_salvageable() {
-            return Err(self);
-        }
-
-        // Creates one item for every salvage tag in the target item
-        let salvaged_items: Vec<_> = self
-            .salvage_output()
-            .map(|asset| Item::new_from_asset_expect(asset))
-            .collect();
-
-        if salvaged_items.is_empty() {
-            Err(self)
-        } else {
-            Ok(salvaged_items)
-        }
+            .filter_map(|material| material.asset_identifier())
     }
 
     pub fn name(&self) -> &str { &self.item_def.name }

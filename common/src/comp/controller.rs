@@ -94,7 +94,7 @@ impl From<InventoryEvent> for InventoryManip {
 pub enum CraftEvent {
     Simple {
         recipe: String,
-        slots: Vec<InvSlotId>,
+        slots: Vec<(u32, InvSlotId)>,
     },
     Salvage(InvSlotId),
 }

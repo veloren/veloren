@@ -998,7 +998,7 @@ impl Client {
     pub fn craft_recipe(
         &mut self,
         recipe: &str,
-        slots: Vec<InvSlotId>,
+        slots: Vec<(u32, InvSlotId)>,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     ) -> bool {
         let (can_craft, required_sprite) = self.can_craft_recipe(recipe);
@@ -1019,6 +1019,7 @@ impl Client {
         }
     }
 
+    /// Checks if the item in the given slot can be salvaged.
     pub fn can_salvage_item(&self, slot: InvSlotId) -> bool {
         self.inventories()
             .get(self.entity())
@@ -1026,6 +1027,8 @@ impl Client {
             .map_or(false, |item| item.is_salvageable())
     }
 
+    /// Salvage the item in the given inventory slot. `salvage_pos` should be
+    /// the location of a relevant crafting station within range of the player.
     pub fn salvage_item(&mut self, slot: InvSlotId, salvage_pos: Vec3<i32>) -> bool {
         let is_salvageable = self.can_salvage_item(slot);
         if is_salvageable {
