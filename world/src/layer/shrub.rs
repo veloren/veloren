@@ -48,21 +48,26 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     && col.spawn_rate > 0.9
                     && col.path.map_or(true, |(d, _, _, _)| d > 6.0)
                 {
-                    Some(Shrub {
-                        wpos: wpos.with_z(col.alt as i32),
-                        seed,
-                        kind: *info
-                            .chunks()
-                            .make_forest_lottery(wpos)
-                            .choose_seeded(seed)
-                            .as_ref()?,
+                    let kind = *info
+                        .chunks()
+                        .make_forest_lottery(wpos)
+                        .choose_seeded(seed)
+                        .as_ref()?;
+                    if rng.gen_bool(kind.shrub_density_factor() as f64) {
+                        Some(Shrub {
+                            wpos: wpos.with_z(col.alt as i32),
+                            seed,
+                            kind,
                     })
                 } else {
                     None
                 }
-            });
-        }
-    });
+            } else {
+                None
+            }
+        });
+    }
+});
 
     for shrub in shrub_cache.values().filter_map(|s| s.as_ref()) {
         let mut rng = ChaChaRng::from_seed(seed_expan::rng_state(shrub.seed));

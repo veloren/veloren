@@ -3,26 +3,26 @@
 [
     (
         specifier: "world.shrub.taiga.bush-0",
-        center: (4, 4, 3),
+        center: (4, 4, 2),
     ),
     (
         specifier: "world.shrub.taiga.bush-1",
-        center: (4, 4, 3),
+        center: (4, 4, 2),
     ),
     (
         specifier: "world.shrub.taiga.bush-2",
-        center: (4, 4, 3),
+        center: (4, 4, 2),
     ),
     (
         specifier: "world.shrub.taiga.bush-3",
-        center: (4, 4, 2),
+        center: (4, 4, 1),
     ),
     (
         specifier: "world.shrub.taiga.bush-4",
-        center: (3, 3, 2),
+        center: (3, 3, 1),
     ),
     (
         specifier: "world.shrub.taiga.bush-5",
-        center: (4, 4, 2),
+        center: (4, 4, 1),
     ),
 ]
