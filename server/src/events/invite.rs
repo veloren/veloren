@@ -6,8 +6,9 @@ use common::{
         agent::{Agent, AgentEvent},
         group::GroupManager,
         invite::{Invite, InviteKind, InviteResponse, PendingInvites},
-        ChatType,
+        ChatType, Pos,
     },
+    consts::MAX_TRADE_RANGE,
     trade::{TradeResult, Trades},
     uid::Uid,
 };
@@ -62,6 +63,14 @@ pub fn handle_invite(
     let mut pending_invites = state.ecs().write_storage::<PendingInvites>();
     let mut agents = state.ecs().write_storage::<comp::Agent>();
     let mut invites = state.ecs().write_storage::<Invite>();
+
+    if let InviteKind::Trade = kind {
+        // Check whether the inviter is in range of the invitee
+        let positions = state.ecs().read_storage::<comp::Pos>();
+        if !within_trading_range(positions.get(inviter), positions.get(invitee)) {
+            return;
+        }
+    }
 
     if let InviteKind::Group = kind {
         if !group_manip::can_invite(
@@ -334,5 +343,12 @@ pub fn handle_invite_decline(server: &mut Server, entity: specs::Entity) {
     if let Some((inviter, kind)) = get_inviter_and_kind(entity, state) {
         // Inform inviter of rejection
         handle_invite_answer(state, inviter, entity, InviteAnswer::Declined, kind)
+    }
+}
+
+fn within_trading_range(requester_position: Option<&Pos>, invitee_position: Option<&Pos>) -> bool {
+    match (requester_position, invitee_position) {
+        (Some(rpos), Some(ipos)) => rpos.0.distance_squared(ipos.0) < MAX_TRADE_RANGE.powi(2),
+        _ => false,
     }
 }
