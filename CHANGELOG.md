@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Falling through an airship in flight should no longer be possible (although many issues with airship physics remain)
 - Avoided black hexagons when bloom is enabled by suppressing NaN/Inf pixels during the first bloom blur pass
 - Many know water generation problems
+- Trading over long distances using ghost characters or client-side exploits is no longer possible
 
 ## [0.11.0] - 2021-09-11
 
