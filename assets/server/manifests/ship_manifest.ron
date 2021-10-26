@@ -69,4 +69,26 @@
             central: ("empty"),
         ),
     ),
+    Galleon: (
+        bone0: (
+            offset: (-16, -16, -3.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("galleon.structure"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+        bone2: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+        bone3: (
+            offset: (0.0, 0.0, 0.0),
+            phys_offset: (0.0, 0.0, 0.0),
+            central: ("empty"),
+        ),
+    ),
 })

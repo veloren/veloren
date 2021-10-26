@@ -858,6 +858,7 @@ impl Body {
                 ship::Body::DefaultAirship => [0.0, 0.0, 10.0],
                 ship::Body::AirBalloon => [0.0, 0.0, 5.0],
                 ship::Body::SailBoat => [-2.0, -5.0, 4.0],
+                ship::Body::Galleon => [-2.0, -5.0, 4.0],
             },
             _ => [0.0, 0.0, 0.0],
         }

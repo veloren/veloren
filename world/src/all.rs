@@ -82,6 +82,22 @@ impl ForestKind {
         }
     }
 
+    pub fn shrub_density_factor(&self) -> f32 {
+        match self {
+            ForestKind::Palm => 0.2,
+            ForestKind::Acacia => 0.3,
+            ForestKind::Baobab => 0.2,
+            ForestKind::Oak => 0.4,
+            ForestKind::Chestnut => 0.3,
+            ForestKind::Cedar => 0.3,
+            ForestKind::Pine => 0.4,
+            ForestKind::Birch => 0.65,
+            ForestKind::Mangrove => 1.0,
+            ForestKind::Swamp => 0.4,
+            _ => 1.0,
+        }
+    }
+
     pub fn proclivity(&self, env: &Environment) -> f32 {
         self.ideal_proclivity()
             * close(env.humid, self.humid_range())

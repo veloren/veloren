@@ -1,0 +1,24 @@
+#![enable(unwrap_newtypes)]
+
+[
+    (
+        specifier: "world.shrub.temperate.bush-0",
+        center: (4, 4, 2),
+    ),
+    (
+        specifier: "world.shrub.temperate.bush-1",
+        center: (3, 3, 2),
+    ),
+    (
+        specifier: "world.shrub.temperate.bush-2",
+        center: (4, 4, 2),
+    ),
+    (
+        specifier: "world.shrub.temperate.bush-3",
+        center: (4, 4, 2),
+    ),
+    (
+        specifier: "world.shrub.temperate.bush-4",
+        center: (5, 5, 3),
+    ),
+]

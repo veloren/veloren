@@ -2,10 +2,6 @@
 
 [
     (
-        specifier: "world.shrub.1",
-        center: (6, 6, 2),
-    ),
-    (
         specifier: "world.shrub.jungle.bush-0",
         center: (5, 5, 3),
     ),
@@ -28,5 +24,17 @@
     (
         specifier: "world.shrub.jungle.bush-5",
         center: (5, 5, 5),
+    ),
+	(
+        specifier: "world.shrub.jungle.bush-6",
+        center: (8, 7, 5),
+    ),
+	(
+        specifier: "world.shrub.jungle.bush-7",
+        center: (7, 5, 5),
+    ),
+	(
+        specifier: "world.shrub.jungle.bush-8",
+        center: (8, 8, 5),
     ),
 ]

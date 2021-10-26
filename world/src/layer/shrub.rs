@@ -15,6 +15,11 @@ use vek::*;
 
 lazy_static! {
     static ref JUNGLE_SHRUBS: AssetHandle<StructuresGroup> = Structure::load_group("shrubs.jungle");
+    static ref SAVANNAH_SHRUBS: AssetHandle<StructuresGroup> =
+        Structure::load_group("shrubs.savannah");
+    static ref TEMPERATE_SHRUBS: AssetHandle<StructuresGroup> =
+        Structure::load_group("shrubs.temperate");
+    static ref TAIGA_SHRUBS: AssetHandle<StructuresGroup> = Structure::load_group("shrubs.taiga");
 }
 
 struct Shrub {
@@ -43,15 +48,20 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     && col.spawn_rate > 0.9
                     && col.path.map_or(true, |(d, _, _, _)| d > 6.0)
                 {
-                    Some(Shrub {
-                        wpos: wpos.with_z(col.alt as i32),
-                        seed,
-                        kind: *info
-                            .chunks()
-                            .make_forest_lottery(wpos)
-                            .choose_seeded(seed)
-                            .as_ref()?,
-                    })
+                    let kind = *info
+                        .chunks()
+                        .make_forest_lottery(wpos)
+                        .choose_seeded(seed)
+                        .as_ref()?;
+                    if rng.gen_bool(kind.shrub_density_factor() as f64) {
+                        Some(Shrub {
+                            wpos: wpos.with_z(col.alt as i32),
+                            seed,
+                            kind,
+                        })
+                    } else {
+                        None
+                    }
                 } else {
                     None
                 }
@@ -65,7 +75,10 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
         let units = UnitChooser::new(shrub.seed).get(shrub.seed).into();
 
         let shrubs = match shrub.kind {
-            ForestKind::Mangrove => &JUNGLE_SHRUBS,
+            ForestKind::Mangrove => &*JUNGLE_SHRUBS,
+            ForestKind::Acacia | ForestKind::Baobab => &*SAVANNAH_SHRUBS,
+            ForestKind::Oak | ForestKind::Chestnut => &*TEMPERATE_SHRUBS,
+            ForestKind::Pine => &*TAIGA_SHRUBS,
             _ => continue, // TODO: Add more shrub varieties
         }
         .read();

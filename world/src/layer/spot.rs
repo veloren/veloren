@@ -46,7 +46,6 @@ pub enum Spot {
     //TowerRuin,
     //WellOfLight,
     //MerchantOutpost,
-    //TrollHideout,
     //RuinedHuntingCabin, <-- Bears!
     //LionRock,
     //WolfBurrow,
@@ -58,6 +57,9 @@ pub enum Spot {
     AirshipCrash,
     FruitTree,
     Shipwreck,
+    Shipwreck2,
+    GnarlingTree,
+    TrollCave,
 }
 
 impl Spot {
@@ -179,6 +181,34 @@ impl Spot {
             },
             false,
         );
+        Self::generate_spots(
+            Spot::GnarlingTree,
+            world,
+            1.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Forest | Grassland)
+            },
+            false,
+        );
+        Self::generate_spots(
+            Spot::TrollCave,
+            world,
+            1.0,
+            |g, c| {
+                g < 0.25
+                    && !c.near_cliffs()
+                    && !c.river.near_water()
+                    && !c.path.0.is_way()
+                    && c.sites.is_empty()
+                    && matches!(c.get_biome(), Forest | Grassland | Snowland | Taiga)
+            },
+            false,
+        );
         // Random World Objects -> Themed to their Biome and the NPCs that regularly
         // spawn there
         Self::generate_spots(
@@ -296,7 +326,16 @@ impl Spot {
         Self::generate_spots(
             Spot::Shipwreck,
             world,
-            2.0,
+            1.0,
+            |g, c| {
+                g < 0.25 && c.is_underwater() && c.sites.is_empty() && c.water_alt > c.alt + 30.0
+            },
+            true,
+        );
+        Self::generate_spots(
+            Spot::Shipwreck2,
+            world,
+            1.0,
             |g, c| {
                 g < 0.25 && c.is_underwater() && c.sites.is_empty() && c.water_alt > c.alt + 30.0
             },
@@ -440,6 +479,21 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (1..3, "common.entity.dungeon.tier-0.staff"),
                 ],
             },
+            Spot::GnarlingTree => SpotConfig {
+                base_structures: Some("spots_grasslands.gnarling_tree"),
+                entity_radius: 64.0,
+                entities: &[
+                    (1..5, "common.entity.dungeon.tier-0.spear"),
+                    (2..4, "common.entity.dungeon.tier-0.bow"),
+                    (1..2, "common.entity.dungeon.tier-0.staff"),
+                    (1..4, "common.entity.wild.aggressive.deadwood"),
+                ],
+            },
+            Spot::TrollCave => SpotConfig {
+                base_structures: Some("spots_general.troll_cave"),
+                entity_radius: 40.0,
+                entities: &[(1..2, "common.entity.wild.aggressive.cave_troll")],
+            },
             // Random World Objects
             Spot::LionRock => SpotConfig {
                 base_structures: Some("spots_savannah.lion_rock"),
@@ -485,6 +539,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots.water.shipwreck"),
                 entity_radius: 2.0,
                 entities: &[(0..2, "common.entity.wild.peaceful.clownfish")],
+            },
+            Spot::Shipwreck2 => SpotConfig {
+                base_structures: Some("spots.water.shipwreck2"),
+                entity_radius: 20.0,
+                entities: &[(2..6, "common.entity.wild.peaceful.clownfish")],
             },
         };
         // Blit base structure
