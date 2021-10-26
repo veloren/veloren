@@ -52,7 +52,7 @@ impl Body {
             Body::DefaultAirship => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
             Body::SailBoat => Vec3::new(13.0, 31.0, 3.0),
-            Body::Galleon => Vec3::new(13.0, 31.0, 3.0), //replace with real vectors in a sec
+            Body::Galleon => Vec3::new(13.0, 32.0, 3.0),
         }
     }
 

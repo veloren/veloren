@@ -94,7 +94,7 @@ impl ForestKind {
             ForestKind::Birch => 0.65,
             ForestKind::Mangrove => 1.0,
             ForestKind::Swamp => 0.4,
-            _ => 0.0,
+            _ => 1.0,
         }
     }
 
