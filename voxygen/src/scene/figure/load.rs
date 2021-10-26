@@ -318,7 +318,7 @@ impl HumHeadSpec {
             .maybe_add(beard)
             .maybe_add(accessory)
             .maybe_add(helmet)
-            .unify();
+            .unify_with(|v| if v.is_hollow() { Cell::empty() } else { v });
         (
             head,
             Vec3::from(spec.offset) + origin_offset.map(|e| e as f32 * -1.0),

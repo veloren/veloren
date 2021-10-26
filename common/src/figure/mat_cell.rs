@@ -20,7 +20,6 @@ pub enum MatCell {
     None,
     Mat(Material),
     Normal(CellData),
-    Hollow,
 }
 
 impl Vox for MatCell {
