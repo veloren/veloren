@@ -1395,7 +1395,25 @@ impl PlayState for SessionState {
                         recipe,
                         craft_sprite,
                     } => {
-                        self.client.borrow_mut().craft_recipe(&recipe, craft_sprite);
+                        let slots = {
+                            let client = self.client.borrow();
+                            if let Some(recipe) = client.recipe_book().get(&recipe) {
+                                client
+                                    .inventories()
+                                    .get(client.entity())
+                                    .and_then(|inv| recipe.inventory_contains_ingredients(inv).ok())
+                            } else {
+                                None
+                            }
+                        };
+                        if let Some(slots) = slots {
+                            self.client
+                                .borrow_mut()
+                                .craft_recipe(&recipe, slots, craft_sprite);
+                        }
+                    },
+                    HudEvent::SalvageItem { slot, salvage_pos } => {
+                        self.client.borrow_mut().salvage_item(slot, salvage_pos);
                     },
                     HudEvent::InviteMember(uid) => {
                         self.client.borrow_mut().send_invite(uid, InviteKind::Group);

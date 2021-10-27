@@ -18,6 +18,7 @@
         "hud.crafting.loom": "Loom",
         "hud.crafting.spinning_wheel": "Spinning Wheel",
         "hud.crafting.tanning_rack": "Tanning Rack",
+        "hud.crafting.salvaging_station": "Salvaging Bench",
         // Tabs
         "hud.crafting.tabs.all": "All",
         "hud.crafting.tabs.armor": "Armor",
@@ -30,6 +31,8 @@
         "hud.crafting.tabs.weapon": "Weapons",
         "hud.crafting.tabs.bag": "Bags",
         "hud.crafting.tabs.processed_material": "Materials",
+        "hud.crafting.dismantle_title": "Dismantling",
+        "hud.crafting.dismantle_explanation" : "Hover items in your bag to see what\nyou can salvage.\n\nDouble-Click them to start dismantling.",
     },
 
 

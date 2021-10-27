@@ -23,10 +23,11 @@ use common::{
     comp::{
         self,
         chat::{KillSource, KillType},
+        controller::CraftEvent,
         group,
         invite::{InviteKind, InviteResponse},
         skills::Skill,
-        slot::Slot,
+        slot::{InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
         UtteranceKind,
@@ -987,7 +988,7 @@ impl Client {
             .zip(self.inventories().get(self.entity()))
             .map(|(recipe, inv)| {
                 (
-                    inv.contains_ingredients(&*recipe).is_ok(),
+                    recipe.inventory_contains_ingredients(inv).is_ok(),
                     recipe.craft_sprite,
                 )
             })
@@ -997,6 +998,7 @@ impl Client {
     pub fn craft_recipe(
         &mut self,
         recipe: &str,
+        slots: Vec<(u32, InvSlotId)>,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     ) -> bool {
         let (can_craft, required_sprite) = self.can_craft_recipe(recipe);
@@ -1004,7 +1006,10 @@ impl Client {
         if can_craft && has_sprite {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
-                    recipe: recipe.to_string(),
+                    craft_event: CraftEvent::Simple {
+                        recipe: recipe.to_string(),
+                        slots,
+                    },
                     craft_sprite: craft_sprite.map(|(pos, _)| pos),
                 },
             )));
@@ -1012,6 +1017,29 @@ impl Client {
         } else {
             false
         }
+    }
+
+    /// Checks if the item in the given slot can be salvaged.
+    pub fn can_salvage_item(&self, slot: InvSlotId) -> bool {
+        self.inventories()
+            .get(self.entity())
+            .and_then(|inv| inv.get(slot))
+            .map_or(false, |item| item.is_salvageable())
+    }
+
+    /// Salvage the item in the given inventory slot. `salvage_pos` should be
+    /// the location of a relevant crafting station within range of the player.
+    pub fn salvage_item(&mut self, slot: InvSlotId, salvage_pos: Vec3<i32>) -> bool {
+        let is_salvageable = self.can_salvage_item(slot);
+        if is_salvageable {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe {
+                    craft_event: CraftEvent::Salvage(slot),
+                    craft_sprite: Some(salvage_pos),
+                },
+            )));
+        }
+        is_salvageable
     }
 
     fn update_available_recipes(&mut self) {

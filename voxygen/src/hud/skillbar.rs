@@ -24,7 +24,7 @@ use common::comp::{
     inventory::slot::EquipSlot,
     item::{
         tool::{Tool, ToolKind},
-        Hands, Item, ItemKind, MaterialStatManifest,
+        Hands, Item, ItemDesc, ItemKind, MaterialStatManifest,
     },
     Energy, Health, Inventory, SkillSet,
 };
@@ -645,8 +645,13 @@ impl<'a> Skillbar<'a> {
                 .position(entry.position);
             // if there is an item attached, show item tooltip
             if let Some(item) = slot_content(entry.slot) {
-                slot.with_item_tooltip(self.item_tooltip_manager, item, &None, &item_tooltip)
-                    .set(entry.widget_id, ui);
+                slot.with_item_tooltip(
+                    self.item_tooltip_manager,
+                    core::iter::once(item as &dyn ItemDesc),
+                    &None,
+                    &item_tooltip,
+                )
+                .set(entry.widget_id, ui);
             // if we can gather some text to display, show it
             } else if let Some((title, desc)) = tooltip_text(entry.slot) {
                 slot.with_tooltip(self.tooltip_manager, title, desc, &tooltip, TEXT_COLOR)

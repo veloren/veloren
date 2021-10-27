@@ -15,5 +15,6 @@ ItemDef(
     quality: Epic,
     tags: [
         Material(Plate),
+        SalvageInto(Plate),
     ],
 )

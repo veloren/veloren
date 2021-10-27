@@ -182,6 +182,7 @@ make_case_elim!(
         CavernGrassBlueLong = 0x9B,
         CavernLillypadBlue = 0x9C,
         CavernMycelBlue = 0x9D,
+        DismantlingBench = 0x9E,
     }
 );
 
@@ -238,6 +239,7 @@ impl SpriteKind {
             SpriteKind::Loom => 1.27,
             SpriteKind::Anvil => 1.1,
             SpriteKind::CookingPot => 1.36,
+            SpriteKind::DismantlingBench => 1.18,
             // TODO: Find suitable heights.
             SpriteKind::BarrelCactus
             | SpriteKind::RoundCactus
@@ -440,6 +442,7 @@ impl SpriteKind {
                 | SpriteKind::SpinningWheel
                 | SpriteKind::TanningRack
                 | SpriteKind::Loom
+                | SpriteKind::DismantlingBench
         )
     }
 }

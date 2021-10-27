@@ -35,6 +35,10 @@
         "voxel.object.tanning_rack",
        (0.0, 0.0, 0.0), (-90.0, 20.0, 0.0), 1.0,
     ),
+    Tool("DismantlingBench"): VoxTrans(
+        "voxel.sprite.salvaging_station.salvaging_station-0",
+       (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
+    ),
     // Weapons
     // Diary Example Images
     Tool("example_utility"): VoxTrans(

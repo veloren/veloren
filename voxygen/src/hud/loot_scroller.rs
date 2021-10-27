@@ -6,7 +6,7 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
-use common::comp::inventory::item::{ItemDef, MaterialStatManifest, Quality};
+use common::comp::inventory::item::{ItemDef, ItemDesc, MaterialStatManifest, Quality};
 use conrod_core::{
     color,
     position::Dimension,
@@ -333,7 +333,12 @@ impl<'a> Widget for LootScroller<'a> {
                 .color(Some(shade_color(color::hsla(0.0, 0.0, 1.0, 1.0))))
                 .w_h(ICON_SIZE, ICON_SIZE)
                 .middle_of(state.ids.message_icon_bgs[i])
-                .with_item_tooltip(self.item_tooltip_manager, &**item, &None, &item_tooltip)
+                .with_item_tooltip(
+                    self.item_tooltip_manager,
+                    core::iter::once(&**item as &dyn ItemDesc),
+                    &None,
+                    &item_tooltip,
+                )
                 .set(state.ids.message_icons[i], ui);
 
                 let label = if *amount == 1 {

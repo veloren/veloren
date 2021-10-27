@@ -15,5 +15,6 @@ ItemDef(
     quality: Low,
     tags: [
         Material(Bronze),
+        SalvageInto(Bronze),
     ],
 )

@@ -170,6 +170,41 @@ impl Material {
             | Material::Dragonscale => MaterialKind::Hide,
         }
     }
+
+    pub fn asset_identifier(&self) -> Option<&'static str> {
+        match self {
+            Material::Bronze => Some("common.items.mineral.ingot.bronze"),
+            Material::Iron => Some("common.items.mineral.ingot.iron"),
+            Material::Steel => Some("common.items.mineral.ingot.steel"),
+            Material::Cobalt => Some("common.items.mineral.ingot.cobalt"),
+            Material::Bloodsteel => Some("common.items.mineral.ingot.bloodsteel"),
+            Material::Orichalcum => Some("common.items.mineral.ingot.orichalcum"),
+            Material::Wood
+            | Material::Bamboo
+            | Material::Hardwood
+            | Material::Ironwood
+            | Material::Frostwood
+            | Material::Eldwood => None,
+            Material::Rock
+            | Material::Granite
+            | Material::Bone
+            | Material::Basalt
+            | Material::Obsidian
+            | Material::Velorite => None,
+            Material::Linen => Some("common.items.crafting_ing.cloth.linen"),
+            Material::Wool => Some("common.items.crafting_ing.cloth.wool"),
+            Material::Silk => Some("common.items.crafting_ing.cloth.silk"),
+            Material::Lifecloth => Some("common.items.crafting_ing.cloth.lifecloth"),
+            Material::Moonweave => Some("common.items.crafting_ing.cloth.moonweave"),
+            Material::Sunsilk => Some("common.items.crafting_ing.cloth.sunsilk"),
+            Material::Rawhide => Some("common.items.crafting_ing.leather.simple_leather"),
+            Material::Leather => Some("common.items.crafting_ing.leather.thick_leather"),
+            Material::Scale => Some("common.items.crafting_ing.hide.scales"),
+            Material::Carapace => Some("common.items.crafting_ing.hide.carapace"),
+            Material::Plate => Some("common.items.crafting_ing.hide.plate"),
+            Material::Dragonscale => Some("common.items.crafting_ing.hide.dragon_scale"),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -202,6 +237,7 @@ pub enum ItemTag {
     CraftingTool, // Pickaxe, Craftsman-Hammer, Sewing-Set
     Utility,
     Bag,
+    SalvageInto(Material),
 }
 
 impl TagExampleInfo for ItemTag {
@@ -219,6 +255,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::CraftingTool => "tool",
             ItemTag::Utility => "utility",
             ItemTag::Bag => "bag",
+            ItemTag::SalvageInto(_) => "salvage",
         }
     }
 
@@ -237,6 +274,7 @@ impl TagExampleInfo for ItemTag {
             ItemTag::CraftingTool => "common.items.tag_examples.placeholder",
             ItemTag::Utility => "common.items.tag_examples.placeholder",
             ItemTag::Bag => "common.items.tag_examples.placeholder",
+            ItemTag::SalvageInto(_) => "common.items.tag_examples.placeholder",
         }
     }
 }
@@ -757,6 +795,27 @@ impl Item {
             RecipeInput::Item(item_def) => self.is_same_item_def(item_def),
             RecipeInput::Tag(tag) => self.item_def.tags.contains(tag),
         }
+    }
+
+    pub fn is_salvageable(&self) -> bool {
+        self.item_def
+            .tags
+            .iter()
+            .any(|tag| matches!(tag, ItemTag::SalvageInto(_)))
+    }
+
+    pub fn salvage_output(&self) -> impl Iterator<Item = &str> {
+        self.item_def
+            .tags
+            .iter()
+            .filter_map(|tag| {
+                if let ItemTag::SalvageInto(material) = tag {
+                    Some(material)
+                } else {
+                    None
+                }
+            })
+            .filter_map(|material| material.asset_identifier())
     }
 
     pub fn name(&self) -> &str { &self.item_def.name }

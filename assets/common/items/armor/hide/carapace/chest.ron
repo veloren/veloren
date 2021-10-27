@@ -15,5 +15,6 @@ ItemDef(
     quality: High,
     tags: [
         Material(Carapace),
+        SalvageInto(Carapace),
     ],
 )

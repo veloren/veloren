@@ -75,7 +75,7 @@ use common::{
     combat,
     comp::{
         self, fluid_dynamics,
-        inventory::trade_pricing::TradePricing,
+        inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skills::{Skill, SkillGroupKind},
         BuffData, BuffKind, Item,
@@ -521,6 +521,10 @@ pub enum Event {
         recipe: String,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     },
+    SalvageItem {
+        slot: InvSlotId,
+        salvage_pos: Vec3<i32>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -656,6 +660,7 @@ pub struct Show {
     prompt_dialog: Option<PromptDialogSettings>,
     location_marker: Option<Vec2<f32>>,
     map_marker: bool,
+    salvage: bool,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -723,6 +728,8 @@ impl Show {
         self.selected_crafting_tab(tab);
         self.crafting(true);
         self.craft_sprite = self.craft_sprite.or(craft_sprite);
+        self.salvage = matches!(self.craft_sprite, Some((_, SpriteKind::DismantlingBench)))
+            && matches!(tab, CraftingTab::Dismantle);
     }
 
     fn diary(&mut self, open: bool) {
@@ -1035,6 +1042,7 @@ impl Hud {
                 prompt_dialog: None,
                 location_marker: None,
                 map_marker: false,
+                salvage: false,
             },
             to_focus: None,
             //never_show: false,
@@ -3329,10 +3337,20 @@ impl Hud {
                 slot::Event::Used(from) => {
                     // Item used (selected and then clicked again)
                     if let Some(from) = to_slot(from) {
-                        events.push(Event::UseSlot {
-                            slot: from,
-                            bypass_dialog: false,
-                        });
+                        if self.show.salvage
+                            && matches!(self.show.crafting_tab, CraftingTab::Dismantle)
+                        {
+                            if let (Slot::Inventory(slot), Some((salvage_pos, _sprite_kind))) =
+                                (from, self.show.craft_sprite)
+                            {
+                                events.push(Event::SalvageItem { slot, salvage_pos })
+                            }
+                        } else {
+                            events.push(Event::UseSlot {
+                                slot: from,
+                                bypass_dialog: false,
+                            });
+                        }
                     } else if let Hotbar(h) = from {
                         // Used from hotbar
                         self.hotbar.get(h).map(|s| {
@@ -4065,6 +4083,7 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::Loom => "hud.crafting.loom",
         SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
         SpriteKind::TanningRack => "hud.crafting.tanning_rack",
+        SpriteKind::DismantlingBench => "hud.crafting.salvaging_station",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(Cow::Borrowed(localized_strings.get(i18n_key)))

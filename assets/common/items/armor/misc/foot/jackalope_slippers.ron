@@ -14,6 +14,7 @@ ItemDef(
     )),
     quality: High,
     tags: [
-        Material(Linen)
+        Material(Linen),
+        SalvageInto(Linen),
     ],
 )

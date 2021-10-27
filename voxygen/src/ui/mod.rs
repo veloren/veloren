@@ -157,7 +157,6 @@ impl Ui {
         ui.set_num_redraw_frames(1);
 
         let item_tooltip_manager = ItemTooltipManager::new(
-            ui.widget_id_generator(),
             Duration::from_millis(1),
             Duration::from_millis(0),
             scale.scale_factor_logical(),

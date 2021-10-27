@@ -11,7 +11,8 @@ use common::{
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
-    recipe::default_recipe_book,
+    recipe::{self, default_recipe_book},
+    terrain::SpriteKind,
     trade::Trades,
     uid::Uid,
     util::find_dist::{self, FindDist},
@@ -563,74 +564,115 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             drop(inventories);
         },
         comp::InventoryManip::CraftRecipe {
-            recipe,
+            craft_event,
             craft_sprite,
         } => {
+            use comp::controller::CraftEvent;
             let recipe_book = default_recipe_book().read();
-            let craft_result = recipe_book
-                .get(&recipe)
-                .filter(|r| {
-                    if let Some(needed_sprite) = r.craft_sprite {
-                        let sprite = craft_sprite
-                            .filter(|pos| {
-                                let entity_cylinder = get_cylinder(state, entity);
-                                if !within_pickup_range(entity_cylinder, || {
-                                    Some(find_dist::Cube {
-                                        min: pos.as_(),
-                                        side_length: 1.0,
-                                    })
-                                }) {
-                                    debug!(
-                                        ?entity_cylinder,
-                                        "Failed to craft recipe as not within range of required \
-                                         sprite, sprite pos: {}",
-                                        pos
-                                    );
-                                    false
-                                } else {
-                                    true
-                                }
-                            })
-                            .and_then(|pos| state.terrain().get(pos).ok().copied())
-                            .and_then(|block| block.get_sprite());
-                        Some(needed_sprite) == sprite
+            let ability_map = &state.ecs().read_resource::<AbilityMap>();
+            let msm = state.ecs().read_resource::<MaterialStatManifest>();
+
+            let crafted_items = match craft_event {
+                CraftEvent::Simple { recipe, slots } => recipe_book
+                    .get(&recipe)
+                    .filter(|r| {
+                        if let Some(needed_sprite) = r.craft_sprite {
+                            let sprite = craft_sprite
+                                .filter(|pos| {
+                                    let entity_cylinder = get_cylinder(state, entity);
+                                    if !within_pickup_range(entity_cylinder, || {
+                                        Some(find_dist::Cube {
+                                            min: pos.as_(),
+                                            side_length: 1.0,
+                                        })
+                                    }) {
+                                        debug!(
+                                            ?entity_cylinder,
+                                            "Failed to craft recipe as not within range of \
+                                             required sprite, sprite pos: {}",
+                                            pos
+                                        );
+                                        false
+                                    } else {
+                                        true
+                                    }
+                                })
+                                .and_then(|pos| state.terrain().get(pos).ok().copied())
+                                .and_then(|block| block.get_sprite());
+                            Some(needed_sprite) == sprite
+                        } else {
+                            true
+                        }
+                    })
+                    .and_then(|r| {
+                        r.craft_simple(
+                            &mut inventory,
+                            slots,
+                            &state.ecs().read_resource::<AbilityMap>(),
+                            &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                        )
+                        .ok()
+                    }),
+                CraftEvent::Salvage(slot) => {
+                    let sprite = craft_sprite
+                        .filter(|pos| {
+                            let entity_cylinder = get_cylinder(state, entity);
+                            if !within_pickup_range(entity_cylinder, || {
+                                Some(find_dist::Cube {
+                                    min: pos.as_(),
+                                    side_length: 1.0,
+                                })
+                            }) {
+                                debug!(
+                                    ?entity_cylinder,
+                                    "Failed to craft recipe as not within range of required \
+                                     sprite, sprite pos: {}",
+                                    pos
+                                );
+                                false
+                            } else {
+                                true
+                            }
+                        })
+                        .and_then(|pos| state.terrain().get(pos).ok().copied())
+                        .and_then(|block| block.get_sprite());
+                    if matches!(sprite, Some(SpriteKind::DismantlingBench)) {
+                        recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()
                     } else {
-                        true
+                        None
                     }
-                })
-                .and_then(|r| {
-                    r.perform(
-                        &mut inventory,
-                        &state.ecs().read_resource::<AbilityMap>(),
-                        &state.ecs().read_resource::<item::MaterialStatManifest>(),
-                    )
-                    .ok()
-                });
+                },
+            };
+
+            // Attempt to insert items into inventory, dropping them if there is not enough
+            // space
+            let items_were_crafted = if let Some(crafted_items) = crafted_items {
+                for item in crafted_items {
+                    if let Err(item) = inventory.push(item) {
+                        dropped_items.push((
+                            state
+                                .read_component_copied::<comp::Pos>(entity)
+                                .unwrap_or_default(),
+                            state
+                                .read_component_copied::<comp::Ori>(entity)
+                                .unwrap_or_default(),
+                            item.duplicate(ability_map, &msm),
+                        ));
+                    }
+                }
+                true
+            } else {
+                false
+            };
+
             drop(inventories);
 
             // FIXME: We should really require the drop and write to be atomic!
-            if craft_result.is_some() {
+            if items_were_crafted {
                 let _ = state.ecs().write_storage().insert(
                     entity,
                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Craft),
                 );
-            }
-
-            // Drop the item if there wasn't enough space
-            if let Some(Some((item, amount))) = craft_result {
-                let ability_map = &state.ecs().read_resource::<AbilityMap>();
-                let msm = state.ecs().read_resource::<MaterialStatManifest>();
-                for _ in 0..amount {
-                    dropped_items.push((
-                        state
-                            .read_component_copied::<comp::Pos>(entity)
-                            .unwrap_or_default(),
-                        state
-                            .read_component_copied::<comp::Ori>(entity)
-                            .unwrap_or_default(),
-                        item.duplicate(ability_map, &msm),
-                    ));
-                }
             }
         },
         comp::InventoryManip::Sort => {

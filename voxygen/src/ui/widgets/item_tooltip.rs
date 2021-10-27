@@ -24,7 +24,10 @@ use conrod_core::{
 };
 use i18n::Localization;
 use lazy_static::lazy_static;
-use std::time::{Duration, Instant};
+use std::{
+    borrow::Borrow,
+    time::{Duration, Instant},
+};
 
 #[derive(Copy, Clone)]
 struct Hover(widget::Id, [f64; 2]);
@@ -40,7 +43,6 @@ enum HoverState {
 const MOUSE_PAD_Y: f64 = 15.0;
 
 pub struct ItemTooltipManager {
-    tooltip_id: widget::Id,
     state: HoverState,
     // How long before a tooltip is displayed when hovering
     hover_dur: Duration,
@@ -51,14 +53,8 @@ pub struct ItemTooltipManager {
 }
 
 impl ItemTooltipManager {
-    pub fn new(
-        mut generator: widget::id::Generator,
-        hover_dur: Duration,
-        fade_dur: Duration,
-        logical_scale_factor: f64,
-    ) -> Self {
+    pub fn new(hover_dur: Duration, fade_dur: Duration, logical_scale_factor: f64) -> Self {
         Self {
-            tooltip_id: generator.next(),
             state: HoverState::None,
             hover_dur,
             fade_dur,
@@ -112,81 +108,100 @@ impl ItemTooltipManager {
     }
 
     #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
-    fn set_tooltip(
+    fn set_tooltip<'a, I>(
         &mut self,
-        tooltip: &ItemTooltip,
-        item: &dyn ItemDesc,
-        prices: &Option<SitePrices>,
+        tooltip: &'a ItemTooltip,
+        items: impl Iterator<Item = I>,
+        prices: &'a Option<SitePrices>,
         img_id: Option<image::Id>,
         image_dims: Option<(f64, f64)>,
         src_id: widget::Id,
         ui: &mut UiCell,
-    ) {
-        let tooltip_id = self.tooltip_id;
+    ) where
+        I: Borrow<dyn ItemDesc>,
+    {
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
+        let mut tooltip_id = widget::id::List::new();
 
-        let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
-            // Fill in text and the potential image beforehand to get an accurate size for
-            // spacing
-            let tooltip = tooltip
-                .clone()
-                .item(item)
-                .prices(prices)
-                .image(img_id)
-                .image_dims(image_dims);
+        for (i, item) in items.enumerate() {
+            tooltip_id.resize(i + 1, &mut ui.widget_id_generator());
 
-            let [t_w, t_h] = tooltip.get_wh(ui).unwrap_or([0.0, 0.0]);
-            let [m_x, m_y] = [mouse_pos[0], mouse_pos[1]];
-            let (w_w, w_h) = (ui.win_w, ui.win_h);
+            let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
+                // Fill in text and the potential image beforehand to get an accurate size for
+                // spacing
+                let tooltip = tooltip
+                    .clone()
+                    .item(item.borrow())
+                    .prices(prices)
+                    .image(img_id)
+                    .image_dims(image_dims);
 
-            // Determine position based on size and mouse position
-            // Flow to the top left of the mouse when there is space
-            let x = if (m_x + w_w / 2.0) > t_w {
-                m_x - t_w / 2.0
-            } else {
-                m_x + t_w / 2.0
+                let [t_w, t_h] = tooltip.get_wh(ui).unwrap_or([0.0, 0.0]);
+                let [m_x, m_y] = [mouse_pos[0], mouse_pos[1]];
+                let (w_w, w_h) = (ui.win_w, ui.win_h);
+
+                // Determine position based on size and mouse position
+                // Flow to the top left of the mouse when there is space
+                let x = if (m_x + w_w / 2.0) > t_w {
+                    m_x - t_w / 2.0
+                } else {
+                    m_x + t_w / 2.0
+                };
+                let y = if w_h - (m_y + w_h / 2.0) > t_h + mp_h {
+                    m_y + mp_h + t_h / 2.0
+                } else {
+                    m_y - mp_h - t_h / 2.0
+                };
+
+                if i == 0 {
+                    tooltip
+                        .floating(true)
+                        .transparency(transparency)
+                        .x_y(x, y)
+                        .set(tooltip_id[i], ui);
+                } else {
+                    tooltip
+                        .floating(true)
+                        .transparency(transparency)
+                        .up_from(tooltip_id[i - 1], 5.0)
+                        .set(tooltip_id[i], ui);
+                }
             };
-            let y = if w_h - (m_y + w_h / 2.0) > t_h + mp_h {
-                m_y + mp_h + t_h / 2.0
-            } else {
-                m_y - mp_h - t_h / 2.0
-            };
-            tooltip
-                .floating(true)
-                .transparency(transparency)
-                .x_y(x, y)
-                .set(tooltip_id, ui);
-        };
 
-        match self.state {
-            HoverState::Hovering(Hover(id, xy)) if id == src_id => tooltip(1.0, xy, ui),
-            HoverState::Fading(start, Hover(id, xy), _) if id == src_id => tooltip(
-                (0.1f32 - start.elapsed().as_millis() as f32 / self.hover_dur.as_millis() as f32)
-                    .max(0.0),
-                xy,
-                ui,
-            ),
-            HoverState::Start(start, id) if id == src_id && start.elapsed() > self.hover_dur => {
-                let xy = ui.global_input().current.mouse.xy;
-                self.state = HoverState::Hovering(Hover(id, xy));
-                tooltip(1.0, xy, ui);
-            },
-            _ => (),
+            match self.state {
+                HoverState::Hovering(Hover(id, xy)) if id == src_id => tooltip(1.0, xy, ui),
+                HoverState::Fading(start, Hover(id, xy), _) if id == src_id => tooltip(
+                    (0.1f32
+                        - start.elapsed().as_millis() as f32 / self.hover_dur.as_millis() as f32)
+                        .max(0.0),
+                    xy,
+                    ui,
+                ),
+                HoverState::Start(start, id)
+                    if id == src_id && start.elapsed() > self.hover_dur =>
+                {
+                    let xy = ui.global_input().current.mouse.xy;
+                    self.state = HoverState::Hovering(Hover(id, xy));
+                    tooltip(1.0, xy, ui);
+                }
+                _ => (),
+            }
         }
     }
 }
 
-pub struct ItemTooltipped<'a, W> {
+pub struct ItemTooltipped<'a, W, I> {
     inner: W,
     tooltip_manager: &'a mut ItemTooltipManager,
 
-    item: &'a dyn ItemDesc,
+    items: I,
     prices: &'a Option<SitePrices>,
     img_id: Option<image::Id>,
     image_dims: Option<(f64, f64)>,
     tooltip: &'a ItemTooltip<'a>,
 }
-impl<'a, W: Widget> ItemTooltipped<'a, W> {
+
+impl<'a, W: Widget, I: Iterator> ItemTooltipped<'a, W, I> {
     pub fn tooltip_image(mut self, img_id: image::Id) -> Self {
         self.img_id = Some(img_id);
         self
@@ -197,11 +212,14 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
         self
     }
 
-    pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event {
+    pub fn set(self, id: widget::Id, ui: &mut UiCell) -> W::Event
+    where
+        <I as Iterator>::Item: Borrow<dyn ItemDesc>,
+    {
         let event = self.inner.set(id, ui);
         self.tooltip_manager.set_tooltip(
             self.tooltip,
-            self.item,
+            self.items,
             self.prices,
             self.img_id,
             self.image_dims,
@@ -214,31 +232,31 @@ impl<'a, W: Widget> ItemTooltipped<'a, W> {
 
 pub trait ItemTooltipable {
     // If `Tooltip` is expensive to construct accept a closure here instead.
-    fn with_item_tooltip<'a>(
+    fn with_item_tooltip<'a, I>(
         self,
         tooltip_manager: &'a mut ItemTooltipManager,
 
-        item: &'a dyn ItemDesc,
+        items: I,
 
         prices: &'a Option<SitePrices>,
 
         tooltip: &'a ItemTooltip<'a>,
-    ) -> ItemTooltipped<'a, Self>
+    ) -> ItemTooltipped<'a, Self, I>
     where
         Self: std::marker::Sized;
 }
 impl<W: Widget> ItemTooltipable for W {
-    fn with_item_tooltip<'a>(
+    fn with_item_tooltip<'a, I>(
         self,
         tooltip_manager: &'a mut ItemTooltipManager,
-        item: &'a dyn ItemDesc,
+        items: I,
         prices: &'a Option<SitePrices>,
         tooltip: &'a ItemTooltip<'a>,
-    ) -> ItemTooltipped<'a, W> {
+    ) -> ItemTooltipped<'a, W, I> {
         ItemTooltipped {
             inner: self,
             tooltip_manager,
-            item,
+            items,
             prices,
             img_id: None,
             image_dims: None,

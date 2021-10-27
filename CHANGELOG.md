@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added catalan (Catalonia) language translation
 - Sneaking with weapons drawn
 - Stealth stat values on (some) armors
+- All new dismantling interface found at your nearest dismantling staion
 
 ### Changed
 

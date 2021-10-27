@@ -15,5 +15,6 @@ ItemDef(
     quality: Epic,
     tags: [
         Material(Bloodsteel),
+        SalvageInto(Bloodsteel),
     ],
 )

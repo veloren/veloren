@@ -21,7 +21,7 @@ use common::{
     combat::{combat_rating, Damage},
     comp::{
         inventory::InventorySortOrder,
-        item::{ItemDef, MaterialStatManifest, Quality},
+        item::{ItemDef, ItemDesc, MaterialStatManifest, Quality},
         Body, Energy, Health, Inventory, Poise, SkillSet, Stats,
     },
 };
@@ -34,7 +34,7 @@ use i18n::Localization;
 
 use crate::hud::slots::SlotKind;
 use specs::Entity as EcsEntity;
-use std::sync::Arc;
+use std::{borrow::Borrow, sync::Arc};
 use vek::Vec2;
 
 widget_ids! {
@@ -87,6 +87,7 @@ pub struct InventoryScroller<'a> {
     is_us: bool,
     inventory: &'a Inventory,
     bg_ids: &'a BackgroundIds,
+    show_salvage: bool,
 }
 
 impl<'a> InventoryScroller<'a> {
@@ -109,6 +110,7 @@ impl<'a> InventoryScroller<'a> {
         is_us: bool,
         inventory: &'a Inventory,
         bg_ids: &'a BackgroundIds,
+        show_salvage: bool,
     ) -> Self {
         InventoryScroller {
             client,
@@ -129,6 +131,7 @@ impl<'a> InventoryScroller<'a> {
             is_us,
             inventory,
             bg_ids,
+            show_salvage,
         }
     }
 
@@ -358,6 +361,10 @@ impl<'a> InventoryScroller<'a> {
                 slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
             }
 
+            if self.show_salvage && item.as_ref().map_or(false, |item| item.is_salvageable()) {
+                slot_widget = slot_widget.with_background_color(Color::Rgba(1.0, 1.0, 1.0, 1.0));
+            }
+
             if let Some(item) = item {
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
@@ -376,15 +383,40 @@ impl<'a> InventoryScroller<'a> {
                     .as_ref()
                     .and_then(|(_, _, prices)| prices.clone());
 
-                slot_widget
-                    .filled_slot(quality_col_img)
-                    .with_item_tooltip(
-                        self.item_tooltip_manager,
-                        item,
-                        &prices_info,
-                        self.item_tooltip,
-                    )
-                    .set(state.ids.inv_slots[i], ui);
+                if self.show_salvage && item.is_salvageable() {
+                    let salvage_result: Vec<_> = item
+                        .salvage_output()
+                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
+                        .map(|item| item as Arc<dyn ItemDesc>)
+                        .collect();
+
+                    // let items = core::iter::once(item as &dyn ItemDesc)
+                    //     .chain(salvage_result.iter().map(|item| item.borrow()));
+                    let items = salvage_result
+                        .iter()
+                        .map(|item| item.borrow())
+                        .chain(core::iter::once(item as &dyn ItemDesc));
+
+                    slot_widget
+                        .filled_slot(quality_col_img)
+                        .with_item_tooltip(
+                            self.item_tooltip_manager,
+                            items,
+                            &prices_info,
+                            self.item_tooltip,
+                        )
+                        .set(state.ids.inv_slots[i], ui);
+                } else {
+                    slot_widget
+                        .filled_slot(quality_col_img)
+                        .with_item_tooltip(
+                            self.item_tooltip_manager,
+                            core::iter::once(item as &dyn ItemDesc),
+                            &prices_info,
+                            self.item_tooltip,
+                        )
+                        .set(state.ids.inv_slots[i], ui);
+                }
             } else {
                 slot_widget.set(state.ids.inv_slots[i], ui);
             }
@@ -727,6 +759,7 @@ impl<'a> Widget for Bag<'a> {
             true,
             inventory,
             &state.bg_ids,
+            self.show.salvage,
         )
         .set(state.ids.inventory_scroller, ui);
 
@@ -843,7 +876,12 @@ impl<'a> Widget for Bag<'a> {
                 if let Some(item) = inventory.equipped($slot) {
                     let manager = &mut *self.item_tooltip_manager;
                     $slot_maker
-                        .with_item_tooltip(manager, item, &None, &item_tooltip)
+                        .with_item_tooltip(
+                            manager,
+                            core::iter::once(item as &dyn ItemDesc),
+                            &None,
+                            &item_tooltip,
+                        )
                         .set($slot_id, ui)
                 } else {
                     let manager = &mut *self.tooltip_manager;

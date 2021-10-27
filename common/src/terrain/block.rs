@@ -261,6 +261,7 @@ impl Block {
                 | SpriteKind::Forge
                 | SpriteKind::Loom
                 | SpriteKind::SpinningWheel
+                | SpriteKind::DismantlingBench
                 | SpriteKind::TanningRack => None,
                 SpriteKind::EnsnaringVines => Some(0.1),
                 _ => Some(0.25),
