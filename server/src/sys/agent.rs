@@ -17,6 +17,7 @@ use common::{
             tool::{AbilitySpec, ToolKind},
             ConsumableKind, Item, ItemDesc, ItemKind,
         },
+        projectile::ProjectileConstructor,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
         CharacterState, Combo, ControlAction, ControlEvent, Controller, Energy, Health,
@@ -1807,7 +1808,8 @@ impl<'a> AgentData<'a> {
 
         let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
 
-        let tgt_eye_offset = tgt_data.body.map_or(0.0, |b| b.eye_height()) +
+        let tgt_eye_height = tgt_data.body.map_or(0.0, |b| b.eye_height());
+        let tgt_eye_offset = tgt_eye_height +
                    // Special case for jumping attacks to jump at the body
                    // of the target and not the ground around the target
                    // For the ranged it is to shoot at the feet and not
@@ -1854,6 +1856,15 @@ impl<'a> AgentData<'a> {
                 )
             },
             CharacterState::BasicRanged(c) => {
+                let offset_z = match c.static_data.projectile {
+                    // Aim fireballs at feet instead of eyes for splash damage
+                    ProjectileConstructor::Fireball {
+                        damage: _,
+                        radius: _,
+                        energy_regen: _,
+                    } => 0.0,
+                    _ => tgt_eye_offset,
+                };
                 let projectile_speed = c.static_data.projectile_speed;
                 aim_projectile(
                     projectile_speed,
@@ -1864,7 +1875,7 @@ impl<'a> AgentData<'a> {
                     Vec3::new(
                         tgt_data.pos.0.x,
                         tgt_data.pos.0.y,
-                        tgt_data.pos.0.z + tgt_eye_offset,
+                        tgt_data.pos.0.z + offset_z,
                     ),
                 )
             },
