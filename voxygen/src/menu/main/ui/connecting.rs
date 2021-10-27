@@ -1,13 +1,20 @@
+use std::str::FromStr;
+
 use super::{ConnectionState, Imgs, Message};
 
-use crate::ui::{
-    fonts::IcedFonts as Fonts,
-    ice::{component::neat_button, style, widget::Image, Element, IcedUi as Ui, Id},
-    Graphic,
+use crate::{
+    game_input::GameInput,
+    settings::ControlSettings,
+    ui::{
+        fonts::IcedFonts as Fonts,
+        ice::{component::neat_button, style, widget::Image, Element, IcedUi as Ui, Id},
+        Graphic,
+    },
 };
 use common::assets::{self, AssetExt};
 use i18n::Localization;
 use iced::{button, Align, Column, Container, Length, Row, Space, Text};
+use keyboard_keynames::key_layout::KeyLayout;
 use serde::{Deserialize, Serialize};
 
 struct LoadingAnimation {
@@ -84,6 +91,8 @@ impl Screen {
         i18n: &Localization,
         button_style: style::button::Style,
         show_tip: bool,
+        controls: &ControlSettings,
+        key_layout: &Option<KeyLayout>,
     ) -> Element<Message> {
         // TODO: add built in support for animated images
         let frame_index = (time * self.loading_animation.speed_factor as f64)
@@ -93,11 +102,35 @@ impl Screen {
         let children = match connection_state {
             ConnectionState::InProgress => {
                 let tip = if show_tip {
-                    let tip = format!(
-                        "{} {}",
-                        &i18n.get("main.tip"),
-                        &i18n.get_variation("loading.tips", self.tip_number)
-                    );
+                    let tip = &i18n.get_variation("loading.tips", self.tip_number);
+                    let mut new_tip = String::with_capacity(tip.len());
+                    let mut last_index = 0;
+
+                    // This could be done with regex instead, but adding new dependencies is
+                    // scary...
+                    tip.match_indices("{gameinput.").for_each(|(start, s)| {
+                        println!("start {}", start);
+                        if let Some(end) = tip[start + s.len()..].find('}') {
+                            let end = start + s.len() + end;
+                            println!("end {}", end);
+                            if let Ok(game_input) = GameInput::from_str(&tip[start + 1..end]) {
+                                println!("input {:?}", game_input);
+                                new_tip.push_str(&tip[last_index..start]);
+                                new_tip.push_str(
+                                    controls.keybindings[&game_input]
+                                        .display_string(key_layout)
+                                        .as_str(),
+                                );
+                                last_index = end + 1;
+                            }
+                        }
+                    });
+                    // If there is any text left over append it
+                    if last_index < tip.len() {
+                        new_tip.push_str(&tip[last_index..]);
+                    }
+
+                    let tip = format!("{} {}", i18n.get("main.tip"), new_tip.as_str());
                     Container::new(Text::new(tip).size(fonts.cyri.scale(25)))
                         .width(Length::Fill)
                         .height(Length::Fill)

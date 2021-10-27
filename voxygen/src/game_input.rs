@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::convert::AsRef;
-use strum::{AsRefStr, EnumIter};
+use strum::{AsRefStr, EnumIter, EnumString};
 
 /// Represents a key that the game recognises after input mapping.
 #[derive(
@@ -16,6 +16,7 @@ use strum::{AsRefStr, EnumIter};
     Serialize,
     AsRefStr,
     EnumIter,
+    EnumString,
 )]
 pub enum GameInput {
     #[strum(serialize = "gameinput.primary")]

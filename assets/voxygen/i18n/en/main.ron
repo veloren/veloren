@@ -85,9 +85,10 @@ https://veloren.net/account/."#,
 
 
     vector_map: {
+        // The keybinding names can be found in voxygen/src/game_input.rs in the GameInput enum
         "loading.tips": [
-            "Press 'G' to light your lantern.",
-            "Press 'F1' to see all default keybindings.",
+            "Press '{gameinput.togglelantern}' to light your lantern.",
+            "Press '{gameinput.help}' to see all default keybindings.",
             "You can type /say or /s to only chat with players directly around you.",
             "You can type /region or /r to only chat with players a couple of hundred blocks around you.",
             "Admins can use the /build command to enter build mode.",
@@ -96,16 +97,18 @@ https://veloren.net/account/."#,
             "Keep an eye out for food, chests and other loot spread all around the world!",
             "Inventory filled with food? Try crafting better food from it!",
             "Wondering what there is to do? Try out one of the dungeons marked on the map!",
-            "Don't forget to adjust the graphics for your system. Press 'N' to open the settings.",
-            "Playing with others is fun! Press 'O' to see who is online.",
-            "Press 'J' to dance. Party!",
-            "Press 'L-Shift' to open your Glider and conquer the skies.",
+            "Don't forget to adjust the graphics for your system. Press '{gameinput.settings}' to open the settings.",
+            "Playing with others is fun! Press '{gameinput.social}' to see who is online.",
+            "Press '{gameinput.dance}' to dance. Party!",
+            "Press '{gameinput.glide}' to open your Glider and conquer the skies.",
             "Veloren is still in Pre-Alpha. We do our best to improve it every day!",
             "If you want to join the dev team or just have a chat with us, join our Discord server.",
             "You can toggle showing your amount of health on the healthbar in the settings.",
-            "Sit near a campfire (with the 'K' key) to slowly recover from your injuries.",
-            "Need more bags or better armor to continue your journey? Press 'C' to open the crafting menu!",
-            "Try jumping when rolling through creatures.",
+            "Sit near a campfire (with the '{gameinput.sit}' key) to slowly recover from your injuries.",
+            "Need more bags or better armor to continue your journey? Press '{gameinput.crafting}' to open the crafting menu!",
+            "Press '{gameinput.roll}' to roll. Rolling can be used to move faster and dodge enemy attacks.",
+            "Wondering what an item is used for? Search 'input:<item name>' in crafting to see what recipes it's used in.",
+            "Find something cool? Take a screenshot of it with '{gameinput.screenshot}'."
         ],
     }
 )
