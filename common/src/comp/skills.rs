@@ -174,16 +174,16 @@ impl SwordTreeModifiers {
     const fn get() -> Self {
         Self {
             dash: SwordDashModifiers {
-                energy_cost: 0.75,
-                energy_drain: 0.75,
-                base_damage: 1.2,
-                scaled_damage: 1.2,
-                forward_speed: 1.15,
+                energy_cost: 0.9,
+                energy_drain: 0.9,
+                base_damage: 1.1,
+                scaled_damage: 1.1,
+                forward_speed: 1.05,
             },
             spin: SwordSpinModifiers {
-                base_damage: 1.4,
-                swing_duration: 0.8,
-                energy_cost: 0.75,
+                base_damage: 1.2,
+                swing_duration: 0.9,
+                energy_cost: 0.9,
                 num: 1,
             },
         }
@@ -213,15 +213,15 @@ impl AxeTreeModifiers {
     const fn get() -> Self {
         Self {
             spin: AxeSpinModifiers {
-                base_damage: 1.3,
-                swing_duration: 0.8,
-                energy_cost: 0.75,
+                base_damage: 1.2,
+                swing_duration: 0.85,
+                energy_cost: 0.85,
             },
             leap: AxeLeapModifiers {
-                base_damage: 1.35,
-                knockback: 1.4,
+                base_damage: 1.2,
+                knockback: 1.2,
                 energy_cost: 0.75,
-                leap_strength: 1.2,
+                leap_strength: 1.1,
             },
         }
     }
@@ -255,19 +255,19 @@ pub struct HammerLeapModifiers {
 impl HammerTreeModifiers {
     const fn get() -> Self {
         Self {
-            single_strike: HammerStrikeModifiers { knockback: 1.5 },
+            single_strike: HammerStrikeModifiers { knockback: 1.25 },
             charged: HammerChargedModifers {
-                scaled_damage: 1.25,
-                scaled_knockback: 1.5,
-                energy_drain: 0.75,
-                charge_rate: 1.25,
+                scaled_damage: 1.2,
+                scaled_knockback: 1.3,
+                energy_drain: 0.85,
+                charge_rate: 1.15,
             },
             leap: HammerLeapModifiers {
-                base_damage: 1.4,
-                knockback: 1.5,
+                base_damage: 1.25,
+                knockback: 1.3,
                 energy_cost: 0.75,
-                leap_strength: 1.25,
-                range: 1.0,
+                leap_strength: 1.1,
+                range: 0.5,
             },
         }
     }
@@ -310,25 +310,25 @@ impl BowTreeModifiers {
     const fn get() -> Self {
         Self {
             universal: BowUniversalModifiers {
-                projectile_speed: 1.2,
+                projectile_speed: 1.1,
             },
             charged: BowChargedModifiers {
-                damage_scaling: 1.2,
-                regen_scaling: 1.2,
-                knockback_scaling: 1.2,
+                damage_scaling: 1.1,
+                regen_scaling: 1.1,
+                knockback_scaling: 1.1,
                 charge_rate: 1.1,
                 move_speed: 1.1,
             },
             repeater: BowRepeaterModifiers {
-                power: 1.2,
-                energy_cost: 0.8,
+                power: 1.1,
+                energy_cost: 0.9,
                 max_speed: 1.2,
             },
             shotgun: BowShotgunModifiers {
-                power: 1.2,
-                energy_cost: 1.2,
+                power: 1.1,
+                energy_cost: 0.9,
                 num_projectiles: 1,
-                spread: 0.8,
+                spread: 0.9,
             },
         }
     }
@@ -364,21 +364,21 @@ impl StaffTreeModifiers {
     const fn get() -> Self {
         Self {
             fireball: StaffFireballModifiers {
-                power: 1.2,
-                regen: 1.2,
-                range: 1.15,
+                power: 1.1,
+                regen: 1.1,
+                range: 1.1,
             },
             flamethrower: StaffFlamethrowerModifiers {
-                damage: 1.3,
-                range: 1.25,
-                energy_drain: 0.8,
-                velocity: 1.25,
+                damage: 1.2,
+                range: 1.1,
+                energy_drain: 0.9,
+                velocity: 1.1,
             },
             shockwave: StaffShockwaveModifiers {
-                damage: 1.3,
-                knockback: 1.3,
-                duration: 1.2,
-                energy_cost: 0.8,
+                damage: 1.15,
+                knockback: 1.15,
+                duration: 1.1,
+                energy_cost: 0.9,
             },
         }
     }
@@ -415,22 +415,22 @@ impl SceptreTreeModifiers {
     const fn get() -> Self {
         Self {
             beam: SceptreBeamModifiers {
-                damage: 1.2,
-                range: 1.2,
-                energy_regen: 1.2,
-                lifesteal: 1.15,
+                damage: 1.1,
+                range: 1.1,
+                energy_regen: 1.1,
+                lifesteal: 1.05,
             },
             healing_aura: SceptreHealingAuraModifiers {
-                strength: 1.15,
-                duration: 1.2,
-                range: 1.25,
-                energy_cost: 0.85,
+                strength: 1.05,
+                duration: 1.1,
+                range: 1.1,
+                energy_cost: 0.90,
             },
             warding_aura: SceptreWardingAuraModifiers {
-                strength: 1.15,
-                duration: 1.2,
-                range: 1.25,
-                energy_cost: 0.85,
+                strength: 1.05,
+                duration: 1.1,
+                range: 1.1,
+                energy_cost: 0.95,
             },
         }
     }
@@ -477,9 +477,9 @@ impl GeneralTreeModifiers {
     const fn get() -> Self {
         Self {
             roll: RollTreeModifiers {
-                energy_cost: 0.9,
-                strength: 1.1,
-                duration: 1.1,
+                energy_cost: 0.95,
+                strength: 1.05,
+                duration: 1.05,
             },
             swim: SwimTreeModifiers { speed: 1.25 },
             climb: ClimbTreeModifiers {
