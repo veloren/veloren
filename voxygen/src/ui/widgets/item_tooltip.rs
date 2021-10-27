@@ -120,12 +120,13 @@ impl ItemTooltipManager {
     ) where
         I: Borrow<dyn ItemDesc>,
     {
-        let mut y_offset = 0.0;
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
-        for item in items {
-            let tooltip_id = ui.widget_id_generator().next();
+        let mut tooltip_id = widget::id::List::new();
 
-            let mut tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
+        for (i, item) in items.enumerate() {
+            tooltip_id.resize(i + 1, &mut ui.widget_id_generator());
+
+            let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
                 // Fill in text and the potential image beforehand to get an accurate size for
                 // spacing
                 let tooltip = tooltip
@@ -151,14 +152,20 @@ impl ItemTooltipManager {
                 } else {
                     m_y - mp_h - t_h / 2.0
                 };
-                tooltip
-                    .floating(true)
-                    .transparency(transparency)
-                    .x_y(x, y + y_offset)
-                    .set(tooltip_id, ui);
 
-                // Increase the offset to stack the next tooltip on top of the previous one
-                y_offset += t_h + 5.0;
+                if i == 0 {
+                    tooltip
+                        .floating(true)
+                        .transparency(transparency)
+                        .x_y(x, y)
+                        .set(tooltip_id[i], ui);
+                } else {
+                    tooltip
+                        .floating(true)
+                        .transparency(transparency)
+                        .up_from(tooltip_id[i - 1], 5.0)
+                        .set(tooltip_id[i], ui);
+                }
             };
 
             match self.state {
