@@ -109,12 +109,9 @@ impl Screen {
                     // This could be done with regex instead, but adding new dependencies is
                     // scary...
                     tip.match_indices("{gameinput.").for_each(|(start, s)| {
-                        println!("start {}", start);
                         if let Some(end) = tip[start + s.len()..].find('}') {
                             let end = start + s.len() + end;
-                            println!("end {}", end);
                             if let Ok(game_input) = GameInput::from_str(&tip[start + 1..end]) {
-                                println!("input {:?}", game_input);
                                 new_tip.push_str(&tip[last_index..start]);
                                 new_tip.push_str(
                                     controls.keybindings[&game_input]
