@@ -1697,8 +1697,8 @@ impl<'a> AgentData<'a> {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Secondary));
-                // Reset timer
-                agent.action_state.timer = 0.0;
+            // Reset timer
+            agent.action_state.timer = 0.0;
         } else if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -1706,7 +1706,8 @@ impl<'a> AgentData<'a> {
             controller
                 .actions
                 .push(ControlAction::basic_input(InputKind::Primary));
-        } else if thread_rng().gen_bool(0.01) && attack_data.angle < 15.0
+        } else if thread_rng().gen_bool(0.01)
+            && attack_data.angle < 15.0
             && attack_data.dist_sqrd < (6.0 * attack_data.min_attack_dist).powi(2)
         {
             controller

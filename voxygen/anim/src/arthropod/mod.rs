@@ -128,6 +128,7 @@ pub struct SkeletonAttr {
     leg_b: (f32, f32, f32),
     scaler: f32,
     leg_ori: (f32, f32, f32, f32),
+    snapper: bool,
 }
 
 impl<'a> std::convert::TryFrom<&'a comp::Body> for SkeletonAttr {
@@ -155,6 +156,7 @@ impl Default for SkeletonAttr {
             leg_b: (0.0, 0.0, 0.0),
             scaler: 0.0,
             leg_ori: (0.0, 0.0, 0.0, 0.0),
+            snapper: false,
         }
     }
 }
@@ -206,7 +208,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tarantula, _) => (3.0, 0.0, -4.0),
                 (Blackwidow, _) => (3.0, 0.0, -4.0),
                 (Antlion, _) => (3.0, 0.0, -4.0),
-                (Hornbeetle, _) => (-0.5, 5.0, 3.0),
+                (Hornbeetle, _) => (5.5, 5.0, 3.0),
                 (Leafbeetle, _) => (0.5, 5.0, 3.0),
                 (Stagbeetle, _) => (0.5, 6.0, 4.5),
                 (Weevil, _) => (0.5, 5.0, 3.0),
@@ -219,9 +221,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tarantula, _) => (3.0, 0.0, -4.0),
                 (Blackwidow, _) => (3.0, 0.0, -4.0),
                 (Antlion, _) => (3.0, 0.0, -4.0),
-                (Hornbeetle, _) => (0.0, 6.0, 2.0),
+                (Hornbeetle, _) => (4.0, 6.0, 2.0),
                 (Leafbeetle, _) => (0.5, 4.0, 2.0),
-                (Stagbeetle, _) => (0.5, -5.0, 3.0),
+                (Stagbeetle, _) => (0.5, 6.0, 3.0),
                 (Weevil, _) => (0.5, 4.0, 1.5),
                 (Cavespider, _) => (3.0, 0.0, -4.0),
                 (Moltencrawler, _) => (3.0, 0.0, -4.0),
@@ -297,6 +299,12 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             leg_ori: match (body.species, body.body_type) {
                 (Antlion, _) => (0.7, -0.3, -0.4, 0.4),
                 (_, _) => (0.1, -0.3, 0.0, 0.4),
+            },
+            // Whether or not it used its mandibles for attacks
+            snapper: match (body.species, body.body_type) {
+                (Stagbeetle, _) => true,
+                (Antlion, _) => true,
+                (_, _) => false,
             },
         }
     }

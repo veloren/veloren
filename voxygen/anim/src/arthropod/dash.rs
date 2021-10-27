@@ -64,21 +64,23 @@ impl Animation for DashAnimation {
 
         next.wing_fl.position = Vec3::new(-s_a.wing_f.0, s_a.wing_f.1, s_a.wing_f.2);
         next.wing_fr.position = Vec3::new(s_a.wing_f.0, s_a.wing_f.1, s_a.wing_f.2);
-        next.wing_fl.orientation = Quaternion::rotation_x(movement1abs * -0.4 + shortalt * 0.2)
-            * Quaternion::rotation_y(movement1abs * -0.5 + movement2abs * -0.7)
-            * Quaternion::rotation_z(movement1abs * 0.2);
-        next.wing_fr.orientation = Quaternion::rotation_x(movement1abs * -0.4 + shortalt * 0.2)
-            * Quaternion::rotation_y(movement1abs * 0.5 + movement2abs * 0.7)
-            * Quaternion::rotation_z(movement1abs * -0.2);
+        next.wing_fl.orientation =
+            Quaternion::rotation_x(movement1abs * -0.4 + shortalt * 0.2 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1abs * -0.5 + movement2abs * -0.1)
+                * Quaternion::rotation_z(movement1abs * -0.2);
+        next.wing_fr.orientation =
+            Quaternion::rotation_x(movement1abs * -0.4 + shortalt * 0.2 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1abs * 0.5 + movement2abs * 0.1)
+                * Quaternion::rotation_z(movement1abs * 0.2);
 
         next.wing_bl.position = Vec3::new(-s_a.wing_b.0, s_a.wing_b.1, s_a.wing_b.2);
         next.wing_br.position = Vec3::new(s_a.wing_b.0, s_a.wing_b.1, s_a.wing_b.2);
-        next.wing_bl.orientation = Quaternion::rotation_x(movement1abs * -0.2 + shortalt * 0.2)
-            * Quaternion::rotation_y(movement1abs * -0.4 + movement2abs * -0.7)
-            * Quaternion::rotation_z(movement1abs * 0.2);
-        next.wing_br.orientation = Quaternion::rotation_x(movement1abs * -0.2 + shortalt * 0.2)
-            * Quaternion::rotation_y(movement1abs * 0.4 + movement2abs * 0.7)
-            * Quaternion::rotation_z(movement1abs * -0.2);
+        next.wing_bl.orientation =
+            Quaternion::rotation_x(movement1abs * -0.2 + shortalt * 0.2 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1abs * -0.4 + movement2abs * -0.1);
+        next.wing_br.orientation =
+            Quaternion::rotation_x(movement1abs * -0.2 + shortalt * 0.2 + movement2abs * -0.6)
+                * Quaternion::rotation_y(movement1abs * 0.4 + movement2abs * 0.1);
 
         next
     }

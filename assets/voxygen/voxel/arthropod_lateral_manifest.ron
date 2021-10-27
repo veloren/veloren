@@ -597,11 +597,11 @@
             lateral: ("npc.stag_beetle.male.wing_fr"),
         ),
         wing_bl: (
-            offset: (-4.0, -1.0, -0.5),
+            offset: (-4.0, -12.0, -0.5),
             lateral: ("npc.stag_beetle.male.wing_br"),
         ),
         wing_br: (
-            offset: (-0.0, -1.0, -0.5),
+            offset: (-0.0, -12.0, -0.5),
             lateral: ("npc.stag_beetle.male.wing_br"),
         ),
         leg_fl: (
@@ -655,11 +655,11 @@
             lateral: ("npc.stag_beetle.male.wing_fr"),
         ),
         wing_bl: (
-            offset: (-4.0, -1.0, -0.5),
+            offset: (-4.0, -12.0, -0.5),
             lateral: ("npc.stag_beetle.male.wing_br"),
         ),
         wing_br: (
-            offset: (-0.0, -1.0, -0.5),
+            offset: (-0.0, -12.0, -0.5),
             lateral: ("npc.stag_beetle.male.wing_br"),
         ),
         leg_fl: (
