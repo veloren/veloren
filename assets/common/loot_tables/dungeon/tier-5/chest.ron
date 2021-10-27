@@ -2,6 +2,7 @@
     // Gear
     (1.0, LootTable("common.loot_tables.weapons.tier-4")),
     (1.0, LootTable("common.loot_tables.armor.tier-4")),
+    (0.3, ItemQuantity("common.items.armor.cultist.bandana")),
     // Currency
     (3.0, ItemQuantity("common.items.utility.coins", 200, 500)),
     // Materials

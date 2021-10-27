@@ -7,4 +7,6 @@
     (5.0, LootTable("common.loot_tables.consumable.good")),
     // lantern
     (1.0, Item("common.items.lantern.blue_0")),
+    // gear
+    (3.0, ItemQuantity("common.items.armor.misc.head.mitre")),
 ]

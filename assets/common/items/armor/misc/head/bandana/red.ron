@@ -1,6 +1,6 @@
 ItemDef(
     name: "Red Bandana",
-    description: "yep.",
+    description: "Very sneaky, but also, bright red.",
     kind: Armor((
         kind: Head("Red"),
         stats: (
@@ -9,7 +9,7 @@ ItemDef(
             energy_max: 0,
             energy_reward: 0.0,
             crit_power: 0.0,
-            stealth: 0.0,
+            stealth: 0.15,
         ),
     )),
     quality: Common,

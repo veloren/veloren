@@ -101,7 +101,7 @@ impl Spot {
         Self::generate_spots(
             Spot::PirateHideout,
             world,
-            2.0,
+            1.3,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -115,7 +115,7 @@ impl Spot {
         Self::generate_spots(
             Spot::DwarvenGrave,
             world,
-            1.0,
+            1.3,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -284,7 +284,7 @@ impl Spot {
         Self::generate_spots(
             Spot::AirshipCrash,
             world,
-            0.5,
+            0.7,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()

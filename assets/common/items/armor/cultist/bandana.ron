@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Cultist Bandana",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Head("Cultist"),
+        stats: (
+            protection: Normal(18.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 7.0,
+            energy_reward: 0.1,
+            crit_power: 0.06,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+Cultist
+    ],
+)

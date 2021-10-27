@@ -5,6 +5,7 @@
     Armor(Legs): Item("common.items.armor.twigsflowers.pants"),
     Armor(Feet): Item("common.items.armor.twigsflowers.foot"),
     Armor(Belt): Item("common.items.armor.twigsflowers.belt"),
+    Armor(Head): Item("common.items.armor.misc.head.hood"),
 
     Lantern: Item("common.items.lantern.black_0"),
     Armor(Neck): Item("common.items.armor.misc.neck.gem_of_resilience"),

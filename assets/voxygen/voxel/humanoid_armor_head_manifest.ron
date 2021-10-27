@@ -79,101 +79,198 @@
         ),
         //
         (Human, Male, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-2.0, -2.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-4.0, -4.0, 5.0)),
             color: None
         ),
         (Human, Female, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-2.0, -1.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-4.0, -4.0, 5.0)),
             color: None
         ),
         (Elf, Male, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-1.0, -1.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-3.0, -4.0, 5.0)),
             color: None
         ),
         (Elf, Female, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-1.0, -2.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-3.0, -5.0, 5.0)),
             color: None
         ),
         (Dwarf, Male, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-3.0, -0.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-5.0, -3.0, 5.0)),
             color: None
         ),
         (Dwarf, Female, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-3.0, -0.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-5.0, -3.0, 5.0)),
             color: None
         ),
         (Danari, Male, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-0.0, -2.0, 7.0)),
+            vox_spec: ("armor.pirate.hat", (-2.0, -4.0, 7.0)),
             color: None
         ),
         (Danari, Female, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-0.0, -2.0, 7.0)),
+            vox_spec: ("armor.pirate.hat", (-2.0, -4.0, 7.0)),
             color: None
         ),
         (Undead, Male, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-4.0, -2.0, 7.0)),
+            vox_spec: ("armor.pirate.hat", (-6.0, -4.0, 7.0)),
             color: None
         ),
         (Undead, Female, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-4.0, -2.0, 6.0)),
+            vox_spec: ("armor.pirate.hat", (-6.0, -4.0, 6.0)),
             color: None
         ),
         (Orc, Male, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-1.0, -1.0, 8.0)),
+            vox_spec: ("armor.pirate.hat", (-3.0, -2.0, 8.0)),
             color: None
         ),
         (Orc, Female, "Pirate"): (
-            vox_spec: ("armor.pirate.hat", (-1.0, -2.0, 5.0)),
+            vox_spec: ("armor.pirate.hat", (-3.0, -5.0, 5.0)),
             color: None
         ),
         //
-        //
         (Human, Male, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-3.0, -3.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-4.0, -5.0, 5.0)),
             color: None
         ),
         (Human, Female, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-3.0, -3.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-4.0, -5.0, 5.0)),
             color: None
         ),
         (Elf, Male, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-2.0, -3.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-3.0, -5.0, 5.0)),
             color: None
         ),
         (Elf, Female, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-2.0, -4.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-3.0, -6.0, 5.0)),
             color: None
         ),
         (Dwarf, Male, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-4.0, -3.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-5.0, -4.0, 5.0)),
             color: None
         ),
         (Dwarf, Female, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-4.0, -3.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-5.0, -4.0, 5.0)),
             color: None
         ),
         (Danari, Male, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-1.0, -4.0, 7.0)),
+            vox_spec: ("armor.misc.head.straw", (-2.0, -5.0, 7.0)),
             color: None
         ),
         (Danari, Female, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-1.0, -4.0, 7.0)),
+            vox_spec: ("armor.misc.head.straw", (-2.0, -5.0, 7.0)),
             color: None
         ),
         (Undead, Male, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-5.0, -4.0, 7.0)),
+            vox_spec: ("armor.misc.head.straw", (-6.0, -5.0, 7.0)),
             color: None
         ),
         (Undead, Female, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-5.0, -3.0, 6.0)),
+            vox_spec: ("armor.misc.head.straw", (-6.0, -5.0, 6.0)),
             color: None
         ),
         (Orc, Male, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-2.0, -2.0, 8.0)),
+            vox_spec: ("armor.misc.head.straw", (-3.0, -3.0, 8.0)),
             color: None
         ),
         (Orc, Female, "Straw"): (
-            vox_spec: ("armor.misc.head.straw", (-2.0, -5.0, 5.0)),
+            vox_spec: ("armor.misc.head.straw", (-3.0, -6.0, 5.0)),
+            color: None
+        ),
+        //
+        (Human, Male, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-4.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Human, Female, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-4.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Elf, Male, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-3.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Elf, Female, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-3.0, -6.0, 5.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-5.0, -4.0, 5.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-5.0, -4.0, 5.0)),
+            color: None
+        ),
+        (Danari, Male, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-2.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Danari, Female, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-2.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Undead, Male, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-6.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Undead, Female, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-6.0, -5.0, 6.0)),
+            color: None
+        ),
+        (Orc, Male, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-3.0, -3.0, 8.0)),
+            color: None
+        ),
+        (Orc, Female, "Crown"): (
+            vox_spec: ("armor.misc.head.crown", (-3.0, -6.0, 5.0)),
+            color: None
+        ),
+        //
+        (Human, Male, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-4.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Human, Female, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-4.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Elf, Male, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-3.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Elf, Female, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-3.0, -6.0, 5.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-5.0, -4.0, 5.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-5.0, -4.0, 5.0)),
+            color: None
+        ),
+        (Danari, Male, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-2.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Danari, Female, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-2.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Undead, Male, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-6.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Undead, Female, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-6.0, -5.0, 6.0)),
+            color: None
+        ),
+        (Orc, Male, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-3.0, -3.0, 8.0)),
+            color: None
+        ),
+        (Orc, Female, "Mitre"): (
+            vox_spec: ("armor.misc.head.mitre", (-3.0, -6.0, 5.0)),
             color: None
         ),
         //
@@ -198,7 +295,7 @@
             color: None
         ),
         (Human, Female, "Headband"): (
-            vox_spec: ("armor.misc.head.headband.human_f", (4.0, 2.0, 7.0)),
+            vox_spec: ("armor.misc.head.headband.human_f", (2.0, 3.0, 5.0)),
             color: None
         ),
         (Orc, Male, "Headband"): (
@@ -273,6 +370,7 @@
             vox_spec: ("armor.misc.head.helmet", (-2.0, -3.0, -1.0)),
             color: None
         ),
+        //
         (Danari, Male, "Red"): (
             vox_spec: ("armor.misc.head.bandana.red", (4.0, 6.0, -8.0)),
             color: None
@@ -321,6 +419,7 @@
             vox_spec: ("armor.misc.head.bandana.red", (3.0, 6.0, -10.0)),
             color: None
         ),
+        //
         (Danari, Male, "Thief"): (
             vox_spec: ("armor.misc.head.bandana.thief", (4.0, 6.0, -8.0)),
             color: None
@@ -369,12 +468,200 @@
             vox_spec: ("armor.misc.head.bandana.thief", (3.0, 6.0, -10.0)),
             color: None
         ),
+//
+        (Danari, Male, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (4.0, 6.0, -8.0)),
+            color: None
+        ),
+        (Danari, Female, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (4.0, 6.0, -8.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (1.0, 7.0, -10.0)),
+            color: None
+        ),        
+        (Dwarf, Female, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (1.0, 7.0, -10.0)),
+            color: None
+        ),
+        (Human, Male, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (2.0, 6.0, -10.0)),
+            color: None
+        ),
+        (Human, Female, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (2.0, 7.0, -10.0)),
+            color: None
+        ),
+        (Undead, Male, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (0.0, 6.0, -8.0)),
+            color: None
+        ),
+        (Undead, Female, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (0.0, 6.0, -9.0)),
+            color: None
+        ),
+        (Elf, Male, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (3.0, 6.0, -10.0)),
+            color: None
+        ),
+        (Elf, Female, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (3.0, 6.0, -10.0)),
+            color: None
+        ),
+        (Orc, Male, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (3.0, 8.0, -8.0)),
+            color: None
+        ),
+        (Orc, Female, "Cultist"): (
+            vox_spec: ("armor.cultist.bandana", (3.0, 6.0, -10.0)),
+            color: None
+        ),
+        //
         (Human, Male, "Hood"): (
-            vox_spec: ("armor.misc.head.hood", (1.0, 0.0, -1.0)),
+            vox_spec: ("armor.misc.head.hood", (-4.0, -5.0, -2.0)),
+            color: None
+        ),
+        (Human, Female, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-4.0, -5.0, -2.0)),
+            color: None
+        ),
+        (Elf, Male, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-3.0, -5.0, -2.0)),
+            color: None
+        ),
+        (Elf, Female, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-3.0, -6.0, -2.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-5.0, -4.0, -2.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-5.0, -4.0, -2.0)),
+            color: None
+        ),
+        (Danari, Male, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-2.0, -5.0, 0.0)),
+            color: None
+        ),
+        (Danari, Female, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-2.0, -5.0, 0.0)),
+            color: None
+        ),
+        (Undead, Male, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-6.0, -5.0, 0.0)),
+            color: None
+        ),
+        (Undead, Female, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-6.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Orc, Male, "Hood"): (
+            vox_spec: ("armor.misc.head.hood", (-3.0, -3.0, 0.0)),
             color: None
         ),
         (Orc, Female, "Hood"): (
-            vox_spec: ("armor.misc.head.hood", (2.0, -1.0, -1.0)),
+            vox_spec: ("armor.misc.head.hood", (-3.0, -6.0, -2.0)),
+            color: None
+        ),
+        //
+        (Human, Male, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-4.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Human, Female, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-4.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Elf, Male, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-3.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Elf, Female, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-3.0, -6.0, -1.0)),
+            color: None
+        ),
+        (Dwarf, Male, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-5.0, -4.0, -1.0)),
+            color: None
+        ),
+        (Dwarf, Female, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-5.0, -4.0, -1.0)),
+            color: None
+        ),
+        (Danari, Male, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-2.0, -5.0, 1.0)),
+            color: None
+        ),
+        (Danari, Female, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-2.0, -5.0, 1.0)),
+            color: None
+        ),
+        (Undead, Male, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-6.0, -5.0, 1.0)),
+            color: None
+        ),
+        (Undead, Female, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-6.0, -5.0, -0.0)),
+            color: None
+        ),
+        (Orc, Male, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-3.0, -3.0, 1.0)),
+            color: None
+        ),
+        (Orc, Female, "DarkHood"): (
+            vox_spec: ("armor.misc.head.hood_dark", (-3.0, -6.0, -1.0)),
+            color: None
+        ),
+        //
+        (Human, Male, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-4.0, -5.0, -2.0)),
+            color: None
+        ),
+        (Human, Female, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-4.0, -5.0, -2.0)),
+            color: None
+        ),
+        (Elf, Male, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, -2.0)),
+            color: None
+        ),
+        (Elf, Female, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -6.0, -2.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-5.0, -4.0, -2.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-5.0, -4.0, -2.0)),
+            color: None
+        ),
+        (Danari, Male, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, -0.0)),
+            color: None
+        ),
+        (Danari, Female, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-2.0, -5.0, -0.0)),
+            color: None
+        ),
+        (Undead, Male, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -5.0, -0.0)),
+            color: None
+        ),
+        (Undead, Female, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-6.0, -5.0, -1.0)),
+            color: None
+        ),
+        (Orc, Male, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -3.0, -0.0)),
+            color: None
+        ),
+        (Orc, Female, "Spikeguard"): (
+            vox_spec: ("armor.misc.head.spikeguard", (-3.0, -6.0, -2.0)),
             color: None
         ),
     }

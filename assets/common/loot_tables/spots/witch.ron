@@ -5,4 +5,5 @@
     (1.0, LootTable("common.loot_tables.weapons.tier-3")),
     (0.1, LootTable("common.loot_tables.weapons.tier-4")),
     (1.5, LootTable("common.loot_tables.food.prepared")),
+    (0.01, Item("common.items.armor.witch.hat")),
 ]

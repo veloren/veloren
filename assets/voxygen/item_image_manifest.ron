@@ -1166,6 +1166,10 @@
         "voxel.armor.cultist.shoulder",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
+    Armor(Head("Cultist")): VoxTrans(
+        "voxel.armor.cultist.bandana",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
     // Villager Clothing
     Armor(Pants("WorkerBlue")): VoxTrans(
         "voxel.armor.misc.pants.worker_blue",
@@ -2164,6 +2168,26 @@
     ),
     Armor(Head("Straw")): VoxTrans(
         "voxel.armor.misc.head.straw",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Hood")): VoxTrans(
+        "voxel.armor.misc.head.hood",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Crown")): VoxTrans(
+        "voxel.armor.misc.head.crown",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Mitre")): VoxTrans(
+        "voxel.armor.misc.head.mitre",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Mitre")): VoxTrans(
+        "voxel.armor.misc.head.mitre",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Head("Spikeguard")): VoxTrans(
+        "voxel.armor.misc.head.spikeguard",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     // Rings

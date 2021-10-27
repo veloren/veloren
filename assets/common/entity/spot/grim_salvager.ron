@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.humanoid"),
+    loot: LootTable("common.loot_tables.spots.bandit"),
 
     hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-0")),
 
