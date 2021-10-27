@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated client facing error messages to be localizable strings
 - Nerfed some skill values
 - Tweaked critical chance of legendary weapons
+- Agents using fireball projectiles aim at the feet instead of the eyes
 
 ### Removed
 
