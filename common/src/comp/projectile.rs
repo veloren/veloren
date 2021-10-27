@@ -151,6 +151,12 @@ impl ProjectileConstructor {
             } => {
                 let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
                     .with_requirement(CombatRequirement::AnyDamage);
+                let buff = CombatEffect::Buff(CombatBuff {
+                    kind: BuffKind::Bleeding,
+                    dur_secs: 5.0,
+                    strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
+                    chance: 0.1,
+                });
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -158,7 +164,8 @@ impl ProjectileConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
-                );
+                )
+                .with_effect(buff);
                 let attack = Attack::default()
                     .with_damage(damage)
                     .with_crit(crit_chance, crit_mult)
