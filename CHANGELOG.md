@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made map icons fade out when near the edge of the map display
 - Roughly doubled the speed of entity vs terrain physics checks
 - Updated client facing error messages to be localizable strings
+- Nerfed some skill values
+- Tweaked critical chance of legendary weapons
 
 ### Removed
 
