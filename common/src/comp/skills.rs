@@ -369,7 +369,7 @@ impl StaffTreeModifiers {
                 range: 1.1,
             },
             flamethrower: StaffFlamethrowerModifiers {
-                damage: 1.15,
+                damage: 1.2,
                 range: 1.1,
                 energy_drain: 0.9,
                 velocity: 1.1,
