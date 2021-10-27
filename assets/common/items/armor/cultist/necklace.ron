@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Amulet",
+    name: Direct("Cultist Amulet"),
     description: "You can still feel the Mindflayer's presence within this amulet...",
     kind: Armor((
         kind: Neck("Cultist"),
@@ -10,6 +10,6 @@ ItemDef(
             crit_power: Some(0.03),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

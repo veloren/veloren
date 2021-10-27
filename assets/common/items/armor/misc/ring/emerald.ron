@@ -9,6 +9,6 @@ ItemDef(
             energy_reward: Some(-0.1),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

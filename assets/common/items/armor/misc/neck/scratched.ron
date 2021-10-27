@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scratched Necklace",
+    name: Direct("Scratched Necklace"),
     description: "The string is about to snap...",
     kind: Armor((
         kind: Neck("Scratched"),
@@ -7,6 +7,6 @@ ItemDef(
             protection: Some(Normal(0.5)),
         ),
     )),
-    quality: Low,
+    quality: Direct(Low),
     tags: [],
 )

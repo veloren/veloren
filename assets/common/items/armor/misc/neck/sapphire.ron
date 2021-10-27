@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sapphire Necklace",
+    name: Direct("Sapphire Necklace"),
     description: "A sturdy iron necklace, with polished sapphire gems embedded into it.",
     kind: Armor((
         kind: Neck("Sapphire"),
@@ -8,6 +8,6 @@ ItemDef(
             crit_power: Some(0.05),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

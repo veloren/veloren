@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Topaz Necklace",
+    name: Direct("Topaz Necklace"),
     description: "A copper necklace, with topaz embedded in the center.",
     kind: Armor((
         kind: Neck("Topaz"),
@@ -8,6 +8,6 @@ ItemDef(
             energy_max: Some(10.0),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )

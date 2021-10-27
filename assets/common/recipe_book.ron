@@ -1736,8 +1736,8 @@
     "fang necklace": (
         output: ("common.items.armor.misc.neck.fang", 1),
         inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 3),
-            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 15),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 3, false),
+            (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 15, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1745,8 +1745,8 @@
     "honeycomb pendant": (
         output: ("common.items.armor.misc.neck.honeycomb_pendant", 1),
         inputs: [
-            (Item("common.items.crafting_ing.sticky_thread"), 3),
-            (Item("common.items.crafting_ing.honey"), 15),
+            (Item("common.items.crafting_ing.sticky_thread"), 3, false),
+            (Item("common.items.crafting_ing.honey"), 15, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1762,8 +1762,8 @@
     "diamond necklace": (
         output: ("common.items.armor.misc.neck.diamond", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.gold"), 4),
-            (Item("common.items.mineral.gem.diamond"), 6),
+            (Item("common.items.mineral.ingot.gold"), 4, false),
+            (Item("common.items.mineral.gem.diamond"), 6, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1779,8 +1779,8 @@
     "ruby necklace": (
         output: ("common.items.armor.misc.neck.ruby", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.silver"), 4),
-            (Item("common.items.mineral.gem.ruby"), 6),
+            (Item("common.items.mineral.ingot.silver"), 4, false),
+            (Item("common.items.mineral.gem.ruby"), 6, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1796,8 +1796,8 @@
     "emerald necklace": (
         output: ("common.items.armor.misc.neck.emerald", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.cobalt"), 4),
-            (Item("common.items.mineral.gem.emerald"), 6),
+            (Item("common.items.mineral.ingot.cobalt"), 4, false),
+            (Item("common.items.mineral.gem.emerald"), 6, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1813,8 +1813,8 @@
     "sapphire necklace": (
         output: ("common.items.armor.misc.neck.sapphire", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.iron"), 2),
-            (Item("common.items.mineral.gem.sapphire"), 3),
+            (Item("common.items.mineral.ingot.iron"), 2, false),
+            (Item("common.items.mineral.gem.sapphire"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1830,8 +1830,8 @@
     "topaz necklace": (
         output: ("common.items.armor.misc.neck.topaz", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.copper"), 2),
-            (Item("common.items.mineral.gem.topaz"), 3),
+            (Item("common.items.mineral.ingot.copper"), 2, false),
+            (Item("common.items.mineral.gem.topaz"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
@@ -1847,8 +1847,8 @@
     "amethyst necklace": (
         output: ("common.items.armor.misc.neck.amethyst", 1),
         inputs: [
-            (Item("common.items.mineral.ingot.tin"), 2),
-            (Item("common.items.mineral.gem.amethyst"), 3),
+            (Item("common.items.mineral.ingot.tin"), 2, false),
+            (Item("common.items.mineral.gem.amethyst"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,

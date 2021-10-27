@@ -9,6 +9,6 @@ ItemDef(
             crit_power: Some(-0.03),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

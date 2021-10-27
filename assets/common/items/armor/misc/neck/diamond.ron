@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Diamond Necklace",
+    name: Direct("Diamond Necklace"),
     description: "An expensive gold necklace, ornate with exquisite diamonds.",
     kind: Armor((
         kind: Neck("Diamond"),
@@ -9,6 +9,6 @@ ItemDef(
             crit_power: Some(0.1),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gold Necklace",
+    name: Direct("Gold Necklace"),
     description: "An expensive gold necklace... looks stolen.",
     kind: Armor((
         kind: Neck("Gold"),
@@ -9,6 +9,6 @@ ItemDef(
             crit_power: Some(0.02),
         ),
     )),
-    quality: Moderate,
+    quality: Direct(Moderate),
     tags: [],
 )
