@@ -6,6 +6,7 @@ BasicRanged(
         damage: 20.0,
         knockback: 25.0,
         radius: 5.0,
+        min_falloff: 0.6,
     ),
     projectile_body: Object(Pumpkin),
     projectile_light: None,

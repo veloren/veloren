@@ -54,29 +54,35 @@ pub enum ProjectileConstructor {
         damage: f32,
         radius: f32,
         energy_regen: f32,
+        min_falloff: f32,
     },
     Frostball {
         damage: f32,
         radius: f32,
+        min_falloff: f32,
     },
     NecroticSphere {
         damage: f32,
         radius: f32,
+        min_falloff: f32,
     },
     Possess,
     ClayRocket {
         damage: f32,
         radius: f32,
         knockback: f32,
+        min_falloff: f32,
     },
     Snowball {
         damage: f32,
         radius: f32,
+        min_falloff: f32,
     },
     ExplodingPumpkin {
         damage: f32,
         radius: f32,
         knockback: f32,
+        min_falloff: f32,
     },
 }
 
@@ -141,6 +147,7 @@ impl ProjectileConstructor {
                 damage,
                 radius,
                 energy_regen,
+                min_falloff,
             } => {
                 let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
                     .with_requirement(CombatRequirement::AnyDamage);
@@ -164,6 +171,7 @@ impl ProjectileConstructor {
                     ],
                     radius,
                     reagent: Some(Reagent::Red),
+                    min_falloff,
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -175,7 +183,11 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            Frostball { damage, radius } => {
+            Frostball {
+                damage,
+                radius,
+                min_falloff,
+            } => {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -192,6 +204,7 @@ impl ProjectileConstructor {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
                     reagent: Some(Reagent::White),
+                    min_falloff,
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -203,7 +216,11 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            NecroticSphere { damage, radius } => {
+            NecroticSphere {
+                damage,
+                radius,
+                min_falloff,
+            } => {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -220,6 +237,7 @@ impl ProjectileConstructor {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
                     reagent: Some(Reagent::Purple),
+                    min_falloff,
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -244,6 +262,7 @@ impl ProjectileConstructor {
                 damage,
                 radius,
                 knockback,
+                min_falloff,
             } => {
                 let knockback = AttackEffect::new(
                     Some(GroupTarget::OutOfGroup),
@@ -272,6 +291,7 @@ impl ProjectileConstructor {
                     ],
                     radius,
                     reagent: Some(Reagent::Red),
+                    min_falloff,
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -283,7 +303,11 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            Snowball { damage, radius } => {
+            Snowball {
+                damage,
+                radius,
+                min_falloff,
+            } => {
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Explosion,
@@ -299,6 +323,7 @@ impl ProjectileConstructor {
                     effects: vec![RadiusEffect::Attack(attack)],
                     radius,
                     reagent: Some(Reagent::White),
+                    min_falloff,
                 };
                 Projectile {
                     hit_solid: vec![],
@@ -314,6 +339,7 @@ impl ProjectileConstructor {
                 damage,
                 radius,
                 knockback,
+                min_falloff,
             } => {
                 let knockback = AttackEffect::new(
                     Some(GroupTarget::OutOfGroup),
@@ -353,6 +379,7 @@ impl ProjectileConstructor {
                     ],
                     radius,
                     reagent: Some(Reagent::Red),
+                    min_falloff,
                 };
                 Projectile {
                     hit_solid: vec![Effect::Explode(explosion.clone()), Effect::Vanish],
@@ -417,6 +444,7 @@ impl ProjectileConstructor {
             Snowball {
                 ref mut damage,
                 ref mut radius,
+                ..
             } => {
                 *damage *= power;
                 *radius *= range;

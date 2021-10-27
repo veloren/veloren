@@ -2033,6 +2033,7 @@ fn handle_explosion(
                 ],
                 radius: 3.0 * power,
                 reagent: None,
+                min_falloff: 0.0,
             },
             owner,
         });
