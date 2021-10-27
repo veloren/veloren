@@ -558,12 +558,20 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
         let vert_distance =
             (sphere_pos.z - (cyl_pos.z + half_body_height)).abs() - half_body_height;
 
-        // Compare both checks, take whichever gives weaker effect, sets minimum of 0 so
-        // that explosions reach a max strength on edge of entity
-        let fall_off = ((horiz_dist.max(vert_distance).max(0.0) / radius).min(1.0) - 1.0).abs();
-        // Clamp min_falloff so that it doesn't produce absurd values or NaNs
-        let min_falloff = min_falloff.clamp(0.0, 0.99);
-        min_falloff + fall_off * (1.0 - min_falloff)
+        // Use whichever gives maximum distance as that closer to real value. Sets
+        // minimum to 0 as negative values would indicate inside entity.
+        let distance = horiz_dist.max(vert_distance).max(0.0);
+
+        if distance > radius {
+            // If further than exploion radius, no strength
+            0.0
+        } else {
+            // Falloff inversely proportional to radius
+            let fall_off = ((horiz_dist.max(vert_distance).max(0.0) / radius).min(1.0) - 1.0).abs();
+            // Clamp min_falloff so that it doesn't produce absurd values or NaNs
+            let min_falloff = min_falloff.clamp(0.0, 0.99);
+            min_falloff + fall_off * (1.0 - min_falloff)
+        }
     }
 
     // TODO: Faster RNG?
