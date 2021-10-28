@@ -185,6 +185,8 @@ make_case_elim!(
         DismantlingBench = 0x9E,
         JungleFern = 0x9F,
         LillyPads = 0xA0,
+        JungleLeafyPlant = 0xA1,
+        JungleRedGrass = 0xA2,
     }
 );
 

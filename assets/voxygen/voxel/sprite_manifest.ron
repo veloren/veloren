@@ -262,41 +262,11 @@ RedFlower: Some((
         ),
         (
             model: "voxygen.voxel.sprite.flowers.jungle_flower_red-0",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-1",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-2",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-3",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-4",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-5",
-            offset: (-5.5, -5.5, 0.0),
-            lod_axes: (1.0, 1.0, 1.0),
-        ),
-        (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-6",
             offset: (-7.5, -7.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
         (
-            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-7",
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-1",
             offset: (-7.5, -7.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
@@ -483,6 +453,41 @@ LargeGrass: Some((
         ),
     ],
     wind_sway: 0.5,
+)),
+JungleRedGrass: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.jungleredgrass.jungle_grass_red-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.1,
 )),
 // Fruit
 Apple: Some((
@@ -983,6 +988,11 @@ LeafyPlant: Some((
             offset: (-6.0, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+    ],
+    wind_sway: 0.4,
+)),
+JungleLeafyPlant: Some((
+    variations: [
         (
             model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-0",
             offset: (-5.5, -1.5, -0.0),
@@ -3632,17 +3642,17 @@ LillyPads: Some((
         ),
         (
             model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-7",
-            offset: (-5.5, -5.5, -17.0),
+            offset: (-5.5, -5.5, -18.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
         (
             model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-8",
-            offset: (-4.5, -4.5, -17.0),
+            offset: (-4.5, -4.5, -18.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
         (
             model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-9",
-            offset: (-4.5, -4.5, -17.0),
+            offset: (-4.5, -4.5, -18.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

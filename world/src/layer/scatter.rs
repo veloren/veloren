@@ -140,6 +140,14 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
+        (JungleLeafyPlant, Surface, |_, col| {
+            (
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.3))
+                    * GRASS_FACT
+                    * 32.0,
+                Some((0.15, 64.0, 0.2)),
+            )
+        }),
         (Fern, Surface, |_, col| {
             (
                 close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.forest_hum, 0.5))
@@ -150,10 +158,11 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (JungleFern, Surface, |_, col| {
             (
-                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.3))
-                    * GRASS_FACT
-                    * 4.0,
-                Some((0.0, 64.0, 0.5)),
+                close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
+                    * MUSH_FACT
+                    * 200.0,
+                Some((0.0, 84.0, 0.35)),
             )
         }),
         (Blueberry, Surface, |_, col| {
@@ -226,6 +235,15 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     * GRASS_FACT
                     * 150.0,
                 Some((0.1, 48.0, 0.3)),
+            )
+        }),
+        (JungleRedGrass, Surface, |_, col| {
+            (
+                close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
+                    * MUSH_FACT
+                    * 400.0,
+                Some((0.0, 128.0, 0.25)),
             )
         }),
         // Jungle Sprites
@@ -612,7 +630,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     * GRASS_FACT
                     * 100.0
                     * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0)
-                    * col.water_dist.map_or(0.0, |d| 1.0 / (1.0 + (d.abs() * 0.45).powi(2))),
+                    * col.water_dist.map_or(0.0, |d| 1.0 / (1.0 + (d.abs() * 0.4).powi(2))),
                 Some((0.0, 128.0, 0.35)),
             )
         }),
