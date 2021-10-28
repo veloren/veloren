@@ -260,6 +260,46 @@ RedFlower: Some((
             offset: (-3.5, -3.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-0",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-1",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-2",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-3",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-4",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-5",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-6",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.flowers.jungle_flower_red-7",
+            offset: (-7.5, -7.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
     ],
     wind_sway: 0.1,
 )),
@@ -943,6 +983,31 @@ LeafyPlant: Some((
             offset: (-6.0, -6.0, -0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-0",
+            offset: (-5.5, -1.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-1",
+            offset: (-6.5, -2.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-2",
+            offset: (-6.5, -2.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-3",
+            offset: (-7.5, -2.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.leafy_plant.jungle_plant-4",
+            offset: (-7.5, -5.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
     ],
     wind_sway: 0.4,
 )),
@@ -1013,6 +1078,31 @@ Fern: Some((
             model: "voxygen.voxel.sprite.ferns.fern-0",
             offset: (-6.5, -11.5, 0.0),
             lod_axes: (0.0, 0.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.4,
+)),
+JungleFern: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.junglefern.1",
+            offset: (-9.5, -9.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.junglefern.2",
+            offset: (-7.5, -3.5, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.junglefern.3",
+            offset: (-8.0, -8.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.junglefern.4",
+            offset: (-6.0, -6.0, -0.0),
+            lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
     wind_sway: 0.4,
@@ -2220,6 +2310,31 @@ Reed: Some((
         (
             model: "voxygen.voxel.sprite.reed.reed-4",
             offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-reeds-1",
+            offset: (-4.5, -4.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-reeds-2",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-reeds-3",
+            offset: (-4.5, -4.0, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-reeds-4",
+            offset: (-4.5, -4.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.5),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-reeds-5",
+            offset: (-4.0, -4.5, 0.0),
             lod_axes: (0.0, 0.0, 0.5),
         ),
     ],
@@ -3477,6 +3592,57 @@ CavernMycelBlue: Some((
         (
             model: "voxygen.voxel.sprite.cavern.mycel-3",
             offset: (-0.5, -0.5, -40.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.1,
+)),
+// LillyPads on rivers
+LillyPads: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-1",
+            offset: (-4.5, -4.5, -18.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-2",
+            offset: (-4.5, -4.5, -18.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-3",
+            offset: (-5.5, -5.0, -18.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-4",
+            offset: (-5.5, -5.5, -18.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-5",
+            offset: (-5.5, -5.5, -18.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-6",
+            offset: (-5.5, -5.5, -18.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-7",
+            offset: (-5.5, -5.5, -17.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-8",
+            offset: (-4.5, -4.5, -17.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+        (
+            model: "voxygen.voxel.sprite.lillypads.temperate-lilypad-9",
+            offset: (-4.5, -4.5, -17.0),
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],

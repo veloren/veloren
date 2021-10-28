@@ -148,6 +148,14 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 64.0, 0.2)),
             )
         }),
+        (JungleFern, Surface, |_, col| {
+            (
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.3))
+                    * GRASS_FACT
+                    * 4.0,
+                Some((0.0, 64.0, 0.5)),
+            )
+        }),
         (Blueberry, Surface, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
@@ -342,17 +350,6 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             (
                 close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 2.5,
                 None,
-            )
-        }),
-        (Reed, Surface, |_, col| {
-            (
-                close(col.humidity, CONFIG.jungle_hum, 0.9)
-                    * col
-                        .water_dist
-                        .map(|wd| Lerp::lerp(0.2, 0.0, (wd / 8.0).clamped(0.0, 1.0)))
-                        .unwrap_or(0.0)
-                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0),
-                Some((0.2, 128.0, 0.5)),
             )
         }),
         // Underwater chests
@@ -608,13 +605,36 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
-        (CavernLillypadBlue, Floating, |_, col| {
+        //River-related scatter
+        (LillyPads, Floating, |_, col| {
             (
                 close(col.temp, 0.2, 0.6).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * GRASS_FACT
-                    * 120.0
+                    * 100.0
+                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0)
+                    * col.water_dist.map_or(0.0, |d| 1.0 / (1.0 + (d.abs() * 0.45).powi(2))),
+                Some((0.0, 128.0, 0.35)),
+            )
+        }),
+        (Reed, Underwater, |_, col| {
+            (
+                close(col.temp, 0.2, 0.6).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * GRASS_FACT
+                    * 100.0
+                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0)
+                    * col.water_dist.map_or(0.0, |d| 1.0 / (1.0 + (d.abs() * 0.40).powi(2))),
+                Some((0.2, 128.0, 0.5)),
+            )
+        }),
+        (Reed, Surface, |_, col| {
+            (
+                close(col.humidity, CONFIG.jungle_hum, 0.9)
+                    * col
+                        .water_dist
+                        .map(|wd| Lerp::lerp(0.2, 0.0, (wd / 8.0).clamped(0.0, 1.0)))
+                        .unwrap_or(0.0)
                     * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0),
-                Some((0.0, 256.0, 0.25)),
+                Some((0.2, 128.0, 0.5)),
             )
         }),
     ];
