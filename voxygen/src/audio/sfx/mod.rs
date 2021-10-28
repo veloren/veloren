@@ -229,6 +229,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             _ => return None,
         },
         Body::QuadrupedSmall(body) => match body.species {
+            quadruped_small::Species::Truffler => VoiceKind::Truffler,
             quadruped_small::Species::Fungome => VoiceKind::Fungome,
             quadruped_small::Species::Sheep => VoiceKind::Sheep,
             quadruped_small::Species::Pig | quadruped_small::Species::Boar => VoiceKind::Pig,
@@ -237,7 +238,6 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
             _ => VoiceKind::Critter,
         },
         Body::QuadrupedMedium(body) => match body.species {
-            quadruped_medium::Species::Truffler => VoiceKind::Truffler,
             quadruped_medium::Species::Saber
             | quadruped_medium::Species::Tiger
             | quadruped_medium::Species::Lion
