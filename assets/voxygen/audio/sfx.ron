@@ -981,7 +981,7 @@
         ),
         Utterance(Calm, Fungome): (
             files: [
-                "voxygen.audio.sfx.utterance.fungome_calm1.ogg",
+                "voxygen.audio.sfx.utterance.fungome_calm1",
             ],
             threshold: 1.0,
         ),
