@@ -3646,6 +3646,6 @@ LillyPads: Some((
             lod_axes: (0.0, 0.0, 0.0),
         ),
     ],
-    wind_sway: 0.1,
+    wind_sway: 0.6,
 )),
 )
