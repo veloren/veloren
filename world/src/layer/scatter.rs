@@ -142,7 +142,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (JungleLeafyPlant, Surface, |_, col| {
             (
-                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.3))
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * GRASS_FACT
                     * 32.0,
                 Some((0.15, 64.0, 0.2)),
@@ -158,7 +158,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (JungleFern, Surface, |_, col| {
             (
-                close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
                     * MUSH_FACT
                     * 200.0,
@@ -239,10 +239,10 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         (JungleRedGrass, Surface, |_, col| {
             (
-                close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
                     * MUSH_FACT
-                    * 400.0,
+                    * 350.0,
                 Some((0.0, 128.0, 0.25)),
             )
         }),
