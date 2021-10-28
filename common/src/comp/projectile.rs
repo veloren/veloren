@@ -152,7 +152,7 @@ impl ProjectileConstructor {
                 let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy_regen))
                     .with_requirement(CombatRequirement::AnyDamage);
                 let buff = CombatEffect::Buff(CombatBuff {
-                    kind: BuffKind::Bleeding,
+                    kind: BuffKind::Burning,
                     dur_secs: 5.0,
                     strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
                     chance: 0.1,
