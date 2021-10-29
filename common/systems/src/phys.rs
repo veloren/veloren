@@ -299,7 +299,7 @@ impl<'a> PhysicsData<'a> {
             write.velocities.mask(),
             !&read.projectiles, // Not needed because they are skipped in the inner loop below
             !&read.mountings,
-            self.read.colliders.mask(),
+            read.colliders.mask(),
         )
             .join()
         {
