@@ -213,7 +213,7 @@ pub enum VoiceKind {
     Mandragora,
     Asp,
     Fungome,
-    Truffler
+    Truffler,
 }
 
 fn body_to_voice(body: &Body) -> Option<VoiceKind> {
