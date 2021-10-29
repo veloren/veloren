@@ -668,6 +668,7 @@ impl Show {
             self.bag = open;
             self.map = false;
             self.want_grab = !open;
+            self.salvage = false;
 
             if !open {
                 self.crafting = false;
@@ -689,6 +690,7 @@ impl Show {
             self.map = open;
             self.bag = false;
             self.crafting = false;
+            self.salvage = false;
             self.social = false;
             self.diary = false;
             self.want_grab = !open;
@@ -714,6 +716,7 @@ impl Show {
                 self.search_crafting_recipe(None);
             }
             self.crafting = open;
+            self.salvage = false;
             self.bag = open;
             self.map = false;
             self.want_grab = !open;
@@ -736,6 +739,7 @@ impl Show {
         if !self.esc_menu {
             self.social = false;
             self.crafting = false;
+            self.salvage = false;
             self.bag = false;
             self.map = false;
             self.diary = open;
@@ -753,6 +757,7 @@ impl Show {
             self.bag = false;
             self.social = false;
             self.crafting = false;
+            self.salvage = false;
             self.diary = false;
             self.want_grab = !open;
         }
