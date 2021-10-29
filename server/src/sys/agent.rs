@@ -1862,6 +1862,7 @@ impl<'a> AgentData<'a> {
                         damage: _,
                         radius: _,
                         energy_regen: _,
+                        min_falloff: _,
                     } => 0.0,
                     _ => tgt_eye_offset,
                 };
