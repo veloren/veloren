@@ -1010,7 +1010,7 @@
                 "voxygen.audio.sfx.utterance.truffler_calm2",
             ],
             threshold: 1.0,
-        )
+        ),
         Utterance(Greeting, HumanMale): (
             files: [
                 "voxygen.audio.sfx.utterance.humanmale_greeting1",
