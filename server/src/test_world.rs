@@ -26,10 +26,7 @@ pub struct IndexOwned;
 pub struct IndexRef<'a>(&'a IndexOwned);
 
 impl IndexOwned {
-    pub fn reload_colors_if_changed<R>(
-        &mut self,
-        _reload: impl FnOnce(&mut Self) -> R,
-    ) -> Option<R> {
+    pub fn reload_if_changed<R>(&mut self, _reload: impl FnOnce(&mut Self) -> R) -> Option<R> {
         None
     }
 
