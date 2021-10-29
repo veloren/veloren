@@ -2,8 +2,8 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
-        Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
-        Pos, PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
+        Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState, Pos,
+        PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -87,10 +87,7 @@ fn integrate_forces(
     vel
 }
 
-fn calc_z_limit(
-    char_state_maybe: Option<&CharacterState>,
-    collider: &Collider,
-) -> (f32, f32) {
+fn calc_z_limit(char_state_maybe: Option<&CharacterState>, collider: &Collider) -> (f32, f32) {
     let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge() || c_s.is_glide()) {
         0.5
     } else {
