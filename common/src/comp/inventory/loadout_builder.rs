@@ -271,6 +271,10 @@ fn default_main_tool(body: &Body) -> Item {
             | arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropodcharge",
             )),
+            arthropod::Species::Cavespider
+             => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropodranged",
+            )),
             _ => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.arthropodbasic",
             )),

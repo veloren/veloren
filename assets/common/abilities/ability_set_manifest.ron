@@ -235,6 +235,13 @@
             (None, "common.abilities.custom.arthropodbasic.leap"),
         ],
     ),
+    Custom("Arthropod Ranged"): (
+        primary: "common.abilities.custom.arthropodranged.singlestrike",
+        secondary: "common.abilities.custom.arthropodranged.ensnaringweb",
+        abilities: [
+            (None, "common.abilities.custom.arthropodranged.poisonball"),
+        ],
+    ),
     Custom("Arthropod Charge"): (
         primary: "common.abilities.custom.arthropodcharge.singlestrike",
         secondary: "common.abilities.custom.arthropodcharge.charge",
