@@ -5,6 +5,7 @@ BasicRanged(
     projectile: Snowball(
         damage: 20.0,
         radius: 5.0,
+        min_falloff: 0.7,
     ),
     projectile_body: Object(Snowball),
     projectile_speed: 60.0,

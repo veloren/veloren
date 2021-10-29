@@ -227,7 +227,7 @@ impl Attack {
                 self.crit_multiplier,
                 strength_modifier,
             );
-            let applied_damage = -change.amount as f32;
+            let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
             emit_outcome(Outcome::Damage { pos: target.pos });
             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -238,7 +238,7 @@ impl Attack {
                 for effect in damage.effects.iter() {
                     match effect {
                         CombatEffect::Knockback(kb) => {
-                            let impulse = kb.calculate_impulse(dir);
+                            let impulse = kb.calculate_impulse(dir) * strength_modifier;
                             if !impulse.is_approx_zero() {
                                 emit(ServerEvent::Knockback {
                                     entity: target.entity,
@@ -250,7 +250,9 @@ impl Attack {
                             if let Some(attacker) = attacker {
                                 emit(ServerEvent::EnergyChange {
                                     entity: attacker.entity,
-                                    change: *ec * compute_energy_reward_mod(attacker.inventory),
+                                    change: *ec
+                                        * compute_energy_reward_mod(attacker.inventory)
+                                        * strength_modifier,
                                 });
                             }
                         },
@@ -258,13 +260,16 @@ impl Attack {
                             if thread_rng().gen::<f32>() < b.chance {
                                 emit(ServerEvent::Buff {
                                     entity: target.entity,
-                                    buff_change: BuffChange::Add(
-                                        b.to_buff(attacker.map(|a| a.uid), applied_damage),
-                                    ),
+                                    buff_change: BuffChange::Add(b.to_buff(
+                                        attacker.map(|a| a.uid),
+                                        applied_damage,
+                                        strength_modifier,
+                                    )),
                                 });
                             }
                         },
                         CombatEffect::Lifesteal(l) => {
+                            // Not modified by strength_modifer as damage already is
                             if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 let change = HealthChange {
                                     amount: applied_damage * l,
@@ -280,7 +285,8 @@ impl Attack {
                             }
                         },
                         CombatEffect::Poise(p) => {
-                            let change = -Poise::apply_poise_reduction(*p, target.inventory);
+                            let change = -Poise::apply_poise_reduction(*p, target.inventory)
+                                * strength_modifier;
                             if change.abs() > Poise::POISE_EPSILON {
                                 emit(ServerEvent::PoiseChange {
                                     entity: target.entity,
@@ -291,7 +297,7 @@ impl Attack {
                         },
                         CombatEffect::Heal(h) => {
                             let change = HealthChange {
-                                amount: *h,
+                                amount: *h * strength_modifier,
                                 by: attacker.map(|a| a.uid),
                                 cause: None,
                             };
@@ -303,6 +309,7 @@ impl Attack {
                             }
                         },
                         CombatEffect::Combo(c) => {
+                            // Not affected by strength modifier as integer
                             if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 emit(ServerEvent::ComboChange {
                                     entity: attacker_entity,
@@ -366,7 +373,7 @@ impl Attack {
                 is_applied = true;
                 match effect.effect {
                     CombatEffect::Knockback(kb) => {
-                        let impulse = kb.calculate_impulse(dir);
+                        let impulse = kb.calculate_impulse(dir) * strength_modifier;
                         if !impulse.is_approx_zero() {
                             emit(ServerEvent::Knockback {
                                 entity: target.entity,
@@ -378,7 +385,9 @@ impl Attack {
                         if let Some(attacker) = attacker {
                             emit(ServerEvent::EnergyChange {
                                 entity: attacker.entity,
-                                change: ec * compute_energy_reward_mod(attacker.inventory),
+                                change: ec
+                                    * compute_energy_reward_mod(attacker.inventory)
+                                    * strength_modifier,
                             });
                         }
                     },
@@ -386,13 +395,16 @@ impl Attack {
                         if thread_rng().gen::<f32>() < b.chance {
                             emit(ServerEvent::Buff {
                                 entity: target.entity,
-                                buff_change: BuffChange::Add(
-                                    b.to_buff(attacker.map(|a| a.uid), accumulated_damage),
-                                ),
+                                buff_change: BuffChange::Add(b.to_buff(
+                                    attacker.map(|a| a.uid),
+                                    accumulated_damage,
+                                    strength_modifier,
+                                )),
                             });
                         }
                     },
                     CombatEffect::Lifesteal(l) => {
+                        // Not modified by strength_modifer as damage already is
                         if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             let change = HealthChange {
                                 amount: accumulated_damage * l,
@@ -408,7 +420,8 @@ impl Attack {
                         }
                     },
                     CombatEffect::Poise(p) => {
-                        let change = -Poise::apply_poise_reduction(p, target.inventory);
+                        let change =
+                            -Poise::apply_poise_reduction(p, target.inventory) * strength_modifier;
                         if change.abs() > Poise::POISE_EPSILON {
                             emit(ServerEvent::PoiseChange {
                                 entity: target.entity,
@@ -419,7 +432,7 @@ impl Attack {
                     },
                     CombatEffect::Heal(h) => {
                         let change = HealthChange {
-                            amount: h,
+                            amount: h * strength_modifier,
                             by: attacker.map(|a| a.uid),
                             cause: None,
                         };
@@ -431,6 +444,7 @@ impl Attack {
                         }
                     },
                     CombatEffect::Combo(c) => {
+                        // Not affected by strength modifier as integer
                         if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             emit(ServerEvent::ComboChange {
                                 entity: attacker_entity,
@@ -768,10 +782,11 @@ pub enum CombatBuffStrength {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl CombatBuffStrength {
-    fn to_strength(self, damage: f32) -> f32 {
+    fn to_strength(self, damage: f32, strength_modifier: f32) -> f32 {
         match self {
+            // Not affected by strength modifier as damage already is
             CombatBuffStrength::DamageFraction(f) => damage * f,
-            CombatBuffStrength::Value(v) => v,
+            CombatBuffStrength::Value(v) => v * strength_modifier,
         }
     }
 }
@@ -788,7 +803,7 @@ impl MulAssign<f32> for CombatBuffStrength {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl CombatBuff {
-    fn to_buff(self, uid: Option<Uid>, damage: f32) -> Buff {
+    fn to_buff(self, uid: Option<Uid>, damage: f32, strength_modifier: f32) -> Buff {
         // TODO: Generate BufCategoryId vec (probably requires damage overhaul?)
         let source = if let Some(uid) = uid {
             BuffSource::Character { by: uid }
@@ -798,7 +813,7 @@ impl CombatBuff {
         Buff::new(
             self.kind,
             BuffData::new(
-                self.strength.to_strength(damage),
+                self.strength.to_strength(damage, strength_modifier),
                 Some(Duration::from_secs_f32(self.dur_secs)),
             ),
             Vec::new(),

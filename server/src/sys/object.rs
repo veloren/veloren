@@ -61,6 +61,7 @@ impl<'a> System<'a> for Sys {
                                 ],
                                 radius: 12.0,
                                 reagent: None,
+                                min_falloff: 0.75,
                             },
                             owner: *owner,
                         });
@@ -153,6 +154,7 @@ impl<'a> System<'a> for Sys {
                                 ],
                                 radius: 12.0,
                                 reagent: Some(*reagent),
+                                min_falloff: 0.0,
                             },
                             owner: *owner,
                         });

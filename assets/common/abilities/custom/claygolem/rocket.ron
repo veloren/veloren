@@ -6,6 +6,7 @@ BasicRanged(
         damage: 50.0,
         knockback: 18.0,
         radius: 5.0,
+        min_falloff: 0.75,
     ),
     projectile_body: Object(ClayRocket),
     projectile_light: None,

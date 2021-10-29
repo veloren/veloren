@@ -6,6 +6,7 @@ pub struct Explosion {
     pub effects: Vec<RadiusEffect>,
     pub radius: f32,
     pub reagent: Option<Reagent>,
+    pub min_falloff: f32,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

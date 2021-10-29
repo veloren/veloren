@@ -5,6 +5,7 @@ BasicRanged(
     projectile: Frostball(
         damage: 12.0,
         radius: 5.0,
+        min_falloff: 0.5,
     ),
     projectile_body: Object(BoltFire), // TODO: Get ice projectile model
     /*projectile_light: Some(LightEmitter {
