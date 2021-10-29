@@ -2,8 +2,8 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
-        BeamSegment, Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
-        Pos, PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Stats, Sticky, Vel,
+        Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
+        Pos, PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -89,16 +89,14 @@ fn integrate_forces(
 
 fn calc_z_limit(
     char_state_maybe: Option<&CharacterState>,
-    collider: Option<&Collider>,
+    collider: &Collider,
 ) -> (f32, f32) {
     let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge() || c_s.is_glide()) {
         0.5
     } else {
         1.0
     };
-    collider
-        .map(|c| c.get_z_limits(modifier))
-        .unwrap_or((-0.5 * modifier, 0.5 * modifier))
+    collider.get_z_limits(modifier)
 }
 
 /// This system applies forces and calculates new positions and velocities.
@@ -118,8 +116,6 @@ pub struct PhysicsRead<'a> {
     colliders: ReadStorage<'a, Collider>,
     mountings: ReadStorage<'a, Mounting>,
     projectiles: ReadStorage<'a, Projectile>,
-    beams: ReadStorage<'a, BeamSegment>,
-    shockwaves: ReadStorage<'a, Shockwave>,
     char_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
@@ -213,7 +209,7 @@ impl<'a> PhysicsData<'a> {
             .join()
         {
             let scale = scale.map(|s| s.0).unwrap_or(1.0);
-            let z_limits = calc_z_limit(cs, Some(collider));
+            let z_limits = calc_z_limit(cs, collider);
             let (z_min, z_max) = z_limits;
             let (z_min, z_max) = (z_min * scale, z_max * scale);
             let half_height = (z_max - z_min) / 2.0;
@@ -299,15 +295,14 @@ impl<'a> PhysicsData<'a> {
         let lg2_large_cell_size = 6;
         let radius_cutoff = 8;
         let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
-        for (entity, pos, phys_cache, _, _, _, _, _) in (
+        for (entity, pos, phys_cache, _, _, _, _) in (
             &read.entities,
             &write.positions,
             &write.previous_phys_cache,
             write.velocities.mask(),
             !&read.projectiles, // Not needed because they are skipped in the inner loop below
             !&read.mountings,
-            !&read.beams,
-            !&read.shockwaves,
+            self.read.colliders.mask(),
         )
             .join()
         {
@@ -383,7 +378,7 @@ impl<'a> PhysicsData<'a> {
                         };
                     }
 
-                    let z_limits = calc_z_limit(char_state_maybe, Some(collider));
+                    let z_limits = calc_z_limit(char_state_maybe, collider);
 
                     // Resets touch_entities in physics
                     physics.touch_entities.clear();
@@ -402,6 +397,7 @@ impl<'a> PhysicsData<'a> {
                             let pos = positions.get(entity)?;
                             let previous_cache = previous_phys_cache.get(entity)?;
                             let mass = read.masses.get(entity)?;
+                            let collider = read.colliders.get(entity)?;
 
                             Some((
                                 entity,
@@ -409,7 +405,7 @@ impl<'a> PhysicsData<'a> {
                                 pos,
                                 previous_cache,
                                 mass,
-                                read.colliders.get(entity),
+                                collider,
                                 read.char_states.get(entity),
                             ))
                         })
@@ -479,7 +475,7 @@ impl<'a> PhysicsData<'a> {
                                         previous_cache_other,
                                         z_limits,
                                         z_limits_other,
-                                        Some(collider),
+                                        collider,
                                         collider_other,
                                         *mass,
                                         *mass_other,
@@ -990,7 +986,7 @@ impl<'a> PhysicsData<'a> {
                     let path_sphere = {
                         // TODO: duplicated with maintain_pushback_cache,
                         // make a common function to call to compute all this info?
-                        let z_limits = calc_z_limit(character_state, Some(collider));
+                        let z_limits = calc_z_limit(character_state, collider);
                         let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
                         let half_height = (z_limits.1 - z_limits.0) / 2.0;
 
@@ -1779,8 +1775,8 @@ fn resolve_e2e_collision(
     previous_cache_other: &PreviousPhysCache,
     z_limits: (f32, f32),
     z_limits_other: (f32, f32),
-    collider: Option<&Collider>,
-    collider_other: Option<&Collider>,
+    collider: &Collider,
+    collider_other: &Collider,
     mass: Mass,
     mass_other: Mass,
 ) -> bool {
@@ -1852,8 +1848,8 @@ fn resolve_e2e_collision(
         && (!is_sticky || is_mid_air)
         && diff.magnitude_squared() > 0.0
         && !is_projectile
-        && !matches!(collider_other, Some(Collider::Voxel { .. }))
-        && !matches!(collider, Some(Collider::Voxel { .. }))
+        && !matches!(collider_other, Collider::Voxel { .. })
+        && !matches!(collider, Collider::Voxel { .. })
     {
         const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
         let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);
