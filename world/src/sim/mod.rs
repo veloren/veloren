@@ -138,10 +138,10 @@ pub(crate) struct GenCtx {
 pub enum FileOpts {
     /// If set, generate the world map and do not try to save to or load from
     /// file (default).
-    Generate,
+    Generate { x_lg: u32, y_lg: u32 },
     /// If set, generate the world map and save the world file (path is created
     /// the same way screenshot paths are).
-    Save,
+    Save { x_lg: u32, y_lg: u32 },
     /// If set, load the world file from this path in legacy format (errors if
     /// path not found).  This option may be removed at some point, since it
     /// only applies to maps generated before map saving was merged into
@@ -158,7 +158,7 @@ pub enum FileOpts {
 }
 
 impl Default for FileOpts {
-    fn default() -> Self { Self::Generate }
+    fn default() -> Self { Self::Generate { x_lg: 10, y_lg: 10 } }
 }
 
 pub struct WorldOpts {
@@ -441,7 +441,7 @@ impl WorldSim {
                         return None;
                     },
                 },
-                FileOpts::Generate | FileOpts::Save => return None,
+                FileOpts::Generate { .. } | FileOpts::Save { .. } => return None,
             };
 
             match map {
@@ -474,7 +474,18 @@ impl WorldSim {
                     None
                 },
             })
-            .unwrap_or((None, DEFAULT_WORLD_CHUNKS_LG));
+            .unwrap_or_else(|| {
+                let size_lg = match opts.world_file {
+                    FileOpts::Generate { x_lg, y_lg } | FileOpts::Save { x_lg, y_lg } => {
+                        MapSizeLg::new(Vec2 { x: x_lg, y: y_lg }).unwrap_or_else(|e| {
+                            warn!("World size does not satisfy invariants: {:?}", e);
+                            DEFAULT_WORLD_CHUNKS_LG
+                        })
+                    },
+                    _ => DEFAULT_WORLD_CHUNKS_LG,
+                };
+                (None, size_lg)
+            });
         let continent_scale_hack = if let Some(map) = &parsed_world_file {
             map.continent_scale_hack
         } else {
@@ -1107,7 +1118,7 @@ impl WorldSim {
             basement,
         });
         (|| {
-            if let FileOpts::Save = opts.world_file {
+            if let FileOpts::Save { .. } = opts.world_file {
                 use std::time::SystemTime;
                 // Check if folder exists and create it if it does not
                 let mut path = PathBuf::from("./maps");
