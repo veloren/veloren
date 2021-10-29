@@ -2,14 +2,15 @@ use crate::{
     comp::{
         self,
         inventory::item::{armor::Protection, ItemKind},
-        Inventory,
+        CharacterState, Inventory,
     },
+    states,
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::ops::Mul;
+use std::{ops::Mul, time::Duration};
 use vek::*;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -50,6 +51,74 @@ pub enum PoiseState {
     Dazed,
     /// Poise reset, target staggered and knocked back further
     KnockedDown,
+}
+
+impl PoiseState {
+    pub fn poise_effect(&self, was_wielded: bool) -> (Option<CharacterState>, Option<f32>) {
+        use states::{
+            stunned::{Data, StaticData},
+            utils::StageSection,
+        };
+        match self {
+            PoiseState::Normal => (None, None),
+            PoiseState::Interrupted => (
+                Some(CharacterState::Stunned(Data {
+                    static_data: StaticData {
+                        buildup_duration: Duration::from_millis(125),
+                        recover_duration: Duration::from_millis(125),
+                        movement_speed: 0.80,
+                        poise_state: *self,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    was_wielded,
+                })),
+                None,
+            ),
+            PoiseState::Stunned => (
+                Some(CharacterState::Stunned(Data {
+                    static_data: StaticData {
+                        buildup_duration: Duration::from_millis(300),
+                        recover_duration: Duration::from_millis(300),
+                        movement_speed: 0.65,
+                        poise_state: *self,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    was_wielded,
+                })),
+                Some(5.0),
+            ),
+            PoiseState::Dazed => (
+                Some(CharacterState::Stunned(Data {
+                    static_data: StaticData {
+                        buildup_duration: Duration::from_millis(600),
+                        recover_duration: Duration::from_millis(250),
+                        movement_speed: 0.45,
+                        poise_state: *self,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    was_wielded,
+                })),
+                Some(10.0),
+            ),
+            PoiseState::KnockedDown => (
+                Some(CharacterState::Stunned(Data {
+                    static_data: StaticData {
+                        buildup_duration: Duration::from_millis(750),
+                        recover_duration: Duration::from_millis(500),
+                        movement_speed: 0.4,
+                        poise_state: *self,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    was_wielded,
+                })),
+                Some(10.0),
+            ),
+        }
+    }
 }
 
 impl Poise {
