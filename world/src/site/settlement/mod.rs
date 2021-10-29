@@ -1173,9 +1173,12 @@ fn consumable_bags(economy: Option<&trade::SiteInformation>, rng: &mut impl Rng)
         .and_then(|e| e.unconsumed_stock.get(&Good::Food))
         .copied()
         .map_or(Some(10_000.0), |food| Some(food.max(10_000.0)));
+    // Reduce amount of potions so merchants do not oversupply potions.
+    // TODO: Maybe remove when merchants and their inventories are rtsim?
     let mut potions = economy
         .and_then(|e| e.unconsumed_stock.get(&Good::Potions))
-        .copied();
+        .copied()
+        .map(|potions| potions.powf(0.25));
 
     let goods = [
         (Good::Food, &mut food, &mut bag3),
