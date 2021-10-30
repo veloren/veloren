@@ -2773,6 +2773,10 @@
         "voxel.glider.butterfly2",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
+    Glider("ButterflyLove"): VoxTrans(
+        "voxel.glider.butterfly3",
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
     Glider("MothLuna"): VoxTrans(
         "voxel.glider.moth",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
@@ -2787,6 +2791,14 @@
     ),
     Glider("WoodRaptor"): VoxTrans(
         "voxel.glider.woodraptor",
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
+    Glider("Sunset"): VoxTrans(
+        "voxel.glider.sunset",
+        (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
+    ),
+    Glider("Moonrise"): VoxTrans(
+        "voxel.glider.moonrise",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     Glider("Purple0"): VoxTrans(
