@@ -1,0 +1,11 @@
+ItemDef(
+    name: "Moonlit Love",
+    description: "Love is in the air.",
+    kind: Glider(
+        (
+            kind: "ButterflyLove",
+        ),
+    ),
+    quality: Epic,
+    tags: [],
+)

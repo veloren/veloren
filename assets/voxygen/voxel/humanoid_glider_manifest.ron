@@ -28,6 +28,10 @@
             vox_spec: ("glider.butterfly2", (-26.0, -13.0, 0.0)),
             color: None
         ),        
+        "ButterflyLove": (
+            vox_spec: ("glider.butterfly3", (-26.0, -13.0, 0.0)),
+            color: None
+        ),
         "MothLuna": (
             vox_spec: ("glider.moth", (-26.0, -22.0, 0.0)),
             color: None
@@ -43,7 +47,15 @@
         "WoodRaptor": (
             vox_spec: ("glider.woodraptor", (-26.0, -25.0, 0.0)),
             color: None    
-        ),   
+        ),
+        "Sunset": (
+            vox_spec: ("glider.sunset", (-26.0, -26.0, 0.0)),
+            color: None
+        ),
+        "Moonrise": (
+            vox_spec: ("glider.moonrise", (-26.0, -26.0, 0.0)),
+            color: None
+        ),
         "Purple0": (
             vox_spec: ("glider.cultists", (-26.0, -26.0, 0.0)),
             color: None
