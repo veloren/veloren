@@ -135,13 +135,31 @@ pub(crate) struct GenCtx {
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[serde(default)]
+pub struct SizeOpts {
+    x_lg: u32,
+    y_lg: u32,
+    scale: f64,
+}
+
+impl Default for SizeOpts {
+    fn default() -> Self {
+        Self {
+            x_lg: 10,
+            y_lg: 10,
+            scale: 2.0,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub enum FileOpts {
     /// If set, generate the world map and do not try to save to or load from
     /// file (default).
-    Generate { x_lg: u32, y_lg: u32 },
+    Generate(SizeOpts),
     /// If set, generate the world map and save the world file (path is created
     /// the same way screenshot paths are).
-    Save { x_lg: u32, y_lg: u32 },
+    Save(SizeOpts),
     /// If set, load the world file from this path in legacy format (errors if
     /// path not found).  This option may be removed at some point, since it
     /// only applies to maps generated before map saving was merged into
@@ -158,7 +176,7 @@ pub enum FileOpts {
 }
 
 impl Default for FileOpts {
-    fn default() -> Self { Self::Generate { x_lg: 10, y_lg: 10 } }
+    fn default() -> Self { Self::Generate(SizeOpts::default()) }
 }
 
 pub struct WorldOpts {
@@ -476,7 +494,8 @@ impl WorldSim {
             })
             .unwrap_or_else(|| {
                 let size_lg = match opts.world_file {
-                    FileOpts::Generate { x_lg, y_lg } | FileOpts::Save { x_lg, y_lg } => {
+                    FileOpts::Generate(SizeOpts { x_lg, y_lg, .. })
+                    | FileOpts::Save(SizeOpts { x_lg, y_lg, .. }) => {
                         MapSizeLg::new(Vec2 { x: x_lg, y: y_lg }).unwrap_or_else(|e| {
                             warn!("World size does not satisfy invariants: {:?}", e);
                             DEFAULT_WORLD_CHUNKS_LG
@@ -488,6 +507,10 @@ impl WorldSim {
             });
         let continent_scale_hack = if let Some(map) = &parsed_world_file {
             map.continent_scale_hack
+        } else if let FileOpts::Generate(SizeOpts { scale, .. })
+        | FileOpts::Save(SizeOpts { scale, .. }) = opts.world_file
+        {
+            scale
         } else {
             continent_scale_hack
         };
