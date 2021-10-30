@@ -1,7 +1,7 @@
+#[cfg(not(feature = "worldgen"))]
+use crate::test_world::{IndexOwned, World};
 #[cfg(feature = "persistent_world")]
 use crate::TerrainPersistence;
-#[cfg(not(feature = "worldgen"))]
-use test_world::{IndexOwned, World};
 #[cfg(feature = "worldgen")]
 use world::{IndexOwned, World};
 
