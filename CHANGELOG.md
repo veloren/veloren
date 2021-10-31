@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sneaking with weapons drawn
 - Stealth stat values on (some) armors
 - All new dismantling interface found at your nearest dismantling staion
+- Wearable headgear, including hood, crown, bandanas
 
 ### Changed
 
