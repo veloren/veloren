@@ -59,65 +59,43 @@ impl PoiseState {
             stunned::{Data, StaticData},
             utils::StageSection,
         };
-        match self {
+        // charstate_parameters is Option<(buildup_duration, recover_duration,
+        // movement_speed)>
+        let (charstate_parameters, impulse) = match self {
             PoiseState::Normal => (None, None),
             PoiseState::Interrupted => (
-                Some(CharacterState::Stunned(Data {
-                    static_data: StaticData {
-                        buildup_duration: Duration::from_millis(125),
-                        recover_duration: Duration::from_millis(125),
-                        movement_speed: 0.80,
-                        poise_state: *self,
-                    },
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
-                    was_wielded,
-                })),
+                Some((Duration::from_millis(125), Duration::from_millis(125), 0.80)),
                 None,
             ),
             PoiseState::Stunned => (
-                Some(CharacterState::Stunned(Data {
-                    static_data: StaticData {
-                        buildup_duration: Duration::from_millis(300),
-                        recover_duration: Duration::from_millis(300),
-                        movement_speed: 0.65,
-                        poise_state: *self,
-                    },
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
-                    was_wielded,
-                })),
+                Some((Duration::from_millis(300), Duration::from_millis(300), 0.65)),
                 Some(5.0),
             ),
             PoiseState::Dazed => (
-                Some(CharacterState::Stunned(Data {
-                    static_data: StaticData {
-                        buildup_duration: Duration::from_millis(600),
-                        recover_duration: Duration::from_millis(250),
-                        movement_speed: 0.45,
-                        poise_state: *self,
-                    },
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
-                    was_wielded,
-                })),
+                Some((Duration::from_millis(600), Duration::from_millis(250), 0.45)),
                 Some(10.0),
             ),
             PoiseState::KnockedDown => (
-                Some(CharacterState::Stunned(Data {
+                Some((Duration::from_millis(750), Duration::from_millis(500), 0.4)),
+                Some(10.0),
+            ),
+        };
+        (
+            charstate_parameters.map(|(buildup_duration, recover_duration, movement_speed)| {
+                CharacterState::Stunned(Data {
                     static_data: StaticData {
-                        buildup_duration: Duration::from_millis(750),
-                        recover_duration: Duration::from_millis(500),
-                        movement_speed: 0.4,
+                        buildup_duration,
+                        recover_duration,
+                        movement_speed,
                         poise_state: *self,
                     },
                     timer: Duration::default(),
                     stage_section: StageSection::Buildup,
                     was_wielded,
-                })),
-                Some(10.0),
-            ),
-        }
+                })
+            }),
+            impulse,
+        )
     }
 }
 
