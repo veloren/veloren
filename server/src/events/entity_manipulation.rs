@@ -1095,14 +1095,35 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
 pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
     let ecs = &server.state.ecs();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+    let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
 
-    if let Some(mut char_state) = ecs.write_storage::<CharacterState>().get_mut(entity) {
+    if let (Some(mut char_state), Some(mut poise), Some(pos)) = (
+        ecs.write_storage::<CharacterState>().get_mut(entity),
+        ecs.write_storage::<Poise>().get_mut(entity),
+        ecs.read_storage::<Pos>().get(entity),
+    ) {
         // Interrupt sprite interaction and item use if any attack is applied to entity
         if matches!(
             *char_state,
             CharacterState::SpriteInteract(_) | CharacterState::UseItem(_)
         ) {
-            *char_state = CharacterState::Idle(common::states::idle::Data { is_sneaking: false });
+            let poise_state = comp::poise::PoiseState::Dazed;
+            let was_wielded = char_state.is_wield();
+            if let (Some(stunned_state), impulse_strength) = poise_state.poise_effect(was_wielded) {
+                // Reset poise if there is some stunned state to apply
+                poise.reset();
+                *char_state = stunned_state;
+                outcomes.push(Outcome::PoiseChange {
+                    pos: pos.0,
+                    state: poise_state,
+                });
+                if let Some(impulse_strength) = impulse_strength {
+                    server_eventbus.emit_now(ServerEvent::Knockback {
+                        entity,
+                        impulse: impulse_strength * *poise.knockback(),
+                    });
+                }
+            }
         }
     }
 

@@ -2,14 +2,15 @@ use crate::{
     comp::{
         self,
         inventory::item::{armor::Protection, ItemKind},
-        Inventory,
+        CharacterState, Inventory,
     },
+    states,
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::ops::Mul;
+use std::{ops::Mul, time::Duration};
 use vek::*;
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
@@ -50,6 +51,52 @@ pub enum PoiseState {
     Dazed,
     /// Poise reset, target staggered and knocked back further
     KnockedDown,
+}
+
+impl PoiseState {
+    pub fn poise_effect(&self, was_wielded: bool) -> (Option<CharacterState>, Option<f32>) {
+        use states::{
+            stunned::{Data, StaticData},
+            utils::StageSection,
+        };
+        // charstate_parameters is Option<(buildup_duration, recover_duration,
+        // movement_speed)>
+        let (charstate_parameters, impulse) = match self {
+            PoiseState::Normal => (None, None),
+            PoiseState::Interrupted => (
+                Some((Duration::from_millis(125), Duration::from_millis(125), 0.80)),
+                None,
+            ),
+            PoiseState::Stunned => (
+                Some((Duration::from_millis(300), Duration::from_millis(300), 0.65)),
+                Some(5.0),
+            ),
+            PoiseState::Dazed => (
+                Some((Duration::from_millis(600), Duration::from_millis(250), 0.45)),
+                Some(10.0),
+            ),
+            PoiseState::KnockedDown => (
+                Some((Duration::from_millis(750), Duration::from_millis(500), 0.4)),
+                Some(10.0),
+            ),
+        };
+        (
+            charstate_parameters.map(|(buildup_duration, recover_duration, movement_speed)| {
+                CharacterState::Stunned(Data {
+                    static_data: StaticData {
+                        buildup_duration,
+                        recover_duration,
+                        movement_speed,
+                        poise_state: *self,
+                    },
+                    timer: Duration::default(),
+                    stage_section: StageSection::Buildup,
+                    was_wielded,
+                })
+            }),
+            impulse,
+        )
+    }
 }
 
 impl Poise {

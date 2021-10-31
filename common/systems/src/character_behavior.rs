@@ -7,8 +7,7 @@ use common::{
     comp::{
         self, character_state::OutputEvents, inventory::item::MaterialStatManifest, Beam, Body,
         CharacterState, Combo, Controller, Density, Energy, Health, Inventory, InventoryManip,
-        Mass, Melee, Mounting, Ori, PhysicsState, Poise, PoiseState, Pos, SkillSet, StateUpdate,
-        Stats, Vel,
+        Mass, Melee, Mounting, Ori, PhysicsState, Poise, Pos, SkillSet, StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -21,7 +20,6 @@ use common::{
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use std::time::Duration;
 
 #[derive(SystemData)]
 pub struct ReadData<'a> {
@@ -142,92 +140,22 @@ impl<'a> System<'a> for Sys {
                 let was_wielded = char_state.is_wield();
                 let poise_state = poise.poise_state();
                 let pos = pos.0;
-                match poise_state {
-                    PoiseState::Normal => {},
-                    PoiseState::Interrupted => {
-                        poise.reset();
-                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
-                            static_data: common::states::stunned::StaticData {
-                                buildup_duration: Duration::from_millis(125),
-                                recover_duration: Duration::from_millis(125),
-                                movement_speed: 0.80,
-                                poise_state,
-                            },
-                            timer: Duration::default(),
-                            stage_section: common::states::utils::StageSection::Buildup,
-                            was_wielded,
-                        });
-                        outcomes.push(Outcome::PoiseChange {
-                            pos,
-                            state: PoiseState::Interrupted,
-                        });
-                    },
-                    PoiseState::Stunned => {
-                        poise.reset();
-                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
-                            static_data: common::states::stunned::StaticData {
-                                buildup_duration: Duration::from_millis(300),
-                                recover_duration: Duration::from_millis(300),
-                                movement_speed: 0.65,
-                                poise_state,
-                            },
-                            timer: Duration::default(),
-                            stage_section: common::states::utils::StageSection::Buildup,
-                            was_wielded,
-                        });
-                        outcomes.push(Outcome::PoiseChange {
-                            pos,
-                            state: PoiseState::Stunned,
-                        });
+                if let (Some(stunned_state), impulse_strength) =
+                    poise_state.poise_effect(was_wielded)
+                {
+                    // Reset poise if there is some stunned state to apply
+                    poise.reset();
+                    *char_state = stunned_state;
+                    outcomes.push(Outcome::PoiseChange {
+                        pos,
+                        state: poise_state,
+                    });
+                    if let Some(impulse_strength) = impulse_strength {
                         server_emitter.emit(ServerEvent::Knockback {
                             entity,
-                            impulse: 5.0 * *poise.knockback(),
+                            impulse: impulse_strength * *poise.knockback(),
                         });
-                    },
-                    PoiseState::Dazed => {
-                        poise.reset();
-                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
-                            static_data: common::states::stunned::StaticData {
-                                buildup_duration: Duration::from_millis(600),
-                                recover_duration: Duration::from_millis(250),
-                                movement_speed: 0.45,
-                                poise_state,
-                            },
-                            timer: Duration::default(),
-                            stage_section: common::states::utils::StageSection::Buildup,
-                            was_wielded,
-                        });
-                        outcomes.push(Outcome::PoiseChange {
-                            pos,
-                            state: PoiseState::Dazed,
-                        });
-                        server_emitter.emit(ServerEvent::Knockback {
-                            entity,
-                            impulse: 10.0 * *poise.knockback(),
-                        });
-                    },
-                    PoiseState::KnockedDown => {
-                        poise.reset();
-                        *char_state = CharacterState::Stunned(common::states::stunned::Data {
-                            static_data: common::states::stunned::StaticData {
-                                buildup_duration: Duration::from_millis(750),
-                                recover_duration: Duration::from_millis(500),
-                                movement_speed: 0.4,
-                                poise_state,
-                            },
-                            timer: Duration::default(),
-                            stage_section: common::states::utils::StageSection::Buildup,
-                            was_wielded,
-                        });
-                        outcomes.push(Outcome::PoiseChange {
-                            pos,
-                            state: PoiseState::KnockedDown,
-                        });
-                        server_emitter.emit(ServerEvent::Knockback {
-                            entity,
-                            impulse: 10.0 * *poise.knockback(),
-                        });
-                    },
+                    }
                 }
             }
 
