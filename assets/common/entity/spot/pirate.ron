@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
+    loot: LootTable("common.loot_tables.spots.pirate"),
 
     hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
 

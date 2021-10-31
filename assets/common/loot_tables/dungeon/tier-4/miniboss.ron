@@ -8,5 +8,5 @@
     // lantern
     (1.0, Item("common.items.lantern.blue_0")),
     // gear
-    (3.0, ItemQuantity("common.items.armor.misc.head.mitre")),
+    (3.0, Item("common.items.armor.misc.head.mitre")),
 ]

@@ -1168,7 +1168,7 @@
     ),
     Armor(Head("Cultist")): VoxTrans(
         "voxel.armor.cultist.bandana",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+        (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
     ),
     // Villager Clothing
     Armor(Pants("WorkerBlue")): VoxTrans(
@@ -2143,7 +2143,7 @@
     ),
     Armor(Back("Backpack")): VoxTrans(
         "voxel.armor.misc.back.backpack",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 45.0,0.0), 0.9,
     ),
     Armor(Back("BackpackBlue")): VoxTrans(
         "voxel.armor.misc.back.backpack",
@@ -2156,15 +2156,15 @@
     ),
     Armor(Head("Pirate")): VoxTrans(
         "voxel.armor.pirate.hat",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (1.0, 2.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     Armor(Head("Thief")): VoxTrans(
         "voxel.armor.misc.head.bandana.thief",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
     ),
     Armor(Head("Red")): VoxTrans(
         "voxel.armor.misc.head.bandana.red",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
     ),
     Armor(Head("Straw")): VoxTrans(
         "voxel.armor.misc.head.straw",
@@ -2172,23 +2172,19 @@
     ),
     Armor(Head("Hood")): VoxTrans(
         "voxel.armor.misc.head.hood",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     Armor(Head("Crown")): VoxTrans(
         "voxel.armor.misc.head.crown",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 4.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     Armor(Head("Mitre")): VoxTrans(
         "voxel.armor.misc.head.mitre",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Head("Mitre")): VoxTrans(
-        "voxel.armor.misc.head.mitre",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 4.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     Armor(Head("Spikeguard")): VoxTrans(
         "voxel.armor.misc.head.spikeguard",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     // Rings
     Armor(Ring("Scratched")): VoxTrans(
