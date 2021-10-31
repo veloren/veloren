@@ -8,6 +8,8 @@
 
     Armor(Back): Item("common.items.armor.misc.back.dungeon_purple"),
 
+    Armor(Head): Item("common.items.armor.cultist.bandana"),
+
     Lantern: Choice([
         (1.0, Some(Item("common.items.lantern.black_0"))),
         (2.0, None),

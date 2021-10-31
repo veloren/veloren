@@ -67,6 +67,7 @@ impl Segment {
                                 color,
                                 (13..16).contains(&voxel.i), // Glowy
                                 (8..13).contains(&voxel.i),  // Shiny
+                                voxel.i == 16,               //Hollow
                             ),
                         )
                         .unwrap();
@@ -93,8 +94,14 @@ impl Segment {
     /// Transform cell colors
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| {
-            cell.get_color()
-                .map(|rgb| Cell::new(transform(rgb), cell.is_glowy(), cell.is_shiny()))
+            cell.get_color().map(|rgb| {
+                Cell::new(
+                    transform(rgb),
+                    cell.is_glowy(),
+                    cell.is_shiny(),
+                    cell.is_hollow(),
+                )
+            })
         })
     }
 }
@@ -119,7 +126,9 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         }
     }
 
-    pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) {
+    pub fn unify(self) -> (Dyna<V, ()>, Vec3<i32>) { self.unify_with(|v| v) }
+
+    pub fn unify_with(self, mut f: impl FnMut(V) -> V) -> (Dyna<V, ()>, Vec3<i32>) {
         if self.0.is_empty() {
             return (Dyna::filled(Vec3::zero(), V::empty(), ()), Vec3::zero());
         }
@@ -140,7 +149,7 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
         for (dyna, offset) in self.0 {
             for (pos, vox) in dyna.full_vol_iter() {
                 if !vox.is_empty() {
-                    combined.set(origin + offset + pos, *vox).unwrap();
+                    combined.set(origin + offset + pos, f(*vox)).unwrap();
                 }
             }
         }
@@ -157,7 +166,7 @@ impl MatSegment {
         for (pos, vox) in self.full_vol_iter() {
             let data = match vox {
                 MatCell::None => continue,
-                MatCell::Mat(mat) => CellData::new(map(*mat), false, false),
+                MatCell::Mat(mat) => CellData::new(map(*mat), false, false, false),
                 MatCell::Normal(data) => *data,
             };
             vol.set(pos, Cell::Filled(data)).unwrap();
@@ -221,6 +230,7 @@ impl MatSegment {
                             color,
                             (13..16).contains(&index),
                             (8..13).contains(&index),
+                            index == 16, // Hollow
                         ))
                     },
                 };

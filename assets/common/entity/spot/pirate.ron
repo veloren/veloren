@@ -1,19 +1,9 @@
 EntityConfig (
     name: Name("Pirate"),
-    body: Exact(Humanoid(Body(
-        species: Human,
-        body_type: Female,
-        hair_style: 2,
-        beard: 0,
-        eyes: 0,
-        accessory: 0,
-        hair_color: 12,
-        skin: 8,
-        eye_color: 3,
-    ))),
+    body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
+    loot: LootTable("common.loot_tables.spots.pirate"),
 
     hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
 

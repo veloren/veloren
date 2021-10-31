@@ -1,14 +1,14 @@
 ItemDef(
-    name: "Witch hat",
-    description: "",
+    name: "Witch Hat",
+    description: "Draws strength from dark arts.",
     kind: Armor((
         kind: Head("Witch"),
         stats: (
-            protection: Normal(32.0),
-            poise_resilience: Normal(5.0),
-            energy_max: 9.0,
-            energy_reward: 0.1,
-            crit_power: 0.08,
+            protection: Normal(4.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 0.0,
+            energy_reward: 0.08,
+            crit_power: 0.01,
             stealth: 0.0,
         ),
     )),

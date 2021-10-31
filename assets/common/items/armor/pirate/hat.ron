@@ -1,14 +1,14 @@
 ItemDef(
     name: "Pirate Hat",
-    description: "",
+    description: "It seems like a parrot was perched up here.",
     kind: Armor((
         kind: Head("Pirate"),
         stats: (
-            protection: Normal(32.0),
-            poise_resilience: Normal(5.0),
-            energy_max: 9.0,
-            energy_reward: 0.1,
-            crit_power: 0.08,
+            protection: Normal(4.0),
+            poise_resilience: Normal(1.0),
+            energy_max: 1.0,
+            energy_reward: 0.025,
+            crit_power: 0.02,
             stealth: 0.0,
         ),
     )),

@@ -1,6 +1,6 @@
 ({
     (Human, Male): (
-        offset: (-7.0, -4.0, -2.0),
+        offset: (-7.0, -2.5, -2.0),
         head: ("figure.head.human.male", (0, 2, 0)),
         eyes: [
             Some(("figure.eyes.general.male_default-0", (3, 9, 2))),
@@ -142,7 +142,7 @@
             ],
     ),
     (Elf, Male): (
-        offset: (-8.0, -4.0, -2.0),
+        offset: (-8.0, -2.5, -2.0),
         head: ("figure.head.elf.male", (0, 2, 0)),
          eyes: [
             Some(("figure.eyes.general.male_default-0", (4, 9, 2))),
@@ -290,7 +290,7 @@
             ]
     ),
     (Undead, Male): (
-        offset: (-5.0, -4.0, -2.0),
+        offset: (-5.0, -4.0, -1.5),
         head: ("figure.head.undead.male", (0, 2, 0)),
         eyes: [
             Some(("figure.eyes.undead.male-0", (2, 8, 4))),
