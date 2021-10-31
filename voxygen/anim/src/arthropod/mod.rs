@@ -11,8 +11,8 @@ pub mod summon;
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, dash::DashAnimation, idle::IdleAnimation, jump::JumpAnimation,
-    leapmelee::LeapMeleeAnimation, run::RunAnimation, shoot::ShootAnimation, stunned::StunnedAnimation,
-    summon::SummonAnimation,
+    leapmelee::LeapMeleeAnimation, run::RunAnimation, shoot::ShootAnimation,
+    stunned::StunnedAnimation, summon::SummonAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

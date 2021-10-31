@@ -2,7 +2,7 @@ BasicRanged(
     energy_cost: 0,
     buildup_duration: 0.8,
     recover_duration: 0.35,
-    projectile: NecroticSphere(
+    projectile: PoisonBall(
         damage: 26.0,
         radius: 5.0,
         energy_regen: 0,

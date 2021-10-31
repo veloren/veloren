@@ -3448,6 +3448,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -5447,11 +5448,8 @@ impl FigureMgr {
             object_model_cache,
             ship_model_cache,
             golem_model_cache,
-<<<<<<< HEAD
             volume_model_cache,
-=======
             arthropod_model_cache,
->>>>>>> 9b36d29d2 (Adds arthropod skeleton)
             states:
                 FigureMgrStates {
                     character_states,
@@ -5469,11 +5467,8 @@ impl FigureMgr {
                     golem_states,
                     object_states,
                     ship_states,
-<<<<<<< HEAD
                     volume_states,
-=======
                     arthropod_states,
->>>>>>> 9b36d29d2 (Adds arthropod skeleton)
                 },
         } = self;
         let col_lights = &*col_lights_;
