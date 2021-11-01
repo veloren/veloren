@@ -979,6 +979,12 @@
             ],
             threshold: 1.0,
         ),
+        Utterance(Calm, Fungome): (
+            files: [
+                "voxygen.audio.sfx.utterance.fungome_calm1",
+            ],
+            threshold: 1.0,
+        ),
         Utterance(Calm, Goat): (
             files: [
                 "voxygen.audio.sfx.utterance.goat_calm1",
@@ -995,6 +1001,13 @@
         Utterance(Calm, Sheep): (
             files: [
                 "voxygen.audio.sfx.utterance.sheep_calm1",
+            ],
+            threshold: 1.0,
+        ),
+        Utterance(Calm, Truffler): (
+            files: [
+                "voxygen.audio.sfx.utterance.truffler_calm1",
+                "voxygen.audio.sfx.utterance.truffler_calm2",
             ],
             threshold: 1.0,
         ),
