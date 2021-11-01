@@ -76,7 +76,7 @@ impl Primitive {
     }
 
     pub fn sampling(a: impl Into<Id<Primitive>>, f: Box<dyn Fn(Vec3<i32>) -> bool>) -> Self {
-        Self::Sampling(a.into(), f.into())
+        Self::Sampling(a.into(), f)
     }
 
     pub fn rotate(a: impl Into<Id<Primitive>>, rot: Mat3<i32>) -> Self {
@@ -447,8 +447,8 @@ pub struct PrimitiveRef<'a> {
     painter: &'a Painter,
 }
 
-impl<'a> Into<Id<Primitive>> for PrimitiveRef<'a> {
-    fn into(self) -> Id<Primitive> { self.id }
+impl<'a> From<PrimitiveRef<'a>> for Id<Primitive> {
+    fn from(r: PrimitiveRef<'a>) -> Self { r.id }
 }
 
 impl<'a> PrimitiveRef<'a> {

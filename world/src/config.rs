@@ -82,6 +82,7 @@ pub struct Features {
     pub scatter: bool,
     pub paths: bool,
     pub spots: bool,
+    pub site2: bool,
 }
 
 impl assets::Asset for Features {

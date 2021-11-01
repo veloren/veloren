@@ -53,9 +53,15 @@ fn main() -> Result {
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
-                                if let Some(block) = fill.sample_at(&prim_tree, prim, pos, canvas) {
-                                    let _ = volume.set(pos, block);
-                                }
+                                let _ = volume.map(pos, |block| {
+                                    if let Some(block) =
+                                        fill.sample_at(&prim_tree, prim, pos, canvas, block)
+                                    {
+                                        block
+                                    } else {
+                                        block
+                                    }
+                                });
                             }
                         }
                     }

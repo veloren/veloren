@@ -90,20 +90,26 @@ impl Entity {
         }
     }
 
-    pub fn get_trade_info(&self, world: &World, index: &world::IndexOwned) -> Option<trade::SiteInformation> {
+    pub fn get_trade_info(
+        &self,
+        world: &World,
+        index: &world::IndexOwned,
+    ) -> Option<trade::SiteInformation> {
         let site = match self.kind {
-            RtSimEntityKind::Random if self.rng(PERM_TRADE).gen_bool(0.5) && false => match self.brain.route {
-                Travel::Path { target_id, .. } => Some(target_id),
-                _ => None,
+            /*
+            // Travelling merchants (don't work for some reason currently)
+            RtSimEntityKind::Random if self.rng(PERM_TRADE).gen_bool(0.5) => {
+                match self.brain.route {
+                    Travel::Path { target_id, .. } => Some(target_id),
+                    _ => None,
+                }
             },
+            */
             RtSimEntityKind::Merchant => self.brain.begin_site(),
             _ => None,
         }?;
 
-        let site = world
-            .civs()
-            .sites[site]
-            .site_tmp?;
+        let site = world.civs().sites[site].site_tmp?;
         index.sites[site].trade_information(site.id())
     }
 

@@ -140,6 +140,7 @@ impl TileGrid {
         }
     }
 
+    #[allow(dead_code)]
     pub fn grow_organic(
         &self,
         rng: &mut impl Rng,

@@ -250,7 +250,7 @@ impl Site {
 
         let mut already_pathed = vec![];
         // One major, one minor road
-        for i in (0..rng.gen_range(1.25..2.25) as u16).rev() {
+        for _ in (0..rng.gen_range(1.25..2.25) as u16).rev() {
             if let Some(&p) = self
                 .plazas
                 .iter()
