@@ -30,6 +30,8 @@ pub struct Entity {
 pub enum RtSimEntityKind {
     Random,
     Cultist,
+    Villager,
+    Merchant,
 }
 
 const BIRD_LARGE_ROSTER: &[comp::bird_large::Species] = &[
@@ -44,6 +46,7 @@ const PERM_BODY: u32 = 1;
 const PERM_LOADOUT: u32 = 2;
 const PERM_LEVEL: u32 = 3;
 const PERM_GENUS: u32 = 4;
+const PERM_TRADE: u32 = 5;
 
 impl Entity {
     pub fn rng(&self, perm: u32) -> impl Rng { RandomPerm::new(self.seed + perm) }
@@ -78,13 +81,36 @@ impl Entity {
                     },
                 }
             },
-            RtSimEntityKind::Cultist => {
+            RtSimEntityKind::Cultist | RtSimEntityKind::Villager | RtSimEntityKind::Merchant => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
                 comp::humanoid::Body::random_with(&mut self.rng(PERM_BODY), &species).into()
             },
         }
+    }
+
+    pub fn get_trade_info(
+        &self,
+        world: &World,
+        index: &world::IndexOwned,
+    ) -> Option<trade::SiteInformation> {
+        let site = match self.kind {
+            /*
+            // Travelling merchants (don't work for some reason currently)
+            RtSimEntityKind::Random if self.rng(PERM_TRADE).gen_bool(0.5) => {
+                match self.brain.route {
+                    Travel::Path { target_id, .. } => Some(target_id),
+                    _ => None,
+                }
+            },
+            */
+            RtSimEntityKind::Merchant => self.brain.begin_site(),
+            _ => None,
+        }?;
+
+        let site = world.civs().sites[site].site_tmp?;
+        index.sites[site].trade_information(site.id())
     }
 
     pub fn get_entity_config(&self) -> &str {
@@ -104,12 +130,17 @@ impl Entity {
         &self,
     ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {
         let body = self.get_body();
-        let kind = &self.kind;
+        let kind = self.kind;
+
         // give potions to traveler humanoids or return loadout as is otherwise
-        if let (comp::Body::Humanoid(_), RtSimEntityKind::Random) = (body, kind) {
-            |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
-        } else {
-            |l, _| l
+        match (body, kind) {
+            (comp::Body::Humanoid(_), RtSimEntityKind::Random) => {
+                |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+            },
+            (_, RtSimEntityKind::Merchant) => {
+                |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
+            },
+            _ => |l, _| l,
         }
     }
 
@@ -657,6 +688,28 @@ impl Brain {
         }
     }
 
+    pub fn villager(home_id: Id<Site>) -> Self {
+        Self {
+            begin: Some(home_id),
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
+    pub fn merchant(home_id: Id<Site>) -> Self {
+        Self {
+            begin: Some(home_id),
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
+    pub fn begin_site(&self) -> Option<Id<Site>> { self.begin }
+
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
 
     pub fn forget_enemy(&mut self, to_forget: &str) {
@@ -715,6 +768,8 @@ fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
     match kind {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
         RtSimEntityKind::Random => "common.entity.world.traveler",
+        RtSimEntityKind::Villager => "common.entity.village.villager",
+        RtSimEntityKind::Merchant => "common.entity.village.merchant",
     }
 }
 

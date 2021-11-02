@@ -137,7 +137,7 @@ impl assets::Asset for EntityConfig {
 impl EntityConfig {
     pub fn from_asset_expect(asset_specifier: &str) -> Self {
         Self::load_owned(asset_specifier)
-            .unwrap_or_else(|e| panic!("Failed to load {}. Error: {}", asset_specifier, e))
+            .unwrap_or_else(|e| panic!("Failed to load {}. Error: {:?}", asset_specifier, e))
     }
 
     pub fn with_body(mut self, body: BodyBuilder) -> Self {

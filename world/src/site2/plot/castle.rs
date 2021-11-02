@@ -10,7 +10,7 @@ pub struct Castle {
     _bounds: Aabr<i32>,
     gate_aabr: Aabr<i32>,
     gate_alt: i32,
-    alt: i32,
+    pub(crate) alt: i32,
 }
 
 impl Castle {
@@ -43,13 +43,7 @@ impl Castle {
 
 impl Structure for Castle {
     #[allow(clippy::identity_op)]
-    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
-        &self,
-        site: &Site,
-        _land: &Land,
-        mut prim: F,
-        mut fill: G,
-    ) {
+    fn render(&self, site: &Site, _land: &Land, painter: &Painter) {
         let wall_height = 24;
         let parapet_height = 2;
         let parapet_gap = 2;
@@ -61,8 +55,8 @@ impl Structure for Castle {
         let _keep_height = wall_height + keep_levels * keep_level_height + 1;
         let wall_rgb = Rgb::new(38, 46, 43);
         // Flatten inside of the castle
-        fill(
-            prim(Primitive::Aabb(Aabb {
+        painter.fill(
+            painter.prim(Primitive::Aabb(Aabb {
                 min: site.tile_wpos(self.tile_aabr.min).with_z(self.gate_alt),
                 max: site
                     .tile_wpos(self.tile_aabr.max)
@@ -70,8 +64,8 @@ impl Structure for Castle {
             })),
             Fill::Block(Block::empty()),
         );
-        fill(
-            prim(Primitive::Aabb(Aabb {
+        painter.fill(
+            painter.prim(Primitive::Aabb(Aabb {
                 min: site.tile_wpos(self.tile_aabr.min).with_z(self.gate_alt),
                 max: site.tile_wpos(self.tile_aabr.max).with_z(self.gate_alt + 1),
             })),
@@ -84,22 +78,22 @@ impl Structure for Castle {
                 match site.tiles.get(tile_pos).kind.clone() {
                     TileKind::Wall(ori) => {
                         let dir = ori.dir();
-                        let wall = prim(Primitive::Aabb(Aabb {
+                        let wall = painter.prim(Primitive::Aabb(Aabb {
                             min: wpos.with_z(self.alt - 20),
                             max: (wpos + ts).with_z(self.alt + wall_height),
                         }));
                         // TODO Figure out logic to choose on on which site wall should be placed
                         // (inner, outer)
-                        let parapet = prim(Primitive::Aabb(Aabb {
+                        let parapet = painter.prim(Primitive::Aabb(Aabb {
                             min: (wpos - dir.yx()).with_z(self.alt + wall_height),
                             max: (wpos + ts * dir).with_z(self.alt + wall_height + parapet_height),
                         }));
-                        let parapet2 = prim(Primitive::Aabb(Aabb {
+                        let parapet2 = painter.prim(Primitive::Aabb(Aabb {
                             min: (wpos + ts * dir.yx()).with_z(self.alt + wall_height),
                             max: (wpos + (ts + 1) * dir.yx() + ts * dir)
                                 .with_z(self.alt + wall_height + parapet_height),
                         }));
-                        let cut_sides = prim(Primitive::Aabb(Aabb {
+                        let cut_sides = painter.prim(Primitive::Aabb(Aabb {
                             min: (wpos + parapet_offset * dir - dir.yx())
                                 .with_z(self.alt + wall_height + parapet_height - 1),
                             max: (wpos
@@ -108,12 +102,12 @@ impl Structure for Castle {
                                 .with_z(self.alt + wall_height + parapet_height),
                         }));
 
-                        fill(wall, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
-                        let sides = prim(Primitive::Or(parapet, parapet2));
-                        fill(sides, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
+                        painter.fill(wall, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
+                        let sides = painter.prim(Primitive::or(parapet, parapet2));
+                        painter.fill(sides, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
                         if (x + y).is_odd() {
-                            fill(
-                                prim(Primitive::Aabb(Aabb {
+                            painter.fill(
+                                painter.prim(Primitive::Aabb(Aabb {
                                     min: (wpos + 2 * dir - dir.yx()).with_z(self.alt - 20),
                                     max: (wpos + 4 * dir + (ts + 1) * dir.yx())
                                         .with_z(self.alt + wall_height),
@@ -121,55 +115,55 @@ impl Structure for Castle {
                                 Fill::Brick(BlockKind::Rock, wall_rgb, 12),
                             );
                         } else {
-                            let window_top = prim(Primitive::Aabb(Aabb {
+                            let window_top = painter.prim(Primitive::Aabb(Aabb {
                                 min: (wpos + 2 * dir).with_z(self.alt + wall_height / 4 + 9),
                                 max: (wpos + (ts - 2) * dir + dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 12),
                             }));
-                            let window_bottom = prim(Primitive::Aabb(Aabb {
+                            let window_bottom = painter.prim(Primitive::Aabb(Aabb {
                                 min: (wpos + 1 * dir).with_z(self.alt + wall_height / 4),
                                 max: (wpos + (ts - 1) * dir + dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 9),
                             }));
-                            let window_top2 = prim(Primitive::Aabb(Aabb {
+                            let window_top2 = painter.prim(Primitive::Aabb(Aabb {
                                 min: (wpos + 2 * dir + (ts - 1) * dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 9),
                                 max: (wpos + (ts - 2) * dir + ts * dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 12),
                             }));
-                            let window_bottom2 = prim(Primitive::Aabb(Aabb {
+                            let window_bottom2 = painter.prim(Primitive::Aabb(Aabb {
                                 min: (wpos + 1 * dir + (ts - 1) * dir.yx())
                                     .with_z(self.alt + wall_height / 4),
                                 max: (wpos + (ts - 1) * dir + ts * dir.yx())
                                     .with_z(self.alt + wall_height / 4 + 9),
                             }));
 
-                            fill(window_bottom, Fill::Block(Block::empty()));
-                            fill(window_top, Fill::Block(Block::empty()));
-                            fill(window_bottom2, Fill::Block(Block::empty()));
-                            fill(window_top2, Fill::Block(Block::empty()));
+                            painter.fill(window_bottom, Fill::Block(Block::empty()));
+                            painter.fill(window_top, Fill::Block(Block::empty()));
+                            painter.fill(window_bottom2, Fill::Block(Block::empty()));
+                            painter.fill(window_top2, Fill::Block(Block::empty()));
                         }
-                        fill(cut_sides, Fill::Block(Block::empty()));
+                        painter.fill(cut_sides, Fill::Block(Block::empty()));
                     },
                     TileKind::Tower(roof) => {
                         let tower_total_height =
                             self.alt + wall_height + parapet_height + tower_height;
-                        let tower_lower = prim(Primitive::Aabb(Aabb {
+                        let tower_lower = painter.prim(Primitive::Aabb(Aabb {
                             min: (wpos - 1).with_z(self.alt - 20),
                             max: (wpos + ts + 1).with_z(tower_total_height),
                         }));
-                        fill(tower_lower, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
-                        let tower_upper = prim(Primitive::Aabb(Aabb {
+                        painter.fill(tower_lower, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
+                        let tower_upper = painter.prim(Primitive::Aabb(Aabb {
                             min: (wpos - 2).with_z(tower_total_height - 4i32),
                             max: (wpos + ts + 2).with_z(tower_total_height - 2i32),
                         }));
-                        let tower_upper2 = prim(Primitive::Aabb(Aabb {
+                        let tower_upper2 = painter.prim(Primitive::Aabb(Aabb {
                             min: (wpos - 3).with_z(tower_total_height - 2i32),
                             max: (wpos + ts + 3).with_z(tower_total_height),
                         }));
 
-                        fill(
-                            prim(Primitive::Or(tower_upper, tower_upper2)),
+                        painter.fill(
+                            painter.prim(Primitive::or(tower_upper, tower_upper2)),
                             Fill::Brick(BlockKind::Rock, wall_rgb, 12),
                         );
 
@@ -178,8 +172,8 @@ impl Structure for Castle {
                                 let roof_lip = 1;
                                 let roof_height = (ts + 3) / 2 + roof_lip + 1;
 
-                                fill(
-                                    prim(Primitive::Pyramid {
+                                painter.fill(
+                                    painter.prim(Primitive::Pyramid {
                                         aabb: Aabb {
                                             min: (wpos - 3 - roof_lip).with_z(tower_total_height),
                                             max: (wpos + ts + 3 + roof_lip)
@@ -191,27 +185,27 @@ impl Structure for Castle {
                                 );
                             },
                             RoofKind::Parapet => {
-                                let tower_top_outer = prim(Primitive::Aabb(Aabb {
+                                let tower_top_outer = painter.prim(Primitive::Aabb(Aabb {
                                     min: (wpos - 3).with_z(
                                         self.alt + wall_height + parapet_height + tower_height,
                                     ),
                                     max: (wpos + ts + 3)
                                         .with_z(tower_total_height + parapet_height),
                                 }));
-                                let tower_top_inner = prim(Primitive::Aabb(Aabb {
+                                let tower_top_inner = painter.prim(Primitive::Aabb(Aabb {
                                     min: (wpos - 2).with_z(tower_total_height),
                                     max: (wpos + ts + 2)
                                         .with_z(tower_total_height + parapet_height),
                                 }));
 
-                                fill(
-                                    prim(Primitive::Xor(tower_top_outer, tower_top_inner)),
+                                painter.fill(
+                                    painter.prim(Primitive::xor(tower_top_outer, tower_top_inner)),
                                     Fill::Brick(BlockKind::Rock, wall_rgb, 12),
                                 );
 
                                 for x in (wpos.x..wpos.x + ts).step_by(2 * parapet_gap as usize) {
-                                    fill(
-                                        prim(Primitive::Aabb(Aabb {
+                                    painter.fill(
+                                        painter.prim(Primitive::Aabb(Aabb {
                                             min: Vec3::new(x, wpos.y - 3, tower_total_height + 1),
                                             max: Vec3::new(
                                                 x + parapet_gap,
@@ -223,8 +217,8 @@ impl Structure for Castle {
                                     );
                                 }
                                 for y in (wpos.y..wpos.y + ts).step_by(2 * parapet_gap as usize) {
-                                    fill(
-                                        prim(Primitive::Aabb(Aabb {
+                                    painter.fill(
+                                        painter.prim(Primitive::Aabb(Aabb {
                                             min: Vec3::new(wpos.x - 3, y, tower_total_height + 1),
                                             max: Vec3::new(
                                                 wpos.x + ts + 3,
@@ -239,16 +233,16 @@ impl Structure for Castle {
                                 for &cpos in SQUARE_4.iter() {
                                     let pos = wpos - 3 + (ts + 6) * cpos - cpos;
                                     let pos2 = wpos - 2 + (ts + 4) * cpos - cpos;
-                                    fill(
-                                        prim(Primitive::Aabb(Aabb {
+                                    painter.fill(
+                                        painter.prim(Primitive::Aabb(Aabb {
                                             min: pos.with_z(tower_total_height - 2),
                                             max: (pos + 1)
                                                 .with_z(tower_total_height + parapet_height),
                                         })),
                                         Fill::Block(Block::empty()),
                                     );
-                                    fill(
-                                        prim(Primitive::Aabb(Aabb {
+                                    painter.fill(
+                                        painter.prim(Primitive::Aabb(Aabb {
                                             min: pos2.with_z(tower_total_height - 4),
                                             max: (pos2 + 1).with_z(tower_total_height - 2),
                                         })),
@@ -263,8 +257,8 @@ impl Structure for Castle {
                             KeepKind::Middle => {
                                 for i in 0..keep_levels + 1 {
                                     let height = keep_level_height * i;
-                                    fill(
-                                        prim(Primitive::Aabb(Aabb {
+                                    painter.fill(
+                                        painter.prim(Primitive::Aabb(Aabb {
                                             min: wpos.with_z(self.alt + height),
                                             max: (wpos + ts).with_z(self.alt + height + 1),
                                         })),
@@ -297,12 +291,12 @@ impl Structure for Castle {
             max: (site.tile_wpos(self.gate_aabr.max) - Vec2::unit_x())
                 .with_z(self.alt + wall_height),
         };
-        fill(
-            prim(Primitive::Aabb(gate_aabb)),
+        painter.fill(
+            painter.prim(Primitive::Aabb(gate_aabb)),
             Fill::Brick(BlockKind::Rock, wall_rgb, 12),
         );
-        fill(
-            prim(Primitive::Aabb(Aabb {
+        painter.fill(
+            painter.prim(Primitive::Aabb(Aabb {
                 min: (gate_aabb.min + Vec3::unit_x() * 2 + Vec3::unit_z() * 2),
                 max: (gate_aabb.max - Vec3::unit_x() * 2 - Vec3::unit_z() * 16),
             })),
@@ -310,8 +304,8 @@ impl Structure for Castle {
         );
         let height = self.alt + wall_height - 17;
         for i in 1..5 {
-            fill(
-                prim(Primitive::Aabb(Aabb {
+            painter.fill(
+                painter.prim(Primitive::Aabb(Aabb {
                     min: Vec3::new(gate_aabb.min.x + 2 + i, gate_aabb.min.y, height + i as i32),
                     max: Vec3::new(
                         gate_aabb.max.x - 2 - i,
@@ -324,8 +318,8 @@ impl Structure for Castle {
         }
         let height = self.alt + wall_height - 7;
         for x in (gate_aabb.min.x + 1..gate_aabb.max.x - 2).step_by(4) {
-            fill(
-                prim(Primitive::Aabb(Aabb {
+            painter.fill(
+                painter.prim(Primitive::Aabb(Aabb {
                     min: Vec3::new(x, gate_aabb.min.y + 1, height - 13),
                     max: Vec3::new(x + 2, gate_aabb.min.y + 2, height),
                 })),
@@ -333,8 +327,8 @@ impl Structure for Castle {
             );
         }
         for z in (height - 12..height).step_by(4) {
-            fill(
-                prim(Primitive::Aabb(Aabb {
+            painter.fill(
+                painter.prim(Primitive::Aabb(Aabb {
                     min: Vec3::new(gate_aabb.min.x + 2, gate_aabb.min.y + 1, z),
                     max: Vec3::new(gate_aabb.max.x - 2, gate_aabb.min.y + 2, z + 2),
                 })),

@@ -823,6 +823,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 
+        let warp_factor = warp_factor
+            * sim_chunk
+                .sites
+                .iter()
+                .map(|site| index.sites[*site].spawn_rules(wpos).max_warp)
+                .fold(1.0f32, |a, b| a.min(b));
+
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt + riverless_alt_delta;
         let basement =

@@ -1,8 +1,9 @@
 mod castle;
 pub mod dungeon;
 mod house;
+mod workshop;
 
-pub use self::{castle::Castle, dungeon::Dungeon, house::House};
+pub use self::{castle::Castle, dungeon::Dungeon, house::House, workshop::Workshop};
 
 use super::*;
 use crate::util::DHashSet;
@@ -25,11 +26,21 @@ impl Plot {
             })
     }
 
+    pub fn z_range(&self) -> Option<Range<i32>> {
+        match &self.kind {
+            PlotKind::House(house) => Some(house.z_range()),
+            _ => None,
+        }
+    }
+
     pub fn kind(&self) -> &PlotKind { &self.kind }
+
+    pub fn root_tile(&self) -> Vec2<i32> { self.root_tile }
 }
 
 pub enum PlotKind {
     House(House),
+    Workshop(Workshop),
     Plaza,
     Castle(Castle),
     Road(Path<Vec2<i32>>),

@@ -140,6 +140,7 @@ impl TileGrid {
         }
     }
 
+    #[allow(dead_code)]
     pub fn grow_organic(
         &self,
         rng: &mut impl Rng,
@@ -192,6 +193,7 @@ pub enum TileKind {
 pub struct Tile {
     pub(crate) kind: TileKind,
     pub(crate) plot: Option<Id<Plot>>,
+    pub(crate) hard_alt: Option<i32>,
 }
 
 impl Tile {
@@ -199,20 +201,31 @@ impl Tile {
         Self {
             kind: TileKind::Empty,
             plot: None,
+            hard_alt: None,
         }
     }
 
     /// Create a tile that is not associated with any plot.
-    pub const fn free(kind: TileKind) -> Self { Self { kind, plot: None } }
+    pub const fn free(kind: TileKind) -> Self {
+        Self {
+            kind,
+            plot: None,
+            hard_alt: None,
+        }
+    }
 
     pub fn is_empty(&self) -> bool { self.kind == TileKind::Empty }
 
-    pub fn is_road(&self) -> bool { matches!(self.kind, TileKind::Road { .. }) }
+    pub fn is_road(&self) -> bool { matches!(self.kind, TileKind::Plaza | TileKind::Road { .. }) }
 
     pub fn is_obstacle(&self) -> bool {
+        matches!(self.kind, TileKind::Hazard(_)) || self.is_building()
+    }
+
+    pub fn is_building(&self) -> bool {
         matches!(
             self.kind,
-            TileKind::Hazard(_) | TileKind::Building | TileKind::Castle | TileKind::Wall(_)
+            TileKind::Building | TileKind::Castle | TileKind::Wall(_)
         )
     }
 }

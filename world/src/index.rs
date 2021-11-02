@@ -82,9 +82,9 @@ impl Index {
         }
     }
 
-    pub fn colors(&self) -> AssetHandle<Arc<Colors>> { self.colors }
+    pub fn colors(&self) -> impl Deref<Target = Arc<Colors>> + '_ { self.colors.read() }
 
-    pub fn features(&self) -> AssetHandle<Arc<Features>> { self.features }
+    pub fn features(&self) -> impl Deref<Target = Arc<Features>> + '_ { self.features.read() }
 
     pub fn get_site_prices(&self, site_id: SiteId) -> Option<SitePrices> {
         self.sites

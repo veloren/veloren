@@ -9,4 +9,5 @@
     scatter: true,
     paths: true,
     spots: true,
+    site2: false,
 )

@@ -11,7 +11,7 @@ use common::{
     },
     vol::ReadVol,
 };
-use std::sync::Arc;
+use std::{cell::RefCell, sync::Arc};
 use vek::*;
 
 #[allow(dead_code)]
@@ -39,8 +39,8 @@ pub enum Primitive {
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
-    /// A line segment from start to finish point
-    Segment(LineSegment3<i32>),
+    /// A line segment from start to finish point with a given radius
+    Segment(LineSegment3<i32>, f32),
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
@@ -58,8 +58,43 @@ pub enum Primitive {
     Scale(Id<Primitive>, Vec3<f32>),
 }
 
+impl Primitive {
+    pub fn and(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::And(a.into(), b.into())
+    }
+
+    pub fn or(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Or(a.into(), b.into())
+    }
+
+    pub fn xor(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Xor(a.into(), b.into())
+    }
+
+    pub fn diff(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Diff(a.into(), b.into())
+    }
+
+    pub fn sampling(a: impl Into<Id<Primitive>>, f: Box<dyn Fn(Vec3<i32>) -> bool>) -> Self {
+        Self::Sampling(a.into(), f)
+    }
+
+    pub fn rotate(a: impl Into<Id<Primitive>>, rot: Mat3<i32>) -> Self {
+        Self::Rotate(a.into(), rot)
+    }
+
+    pub fn translate(a: impl Into<Id<Primitive>>, trans: Vec3<i32>) -> Self {
+        Self::Translate(a.into(), trans)
+    }
+
+    pub fn scale(a: impl Into<Id<Primitive>>, scale: Vec3<f32>) -> Self {
+        Self::Scale(a.into(), scale)
+    }
+}
+
 #[derive(Clone)]
 pub enum Fill {
+    Sprite(SpriteKind),
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
     // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
@@ -180,11 +215,12 @@ impl Fill {
                                 .as_()
                                 .dot(*gradient) as i32)
             },
-            Primitive::Segment(segment) => {
-                (segment.start.x..segment.end.x).contains(&pos.x)
-                    && (segment.start.y..segment.end.y).contains(&pos.y)
-                    && (segment.start.z..segment.end.z).contains(&pos.z)
-                    && segment.as_().distance_to_point(pos.map(|e| e as f32)) < 0.75
+            Primitive::Segment(segment, radius) => {
+                /*(segment.start.x..segment.end.x).contains(&pos.x)
+                && (segment.start.y..segment.end.y).contains(&pos.y)
+                && (segment.start.z..segment.end.z).contains(&pos.z)
+                &&*/
+                segment.as_().distance_to_point(pos.map(|e| e as f32)) < radius - 0.25
             },
             Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
@@ -226,10 +262,16 @@ impl Fill {
         prim: Id<Primitive>,
         pos: Vec3<i32>,
         canvas_info: &crate::CanvasInfo,
+        old_block: Block,
     ) -> Option<Block> {
         if self.contains_at(tree, prim, pos) {
             match self {
                 Fill::Block(block) => Some(*block),
+                Fill::Sprite(sprite) => Some(if old_block.is_filled() {
+                    Block::air(*sprite)
+                } else {
+                    old_block.with_sprite(*sprite)
+                }),
                 Fill::Brick(bk, col, range) => Some(Block::new(
                     *bk,
                     *col + (RandomField::new(13)
@@ -290,9 +332,9 @@ impl Fill {
                 };
                 aabb.made_valid()
             },
-            Primitive::Segment(segment) => Aabb {
-                min: segment.start,
-                max: segment.end,
+            Primitive::Segment(segment, radius) => Aabb {
+                min: segment.start - radius.floor() as i32,
+                max: segment.end + radius.ceil() as i32,
             },
             Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Prefab(p) => p.get_bounds(),
@@ -340,14 +382,87 @@ impl Fill {
     }
 }
 
+pub struct Painter {
+    prims: RefCell<Store<Primitive>>,
+    fills: RefCell<Vec<(Id<Primitive>, Fill)>>,
+}
+
+impl Painter {
+    pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef { self.prim(Primitive::Aabb(aabb)) }
+
+    pub fn line(&self, a: Vec3<i32>, b: Vec3<i32>, radius: f32) -> PrimitiveRef {
+        self.prim(Primitive::Segment(
+            LineSegment3 { start: a, end: b },
+            radius,
+        ))
+    }
+
+    pub fn sprite(&self, pos: Vec3<i32>, sprite: SpriteKind) {
+        self.aabb(Aabb {
+            min: pos,
+            max: pos + 1,
+        })
+        .fill(Fill::Sprite(sprite))
+    }
+
+    pub fn pyramid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        let inset = 0;
+        self.prim(Primitive::Ramp {
+            aabb,
+            inset,
+            dir: 0,
+        })
+        .union(self.prim(Primitive::Ramp {
+            aabb,
+            inset,
+            dir: 1,
+        }))
+        .union(self.prim(Primitive::Ramp {
+            aabb,
+            inset,
+            dir: 2,
+        }))
+        .union(self.prim(Primitive::Ramp {
+            aabb,
+            inset,
+            dir: 3,
+        }))
+    }
+
+    pub fn prim(&self, prim: Primitive) -> PrimitiveRef {
+        PrimitiveRef {
+            id: self.prims.borrow_mut().insert(prim),
+            painter: self,
+        }
+    }
+
+    pub fn fill(&self, prim: impl Into<Id<Primitive>>, fill: Fill) {
+        self.fills.borrow_mut().push((prim.into(), fill));
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct PrimitiveRef<'a> {
+    id: Id<Primitive>,
+    painter: &'a Painter,
+}
+
+impl<'a> From<PrimitiveRef<'a>> for Id<Primitive> {
+    fn from(r: PrimitiveRef<'a>) -> Self { r.id }
+}
+
+impl<'a> PrimitiveRef<'a> {
+    pub fn union(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::and(self, other))
+    }
+
+    pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
+
+    pub fn clear(self) { self.painter.fill(self, Fill::Block(Block::empty())); }
+}
+
 pub trait Structure {
-    fn render<F: FnMut(Primitive) -> Id<Primitive>, G: FnMut(Id<Primitive>, Fill)>(
-        &self,
-        site: &Site,
-        land: &Land,
-        prim: F,
-        fill: G,
-    );
+    fn render(&self, site: &Site, land: &Land, painter: &Painter);
 
     // Generate a primitive tree and fills for this structure
     fn render_collect(
@@ -355,10 +470,13 @@ pub trait Structure {
         site: &Site,
         land: &Land,
     ) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
-        let mut tree = Store::default();
-        let mut fills = Vec::new();
-        self.render(site, land, |p| tree.insert(p), |p, f| fills.push((p, f)));
-        (tree, fills)
+        let painter = Painter {
+            prims: RefCell::new(Store::default()),
+            fills: RefCell::new(Vec::new()),
+        };
+
+        self.render(site, land, &painter);
+        (painter.prims.into_inner(), painter.fills.into_inner())
     }
 }
 /// Extend a 2d AABR to a 3d AABB
