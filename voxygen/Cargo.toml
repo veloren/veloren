@@ -65,7 +65,7 @@ iced = {package = "iced_native", git = "https://github.com/Imberflur/iced", tag 
 iced_winit = {git = "https://github.com/Imberflur/iced", tag = "winit-0.25"}
 window_clipboard = "0.2"
 glyph_brush = "0.7.0"
-keyboard-keynames = { git = "https://gitlab.com/Frinksy/keyboard-keynames.git", rev = "721c8b301f8003332d0cc767ab2649fdd330e842" }
+keyboard-keynames = { git = "https://gitlab.com/Frinksy/keyboard-keynames.git", branch = "develop" }
 
 # EGUI
 egui = {version = "0.12", optional = true }

@@ -2716,7 +2716,7 @@ dependencies = [
 [[package]]
 name = "keyboard-keynames"
 version = "0.1.0"
-source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?rev=721c8b301f8003332d0cc767ab2649fdd330e842#721c8b301f8003332d0cc767ab2649fdd330e842"
+source = "git+https://gitlab.com/Frinksy/keyboard-keynames.git?branch=develop#1ae010ca032a57dfe0ba01d4346a3b03bde36de0"
 dependencies = [
  "libc",
  "memmap",
