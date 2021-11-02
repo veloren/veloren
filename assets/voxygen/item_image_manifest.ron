@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 //  Png(specifier),
 //  Vox(specier),
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
@@ -2949,4 +2950,4 @@
         "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_handle",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
-})
+)]
