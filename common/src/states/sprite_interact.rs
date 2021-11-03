@@ -156,7 +156,8 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::VialEmpty
             | SpriteKind::Bowl
             | SpriteKind::PotionMinor
-            | SpriteKind::Seashells => Some(SpriteInteractKind::Collectible),
+            | SpriteKind::Seashells
+            | SpriteKind::Bomb => Some(SpriteInteractKind::Collectible),
             // Collectible checked in addition to container for case that sprite requires a tool to
             // collect and cannot be collected by hand, yet still meets the container check
             _ if sprite_kind.is_container() && sprite_kind.is_collectible() => {

@@ -187,6 +187,7 @@ make_case_elim!(
         LillyPads = 0xA0,
         JungleLeafyPlant = 0xA1,
         JungleRedGrass = 0xA2,
+        Bomb = 0xA3,
     }
 );
 
@@ -261,7 +262,8 @@ impl SpriteKind {
             | SpriteKind::Window3
             | SpriteKind::Window4
             | SpriteKind::DropGate
-            | SpriteKind::WitchWindow => 1.0,
+            | SpriteKind::WitchWindow
+            | SpriteKind::Bomb => 1.0,
             // TODO: Figure out if this should be solid or not.
             SpriteKind::Shelf => 1.0,
             SpriteKind::Lantern => 0.9,
@@ -335,6 +337,7 @@ impl SpriteKind {
             SpriteKind::RoundCactus => item("common.items.crafting_ing.cactus"),
             SpriteKind::ShortFlatCactus => item("common.items.crafting_ing.cactus"),
             SpriteKind::MedFlatCactus => item("common.items.crafting_ing.cactus"),
+            SpriteKind::Bomb => item("common.items.utility.bomb"),
             SpriteKind::DungeonChest0 => table("common.loot_tables.dungeon.tier-0.chest"),
             SpriteKind::DungeonChest1 => table("common.loot_tables.dungeon.tier-1.chest"),
             SpriteKind::DungeonChest2 => table("common.loot_tables.dungeon.tier-2.chest"),

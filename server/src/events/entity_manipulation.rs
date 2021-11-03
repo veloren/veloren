@@ -866,7 +866,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     }
 }
 
-pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, _owner: Option<Uid>, target: Option<Uid>) {
+pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, target: Option<Uid>) {
     let ecs = &server.state.ecs();
     let terrain = ecs.read_resource::<TerrainGrid>();
     let mut block_change = ecs.write_resource::<BlockChange>();
@@ -884,18 +884,25 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, _owner: Option<Uid>, tar
                 {
                     drop(terrain);
                     drop(block_change);
-                    server
+                    let mut entity = server
                         .state
                         .create_object(Default::default(), match block.get_sprite() {
                             // Create different containers depending on the original sprite
                             Some(SpriteKind::Apple) => comp::object::Body::Apple,
                             Some(SpriteKind::Beehive) => comp::object::Body::Hive,
                             Some(SpriteKind::Coconut) => comp::object::Body::Coconut,
+                            Some(SpriteKind::Bomb) => comp::object::Body::Bomb,
                             _ => comp::object::Body::Pouch,
                         })
                         .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
-                        .with(item)
-                        .build();
+                        .with(item);
+
+                    entity = match block.get_sprite() {
+                        Some(SpriteKind::Bomb) => entity.with(comp::Object::Bomb { owner }),
+                        _ => entity,
+                    };
+
+                    entity.build();
                 }
             };
         }
