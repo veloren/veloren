@@ -1033,25 +1033,29 @@
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
     // Lanterns
-    Lantern("Black0"): Png(
-        "element.items.lantern_black-0",
+    Lantern("Black0"): VoxTrans(
+        "voxel.lantern.black-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Green0"): Png(
-        "element.items.lantern_green-0",
+    Lantern("Green0"): VoxTrans(
+        "voxel.lantern.green-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Blue0"): Png(
-        "element.items.lantern_blue-0",
+    Lantern("Blue0"): VoxTrans(
+        "voxel.lantern.blue-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Red0"): Png(
-        "element.items.lantern_red-0",
+    Lantern("Red0"): VoxTrans(
+        "voxel.lantern.red-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Lantern("GeodePurp"): VoxTrans(
         "voxel.lantern.geode_purp",
-        (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Lantern("PumpkinLantern"): VoxTrans(
         "voxel.lantern.pumpkin",
-        (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (-100.0, 205.0, 7.0), 0.9,
     ),
     Lantern("PolarisLantern"): VoxTrans(
         "voxel.lantern.polaris",
