@@ -2223,7 +2223,7 @@
         "voxel.armor.cultist.ring",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-
+    
     // Necks
     Armor(Neck("Ankh")): VoxTrans(
         "voxel.armor.misc.neck.ankh_of_life",
