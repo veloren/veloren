@@ -526,7 +526,8 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     });
 
     let explosion_volume = 2.5 * explosion.radius;
-    server_eventbus.emit_now(ServerEvent::Sound {
+    let mut emitter = server_eventbus.emitter();
+    emitter.emit(ServerEvent::Sound {
         sound: Sound::new(SoundKind::Explosion, pos, explosion_volume, time.0),
     });
 
@@ -658,6 +659,14 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                 color[2] = (b as u8).max(30);
                                 block_change.set(block_pos, Block::new(block.kind(), color));
                             }
+                        }
+
+                        if block.is_bonkable() {
+                            emitter.emit(ServerEvent::Bonk {
+                                pos: block_pos.map(|e| e as f32 + 0.5),
+                                owner,
+                                target: None,
+                            });
                         }
                     }
                 }
@@ -804,7 +813,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             attack_options,
                             strength,
                             combat::AttackSource::Explosion,
-                            |e| server_eventbus.emit_now(e),
+                            |e| emitter.emit(e),
                             |o| outcomes.push(o),
                         );
                     }
