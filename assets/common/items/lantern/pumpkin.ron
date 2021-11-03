@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Eery Pumpkin",
+    name: "Eerie Pumpkin",
     description: "Did it just blink?!",
     kind: Lantern(
         (

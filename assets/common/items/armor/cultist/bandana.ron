@@ -4,16 +4,16 @@ ItemDef(
     kind: Armor((
         kind: Head("Cultist"),
         stats: (
-            protection: Normal(18.0),
-            poise_resilience: Normal(3.0),
-            energy_max: 7.0,
-            energy_reward: 0.1,
-            crit_power: 0.06,
-            stealth: 0.0,
+            protection: Normal(12.0),
+            poise_resilience: Normal(2.0),
+            energy_max: 5.0,
+            energy_reward: 0.03,
+            crit_power: 0.04,
+            stealth: 0.04,
         ),
     )),
     quality: Epic,
     tags: [
-Cultist
+        Cultist,
     ],
 )

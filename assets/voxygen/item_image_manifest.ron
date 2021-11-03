@@ -17,27 +17,27 @@
     ),
     Tool("CraftingBench"): VoxTrans(
         "voxel.sprite.crafting_bench.crafting_bench-0",
-       (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
     ),
     Tool("Forge"): VoxTrans(
         "voxel.object.forge",
-       (0.0, 0.0, 0.0), (-80.0, 20.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 0.0), 1.0,
     ),
     Tool("Loom"): VoxTrans(
         "voxel.object.loom",
-       (0.0, 0.0, 0.0), (-100.0, 00.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-100.0, 00.0, 0.0), 1.0,
     ),
     Tool("SpinningWheel"): VoxTrans(
         "voxel.object.spinning_wheel",
-       (0.0, 0.0, 0.0), (-70.0, 10.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-70.0, 10.0, 0.0), 1.0,
     ),
     Tool("TanningRack"): VoxTrans(
         "voxel.object.tanning_rack",
-       (0.0, 0.0, 0.0), (-90.0, 20.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-90.0, 20.0, 0.0), 1.0,
     ),
     Tool("DismantlingBench"): VoxTrans(
         "voxel.sprite.salvaging_station.salvaging_station-0",
-       (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
     ),
     // Weapons
     // Diary Example Images
@@ -51,7 +51,7 @@
     ),
     Tool("example_axe"): VoxTrans(
         "voxel.weapon.axe.2haxe_bloodsteel-0",
-       (0.0, 0.0, 0.0), (-90.0, 70.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-90.0, 70.0, 0.0), 1.0,
     ),
     Tool("example_hammer"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_ramshead",
@@ -999,7 +999,7 @@
         "voxel.weapon.sceptre.root_evil",
         (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-     Tool("common.items.weapons.sceptre.sceptre_velorite_0"): VoxTrans(
+    Tool("common.items.weapons.sceptre.sceptre_velorite_0"): VoxTrans(
         "voxel.weapon.sceptre.ore-nature",
         (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.15,
     ),
@@ -1086,7 +1086,7 @@
         "voxel.weapon.tool.shovel_gold",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
-	// Picks
+    // Picks
     Tool("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
@@ -1463,7 +1463,7 @@
     Armor(Shoulder("Twigs")): VoxTrans(
         "voxel.armor.twigs.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
-        ),
+    ),
     //TwigsLeaves Set
     Armor(Chest("TwigsLeaves")): VoxTrans(
         "voxel.armor.twigsleaves.chest",
@@ -2116,7 +2116,7 @@
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //misc
-     Armor(Pants("Hunting")): VoxTrans(
+    Armor(Pants("Hunting")): VoxTrans(
         "voxel.armor.misc.pants.grayscale",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
@@ -2223,7 +2223,6 @@
         "voxel.armor.cultist.ring",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    
     // Necks
     Armor(Neck("Ankh")): VoxTrans(
         "voxel.armor.misc.neck.ankh_of_life",
