@@ -1198,7 +1198,9 @@ impl Scene {
                         let hb_ori = [ori.x, ori.y, ori.z, ori.w];
                         self.debug.set_context(*shape_id, hb_pos, color, hb_ori);
                     },
-                    comp::Collider::Voxel { .. } | comp::Collider::Point => {
+                    comp::Collider::Voxel { .. }
+                    | comp::Collider::Volume(_)
+                    | comp::Collider::Point => {
                         // ignore terrain-like or point-hitboxes
                     },
                 }

@@ -320,6 +320,7 @@ impl Scene {
                     &mut self.col_lights,
                     body,
                     inventory,
+                    (),
                     scene_data.tick,
                     CameraMode::default(),
                     None,

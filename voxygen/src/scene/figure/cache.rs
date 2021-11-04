@@ -6,7 +6,6 @@ use crate::{
 };
 use anim::Skeleton;
 use common::{
-    assets::AssetHandle,
     comp::{
         inventory::{
             slot::{ArmorSlot, EquipSlot},
@@ -287,7 +286,7 @@ where
     Skel::Body: BodySpec,
 {
     models: HashMap<FigureKey<Skel::Body>, ((FigureModelEntryFuture<LOD_COUNT>, Skel::Attr), u64)>,
-    manifests: AssetHandle<<Skel::Body as BodySpec>::Spec>,
+    manifests: <Skel::Body as BodySpec>::Manifests,
 }
 
 impl<Skel: Skeleton> FigureModelCache<Skel>
@@ -345,6 +344,7 @@ where
         col_lights: &mut super::FigureColLights,
         body: Skel::Body,
         inventory: Option<&Inventory>,
+        extra: <Skel::Body as BodySpec>::Extra,
         tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
@@ -407,13 +407,12 @@ where
             Entry::Vacant(v) => {
                 let key = v.key().clone();
                 let slot = Arc::new(atomic::AtomicCell::new(None));
-                let manifests = self.manifests;
+                let manifests = self.manifests.clone();
                 let slot_ = Arc::clone(&slot);
 
                 slow_jobs.spawn("FIGURE_MESHING", move || {
                     // First, load all the base vertex data.
-                    let manifests = &*manifests.read();
-                    let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, manifests);
+                    let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, &manifests, extra);
 
                     // Then, set up meshing context.
                     let mut greedy = FigureModel::make_greedy();
@@ -562,7 +561,7 @@ where
     {
         // Check for reloaded manifests
         // TODO: maybe do this in a different function, maintain?
-        if self.manifests.reloaded() {
+        if <Skel::Body as BodySpec>::is_reloaded(&mut self.manifests) {
             col_lights.atlas.clear();
             self.models.clear();
         }

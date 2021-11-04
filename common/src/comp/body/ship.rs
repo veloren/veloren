@@ -1,11 +1,14 @@
 use crate::{
-    comp::{Density, Mass},
+    comp::{Collider, Density, Mass},
     consts::{AIR_DENSITY, WATER_DENSITY},
     make_case_elim,
+    terrain::{Block, BlockKind, SpriteKind},
+    volumes::dyna::Dyna,
 };
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
-use vek::Vec3;
+use std::sync::Arc;
+use vek::*;
 
 pub const ALL_BODIES: [Body; 4] = [
     Body::DefaultAirship,
@@ -23,6 +26,7 @@ make_case_elim!(
         AirBalloon = 1,
         SailBoat = 2,
         Galleon = 3,
+        Volume = 4,
     }
 );
 
@@ -38,18 +42,21 @@ impl Body {
 
     pub fn random_with(rng: &mut impl rand::Rng) -> Self { *(&ALL_BODIES).choose(rng).unwrap() }
 
-    pub fn manifest_entry(&self) -> &'static str {
+    /// Return the structure manifest that this ship uses. `None` means that it
+    /// should be derived from the collider.
+    pub fn manifest_entry(&self) -> Option<&'static str> {
         match self {
-            Body::DefaultAirship => "airship_human.structure",
-            Body::AirBalloon => "air_balloon.structure",
-            Body::SailBoat => "sail_boat.structure",
-            Body::Galleon => "galleon.structure",
+            Body::DefaultAirship => Some("airship_human.structure"),
+            Body::AirBalloon => Some("air_balloon.structure"),
+            Body::SailBoat => Some("sail_boat.structure"),
+            Body::Galleon => Some("galleon.structure"),
+            Body::Volume => None,
         }
     }
 
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
-            Body::DefaultAirship => Vec3::new(25.0, 50.0, 40.0),
+            Body::DefaultAirship | Body::Volume => Vec3::new(25.0, 50.0, 40.0),
             Body::AirBalloon => Vec3::new(25.0, 50.0, 40.0),
             Body::SailBoat => Vec3::new(13.0, 31.0, 3.0),
             Body::Galleon => Vec3::new(13.0, 32.0, 3.0),
@@ -58,7 +65,7 @@ impl Body {
 
     fn balloon_vol(&self) -> f32 {
         match self {
-            Body::DefaultAirship | Body::AirBalloon => {
+            Body::DefaultAirship | Body::AirBalloon | Body::Volume => {
                 let spheroid_vol = |equat_d: f32, polar_d: f32| -> f32 {
                     (std::f32::consts::PI / 6.0) * equat_d.powi(2) * polar_d
                 };
@@ -84,17 +91,38 @@ impl Body {
 
     pub fn density(&self) -> Density {
         match self {
-            Body::DefaultAirship | Body::AirBalloon => Density(AIR_DENSITY),
+            Body::DefaultAirship | Body::AirBalloon | Body::Volume => Density(AIR_DENSITY),
             _ => Density(AIR_DENSITY * 0.8 + WATER_DENSITY * 0.2), // Most boats should be buoyant
         }
     }
 
     pub fn mass(&self) -> Mass { Mass((self.hull_vol() + self.balloon_vol()) * self.density().0) }
 
-    pub fn can_fly(&self) -> bool { matches!(self, Body::DefaultAirship | Body::AirBalloon) }
+    pub fn can_fly(&self) -> bool {
+        matches!(self, Body::DefaultAirship | Body::AirBalloon | Body::Volume)
+    }
 
     pub fn has_water_thrust(&self) -> bool {
         !self.can_fly() // TODO: Differentiate this more carefully
+    }
+
+    pub fn make_collider(&self) -> Collider {
+        match self.manifest_entry() {
+            Some(manifest_entry) => Collider::Voxel {
+                id: manifest_entry.to_string(),
+            },
+            None => {
+                use rand::prelude::*;
+                let sz = Vec3::broadcast(11);
+                Collider::Volume(Arc::new(figuredata::VoxelCollider::from_fn(sz, |_pos| {
+                    if thread_rng().gen_bool(0.25) {
+                        Block::new(BlockKind::Rock, Rgb::new(255, 0, 0))
+                    } else {
+                        Block::air(SpriteKind::Empty)
+                    }
+                })))
+            },
+        }
     }
 }
 
@@ -117,7 +145,7 @@ pub mod figuredata {
     };
     use hashbrown::HashMap;
     use lazy_static::lazy_static;
-    use serde::Deserialize;
+    use serde::{Deserialize, Serialize};
     use vek::Vec3;
 
     #[derive(Deserialize)]
@@ -148,10 +176,25 @@ pub mod figuredata {
         pub colliders: HashMap<String, VoxelCollider>,
     }
 
-    #[derive(Clone)]
+    #[derive(Clone, Debug, Serialize, Deserialize)]
     pub struct VoxelCollider {
-        pub dyna: Dyna<Block, (), ColumnAccess>,
+        pub(super) dyna: Dyna<Block, (), ColumnAccess>,
         pub translation: Vec3<f32>,
+        /// This value should be incremented every time the volume is mutated
+        /// and can be used to keep track of volume changes.
+        pub mut_count: usize,
+    }
+
+    impl VoxelCollider {
+        pub fn from_fn<F: FnMut(Vec3<i32>) -> Block>(sz: Vec3<u32>, f: F) -> Self {
+            Self {
+                dyna: Dyna::from_fn(sz, (), f),
+                translation: -sz.map(|e| e as f32) / 2.0,
+                mut_count: 0,
+            }
+        }
+
+        pub fn volume(&self) -> &Dyna<Block, (), ColumnAccess> { &self.dyna }
     }
 
     impl assets::Compound for ShipSpec {
@@ -180,6 +223,7 @@ pub mod figuredata {
                     let collider = VoxelCollider {
                         dyna,
                         translation: Vec3::from(bone.offset) + Vec3::from(bone.phys_offset),
+                        mut_count: 0,
                     };
                     colliders.insert(bone.central.0.clone(), collider);
                 }

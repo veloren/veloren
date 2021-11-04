@@ -35,9 +35,9 @@ use common::{
     generation::EntityInfo,
     npc::{self, get_npc_name},
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
-    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize, TerrainGrid},
     uid::Uid,
-    vol::RectVolSize,
+    vol::{ReadVol, RectVolSize},
     Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
 };
 use common_net::{
@@ -50,7 +50,7 @@ use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::Rng;
 use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt};
-use std::str::FromStr;
+use std::{str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
 use world::util::Sampler;
@@ -176,6 +176,7 @@ fn do_command(
         ChatCommand::Wiring => handle_spawn_wiring,
         ChatCommand::Whitelist => handle_whitelist,
         ChatCommand::World => handle_world,
+        ChatCommand::MakeVolume => handle_make_volume,
     };
 
     handler(server, client, target, args, cmd)
@@ -1269,7 +1270,7 @@ fn handle_spawn_airship(
     let ship = comp::ship::Body::random();
     let mut builder = server
         .state
-        .create_ship(pos, ship, true)
+        .create_ship(pos, ship, |ship| ship.make_collider(), true)
         .with(LightEmitter {
             col: Rgb::new(1.0, 0.65, 0.2),
             strength: 2.0,
@@ -1289,6 +1290,47 @@ fn handle_spawn_airship(
     server.notify_client(
         client,
         ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned an airship"),
+    );
+    Ok(())
+}
+
+fn handle_make_volume(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    use comp::body::ship::figuredata::VoxelCollider;
+    use rand::prelude::*;
+
+    //let () = parse_args!(args);
+    let mut pos = position(server, target, "target")?;
+    let ship = comp::ship::Body::Volume;
+    let sz = Vec3::new(15, 15, 15);
+    let collider = {
+        let terrain = server.state().terrain();
+        comp::Collider::Volume(Arc::new(VoxelCollider::from_fn(sz, |rpos| {
+            terrain
+                .get(pos.0.map(|e| e.floor() as i32) + rpos - sz.map(|e| e as i32) / 2)
+                .ok()
+                .copied()
+                .unwrap_or_else(Block::empty)
+        })))
+    };
+    server
+        .state
+        .create_ship(
+            comp::Pos(pos.0 + Vec3::unit_z() * 50.0),
+            ship,
+            move |_| collider,
+            true,
+        )
+        .build();
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, "Created a volume"),
     );
     Ok(())
 }
