@@ -706,7 +706,7 @@ impl<'a> Widget for Crafting<'a> {
             // Output Image Frame
             let quality_col_img = match recipe.output.0.quality {
                 Quality::Low => self.imgs.inv_slot_grey,
-                Quality::Common => self.imgs.inv_slot,
+                Quality::Common => self.imgs.inv_slot_common,
                 Quality::Moderate => self.imgs.inv_slot_green,
                 Quality::High => self.imgs.inv_slot_blue,
                 Quality::Epic => self.imgs.inv_slot_purple,
@@ -948,7 +948,7 @@ impl<'a> Widget for Crafting<'a> {
                 };
                 let quality_col_img = match &item_def.quality {
                     Quality::Low => self.imgs.inv_slot_grey,
-                    Quality::Common => self.imgs.inv_slot,
+                    Quality::Common => self.imgs.inv_slot_common,
                     Quality::Moderate => self.imgs.inv_slot_green,
                     Quality::High => self.imgs.inv_slot_blue,
                     Quality::Epic => self.imgs.inv_slot_purple,

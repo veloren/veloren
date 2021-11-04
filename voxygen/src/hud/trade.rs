@@ -382,7 +382,7 @@ impl<'a> Trade<'a> {
             if let Some(Some(item)) = slot.invslot.and_then(|slotid| inventory.slot(slotid)) {
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
-                    Quality::Common => self.imgs.inv_slot,
+                    Quality::Common => self.imgs.inv_slot_common,
                     Quality::Moderate => self.imgs.inv_slot_green,
                     Quality::High => self.imgs.inv_slot_blue,
                     Quality::Epic => self.imgs.inv_slot_purple,

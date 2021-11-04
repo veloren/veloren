@@ -368,7 +368,7 @@ impl<'a> InventoryScroller<'a> {
             if let Some(item) = item {
                 let quality_col_img = match item.quality() {
                     Quality::Low => self.imgs.inv_slot_grey,
-                    Quality::Common => self.imgs.inv_slot,
+                    Quality::Common => self.imgs.inv_slot_common,
                     Quality::Moderate => self.imgs.inv_slot_green,
                     Quality::High => self.imgs.inv_slot_blue,
                     Quality::Epic => self.imgs.inv_slot_purple,
