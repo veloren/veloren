@@ -2396,44 +2396,57 @@
         (0.0, 15.0, 0.0), (-75.0, 135.0, 0.0), 3.0,
     ),
     // Bags
-    Armor(Bag("RedFace")): Png (
-        "element.items.item_bag_red_face",
+    Armor(Bag("RedFace")): VoxTrans (
+        "voxel.armor.misc.bag.soulkeeper_cursed",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BlackHole")): Png (
-        "element.items.item_bag_brown_face",
+    Armor(Bag("BlackHole")): VoxTrans (
+        "voxel.armor.misc.bag.admin_black_hole",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BlueFace")): Png (
-        "element.items.item_bag_blue_face",
+    Armor(Bag("BlueFace")): VoxTrans (
+        "voxel.armor.misc.bag.soulkeeper_pure",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("PurpleSkull")): Png (
-        "element.items.item_bag_skull",
+    Armor(Bag("PurpleSkull")): VoxTrans (
+        "voxel.armor.misc.bag.mindflayer_spellbag",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("GreenLarge")): Png (
-        "element.items.item_bag_green_large",
+    Armor(Bag("GreenLarge")): VoxTrans (
+        "voxel.armor.misc.bag.troll_hide_pack",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("LeatherLarge")): Png (
-        "element.items.item_bag_leather_large",
+    Armor(Bag("LeatherLarge")): VoxTrans (
+        "voxel.armor.misc.bag.reliable_backpack",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("GreenMid")): Png (
-        "element.items.item_bag_green_mid",
+    Armor(Bag("GreenMid")): VoxTrans (
+        "voxel.armor.misc.bag.liana_kit",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("LeatherSmall")): Png (
-        "element.items.item_bag_leather_small",
+    Armor(Bag("LeatherSmall")): VoxTrans (
+        "voxel.armor.misc.bag.tiny_leather_pouch",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("RedLarge")): Png (
-        "element.items.item_bag_large",
+    Armor(Bag("RedLarge")): VoxTrans (
+        "voxel.armor.misc.bag.sturdy_red_backpack",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("RedMed")): Png (
-        "element.items.item_bag_med",
+    Armor(Bag("RedMed")): VoxTrans (
+        "voxel.armor.misc.bag.woven_red_bag",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("RedSmall")): Png (
-        "element.items.item_bag_small",
+    Armor(Bag("RedSmall")): VoxTrans (
+        "voxel.armor.misc.bag.knitted_red_pouch",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("RedTiny")): Png (
-        "element.items.item_bag_tiny",
+    Armor(Bag("RedTiny")): VoxTrans (
+        "voxel.armor.misc.bag.tiny_red_pouch",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("BluePouch")): Png (
-        "element.items.item_bag_blue",
+    Armor(Bag("BluePouch")): VoxTrans (
+        "voxel.armor.misc.bag.heavy_seabag",
+        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
     // Consumables
     Consumable("common.items.food.apple"): Png(
