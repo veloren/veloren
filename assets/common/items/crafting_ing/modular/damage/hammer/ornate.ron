@@ -18,8 +18,5 @@ ItemDef(
         weapon_name: "Ornate Hammer",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Hammer, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Hammer, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )

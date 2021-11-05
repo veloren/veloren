@@ -18,8 +18,6 @@ ItemDef(
         weapon_name: "Greatsword",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )
 

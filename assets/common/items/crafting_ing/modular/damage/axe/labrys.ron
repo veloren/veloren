@@ -18,8 +18,6 @@ ItemDef(
         weapon_name: "Great Mace",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Hammer, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )
 

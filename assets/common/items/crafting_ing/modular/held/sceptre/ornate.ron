@@ -18,8 +18,6 @@ ItemDef(
         weapon_name: "Ornate Sceptre",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Sceptre, modkind: Held, hands: Two)),
-    ],
+    tags: [],
 )
 

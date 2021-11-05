@@ -18,8 +18,5 @@ ItemDef(
         weapon_name: "Ornate Axe",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Axe, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Axe, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )

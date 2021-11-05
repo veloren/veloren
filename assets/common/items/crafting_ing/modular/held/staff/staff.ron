@@ -18,8 +18,6 @@ ItemDef(
         weapon_name: "Staff",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Staff, modkind: Held, hands: Two)),
-    ],
+    tags: [],
 )
 

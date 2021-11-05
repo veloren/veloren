@@ -18,9 +18,6 @@ ItemDef(
         weapon_name: "Jagged Axe",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Axe, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Axe, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )
 

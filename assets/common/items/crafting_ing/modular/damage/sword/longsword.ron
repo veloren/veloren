@@ -18,9 +18,6 @@ ItemDef(
         weapon_name: "Longsword",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Sword, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )
 

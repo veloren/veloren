@@ -18,8 +18,5 @@ ItemDef(
         weapon_name: "Battleaxe",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Axe, modkind: Damage, hands: One)),
-        ModularComponent((toolkind: Axe, modkind: Damage, hands: Two)),
-    ],
+    tags: [],
 )

@@ -18,9 +18,6 @@ ItemDef(
         weapon_name: "",
     )),
     quality: Direct(Common),
-    tags: [
-        ModularComponent((toolkind: Sword, modkind: Held, hands: One)),
-        ModularComponent((toolkind: Sword, modkind: Held, hands: Two)),
-    ],
+    tags: [],
 )
 

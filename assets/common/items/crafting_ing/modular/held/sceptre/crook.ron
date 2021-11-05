@@ -18,8 +18,6 @@ ItemDef(
         weapon_name: "Crook",
     )),
     quality: Modular,
-    tags: [
-        ModularComponent((toolkind: Sceptre, modkind: Held, hands: Two)),
-    ],
+    tags: [],
 )
 

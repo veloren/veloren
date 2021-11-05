@@ -4,7 +4,7 @@ pub mod modular;
 pub mod tool;
 
 // Reexports
-pub use modular::{ModularComponent, ModularComponentKind, ModularComponentTag};
+pub use modular::{ModularComponent, ModularComponentKind};
 pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
 
 use crate::{
@@ -227,7 +227,6 @@ pub enum ItemTag {
     Leather,
     Material(Material),
     MaterialKind(MaterialKind),
-    ModularComponent(ModularComponentTag),
     Cultist,
     Potion,
     Food,
@@ -242,7 +241,6 @@ impl TagExampleInfo for ItemTag {
     fn name(&self) -> Cow<'static, str> {
         match self {
             ItemTag::Material(material) => material.name(),
-            ItemTag::ModularComponent(kind) => kind.name(),
             ItemTag::MaterialKind(material_kind) => Cow::Borrowed(material_kind.into()),
             ItemTag::Leather => Cow::Borrowed("leather"),
             ItemTag::Cultist => Cow::Borrowed("cultist"),
@@ -260,7 +258,6 @@ impl TagExampleInfo for ItemTag {
     fn exemplar_identifier(&self) -> Cow<'static, str> {
         match self {
             ItemTag::Material(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::ModularComponent(tag) => tag.exemplar_identifier(),
             ItemTag::MaterialKind(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
             ItemTag::Leather => Cow::Borrowed("common.items.tag_examples.leather"),
             ItemTag::Cultist => Cow::Borrowed("common.items.tag_examples.cultist"),
