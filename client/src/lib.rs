@@ -1073,6 +1073,59 @@ impl Client {
         is_salvageable
     }
 
+    /// Crafts modular weapon from components in the provided slots.
+    /// `sprite_pos` should be the location of the necessary crafting station in
+    /// range of the player.
+    pub fn craft_modular_weapon(
+        &mut self,
+        slot_a: InvSlotId,
+        slot_b: InvSlotId,
+        sprite_pos: Vec3<i32>,
+    ) -> bool {
+        use comp::item::{
+            modular::ModularComponentKind::{Damage, Held},
+            ItemKind,
+        };
+        let inventories = self.inventories();
+        let inventory = inventories.get(self.entity());
+
+        // Closure to get inner modular component info from item in a given slot
+        let unwrap_modular = |slot| {
+            if let Some(ItemKind::ModularComponent(mod_comp)) =
+                inventory.and_then(|inv| inv.get(slot).map(|item| &item.kind))
+            {
+                Some(mod_comp.modkind)
+            } else {
+                None
+            }
+        };
+
+        // Gets slot order of damage and held components if two provided slots contains
+        // both a damage and held component
+        let slot_order = match (unwrap_modular(slot_a), unwrap_modular(slot_b)) {
+            (Some(Damage), Some(Held)) => Some((slot_a, slot_b)),
+            (Some(Held), Some(Damage)) => Some((slot_b, slot_a)),
+            _ => None,
+        };
+
+        drop(inventories);
+
+        if let Some((damage_component, held_component)) = slot_order {
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe {
+                    craft_event: CraftEvent::ModularWeapon {
+                        damage_component,
+                        held_component,
+                    },
+                    craft_sprite: Some(sprite_pos),
+                },
+            )));
+            true
+        } else {
+            false
+        }
+    }
+
     fn update_available_recipes(&mut self) {
         self.available_recipes = self
             .recipe_book
