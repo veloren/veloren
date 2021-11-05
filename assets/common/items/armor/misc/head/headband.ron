@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Headband",
+    name: Direct("Headband"),
     description: "yep.",
     kind: Armor((
         kind: Head("Headband"),
         stats: (
         ),
     )),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )

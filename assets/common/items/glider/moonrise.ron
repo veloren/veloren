@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Aquatic Night",
+    name: Direct("Aquatic Night"),
     description: "The stars are beautiful tonight.",
     kind: Glider(
         (
             kind: "Moonrise",
         ),
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hood",
+    name: Direct("Hood"),
     description: "Become one with the treetops.",
     kind: Armor((
         kind: Head("Hood"),

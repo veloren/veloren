@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Moonlit Love",
+    name: Direct("Moonlit Love"),
     description: "Love is in the air.",
     kind: Glider(
         (
             kind: "ButterflyLove",
         ),
     ),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [],
 )

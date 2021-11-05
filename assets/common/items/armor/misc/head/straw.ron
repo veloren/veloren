@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Straw Hat",
+    name: Direct("Straw Hat"),
     description: "Simple and stylish.",
     kind: Armor((
         kind: Head("Straw"),
@@ -8,6 +8,6 @@ ItemDef(
             energy_reward: Some(0.02),
         ),
     )),
-    quality: Common,
+    quality: Direct(Common),
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Bandana",
+    name: Direct("Cultist Bandana"),
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Head("Cultist"),
@@ -12,7 +12,7 @@ ItemDef(
             stealth: Some(0.04),
         ),
     )),
-    quality: Epic,
+    quality: Direct(Epic),
     tags: [
         Cultist,
     ],
