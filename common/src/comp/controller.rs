@@ -98,6 +98,11 @@ pub enum CraftEvent {
         slots: Vec<(u32, InvSlotId)>,
     },
     Salvage(InvSlotId),
+    // TODO: Maybe look at making this more general when there are more modular recipes?
+    ModularWeapon {
+        damage_component: InvSlotId,
+        held_component: InvSlotId,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

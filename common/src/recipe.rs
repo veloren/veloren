@@ -2,7 +2,7 @@ use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         inventory::slot::InvSlotId,
-        item::{modular, tool::AbilityMap, ItemDef, ItemTag, MaterialStatManifest},
+        item::{modular, tool::AbilityMap, ItemDef, ItemKind, ItemTag, MaterialStatManifest},
         Inventory, Item,
     },
     terrain::SpriteKind,
@@ -190,6 +190,87 @@ pub fn try_salvage(
         }
     } else {
         Err(SalvageError::NotSalvageable)
+    }
+}
+
+pub enum ModularWeaponError {
+    InvalidSlot,
+    ComponentMismatch,
+    DifferentTools,
+    DifferentHands,
+}
+
+pub fn modular_weapon(
+    inv: &mut Inventory,
+    damage_component: InvSlotId,
+    held_component: InvSlotId,
+    ability_map: &AbilityMap,
+    msm: &MaterialStatManifest,
+) -> Result<Item, ModularWeaponError> {
+    use modular::{ModularComponent, ModularComponentKind};
+    // Closure to get inner modular component info from item in a given slot
+    let unwrap_modular = |slot| -> Option<&ModularComponent> {
+        if let Some(ItemKind::ModularComponent(mod_comp)) = inv.get(slot).map(|item| &item.kind) {
+            Some(mod_comp)
+        } else {
+            None
+        }
+    };
+
+    // Checks if both components are comptabile, and if so returns the toolkind to
+    // make weapon of
+    let compatiblity = if let (Some(damage_component), Some(held_component)) = (
+        unwrap_modular(damage_component),
+        unwrap_modular(held_component),
+    ) {
+        // Checks that damage and held component slots each contain a damage and held
+        // modular component respectively
+        if matches!(damage_component.modkind, ModularComponentKind::Damage)
+            && matches!(held_component.modkind, ModularComponentKind::Held)
+        {
+            // Checks that both components are of the same tool kind
+            if damage_component.toolkind == held_component.toolkind {
+                // Checks that if both components have a hand restriction, they are the same
+                let hands_check = damage_component.hand_restriction.map_or(true, |hands| {
+                    held_component
+                        .hand_restriction
+                        .map_or(true, |hands2| hands == hands2)
+                });
+                if hands_check {
+                    Ok(damage_component.toolkind)
+                } else {
+                    Err(ModularWeaponError::DifferentHands)
+                }
+            } else {
+                Err(ModularWeaponError::DifferentTools)
+            }
+        } else {
+            Err(ModularWeaponError::ComponentMismatch)
+        }
+    } else {
+        Err(ModularWeaponError::InvalidSlot)
+    };
+
+    match compatiblity {
+        Ok(tool_kind) => {
+            // Remove components from inventory
+            let damage_component = inv
+                .take(damage_component, ability_map, msm)
+                .expect("Expected component to exist");
+            let held_component = inv
+                .take(held_component, ability_map, msm)
+                .expect("Expected component to exist");
+
+            // Initialize modular weapon
+            let mut modular_weapon = modular::initialize_modular_weapon(tool_kind);
+
+            // Insert components into modular weapon item
+            modular_weapon.add_component(damage_component, ability_map, msm);
+            modular_weapon.add_component(held_component, ability_map, msm);
+
+            Ok(modular_weapon)
+        },
+        Err(err) => Err(err),
     }
 }
 

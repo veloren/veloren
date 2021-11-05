@@ -660,6 +660,46 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         None
                     }
                 },
+                CraftEvent::ModularWeapon {
+                    damage_component,
+                    held_component,
+                } => {
+                    let sprite = craft_sprite
+                        .filter(|pos| {
+                            let entity_cylinder = get_cylinder(state, entity);
+                            if !within_pickup_range(entity_cylinder, || {
+                                Some(find_dist::Cube {
+                                    min: pos.as_(),
+                                    side_length: 1.0,
+                                })
+                            }) {
+                                debug!(
+                                    ?entity_cylinder,
+                                    "Failed to craft recipe as not within range of required \
+                                     sprite, sprite pos: {}",
+                                    pos
+                                );
+                                false
+                            } else {
+                                true
+                            }
+                        })
+                        .and_then(|pos| state.terrain().get(pos).ok().copied())
+                        .and_then(|block| block.get_sprite());
+                    if matches!(sprite, Some(SpriteKind::CraftingBench)) {
+                        recipe::modular_weapon(
+                            &mut inventory,
+                            damage_component,
+                            held_component,
+                            ability_map,
+                            &msm,
+                        )
+                        .ok()
+                        .map(|item| vec![item])
+                    } else {
+                        None
+                    }
+                },
             };
 
             // Attempt to insert items into inventory, dropping them if there is not enough

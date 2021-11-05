@@ -355,6 +355,11 @@ fn make_mod_comp_dir_def(tool: ToolKind, mod_kind: ModularComponentKind) -> Stri
     )
 }
 
+/// Creates initial item for a modular weapon
+pub fn initialize_modular_weapon(toolkind: ToolKind) -> Item {
+    Item::new_from_asset_expect(&make_weapon_def(toolkind).0)
+}
+
 /// Creates a random modular weapon when provided with a toolkind, material, and
 /// optionally the handedness
 pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Hands>) -> Item {
@@ -372,7 +377,7 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
     let msm = Default::default();
 
     // Initialize modular weapon
-    let mut modular_weapon = Item::new_from_asset_expect(&make_weapon_def(tool).0);
+    let mut modular_weapon = initialize_modular_weapon(tool);
 
     // Load recipe book (done to check that material is valid for a particular
     // component)
