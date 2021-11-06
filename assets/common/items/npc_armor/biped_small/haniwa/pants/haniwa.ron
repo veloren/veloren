@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Pants("Haniwa"),
         stats: (
-            protection: Normal(17.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
+            protection: Normal(19.0),
+            poise_resilience: Normal(5.0),
+            energy_max: 7.2,
+            energy_reward: 0.08,
+            crit_power: 0.064,
             stealth: 0.0,
         ),
     )),

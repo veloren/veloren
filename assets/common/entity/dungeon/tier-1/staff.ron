@@ -9,5 +9,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-1.adlet_spear"),
+        SkillSetAsset("common.skillset.dungeon.tier-1.staff"),
     ],
 )

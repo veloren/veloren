@@ -4,11 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Belt("Adlet"),
         stats: (
-            protection: Normal(10.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
+            protection: Normal(3.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 0.8,
+            energy_reward: 0.01,
+            crit_power: 0.008,
             stealth: 0.0,
         ),
     )),

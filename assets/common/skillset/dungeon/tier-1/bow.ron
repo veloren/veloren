@@ -2,8 +2,8 @@
     Group(Weapon(Bow)),
 
     // Charged
-    Skill((Bow(CDamage), Some(1))),
-    Skill((Bow(CKnockback), Some(1))),
+    Skill((Bow(CDamage), Some(2))),
+    Skill((Bow(CKnockback), Some(2))),
     Skill((Bow(CSpeed), Some(1))),
     Skill((Bow(CMove), Some(1))),
 
