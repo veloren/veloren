@@ -758,6 +758,10 @@ impl Item {
         } else {
             self.item_id = Arc::new(AtomicCell::new(None));
         }
+        // Reset item id for every component of an item too
+        for component in self.components.iter_mut() {
+            component.reset_item_id();
+        }
     }
 
     /// Removes the unique identity of an item - used when dropping an item on
