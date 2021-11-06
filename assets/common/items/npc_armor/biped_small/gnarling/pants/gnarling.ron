@@ -6,9 +6,9 @@ ItemDef(
         stats: (
             protection: Normal(1.0),
             poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
+            energy_max: 1.8,
+            energy_reward: 0.02,
+            crit_power: 0.016,
             stealth: 0.0,
         ),
     )),
