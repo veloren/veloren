@@ -1,8 +1,11 @@
 [
     // Weapons
-    (2.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (4.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (0.5, LootTable("common.loot_tables.weapons.tier-1")),
     // Armor
-    (2.0, LootTable("common.loot_tables.armor.tier-0")),
-    (1.0, Item("common.items.armor.misc.neck.scratched")),
-    (0.5, Item("common.items.armor.misc.head.straw")),
+    (4.0, LootTable("common.loot_tables.armor.tier-0")),
+    (0.5, LootTable("common.loot_tables.armor.tier-1")),
+    // Misc
+    (2.0, Item("common.items.armor.misc.neck.scratched")),
+    (1.0, Item("common.items.armor.misc.head.straw")),
 ]
