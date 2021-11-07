@@ -2,11 +2,9 @@
     // Weapons
     (3.0, LootTable("common.loot_tables.weapons.tier-3")),
     (1.0, LootTable("common.loot_tables.weapons.tier-4")),
-    (0.5, LootTable("common.loot_tables.weapons.tier-5")),
     // Armor
     (3.0, LootTable("common.loot_tables.armor.tier-3")),
     (1.0, LootTable("common.loot_tables.armor.tier-4")),
-    (0.5, LootTable("common.loot_tables.armor.tier-5")),
     // Misc
     (2.0, Item("common.items.armor.misc.neck.haniwa_talisman")),
 ]
