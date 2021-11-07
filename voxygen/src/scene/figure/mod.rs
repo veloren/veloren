@@ -52,6 +52,7 @@ use core::{
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use specs::{saveload::MarkerAllocator, Entity as EcsEntity, Join, LazyUpdate, WorldExt};
+use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
@@ -4785,7 +4786,7 @@ impl FigureMgr {
                             &mut self.col_lights,
                             vk,
                             inventory,
-                            vol.clone(),
+                            Arc::clone(vol),
                             tick,
                             player_camera_mode,
                             player_character_state,

@@ -3,7 +3,6 @@ use crate::{
     consts::{AIR_DENSITY, WATER_DENSITY},
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
-    volumes::dyna::Dyna,
 };
 use rand::prelude::SliceRandom;
 use serde::{Deserialize, Serialize};
@@ -245,13 +244,15 @@ pub mod figuredata {
     #[test]
     fn test_ship_manifest_entries() {
         for body in super::ALL_BODIES {
-            assert!(
-                VOXEL_COLLIDER_MANIFEST
-                    .read()
-                    .colliders
-                    .get(body.manifest_entry())
-                    .is_some()
-            );
+            if let Some(entry) = body.manifest_entry() {
+                assert!(
+                    VOXEL_COLLIDER_MANIFEST
+                        .read()
+                        .colliders
+                        .get(entry)
+                        .is_some()
+                );
+            }
         }
     }
 }

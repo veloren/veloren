@@ -35,7 +35,7 @@ use common::{
     generation::EntityInfo,
     npc::{self, get_npc_name},
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
-    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize, TerrainGrid},
+    terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::Uid,
     vol::{ReadVol, RectVolSize},
     Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
@@ -1302,10 +1302,9 @@ fn handle_make_volume(
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     use comp::body::ship::figuredata::VoxelCollider;
-    use rand::prelude::*;
 
     //let () = parse_args!(args);
-    let mut pos = position(server, target, "target")?;
+    let pos = position(server, target, "target")?;
     let ship = comp::ship::Body::Volume;
     let sz = Vec3::new(15, 15, 15);
     let collider = {

@@ -10,7 +10,6 @@ use common::{
     vol::ReadVol,
 };
 use std::{convert::TryFrom, sync::Arc};
-use vek::*;
 
 #[derive(Copy, Clone, PartialEq, Eq, Hash)]
 pub struct VolumeKey {
@@ -39,7 +38,7 @@ impl anim::Skeleton for VolumeKey {
     ) -> anim::Offsets {
         let scale_mat = anim::vek::Mat4::scaling_3d(1.0 / 11.0);
 
-        let bone = base_mat * scale_mat; // * anim::vek::Mat4::<f32>::identity();
+        let bone = base_mat * scale_mat;
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             anim::make_bone(bone),
