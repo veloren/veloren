@@ -2,11 +2,9 @@
     // Weapons
     (5.0, LootTable("common.loot_tables.weapons.tier-2")),
     (0.5, LootTable("common.loot_tables.weapons.tier-3")),
-    (0.1, LootTable("common.loot_tables.weapons.tier-4")),
     // Armor
     (5.0, LootTable("common.loot_tables.armor.tier-2")),
     (0.5, LootTable("common.loot_tables.armor.tier-3")),
-    (0.1, LootTable("common.loot_tables.armor.tier-4")),
     // Misc
     (2.0, Item("common.items.armor.misc.neck.gem_of_resilience")),
     // Special Loot

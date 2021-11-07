@@ -7,6 +7,4 @@
     Skill((Bow(CSpeed), Some(1))),
     Skill((Bow(CMove), Some(1))),
 
-    // Repeater
-    Skill((Bow(RDamage), Some(1))),
 ])

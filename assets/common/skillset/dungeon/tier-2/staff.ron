@@ -9,7 +9,5 @@
     // Flamethrower
     Skill((Staff(FRange), Some(2))),
     Skill((Staff(FDamage), Some(2))),
-    Skill((Staff(FDrain), Some(1))),
-    Skill((Staff(FVelocity), Some(1))),
 
 ])

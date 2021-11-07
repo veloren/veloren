@@ -2,11 +2,9 @@
     // Weapons
     (4.0, LootTable("common.loot_tables.weapons.tier-1")),
     (0.5, LootTable("common.loot_tables.weapons.tier-2")),
-    (0.1, LootTable("common.loot_tables.weapons.tier-3")),
     // Armor
     (4.0, LootTable("common.loot_tables.armor.tier-1")),
     (0.5, LootTable("common.loot_tables.armor.tier-2")),
-    (0.1, LootTable("common.loot_tables.armor.tier-3")),
     // Misc
     (2.0, Item("common.items.armor.misc.neck.pendant_of_protection")),
 ]
