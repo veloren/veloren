@@ -4,12 +4,8 @@
     // Charged
     Skill((Bow(CDamage), Some(2))),
     Skill((Bow(CKnockback), Some(2))),
-    Skill((Bow(CSpeed), Some(1))),
+    Skill((Bow(CSpeed), Some(2))),
     Skill((Bow(CMove), Some(1))),
 
-    // Repeater
-    Skill((Bow(RDamage), Some(2))),
-    Skill((Bow(RCost), Some(2))),
-    Skill((Bow(RSpeed), Some(1))),
 ])
 

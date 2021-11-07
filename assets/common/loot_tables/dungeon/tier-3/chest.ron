@@ -5,11 +5,11 @@
     (1.0, LootTable("common.loot_tables.weapons.tier-4")),
     (1.0, LootTable("common.loot_tables.armor.tier-4")),
     // Currency
-    (6.0, ItemQuantity("common.items.utility.coins", 100, 200)),
+    (3.0, ItemQuantity("common.items.utility.coins", 100, 200)),
     // Materials
-    (2.0, ItemQuantity("common.items.crafting_ing.cloth.lifecloth", 3, 10)),
-    (2.0, ItemQuantity("common.items.crafting_ing.hide.carapace", 3, 10)),
-    (2.0, ItemQuantity("common.items.mineral.ingot.cobalt", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.lifecloth", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.carapace", 3, 10)),
+    (1.0, ItemQuantity("common.items.mineral.ingot.cobalt", 3, 10)),
     // Consumables
-    (4.0, LootTable("common.loot_tables.consumable.moderate")),
+    (2.0, LootTable("common.loot_tables.consumable.moderate")),
 ]
