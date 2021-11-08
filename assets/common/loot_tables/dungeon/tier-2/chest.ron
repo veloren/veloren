@@ -1,13 +1,15 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.tier-2")),
-    (1.0, LootTable("common.loot_tables.armor.tier-2")),
+    (2.0, LootTable("common.loot_tables.weapons.tier-2")),
+    (2.0, LootTable("common.loot_tables.armor.tier-2")),
+    (1.0, LootTable("common.loot_tables.weapons.tier-3")),
+    (1.0, LootTable("common.loot_tables.armor.tier-3")),
     // Currency
-    (3.0, ItemQuantity("common.items.utility.coins", 50, 100)),
+    (6.0, ItemQuantity("common.items.utility.coins", 50, 100)),
     // Materials
-    (1.0, ItemQuantity("common.items.crafting_ing.cloth.silk", 3, 10)),
-    (1.0, ItemQuantity("common.items.crafting_ing.hide.scales", 3, 10)),
-    (1.0, ItemQuantity("common.items.mineral.ingot.steel", 3, 10)),
+    (2.0, ItemQuantity("common.items.crafting_ing.cloth.silk", 3, 10)),
+    (2.0, ItemQuantity("common.items.crafting_ing.hide.scales", 3, 10)),
+    (2.0, ItemQuantity("common.items.mineral.ingot.steel", 3, 10)),
     // Consumables
-    (2.0, LootTable("common.loot_tables.consumable.moderate")),
+    (4.0, LootTable("common.loot_tables.consumable.moderate")),
 ]
