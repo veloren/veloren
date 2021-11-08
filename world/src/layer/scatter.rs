@@ -1,5 +1,5 @@
 use crate::{column::ColumnSample, sim::SimChunk, Canvas, CONFIG};
-use common::terrain::SpriteKind;
+use common::terrain::{Block, SpriteKind};
 use noise::NoiseFn;
 use rand::prelude::*;
 use std::f32;
@@ -13,17 +13,24 @@ const MUSH_FACT: f32 = 1.0e-4; // To balance things around the mushroom spawning
 const GRASS_FACT: f32 = 1.0e-3; // To balance things around the grass spawning rate
 const DEPTH_WATER_NORM: f32 = 15.0; // Water depth at which regular underwater sprites start spawning
 pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
+    enum WaterMode {
+        Underwater,
+        Floating,
+        Ground,
+    }
+    use WaterMode::*;
+
     use SpriteKind::*;
     #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
     let scatter: &[(
         _,
-        bool,
+        WaterMode,
         fn(&SimChunk, &ColumnSample) -> (f32, Option<(f32, f32, f32)>),
     )] = &[
         // (density, Option<(base_density_proportion, wavelen, threshold)>)
         // Flowers
-        (BlueFlower, false, |_, col| {
+        (BlueFlower, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.7).min(close(
                     col.humidity,
@@ -35,7 +42,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 256.0, 0.25)),
             )
         }),
-        (PinkFlower, false, |_, col| {
+        (PinkFlower, Ground, |_, col| {
             (
                 close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
@@ -44,7 +51,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 100.0, 0.1)),
             )
         }),
-        (PurpleFlower, false, |_, col| {
+        (PurpleFlower, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.7).min(close(
                     col.humidity,
@@ -56,7 +63,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 100.0, 0.1)),
             )
         }),
-        (RedFlower, false, |_, col| {
+        (RedFlower, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.tropical_temp, 0.7).min(close(
                     col.humidity,
@@ -68,7 +75,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 100.0, 0.1)),
             )
         }),
-        (WhiteFlower, false, |_, col| {
+        (WhiteFlower, Ground, |_, col| {
             (
                 close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
@@ -77,7 +84,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 100.0, 0.1)),
             )
         }),
-        (YellowFlower, false, |_, col| {
+        (YellowFlower, Ground, |_, col| {
             (
                 close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
@@ -86,7 +93,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 100.0, 0.1)),
             )
         }),
-        (Cotton, false, |_, col| {
+        (Cotton, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.7).min(close(
                     col.humidity,
@@ -98,7 +105,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 256.0, 0.25)),
             )
         }),
-        (Sunflower, false, |_, col| {
+        (Sunflower, Ground, |_, col| {
             (
                 close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
@@ -107,7 +114,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 100.0, 0.15)),
             )
         }),
-        (WildFlax, false, |_, col| {
+        (WildFlax, Ground, |_, col| {
             (
                 close(col.temp, 0.0, 0.7).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * col.tree_density
@@ -117,7 +124,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Herbs and Spices
-        (LingonBerry, false, |_, col| {
+        (LingonBerry, Ground, |_, col| {
             (
                 close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.5))
                     * MUSH_FACT
@@ -125,7 +132,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
-        (LeafyPlant, false, |_, col| {
+        (LeafyPlant, Ground, |_, col| {
             (
                 close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.3))
                     * GRASS_FACT
@@ -133,7 +140,15 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
-        (Fern, false, |_, col| {
+        (JungleLeafyPlant, Ground, |_, col| {
+            (
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * GRASS_FACT
+                    * 32.0,
+                Some((0.15, 64.0, 0.2)),
+            )
+        }),
+        (Fern, Ground, |_, col| {
             (
                 close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.forest_hum, 0.5))
                     * GRASS_FACT
@@ -141,7 +156,16 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 64.0, 0.2)),
             )
         }),
-        (Blueberry, false, |_, col| {
+        (JungleFern, Ground, |_, col| {
+            (
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
+                    * MUSH_FACT
+                    * 200.0,
+                Some((0.0, 84.0, 0.35)),
+            )
+        }),
+        (Blueberry, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
                     col.humidity,
@@ -152,7 +176,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
-        (Pumpkin, false, |_, col| {
+        (Pumpkin, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.5).min(close(
                     col.humidity,
@@ -165,23 +189,23 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }),
         // Collectable Objects
         // Only spawn twigs in temperate forests
-        (Twigs, false, |_, col| {
+        (Twigs, Ground, |_, col| {
             (
                 (col.tree_density * 1.25 - 0.25).powf(0.5).max(0.0) * 0.75e-3,
                 None,
             )
         }),
-        (Stones, false, |chunk, _| {
+        (Stones, Ground, |chunk, _| {
             ((chunk.rockiness - 0.5).max(0.025) * 1.0e-3, None)
         }),
-        (Copper, false, |chunk, _| {
+        (Copper, Ground, |chunk, _| {
             ((chunk.rockiness - 0.5).max(0.0) * 1.5e-3, None)
         }),
-        (Tin, false, |chunk, _| {
+        (Tin, Ground, |chunk, _| {
             ((chunk.rockiness - 0.5).max(0.0) * 1.5e-3, None)
         }),
         // Don't spawn Mushrooms in snowy regions
-        (Mushroom, false, |_, col| {
+        (Mushroom, Ground, |_, col| {
             (
                 close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.forest_hum, 0.35))
                     * MUSH_FACT,
@@ -189,7 +213,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Grass
-        (ShortGrass, false, |_, col| {
+        (ShortGrass, Ground, |_, col| {
             (
                 close(col.temp, 0.2, 0.75).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * GRASS_FACT
@@ -197,7 +221,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.3, 64.0, 0.3)),
             )
         }),
-        (MediumGrass, false, |_, col| {
+        (MediumGrass, Ground, |_, col| {
             (
                 close(col.temp, 0.2, 0.6).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
                     * GRASS_FACT
@@ -205,7 +229,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.3, 64.0, 0.3)),
             )
         }),
-        (LongGrass, false, |_, col| {
+        (LongGrass, Ground, |_, col| {
             (
                 close(col.temp, 0.3, 0.35).min(close(col.humidity, CONFIG.jungle_hum, 0.3))
                     * GRASS_FACT
@@ -213,8 +237,17 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.1, 48.0, 0.3)),
             )
         }),
+        (JungleRedGrass, Ground, |_, col| {
+            (
+                close(col.temp, 0.3, 0.4).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * col.tree_density
+                    * MUSH_FACT
+                    * 350.0,
+                Some((0.0, 128.0, 0.25)),
+            )
+        }),
         // Jungle Sprites
-        // (LongGrass, false, |c, col| {
+        // (LongGrass, Ground, |c, col| {
         //     (
         //         close(col.temp, CONFIG.tropical_temp, 0.4).min(close(
         //             col.humidity,
@@ -224,7 +257,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         //         Some((0.0, 60.0, 5.0)),
         //     )
         // }),
-        /*(WheatGreen, false, |c, col| {
+        /*(WheatGreen, Ground, |c, col| {
             (
                 close(col.temp, 0.4, 0.2).min(close(col.humidity, CONFIG.forest_hum, 0.1))
                     * MUSH_FACT
@@ -232,7 +265,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),*/
-        (GrassSnow, false, |_, col| {
+        (GrassSnow, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
                     col.humidity,
@@ -243,7 +276,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.0, 48.0, 0.2)),
             )
         }),
-        (Moonbell, false, |_, col| {
+        (Moonbell, Ground, |_, col| {
             (
                 close(col.temp, CONFIG.snow_temp - 0.2, 0.4).min(close(
                     col.humidity,
@@ -254,7 +287,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Savanna Plants
-        (SavannaGrass, false, |_, col| {
+        (SavannaGrass, Ground, |_, col| {
             (
                 {
                     let savanna = close(col.temp, 1.0, 0.4) * close(col.humidity, 0.2, 0.25);
@@ -264,7 +297,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.15, 64.0, 0.2)),
             )
         }),
-        (TallSavannaGrass, false, |_, col| {
+        (TallSavannaGrass, Ground, |_, col| {
             (
                 {
                     let savanna = close(col.temp, 1.0, 0.4) * close(col.humidity, 0.2, 0.25);
@@ -274,7 +307,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.1, 48.0, 0.2)),
             )
         }),
-        (RedSavannaGrass, false, |_, col| {
+        (RedSavannaGrass, Ground, |_, col| {
             (
                 {
                     let savanna = close(col.temp, 1.0, 0.4) * close(col.humidity, 0.2, 0.25);
@@ -284,7 +317,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.15, 48.0, 0.25)),
             )
         }),
-        (SavannaBush, false, |_, col| {
+        (SavannaBush, Ground, |_, col| {
             (
                 {
                     let savanna = close(col.temp, 1.0, 0.4) * close(col.humidity, 0.2, 0.25);
@@ -295,61 +328,50 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Desert Plants
-        (DeadBush, false, |_, col| {
+        (DeadBush, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.95).min(close(col.humidity, 0.0, 0.3)) * MUSH_FACT * 7.5,
                 None,
             )
         }),
-        (Pyrebloom, false, |_, col| {
+        (Pyrebloom, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.95).min(close(col.humidity, 0.0, 0.3)) * MUSH_FACT * 0.35,
                 None,
             )
         }),
-        (LargeCactus, false, |_, col| {
+        (LargeCactus, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 1.5,
                 None,
             )
         }),
-        (RoundCactus, false, |_, col| {
+        (RoundCactus, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 2.5,
                 None,
             )
         }),
-        (ShortCactus, false, |_, col| {
+        (ShortCactus, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 2.5,
                 None,
             )
         }),
-        (MedFlatCactus, false, |_, col| {
+        (MedFlatCactus, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 2.5,
                 None,
             )
         }),
-        (ShortFlatCactus, false, |_, col| {
+        (ShortFlatCactus, Ground, |_, col| {
             (
                 close(col.temp, 1.0, 0.25).min(close(col.humidity, 0.0, 0.1)) * MUSH_FACT * 2.5,
                 None,
-            )
-        }),
-        (Reed, false, |_, col| {
-            (
-                close(col.humidity, CONFIG.jungle_hum, 0.9)
-                    * col
-                        .water_dist
-                        .map(|wd| Lerp::lerp(0.2, 0.0, (wd / 8.0).clamped(0.0, 1.0)))
-                        .unwrap_or(0.0)
-                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0),
-                Some((0.2, 128.0, 0.5)),
             )
         }),
         // Underwater chests
-        (ChestBuried, true, |_, col| {
+        (ChestBuried, Underwater, |_, col| {
             (
                 MUSH_FACT
                     * 1.0e-6
@@ -362,7 +384,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Underwater mud piles
-        (Mud, true, |_, col| {
+        (Mud, Underwater, |_, col| {
             (
                 MUSH_FACT
                     * 1.0e-3
@@ -375,7 +397,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Underwater grass
-        (GrassBlue, true, |_, col| {
+        (GrassBlue, Underwater, |_, col| {
             (
                 MUSH_FACT
                     * 250.0
@@ -388,7 +410,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // seagrass
-        (Seagrass, true, |_, col| {
+        (Seagrass, Underwater, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
@@ -404,7 +426,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // seagrass, coastal patches
-        (Seagrass, true, |_, col| {
+        (Seagrass, Underwater, |_, col| {
             (
                 MUSH_FACT
                     * 600.0
@@ -417,7 +439,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // scattered seaweed (temperate species)
-        (SeaweedTemperate, true, |_, col| {
+        (SeaweedTemperate, Underwater, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
@@ -433,7 +455,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // scattered seaweed (tropical species)
-        (SeaweedTropical, true, |_, col| {
+        (SeaweedTropical, Underwater, |_, col| {
             (
                 close(col.temp, 1.0, 0.95)
                     * MUSH_FACT
@@ -449,7 +471,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Caulerpa lentillifera algae patch
-        (SeaGrapes, true, |_, col| {
+        (SeaGrapes, Underwater, |_, col| {
             (
                 MUSH_FACT
                     * 250.0
@@ -464,7 +486,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Caulerpa prolifera algae patch
-        (WavyAlgae, true, |_, col| {
+        (WavyAlgae, Underwater, |_, col| {
             (
                 MUSH_FACT
                     * 250.0
@@ -479,7 +501,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Mermaids' fan algae patch
-        (MermaidsFan, true, |_, col| {
+        (MermaidsFan, Underwater, |_, col| {
             (
                 close(col.temp, 1.0, 0.95)
                     * MUSH_FACT
@@ -495,7 +517,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Sea anemones
-        (SeaAnemone, true, |_, col| {
+        (SeaAnemone, Underwater, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
@@ -511,7 +533,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Giant Kelp
-        (GiantKelp, true, |_, col| {
+        (GiantKelp, Underwater, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.8)
                     * MUSH_FACT
@@ -527,7 +549,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Bull Kelp
-        (BullKelp, true, |_, col| {
+        (BullKelp, Underwater, |_, col| {
             (
                 close(col.temp, CONFIG.temperate_temp, 0.7)
                     * MUSH_FACT
@@ -543,7 +565,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Stony Corals
-        (StonyCoral, true, |_, col| {
+        (StonyCoral, Underwater, |_, col| {
             (
                 close(col.temp, 1.0, 0.9)
                     * MUSH_FACT
@@ -559,7 +581,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Soft Corals
-        (SoftCoral, true, |_, col| {
+        (SoftCoral, Underwater, |_, col| {
             (
                 close(col.temp, 1.0, 0.9)
                     * MUSH_FACT
@@ -575,7 +597,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             )
         }),
         // Seashells
-        (Seashells, true, |c, col| {
+        (Seashells, Underwater, |c, col| {
             (
                 (c.rockiness - 0.5).max(0.0)
                     * 1.0e-3
@@ -589,7 +611,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
-        (Stones, true, |c, col| {
+        (Stones, Underwater, |c, col| {
             (
                 (c.rockiness - 0.5).max(0.0)
                     * 1.0e-3
@@ -601,6 +623,42 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
+        //River-related scatter
+        (LillyPads, Floating, |_, col| {
+            (
+                close(col.temp, 0.2, 0.6).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * GRASS_FACT
+                    * 100.0
+                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0)
+                    * col
+                        .water_dist
+                        .map_or(0.0, |d| 1.0 / (1.0 + (d.abs() * 0.4).powi(2))),
+                Some((0.0, 128.0, 0.35)),
+            )
+        }),
+        (Reed, Underwater, |_, col| {
+            (
+                close(col.temp, 0.2, 0.6).min(close(col.humidity, CONFIG.jungle_hum, 0.4))
+                    * GRASS_FACT
+                    * 100.0
+                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0)
+                    * col
+                        .water_dist
+                        .map_or(0.0, |d| 1.0 / (1.0 + (d.abs() * 0.40).powi(2))),
+                Some((0.2, 128.0, 0.5)),
+            )
+        }),
+        (Reed, Ground, |_, col| {
+            (
+                close(col.humidity, CONFIG.jungle_hum, 0.9)
+                    * col
+                        .water_dist
+                        .map(|wd| Lerp::lerp(0.2, 0.0, (wd / 8.0).clamped(0.0, 1.0)))
+                        .unwrap_or(0.0)
+                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0),
+                Some((0.2, 128.0, 0.5)),
+            )
+        }),
     ];
 
     canvas.foreach_col(|canvas, wpos2d, col| {
@@ -609,7 +667,7 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         let kind = scatter
             .iter()
             .enumerate()
-            .find_map(|(i, (kind, is_underwater, f))| {
+            .find_map(|(i, (kind, water_mode, f))| {
                 let (density, patch) = f(canvas.chunk(), col);
                 let density = patch
                     .map(|(base_density_prop, wavelen, threshold)| {
@@ -633,31 +691,28 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                     .unwrap_or(density);
                 if density > 0.0
                     && rng.gen::<f32>() < density //RandomField::new(i as u32).chance(Vec3::new(wpos2d.x, wpos2d.y, 0), density)
-                    && underwater == *is_underwater
+                    && matches!(&water_mode, Underwater | Floating) == underwater
                 {
-                    Some(*kind)
+                    Some((*kind, water_mode))
                 } else {
                     None
                 }
             });
 
-        if let Some(kind) = kind {
-            let alt = col.alt as i32;
+        if let Some((kind, water_mode)) = kind {
+            let (alt, is_under): (_, fn(Block) -> bool) = match water_mode {
+                Ground | Underwater => (col.alt as i32, |block| block.is_solid()),
+                Floating => (col.water_level as i32, |block| !block.is_air()),
+            };
 
             // Find the intersection between ground and air, if there is one near the
-            // surface
+            // Ground
             if let Some(solid_end) = (-4..8)
-                .find(|z| {
-                    canvas
-                        .get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))
-                        .is_solid()
-                })
+                .find(|z| is_under(canvas.get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))))
                 .and_then(|solid_start| {
-                    (1..8).map(|z| solid_start + z).find(|z| {
-                        !canvas
-                            .get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))
-                            .is_solid()
-                    })
+                    (1..8)
+                        .map(|z| solid_start + z)
+                        .find(|z| !is_under(canvas.get(Vec3::new(wpos2d.x, wpos2d.y, alt + z))))
                 })
             {
                 canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + solid_end), |block| {

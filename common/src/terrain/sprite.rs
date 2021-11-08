@@ -183,6 +183,10 @@ make_case_elim!(
         CavernLillypadBlue = 0x9C,
         CavernMycelBlue = 0x9D,
         DismantlingBench = 0x9E,
+        JungleFern = 0x9F,
+        LillyPads = 0xA0,
+        JungleLeafyPlant = 0xA1,
+        JungleRedGrass = 0xA2,
     }
 );
 
@@ -271,6 +275,7 @@ impl SpriteKind {
             | SpriteKind::Silver
             | SpriteKind::Gold => 0.6,
             SpriteKind::EnsnaringVines | SpriteKind::CavernLillypadBlue => 0.1,
+            SpriteKind::LillyPads => 0.1,
             _ => return None,
         })
     }
