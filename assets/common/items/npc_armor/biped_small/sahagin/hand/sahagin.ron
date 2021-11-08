@@ -7,10 +7,14 @@ ItemDef(
             protection: Normal(7.0),
             poise_resilience: Normal(4.0),
 <<<<<<< HEAD
+<<<<<<< HEAD
             energy_max: 3.4,
 =======
             energy_max: 2.7,
 >>>>>>> a192bc0cf (+ Gnarling armor count - 7 previous being 7)
+=======
+            energy_max: 3.4,
+>>>>>>> 264bce1a3 (+ Adjusted damage, crit chance, and attack speed of weapons)
             energy_reward: 0.027,
             crit_power: 0.024,
             stealth: 0.0,
