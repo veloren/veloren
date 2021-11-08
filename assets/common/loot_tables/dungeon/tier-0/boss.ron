@@ -1,11 +1,15 @@
 [
     // Weapons
-    (4.0, LootTable("common.loot_tables.weapons.tier-0")),
-    (0.5, LootTable("common.loot_tables.weapons.tier-1")),
+    (5.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (2.0, LootTable("common.loot_tables.weapons.tier-1")),
     // Armor
-    (4.0, LootTable("common.loot_tables.armor.tier-0")),
-    (0.5, LootTable("common.loot_tables.armor.tier-1")),
+    (5.0, LootTable("common.loot_tables.armor.tier-0")),
+    (2.0, LootTable("common.loot_tables.armor.tier-1")),
     // Misc
-    (2.0, Item("common.items.armor.misc.neck.scratched")),
-    (1.0, Item("common.items.armor.misc.head.straw")),
+    (3.0, Item("common.items.armor.misc.neck.scratched")),
+    (2.0, Item("common.items.armor.misc.head.straw")),
+    // Indirect crafting materials for T2 gear
+    (1.0, ItemQuantity("common.items.craftin_ing.sticky_thread", 2, 5)),
+    (1.0, ItemQuantity("common.items.mineral.coal", 2, 5)),
+    (1.0, ItemQuantity("common.items.crafting_ing.leather.leather_strips", 2, 5)),
 ]
