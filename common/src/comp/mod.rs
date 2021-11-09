@@ -47,7 +47,7 @@ pub mod visual;
 // Reexports
 #[cfg(not(target_arch = "wasm32"))]
 pub use self::{
-    ability::{CharacterAbility, CharacterAbilityType},
+    ability::{Ability, AbilityPool, CharacterAbility, CharacterAbilityType},
     admin::{Admin, AdminRole},
     agent::{Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, PidController},
     anchor::Anchor,

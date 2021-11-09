@@ -215,6 +215,7 @@ impl StateExt for State {
                     .unwrap_or(0),
             ))
             .with(stats)
+            .with(comp::AbilityPool::new(Some(&inventory), Some(&skill_set)))
             .with(skill_set)
             .maybe_with(health)
             .with(poise)
@@ -267,6 +268,7 @@ impl StateExt for State {
             .with(comp::Energy::new(ship.into(), 0))
             .with(comp::Stats::new("Airship".to_string()))
             .with(comp::SkillSet::default())
+            .with(comp::AbilityPool::default())
             .with(comp::Combo::default());
 
         if mountable {
@@ -504,6 +506,10 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, energy_level));
             self.write_component_ignore_entity_dead(entity, comp::Poise::new(body));
             self.write_component_ignore_entity_dead(entity, stats);
+            self.write_component_ignore_entity_dead(
+                entity,
+                comp::AbilityPool::new(Some(&inventory), Some(&skill_set)),
+            );
             self.write_component_ignore_entity_dead(entity, skill_set);
             self.write_component_ignore_entity_dead(entity, inventory);
             self.write_component_ignore_entity_dead(

@@ -821,61 +821,16 @@ pub fn handle_jump(
 }
 
 fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKind) {
-    let hands = get_hands(data);
-
-    // Mouse1 and Skill1 always use the MainHand slot
-    let always_main_hand = matches!(input, InputKind::Primary | InputKind::Ability(0));
-    let no_main_hand = hands.0.is_none();
-    // skill_index used to select ability for the AbilityKey::Skill2 input
-    let (equip_slot, skill_index) = if no_main_hand {
-        (Some(EquipSlot::ActiveOffhand), 1)
-    } else if always_main_hand {
-        (Some(EquipSlot::ActiveMainhand), 0)
-    } else {
-        match hands {
-            (Some(Hands::Two), _) => (Some(EquipSlot::ActiveMainhand), 1),
-            (_, Some(Hands::One)) => (Some(EquipSlot::ActiveOffhand), 0),
-            (Some(Hands::One), _) => (Some(EquipSlot::ActiveMainhand), 1),
-            (_, _) => (None, 0),
-        }
-    };
-
-    let unlocked = |(s, a): (Option<Skill>, CharacterAbility)| {
-        s.map_or(true, |s| data.skill_set.has_skill(s)).then_some(a)
-    };
-
-    if let Some(equip_slot) = equip_slot {
-        if let Some(ability) = data
-            .inventory
-            .and_then(|inv| inv.equipped(equip_slot))
-            .map(|i| &i.item_config_expect().abilities)
-            .and_then(|abilities| match input {
-                InputKind::Primary => Some(abilities.primary.clone()),
-                InputKind::Secondary => Some(abilities.secondary.clone()),
-                InputKind::Ability(0) => abilities.abilities.get(0).cloned().and_then(unlocked),
-                InputKind::Ability(i) => abilities
-                    .abilities
-                    .get(if i < 2 { skill_index } else { i })
-                    .cloned()
-                    .and_then(unlocked),
-                InputKind::Roll | InputKind::Jump | InputKind::Fly | InputKind::Block => None,
-            })
-            .map(|a| {
-                let tool = unwrap_tool_data(data, equip_slot).map(|t| t.kind);
-                a.adjusted_by_skills(data.skill_set, tool)
-            })
-            .filter(|ability| ability.requirements_paid(data, update))
-        {
-            update.character = CharacterState::from((
-                &ability,
-                AbilityInfo::from_input(
-                    data,
-                    matches!(equip_slot, EquipSlot::ActiveOffhand),
-                    input,
-                ),
-                data,
-            ));
-        }
+    if let Some((ability, from_offhand)) = data
+        .ability_pool
+        .activate_ability(input, data.inventory, data.skill_set, data.body)
+        .filter(|(ability, _)| ability.requirements_paid(data, update))
+    {
+        update.character = CharacterState::from((
+            &ability,
+            AbilityInfo::from_input(data, from_offhand, input),
+            data,
+        ));
     }
 }
 

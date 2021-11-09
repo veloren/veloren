@@ -1,6 +1,6 @@
 use crate::{
     comp::{
-        self, character_state::OutputEvents, item::MaterialStatManifest, Beam, Body,
+        self, character_state::OutputEvents, item::MaterialStatManifest, AbilityPool, Beam, Body,
         CharacterState, Combo, ControlAction, Controller, ControllerInputs, Density, Energy,
         Health, InputAttr, InputKind, Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState,
         Pos, SkillSet, StateUpdate, Stats, Vel,
@@ -124,6 +124,7 @@ pub struct JoinData<'a> {
     pub updater: &'a LazyUpdate,
     pub stats: &'a Stats,
     pub skill_set: &'a SkillSet,
+    pub ability_pool: &'a AbilityPool,
     pub msm: &'a MaterialStatManifest,
     pub combo: &'a Combo,
     pub alignment: Option<&'a comp::Alignment>,
@@ -149,6 +150,7 @@ pub struct JoinStruct<'a> {
     pub beam: Option<&'a Beam>,
     pub stat: &'a Stats,
     pub skill_set: &'a SkillSet,
+    pub ability_pool: &'a AbilityPool,
     pub combo: &'a Combo,
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
@@ -186,6 +188,7 @@ impl<'a> JoinData<'a> {
             combo: j.combo,
             alignment: j.alignment,
             terrain: j.terrain,
+            ability_pool: j.ability_pool,
         }
     }
 }
