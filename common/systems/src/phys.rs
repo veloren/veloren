@@ -2,8 +2,8 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
-        BeamSegment, Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState,
-        Pos, PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Shockwave, Stats, Sticky, Vel,
+        Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState, Pos,
+        PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -87,18 +87,13 @@ fn integrate_forces(
     vel
 }
 
-fn calc_z_limit(
-    char_state_maybe: Option<&CharacterState>,
-    collider: Option<&Collider>,
-) -> (f32, f32) {
+fn calc_z_limit(char_state_maybe: Option<&CharacterState>, collider: &Collider) -> (f32, f32) {
     let modifier = if char_state_maybe.map_or(false, |c_s| c_s.is_dodge() || c_s.is_glide()) {
         0.5
     } else {
         1.0
     };
-    collider
-        .map(|c| c.get_z_limits(modifier))
-        .unwrap_or((-0.5 * modifier, 0.5 * modifier))
+    collider.get_z_limits(modifier)
 }
 
 /// This system applies forces and calculates new positions and velocities.
@@ -118,8 +113,6 @@ pub struct PhysicsRead<'a> {
     colliders: ReadStorage<'a, Collider>,
     mountings: ReadStorage<'a, Mounting>,
     projectiles: ReadStorage<'a, Projectile>,
-    beams: ReadStorage<'a, BeamSegment>,
-    shockwaves: ReadStorage<'a, Shockwave>,
     char_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
     character_states: ReadStorage<'a, CharacterState>,
@@ -172,15 +165,14 @@ impl<'a> PhysicsData<'a> {
         // Add PreviousPhysCache for all relevant entities
         for entity in (
             &self.read.entities,
+            &self.read.colliders,
             &self.write.velocities,
             &self.write.positions,
             !&self.write.previous_phys_cache,
             !&self.read.mountings,
-            !&self.read.beams,
-            !&self.read.shockwaves,
         )
             .join()
-            .map(|(e, _, _, _, _, _, _)| e)
+            .map(|(e, _, _, _, _, _)| e)
             .collect::<Vec<_>>()
         {
             let _ = self
@@ -200,18 +192,16 @@ impl<'a> PhysicsData<'a> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, mut phys_cache, collider, scale, cs, _, _, _) in (
+        for (_, vel, position, ori, mut phys_cache, collider, scale, cs, _) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
             &self.write.orientations,
             &mut self.write.previous_phys_cache,
-            self.read.colliders.maybe(),
+            &self.read.colliders,
             self.read.scales.maybe(),
             self.read.char_states.maybe(),
             !&self.read.mountings,
-            !&self.read.beams,
-            !&self.read.shockwaves,
         )
             .join()
         {
@@ -223,7 +213,7 @@ impl<'a> PhysicsData<'a> {
 
             phys_cache.velocity_dt = vel.0 * self.read.dt.0;
             let entity_center = position.0 + Vec3::new(0.0, 0.0, z_min + half_height);
-            let flat_radius = collider.map_or(0.5, Collider::bounding_radius) * scale;
+            let flat_radius = collider.bounding_radius() * scale;
             let radius = (flat_radius.powi(2) + half_height.powi(2)).sqrt();
 
             // Move center to the middle between OLD and OLD+VEL_DT
@@ -234,14 +224,14 @@ impl<'a> PhysicsData<'a> {
             phys_cache.scaled_radius = flat_radius;
 
             let neighborhood_radius = match collider {
-                Some(Collider::CapsulePrism { radius, .. }) => radius * scale,
-                Some(Collider::Voxel { .. } | Collider::Point) | None => flat_radius,
+                Collider::CapsulePrism { radius, .. } => radius * scale,
+                Collider::Voxel { .. } | Collider::Point => flat_radius,
             };
             phys_cache.neighborhood_radius = neighborhood_radius;
 
             let ori = ori.to_quat();
             let origins = match collider {
-                Some(Collider::CapsulePrism { p0, p1, .. }) => {
+                Collider::CapsulePrism { p0, p1, .. } => {
                     let a = p1 - p0;
                     let len = a.magnitude();
                     // If origins are close enough, our capsule prism is cylinder
@@ -275,7 +265,7 @@ impl<'a> PhysicsData<'a> {
                         Some((p0, p1))
                     }
                 },
-                Some(Collider::Voxel { .. } | Collider::Point) | None => None,
+                Collider::Voxel { .. } | Collider::Point => None,
             };
             phys_cache.origins = origins;
             phys_cache.ori = ori;
@@ -302,15 +292,14 @@ impl<'a> PhysicsData<'a> {
         let lg2_large_cell_size = 6;
         let radius_cutoff = 8;
         let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
-        for (entity, pos, phys_cache, _, _, _, _, _) in (
+        for (entity, pos, phys_cache, _, _, _, _) in (
             &read.entities,
             &write.positions,
             &write.previous_phys_cache,
             write.velocities.mask(),
             !&read.projectiles, // Not needed because they are skipped in the inner loop below
             !&read.mountings,
-            !&read.beams,
-            !&read.shockwaves,
+            read.colliders.mask(),
         )
             .join()
         {
@@ -338,7 +327,7 @@ impl<'a> PhysicsData<'a> {
             &mut write.velocities,
             previous_phys_cache,
             &read.masses,
-            read.colliders.maybe(),
+            &read.colliders,
             !&read.mountings,
             read.stickies.maybe(),
             &mut write.physics_states,
@@ -405,6 +394,7 @@ impl<'a> PhysicsData<'a> {
                             let pos = positions.get(entity)?;
                             let previous_cache = previous_phys_cache.get(entity)?;
                             let mass = read.masses.get(entity)?;
+                            let collider = read.colliders.get(entity)?;
 
                             Some((
                                 entity,
@@ -412,7 +402,7 @@ impl<'a> PhysicsData<'a> {
                                 pos,
                                 previous_cache,
                                 mass,
-                                read.colliders.get(entity),
+                                collider,
                                 read.char_states.get(entity),
                             ))
                         })
@@ -993,7 +983,7 @@ impl<'a> PhysicsData<'a> {
                     let path_sphere = {
                         // TODO: duplicated with maintain_pushback_cache,
                         // make a common function to call to compute all this info?
-                        let z_limits = calc_z_limit(character_state, Some(collider));
+                        let z_limits = calc_z_limit(character_state, collider);
                         let z_limits = (z_limits.0 * scale, z_limits.1 * scale);
                         let half_height = (z_limits.1 - z_limits.0) / 2.0;
 
@@ -1782,8 +1772,8 @@ fn resolve_e2e_collision(
     previous_cache_other: &PreviousPhysCache,
     z_limits: (f32, f32),
     z_limits_other: (f32, f32),
-    collider: Option<&Collider>,
-    collider_other: Option<&Collider>,
+    collider: &Collider,
+    collider_other: &Collider,
     mass: Mass,
     mass_other: Mass,
 ) -> bool {
@@ -1855,8 +1845,8 @@ fn resolve_e2e_collision(
         && (!is_sticky || is_mid_air)
         && diff.magnitude_squared() > 0.0
         && !is_projectile
-        && !matches!(collider_other, Some(Collider::Voxel { .. }))
-        && !matches!(collider, Some(Collider::Voxel { .. }))
+        && !matches!(collider_other, Collider::Voxel { .. })
+        && !matches!(collider, Collider::Voxel { .. })
     {
         const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
         let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);
