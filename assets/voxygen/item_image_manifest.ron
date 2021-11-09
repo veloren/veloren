@@ -50,7 +50,7 @@
         (0.0, 0.0, 0.0), (90.0, 80.0, 0.0), 1.0,
     ),
     Tool("example_axe"): VoxTrans(
-        "voxel.weapon.axe.2haxe_bloodsteel-0",
+        "voxel.weapon.axe.2haxe_malachite-0",
         (0.0, 0.0, 0.0), (-90.0, 70.0, 0.0), 1.0,
     ),
     Tool("example_hammer"): VoxTrans(
@@ -602,7 +602,7 @@
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     Tool("common.items.weapons.sword_1h.starter"): VoxTrans(
-        "voxel.weapon.sword_1h.starter",
+        "voxel.weapon.sword.starter_1h",
         (-1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     // Axes
@@ -1380,7 +1380,7 @@
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
     ModularWeapon(("common.items.crafting_ing.modular.held.sceptre.ornate", "wood", Two)): VoxTrans(
-        "voxel.weapon.staff.sceptre.wood",
+        "voxel.weapon.sceptre.sceptre.wood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
     ModularWeapon(("common.items.crafting_ing.modular.held.sceptre.sceptre", "wood", Two)): VoxTrans(

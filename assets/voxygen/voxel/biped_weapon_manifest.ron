@@ -309,7 +309,7 @@
         color: None
     ),
     Tool("common.items.weapons.sword_1h.starter"): (
-        vox_spec: ("weapon.sword_1h.starter", (-2.0, -4.5, -3.0)),
+        vox_spec: ("weapon.sword.starter_1h", (-2.0, -4.5, -3.0)),
         color: None
     ),
     // Axes
@@ -1327,7 +1327,7 @@
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.held.sceptre.ornate", "wood", Two)): (
-        vox_spec: ("weapon.staff.sceptre.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.wood", (0.0, 0.0, 0.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.held.sceptre.sceptre", "wood", Two)): (
