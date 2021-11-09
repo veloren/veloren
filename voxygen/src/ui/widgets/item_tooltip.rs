@@ -50,6 +50,8 @@ pub struct ItemTooltipManager {
     fade_dur: Duration,
     // Current scaling of the ui
     logical_scale_factor: f64,
+    // Ids for tooltip
+    tooltip_ids: widget::id::List,
 }
 
 impl ItemTooltipManager {
@@ -59,6 +61,7 @@ impl ItemTooltipManager {
             hover_dur,
             fade_dur,
             logical_scale_factor,
+            tooltip_ids: widget::id::List::new(),
         }
     }
 
@@ -121,12 +124,14 @@ impl ItemTooltipManager {
         I: Borrow<dyn ItemDesc>,
     {
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
-        let mut tooltip_id = widget::id::List::new();
 
-        for (i, item) in items.enumerate() {
-            tooltip_id.resize(i + 1, &mut ui.widget_id_generator());
+        let tooltip_ids = &mut self.tooltip_ids; // TODO: remove with Rust 2021
+        let mut id_walker = tooltip_ids.walk();
 
-            let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
+        let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
+            let mut prev_id = None;
+            for item in items {
+                let tooltip_id = id_walker.next(tooltip_ids, &mut ui.widget_id_generator());
                 // Fill in text and the potential image beforehand to get an accurate size for
                 // spacing
                 let tooltip = tooltip
@@ -153,39 +158,37 @@ impl ItemTooltipManager {
                     m_y - mp_h - t_h / 2.0
                 };
 
-                if i == 0 {
+                if let Some(prev_id) = prev_id {
                     tooltip
                         .floating(true)
                         .transparency(transparency)
-                        .x_y(x, y)
-                        .set(tooltip_id[i], ui);
+                        .up_from(prev_id, 5.0)
+                        .set(tooltip_id, ui);
                 } else {
                     tooltip
                         .floating(true)
                         .transparency(transparency)
-                        .up_from(tooltip_id[i - 1], 5.0)
-                        .set(tooltip_id[i], ui);
+                        .x_y(x, y)
+                        .set(tooltip_id, ui);
                 }
-            };
 
-            match self.state {
-                HoverState::Hovering(Hover(id, xy)) if id == src_id => tooltip(1.0, xy, ui),
-                HoverState::Fading(start, Hover(id, xy), _) if id == src_id => tooltip(
-                    (0.1f32
-                        - start.elapsed().as_millis() as f32 / self.hover_dur.as_millis() as f32)
-                        .max(0.0),
-                    xy,
-                    ui,
-                ),
-                HoverState::Start(start, id)
-                    if id == src_id && start.elapsed() > self.hover_dur =>
-                {
-                    let xy = ui.global_input().current.mouse.xy;
-                    self.state = HoverState::Hovering(Hover(id, xy));
-                    tooltip(1.0, xy, ui);
-                }
-                _ => (),
+                prev_id = Some(tooltip_id);
             }
+        };
+        match self.state {
+            HoverState::Hovering(Hover(id, xy)) if id == src_id => tooltip(1.0, xy, ui),
+            HoverState::Fading(start, Hover(id, xy), _) if id == src_id => tooltip(
+                (0.1f32 - start.elapsed().as_millis() as f32 / self.hover_dur.as_millis() as f32)
+                    .max(0.0),
+                xy,
+                ui,
+            ),
+            HoverState::Start(start, id) if id == src_id && start.elapsed() > self.hover_dur => {
+                let xy = ui.global_input().current.mouse.xy;
+                self.state = HoverState::Hovering(Hover(id, xy));
+                tooltip(1.0, xy, ui);
+            },
+            _ => (),
         }
     }
 }
