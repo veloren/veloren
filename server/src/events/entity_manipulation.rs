@@ -357,22 +357,26 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
-                // FIXME: Please, no BeastMeat from Possesed Turret
+                // TODO: This should only be temporary as you'd eventually want to actually
+                // render the items on the ground, rather than changing the texture depending on
+                // the body type
                 let _ = state
                     .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
                         Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
-                        Some(common::comp::Body::BipedSmall(_)) => object::Body::Pouch,
+                        Some(common::comp::Body::BipedSmall(_))
+                        | Some(common::comp::Body::BipedLarge(_)) => object::Body::Pouch,
                         Some(common::comp::Body::Golem(_)) => object::Body::Chest,
                         Some(common::comp::Body::QuadrupedSmall(_)) => object::Body::SmallMeat,
                         Some(common::comp::Body::FishMedium(_))
                         | Some(common::comp::Body::FishSmall(_)) => object::Body::FishMeat,
                         Some(common::comp::Body::QuadrupedMedium(_)) => object::Body::BeastMeat,
-                        Some(common::comp::Body::BipedLarge(_))
-                        | Some(common::comp::Body::QuadrupedLow(_)) => object::Body::ToughMeat,
+                        Some(common::comp::Body::QuadrupedLow(_)) => object::Body::ToughMeat,
                         Some(common::comp::Body::BirdLarge(_))
                         | Some(common::comp::Body::BirdMedium(_)) => object::Body::BirdMeat,
-
-                        _ => object::Body::BeastMeat,
+                        Some(common::comp::Body::Theropod(_)) => object::Body::BeastMeat,
+                        Some(common::comp::Body::Dragon(_)) => object::Body::BeastMeat,
+                        Some(common::comp::Body::Object(_)) => object::Body::Chest,
+                        _ => object::Body::Pouch,
                     })
                     .maybe_with(vel)
                     .with(item)
