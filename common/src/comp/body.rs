@@ -659,7 +659,7 @@ impl Body {
                 quadruped_low::Species::Deadwood => 120,
                 _ => 70,
             },
-            Body::Arthropod(_) => 100,
+            Body::Arthropod(_) => 10000,
             Body::Ship(_) => 1000,
         }
     }

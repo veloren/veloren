@@ -61,7 +61,7 @@ pub enum ProjectileConstructor {
         radius: f32,
         min_falloff: f32,
     },
-    PoisonBall {
+    Poisonball {
         damage: f32,
         radius: f32,
         min_falloff: f32,
@@ -228,7 +228,7 @@ impl ProjectileConstructor {
                     is_point: true,
                 }
             },
-            PoisonBall {
+            Poisonball {
                 damage,
                 radius,
                 min_falloff,
@@ -483,7 +483,7 @@ impl ProjectileConstructor {
                 *damage *= power;
                 *radius *= range;
             },
-            PoisonBall {
+            Poisonball {
                 ref mut damage,
                 ref mut radius,
                 ..

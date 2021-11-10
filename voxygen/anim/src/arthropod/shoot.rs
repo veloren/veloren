@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use super::{
     super::{vek::*, Animation},
     ArthropodSkeleton, SkeletonAttr,
@@ -18,7 +16,7 @@ impl Animation for ShootAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "arthropod_shoot")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, global_time, stage_section, timer): Self::Dependency<'a>,
+        (_velocity, _global_time, stage_section, _timer): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -31,11 +29,6 @@ impl Animation for ShootAnimation {
             _ => (0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - movement2;
-        let subtract = global_time - timer;
-        let check = subtract - subtract.trunc();
-        let mirror = (check - 0.5).signum();
-        //let movement1 = mirror * movement1base * pullback;
-        //let movement2 = mirror * movement2base * pullback;
         let movement1abs = movement1 * pullback;
 
         next.chest.scale = Vec3::one() / s_a.scaler;

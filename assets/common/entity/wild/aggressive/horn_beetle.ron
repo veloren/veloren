@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("horn_beetle"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.arthropod.carapace"),
+
+    hands: Uninit,
+
+    meta: [],
+)

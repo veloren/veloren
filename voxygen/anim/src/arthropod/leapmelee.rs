@@ -18,7 +18,7 @@ impl Animation for LeapMeleeAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "arthropod_leapmelee")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (_velocity, _global_time, stage_section, _timer): Self::Dependency<'a>,
+        (_velocity, global_time, stage_section, _timer): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -34,6 +34,7 @@ impl Animation for LeapMeleeAnimation {
             _ => (0.0, 0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - movement4;
+        let early_pullback = 1.0 - movement3base;
         //let subtract = global_time - timer;
         //let check = subtract - subtract.trunc();
         //let mirror = (check - 0.5).signum();
@@ -44,6 +45,8 @@ impl Animation for LeapMeleeAnimation {
         //let twitch1 = (movement1base * 10.0).sin() * (1.0 - movement2base);
         //let twitch3 = (movement3base * 5.0).sin() * mirror;
         //let twitch1abs = twitch1 * mirror;
+        let shortalt = (global_time * 80.0).sin() * movement2base * early_pullback;
+        dbg!(anim_time);
 
         next.chest.scale = Vec3::one() / s_a.scaler;
 
@@ -74,10 +77,10 @@ impl Animation for LeapMeleeAnimation {
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
         next.leg_fr.position = Vec3::new(s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
         next.leg_fl.orientation =
-            Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * -1.0 + movement3abs * 0.8)
+            Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * 0.8 + movement3abs * -1.5)
                 * Quaternion::rotation_z(s_a.leg_ori.0);
         next.leg_fr.orientation =
-            Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * -1.0 + movement3abs * 0.8)
+            Quaternion::rotation_x(movement1abs * 0.2 + movement2abs * 0.8 + movement3abs * -1.5)
                 * Quaternion::rotation_z(-s_a.leg_ori.0);
 
         next.leg_fcl.position = Vec3::new(-s_a.leg_fc.0, s_a.leg_fc.1, s_a.leg_fc.2);
@@ -103,6 +106,28 @@ impl Animation for LeapMeleeAnimation {
                 * Quaternion::rotation_z(s_a.leg_ori.3);
         next.leg_br.orientation = Quaternion::rotation_y(movement1abs * -0.2 + movement2abs * 1.0)
             * Quaternion::rotation_z(-s_a.leg_ori.3);
+
+            next.wing_fl.position = Vec3::new(-s_a.wing_f.0, s_a.wing_f.1, s_a.wing_f.2);
+            next.wing_fr.position = Vec3::new(s_a.wing_f.0, s_a.wing_f.1, s_a.wing_f.2);
+            next.wing_fl.orientation =
+                Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * -0.2)
+                    * Quaternion::rotation_y(movement1abs * 0.5 + movement2abs * 0.1)
+                    * Quaternion::rotation_z(movement1abs * -0.2);
+            next.wing_fr.orientation =
+                Quaternion::rotation_x(movement1abs * -0.4 + movement2abs * -0.2)
+                    * Quaternion::rotation_y(movement1abs * -0.5 + movement2abs * -0.1)
+                    * Quaternion::rotation_z(movement1abs * 0.2);
+
+            next.wing_bl.position = Vec3::new(-s_a.wing_b.0, s_a.wing_b.1, s_a.wing_b.2);
+            next.wing_br.position = Vec3::new(s_a.wing_b.0, s_a.wing_b.1, s_a.wing_b.2);
+            next.wing_bl.orientation =
+                Quaternion::rotation_x((movement1abs * -0.2 + movement2abs * -0.6) * early_pullback)
+                    * Quaternion::rotation_y(movement1abs * 0.4 + shortalt * 2.0 + movement2abs * 0.1)
+                    * Quaternion::rotation_z(movement1abs * -1.4);
+            next.wing_br.orientation =
+                Quaternion::rotation_x((movement1abs * -0.2 + movement2abs * -0.6) * early_pullback)
+                    * Quaternion::rotation_y(movement1abs * -0.4 + shortalt * 2.0 + movement2abs * -0.1)
+                    * Quaternion::rotation_z(movement1abs * 1.4);
 
         next
     }

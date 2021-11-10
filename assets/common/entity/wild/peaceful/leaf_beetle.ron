@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("leaf_beetle"),
+    alignment: Alignment(Wild),
+
+    loot: LootTable("common.loot_tables.creature.arthropod.leaf"),
+
+    hands: Uninit,
+
+    meta: [],
+)
