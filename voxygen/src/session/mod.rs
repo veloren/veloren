@@ -1370,17 +1370,9 @@ impl PlayState for SessionState {
                     HudEvent::TradeAction(action) => {
                         self.client.borrow_mut().perform_trade_action(action);
                     },
-                    HudEvent::Ability3(state) => {
+                    HudEvent::Ability(i, state) => {
                         self.client.borrow_mut().handle_input(
-                            InputKind::Ability(0),
-                            state,
-                            default_select_pos,
-                            self.target_entity,
-                        );
-                    },
-                    HudEvent::Ability4(state) => {
-                        self.client.borrow_mut().handle_input(
-                            InputKind::Ability(1),
+                            InputKind::Ability(i),
                             state,
                             default_select_pos,
                             self.target_entity,

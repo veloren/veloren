@@ -1,9 +1,4 @@
-use crate::hud::slots::EquipSlot;
-use common::comp::{
-    item::{tool::Hands, ItemKind},
-    slot::InvSlotId,
-    Inventory,
-};
+use common::comp::slot::InvSlotId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -23,8 +18,7 @@ pub enum Slot {
 #[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
 pub enum SlotContents {
     Inventory(InvSlotId),
-    Ability3,
-    Ability4,
+    Ability(usize),
 }
 
 #[derive(Clone, Copy, Default)]
@@ -59,120 +53,32 @@ impl State {
         self.slots[slot as usize] = Some(SlotContents::Inventory(inventory_pos));
     }
 
-    // TODO: remove
-    // Adds ability3 slot if it is missing and should be present
-    // Removes if it is there and shouldn't be present
-    pub fn maintain_ability3(&mut self, client: &client::Client) {
+    // TODO: remove pending UI
+    // Adds ability slots if missing and should be present
+    // Removes ability slots if not there and shouldn't be present
+    pub fn maintain_abilities(&mut self, client: &client::Client) {
         use specs::WorldExt;
-        let inventories = client.state().ecs().read_storage::<Inventory>();
-        let inventory = inventories.get(client.entity());
-        let skill_sets = client
+        if let Some(ability_pool) = client
             .state()
             .ecs()
-            .read_storage::<common::comp::SkillSet>();
-        let skill_set = skill_sets.get(client.entity());
-
-        let hands =
-            |equip_slot| match inventory.and_then(|i| i.equipped(equip_slot).map(|i| i.kind())) {
-                Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                _ => None,
-            };
-
-        let equip_slot = match (
-            hands(EquipSlot::ActiveMainhand),
-            hands(EquipSlot::ActiveOffhand),
-        ) {
-            (Some(_), _) => Some(EquipSlot::ActiveMainhand),
-            (_, Some(_)) => Some(EquipSlot::ActiveOffhand),
-            _ => None,
-        };
-
-        let should_be_present = if let (Some(inventory), Some(skill_set), Some(equip_slot)) =
-            (inventory, skill_set, equip_slot)
+            .read_storage::<common::comp::AbilityPool>()
+            .get(client.entity())
         {
-            inventory.equipped(equip_slot).map_or(false, |i| {
-                i.item_config_expect()
-                    .abilities
-                    .abilities
-                    .get(0)
-                    .as_ref()
-                    .map_or(false, |(s, _)| s.map_or(true, |s| skill_set.has_skill(s)))
-            })
-        } else {
-            false
-        };
-
-        if should_be_present {
-            if !self
-                .slots
-                .iter()
-                .any(|s| matches!(s, Some(SlotContents::Ability3)))
-            {
-                self.slots[0] = Some(SlotContents::Ability3);
+            use common::comp::Ability;
+            for (i, ability) in ability_pool.abilities.iter().enumerate() {
+                if matches!(ability, Ability::Empty) {
+                    self.slots
+                        .iter_mut()
+                        .filter(|s| matches!(s, Some(SlotContents::Ability(index)) if *index == i))
+                        .for_each(|s| *s = None)
+                } else if let Some(slot) = self
+                    .slots
+                    .iter_mut()
+                    .find(|s| !matches!(s, Some(SlotContents::Ability(index)) if *index != i))
+                {
+                    *slot = Some(SlotContents::Ability(i));
+                }
             }
-        } else {
-            self.slots
-                .iter_mut()
-                .filter(|s| matches!(s, Some(SlotContents::Ability3)))
-                .for_each(|s| *s = None)
-        }
-    }
-
-    pub fn maintain_ability4(&mut self, client: &client::Client) {
-        use specs::WorldExt;
-        let inventories = client.state().ecs().read_storage::<Inventory>();
-        let inventory = inventories.get(client.entity());
-        let skill_sets = client
-            .state()
-            .ecs()
-            .read_storage::<common::comp::SkillSet>();
-        let skill_set = skill_sets.get(client.entity());
-        let should_be_present = if let (Some(inventory), Some(skill_set)) = (inventory, skill_set) {
-            let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
-                Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                _ => None,
-            };
-
-            let active_tool_hands = hands(EquipSlot::ActiveMainhand);
-            let second_tool_hands = hands(EquipSlot::ActiveOffhand);
-
-            let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
-                (Some(Hands::Two), _) => (Some(EquipSlot::ActiveMainhand), 1),
-                (Some(_), Some(Hands::One)) => (Some(EquipSlot::ActiveOffhand), 0),
-                (Some(Hands::One), _) => (Some(EquipSlot::ActiveMainhand), 1),
-                (None, Some(_)) => (Some(EquipSlot::ActiveOffhand), 1),
-                (_, _) => (None, 0),
-            };
-
-            if let Some(equip_slot) = equip_slot {
-                inventory.equipped(equip_slot).map_or(false, |i| {
-                    i.item_config_expect()
-                        .abilities
-                        .abilities
-                        .get(skill_index)
-                        .as_ref()
-                        .map_or(false, |(s, _)| s.map_or(true, |s| skill_set.has_skill(s)))
-                })
-            } else {
-                false
-            }
-        } else {
-            false
-        };
-
-        if should_be_present {
-            if !self
-                .slots
-                .iter()
-                .any(|s| matches!(s, Some(SlotContents::Ability4)))
-            {
-                self.slots[1] = Some(SlotContents::Ability4);
-            }
-        } else {
-            self.slots
-                .iter_mut()
-                .filter(|s| matches!(s, Some(SlotContents::Ability4)))
-                .for_each(|s| *s = None)
         }
     }
 }

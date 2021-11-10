@@ -26,7 +26,7 @@ use common::comp::{
         tool::{Tool, ToolKind},
         Hands, Item, ItemDesc, ItemKind, MaterialStatManifest,
     },
-    Energy, Health, Inventory, SkillSet,
+    AbilityPool, Body, Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
     color,
@@ -253,6 +253,8 @@ pub struct Skillbar<'a> {
     inventory: &'a Inventory,
     energy: &'a Energy,
     skillset: &'a SkillSet,
+    ability_pool: &'a AbilityPool,
+    body: &'a Body,
     // character_state: &'a CharacterState,
     // controller: &'a ControllerInputs,
     hotbar: &'a hotbar::State,
@@ -280,6 +282,8 @@ impl<'a> Skillbar<'a> {
         inventory: &'a Inventory,
         energy: &'a Energy,
         skillset: &'a SkillSet,
+        ability_pool: &'a AbilityPool,
+        body: &'a Body,
         // character_state: &'a CharacterState,
         pulse: f32,
         // controller: &'a ControllerInputs,
@@ -302,6 +306,8 @@ impl<'a> Skillbar<'a> {
             inventory,
             energy,
             skillset,
+            ability_pool,
+            body,
             common: widget::CommonBuilder::default(),
             // character_state,
             pulse,
@@ -511,7 +517,14 @@ impl<'a> Skillbar<'a> {
         let key_layout = &self.global_state.window.key_layout;
 
         // TODO: avoid this
-        let content_source = (self.hotbar, self.inventory, self.energy, self.skillset);
+        let content_source = (
+            self.hotbar,
+            self.inventory,
+            self.energy,
+            self.skillset,
+            self.ability_pool,
+            self.body,
+        );
 
         let image_source = (self.item_imgs, self.imgs);
         let mut slot_maker = SlotMaker {
@@ -591,45 +604,26 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, ..) = content_source;
+            let (hotbar, inventory, _, _, ability_pool, _) = content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i) => inventory
                     .get(i)
                     .map(|item| (item.name(), item.description())),
-                hotbar::SlotContents::Ability3 => inventory
-                    .equipped(EquipSlot::ActiveMainhand)
-                    .map(|i| i.kind())
-                    .and_then(|kind| match kind {
-                        ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                        _ => None,
-                    }),
-                hotbar::SlotContents::Ability4 => {
-                    let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind())
-                    {
-                        Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                        _ => None,
-                    };
-
-                    let active_tool_hands = hands(EquipSlot::ActiveMainhand);
-                    let second_tool_hands = hands(EquipSlot::ActiveOffhand);
-
-                    let equip_slot = match (active_tool_hands, second_tool_hands) {
-                        (Some(Hands::Two), _) => Some(EquipSlot::ActiveMainhand),
-                        (Some(_), Some(Hands::One)) => Some(EquipSlot::ActiveOffhand),
-                        (Some(Hands::One), _) => Some(EquipSlot::ActiveMainhand),
-                        (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
-                        (_, _) => None,
-                    };
-
-                    equip_slot.and_then(|equip_slot| {
-                        inventory
-                            .equipped(equip_slot)
-                            .map(|i| i.kind())
-                            .and_then(|kind| match kind {
-                                ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                                _ => None,
-                            })
-                    })
+                hotbar::SlotContents::Ability(i) => {
+                    use comp::Ability;
+                    ability_pool
+                        .abilities
+                        .get(i)
+                        .and_then(|a| match a {
+                            Ability::MainWeaponAbility(_) => Some(EquipSlot::ActiveMainhand),
+                            Ability::OffWeaponAbility(_) => Some(EquipSlot::ActiveOffhand),
+                            _ => None,
+                        })
+                        .and_then(|equip_slot| inventory.equipped(equip_slot))
+                        .and_then(|item| match &item.kind {
+                            ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
+                            _ => None,
+                        })
                 },
             })
         };

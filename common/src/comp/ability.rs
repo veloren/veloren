@@ -40,10 +40,10 @@ pub const MAX_ABILITIES: usize = 5;
 // considerations.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AbilityPool {
-    primary: Ability,
-    secondary: Ability,
-    movement: Ability,
-    abilities: [Ability; MAX_ABILITIES],
+    pub primary: Ability,
+    pub secondary: Ability,
+    pub movement: Ability,
+    pub abilities: [Ability; MAX_ABILITIES],
 }
 
 impl Component for AbilityPool {
