@@ -2,17 +2,11 @@ use super::{
     hotbar::{self, Slot as HotbarSlot},
     img_ids,
     item_imgs::{ItemImgs, ItemKey},
+    util,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
-    self,
-    controller::InputKind,
-    item::{
-        tool::{Tool, ToolKind},
-        ItemKind,
-    },
-    slot::InvSlotId,
-    AbilityPool, Body, Energy, Inventory, SkillSet,
+    controller::InputKind, slot::InvSlotId, AbilityPool, Body, Energy, Inventory, SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -115,13 +109,7 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
 #[derive(Clone, PartialEq)]
 pub enum HotbarImage {
     Item(ItemKey),
-    FireAoe,
-    SnakeArrow,
-    SwordWhirlwind,
-    HammerLeap,
-    AxeLeapSlash,
-    BowJumpBurst,
-    SceptreAura,
+    Ability(String),
 }
 
 type HotbarSource<'a> = (
@@ -147,22 +135,13 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability(i) => {
-                use comp::Ability;
-                let tool_kind = ability_pool
+                let ability_id = ability_pool
                     .abilities
                     .get(i)
-                    .and_then(|a| match a {
-                        Ability::MainWeaponAbility(_) => Some(EquipSlot::ActiveMainhand),
-                        Ability::OffWeaponAbility(_) => Some(EquipSlot::ActiveOffhand),
-                        _ => None,
-                    })
-                    .and_then(|equip_slot| inventory.equipped(equip_slot))
-                    .and_then(|item| match &item.kind {
-                        ItemKind::Tool(Tool { kind, .. }) => Some(kind),
-                        _ => None,
-                    });
-                tool_kind
-                    .and_then(|kind| hotbar_image(*kind))
+                    .and_then(|a| a.ability_id(Some(inventory)));
+
+                ability_id
+                    .map(|id| HotbarImage::Ability(id.to_string()))
                     .and_then(|image| {
                         ability_pool
                             .activate_ability(
@@ -203,13 +182,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
     ) -> Vec<image::Id> {
         match key {
             HotbarImage::Item(key) => item_imgs.img_ids_or_not_found_img(key.clone()),
-            HotbarImage::SnakeArrow => vec![imgs.snake_arrow_0],
-            HotbarImage::FireAoe => vec![imgs.fire_aoe],
-            HotbarImage::SwordWhirlwind => vec![imgs.sword_whirlwind],
-            HotbarImage::HammerLeap => vec![imgs.hammerleap],
-            HotbarImage::AxeLeapSlash => vec![imgs.skill_axe_leap_slash],
-            HotbarImage::BowJumpBurst => vec![imgs.skill_bow_jump_burst],
-            HotbarImage::SceptreAura => vec![imgs.skill_sceptre_aura],
+            HotbarImage::Ability(ability_id) => vec![util::ability_image(imgs, ability_id)],
         }
     }
 }
@@ -230,16 +203,3 @@ impl From<TradeSlot> for SlotKind {
 }
 
 impl SumSlot for SlotKind {}
-
-fn hotbar_image(tool: ToolKind) -> Option<HotbarImage> {
-    match tool {
-        ToolKind::Staff => Some(HotbarImage::FireAoe),
-        ToolKind::Hammer => Some(HotbarImage::HammerLeap),
-        ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
-        ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
-        ToolKind::Debug => Some(HotbarImage::SnakeArrow),
-        ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
-        ToolKind::Sceptre => Some(HotbarImage::SceptreAura),
-        _ => None,
-    }
-}

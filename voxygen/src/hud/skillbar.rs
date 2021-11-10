@@ -2,7 +2,7 @@ use super::{
     hotbar,
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots, BarNumbers, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
+    slots, util, BarNumbers, ShortcutNumbers, BLACK, CRITICAL_HP_COLOR, HP_COLOR, LOW_HP_COLOR,
     QUALITY_EPIC, STAMINA_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
 };
 use crate::{
@@ -21,11 +21,8 @@ use i18n::Localization;
 use client::{self, Client};
 use common::comp::{
     self,
-    inventory::slot::EquipSlot,
-    item::{
-        tool::{Tool, ToolKind},
-        Hands, Item, ItemDesc, ItemKind, MaterialStatManifest,
-    },
+    controller::InputKind,
+    item::{ItemDesc, MaterialStatManifest},
     AbilityPool, Body, Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
@@ -609,22 +606,11 @@ impl<'a> Skillbar<'a> {
                 hotbar::SlotContents::Inventory(i) => inventory
                     .get(i)
                     .map(|item| (item.name(), item.description())),
-                hotbar::SlotContents::Ability(i) => {
-                    use comp::Ability;
-                    ability_pool
-                        .abilities
-                        .get(i)
-                        .and_then(|a| match a {
-                            Ability::MainWeaponAbility(_) => Some(EquipSlot::ActiveMainhand),
-                            Ability::OffWeaponAbility(_) => Some(EquipSlot::ActiveOffhand),
-                            _ => None,
-                        })
-                        .and_then(|equip_slot| inventory.equipped(equip_slot))
-                        .and_then(|item| match &item.kind {
-                            ItemKind::Tool(Tool { kind, .. }) => ability_description(kind),
-                            _ => None,
-                        })
-                },
+                hotbar::SlotContents::Ability(i) => ability_pool
+                    .abilities
+                    .get(i)
+                    .and_then(|a| a.ability_id(Some(inventory)))
+                    .and_then(|id| util::ability_description(id)),
             })
         };
 
@@ -693,30 +679,11 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
-        let active_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveMainhand);
-        let second_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveOffhand);
+        let primary_ability_id = self.ability_pool.primary.ability_id(Some(self.inventory));
 
-        let tool = match (
-            active_tool.map(|(_, x)| x.hands),
-            second_tool.map(|(_, x)| x.hands),
-        ) {
-            (Some(_), _) => active_tool,
-            (_, Some(_)) => second_tool,
-            (_, _) => None,
-        };
-
-        Button::image(match tool.map(|(_, t)| t.kind) {
-            Some(ToolKind::Sword) => self.imgs.twohsword_m1,
-            Some(ToolKind::Dagger) => self.imgs.onehdagger_m1,
-            Some(ToolKind::Shield) => self.imgs.onehshield_m1,
-            Some(ToolKind::Hammer) => self.imgs.twohhammer_m1,
-            Some(ToolKind::Axe) => self.imgs.twohaxe_m1,
-            Some(ToolKind::Bow) => self.imgs.bow_m1,
-            Some(ToolKind::Sceptre) => self.imgs.skill_sceptre_lifesteal,
-            Some(ToolKind::Staff) => self.imgs.fireball,
-            Some(ToolKind::Debug) => self.imgs.flyingrod_m1,
-            _ => self.imgs.nothing,
-        }) // Insert Icon here
+        Button::image(
+            primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
+        )
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m1_slot_bg)
         .set(state.ids.m1_content, ui);
@@ -726,64 +693,30 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        fn get_item_and_tool(
-            inventory: &Inventory,
-            equip_slot: EquipSlot,
-        ) -> Option<(&Item, &Tool)> {
-            match inventory.equipped(equip_slot).map(|i| (i, i.kind())) {
-                Some((i, ItemKind::Tool(tool))) => Some((i, tool)),
-                _ => None,
-            }
-        }
+        let secondary_ability_id = self.ability_pool.secondary.ability_id(Some(self.inventory));
 
-        let active_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveMainhand);
-        let second_tool = get_item_and_tool(self.inventory, EquipSlot::ActiveOffhand);
-
-        let tool = match (
-            active_tool.map(|(_, x)| x.hands),
-            second_tool.map(|(_, x)| x.hands),
-        ) {
-            (Some(Hands::Two), _) => active_tool,
-            (Some(_), Some(Hands::One)) => second_tool,
-            (Some(Hands::One), _) => active_tool,
-            (None, Some(_)) => second_tool,
-            (_, _) => None,
-        };
-
-        Button::image(match tool.map(|(_, t)| t.kind) {
-            Some(ToolKind::Sword) => self.imgs.twohsword_m2,
-            Some(ToolKind::Dagger) => self.imgs.onehdagger_m2,
-            Some(ToolKind::Shield) => self.imgs.onehshield_m2,
-            Some(ToolKind::Hammer) => self.imgs.hammergolf,
-            Some(ToolKind::Axe) => self.imgs.axespin,
-            Some(ToolKind::Bow) => self.imgs.bow_m2,
-            Some(ToolKind::Sceptre) => self.imgs.skill_sceptre_heal,
-            Some(ToolKind::Staff) => self.imgs.flamethrower,
-            Some(ToolKind::Debug) => self.imgs.flyingrod_m2,
-            _ => self.imgs.nothing,
-        })
+        Button::image(
+            secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
+        )
         .w_h(36.0, 36.0)
         .middle_of(state.ids.m2_slot_bg)
-        .image_color(if let Some((item, tool)) = tool {
+        .image_color(
             if self.energy.current()
-                >= item
-                    .item_config_expect()
-                    .abilities
-                    .secondary
-                    .clone()
-                    .adjusted_by_skills(self.skillset, Some(tool.kind))
-                    .get_energy_cost()
+                >= self
+                    .ability_pool
+                    .activate_ability(
+                        InputKind::Secondary,
+                        Some(self.inventory),
+                        self.skillset,
+                        self.body,
+                    )
+                    .map_or(0.0, |(a, _)| a.get_energy_cost())
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)
             } else {
                 Color::Rgba(0.3, 0.3, 0.3, 0.8)
-            }
-        } else {
-            match tool.map(|(_, t)| t.kind) {
-                None => Color::Rgba(1.0, 1.0, 1.0, 0.0),
-                _ => Color::Rgba(1.0, 1.0, 1.0, 1.0),
-            }
-        })
+            },
+        )
         .set(state.ids.m2_content, ui);
 
         // M1 and M2 icons
@@ -883,50 +816,5 @@ impl<'a> Widget for Skillbar<'a> {
         if let Some(combo) = self.combo {
             self.show_combo_counter(combo, state, ui);
         }
-    }
-}
-
-#[rustfmt::skip]
-fn ability_description(tool: &ToolKind) -> Option<(&str, &str)> {
-    match tool {
-        ToolKind::Hammer => Some((
-            "Smash of Doom",
-            "\n\
-            An AOE attack with knockback.\n\
-            Leaps to position of cursor.",
-        )),
-        ToolKind::Axe => Some((
-            "Axe Jump",
-            "\n\
-            A jump with the slashing leap to position of cursor.",
-        )),
-        ToolKind::Staff => Some((
-            "Ring of Fire",
-            "\n\
-            Ignites the ground with fiery shockwave.",
-        )),
-        ToolKind::Sword => Some((
-            "Whirlwind",
-            "\n\
-            Move forward while spinning with your sword.",
-        )),
-        ToolKind::Bow => Some((
-            "Burst",
-            "\n\
-            Launches a burst of arrows",
-        )),
-        ToolKind::Sceptre => Some((
-            "Thorn Bulwark",
-            "\n\
-            Protects you and your group with thorns\n\
-            for a short amount of time.",
-        )),
-        ToolKind::Debug => Some((
-            "Possessing Arrow",
-            "\n\
-            Shoots a poisonous arrow.\n\
-            Lets you control your target.",
-        )),
-        _ => None,
     }
 }

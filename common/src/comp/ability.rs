@@ -30,10 +30,6 @@ use std::{convert::TryFrom, time::Duration};
 
 pub const MAX_ABILITIES: usize = 5;
 
-// TODO: Should primary, secondary, and dodge be moved into here? Would
-// essentially require custom enum that are only used for those (except maybe
-// dodge if we make movement and have potentially differ based off of armor) but
-// would also allow logic to be a bit more centralized
 // TODO: Potentially look into storing previous ability sets for weapon
 // combinations and automatically reverting back to them on switching to that
 // set of weapons. Consider after UI is set up and people weigh in on memory
@@ -74,6 +70,17 @@ impl AbilityPool {
         }
     }
 
+    pub fn get_ability(&self, input: InputKind) -> Ability {
+        match input {
+            InputKind::Primary => Some(self.primary),
+            InputKind::Secondary => Some(self.secondary),
+            InputKind::Roll => Some(self.movement),
+            InputKind::Ability(index) => self.abilities.get(index).copied(),
+            _ => None,
+        }
+        .unwrap_or(Ability::Empty)
+    }
+
     pub fn activate_ability(
         &self,
         input: InputKind,
@@ -82,14 +89,7 @@ impl AbilityPool {
         body: &Body,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
-        let ability = match input {
-            InputKind::Primary => Some(self.primary),
-            InputKind::Secondary => Some(self.secondary),
-            InputKind::Roll => Some(self.movement),
-            InputKind::Ability(index) => self.abilities.get(index).copied(),
-            _ => None,
-        }
-        .unwrap_or(Ability::Empty);
+        let ability = self.get_ability(input);
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -182,6 +182,30 @@ pub enum Ability {
     Empty,
     /* For future use
      * ArmorAbility(usize), */
+}
+
+impl Ability {
+    pub fn ability_id(self, inv: Option<&Inventory>) -> Option<&String> {
+        let ability_id_set = |equip_slot| {
+            inv.and_then(|inv| inv.equipped(equip_slot))
+                .map(|i| &i.item_config_expect().ability_ids)
+        };
+
+        match self {
+            Ability::ToolPrimary => {
+                ability_id_set(EquipSlot::ActiveMainhand).map(|ids| &ids.primary)
+            },
+            Ability::ToolSecondary => ability_id_set(EquipSlot::ActiveOffhand)
+                .map(|ids| &ids.secondary)
+                .or_else(|| ability_id_set(EquipSlot::ActiveMainhand).map(|ids| &ids.secondary)),
+            Ability::SpeciesMovement => None, // TODO: Make not None
+            Ability::MainWeaponAbility(index) => ability_id_set(EquipSlot::ActiveMainhand)
+                .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id)),
+            Ability::OffWeaponAbility(index) => ability_id_set(EquipSlot::ActiveOffhand)
+                .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id)),
+            Ability::Empty => None,
+        }
+    }
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]

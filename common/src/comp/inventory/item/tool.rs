@@ -386,6 +386,16 @@ impl Default for AbilitySet<CharacterAbility> {
     }
 }
 
+impl Default for AbilitySet<String> {
+    fn default() -> Self {
+        AbilitySet {
+            primary: "".to_string(),
+            secondary: "".to_string(),
+            abilities: vec![],
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
 pub enum AbilitySpec {
     Tool(ToolKind),

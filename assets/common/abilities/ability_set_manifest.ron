@@ -29,6 +29,20 @@
             (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
         ],
     ),
+    Tool(Staff): (
+        primary: "common.abilities.staff.firebomb",
+        secondary: "common.abilities.staff.flamethrower",
+        abilities: [
+            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
+        ],
+    ),
+    Tool(Sceptre): (
+        primary: "common.abilities.sceptre.lifestealbeam",
+        secondary: "common.abilities.sceptre.healingaura",
+        abilities: [
+            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
+        ],
+    ),
     Custom("Husk"): (
         primary: "common.abilities.custom.husk.singlestrike",
         secondary: "common.abilities.custom.husk.triplestrike",
@@ -68,20 +82,6 @@
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
         abilities: [
-        ],
-    ),
-    Tool(Staff): (
-        primary: "common.abilities.staff.firebomb",
-        secondary: "common.abilities.staff.flamethrower",
-        abilities: [
-            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
-        ],
-    ),
-    Tool(Sceptre): (
-        primary: "common.abilities.sceptre.lifestealbeam",
-        secondary: "common.abilities.sceptre.healingaura",
-        abilities: [
-            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
     ),
     Tool(Dagger): (
