@@ -34,6 +34,10 @@ pub const MAX_ABILITIES: usize = 5;
 // essentially require custom enum that are only used for those (except maybe
 // dodge if we make movement and have potentially differ based off of armor) but
 // would also allow logic to be a bit more centralized
+// TODO: Potentially look into storing previous ability sets for weapon
+// combinations and automatically reverting back to them on switching to that
+// set of weapons. Consider after UI is set up and people weigh in on memory
+// considerations.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AbilityPool {
     primary: Ability,
