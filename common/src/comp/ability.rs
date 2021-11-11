@@ -65,8 +65,10 @@ impl AbilityPool {
     }
 
     pub fn change_ability(&mut self, slot: usize, new_ability: Ability) {
-        if let Some(ability) = self.abilities.get_mut(slot) {
-            *ability = new_ability;
+        if new_ability.is_valid_abilities_ability() {
+            if let Some(ability) = self.abilities.get_mut(slot) {
+                *ability = new_ability;
+            }
         }
     }
 
@@ -204,6 +206,19 @@ impl Ability {
             Ability::OffWeaponAbility(index) => ability_id_set(EquipSlot::ActiveOffhand)
                 .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id)),
             Ability::Empty => None,
+        }
+    }
+
+    /// Determines whether an ability is a valid entry for the abilities array
+    /// on the ability pool
+    pub fn is_valid_abilities_ability(self) -> bool {
+        match self {
+            Ability::ToolPrimary => false,
+            Ability::ToolSecondary => false,
+            Ability::SpeciesMovement => false,
+            Ability::MainWeaponAbility(_) => true,
+            Ability::OffWeaponAbility(_) => true,
+            Ability::Empty => true,
         }
     }
 }

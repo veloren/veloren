@@ -3,8 +3,8 @@ use crate::TerrainPersistence;
 use crate::{client::Client, presence::Presence, Settings};
 use common::{
     comp::{
-        Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player, Pos, SkillSet,
-        Vel,
+        AbilityPool, Admin, CanBuild, ControlEvent, Controller, ForceUpdate, Health, Ori, Player,
+        Pos, SkillSet, Vel,
     },
     event::{EventBus, ServerEvent},
     resources::PlayerPhysicsSettings,
@@ -40,6 +40,7 @@ impl Sys {
         velocities: &mut WriteStorage<'_, Vel>,
         orientations: &mut WriteStorage<'_, Ori>,
         controllers: &mut WriteStorage<'_, Controller>,
+        ability_pools: &mut WriteStorage<'_, AbilityPool>,
         settings: &Read<'_, Settings>,
         build_areas: &Read<'_, BuildAreas>,
         player_physics_settings: &mut Write<'_, PlayerPhysicsSettings>,
@@ -281,7 +282,20 @@ impl Sys {
             } => {
                 presence.lossy_terrain_compression = lossy_terrain_compression;
             },
-            _ => tracing::error!("not a client_in_game msg"),
+            ClientGeneral::ChangeAbility { slot, new_ability } => {
+                if let Some(mut ability_pool) = ability_pools.get_mut(entity) {
+                    ability_pool.change_ability(slot, new_ability);
+                }
+            },
+            ClientGeneral::RequestCharacterList
+            | ClientGeneral::CreateCharacter { .. }
+            | ClientGeneral::DeleteCharacter(_)
+            | ClientGeneral::Character(_)
+            | ClientGeneral::Spectate
+            | ClientGeneral::TerrainChunkRequest { .. }
+            | ClientGeneral::ChatMsg(_)
+            | ClientGeneral::Command(..)
+            | ClientGeneral::Terminate => tracing::error!("not a client_in_game msg"),
         }
         Ok(())
     }
@@ -307,6 +321,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Presence>,
         WriteStorage<'a, Client>,
         WriteStorage<'a, Controller>,
+        WriteStorage<'a, AbilityPool>,
         Read<'a, Settings>,
         Read<'a, BuildAreas>,
         Write<'a, PlayerPhysicsSettings>,
@@ -336,6 +351,7 @@ impl<'a> System<'a> for Sys {
             mut presences,
             mut clients,
             mut controllers,
+            mut ability_pools,
             settings,
             build_areas,
             mut player_physics_settings,
@@ -371,6 +387,7 @@ impl<'a> System<'a> for Sys {
                     &mut velocities,
                     &mut orientations,
                     &mut controllers,
+                    &mut ability_pools,
                     &settings,
                     &build_areas,
                     &mut player_physics_settings,

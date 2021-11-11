@@ -1425,6 +1425,9 @@ impl PlayState for SessionState {
                     HudEvent::AssignLeader(uid) => {
                         self.client.borrow_mut().assign_group_leader(uid);
                     },
+                    HudEvent::ChangeAbility(slot, new_ability) => {
+                        self.client.borrow_mut().change_ability(slot, new_ability);
+                    },
                     HudEvent::SettingsChange(settings_change) => {
                         settings_change.process(global_state, self);
                     },

@@ -533,6 +533,8 @@ pub enum Event {
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
+    // TODO: This variant currently unused. UI is needed for it to be properly used.
+    ChangeAbility(usize, comp::Ability),
 
     SettingsChange(SettingsChange),
 }
