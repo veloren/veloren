@@ -1,7 +1,7 @@
 use common::{
     comp::{
         agent::{Sound, SoundKind},
-        Body, BuffChange, ControlEvent, Controller, Pos,
+        AbilityPool, Body, BuffChange, ControlEvent, Controller, Pos,
     },
     event::{EventBus, ServerEvent},
     uid::UidAllocator,
@@ -27,16 +27,25 @@ pub struct ReadData<'a> {
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    type SystemData = (ReadData<'a>, WriteStorage<'a, Controller>);
+    type SystemData = (
+        ReadData<'a>,
+        WriteStorage<'a, Controller>,
+        WriteStorage<'a, AbilityPool>,
+    );
 
     const NAME: &'static str = "controller";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut controllers): Self::SystemData) {
+    fn run(
+        _job: &mut Job<Self>,
+        (read_data, mut controllers, mut ability_pools): Self::SystemData,
+    ) {
         let mut server_emitter = read_data.server_bus.emitter();
 
-        for (entity, controller) in (&read_data.entities, &mut controllers).join() {
+        for (entity, controller, mut ability_pool) in
+            (&read_data.entities, &mut controllers, &mut ability_pools).join()
+        {
             // Sanitize inputs to avoid clients sending bad data
             controller.inputs.sanitize();
 
@@ -102,6 +111,9 @@ impl<'a> System<'a> for Sys {
                             );
                             server_emitter.emit(ServerEvent::Sound { sound });
                         }
+                    },
+                    ControlEvent::ChangeAbility { slot, new_ability } => {
+                        ability_pool.change_ability(slot, new_ability)
                     },
                 }
             }

@@ -21,9 +21,9 @@ use i18n::Localization;
 use client::{self, Client};
 use common::comp::{
     self,
-    controller::InputKind,
+    ability::AbilityInput,
     item::{ItemDesc, MaterialStatManifest},
-    AbilityPool, Body, Energy, Health, Inventory, SkillSet,
+    Ability, AbilityPool, Body, Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
     color,
@@ -609,7 +609,7 @@ impl<'a> Skillbar<'a> {
                 hotbar::SlotContents::Ability(i) => ability_pool
                     .abilities
                     .get(i)
-                    .and_then(|a| a.ability_id(Some(inventory)))
+                    .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
                     .and_then(|id| util::ability_description(id)),
             })
         };
@@ -679,7 +679,8 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
-        let primary_ability_id = self.ability_pool.primary.ability_id(Some(self.inventory));
+        let primary_ability_id =
+            Ability::from(self.ability_pool.primary).ability_id(Some(self.inventory));
 
         Button::image(
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -693,7 +694,8 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        let secondary_ability_id = self.ability_pool.secondary.ability_id(Some(self.inventory));
+        let secondary_ability_id =
+            Ability::from(self.ability_pool.secondary).ability_id(Some(self.inventory));
 
         Button::image(
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -705,7 +707,7 @@ impl<'a> Skillbar<'a> {
                 >= self
                     .ability_pool
                     .activate_ability(
-                        InputKind::Secondary,
+                        AbilityInput::Secondary,
                         Some(self.inventory),
                         self.skillset,
                         self.body,

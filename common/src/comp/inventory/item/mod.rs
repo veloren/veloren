@@ -451,14 +451,14 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
         if let ItemKind::Tool(tool) = &item.kind {
             // TODO: Maybe try to make an ecs resource?
             let ability_ids_map =
-                AbilityMap::<String>::load_expect_cloned("common.abilities.ability_set_manifest");
+                AbilityMap::<String>::load_expect("common.abilities.ability_set_manifest").read();
 
             // If no custom ability set is specified, fall back to abilityset of tool kind.
-            let (tool_default, tool_default_ids) = {
-                let key = &AbilitySpec::Tool(tool.kind);
+            let tool_default = |tool_kind| {
+                let key = &AbilitySpec::Tool(tool_kind);
                 (
-                    ability_map.get_ability_set(key).cloned(),
-                    ability_ids_map.get_ability_set(key).cloned(),
+                    ability_map.get_ability_set(key),
+                    ability_ids_map.get_ability_set(key),
                 )
             };
             let (abilities, ability_ids) = if let Some(set_key) = item.ability_spec() {
@@ -476,13 +476,17 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                          default ability set.",
                         set_key
                     );
+                    let (abilities, ids) = tool_default(tool.kind);
                     (
-                        tool_default.unwrap_or_default(),
-                        tool_default_ids.unwrap_or_default(),
+                        abilities.cloned().unwrap_or_default(),
+                        ids.cloned().unwrap_or_default(),
                     )
                 }
-            } else if let (Some(set), Some(ids)) = (tool_default, tool_default_ids) {
-                (set.modified_by_tool(tool, msm, &item.components), ids)
+            } else if let (Some(set), Some(ids)) = tool_default(tool.kind) {
+                (
+                    set.clone().modified_by_tool(tool, msm, &item.components),
+                    ids.clone(),
+                )
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",

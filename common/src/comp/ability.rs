@@ -3,7 +3,6 @@ use crate::{
     combat::{self, CombatEffect, DamageKind, Knockback},
     comp::{
         self, aura, beam, buff,
-        controller::InputKind,
         inventory::{
             item::{
                 tool::{Stats, ToolKind},
@@ -36,10 +35,10 @@ pub const MAX_ABILITIES: usize = 5;
 // considerations.
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AbilityPool {
-    pub primary: Ability,
-    pub secondary: Ability,
-    pub movement: Ability,
-    pub abilities: [Ability; MAX_ABILITIES],
+    pub primary: PrimaryAbility,
+    pub secondary: SecondaryAbility,
+    pub movement: MovementAbility,
+    pub abilities: [AuxiliaryAbility; MAX_ABILITIES],
 }
 
 impl Component for AbilityPool {
@@ -49,10 +48,10 @@ impl Component for AbilityPool {
 impl Default for AbilityPool {
     fn default() -> Self {
         Self {
-            primary: Ability::ToolPrimary,
-            secondary: Ability::ToolSecondary,
-            movement: Ability::SpeciesMovement,
-            abilities: [Ability::Empty; MAX_ABILITIES],
+            primary: PrimaryAbility::Tool,
+            secondary: SecondaryAbility::Tool,
+            movement: MovementAbility::Species,
+            abilities: [AuxiliaryAbility::Empty; MAX_ABILITIES],
         }
     }
 }
@@ -64,28 +63,31 @@ impl AbilityPool {
         pool
     }
 
-    pub fn change_ability(&mut self, slot: usize, new_ability: Ability) {
-        if new_ability.is_valid_abilities_ability() {
-            if let Some(ability) = self.abilities.get_mut(slot) {
-                *ability = new_ability;
-            }
+    pub fn change_ability(&mut self, slot: usize, new_ability: AuxiliaryAbility) {
+        if let Some(ability) = self.abilities.get_mut(slot) {
+            *ability = new_ability;
         }
     }
 
-    pub fn get_ability(&self, input: InputKind) -> Ability {
+    pub fn get_ability(&self, input: AbilityInput) -> Ability {
         match input {
-            InputKind::Primary => Some(self.primary),
-            InputKind::Secondary => Some(self.secondary),
-            InputKind::Roll => Some(self.movement),
-            InputKind::Ability(index) => self.abilities.get(index).copied(),
-            _ => None,
+            AbilityInput::Primary => self.primary.into(),
+            AbilityInput::Secondary => self.secondary.into(),
+            AbilityInput::Movement => self.movement.into(),
+            AbilityInput::Auxiliary(index) => self
+                .abilities
+                .get(index)
+                .copied()
+                .map(|a| a.into())
+                .unwrap_or(Ability::Empty),
         }
-        .unwrap_or(Ability::Empty)
     }
 
+    /// Returns the CharacterAbility from an ability input, and also whether the
+    /// ability was from a weapon wielded in the offhand
     pub fn activate_ability(
         &self,
-        input: InputKind,
+        input: AbilityInput,
         inv: Option<&Inventory>,
         skill_set: &SkillSet,
         body: &Body,
@@ -121,19 +123,19 @@ impl AbilityPool {
             Ability::ToolSecondary => ability_set(EquipSlot::ActiveOffhand)
                 .map(|abilities| abilities.secondary.clone())
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true))
-                .or({
+                .or_else(|| {
                     ability_set(EquipSlot::ActiveMainhand)
                         .map(|abilities| abilities.secondary.clone())
                         .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false))
                 }),
             Ability::SpeciesMovement => matches!(body, Body::Humanoid(_))
-                .then_some(CharacterAbility::default_roll())
-                .map(|ability| (ability.adjusted_by_skills(skill_set, None), false)),
-            Ability::MainWeaponAbility(index) => ability_set(EquipSlot::ActiveMainhand)
+                .then(|| CharacterAbility::default_roll)
+                .map(|ability| (ability().adjusted_by_skills(skill_set, None), false)),
+            Ability::MainWeaponAux(index) => ability_set(EquipSlot::ActiveMainhand)
                 .and_then(|abilities| abilities.abilities.get(index).cloned())
                 .and_then(unlocked)
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveMainhand), false)),
-            Ability::OffWeaponAbility(index) => ability_set(EquipSlot::ActiveOffhand)
+            Ability::OffWeaponAux(index) => ability_set(EquipSlot::ActiveOffhand)
                 .and_then(|abilities| abilities.abilities.get(index).cloned())
                 .and_then(unlocked)
                 .map(|ability| (scale_ability(ability, EquipSlot::ActiveOffhand), true)),
@@ -147,11 +149,11 @@ impl AbilityPool {
             inv: Option<&Inventory>,
             skill_set: Option<&SkillSet>,
             equip_slot: EquipSlot,
-        ) -> Vec<Ability> {
+        ) -> Vec<AuxiliaryAbility> {
             let ability_from_slot = move |i| match equip_slot {
-                EquipSlot::ActiveMainhand => Ability::MainWeaponAbility(i),
-                EquipSlot::ActiveOffhand => Ability::OffWeaponAbility(i),
-                _ => Ability::Empty,
+                EquipSlot::ActiveMainhand => AuxiliaryAbility::MainWeapon(i),
+                EquipSlot::ActiveOffhand => AuxiliaryAbility::OffWeapon(i),
+                _ => AuxiliaryAbility::Empty,
             };
 
             inv
@@ -166,12 +168,20 @@ impl AbilityPool {
 
         let main_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand);
         let off_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand);
-        for (i, ability) in
-            (0..MAX_ABILITIES).zip(main_abilities.iter().chain(off_abilities.iter()))
-        {
-            self.change_ability(i, *ability);
-        }
+
+        (0..MAX_ABILITIES)
+            .zip(main_abilities.iter().chain(off_abilities.iter()))
+            .for_each(|(i, ability)| {
+                self.change_ability(i, *ability);
+            })
     }
+}
+
+pub enum AbilityInput {
+    Primary,
+    Secondary,
+    Movement,
+    Auxiliary(usize),
 }
 
 #[derive(Copy, Clone, Serialize, Deserialize, Debug)]
@@ -179,15 +189,15 @@ pub enum Ability {
     ToolPrimary,
     ToolSecondary,
     SpeciesMovement,
-    MainWeaponAbility(usize),
-    OffWeaponAbility(usize),
+    MainWeaponAux(usize),
+    OffWeaponAux(usize),
     Empty,
     /* For future use
      * ArmorAbility(usize), */
 }
 
 impl Ability {
-    pub fn ability_id(self, inv: Option<&Inventory>) -> Option<&String> {
+    pub fn ability_id(self, inv: Option<&Inventory>) -> Option<&str> {
         let ability_id_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
                 .map(|i| &i.item_config_expect().ability_ids)
@@ -195,30 +205,81 @@ impl Ability {
 
         match self {
             Ability::ToolPrimary => {
-                ability_id_set(EquipSlot::ActiveMainhand).map(|ids| &ids.primary)
+                ability_id_set(EquipSlot::ActiveMainhand).map(|ids| ids.primary.as_str())
             },
             Ability::ToolSecondary => ability_id_set(EquipSlot::ActiveOffhand)
-                .map(|ids| &ids.secondary)
-                .or_else(|| ability_id_set(EquipSlot::ActiveMainhand).map(|ids| &ids.secondary)),
+                .map(|ids| ids.secondary.as_str())
+                .or_else(|| {
+                    ability_id_set(EquipSlot::ActiveMainhand).map(|ids| ids.secondary.as_str())
+                }),
             Ability::SpeciesMovement => None, // TODO: Make not None
-            Ability::MainWeaponAbility(index) => ability_id_set(EquipSlot::ActiveMainhand)
-                .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id)),
-            Ability::OffWeaponAbility(index) => ability_id_set(EquipSlot::ActiveOffhand)
-                .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id)),
+            Ability::MainWeaponAux(index) => ability_id_set(EquipSlot::ActiveMainhand)
+                .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id.as_str())),
+            Ability::OffWeaponAux(index) => ability_id_set(EquipSlot::ActiveOffhand)
+                .and_then(|ids| ids.abilities.get(index).map(|(_, id)| id.as_str())),
             Ability::Empty => None,
         }
     }
+}
 
-    /// Determines whether an ability is a valid entry for the abilities array
-    /// on the ability pool
-    pub fn is_valid_abilities_ability(self) -> bool {
-        match self {
-            Ability::ToolPrimary => false,
-            Ability::ToolSecondary => false,
-            Ability::SpeciesMovement => false,
-            Ability::MainWeaponAbility(_) => true,
-            Ability::OffWeaponAbility(_) => true,
-            Ability::Empty => true,
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+pub enum PrimaryAbility {
+    Tool,
+    Empty,
+}
+
+impl From<PrimaryAbility> for Ability {
+    fn from(primary: PrimaryAbility) -> Self {
+        match primary {
+            PrimaryAbility::Tool => Ability::ToolPrimary,
+            PrimaryAbility::Empty => Ability::Empty,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+pub enum SecondaryAbility {
+    Tool,
+    Empty,
+}
+
+impl From<SecondaryAbility> for Ability {
+    fn from(primary: SecondaryAbility) -> Self {
+        match primary {
+            SecondaryAbility::Tool => Ability::ToolSecondary,
+            SecondaryAbility::Empty => Ability::Empty,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+pub enum MovementAbility {
+    Species,
+    Empty,
+}
+
+impl From<MovementAbility> for Ability {
+    fn from(primary: MovementAbility) -> Self {
+        match primary {
+            MovementAbility::Species => Ability::SpeciesMovement,
+            MovementAbility::Empty => Ability::Empty,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq)]
+pub enum AuxiliaryAbility {
+    MainWeapon(usize),
+    OffWeapon(usize),
+    Empty,
+}
+
+impl From<AuxiliaryAbility> for Ability {
+    fn from(primary: AuxiliaryAbility) -> Self {
+        match primary {
+            AuxiliaryAbility::MainWeapon(i) => Ability::MainWeaponAux(i),
+            AuxiliaryAbility::OffWeapon(i) => Ability::OffWeaponAux(i),
+            AuxiliaryAbility::Empty => Ability::Empty,
         }
     }
 }

@@ -755,8 +755,7 @@ impl Client {
                     | ClientGeneral::RequestSiteInfo(_)
                     | ClientGeneral::UnlockSkillGroup(_)
                     | ClientGeneral::RequestPlayerPhysics { .. }
-                    | ClientGeneral::RequestLossyTerrainCompression { .. }
-                    | ClientGeneral::ChangeAbility { .. } => {
+                    | ClientGeneral::RequestLossyTerrainCompression { .. } => {
                         #[cfg(feature = "tracy")]
                         {
                             ingame = 1.0;
@@ -1397,8 +1396,11 @@ impl Client {
         )));
     }
 
-    pub fn change_ability(&mut self, slot: usize, new_ability: comp::Ability) {
-        self.send_msg(ClientGeneral::ChangeAbility { slot, new_ability })
+    pub fn change_ability(&mut self, slot: usize, new_ability: comp::ability::AuxiliaryAbility) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::ChangeAbility {
+            slot,
+            new_ability,
+        }))
     }
 
     /// Execute a single client tick, handle input and update the game state by

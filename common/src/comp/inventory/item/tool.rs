@@ -381,17 +381,18 @@ impl Default for AbilitySet<CharacterAbility> {
         AbilitySet {
             primary: CharacterAbility::default(),
             secondary: CharacterAbility::default(),
-            abilities: vec![],
+            abilities: Vec::new(),
         }
     }
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for AbilitySet<String> {
     fn default() -> Self {
         AbilitySet {
-            primary: "".to_string(),
-            secondary: "".to_string(),
-            abilities: vec![],
+            primary: String::new(),
+            secondary: String::new(),
+            abilities: Vec::new(),
         }
     }
 }

@@ -75,10 +75,6 @@ pub enum ClientGeneral {
     RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),
     RequestSiteInfo(SiteId),
-    ChangeAbility {
-        slot: usize,
-        new_ability: comp::Ability,
-    },
     //Only in Game, via terrain stream
     TerrainChunkRequest {
         key: Vec2<i32>,
@@ -131,8 +127,7 @@ impl ClientMsg {
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
-                        | ClientGeneral::RequestLossyTerrainCompression { .. }
-                        | ClientGeneral::ChangeAbility { .. } => {
+                        | ClientGeneral::RequestLossyTerrainCompression { .. } => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

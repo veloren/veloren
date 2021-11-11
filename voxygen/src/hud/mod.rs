@@ -534,7 +534,7 @@ pub enum Event {
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
     // TODO: This variant currently unused. UI is needed for it to be properly used.
-    ChangeAbility(usize, comp::Ability),
+    ChangeAbility(usize, comp::ability::AuxiliaryAbility),
 
     SettingsChange(SettingsChange),
 }

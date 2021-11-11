@@ -64,21 +64,25 @@ impl State {
             .read_storage::<common::comp::AbilityPool>()
             .get(client.entity())
         {
-            use common::comp::Ability;
-            for (i, ability) in ability_pool.abilities.iter().enumerate() {
-                if matches!(ability, Ability::Empty) {
-                    self.slots
-                        .iter_mut()
-                        .filter(|s| matches!(s, Some(SlotContents::Ability(index)) if *index == i))
-                        .for_each(|s| *s = None)
-                } else if let Some(slot) = self
-                    .slots
-                    .iter_mut()
-                    .find(|s| !matches!(s, Some(SlotContents::Ability(index)) if *index != i))
-                {
-                    *slot = Some(SlotContents::Ability(i));
+            use common::comp::ability::AuxiliaryAbility;
+            for ((i, ability), hotbar_slot) in ability_pool
+                .abilities
+                .iter()
+                .enumerate()
+                .zip(self.slots.iter_mut())
+            {
+                if matches!(ability, AuxiliaryAbility::Empty) {
+                    if matches!(hotbar_slot, Some(SlotContents::Ability(_))) {
+                        // If ability is empty but hotbar shows an ability, clear it
+                        *hotbar_slot = None;
+                    }
+                } else {
+                    // If an ability is not empty show it on the hotbar
+                    *hotbar_slot = Some(SlotContents::Ability(i));
                 }
             }
+        } else {
+            self.slots.iter_mut().for_each(|slot| *slot = None)
         }
     }
 }

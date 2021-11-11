@@ -6,7 +6,7 @@ use super::{
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
-    controller::InputKind, slot::InvSlotId, AbilityPool, Body, Energy, Inventory, SkillSet,
+    ability::AbilityInput, slot::InvSlotId, Ability, AbilityPool, Body, Energy, Inventory, SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -138,14 +138,14 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 let ability_id = ability_pool
                     .abilities
                     .get(i)
-                    .and_then(|a| a.ability_id(Some(inventory)));
+                    .and_then(|a| Ability::from(*a).ability_id(Some(inventory)));
 
                 ability_id
                     .map(|id| HotbarImage::Ability(id.to_string()))
                     .and_then(|image| {
                         ability_pool
                             .activate_ability(
-                                InputKind::Ability(i),
+                                AbilityInput::Auxiliary(i),
                                 Some(inventory),
                                 skillset,
                                 body,

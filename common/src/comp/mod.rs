@@ -1,4 +1,5 @@
-#[cfg(not(target_arch = "wasm32"))] mod ability;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod ability;
 #[cfg(not(target_arch = "wasm32"))] mod admin;
 #[cfg(not(target_arch = "wasm32"))] pub mod agent;
 #[cfg(not(target_arch = "wasm32"))]
