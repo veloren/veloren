@@ -1,170 +1,170 @@
 ({  //Swords
     Modular(("common.items.crafting_ing.modular.damage.sword.greatsword", "bronze", Two)): (
-        vox_spec: ("weapon.sword.greatsword.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.greatsword.bronze-2h", (-1.5, -4.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.katana", "bronze", Two)): (
-        vox_spec: ("weapon.sword.katana.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.bronze-2h", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.longsword", "bronze", Two)): (
-        vox_spec: ("weapon.sword.longsword.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.bronze-2h", (-1.5, -3.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.ornate", "bronze", Two)): (
-        vox_spec: ("weapon.sword.ornate.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.bronze-2h", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sabre", "bronze", Two)): (
-        vox_spec: ("weapon.sword.sabre.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.bronze-2h", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sawblade", "bronze", Two)): (
-        vox_spec: ("weapon.sword.sawblade.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.bronze-2h", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.zweihander", "bronze", Two)): (
-        vox_spec: ("weapon.sword.zweihander.bronze-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.zweihander.bronze-2h", (-1.5, -3.5, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.greatsword", "iron", Two)): (
-        vox_spec: ("weapon.sword.greatsword.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.greatsword.iron-2h", (-1.5, -4.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.katana", "iron", Two)): (
-        vox_spec: ("weapon.sword.katana.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.iron-2h", (-1.5, -3.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.longsword", "iron", Two)): (
-        vox_spec: ("weapon.sword.longsword.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.iron-2h", (-1.5, -4.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.ornate", "iron", Two)): (
-        vox_spec: ("weapon.sword.ornate.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.iron-2h", (-2.5, -5.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sabre", "iron", Two)): (
-        vox_spec: ("weapon.sword.sabre.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.iron-2h", (-1.5, -4.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sawblade", "iron", Two)): (
-        vox_spec: ("weapon.sword.sawblade.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.iron-2h", (-1.5, -4.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.zweihander", "iron", Two)): (
-        vox_spec: ("weapon.sword.zweihander.iron-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.zweihander.iron-2h", (-1.5, -5.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.greatsword", "steel", Two)): (
-        vox_spec: ("weapon.sword.greatsword.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.greatsword.steel-2h", (-1.5, -5.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.katana", "steel", Two)): (
-        vox_spec: ("weapon.sword.katana.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.steel-2h", (-1.5, -3.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.longsword", "steel", Two)): (
-        vox_spec: ("weapon.sword.longsword.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.steel-2h", (-1.5, -5.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.ornate", "steel", Two)): (
-        vox_spec: ("weapon.sword.ornate.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.steel-2h", (-1.5, -5.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sabre", "steel", Two)): (
-        vox_spec: ("weapon.sword.sabre.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.steel-2h", (-1.5, -4.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sawblade", "steel", Two)): (
-        vox_spec: ("weapon.sword.sawblade.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.steel-2h", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.zweihander", "steel", Two)): (
-        vox_spec: ("weapon.sword.zweihander.steel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.zweihander.steel-2h", (-1.5, -5.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.greatsword", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.greatsword.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.greatsword.cobalt-2h", (-1.5, -4.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.katana", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.katana.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.cobalt-2h", (-2.5, -3.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.longsword", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.longsword.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.cobalt-2h", (-1.5, -5.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.ornate", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.ornate.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.cobalt-2h", (-1.5, -5.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sabre", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.sabre.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.cobalt-2h", (-1.5, -4.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sawblade", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.sawblade.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.cobalt-2h", (-1.5, -3.5, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.zweihander", "cobalt", Two)): (
-        vox_spec: ("weapon.sword.zweihander.cobalt-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.zweihander.cobalt-2h", (-1.5, -5.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.greatsword", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.greatsword.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.greatsword.bloodsteel-2h", (-1.5, -5.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.katana", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.katana.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.bloodsteel-2h", (-2.5, -3.0, -6.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.longsword", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.longsword.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.bloodsteel-2h", (-1.5, -4.5, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.ornate", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.ornate.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.bloodsteel-2h", (-1.5, -4.5, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sabre", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.sabre.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.bloodsteel-2h", (-1.5, -4.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sawblade", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.sawblade.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.bloodsteel-2h", (-1.5, -2.5, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.zweihander", "bloodsteel", Two)): (
-        vox_spec: ("weapon.sword.zweihander.bloodsteel-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.zweihander.bloodsteel-2h", (-1.5, -5.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.greatsword", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.greatsword.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.greatsword.orichalcum-2h", (-1.5, -6.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.katana", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.katana.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.orichalcum-2h", (-2.5, -4.5, -7.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.longsword", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.longsword.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.orichalcum-2h", (-1.5, -4.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.ornate", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.ornate.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.orichalcum-2h", (-1.5, -5.5, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sabre", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.sabre.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.orichalcum-2h", (-1.5, -3.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.sawblade", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.sawblade.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.orichalcum-2h", (-1.5, -3.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.damage.sword.zweihander", "orichalcum", Two)): (
-        vox_spec: ("weapon.sword.zweihander.orichalcum-2h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.zweihander.orichalcum-2h", (-1.5, -5.5, -4.0)),
         color: None
     ),
     Tool("common.items.weapons.sword.caladbolg"): (
