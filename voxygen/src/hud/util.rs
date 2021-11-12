@@ -321,7 +321,7 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         // Dagger
         "common.abilities.dagger.tempbasic" => imgs.onehdagger_m1,
 
-        _ => imgs.nothing,
+        _ => imgs.not_found,
     }
 }
 
