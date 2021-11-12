@@ -374,7 +374,7 @@ pub fn ability_description(ability_id: &str) -> (&str, &str) {
             for a short amount of time.",
         ),
         _ => (
-            "Ability as no title",
+            "Ability has no title",
             "\n\
             Ability has no description."
         ),

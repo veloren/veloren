@@ -2517,25 +2517,6 @@ impl<'a> AgentData<'a> {
             extract_ability(AbilityInput::Secondary),
             extract_ability(AbilityInput::Auxiliary(0)),
         );
-        // self
-        //     .inventory
-        //     .equipped(EquipSlot::ActiveMainhand)
-        //     .map(|i| &i.item_config_expect().abilities)
-        //     .map(|a| {
-        //         (
-        //             Some(a.secondary.clone()),
-        //             a.abilities.get(0).map(|(_, s)| s),
-        //         )
-        //     })
-        //     .map_or(
-        //         (CharacterAbility::default(), CharacterAbility::default()),
-        //         |(s, a)| {
-        //             (
-        //                 extract_ability(&s.unwrap_or_default()),
-        //                 extract_ability(a.unwrap_or(&CharacterAbility::default())),
-        //             )
-        //         },
-        //     );
         let flamethrower_range = match flamethrower {
             CharacterAbility::BasicBeam { range, .. } => range,
             _ => 20.0_f32,
