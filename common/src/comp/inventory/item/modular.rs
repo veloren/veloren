@@ -219,13 +219,19 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
             .values()
             // Filter by recipes that have an output of the item of interest
             .filter(|recipe| recipe.output.0.eq(item))
-            // Check that item is composed of material, uses heuristic that assumes all modular components use the TagSameItem recipe input
+            // Check that item is composed of material, uses heuristic that assumes all modular components use the ListSameItem recipe input
             .any(|recipe| {
                 recipe
                     .inputs
                     .iter()
                     .any(|input| {
-                        matches!(input.0, recipe::RawRecipeInput::TagSameItem(item_tag) if item_tag == super::ItemTag::MaterialKind(material.material_kind()))
+                        match &input.0 {
+                            recipe::RawRecipeInput::ListSameItem(items) => {
+                                let assets = recipe::ItemList::load_expect_cloned(items).0;
+                                assets.iter().any(|asset| Some(asset.as_str()) == material.asset_identifier())
+                            },
+                            _ => false,
+                        }
                     })
             })
     };

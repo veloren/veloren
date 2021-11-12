@@ -16,6 +16,9 @@ pub enum RecipeInput {
     Item(Arc<ItemDef>),
     Tag(ItemTag),
     TagSameItem(ItemTag, u32),
+    // List similar to tag, but has items defined in centralized file
+    // Intent is to make it harder for tag to be innocuously added to an item breaking a recipe
+    ListSameItem(Vec<Arc<ItemDef>>, u32),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -39,6 +42,7 @@ impl Recipe {
     ) -> Result<Vec<Item>, Vec<(&RecipeInput, u32)>> {
         let mut slot_claims = HashMap::new();
         let mut unsatisfied_requirements = Vec::new();
+        let mut component_slots = Vec::new();
 
         // Checks each input against slots in the inventory. If the slots contain an
         // item that fulfills the need of the input, marks some of the item as claimed
@@ -48,7 +52,7 @@ impl Recipe {
         self.inputs
             .iter()
             .enumerate()
-            .for_each(|(i, (input, mut required, _is_component))| {
+            .for_each(|(i, (input, mut required, mut is_component))| {
                 // Check used for recipes that have an input that is not consumed, e.g.
                 // craftsman hammer
                 let mut contains_any = false;
@@ -70,6 +74,13 @@ impl Recipe {
                         let provided = available.min(required);
                         required -= provided;
                         *claimed += provided;
+                        // If input is a component and provided amount from this slot at least 1,
+                        // mark 1 piece as coming from that slot and set is_component to false to
+                        // indicate it has been claimed.
+                        if provided > 0 && is_component {
+                            component_slots.push(*slot);
+                            is_component = false;
+                        }
                         contains_any = true;
                     }
                 }
@@ -84,6 +95,17 @@ impl Recipe {
         // recipe in the necessary quantity and remove the items that the recipe
         // consumes
         if unsatisfied_requirements.is_empty() {
+            let mut components = Vec::new();
+            for slot in component_slots.iter() {
+                let component = inv
+                    .take(*slot, ability_map, msm)
+                    .expect("Expected item to exist in the inventory");
+                components.push(component);
+                let claimed = slot_claims
+                    .get_mut(slot)
+                    .expect("If marked in component slots, should be in slot claims");
+                *claimed -= 1;
+            }
             for (slot, to_remove) in slot_claims.iter() {
                 for _ in 0..*to_remove {
                     let _ = inv
@@ -92,7 +114,12 @@ impl Recipe {
                 }
             }
             let (item_def, quantity) = &self.output;
-            let crafted_item = Item::new_from_item_def(Arc::clone(item_def), &[], ability_map, msm);
+
+            let mut crafted_item =
+                Item::new_from_item_def(Arc::clone(item_def), &[], ability_map, msm);
+            for component in components {
+                crafted_item.add_component(component, ability_map, msm);
+            }
             let mut crafted_items = Vec::with_capacity(*quantity as usize);
             for _ in 0..*quantity {
                 crafted_items.push(crafted_item.duplicate(ability_map, msm));
@@ -298,6 +325,7 @@ pub enum RawRecipeInput {
     Item(String),
     Tag(ItemTag),
     TagSameItem(ItemTag),
+    ListSameItem(String),
 }
 
 #[derive(Clone, Deserialize)]
@@ -314,6 +342,15 @@ pub(crate) struct RawRecipe {
 pub(crate) struct RawRecipeBook(pub(crate) HashMap<String, RawRecipe>);
 
 impl assets::Asset for RawRecipeBook {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Deserialize, Clone)]
+pub struct ItemList(pub Vec<String>);
+
+impl assets::Asset for ItemList {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
@@ -338,6 +375,14 @@ impl assets::Compound for RecipeBook {
                 RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
                 RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
                 RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag, *amount),
+                RawRecipeInput::ListSameItem(list) => {
+                    let assets = ItemList::load_expect_cloned(list).0;
+                    let items = assets
+                        .into_iter()
+                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(&asset))
+                        .collect();
+                    RecipeInput::ListSameItem(items, *amount)
+                },
             };
             Ok((def, *amount, *is_mod_comp))
         }

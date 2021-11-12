@@ -1876,7 +1876,7 @@
     "longsword blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.longsword", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
@@ -1885,7 +1885,7 @@
     "sawblade": (
         output: ("common.items.crafting_ing.modular.damage.sword.sawblade", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1895,7 +1895,7 @@
     "katana blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.katana", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1905,7 +1905,7 @@
     "zweihander blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.zweihander", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1915,7 +1915,7 @@
     "sabre blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.sabre", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1925,7 +1925,7 @@
     "greatsword blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.greatsword", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1935,7 +1935,7 @@
     "ornate sword blade": (
         output: ("common.items.crafting_ing.modular.damage.sword.ornate", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1974,7 +1974,7 @@
     "hammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.hammer", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
@@ -1983,7 +1983,7 @@
     "spiked mace head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.spikedmace", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -1993,7 +1993,7 @@
     "warhammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.warhammer", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2003,7 +2003,7 @@
     "maul head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.maul", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2013,7 +2013,7 @@
     "great mace head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.greatmace", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2023,7 +2023,7 @@
     "greathammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.greathammer", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2033,7 +2033,7 @@
     "ornate hammer head": (
         output: ("common.items.crafting_ing.modular.damage.hammer.ornate", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2072,7 +2072,7 @@
     "axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.axe", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2082,7 +2082,7 @@
     "jagged axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.jagged", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
         craft_sprite: Some(Anvil),
@@ -2091,7 +2091,7 @@
     "battleaxe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.battleaxe", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2101,7 +2101,7 @@
     "poleaxe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.poleaxe", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2111,7 +2111,7 @@
     "labrys axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.labrys", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2121,7 +2121,7 @@
     "greataxe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.greataxe", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2131,7 +2131,7 @@
     "ornate axe head": (
         output: ("common.items.crafting_ing.modular.damage.axe.ornate", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Metal)), 5, true),
+            (ListSameItem("common.crafting.metal_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
@@ -2170,7 +2170,7 @@
     "bow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.bow", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
         craft_sprite: Some(CraftingBench),
@@ -2179,7 +2179,7 @@
     "composite bow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.composite", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
@@ -2189,7 +2189,7 @@
     "greatbow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.greatbow", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
@@ -2199,7 +2199,7 @@
     "longbow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.longbow", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
@@ -2209,7 +2209,7 @@
     "ornate bow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.ornate", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
@@ -2219,7 +2219,7 @@
     "shortbow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.shortbow", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
@@ -2229,7 +2229,7 @@
     "warbow limbs": (
         output: ("common.items.crafting_ing.modular.damage.bow.warbow", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
             (Item("common.items.crafting_ing.sticky_thread"), 3, false),
         ],
@@ -2268,7 +2268,7 @@
     "brand shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.brand", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2278,7 +2278,7 @@
     "grandstaff shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.grandstaff", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2288,7 +2288,7 @@
     "longpole shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.longpole", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2298,7 +2298,7 @@
     "ornate staff shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.ornate", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2308,7 +2308,7 @@
     "pole shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.pole", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2318,7 +2318,7 @@
     "rod shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.rod", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2328,7 +2328,7 @@
     "staff shaft": (
         output: ("common.items.crafting_ing.modular.held.staff.staff", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
@@ -2366,7 +2366,7 @@
     "arbor shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.arbor", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.long_tusk"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2376,7 +2376,7 @@
     "cane shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.cane", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.strong_pincer"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2386,7 +2386,7 @@
     "crook shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.crook", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.sharp_fang"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2396,7 +2396,7 @@
     "crozier shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.crozier", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.claw"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2406,7 +2406,7 @@
     "grandsceptre shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.grandsceptre", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.large_horn"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2416,7 +2416,7 @@
     "ornate sceptre shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.ornate", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.animal_misc.elegant_crest"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
@@ -2426,7 +2426,7 @@
     "sceptre shaft": (
         output: ("common.items.crafting_ing.modular.held.sceptre.sceptre", 1),
         inputs: [
-            (TagSameItem(MaterialKind(Wood)), 5, true),
+            (ListSameItem("common.crafting.wood_weapon_materials"), 5, true),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),

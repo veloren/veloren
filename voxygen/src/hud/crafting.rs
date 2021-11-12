@@ -28,7 +28,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -470,6 +470,14 @@ impl<'a> Widget for Crafting<'a> {
                         RecipeInput::Item(def) => def.name(),
                         RecipeInput::Tag(tag) => tag.name(),
                         RecipeInput::TagSameItem(tag, _) => tag.name(),
+                        // Works, but probably will have some...interesting false positives
+                        // Code reviewers probably required to do magic to make not hacky
+                        RecipeInput::ListSameItem(_defs, _) => {
+                            // Cow::Owned(defs.iter().flat_map(|def| def.name().chars()).collect())
+                            // Code reviewers: I require someone who can solve a temporary value
+                            // being created
+                            Cow::Borrowed("Input")
+                        },
                     }
                     .to_lowercase();
                     search_keys
@@ -927,6 +935,28 @@ impl<'a> Widget for Crafting<'a> {
                                 .unwrap_or_else(|| tag.exemplar_identifier().to_string()),
                         )
                     },
+                    RecipeInput::ListSameItem(item_defs, _) => Arc::<ItemDef>::load_expect_cloned(
+                        &self
+                            .inventory
+                            .slots()
+                            .filter_map(|slot| {
+                                slot.as_ref().and_then(|item| {
+                                    if item.matches_recipe_input(recipe_input) {
+                                        Some(item.item_definition_id().to_string())
+                                    } else {
+                                        None
+                                    }
+                                })
+                            })
+                            .next()
+                            .unwrap_or_else(|| {
+                                item_defs
+                                    .first()
+                                    .map(|i| i.item_definition_id())
+                                    .unwrap_or("common.items.weapons.empty.empty")
+                                    .to_string()
+                            }),
+                    ),
                 };
 
                 // Grey color for images and text if their amount is too low to craft the item
@@ -1027,6 +1057,13 @@ impl<'a> Widget for Crafting<'a> {
                         RecipeInput::Item(_) => item_def.name().to_string(),
                         RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
                             format!("Any {} item", tag.name())
+                        },
+                        RecipeInput::ListSameItem(_item_defs, _) => {
+                            // format!("Any of {}", item_defs.iter().flat_map(|item_def|
+                            // item_def.name().chars()).collect::<String>())
+                            // Code reviewers: I require someone who can solve a temporary value
+                            // being created
+                            "Input".to_string()
                         },
                     };
                     let input = format!(
