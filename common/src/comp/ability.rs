@@ -149,35 +149,29 @@ impl ActiveAbilities {
 
     // TODO: Potentially remove after there is an actual UI
     pub fn auto_update(&mut self, inv: Option<&Inventory>, skill_set: Option<&SkillSet>) {
-        fn iter_unlocked_abilities(
-            inv: Option<&Inventory>,
-            skill_set: Option<&SkillSet>,
+        fn iter_unlocked_abilities<'a>(
+            inv: Option<&'a Inventory>,
+            skill_set: Option<&'a SkillSet>,
             equip_slot: EquipSlot,
-        ) -> Vec<usize> {
-            inv
-                .and_then(|inv| inv.equipped(equip_slot))
-                .iter()
+        ) -> impl Iterator<Item = usize> + 'a {
+            inv.and_then(|inv| inv.equipped(equip_slot))
+                .into_iter()
                 .flat_map(|i| &i.item_config_expect().abilities.abilities)
                 .enumerate()
-                .filter_map(move |(i, (skill, _))| skill.map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s))).then_some(i))
-                // TODO: Let someone smarter than borrow checker remove collect
-                .collect()
+                .filter_map(move |(i, (skill, _))| {
+                    skill
+                        .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                        .then_some(i)
+                })
         }
 
-        let main_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand);
-        let off_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand);
+        let main_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
+            .map(AuxiliaryAbility::MainWeapon);
+        let off_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
+            .map(AuxiliaryAbility::OffWeapon);
 
         (0..MAX_ABILITIES)
-            .zip(
-                main_abilities
-                    .iter()
-                    .map(|a| AuxiliaryAbility::MainWeapon(*a))
-                    .chain(
-                        off_abilities
-                            .iter()
-                            .map(|a| AuxiliaryAbility::OffWeapon(*a)),
-                    ),
-            )
+            .zip(main_abilities.chain(off_abilities))
             .for_each(|(i, ability)| {
                 self.change_ability(i, ability);
             })
