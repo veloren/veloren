@@ -328,3 +328,48 @@ pub fn weapon_to_key(mod_weap: &dyn ItemDesc) -> ModularWeaponKey {
 
     (main_comp.to_owned(), material.to_owned(), hands)
 }
+
+pub type ModularWeaponComponentKey = (String, String);
+
+pub enum ModularWeaponComponentKeyError {
+    NotModularComponent,
+    NotMainComponent,
+}
+
+pub fn weapon_component_to_key(
+    mod_weap_comp: &dyn ItemDesc,
+) -> Result<ModularWeaponComponentKey, ModularWeaponComponentKeyError> {
+    if let ItemKind::ModularComponent(mod_comp) = mod_weap_comp.kind() {
+        if ModularComponentKind::main_component(mod_comp.toolkind) == mod_comp.modkind {
+            let material = if let Some(material) = mod_weap_comp
+                .components()
+                .iter()
+                .filter_map(|mat| {
+                    if let Some(super::ItemTag::Material(material)) = mat
+                        .tags()
+                        .iter()
+                        .find(|tag| matches!(tag, super::ItemTag::Material(_)))
+                    {
+                        Some(material)
+                    } else {
+                        None
+                    }
+                })
+                .next()
+            {
+                material.into()
+            } else {
+                ""
+            };
+
+            Ok((
+                mod_weap_comp.item_definition_id().to_owned(),
+                material.to_owned(),
+            ))
+        } else {
+            Err(ModularWeaponComponentKeyError::NotMainComponent)
+        }
+    } else {
+        Err(ModularWeaponComponentKeyError::NotModularComponent)
+    }
+}

@@ -3549,4 +3549,1019 @@
         "voxel.sprite.mineral.gem.diamondgem",
         (0.0, 0.0, 0.0), (-55.0, 30.0, 20.0), 0.6,
     ),
+    // Modular component pieces
+    // Swords
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.greatsword", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.greatsword.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.katana", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.katana.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.longsword", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.longsword.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.ornate", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.ornate.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sabre", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.sabre.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sawblade", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.sawblade.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.zweihander", "bronze")): VoxTrans(
+        "voxel.weapon.component.sword.zweihander.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.greatsword", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.greatsword.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.katana", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.katana.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.longsword", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.longsword.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.ornate", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.ornate.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sabre", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.sabre.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sawblade", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.sawblade.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.zweihander", "iron")): VoxTrans(
+        "voxel.weapon.component.sword.zweihander.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.greatsword", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.greatsword.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.katana", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.katana.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.longsword", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.longsword.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.ornate", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.ornate.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sabre", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.sabre.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sawblade", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.sawblade.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.zweihander", "steel")): VoxTrans(
+        "voxel.weapon.component.sword.zweihander.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.greatsword", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.greatsword.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.katana", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.katana.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.longsword", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.longsword.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.ornate", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.ornate.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sabre", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.sabre.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sawblade", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.sawblade.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.zweihander", "cobalt")): VoxTrans(
+        "voxel.weapon.component.sword.zweihander.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.greatsword", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.greatsword.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.katana", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.katana.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.longsword", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.longsword.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.ornate", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.ornate.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sabre", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.sabre.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sawblade", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.sawblade.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.zweihander", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.sword.zweihander.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.greatsword", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.greatsword.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.katana", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.katana.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.longsword", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.longsword.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.ornate", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.ornate.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sabre", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.sabre.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.sawblade", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.sawblade.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.sword.zweihander", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.sword.zweihander.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    // Axes
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.axe", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.axe.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.battleaxe", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.battleaxe.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.greataxe", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.greataxe.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.jagged", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.jagged.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.labrys", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.labrys.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.ornate", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.ornate.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.poleaxe", "bronze")): VoxTrans(
+        "voxel.weapon.component.axe.poleaxe.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.axe", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.axe.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.battleaxe", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.battleaxe.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.greataxe", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.greataxe.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.jagged", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.jagged.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.labrys", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.labrys.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.ornate", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.ornate.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.poleaxe", "iron")): VoxTrans(
+        "voxel.weapon.component.axe.poleaxe.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.axe", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.axe.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.battleaxe", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.battleaxe.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.greataxe", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.greataxe.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.jagged", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.jagged.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.labrys", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.labrys.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.ornate", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.ornate.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.poleaxe", "steel")): VoxTrans(
+        "voxel.weapon.component.axe.poleaxe.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.axe", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.axe.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.battleaxe", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.battleaxe.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.greataxe", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.greataxe.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.jagged", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.jagged.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.labrys", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.labrys.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.ornate", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.ornate.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.poleaxe", "cobalt")): VoxTrans(
+        "voxel.weapon.component.axe.poleaxe.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.axe", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.axe.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.battleaxe", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.battleaxe.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.greataxe", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.greataxe.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.jagged", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.jagged.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.labrys", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.labrys.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.ornate", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.ornate.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.poleaxe", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.axe.poleaxe.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.axe", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.axe.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.battleaxe", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.battleaxe.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.greataxe", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.greataxe.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.jagged", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.jagged.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.labrys", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.labrys.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.ornate", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.ornate.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.axe.poleaxe", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.axe.poleaxe.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    // Hammers
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greathammer", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.greathammer.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greatmace", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.greatmace.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.hammer", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.hammer.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.maul", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.maul.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.ornate", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.ornate.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.spikedmace", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.spikedmace.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.warhammer", "bronze")): VoxTrans(
+        "voxel.weapon.component.hammer.warhammer.bronze",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greathammer", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.greathammer.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greatmace", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.greatmace.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.hammer", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.hammer.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.maul", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.maul.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.ornate", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.ornate.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.spikedmace", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.spikedmace.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.warhammer", "iron")): VoxTrans(
+        "voxel.weapon.component.hammer.warhammer.iron",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greathammer", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.greathammer.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greatmace", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.greatmace.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.hammer", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.hammer.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.maul", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.maul.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.ornate", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.ornate.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.spikedmace", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.spikedmace.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.warhammer", "steel")): VoxTrans(
+        "voxel.weapon.component.hammer.warhammer.steel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greathammer", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.greathammer.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greatmace", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.greatmace.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.hammer", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.hammer.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.maul", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.maul.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.ornate", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.ornate.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.spikedmace", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.spikedmace.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.warhammer", "cobalt")): VoxTrans(
+        "voxel.weapon.component.hammer.warhammer.cobalt",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greathammer", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.greathammer.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greatmace", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.greatmace.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.hammer", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.hammer.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.maul", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.maul.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.ornate", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.ornate.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.spikedmace", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.spikedmace.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.warhammer", "bloodsteel")): VoxTrans(
+        "voxel.weapon.component.hammer.warhammer.bloodsteel",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greathammer", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.greathammer.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.greatmace", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.greatmace.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.hammer", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.hammer.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.maul", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.maul.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.ornate", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.ornate.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.spikedmace", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.spikedmace.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.hammer.warhammer", "orichalcum")): VoxTrans(
+        "voxel.weapon.component.hammer.warhammer.orichalcum",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    // Bows
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.bow", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.bow.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.composite", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.composite.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.greatbow", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.greatbow.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.longbow", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.longbow.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.ornate", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.ornate.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.shortbow", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.shortbow.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.warbow", "wood")): VoxTrans(
+        "voxel.weapon.component.bow.warbow.wood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.bow", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.bow.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.composite", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.composite.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.greatbow", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.greatbow.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.longbow", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.longbow.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.ornate", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.ornate.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.shortbow", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.shortbow.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.warbow", "bamboo")): VoxTrans(
+        "voxel.weapon.component.bow.warbow.bamboo",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.bow", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.bow.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.composite", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.composite.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.greatbow", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.greatbow.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.longbow", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.longbow.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.ornate", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.ornate.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.shortbow", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.shortbow.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.warbow", "hardwood")): VoxTrans(
+        "voxel.weapon.component.bow.warbow.hardwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.bow", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.bow.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.composite", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.composite.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.greatbow", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.greatbow.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.longbow", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.longbow.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.ornate", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.ornate.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.shortbow", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.shortbow.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.warbow", "ironwood")): VoxTrans(
+        "voxel.weapon.component.bow.warbow.ironwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.bow", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.bow.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.composite", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.composite.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.greatbow", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.greatbow.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.longbow", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.longbow.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.ornate", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.ornate.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.shortbow", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.shortbow.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.warbow", "frostwood")): VoxTrans(
+        "voxel.weapon.component.bow.warbow.frostwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.bow", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.bow.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.composite", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.composite.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.greatbow", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.greatbow.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.longbow", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.longbow.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.ornate", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.ornate.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.shortbow", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.shortbow.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.damage.bow.warbow", "eldwood")): VoxTrans(
+        "voxel.weapon.component.bow.warbow.eldwood",
+        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+    ),
+    // Staffs
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.brand", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.brand.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.grandstaff", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.grandstaff.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.longpole", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.longpole.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.ornate", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.ornate.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.pole", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.pole.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.rod", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.rod.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.staff", "wood")): VoxTrans(
+        "voxel.weapon.component.staff.staff.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.brand", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.brand.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.grandstaff", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.grandstaff.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.longpole", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.longpole.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.ornate", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.ornate.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.pole", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.pole.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.rod", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.rod.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.staff", "bamboo")): VoxTrans(
+        "voxel.weapon.component.staff.staff.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.brand", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.brand.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.grandstaff", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.grandstaff.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.longpole", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.longpole.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.ornate", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.ornate.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.pole", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.pole.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.rod", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.rod.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.staff", "hardwood")): VoxTrans(
+        "voxel.weapon.component.staff.staff.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.brand", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.brand.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.grandstaff", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.grandstaff.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.longpole", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.longpole.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.ornate", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.ornate.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.pole", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.pole.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.rod", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.rod.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.staff", "ironwood")): VoxTrans(
+        "voxel.weapon.component.staff.staff.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.brand", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.brand.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.grandstaff", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.grandstaff.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.longpole", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.longpole.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.ornate", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.ornate.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.pole", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.pole.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.rod", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.rod.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.staff", "frostwood")): VoxTrans(
+        "voxel.weapon.component.staff.staff.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.brand", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.brand.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.grandstaff", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.grandstaff.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.longpole", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.longpole.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.ornate", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.ornate.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.pole", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.pole.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.rod", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.rod.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.staff.staff", "eldwood")): VoxTrans(
+        "voxel.weapon.component.staff.staff.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    // Sceptres
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.arbor", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.arbor.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.cane", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.cane.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crook", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crook.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crozier", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crozier.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.grandsceptre", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.grandsceptre.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.ornate", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.ornate.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.sceptre", "wood")): VoxTrans(
+        "voxel.weapon.component.sceptre.sceptre.wood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.arbor", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.arbor.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.cane", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.cane.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crook", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.crook.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crozier", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.crozier.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.grandsceptre", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.grandsceptre.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.ornate", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.ornate.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.sceptre", "bamboo")): VoxTrans(
+        "voxel.weapon.component.sceptre.sceptre.bamboo",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.arbor", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.arbor.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.cane", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.cane.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crook", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crook.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crozier", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crozier.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.grandsceptre", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.grandsceptre.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.ornate", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.ornate.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.sceptre", "hardwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.sceptre.hardwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.arbor", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.arbor.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.cane", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.cane.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crook", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crook.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crozier", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crozier.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.grandsceptre", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.grandsceptre.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.ornate", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.ornate.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.sceptre", "ironwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.sceptre.ironwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.arbor", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.arbor.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.cane", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.cane.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crook", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crook.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crozier", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crozier.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.grandsceptre", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.grandsceptre.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.ornate", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.ornate.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.sceptre", "frostwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.sceptre.frostwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.arbor", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.arbor.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.cane", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.cane.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crook", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crook.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.crozier", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.crozier.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.grandsceptre", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.grandsceptre.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.ornate", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.ornate.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeaponComponent(("common.items.crafting_ing.modular.held.sceptre.sceptre", "eldwood")): VoxTrans(
+        "voxel.weapon.component.sceptre.sceptre.eldwood",
+        (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
+    ),
 })

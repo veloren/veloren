@@ -12,7 +12,7 @@ use std::sync::Arc;
 pub enum ItemKey {
     Tool(String),
     ModularWeapon(modular::ModularWeaponKey),
-    ModularComponent(String),
+    ModularWeaponComponent(modular::ModularWeaponComponentKey),
     Lantern(String),
     Glider(String),
     Armor(ArmorKind),
@@ -38,7 +38,11 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                 }
             },
             ItemKind::ModularComponent(_) => {
-                ItemKey::ModularComponent(item_definition_id.to_owned())
+                match modular::weapon_component_to_key(item_desc) {
+                    Ok(key) => ItemKey::ModularWeaponComponent(key),
+                    // TODO: Maybe use a different ItemKey?
+                    Err(_) => ItemKey::Tool(item_definition_id.to_owned()),
+                }
             },
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Glider(Glider { kind, .. }) => ItemKey::Glider(kind.clone()),
