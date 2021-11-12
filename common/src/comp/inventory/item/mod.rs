@@ -8,10 +8,7 @@ pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolK
 
 use crate::{
     assets::{self, AssetExt, Error},
-    comp::{
-        inventory::{item::tool::AbilityMap, InvSlot},
-        CharacterAbility,
-    },
+    comp::inventory::{item::tool::AbilityMap, InvSlot},
     effect::Effect,
     recipe::RecipeInput,
     terrain::Block,
@@ -433,7 +430,7 @@ impl PartialEq for ItemDef {
 // TODO: Look into removing ItemConfig and just using AbilitySet
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
-    pub abilities: AbilitySet<CharacterAbility>,
+    pub abilities: AbilitySet<tool::AbilityItem>,
 }
 
 #[derive(Debug)]
@@ -449,9 +446,10 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
     ) -> Result<Self, Self::Error> {
         if let ItemKind::Tool(tool) = &item.kind {
             // If no custom ability set is specified, fall back to abilityset of tool kind.
-            let tool_default = ability_map
-                .get_ability_set(&AbilitySpec::Tool(tool.kind))
-                .cloned();
+            let tool_default = |tool_kind| {
+                let key = &AbilitySpec::Tool(tool_kind);
+                ability_map.get_ability_set(key)
+            };
             let abilities = if let Some(set_key) = item.ability_spec() {
                 if let Some(set) = ability_map.get_ability_set(set_key) {
                     set.clone().modified_by_tool(tool, msm, &item.components)
@@ -461,10 +459,10 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                          default ability set.",
                         set_key
                     );
-                    tool_default.unwrap_or_default()
+                    tool_default(tool.kind).cloned().unwrap_or_default()
                 }
-            } else if let Some(set) = tool_default {
-                set.modified_by_tool(tool, msm, &item.components)
+            } else if let Some(set) = tool_default(tool.kind) {
+                set.clone().modified_by_tool(tool, msm, &item.components)
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",

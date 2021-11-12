@@ -19,9 +19,9 @@ use common::{
         },
         projectile::ProjectileConstructor,
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
-        Agent, Alignment, BehaviorCapability, BehaviorState, Body, CharacterAbility,
-        CharacterState, Combo, ControlAction, ControlEvent, Controller, Energy, Health,
-        HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori,
+        AbilityInput, ActiveAbilities, Agent, Alignment, BehaviorCapability, BehaviorState, Body,
+        CharacterAbility, CharacterState, Combo, ControlAction, ControlEvent, Controller, Energy,
+        Health, HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori,
         PhysicsState, Pos, Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
     },
     consts::GRAVITY,
@@ -74,6 +74,7 @@ struct AgentData<'a> {
     is_gliding: bool,
     health: Option<&'a Health>,
     char_state: &'a CharacterState,
+    active_abilities: &'a ActiveAbilities,
     cached_spatial_grid: &'a common::CachedSpatialGrid,
 }
 
@@ -160,6 +161,7 @@ pub struct ReadData<'a> {
     rtsim_entities: ReadStorage<'a, RtSimEntity>,
     buffs: ReadStorage<'a, Buffs>,
     combos: ReadStorage<'a, Combo>,
+    active_abilities: ReadStorage<'a, ActiveAbilities>,
 }
 
 const DAMAGE_MEMORY_DURATION: f64 = 0.25;
@@ -212,7 +214,11 @@ impl<'a> System<'a> for Sys {
             ),
             read_data.bodies.maybe(),
             &read_data.inventories,
-            &read_data.skill_set,
+            (
+                &read_data.char_states,
+                &read_data.skill_set,
+                &read_data.active_abilities,
+            ),
             &read_data.physics_states,
             &read_data.uids,
             &mut agents,
@@ -220,10 +226,9 @@ impl<'a> System<'a> for Sys {
             read_data.light_emitter.maybe(),
             read_data.groups.maybe(),
             read_data.mount_states.maybe(),
-            &read_data.char_states,
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state, _)| {
+            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state)| {
                 // Skip mounted entities
                 mount_state
                     .map(|ms| *ms == MountState::Unmounted)
@@ -241,7 +246,7 @@ impl<'a> System<'a> for Sys {
                     (pos, vel, ori),
                     body,
                     inventory,
-                    skill_set,
+                    (char_state, skill_set, active_abilities),
                     physics_state,
                     uid,
                     agent,
@@ -249,7 +254,6 @@ impl<'a> System<'a> for Sys {
                     light_emitter,
                     group,
                     _,
-                    char_state,
                 )| {
                     // Hack, replace with better system when groups are more sophisticated
                     // Override alignment if in a group unless entity is owned already
@@ -359,6 +363,7 @@ impl<'a> System<'a> for Sys {
                         is_gliding,
                         health: read_data.healths.get(entity),
                         char_state,
+                        active_abilities,
                         cached_spatial_grid: &read_data.cached_spatial_grid,
                     };
                     ///////////////////////////////////////////////////////////
@@ -2502,30 +2507,16 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let extract_ability = |ability: &CharacterAbility| {
-            ability
-                .clone()
-                .adjusted_by_skills(self.skill_set, Some(ToolKind::Staff))
+        let extract_ability = |input: AbilityInput| {
+            self.active_abilities
+                .activate_ability(input, Some(self.inventory), self.skill_set, self.body)
+                .unwrap_or_default()
+                .0
         };
-        let (flamethrower, shockwave) = self
-            .inventory
-            .equipped(EquipSlot::ActiveMainhand)
-            .map(|i| &i.item_config_expect().abilities)
-            .map(|a| {
-                (
-                    Some(a.secondary.clone()),
-                    a.abilities.get(0).map(|(_, s)| s),
-                )
-            })
-            .map_or(
-                (CharacterAbility::default(), CharacterAbility::default()),
-                |(s, a)| {
-                    (
-                        extract_ability(&s.unwrap_or_default()),
-                        extract_ability(a.unwrap_or(&CharacterAbility::default())),
-                    )
-                },
-            );
+        let (flamethrower, shockwave) = (
+            extract_ability(AbilityInput::Secondary),
+            extract_ability(AbilityInput::Auxiliary(0)),
+        );
         let flamethrower_range = match flamethrower {
             CharacterAbility::BasicBeam { range, .. } => range,
             _ => 20.0_f32,

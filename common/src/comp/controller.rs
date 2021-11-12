@@ -1,5 +1,6 @@
 use crate::{
     comp::{
+        ability,
         inventory::slot::{EquipSlot, InvSlotId, Slot},
         invite::{InviteKind, InviteResponse},
         BuffKind,
@@ -135,6 +136,10 @@ pub enum ControlEvent {
     RemoveBuff(BuffKind),
     Respawn,
     Utterance(UtteranceKind),
+    ChangeAbility {
+        slot: usize,
+        new_ability: ability::AuxiliaryAbility,
+    },
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -186,6 +191,19 @@ impl InputKind {
             self,
             Self::Primary | Self::Secondary | Self::Ability(_) | Self::Block
         )
+    }
+}
+
+impl From<InputKind> for Option<ability::AbilityInput> {
+    fn from(input: InputKind) -> Option<ability::AbilityInput> {
+        use ability::AbilityInput;
+        match input {
+            InputKind::Primary => Some(AbilityInput::Primary),
+            InputKind::Secondary => Some(AbilityInput::Secondary),
+            InputKind::Roll => Some(AbilityInput::Movement),
+            InputKind::Ability(index) => Some(AbilityInput::Auxiliary(index)),
+            InputKind::Jump | InputKind::Fly | InputKind::Block => None,
+        }
     }
 }
 

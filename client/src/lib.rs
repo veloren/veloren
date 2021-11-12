@@ -1396,6 +1396,13 @@ impl Client {
         )));
     }
 
+    pub fn change_ability(&mut self, slot: usize, new_ability: comp::ability::AuxiliaryAbility) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::ChangeAbility {
+            slot,
+            new_ability,
+        }))
+    }
+
     /// Execute a single client tick, handle input and update the game state by
     /// the given duration.
     pub fn tick(

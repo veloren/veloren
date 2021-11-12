@@ -1,3 +1,4 @@
+use super::img_ids;
 use common::{
     comp::{
         inventory::trade_pricing::TradePricing,
@@ -11,6 +12,7 @@ use common::{
     effect::Effect,
     trade::{Good, SitePrices},
 };
+use conrod_core::image;
 use i18n::Localization;
 use std::{borrow::Cow, fmt::Write};
 
@@ -280,5 +282,101 @@ pub fn protec2string(stat: Protection) -> String {
     match stat {
         Protection::Normal(a) => format!("{:.1}", a),
         Protection::Invincible => "Inf".to_string(),
+    }
+}
+
+pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
+    match ability_id {
+        // Debug stick
+        "common.abilities.debug.forwardboost" => imgs.flyingrod_m1,
+        "common.abilities.debug.upboost" => imgs.flyingrod_m2,
+        "common.abilities.debug.possess" => imgs.snake_arrow_0,
+        // Sword
+        "common.abilities.sword.triplestrike" => imgs.twohsword_m1,
+        "common.abilities.sword.dash" => imgs.twohsword_m2,
+        "common.abilities.sword.spin" => imgs.sword_whirlwind,
+        // Axe
+        "common.abilities.axe.doublestrike" => imgs.twohaxe_m1,
+        "common.abilities.axe.spin" => imgs.axespin,
+        "common.abilities.axe.leap" => imgs.skill_axe_leap_slash,
+        // Hammer
+        "common.abilities.hammer.singlestrike" => imgs.twohhammer_m1,
+        "common.abilities.hammer.charged" => imgs.hammergolf,
+        "common.abilities.hammer.leap" => imgs.hammerleap,
+        // Bow
+        "common.abilities.bow.charged" => imgs.bow_m1,
+        "common.abilities.bow.repeater" => imgs.bow_m2,
+        "common.abilities.bow.shotgun" => imgs.skill_bow_jump_burst,
+        // Staff
+        "common.abilities.staff.firebomb" => imgs.fireball,
+        "common.abilities.staff.flamethrower" => imgs.flamethrower,
+        "common.abilities.staff.fireshockwave" => imgs.fire_aoe,
+        // Sceptre
+        "common.abilities.sceptre.lifestealbeam" => imgs.skill_sceptre_lifesteal,
+        "common.abilities.sceptre.healingaura" => imgs.skill_sceptre_heal,
+        "common.abilities.sceptre.wardingaura" => imgs.skill_sceptre_aura,
+        // Shield
+        "common.abilities.shield.tempbasic" => imgs.onehshield_m1,
+        "common.abilities.shield.block" => imgs.onehshield_m2,
+        // Dagger
+        "common.abilities.dagger.tempbasic" => imgs.onehdagger_m1,
+
+        _ => imgs.not_found,
+    }
+}
+
+#[rustfmt::skip]
+pub fn ability_description(ability_id: &str) -> (&str, &str) {
+    match ability_id {
+        // Debug stick
+        "common.abilities.debug.possess" => (
+            "Possessing Arrow",
+            "\n\
+            Shoots a poisonous arrow.\n\
+            Lets you control your target.",
+        ),
+        // Sword
+        "common.abilities.sword.spin" => (
+            "Whirlwind",
+            "\n\
+            Move forward while spinning with your sword.",
+        ),
+        // Axe
+        "common.abilities.axe.leap" => (
+            "Axe Jump",
+            "\n\
+            A jump with the slashing leap to position of cursor.",
+        ),
+        // Hammer
+        "common.abilities.hammer.leap" => (
+            "Smash of Doom",
+            "\n\
+            An AOE attack with knockback.\n\
+            Leaps to position of cursor.",
+        ),
+        // Bow
+        "common.abilities.bow.shotgun" => (
+            "Burst",
+            "\n\
+            Launches a burst of arrows",
+        ),
+        // Staff
+        "common.abilities.staff.fireshockwave" => (
+            "Ring of Fire",
+            "\n\
+            Ignites the ground with fiery shockwave.",
+        ),
+        // Sceptre
+        "common.abilities.sceptre.wardingaura" => (
+            "Thorn Bulwark",
+            "\n\
+            Protects you and your group with thorns\n\
+            for a short amount of time.",
+        ),
+        _ => (
+            "Ability has no title",
+            "\n\
+            Ability has no description."
+        ),
     }
 }

@@ -281,7 +281,15 @@ impl Sys {
             } => {
                 presence.lossy_terrain_compression = lossy_terrain_compression;
             },
-            _ => tracing::error!("not a client_in_game msg"),
+            ClientGeneral::RequestCharacterList
+            | ClientGeneral::CreateCharacter { .. }
+            | ClientGeneral::DeleteCharacter(_)
+            | ClientGeneral::Character(_)
+            | ClientGeneral::Spectate
+            | ClientGeneral::TerrainChunkRequest { .. }
+            | ClientGeneral::ChatMsg(_)
+            | ClientGeneral::Command(..)
+            | ClientGeneral::Terminate => tracing::error!("not a client_in_game msg"),
         }
         Ok(())
     }

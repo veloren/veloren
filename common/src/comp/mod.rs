@@ -1,4 +1,5 @@
-#[cfg(not(target_arch = "wasm32"))] mod ability;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod ability;
 #[cfg(not(target_arch = "wasm32"))] mod admin;
 #[cfg(not(target_arch = "wasm32"))] pub mod agent;
 #[cfg(not(target_arch = "wasm32"))]
@@ -47,7 +48,7 @@ pub mod visual;
 // Reexports
 #[cfg(not(target_arch = "wasm32"))]
 pub use self::{
-    ability::{CharacterAbility, CharacterAbilityType},
+    ability::{Ability, AbilityInput, ActiveAbilities, CharacterAbility, CharacterAbilityType},
     admin::{Admin, AdminRole},
     agent::{Agent, Alignment, Behavior, BehaviorCapability, BehaviorState, PidController},
     anchor::Anchor,
@@ -77,7 +78,11 @@ pub use self::{
     group::Group,
     inputs::CanBuild,
     inventory::{
-        item::{self, tool, Item, ItemConfig, ItemDrop},
+        item::{
+            self,
+            tool::{self, AbilityItem},
+            Item, ItemConfig, ItemDrop,
+        },
         slot, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
     last::Last,

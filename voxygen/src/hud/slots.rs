@@ -2,15 +2,12 @@ use super::{
     hotbar::{self, Slot as HotbarSlot},
     img_ids,
     item_imgs::{ItemImgs, ItemKey},
+    util,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
-    item::{
-        tool::{Hands, ToolKind},
-        ItemKind,
-    },
-    slot::InvSlotId,
-    Energy, Inventory, SkillSet,
+    ability::AbilityInput, slot::InvSlotId, Ability, ActiveAbilities, Body, Energy, Inventory,
+    SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -113,16 +110,17 @@ impl SlotKey<Inventory, ItemImgs> for TradeSlot {
 #[derive(Clone, PartialEq)]
 pub enum HotbarImage {
     Item(ItemKey),
-    FireAoe,
-    SnakeArrow,
-    SwordWhirlwind,
-    HammerLeap,
-    AxeLeapSlash,
-    BowJumpBurst,
-    SceptreAura,
+    Ability(String),
 }
 
-type HotbarSource<'a> = (&'a hotbar::State, &'a Inventory, &'a Energy, &'a SkillSet);
+type HotbarSource<'a> = (
+    &'a hotbar::State,
+    &'a Inventory,
+    &'a Energy,
+    &'a SkillSet,
+    &'a ActiveAbilities,
+    &'a Body,
+);
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
 
 impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
@@ -130,120 +128,50 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, skillset): &HotbarSource<'a>,
+        (hotbar, inventory, energy, skillset, active_abilities, body): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
                 .get(idx)
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
-            hotbar::SlotContents::Ability3 => {
-                let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
-                    Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                    _ => None,
-                };
+            hotbar::SlotContents::Ability(i) => {
+                let ability_id = active_abilities
+                    .abilities
+                    .get(i)
+                    .and_then(|a| Ability::from(*a).ability_id(Some(inventory)));
 
-                let active_tool_hands = hands(EquipSlot::ActiveMainhand);
-                let second_tool_hands = hands(EquipSlot::ActiveOffhand);
-
-                let equip_slot = match (active_tool_hands, second_tool_hands) {
-                    (Some(_), _) => Some(EquipSlot::ActiveMainhand),
-                    (None, Some(_)) => Some(EquipSlot::ActiveOffhand),
-                    (_, _) => None,
-                };
-
-                let tool =
-                    equip_slot.and_then(|es| match inventory.equipped(es).map(|i| (i, i.kind())) {
-                        Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
-                        _ => None,
-                    });
-
-                tool.and_then(|(item, tool)| {
-                    hotbar_image(tool.kind).map(|i| {
-                        (
-                            i,
-                            if let Some(skill) =
-                                item.item_config_expect().abilities.abilities.get(0)
-                            {
-                                if energy.current()
-                                    >= skill
-                                        .1
-                                        .clone()
-                                        .adjusted_by_skills(skillset, Some(tool.kind))
-                                        .get_energy_cost()
-                                {
-                                    Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                                } else {
-                                    Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
-                                }
-                            } else {
-                                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                            },
-                        )
+                ability_id
+                    .map(|id| HotbarImage::Ability(id.to_string()))
+                    .and_then(|image| {
+                        active_abilities
+                            .activate_ability(
+                                AbilityInput::Auxiliary(i),
+                                Some(inventory),
+                                skillset,
+                                Some(body),
+                            )
+                            .map(|(ability, _)| {
+                                (
+                                    image,
+                                    if energy.current() > ability.get_energy_cost() {
+                                        Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
+                                    } else {
+                                        Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
+                                    },
+                                )
+                            })
                     })
-                })
-            },
-            hotbar::SlotContents::Ability4 => {
-                let hands = |equip_slot| match inventory.equipped(equip_slot).map(|i| i.kind()) {
-                    Some(ItemKind::Tool(tool)) => Some(tool.hands),
-                    _ => None,
-                };
-
-                let active_tool_hands = hands(EquipSlot::ActiveMainhand);
-                let second_tool_hands = hands(EquipSlot::ActiveOffhand);
-
-                let (equip_slot, skill_index) = match (active_tool_hands, second_tool_hands) {
-                    (Some(Hands::Two), _) => (Some(EquipSlot::ActiveMainhand), 1),
-                    (Some(_), Some(Hands::One)) => (Some(EquipSlot::ActiveOffhand), 0),
-                    (Some(Hands::One), _) => (Some(EquipSlot::ActiveMainhand), 1),
-                    (None, Some(_)) => (Some(EquipSlot::ActiveOffhand), 1),
-                    (_, _) => (None, 0),
-                };
-
-                let tool =
-                    match equip_slot.and_then(|es| inventory.equipped(es).map(|i| (i, i.kind()))) {
-                        Some((item, ItemKind::Tool(tool))) => Some((item, tool)),
-                        _ => None,
-                    };
-
-                tool.and_then(|(item, tool)| {
-                    hotbar_image(tool.kind).map(|i| {
-                        (
-                            i,
-                            if let Some(skill) = item
-                                .item_config_expect()
-                                .abilities
-                                .abilities
-                                .get(skill_index)
-                            {
-                                if energy.current()
-                                    >= skill
-                                        .1
-                                        .clone()
-                                        .adjusted_by_skills(skillset, Some(tool.kind))
-                                        .get_energy_cost()
-                                {
-                                    Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                                } else {
-                                    Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
-                                }
-                            } else {
-                                Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                            },
-                        )
-                    })
-                })
             },
         })
     }
 
-    fn amount(&self, (hotbar, inventory, _, _): &HotbarSource<'a>) -> Option<u32> {
+    fn amount(&self, (hotbar, inventory, _, _, _, _): &HotbarSource<'a>) -> Option<u32> {
         hotbar
             .get(*self)
             .and_then(|content| match content {
                 hotbar::SlotContents::Inventory(idx) => inventory.get(idx),
-                hotbar::SlotContents::Ability3 => None,
-                hotbar::SlotContents::Ability4 => None,
+                hotbar::SlotContents::Ability(_) => None,
             })
             .map(|item| item.amount())
             .filter(|amount| *amount > 1)
@@ -255,13 +183,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
     ) -> Vec<image::Id> {
         match key {
             HotbarImage::Item(key) => item_imgs.img_ids_or_not_found_img(key.clone()),
-            HotbarImage::SnakeArrow => vec![imgs.snake_arrow_0],
-            HotbarImage::FireAoe => vec![imgs.fire_aoe],
-            HotbarImage::SwordWhirlwind => vec![imgs.sword_whirlwind],
-            HotbarImage::HammerLeap => vec![imgs.hammerleap],
-            HotbarImage::AxeLeapSlash => vec![imgs.skill_axe_leap_slash],
-            HotbarImage::BowJumpBurst => vec![imgs.skill_bow_jump_burst],
-            HotbarImage::SceptreAura => vec![imgs.skill_sceptre_aura],
+            HotbarImage::Ability(ability_id) => vec![util::ability_image(imgs, ability_id)],
         }
     }
 }
@@ -282,16 +204,3 @@ impl From<TradeSlot> for SlotKind {
 }
 
 impl SumSlot for SlotKind {}
-
-fn hotbar_image(tool: ToolKind) -> Option<HotbarImage> {
-    match tool {
-        ToolKind::Staff => Some(HotbarImage::FireAoe),
-        ToolKind::Hammer => Some(HotbarImage::HammerLeap),
-        ToolKind::Axe => Some(HotbarImage::AxeLeapSlash),
-        ToolKind::Bow => Some(HotbarImage::BowJumpBurst),
-        ToolKind::Debug => Some(HotbarImage::SnakeArrow),
-        ToolKind::Sword => Some(HotbarImage::SwordWhirlwind),
-        ToolKind::Sceptre => Some(HotbarImage::SceptreAura),
-        _ => None,
-    }
-}

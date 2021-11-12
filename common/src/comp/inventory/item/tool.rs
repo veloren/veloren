@@ -345,7 +345,7 @@ pub struct AbilitySet<T> {
     pub abilities: Vec<(Option<Skill>, T)>,
 }
 
-impl AbilitySet<CharacterAbility> {
+impl AbilitySet<AbilityItem> {
     pub fn modified_by_tool(
         self,
         tool: &Tool,
@@ -353,7 +353,10 @@ impl AbilitySet<CharacterAbility> {
         components: &[Item],
     ) -> Self {
         let stats = Stats::from((msm, components, tool));
-        self.map(|a| a.adjusted_by_stats(stats))
+        self.map(|a| AbilityItem {
+            id: a.id,
+            ability: a.ability.adjusted_by_stats(stats),
+        })
     }
 }
 
@@ -376,12 +379,18 @@ impl<T> AbilitySet<T> {
 }
 
 #[allow(clippy::derivable_impls)]
-impl Default for AbilitySet<CharacterAbility> {
+impl Default for AbilitySet<AbilityItem> {
     fn default() -> Self {
         AbilitySet {
-            primary: CharacterAbility::default(),
-            secondary: CharacterAbility::default(),
-            abilities: vec![],
+            primary: AbilityItem {
+                id: String::new(),
+                ability: CharacterAbility::default(),
+            },
+            secondary: AbilityItem {
+                id: String::new(),
+                ability: CharacterAbility::default(),
+            },
+            abilities: Vec::new(),
         }
     }
 }
@@ -393,7 +402,13 @@ pub enum AbilitySpec {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct AbilityMap<T = CharacterAbility>(HashMap<AbilitySpec, AbilitySet<T>>);
+pub struct AbilityItem {
+    pub id: String,
+    pub ability: CharacterAbility,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct AbilityMap<T = AbilityItem>(HashMap<AbilitySpec, AbilitySet<T>>);
 
 impl Default for AbilityMap {
     fn default() -> Self {
@@ -434,7 +449,10 @@ impl assets::Compound for AbilityMap {
                         kind.clone(),
                         // expect cannot fail because CharacterAbility always
                         // provides a default value in case of failure
-                        set.map_ref(|s| cache.load_expect(s).cloned()),
+                        set.map_ref(|s| AbilityItem {
+                            id: s.clone(),
+                            ability: cache.load_expect(s).cloned(),
+                        }),
                     )
                 })
                 .collect(),

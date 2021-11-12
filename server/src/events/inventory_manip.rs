@@ -767,6 +767,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         // manipulating the inventory mutated the trade, so reset the accept flags
         trades.implicit_mutation_occurred(&uid);
     }
+
+    // After any inventory manipulation, update the ability
+    // TODO: Make less hacky, probably remove entirely but needs UI
+    if let Some(mut active_abilities) = state
+        .ecs()
+        .write_storage::<comp::ActiveAbilities>()
+        .get_mut(entity)
+    {
+        active_abilities.auto_update(
+            state.ecs().read_storage::<comp::Inventory>().get(entity),
+            state.ecs().read_storage::<comp::SkillSet>().get(entity),
+        );
+    }
 }
 
 fn within_pickup_range<S: FindDist<find_dist::Cylinder>>(

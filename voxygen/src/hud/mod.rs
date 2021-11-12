@@ -512,8 +512,7 @@ pub enum Event {
     SortInventory,
     ChangeHotbarState(Box<HotbarState>),
     TradeAction(TradeAction),
-    Ability3(bool),
-    Ability4(bool),
+    Ability(usize, bool),
     Logout,
     Quit,
 
@@ -534,6 +533,8 @@ pub enum Event {
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
+    // TODO: This variant currently unused. UI is needed for it to be properly used.
+    ChangeAbility(usize, comp::ability::AuxiliaryAbility),
 
     SettingsChange(SettingsChange),
 }
@@ -2639,6 +2640,7 @@ impl Hud {
         let inventories = ecs.read_storage::<comp::Inventory>();
         let energies = ecs.read_storage::<comp::Energy>();
         let skillsets = ecs.read_storage::<comp::SkillSet>();
+        let active_abilities = ecs.read_storage::<comp::ActiveAbilities>();
         let character_states = ecs.read_storage::<comp::CharacterState>();
         let controllers = ecs.read_storage::<comp::Controller>();
         let bodies = ecs.read_storage::<comp::Body>();
@@ -2664,6 +2666,8 @@ impl Hud {
             Some(inventory),
             Some(energy),
             Some(skillset),
+            Some(active_abilities),
+            Some(body),
             Some(_character_state),
             Some(_controller),
         ) = (
@@ -2671,6 +2675,8 @@ impl Hud {
             inventories.get(entity),
             energies.get(entity),
             skillsets.get(entity),
+            active_abilities.get(entity),
+            bodies.get(entity),
             character_states.get(entity),
             controllers.get(entity).map(|c| &c.inputs),
         ) {
@@ -2685,6 +2691,8 @@ impl Hud {
                 inventory,
                 energy,
                 skillset,
+                active_abilities,
+                body,
                 //&character_state,
                 self.pulse,
                 //&controller,
@@ -3358,18 +3366,14 @@ impl Hud {
                         }
                     } else if let Hotbar(h) = from {
                         // Used from hotbar
-                        self.hotbar.get(h).map(|s| {
-                            match s {
-                                hotbar::SlotContents::Inventory(i) => {
-                                    events.push(Event::UseSlot {
-                                        slot: comp::slot::Slot::Inventory(i),
-                                        bypass_dialog: false,
-                                    });
-                                },
-                                hotbar::SlotContents::Ability3 | hotbar::SlotContents::Ability4 => {
-                                }, /* Event::Ability3(true),
-                                    * sticks */
-                            }
+                        self.hotbar.get(h).map(|s| match s {
+                            hotbar::SlotContents::Inventory(i) => {
+                                events.push(Event::UseSlot {
+                                    slot: comp::slot::Slot::Inventory(i),
+                                    bypass_dialog: false,
+                                });
+                            },
+                            hotbar::SlotContents::Ability(_) => {},
                         });
                     }
                 },
@@ -3496,8 +3500,7 @@ impl Hud {
                 },
             }
         }
-        self.hotbar.maintain_ability3(client);
-        self.hotbar.maintain_ability4(client);
+        self.hotbar.maintain_abilities(client);
 
         events
     }
@@ -3577,8 +3580,7 @@ impl Hud {
                             });
                         }
                     },
-                    hotbar::SlotContents::Ability3 => events.push(Event::Ability3(state)),
-                    hotbar::SlotContents::Ability4 => events.push(Event::Ability4(state)),
+                    hotbar::SlotContents::Ability(i) => events.push(Event::Ability(i, state)),
                 });
             }
         }

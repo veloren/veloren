@@ -1,9 +1,9 @@
 use common::{
     comp::{
         item::{tool::AbilityMap, MaterialStatManifest},
-        Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider, Combo, Density,
-        Energy, Group, Health, Inventory, Item, LightEmitter, Mass, MountState, Mounting, Ori,
-        Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel,
+        ActiveAbilities, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider,
+        Combo, Density, Energy, Group, Health, Inventory, Item, LightEmitter, Mass, MountState,
+        Mounting, Ori, Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel,
     },
     uid::Uid,
 };
@@ -44,6 +44,7 @@ pub struct TrackedComps<'a> {
     pub player: ReadStorage<'a, Player>,
     pub stats: ReadStorage<'a, Stats>,
     pub skill_set: ReadStorage<'a, SkillSet>,
+    pub active_abilities: ReadStorage<'a, ActiveAbilities>,
     pub buffs: ReadStorage<'a, Buffs>,
     pub auras: ReadStorage<'a, Auras>,
     pub energy: ReadStorage<'a, Energy>,
@@ -88,6 +89,10 @@ impl<'a> TrackedComps<'a> {
             .cloned()
             .map(|c| comps.push(c.into()));
         self.skill_set
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
+        self.active_abilities
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
@@ -187,6 +192,7 @@ pub struct ReadTrackers<'a> {
     pub player: ReadExpect<'a, UpdateTracker<Player>>,
     pub stats: ReadExpect<'a, UpdateTracker<Stats>>,
     pub skill_set: ReadExpect<'a, UpdateTracker<SkillSet>>,
+    pub active_abilities: ReadExpect<'a, UpdateTracker<ActiveAbilities>>,
     pub buffs: ReadExpect<'a, UpdateTracker<Buffs>>,
     pub auras: ReadExpect<'a, UpdateTracker<Auras>>,
     pub energy: ReadExpect<'a, UpdateTracker<Energy>>,
@@ -223,6 +229,12 @@ impl<'a> ReadTrackers<'a> {
             .with_component(&comps.uid, &*self.player, &comps.player, filter)
             .with_component(&comps.uid, &*self.stats, &comps.stats, filter)
             .with_component(&comps.uid, &*self.skill_set, &comps.skill_set, filter)
+            .with_component(
+                &comps.uid,
+                &*self.active_abilities,
+                &comps.active_abilities,
+                filter,
+            )
             .with_component(&comps.uid, &*self.buffs, &comps.buffs, filter)
             .with_component(&comps.uid, &*self.auras, &comps.auras, filter)
             .with_component(&comps.uid, &*self.energy, &comps.energy, filter)
@@ -266,6 +278,7 @@ pub struct WriteTrackers<'a> {
     player: WriteExpect<'a, UpdateTracker<Player>>,
     stats: WriteExpect<'a, UpdateTracker<Stats>>,
     skill_set: WriteExpect<'a, UpdateTracker<SkillSet>>,
+    active_abilities: WriteExpect<'a, UpdateTracker<ActiveAbilities>>,
     buffs: WriteExpect<'a, UpdateTracker<Buffs>>,
     auras: WriteExpect<'a, UpdateTracker<Auras>>,
     energy: WriteExpect<'a, UpdateTracker<Energy>>,
@@ -296,6 +309,9 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.player.record_changes(&comps.player);
     trackers.stats.record_changes(&comps.stats);
     trackers.skill_set.record_changes(&comps.skill_set);
+    trackers
+        .active_abilities
+        .record_changes(&comps.active_abilities);
     trackers.buffs.record_changes(&comps.buffs);
     trackers.auras.record_changes(&comps.auras);
     trackers.energy.record_changes(&comps.energy);
@@ -341,6 +357,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(player, "Players");
     log_counts!(stats, "Stats");
     log_counts!(skill_set, "SkillSet");
+    log_counts!(active_abilities, "ActiveAbilities");
     log_counts!(energy, "Energies");
     log_counts!(combo, "Combos");
     log_vounts!(health, "Healths");
@@ -367,6 +384,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<Player>();
     world.register_tracker::<Stats>();
     world.register_tracker::<SkillSet>();
+    world.register_tracker::<ActiveAbilities>();
     world.register_tracker::<Buffs>();
     world.register_tracker::<Auras>();
     world.register_tracker::<Energy>();

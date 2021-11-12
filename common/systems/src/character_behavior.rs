@@ -5,9 +5,10 @@ use specs::{
 
 use common::{
     comp::{
-        self, character_state::OutputEvents, inventory::item::MaterialStatManifest, Beam, Body,
-        CharacterState, Combo, Controller, Density, Energy, Health, Inventory, InventoryManip,
-        Mass, Melee, Mounting, Ori, PhysicsState, Poise, Pos, SkillSet, StateUpdate, Stats, Vel,
+        self, character_state::OutputEvents, inventory::item::MaterialStatManifest,
+        ActiveAbilities, Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health,
+        Inventory, InventoryManip, Mass, Melee, Mounting, Ori, PhysicsState, Poise, Pos, SkillSet,
+        StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -38,6 +39,7 @@ pub struct ReadData<'a> {
     mountings: ReadStorage<'a, Mounting>,
     stats: ReadStorage<'a, Stats>,
     skill_sets: ReadStorage<'a, SkillSet>,
+    active_abilities: ReadStorage<'a, ActiveAbilities>,
     msm: Read<'a, MaterialStatManifest>,
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
@@ -107,7 +109,7 @@ impl<'a> System<'a> for Sys {
             health,
             body,
             physics,
-            (stat, skill_set),
+            (stat, skill_set, active_abilities),
             combo,
         ) in (
             &read_data.entities,
@@ -124,7 +126,11 @@ impl<'a> System<'a> for Sys {
             read_data.healths.maybe(),
             &read_data.bodies,
             &read_data.physics_states,
-            (&read_data.stats, &read_data.skill_sets),
+            (
+                &read_data.stats,
+                &read_data.skill_sets,
+                &read_data.active_abilities,
+            ),
             &read_data.combos,
         )
             .join()
@@ -181,6 +187,7 @@ impl<'a> System<'a> for Sys {
                 beam: read_data.beams.get(entity),
                 stat,
                 skill_set,
+                active_abilities,
                 combo,
                 alignment: read_data.alignments.get(entity),
                 terrain: &read_data.terrain,
