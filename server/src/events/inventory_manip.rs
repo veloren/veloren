@@ -770,12 +770,12 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
 
     // After any inventory manipulation, update the ability
     // TODO: Make less hacky, probably remove entirely but needs UI
-    if let Some(mut ability_pool) = state
+    if let Some(mut active_abilities) = state
         .ecs()
-        .write_storage::<comp::AbilityPool>()
+        .write_storage::<comp::ActiveAbilities>()
         .get_mut(entity)
     {
-        ability_pool.auto_update(
+        active_abilities.auto_update(
             state.ecs().read_storage::<comp::Inventory>().get(entity),
             state.ecs().read_storage::<comp::SkillSet>().get(entity),
         );

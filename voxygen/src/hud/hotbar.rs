@@ -58,14 +58,14 @@ impl State {
     // Removes ability slots if not there and shouldn't be present
     pub fn maintain_abilities(&mut self, client: &client::Client) {
         use specs::WorldExt;
-        if let Some(ability_pool) = client
+        if let Some(active_abilities) = client
             .state()
             .ecs()
-            .read_storage::<common::comp::AbilityPool>()
+            .read_storage::<common::comp::ActiveAbilities>()
             .get(client.entity())
         {
             use common::comp::ability::AuxiliaryAbility;
-            for ((i, ability), hotbar_slot) in ability_pool
+            for ((i, ability), hotbar_slot) in active_abilities
                 .abilities
                 .iter()
                 .enumerate()
@@ -82,7 +82,10 @@ impl State {
                 }
             }
         } else {
-            self.slots.iter_mut().for_each(|slot| *slot = None)
+            self.slots
+                .iter_mut()
+                .filter(|slot| matches!(slot, Some(SlotContents::Ability(_))))
+                .for_each(|slot| *slot = None)
         }
     }
 }

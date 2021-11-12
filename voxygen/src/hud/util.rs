@@ -326,53 +326,57 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
 }
 
 #[rustfmt::skip]
-pub fn ability_description(ability_id: &str) -> Option<(&str, &str)> {
+pub fn ability_description(ability_id: &str) -> (&str, &str) {
     match ability_id {
         // Debug stick
-        "common.abilities.debug.possess" => Some((
+        "common.abilities.debug.possess" => (
             "Possessing Arrow",
             "\n\
             Shoots a poisonous arrow.\n\
             Lets you control your target.",
-        )),
+        ),
         // Sword
-        "common.abilities.sword.spin" => Some((
+        "common.abilities.sword.spin" => (
             "Whirlwind",
             "\n\
             Move forward while spinning with your sword.",
-        )),
+        ),
         // Axe
-        "common.abilities.axe.leap" => Some((
+        "common.abilities.axe.leap" => (
             "Axe Jump",
             "\n\
             A jump with the slashing leap to position of cursor.",
-        )),
+        ),
         // Hammer
-        "common.abilities.hammer.leap" => Some((
+        "common.abilities.hammer.leap" => (
             "Smash of Doom",
             "\n\
             An AOE attack with knockback.\n\
             Leaps to position of cursor.",
-        )),
+        ),
         // Bow
-        "common.abilities.bow.shotgun" => Some((
+        "common.abilities.bow.shotgun" => (
             "Burst",
             "\n\
             Launches a burst of arrows",
-        )),
+        ),
         // Staff
-        "common.abilities.staff.fireshockwave" => Some((
+        "common.abilities.staff.fireshockwave" => (
             "Ring of Fire",
             "\n\
             Ignites the ground with fiery shockwave.",
-        )),
+        ),
         // Sceptre
-        "common.abilities.sceptre.wardingaura" => Some((
+        "common.abilities.sceptre.wardingaura" => (
             "Thorn Bulwark",
             "\n\
             Protects you and your group with thorns\n\
             for a short amount of time.",
-        )),
-        _ => None,
+        ),
+        _ => (
+            "Ability as no title",
+            "\n\
+            Ability has no description."
+        ),
     }
 }

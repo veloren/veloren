@@ -66,8 +66,7 @@ use common::{
     assets::AssetExt,
     character::CharacterId,
     cmd::ChatCommand,
-    comp,
-    comp::{item::MaterialStatManifest, CharacterAbility},
+    comp::{self, item::MaterialStatManifest},
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
     resources::{BattleMode, Time, TimeOfDay},
@@ -287,7 +286,7 @@ impl Server {
             Arc::<RwLock<DatabaseSettings>>::clone(&database_settings),
         )?);
 
-        let ability_map = comp::item::tool::AbilityMap::<CharacterAbility>::load_expect_cloned(
+        let ability_map = comp::item::tool::AbilityMap::<comp::AbilityItem>::load_expect_cloned(
             "common.abilities.ability_set_manifest",
         );
         state.ecs_mut().insert(ability_map);

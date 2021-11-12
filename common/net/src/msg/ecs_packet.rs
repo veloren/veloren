@@ -15,7 +15,7 @@ sum_type! {
         CanBuild(comp::CanBuild),
         Stats(comp::Stats),
         SkillSet(comp::SkillSet),
-        AbilityPool(comp::AbilityPool),
+        ActiveAbilities(comp::ActiveAbilities),
         Buffs(comp::Buffs),
         Auras(comp::Auras),
         Energy(comp::Energy),
@@ -51,7 +51,7 @@ sum_type! {
         CanBuild(PhantomData<comp::CanBuild>),
         Stats(PhantomData<comp::Stats>),
         SkillSet(PhantomData<comp::SkillSet>),
-        AbilityPool(PhantomData<comp::AbilityPool>),
+        ActiveAbilities(PhantomData<comp::ActiveAbilities>),
         Buffs(PhantomData<comp::Buffs>),
         Auras(PhantomData<comp::Auras>),
         Energy(PhantomData<comp::Energy>),
@@ -87,7 +87,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::CanBuild(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Stats(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::SkillSet(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::AbilityPool(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::ActiveAbilities(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Buffs(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Auras(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Energy(comp) => sync::handle_insert(comp, entity, world),
@@ -127,7 +127,7 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::CanBuild(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Stats(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::SkillSet(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::AbilityPool(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::ActiveAbilities(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Buffs(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Auras(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Energy(comp) => sync::handle_modify(comp, entity, world),
@@ -167,8 +167,8 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::CanBuild(_) => sync::handle_remove::<comp::CanBuild>(entity, world),
             EcsCompPhantom::Stats(_) => sync::handle_remove::<comp::Stats>(entity, world),
             EcsCompPhantom::SkillSet(_) => sync::handle_remove::<comp::SkillSet>(entity, world),
-            EcsCompPhantom::AbilityPool(_) => {
-                sync::handle_remove::<comp::AbilityPool>(entity, world)
+            EcsCompPhantom::ActiveAbilities(_) => {
+                sync::handle_remove::<comp::ActiveAbilities>(entity, world)
             },
             EcsCompPhantom::Buffs(_) => sync::handle_remove::<comp::Buffs>(entity, world),
             EcsCompPhantom::Auras(_) => sync::handle_remove::<comp::Auras>(entity, world),

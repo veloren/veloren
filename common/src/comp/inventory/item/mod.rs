@@ -8,10 +8,7 @@ pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolK
 
 use crate::{
     assets::{self, AssetExt, Error},
-    comp::{
-        inventory::{item::tool::AbilityMap, InvSlot},
-        CharacterAbility,
-    },
+    comp::inventory::{item::tool::AbilityMap, InvSlot},
     effect::Effect,
     recipe::RecipeInput,
     terrain::Block,
@@ -433,8 +430,7 @@ impl PartialEq for ItemDef {
 // TODO: Look into removing ItemConfig and just using AbilitySet
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemConfig {
-    pub abilities: AbilitySet<CharacterAbility>,
-    pub ability_ids: AbilitySet<String>,
+    pub abilities: AbilitySet<tool::AbilityItem>,
 }
 
 #[derive(Debug)]
@@ -449,56 +445,33 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
         (item, ability_map, msm): (&Item, &AbilityMap, &MaterialStatManifest),
     ) -> Result<Self, Self::Error> {
         if let ItemKind::Tool(tool) = &item.kind {
-            // TODO: Maybe try to make an ecs resource?
-            let ability_ids_map =
-                AbilityMap::<String>::load_expect("common.abilities.ability_set_manifest").read();
-
             // If no custom ability set is specified, fall back to abilityset of tool kind.
             let tool_default = |tool_kind| {
                 let key = &AbilitySpec::Tool(tool_kind);
-                (
-                    ability_map.get_ability_set(key),
-                    ability_ids_map.get_ability_set(key),
-                )
+                ability_map.get_ability_set(key)
             };
-            let (abilities, ability_ids) = if let Some(set_key) = item.ability_spec() {
-                if let (Some(set), Some(ids)) = (
-                    ability_map.get_ability_set(set_key),
-                    ability_ids_map.get_ability_set(set_key),
-                ) {
-                    (
-                        set.clone().modified_by_tool(tool, msm, &item.components),
-                        ids.clone(),
-                    )
+            let abilities = if let Some(set_key) = item.ability_spec() {
+                if let Some(set) = ability_map.get_ability_set(set_key) {
+                    set.clone().modified_by_tool(tool, msm, &item.components)
                 } else {
                     error!(
                         "Custom ability set: {:?} references non-existent set, falling back to \
                          default ability set.",
                         set_key
                     );
-                    let (abilities, ids) = tool_default(tool.kind);
-                    (
-                        abilities.cloned().unwrap_or_default(),
-                        ids.cloned().unwrap_or_default(),
-                    )
+                    tool_default(tool.kind).cloned().unwrap_or_default()
                 }
-            } else if let (Some(set), Some(ids)) = tool_default(tool.kind) {
-                (
-                    set.clone().modified_by_tool(tool, msm, &item.components),
-                    ids.clone(),
-                )
+            } else if let Some(set) = tool_default(tool.kind) {
+                set.clone().modified_by_tool(tool, msm, &item.components)
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",
                     tool.kind
                 );
-                (Default::default(), Default::default())
+                Default::default()
             };
 
-            Ok(ItemConfig {
-                abilities,
-                ability_ids,
-            })
+            Ok(ItemConfig { abilities })
         } else {
             Err(ItemConfigError::BadItemKind)
         }

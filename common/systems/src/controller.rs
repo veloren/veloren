@@ -1,7 +1,7 @@
 use common::{
     comp::{
         agent::{Sound, SoundKind},
-        AbilityPool, Body, BuffChange, ControlEvent, Controller, Pos,
+        ActiveAbilities, Body, BuffChange, ControlEvent, Controller, Pos,
     },
     event::{EventBus, ServerEvent},
     uid::UidAllocator,
@@ -30,7 +30,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, AbilityPool>,
+        WriteStorage<'a, ActiveAbilities>,
     );
 
     const NAME: &'static str = "controller";
@@ -39,13 +39,11 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut controllers, mut ability_pools): Self::SystemData,
+        (read_data, mut controllers, mut active_abilities): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
 
-        for (entity, controller, mut ability_pool) in
-            (&read_data.entities, &mut controllers, &mut ability_pools).join()
-        {
+        for (entity, controller) in (&read_data.entities, &mut controllers).join() {
             // Sanitize inputs to avoid clients sending bad data
             controller.inputs.sanitize();
 
@@ -113,7 +111,9 @@ impl<'a> System<'a> for Sys {
                         }
                     },
                     ControlEvent::ChangeAbility { slot, new_ability } => {
-                        ability_pool.change_ability(slot, new_ability)
+                        if let Some(mut active_abilities) = active_abilities.get_mut(entity) {
+                            active_abilities.change_ability(slot, new_ability);
+                        }
                     },
                 }
             }

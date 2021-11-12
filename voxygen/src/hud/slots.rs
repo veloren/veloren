@@ -6,7 +6,8 @@ use super::{
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
-    ability::AbilityInput, slot::InvSlotId, Ability, AbilityPool, Body, Energy, Inventory, SkillSet,
+    ability::AbilityInput, slot::InvSlotId, Ability, ActiveAbilities, Body, Energy, Inventory,
+    SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -117,7 +118,7 @@ type HotbarSource<'a> = (
     &'a Inventory,
     &'a Energy,
     &'a SkillSet,
-    &'a AbilityPool,
+    &'a ActiveAbilities,
     &'a Body,
 );
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
@@ -127,7 +128,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
 
     fn image_key(
         &self,
-        (hotbar, inventory, energy, skillset, ability_pool, body): &HotbarSource<'a>,
+        (hotbar, inventory, energy, skillset, active_abilities, body): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
         hotbar.get(*self).and_then(|contents| match contents {
             hotbar::SlotContents::Inventory(idx) => inventory
@@ -135,7 +136,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 .map(|item| HotbarImage::Item(item.into()))
                 .map(|i| (i, None)),
             hotbar::SlotContents::Ability(i) => {
-                let ability_id = ability_pool
+                let ability_id = active_abilities
                     .abilities
                     .get(i)
                     .and_then(|a| Ability::from(*a).ability_id(Some(inventory)));
@@ -143,12 +144,12 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 ability_id
                     .map(|id| HotbarImage::Ability(id.to_string()))
                     .and_then(|image| {
-                        ability_pool
+                        active_abilities
                             .activate_ability(
                                 AbilityInput::Auxiliary(i),
                                 Some(inventory),
                                 skillset,
-                                body,
+                                Some(body),
                             )
                             .map(|(ability, _)| {
                                 (

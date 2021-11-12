@@ -23,7 +23,7 @@ use common::comp::{
     self,
     ability::AbilityInput,
     item::{ItemDesc, MaterialStatManifest},
-    Ability, AbilityPool, Body, Energy, Health, Inventory, SkillSet,
+    Ability, ActiveAbilities, Body, Energy, Health, Inventory, SkillSet,
 };
 use conrod_core::{
     color,
@@ -250,7 +250,7 @@ pub struct Skillbar<'a> {
     inventory: &'a Inventory,
     energy: &'a Energy,
     skillset: &'a SkillSet,
-    ability_pool: &'a AbilityPool,
+    active_abilities: &'a ActiveAbilities,
     body: &'a Body,
     // character_state: &'a CharacterState,
     // controller: &'a ControllerInputs,
@@ -279,7 +279,7 @@ impl<'a> Skillbar<'a> {
         inventory: &'a Inventory,
         energy: &'a Energy,
         skillset: &'a SkillSet,
-        ability_pool: &'a AbilityPool,
+        active_abilities: &'a ActiveAbilities,
         body: &'a Body,
         // character_state: &'a CharacterState,
         pulse: f32,
@@ -303,7 +303,7 @@ impl<'a> Skillbar<'a> {
             inventory,
             energy,
             skillset,
-            ability_pool,
+            active_abilities,
             body,
             common: widget::CommonBuilder::default(),
             // character_state,
@@ -519,7 +519,7 @@ impl<'a> Skillbar<'a> {
             self.inventory,
             self.energy,
             self.skillset,
-            self.ability_pool,
+            self.active_abilities,
             self.body,
         );
 
@@ -601,16 +601,16 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, _, ability_pool, _) = content_source;
+            let (hotbar, inventory, _, _, active_abilities, _) = content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i) => inventory
                     .get(i)
                     .map(|item| (item.name(), item.description())),
-                hotbar::SlotContents::Ability(i) => ability_pool
+                hotbar::SlotContents::Ability(i) => active_abilities
                     .abilities
                     .get(i)
                     .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
-                    .and_then(|id| util::ability_description(id)),
+                    .map(|id| util::ability_description(id)),
             })
         };
 
@@ -680,7 +680,7 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.m1_slot_bg, ui);
 
         let primary_ability_id =
-            Ability::from(self.ability_pool.primary).ability_id(Some(self.inventory));
+            Ability::from(self.active_abilities.primary).ability_id(Some(self.inventory));
 
         Button::image(
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -695,7 +695,7 @@ impl<'a> Skillbar<'a> {
             .set(state.ids.m2_slot_bg, ui);
 
         let secondary_ability_id =
-            Ability::from(self.ability_pool.secondary).ability_id(Some(self.inventory));
+            Ability::from(self.active_abilities.secondary).ability_id(Some(self.inventory));
 
         Button::image(
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -705,12 +705,12 @@ impl<'a> Skillbar<'a> {
         .image_color(
             if self.energy.current()
                 >= self
-                    .ability_pool
+                    .active_abilities
                     .activate_ability(
                         AbilityInput::Secondary,
                         Some(self.inventory),
                         self.skillset,
-                        self.body,
+                        Some(self.body),
                     )
                     .map_or(0.0, |(a, _)| a.get_energy_cost())
             {
