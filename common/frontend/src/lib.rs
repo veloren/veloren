@@ -53,6 +53,11 @@ where
             .add_directive("veloren_common::trade=info".parse().unwrap())
             .add_directive("veloren_world::sim=info".parse().unwrap())
             .add_directive("veloren_world::civ=info".parse().unwrap())
+            .add_directive(
+                "veloren_server::events::entity_manipulation=info"
+                    .parse()
+                    .unwrap(),
+            )
             .add_directive("hyper=info".parse().unwrap())
             .add_directive("prometheus_hyper=info".parse().unwrap())
             .add_directive("mio::pool=info".parse().unwrap())

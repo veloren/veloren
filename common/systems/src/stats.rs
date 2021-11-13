@@ -73,13 +73,6 @@ impl<'a> System<'a> for Sys {
         let mut server_event_emitter = read_data.server_bus.emitter();
         let dt = read_data.dt.0;
 
-        // Increment last change timer
-        healths.set_event_emission(false); // avoid unnecessary syncing
-        for mut health in (&mut healths).join() {
-            health.last_change.0 += f64::from(dt);
-        }
-        healths.set_event_emission(true);
-
         // Update stats
         for (entity, uid, stats, mut skill_set, mut health, pos, mut energy, inventory) in (
             &read_data.entities,
@@ -100,7 +93,7 @@ impl<'a> System<'a> for Sys {
                 entities_died_last_tick.0.push(cloned_entity);
                 server_event_emitter.emit(ServerEvent::Destroy {
                     entity,
-                    cause: health.last_change.1,
+                    cause: health.last_change,
                 });
 
                 health.is_dead = true;

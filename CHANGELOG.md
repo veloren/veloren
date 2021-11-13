@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Tweaked critical chance of legendary weapons
 - Agents using fireball projectiles aim at the feet instead of the eyes
 - Explosions can now have a nonzero minimum falloff
+- EXP on kill is now shared based on damage contribution
 
 ### Removed
 

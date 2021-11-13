@@ -9,7 +9,7 @@ use specs::Entity;
 pub struct TimeOfDay(pub f64);
 
 /// A resource that stores the tick (i.e: physics) time.
-#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Default, Serialize, Deserialize, PartialEq)]
 pub struct Time(pub f64);
 
 /// A resource that stores the time since the previous tick.

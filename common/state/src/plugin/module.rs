@@ -268,12 +268,16 @@ fn retrieve_action(
                 RetrieveError::EcsAccessError(EcsAccessError::EcsEntityNotFound(e)),
             )?;
             Ok(RetrieveResult::GetEntityHealth(
-                *world.health.get(player).ok_or_else(|| {
-                    RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
-                        e,
-                        "Health".to_owned(),
-                    ))
-                })?,
+                world
+                    .health
+                    .get(player)
+                    .ok_or_else(|| {
+                        RetrieveError::EcsAccessError(EcsAccessError::EcsComponentNotFound(
+                            e,
+                            "Health".to_owned(),
+                        ))
+                    })?
+                    .clone(),
             ))
         },
     }

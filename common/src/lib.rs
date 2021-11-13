@@ -13,6 +13,7 @@
     type_alias_impl_trait,
     extend_one
 )]
+#![feature(hash_drain_filter)]
 
 /// Re-exported crates
 #[cfg(not(target_arch = "wasm32"))]

@@ -26,6 +26,7 @@ use rand::{thread_rng, Rng};
 
 use serde::{Deserialize, Serialize};
 
+use crate::{comp::Group, resources::Time};
 #[cfg(not(target_arch = "wasm32"))]
 use specs::{saveload::MarkerAllocator, Entity as EcsEntity, ReadStorage};
 #[cfg(not(target_arch = "wasm32"))]
@@ -53,6 +54,7 @@ pub enum AttackSource {
 pub struct AttackerInfo<'a> {
     pub entity: EcsEntity,
     pub uid: Uid,
+    pub group: Option<&'a Group>,
     pub energy: Option<&'a Energy>,
     pub combo: Option<&'a Combo>,
     pub inventory: Option<&'a Inventory>,
@@ -180,6 +182,7 @@ impl Attack {
         // maybe look into modifying strength of other effects?
         strength_modifier: f32,
         attack_source: AttackSource,
+        time: Time,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> bool {
@@ -222,10 +225,11 @@ impl Attack {
             );
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
-                attacker.map(|a| a.uid),
+                attacker.map(|x| x.into()),
                 is_crit,
                 self.crit_multiplier,
                 strength_modifier,
+                time,
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
@@ -273,8 +277,9 @@ impl Attack {
                             if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                                 let change = HealthChange {
                                     amount: applied_damage * l,
-                                    by: attacker.map(|a| a.uid),
+                                    by: attacker.map(|a| a.into()),
                                     cause: None,
+                                    time,
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
                                     emit(ServerEvent::HealthChange {
@@ -298,8 +303,9 @@ impl Attack {
                         CombatEffect::Heal(h) => {
                             let change = HealthChange {
                                 amount: *h * strength_modifier,
-                                by: attacker.map(|a| a.uid),
+                                by: attacker.map(|a| a.into()),
                                 cause: None,
+                                time,
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -408,8 +414,9 @@ impl Attack {
                         if let Some(attacker_entity) = attacker.map(|a| a.entity) {
                             let change = HealthChange {
                                 amount: accumulated_damage * l,
-                                by: attacker.map(|a| a.uid),
+                                by: attacker.map(|a| a.into()),
                                 cause: None,
+                                time,
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -433,8 +440,9 @@ impl Attack {
                     CombatEffect::Heal(h) => {
                         let change = HealthChange {
                             amount: h * strength_modifier,
-                            by: attacker.map(|a| a.uid),
+                            by: attacker.map(|a| a.into()),
                             cause: None,
+                            time,
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
                             emit(ServerEvent::HealthChange {
@@ -588,6 +596,41 @@ pub enum CombatRequirement {
     Combo(u32),
 }
 
+#[derive(Clone, Copy, Debug, Hash, Eq, PartialEq, Serialize, Deserialize)]
+pub enum DamageContributor {
+    Solo(Uid),
+    Group { entity_uid: Uid, group: Group },
+}
+
+impl DamageContributor {
+    pub fn new(uid: Uid, group: Option<Group>) -> Self {
+        if let Some(group) = group {
+            DamageContributor::Group {
+                entity_uid: uid,
+                group,
+            }
+        } else {
+            DamageContributor::Solo(uid)
+        }
+    }
+
+    pub fn uid(&self) -> Uid {
+        match self {
+            DamageContributor::Solo(uid) => *uid,
+            DamageContributor::Group {
+                entity_uid,
+                group: _,
+            } => *entity_uid,
+        }
+    }
+}
+
+impl From<AttackerInfo<'_>> for DamageContributor {
+    fn from(attacker_info: AttackerInfo) -> Self {
+        DamageContributor::new(attacker_info.uid, attacker_info.group.copied())
+    }
+}
+
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DamageSource {
     Buff(BuffKind),
@@ -673,10 +716,11 @@ impl Damage {
     pub fn calculate_health_change(
         self,
         damage_reduction: f32,
-        uid: Option<Uid>,
+        damage_contributor: Option<DamageContributor>,
         is_crit: bool,
         crit_mult: f32,
         damage_modifier: f32,
+        time: Time,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
         let critdamage = if is_crit {
@@ -697,8 +741,9 @@ impl Damage {
 
                 HealthChange {
                     amount: -damage,
-                    by: uid,
+                    by: damage_contributor,
                     cause: Some(self.source),
+                    time,
                 }
             },
             DamageSource::Falling => {
@@ -710,12 +755,14 @@ impl Damage {
                     amount: -damage,
                     by: None,
                     cause: Some(self.source),
+                    time,
                 }
             },
             DamageSource::Buff(_) | DamageSource::Other => HealthChange {
                 amount: -damage,
                 by: None,
                 cause: Some(self.source),
+                time,
             },
         }
     }
@@ -913,22 +960,22 @@ pub fn combat_rating(
     const SKILLS_WEIGHT: f32 = 1.0;
     const POISE_WEIGHT: f32 = 0.5;
     const CRIT_WEIGHT: f32 = 0.5;
-    // Normalzied with a standard max health of 100
+    // Normalized with a standard max health of 100
     let health_rating = health.base_max()
         / 100.0
         / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
 
-    // Normalzied with a standard max energy of 100 and energy reward multiplier of
+    // Normalized with a standard max energy of 100 and energy reward multiplier of
     // x1
     let energy_rating = (energy.base_max() + compute_max_energy_mod(Some(inventory))) / 100.0
         * compute_energy_reward_mod(Some(inventory));
 
-    // Normalzied with a standard max poise of 100
+    // Normalized with a standard max poise of 100
     let poise_rating = poise.base_max() as f32
         / 100.0
         / (1.0 - Poise::compute_poise_damage_reduction(inventory)).max(0.00001);
 
-    // Normalzied with a standard crit multiplier of 1.2
+    // Normalized with a standard crit multiplier of 1.2
     let crit_rating = compute_crit_mult(Some(inventory)) / 1.2;
 
     // Assumes a standard person has earned 20 skill points in the general skill

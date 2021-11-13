@@ -210,6 +210,7 @@ impl<'a> System<'a> for Sys {
                                     AttackerInfo {
                                         entity,
                                         uid,
+                                        group: read_data.groups.get(entity),
                                         energy: read_data.energies.get(entity),
                                         combo: read_data.combos.get(entity),
                                         inventory: read_data.inventories.get(entity),
@@ -249,6 +250,7 @@ impl<'a> System<'a> for Sys {
                                 attack_options,
                                 1.0,
                                 AttackSource::Beam,
+                                *read_data.time,
                                 |e| server_events.push(e),
                                 |o| outcomes.push(o),
                             );

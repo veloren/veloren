@@ -264,6 +264,7 @@ fn dispatch_hit(
                     .map(|(entity, uid)| AttackerInfo {
                         entity,
                         uid,
+                        group: read_data.groups.get(entity),
                         energy: read_data.energies.get(entity),
                         combo: read_data.combos.get(entity),
                         inventory: read_data.inventories.get(entity),
@@ -318,6 +319,7 @@ fn dispatch_hit(
                 attack_options,
                 1.0,
                 AttackSource::Projectile,
+                *read_data.time,
                 |e| server_emitter.emit(e),
                 |o| outcomes.push(o),
             );

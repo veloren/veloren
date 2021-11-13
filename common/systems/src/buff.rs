@@ -1,4 +1,5 @@
 use common::{
+    combat::DamageContributor,
     comp::{
         body::{object, Body},
         buff::{
@@ -6,17 +7,19 @@ use common::{
             Buffs,
         },
         fluid_dynamics::{Fluid, LiquidKind},
-        Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState, Stats,
+        Group, Health, HealthChange, Inventory, LightEmitter, ModifierKind, PhysicsState, Stats,
     },
     event::{EventBus, ServerEvent},
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     terrain::SpriteKind,
+    uid::UidAllocator,
     Damage, DamageSource,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use hashbrown::HashMap;
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
+    World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -28,6 +31,9 @@ pub struct ReadData<'a> {
     inventories: ReadStorage<'a, Inventory>,
     healths: ReadStorage<'a, Health>,
     physics_states: ReadStorage<'a, PhysicsState>,
+    groups: ReadStorage<'a, Group>,
+    uid_allocator: Read<'a, UidAllocator>,
+    time: Read<'a, Time>,
 }
 
 #[derive(Default)]
@@ -209,9 +215,27 @@ impl<'a> System<'a> for Sys {
                                         ModifierKind::Additive => *accumulated,
                                         ModifierKind::Fractional => health.maximum() * *accumulated,
                                     };
+                                    let damage_contributor = by
+                                        .map(|uid| {
+                                            read_data
+                                                .uid_allocator
+                                                .retrieve_entity_internal(uid.0)
+                                                .map(|entity| {
+                                                    DamageContributor::new(
+                                                        uid,
+                                                        read_data.groups.get(entity).cloned(),
+                                                    )
+                                                })
+                                        })
+                                        .flatten();
                                     server_emitter.emit(ServerEvent::HealthChange {
                                         entity,
-                                        change: HealthChange { amount, by, cause },
+                                        change: HealthChange {
+                                            amount,
+                                            by: damage_contributor,
+                                            cause,
+                                            time: *read_data.time,
+                                        },
                                     });
                                     *accumulated = 0.0;
                                 };
