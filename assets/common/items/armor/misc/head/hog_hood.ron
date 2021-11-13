@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Wild Hog Hood",
+    description: "Wear the guise of the great swine you felled, so you may honor his sacrifice.",
+    kind: Armor((
+        kind: Head("HogHood"),
+        stats: (
+            protection: Normal(6.5),
+            poise_resilience: Normal(1.0),
+            energy_max: 0.0,
+            energy_reward: 0.0,
+            crit_power: 0.0355,
+            stealth: 0.0335,
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

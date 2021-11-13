@@ -2154,6 +2154,14 @@
         "voxel.armor.witch.hat",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
+    Armor(Head("HogHood")): VoxTrans(
+        "voxel.armor.misc.head.hog_hood",
+        (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
+    ),
+    Armor(Head("BambooTwig")): VoxTrans(
+        "voxel.armor.misc.head.bamboo_twig",
+        (2.5, 4.5, 0.0), (-120.0, -240.0,1.0), 2.3,
+    ),
     Armor(Head("Pirate")): VoxTrans(
         "voxel.armor.pirate.hat",
         (1.0, 2.0, 0.0), (-120.0, 210.0,15.0), 1.0,
@@ -2161,6 +2169,10 @@
     Armor(Head("Thief")): VoxTrans(
         "voxel.armor.misc.head.bandana.thief",
         (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
+    ),
+	Armor(Head("WanderersHat")): VoxTrans(
+        "voxel.armor.misc.head.wanderers_hat",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     Armor(Head("Red")): VoxTrans(
         "voxel.armor.misc.head.bandana.red",

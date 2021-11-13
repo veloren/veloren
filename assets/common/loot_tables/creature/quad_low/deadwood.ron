@@ -1,4 +1,5 @@
 [
-    (1.0, Item("common.items.crafting_ing.animal_misc.lively_vine")),
-    (1.0, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
+    (9.0, Item("common.items.crafting_ing.animal_misc.lively_vine")),
+    (9.0, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
+    (1.0, Item("common.items.armor.misc.head.bamboo_twig")),
 ]
