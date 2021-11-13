@@ -145,16 +145,19 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
             let dur_secs = buff.data.duration.map(|d| d.as_secs_f32());
             let str_total = dur_secs.map_or(strength, |secs| strength * secs);
 
+            let format_float =
+                |input: f32| format!("{:.1}", input).trim_end_matches(".0").to_string();
+
             let buff_desc = match buff.kind {
                 BuffKind::Saturation | BuffKind::Regeneration | BuffKind::Potion => i18n
                     .get("buff.stat.health")
-                    .replace("{str_total}", &str_total.to_string()),
+                    .replace("{str_total}", &format_float(str_total)),
                 BuffKind::IncreaseMaxEnergy => i18n
                     .get("buff.stat.increase_max_energy")
-                    .replace("{strength}", &strength.to_string()),
+                    .replace("{strength}", &format_float(strength)),
                 BuffKind::IncreaseMaxHealth => i18n
                     .get("buff.stat.increase_max_health")
-                    .replace("{strength}", &strength.to_string()),
+                    .replace("{strength}", &format_float(strength)),
                 BuffKind::Invulnerability => i18n.get("buff.stat.invulnerability").to_string(),
                 BuffKind::Bleeding
                 | BuffKind::Burning
@@ -174,12 +177,12 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                 match buff.kind {
                     BuffKind::Saturation | BuffKind::Regeneration => i18n
                         .get("buff.text.over_seconds")
-                        .replace("{dur_secs}", &dur_secs.to_string()),
+                        .replace("{dur_secs}", &format_float(dur_secs)),
                     BuffKind::IncreaseMaxEnergy
                     | BuffKind::IncreaseMaxHealth
                     | BuffKind::Invulnerability => i18n
                         .get("buff.text.for_seconds")
-                        .replace("{dur_secs}", &dur_secs.to_string()),
+                        .replace("{dur_secs}", &format_float(dur_secs)),
                     BuffKind::Bleeding
                     | BuffKind::Burning
                     | BuffKind::Potion
