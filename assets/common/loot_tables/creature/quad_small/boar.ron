@@ -1,5 +1,0 @@
-[
-    (4.0, ItemQuantity("common.items.crafting_ing.hide.animal_hide", 1, 2)),
-    (1.0, Item("common.items.food.meat.beast_small_raw")),
-    (0.25, Item("common.items.armor.misc.head.hog_hood")),
-]
