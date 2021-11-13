@@ -107,6 +107,7 @@ pub enum ChatCommand {
     Whitelist,
     Wiring,
     World,
+    MakeVolume,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -638,6 +639,7 @@ impl ChatCommand {
                 "Send messages to everyone on the server",
                 None,
             ),
+            ChatCommand::MakeVolume => cmd(vec![], "Create a volume (experimental)", Some(Admin)),
         }
     }
 
@@ -709,6 +711,7 @@ impl ChatCommand {
             ChatCommand::Wiring => "wiring",
             ChatCommand::Whitelist => "whitelist",
             ChatCommand::World => "world",
+            ChatCommand::MakeVolume => "make_volume",
         }
     }
 

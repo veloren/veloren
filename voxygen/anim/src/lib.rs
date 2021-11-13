@@ -81,7 +81,7 @@ pub struct FigureBoneData(pub MatRaw, pub MatRaw);
 
 pub const MAX_BONE_COUNT: usize = 16;
 
-fn make_bone(mat: Mat4<f32>) -> FigureBoneData {
+pub fn make_bone(mat: Mat4<f32>) -> FigureBoneData {
     let normal = mat.map_cols(Vec4::normalized);
     FigureBoneData(mat.into_col_arrays(), normal.into_col_arrays())
 }

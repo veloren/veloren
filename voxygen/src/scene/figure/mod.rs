@@ -1,8 +1,10 @@
 mod cache;
 pub mod load;
+mod volume;
 
 pub use cache::FigureModelCache;
 pub use load::load_mesh; // TODO: Don't make this public.
+pub use volume::VolumeKey;
 
 use crate::{
     ecs::comp::Interpolated,
@@ -30,7 +32,7 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
-        Body, CharacterState, Controller, Health, Inventory, Item, Last, LightAnimation,
+        Body, CharacterState, Collider, Controller, Health, Inventory, Item, Last, LightAnimation,
         LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     resources::DeltaTime,
@@ -50,6 +52,7 @@ use core::{
 use guillotiere::AtlasAllocator;
 use hashbrown::HashMap;
 use specs::{saveload::MarkerAllocator, Entity as EcsEntity, Join, LazyUpdate, WorldExt};
+use std::sync::Arc;
 use treeculler::{BVol, BoundingSphere};
 use vek::*;
 
@@ -113,6 +116,7 @@ struct FigureMgrStates {
     golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
     ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton>>,
+    volume_states: HashMap<EcsEntity, FigureState<VolumeKey>>,
 }
 
 impl FigureMgrStates {
@@ -133,6 +137,7 @@ impl FigureMgrStates {
             golem_states: HashMap::new(),
             object_states: HashMap::new(),
             ship_states: HashMap::new(),
+            volume_states: HashMap::new(),
         }
     }
 
@@ -193,7 +198,13 @@ impl FigureMgrStates {
                 .map(DerefMut::deref_mut),
             Body::Golem(_) => self.golem_states.get_mut(entity).map(DerefMut::deref_mut),
             Body::Object(_) => self.object_states.get_mut(entity).map(DerefMut::deref_mut),
-            Body::Ship(_) => self.ship_states.get_mut(entity).map(DerefMut::deref_mut),
+            Body::Ship(ship) => {
+                if ship.manifest_entry().is_some() {
+                    self.ship_states.get_mut(entity).map(DerefMut::deref_mut)
+                } else {
+                    self.volume_states.get_mut(entity).map(DerefMut::deref_mut)
+                }
+            },
         }
     }
 
@@ -217,7 +228,13 @@ impl FigureMgrStates {
             Body::BipedSmall(_) => self.biped_small_states.remove(entity).map(|e| e.meta),
             Body::Golem(_) => self.golem_states.remove(entity).map(|e| e.meta),
             Body::Object(_) => self.object_states.remove(entity).map(|e| e.meta),
-            Body::Ship(_) => self.ship_states.remove(entity).map(|e| e.meta),
+            Body::Ship(ship) => {
+                if ship.manifest_entry().is_some() {
+                    self.ship_states.remove(entity).map(|e| e.meta)
+                } else {
+                    self.volume_states.remove(entity).map(|e| e.meta)
+                }
+            },
         }
     }
 
@@ -238,6 +255,7 @@ impl FigureMgrStates {
         self.golem_states.retain(|k, v| f(k, &mut *v));
         self.object_states.retain(|k, v| f(k, &mut *v));
         self.ship_states.retain(|k, v| f(k, &mut *v));
+        self.volume_states.retain(|k, v| f(k, &mut *v));
     }
 
     fn count(&self) -> usize {
@@ -257,6 +275,7 @@ impl FigureMgrStates {
             + self.golem_states.len()
             + self.object_states.len()
             + self.ship_states.len()
+            + self.volume_states.len()
     }
 
     fn count_visible(&self) -> usize {
@@ -330,6 +349,11 @@ impl FigureMgrStates {
                 .filter(|(_, c)| c.visible())
                 .count()
             + self.ship_states.iter().filter(|(_, c)| c.visible()).count()
+            + self
+                .volume_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
     }
 }
 
@@ -350,6 +374,7 @@ pub struct FigureMgr {
     object_model_cache: FigureModelCache<ObjectSkeleton>,
     ship_model_cache: FigureModelCache<ShipSkeleton>,
     golem_model_cache: FigureModelCache<GolemSkeleton>,
+    volume_model_cache: FigureModelCache<VolumeKey>,
     states: FigureMgrStates,
 }
 
@@ -372,6 +397,7 @@ impl FigureMgr {
             object_model_cache: FigureModelCache::new(),
             ship_model_cache: FigureModelCache::new(),
             golem_model_cache: FigureModelCache::new(),
+            volume_model_cache: FigureModelCache::new(),
             states: FigureMgrStates::default(),
         }
     }
@@ -404,6 +430,7 @@ impl FigureMgr {
         self.object_model_cache.clean(&mut self.col_lights, tick);
         self.ship_model_cache.clean(&mut self.col_lights, tick);
         self.golem_model_cache.clean(&mut self.col_lights, tick);
+        self.volume_model_cache.clean(&mut self.col_lights, tick);
     }
 
     pub fn update_lighting(&mut self, scene_data: &SceneData) {
@@ -600,6 +627,7 @@ impl FigureMgr {
                 item,
                 light_emitter,
                 mountings,
+                collider,
             ),
         ) in (
             &ecs.entities(),
@@ -617,6 +645,7 @@ impl FigureMgr {
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
             ecs.read_storage::<Mounting>().maybe(),
+            ecs.read_storage::<Collider>().maybe(),
         )
             .join()
             .enumerate()
@@ -794,6 +823,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -1670,6 +1700,7 @@ impl FigureMgr {
                             &mut self.col_lights,
                             body,
                             inventory,
+                            (),
                             tick,
                             player_camera_mode,
                             player_character_state,
@@ -1859,6 +1890,7 @@ impl FigureMgr {
                             &mut self.col_lights,
                             body,
                             inventory,
+                            (),
                             tick,
                             player_camera_mode,
                             player_character_state,
@@ -2173,6 +2205,7 @@ impl FigureMgr {
                             &mut self.col_lights,
                             body,
                             inventory,
+                            (),
                             tick,
                             player_camera_mode,
                             player_character_state,
@@ -2519,6 +2552,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2620,6 +2654,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -2700,6 +2735,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3096,6 +3132,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3180,6 +3217,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3356,6 +3394,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3676,6 +3715,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -3756,6 +3796,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -4375,6 +4416,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -4613,6 +4655,7 @@ impl FigureMgr {
                         &mut self.col_lights,
                         body,
                         inventory,
+                        (),
                         tick,
                         player_camera_mode,
                         player_character_state,
@@ -4733,16 +4776,57 @@ impl FigureMgr {
                     );
                 },
                 Body::Ship(body) => {
-                    let (model, skeleton_attr) = self.ship_model_cache.get_or_create_model(
-                        renderer,
-                        &mut self.col_lights,
-                        body,
-                        inventory,
-                        tick,
-                        player_camera_mode,
-                        player_character_state,
-                        &slow_jobs,
-                    );
+                    let (model, skeleton_attr) = if let Some(Collider::Volume(vol)) = collider {
+                        let vk = VolumeKey {
+                            entity,
+                            mut_count: vol.mut_count,
+                        };
+                        let (model, _skeleton_attr) = self.volume_model_cache.get_or_create_model(
+                            renderer,
+                            &mut self.col_lights,
+                            vk,
+                            inventory,
+                            Arc::clone(vol),
+                            tick,
+                            player_camera_mode,
+                            player_character_state,
+                            &slow_jobs,
+                        );
+
+                        let state = self
+                            .states
+                            .volume_states
+                            .entry(entity)
+                            .or_insert_with(|| FigureState::new(renderer, vk, vk));
+
+                        state.update(
+                            renderer,
+                            &mut update_buf,
+                            &common_params,
+                            state_animation_rate,
+                            model,
+                            vk,
+                        );
+
+                        break;
+                    } else if body.manifest_entry().is_some() {
+                        self.ship_model_cache.get_or_create_model(
+                            renderer,
+                            &mut self.col_lights,
+                            body,
+                            inventory,
+                            (),
+                            tick,
+                            player_camera_mode,
+                            player_character_state,
+                            &slow_jobs,
+                        )
+                    } else {
+                        // No way to determine model (this is okay, we might just not have received
+                        // the `Collider` for the entity yet. Wait until the
+                        // next tick.
+                        break;
+                    };
 
                     let state = self.states.ship_states.entry(entity).or_insert_with(|| {
                         FigureState::new(renderer, ShipSkeleton::default(), body)
@@ -4847,11 +4931,12 @@ impl FigureMgr {
                 ecs.read_storage::<Health>().maybe(),
                 ecs.read_storage::<Inventory>().maybe(),
                 ecs.read_storage::<Scale>().maybe(),
+                ecs.read_storage::<Collider>().maybe(),
             )
             .join()
             // Don't render dead entities
-            .filter(|(_, _, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
-            .for_each(|(entity, pos, _, body, _, inventory, scale)| {
+            .filter(|(_, _, _, _, health, _, _, _)| health.map_or(true, |h| !h.is_dead))
+            .for_each(|(entity, pos, _, body, _, inventory, scale, collider)| {
                 if let Some((bound, model, _)) = self.get_model_for_render(
                     tick,
                     camera,
@@ -4862,6 +4947,10 @@ impl FigureMgr {
                     false,
                     pos.0,
                     figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
+                    match collider {
+                        Some(Collider::Volume(vol)) => vol.mut_count,
+                        _ => 0,
+                    },
                     |state| state.can_shadow_sun(),
                 ) {
                     drawer.draw(model, bound);
@@ -4884,19 +4973,20 @@ impl FigureMgr {
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
 
-        for (entity, pos, body, _, inventory, scale) in (
+        for (entity, pos, body, _, inventory, scale, collider) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
             &ecs.read_storage::<Body>(),
             ecs.read_storage::<Health>().maybe(),
             ecs.read_storage::<Inventory>().maybe(),
-            ecs.read_storage::<Scale>().maybe()
+            ecs.read_storage::<Scale>().maybe(),
+            ecs.read_storage::<Collider>().maybe(),
         )
             .join()
         // Don't render dead entities
-        .filter(|(_, _, _, health, _, _)| health.map_or(true, |h| !h.is_dead))
+        .filter(|(_, _, _, health, _, _, _)| health.map_or(true, |h| !h.is_dead))
         // Don't render player
-        .filter(|(entity, _, _, _, _, _)| *entity != player_entity)
+        .filter(|(entity, _, _, _, _, _, _)| *entity != player_entity)
         {
             if let Some((bound, model, col_lights)) = self.get_model_for_render(
                 tick,
@@ -4908,6 +4998,10 @@ impl FigureMgr {
                 false,
                 pos.0,
                 figure_lod_render_distance * scale.map_or(1.0, |s| s.0),
+                match collider {
+                    Some(Collider::Volume(vol)) => vol.mut_count,
+                    _ => 0,
+                },
                 |state| state.visible(),
             ) {
                 drawer.draw(model, bound, col_lights);
@@ -4953,6 +5047,7 @@ impl FigureMgr {
                 true,
                 pos.0,
                 figure_lod_render_distance,
+                0,
                 |state| state.visible(),
             ) {
                 drawer.draw(model, bound, col_lights);
@@ -4980,6 +5075,7 @@ impl FigureMgr {
         is_player: bool,
         pos: vek::Vec3<f32>,
         figure_lod_render_distance: f32,
+        mut_count: usize,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
     ) -> Option<FigureModelRef> {
         let body = *body;
@@ -5010,6 +5106,7 @@ impl FigureMgr {
             object_model_cache,
             ship_model_cache,
             golem_model_cache,
+            volume_model_cache,
             states:
                 FigureMgrStates {
                     character_states,
@@ -5027,6 +5124,7 @@ impl FigureMgr {
                     golem_states,
                     object_states,
                     ship_states,
+                    volume_states,
                 },
         } = self;
         let col_lights = &*col_lights_;
@@ -5255,22 +5353,43 @@ impl FigureMgr {
                         ),
                     )
                 }),
-            Body::Ship(body) => ship_states
-                .get(&entity)
-                .filter(|state| filter_state(*state))
-                .map(move |state| {
-                    (
-                        state.bound(),
-                        ship_model_cache.get_model(
-                            col_lights,
-                            body,
-                            inventory,
-                            tick,
-                            player_camera_mode,
-                            character_state,
-                        ),
-                    )
-                }),
+            Body::Ship(body) => {
+                if body.manifest_entry().is_some() {
+                    ship_states
+                        .get(&entity)
+                        .filter(|state| filter_state(*state))
+                        .map(move |state| {
+                            (
+                                state.bound(),
+                                ship_model_cache.get_model(
+                                    col_lights,
+                                    body,
+                                    inventory,
+                                    tick,
+                                    player_camera_mode,
+                                    character_state,
+                                ),
+                            )
+                        })
+                } else {
+                    volume_states
+                        .get(&entity)
+                        .filter(|state| filter_state(*state))
+                        .map(move |state| {
+                            (
+                                state.bound(),
+                                volume_model_cache.get_model(
+                                    col_lights,
+                                    VolumeKey { entity, mut_count },
+                                    inventory,
+                                    tick,
+                                    player_camera_mode,
+                                    character_state,
+                                ),
+                            )
+                        })
+                }
+            },
         } {
             let model_entry = model_entry?;
 

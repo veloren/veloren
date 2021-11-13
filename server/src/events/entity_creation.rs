@@ -156,7 +156,9 @@ pub fn handle_create_ship(
     agent: Option<Agent>,
     rtsim_entity: Option<RtSimEntity>,
 ) {
-    let mut entity = server.state.create_ship(pos, ship, mountable);
+    let mut entity = server
+        .state
+        .create_ship(pos, ship, |ship| ship.make_collider(), mountable);
     if let Some(mut agent) = agent {
         let (kp, ki, kd) = pid_coefficients(&Body::Ship(ship));
         fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }

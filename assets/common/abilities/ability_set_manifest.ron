@@ -294,6 +294,11 @@
         secondary: "common.abilities.empty.basic",
         abilities: [],
     ),
+    Custom("Golf Club"): (
+        primary: "common.abilities.hammer.singlestrike",
+        secondary: "common.abilities.tool.golf_club.charged",
+        abilities: [],
+    ),
     Tool(Debug): (
         primary: "common.abilities.debug.forwardboost",
         secondary: "common.abilities.debug.upboost",

@@ -87,9 +87,16 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
 /// A set of reloadable specifications for a Body.
 pub trait BodySpec: Sized {
     type Spec;
+    /// Cloned on each cache invalidation. If this type is expensive to clone,
+    /// place it behind an [`Arc`].
+    type Manifests: Send + Sync + Clone;
+    type Extra: Send + Sync;
 
     /// Initialize all the specifications for this Body.
-    fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error>;
+    fn load_spec() -> Result<Self::Manifests, assets::Error>;
+
+    /// Determine whether the cache's manifest was reloaded
+    fn is_reloaded(manifests: &mut Self::Manifests) -> bool;
 
     /// Mesh bones using the given spec, character state, and mesh generation
     /// function.
@@ -100,7 +107,8 @@ pub trait BodySpec: Sized {
     /// in which case this strategy might change.
     fn bone_meshes(
         key: &FigureKey<Self>,
-        spec: &Self::Spec,
+        manifests: &Self::Manifests,
+        extra: Self::Extra,
     ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT];
 }
 
@@ -125,16 +133,22 @@ macro_rules! make_vox_spec {
 
         impl BodySpec for $body {
             type Spec = $Spec;
+            type Manifests = AssetHandle<Self::Spec>;
+            type Extra = ();
 
             #[allow(unused_variables)]
-            fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error> {
+            fn load_spec() -> Result<Self::Manifests, assets::Error> {
                 Self::Spec::load("")
             }
 
+            fn is_reloaded(manifests: &mut Self::Manifests) -> bool { manifests.reloaded() }
+
             fn bone_meshes(
                 $self_pat: &FigureKey<Self>,
-                $spec_pat: &Self::Spec,
+                manifests: &Self::Manifests,
+                _: Self::Extra,
             ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
+                let $spec_pat = &*manifests.read();
                 $bone_meshes
             }
         }
@@ -4528,15 +4542,21 @@ fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec
 }
 
 impl BodySpec for ship::Body {
+    type Extra = ();
+    type Manifests = AssetHandle<Self::Spec>;
     type Spec = ShipSpec;
 
     #[allow(unused_variables)]
-    fn load_spec() -> Result<AssetHandle<Self::Spec>, assets::Error> { Self::Spec::load("") }
+    fn load_spec() -> Result<Self::Manifests, assets::Error> { Self::Spec::load("") }
+
+    fn is_reloaded(manifests: &mut Self::Manifests) -> bool { manifests.reloaded() }
 
     fn bone_meshes(
         FigureKey { body, .. }: &FigureKey<Self>,
-        spec: &Self::Spec,
+        manifests: &Self::Manifests,
+        _: Self::Extra,
     ) -> [Option<BoneMeshes>; anim::MAX_BONE_COUNT] {
+        let spec = &*manifests.read();
         let map = &(spec.central.read().0).0;
         [
             Some(mesh_ship_bone(map, body, |spec| &spec.bone0)),

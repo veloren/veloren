@@ -51,10 +51,11 @@ pub trait StateExt {
     ) -> EcsEntityBuilder;
     /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
-    fn create_ship(
+    fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
         pos: comp::Pos,
         ship: comp::ship::Body,
+        make_collider: F,
         mountable: bool,
     ) -> EcsEntityBuilder;
     /// Build a projectile
@@ -200,9 +201,7 @@ impl StateExt for State {
             .with(body.mass())
             .with(body.density())
             .with(match body {
-                comp::Body::Ship(ship) => comp::Collider::Voxel {
-                    id: ship.manifest_entry().to_string(),
-                },
+                comp::Body::Ship(ship) => ship.make_collider(),
                 _ => capsule(&body),
             })
             .with(comp::Controller::default())
@@ -243,10 +242,11 @@ impl StateExt for State {
             .with(body)
     }
 
-    fn create_ship(
+    fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
         pos: comp::Pos,
         ship: comp::ship::Body,
+        make_collider: F,
         mountable: bool,
     ) -> EcsEntityBuilder {
         let body = comp::Body::Ship(ship);
@@ -258,9 +258,7 @@ impl StateExt for State {
             .with(comp::Ori::default())
             .with(body.mass())
             .with(body.density())
-            .with(comp::Collider::Voxel {
-                id: ship.manifest_entry().to_string(),
-            })
+            .with(make_collider(ship))
             .with(body)
             .with(comp::Scale(comp::ship::AIRSHIP_SCALE))
             .with(comp::Controller::default())

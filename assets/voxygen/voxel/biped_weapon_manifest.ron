@@ -1000,6 +1000,10 @@
         vox_spec: ("weapon.sword.frost-1", (-2.0, -4.5, -7.5)),
         color: None
     ),
+    "common.items.weapons.tool.golf_club": (
+        vox_spec: ("weapon.tool.golf_club", (-5.5, -4.0, -4.0)),
+        color: None
+    ),
     // Misc
     "common.items.weapons.empty.empty": (
             vox_spec: ("armor.empty", (-3.0, -3.5, 1.0)),

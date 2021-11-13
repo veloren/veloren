@@ -129,6 +129,19 @@ impl<V: Clone, M, A: Access> Dyna<V, M, A> {
         }
     }
 
+    /// Same as [`Dyna::filled`], but with the voxel determined by the function
+    /// `f`.
+    pub fn from_fn<F: FnMut(Vec3<i32>) -> V>(sz: Vec3<u32>, meta: M, mut f: F) -> Self {
+        Self {
+            vox: (0..sz.product() as usize)
+                .map(|idx| f(A::pos(idx, sz)))
+                .collect(),
+            meta,
+            sz,
+            _phantom: std::marker::PhantomData,
+        }
+    }
+
     /// Get a reference to the internal metadata.
     pub fn metadata(&self) -> &M { &self.meta }
 
@@ -138,6 +151,8 @@ impl<V: Clone, M, A: Access> Dyna<V, M, A> {
 
 pub trait Access {
     fn idx(pos: Vec3<i32>, sz: Vec3<u32>) -> usize;
+    /// `idx` must be in range, permitted to panic otherwise.
+    fn pos(idx: usize, sz: Vec3<u32>) -> Vec3<i32>;
 }
 
 #[derive(Copy, Clone, Debug)]
@@ -146,5 +161,12 @@ pub struct ColumnAccess;
 impl Access for ColumnAccess {
     fn idx(pos: Vec3<i32>, sz: Vec3<u32>) -> usize {
         (pos.x * sz.y as i32 * sz.z as i32 + pos.y * sz.z as i32 + pos.z) as usize
+    }
+
+    fn pos(idx: usize, sz: Vec3<u32>) -> Vec3<i32> {
+        let z = idx as u32 % sz.z;
+        let y = (idx as u32 / sz.z) % sz.y;
+        let x = idx as u32 / (sz.y * sz.z);
+        Vec3::new(x, y, z).map(|e| e as i32)
     }
 }

@@ -2866,6 +2866,11 @@
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
+    // Misc
+    Tool("common.items.weapons.tool.golf_club"): VoxTrans(
+        "voxel.weapon.tool.golf_club",
+        (2.0, -1.0, 0.0), (-135.0, 25.0, 0.0), 1.1,
+    ),
     // Gems
     Ingredient("Amethyst"): VoxTrans(
         "voxel.sprite.mineral.gem.amethystgem",

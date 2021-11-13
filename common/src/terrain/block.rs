@@ -279,7 +279,9 @@ impl Block {
     #[inline]
     pub fn is_bonkable(&self) -> bool {
         match self.get_sprite() {
-            Some(SpriteKind::Apple | SpriteKind::Beehive | SpriteKind::Coconut) => self.is_solid(),
+            Some(
+                SpriteKind::Apple | SpriteKind::Beehive | SpriteKind::Coconut | SpriteKind::Bomb,
+            ) => self.is_solid(),
             _ => false,
         }
     }

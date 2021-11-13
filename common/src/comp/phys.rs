@@ -1,9 +1,12 @@
 use super::{Fluid, Ori};
-use crate::{consts::WATER_DENSITY, terrain::Block, uid::Uid};
+use crate::{
+    comp::body::ship::figuredata::VoxelCollider, consts::WATER_DENSITY, terrain::Block, uid::Uid,
+};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, NullStorage};
 use specs_idvs::IdvStorage;
+use std::sync::Arc;
 use vek::*;
 
 /// Position
@@ -103,13 +106,16 @@ impl Component for Density {
 }
 
 // Collider
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Collider {
+    /// A volume based on an existing voxel asset.
     // TODO: pass the map from ids -> voxel data to get_radius
     // and get_z_limits to compute a bounding cylinder.
     Voxel {
         id: String,
     },
+    /// A mutable volume.
+    Volume(Arc<VoxelCollider>),
     /// Capsule prism with line segment from p0 to p1
     CapsulePrism {
         p0: Vec2<f32>,
@@ -122,9 +128,11 @@ pub enum Collider {
 }
 
 impl Collider {
+    pub fn is_voxel(&self) -> bool { matches!(self, Collider::Voxel { .. } | Collider::Volume(_)) }
+
     pub fn bounding_radius(&self) -> f32 {
         match self {
-            Collider::Voxel { .. } => 1.0,
+            Collider::Voxel { .. } | Collider::Volume(_) => 1.0,
             Collider::CapsulePrism { radius, p0, p1, .. } => {
                 let a = p0.distance(*p1);
                 a / 2.0 + *radius
@@ -140,7 +148,7 @@ impl Collider {
 
     pub fn get_z_limits(&self, modifier: f32) -> (f32, f32) {
         match self {
-            Collider::Voxel { .. } => (0.0, 1.0),
+            Collider::Voxel { .. } | Collider::Volume(_) => (0.0, 1.0),
             Collider::CapsulePrism { z_min, z_max, .. } => (*z_min * modifier, *z_max * modifier),
             Collider::Point => (0.0, 0.0),
         }

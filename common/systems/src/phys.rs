@@ -225,7 +225,7 @@ impl<'a> PhysicsData<'a> {
 
             let neighborhood_radius = match collider {
                 Collider::CapsulePrism { radius, .. } => radius * scale,
-                Collider::Voxel { .. } | Collider::Point => flat_radius,
+                Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => flat_radius,
             };
             phys_cache.neighborhood_radius = neighborhood_radius;
 
@@ -265,7 +265,7 @@ impl<'a> PhysicsData<'a> {
                         Some((p0, p1))
                     }
                 },
-                Collider::Voxel { .. } | Collider::Point => None,
+                Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => None,
             };
             phys_cache.origins = origins;
             phys_cache.ori = ori;
@@ -508,6 +508,9 @@ impl<'a> PhysicsData<'a> {
             ref read,
             ref write,
         } = self;
+
+        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
         // NOTE: i32 places certain constraints on how far out collision works
         // NOTE: uses the radius of the entity and their current position rather than
         // the radius of their bounding sphere for the current frame of movement
@@ -527,13 +530,14 @@ impl<'a> PhysicsData<'a> {
         )
             .join()
         {
-            let voxel_id = match collider {
-                Collider::Voxel { id } => id,
-                _ => continue,
+            let vol = match collider {
+                Collider::Voxel { id } => voxel_colliders_manifest.colliders.get(&*id),
+                Collider::Volume(vol) => Some(&**vol),
+                _ => None,
             };
 
-            if let Some(voxel_collider) = VOXEL_COLLIDER_MANIFEST.read().colliders.get(&*voxel_id) {
-                let sphere = voxel_collider_bounding_sphere(voxel_collider, pos, ori);
+            if let Some(vol) = vol {
+                let sphere = voxel_collider_bounding_sphere(vol, pos, ori);
                 let radius = sphere.radius.ceil() as u32;
                 let pos_2d = sphere.center.xy().map(|e| e as i32);
                 const POS_TRUNCATION_ERROR: u32 = 1;
@@ -729,7 +733,7 @@ impl<'a> PhysicsData<'a> {
             !&read.mountings,
         )
             .par_join()
-            .filter(|tuple| matches!(tuple.3, Collider::Voxel { .. }) == terrain_like_entities)
+            .filter(|tuple| tuple.3.is_voxel() == terrain_like_entities)
             .map_init(
                 || {
                     prof_span!(guard, "physics e<>t rayon job");
@@ -760,7 +764,7 @@ impl<'a> PhysicsData<'a> {
                     let old_ori = *ori;
                     let mut ori = *ori;
 
-                    let scale = if let Collider::Voxel { .. } = collider {
+                    let scale = if collider.is_voxel() {
                         scale.map(|s| s.0).unwrap_or(1.0)
                     } else {
                         // TODO: Use scale & actual proportions when pathfinding is good
@@ -806,7 +810,7 @@ impl<'a> PhysicsData<'a> {
                         character_state.map_or(false, |cs| matches!(cs, CharacterState::Climb(_)));
 
                     match &collider {
-                        Collider::Voxel { .. } => {
+                        Collider::Voxel { .. } | Collider::Volume(_) => {
                             // For now, treat entities with voxel colliders
                             // as their bounding cylinders for the purposes of
                             // colliding them with terrain.
@@ -1003,6 +1007,8 @@ impl<'a> PhysicsData<'a> {
                     let query_center = path_sphere.center.xy();
                     let query_radius = path_sphere.radius;
 
+                    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
                     voxel_collider_spatial_grid
                         .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
@@ -1029,10 +1035,12 @@ impl<'a> PhysicsData<'a> {
                                     return;
                                 }
 
-                                let voxel_id = if let Collider::Voxel { id } = collider_other {
-                                    id
-                                } else {
-                                    return;
+                                let voxel_collider = match collider_other {
+                                    Collider::Voxel { id } => {
+                                        voxel_colliders_manifest.colliders.get(id)
+                                    },
+                                    Collider::Volume(vol) => Some(&**vol),
+                                    _ => None,
                                 };
 
                                 // use bounding cylinder regardless of our collider
@@ -1045,9 +1053,7 @@ impl<'a> PhysicsData<'a> {
                                 let z_min = 0.0;
                                 let z_max = z_max.clamped(1.2, 1.95) * scale;
 
-                                if let Some(voxel_collider) =
-                                    VOXEL_COLLIDER_MANIFEST.read().colliders.get(voxel_id)
-                                {
+                                if let Some(voxel_collider) = voxel_collider {
                                     // TODO: cache/precompute sphere?
                                     let voxel_sphere = voxel_collider_bounding_sphere(
                                         voxel_collider,
@@ -1112,7 +1118,7 @@ impl<'a> PhysicsData<'a> {
                                     let cylinder = (radius, z_min, z_max);
                                     box_voxel_collision(
                                         cylinder,
-                                        &voxel_collider.dyna,
+                                        &voxel_collider.volume(),
                                         entity,
                                         &mut cpos,
                                         transform_to.mul_point(tgt_pos - wpos),
@@ -1226,7 +1232,7 @@ impl<'a> PhysicsData<'a> {
             &read.colliders,
         )
             .join()
-            .filter(|tuple| matches!(tuple.5, Collider::Voxel { .. }) == terrain_like_entities)
+            .filter(|tuple| tuple.5.is_voxel() == terrain_like_entities)
         {
             if let Some(new_pos) = pos_vel_ori_defer.pos.take() {
                 *pos = new_pos;
@@ -1725,8 +1731,8 @@ fn voxel_collider_bounding_sphere(
 ) -> Sphere<f32, f32> {
     let origin_offset = voxel_collider.translation;
     use common::vol::SizedVol;
-    let lower_bound = voxel_collider.dyna.lower_bound().map(|e| e as f32);
-    let upper_bound = voxel_collider.dyna.upper_bound().map(|e| e as f32);
+    let lower_bound = voxel_collider.volume().lower_bound().map(|e| e as f32);
+    let upper_bound = voxel_collider.volume().upper_bound().map(|e| e as f32);
     let center = (lower_bound + upper_bound) / 2.0;
     // Compute vector from the origin (where pos value corresponds to) and the model
     // center
@@ -1845,8 +1851,8 @@ fn resolve_e2e_collision(
         && (!is_sticky || is_mid_air)
         && diff.magnitude_squared() > 0.0
         && !is_projectile
-        && !matches!(collider_other, Collider::Voxel { .. })
-        && !matches!(collider, Collider::Voxel { .. })
+        && !collider_other.is_voxel()
+        && !collider.is_voxel()
     {
         const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
         let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);

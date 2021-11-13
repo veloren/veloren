@@ -137,10 +137,10 @@ impl Civs {
                 SiteKind::Tree => (12i32, 8.0),
             };
 
-            let (raise, raise_dist): (f32, i32) = match &site.kind {
-                SiteKind::Settlement => (10.0, 6),
-                SiteKind::Castle => (0.0, 6),
-                _ => (0.0, 0),
+            let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
+                SiteKind::Settlement => (10.0, 6, true),
+                SiteKind::Castle => (0.0, 6, true),
+                _ => (0.0, 0, false),
             };
 
             // Flatten ground
@@ -173,6 +173,10 @@ impl Civs {
                             chunk.basement += diff;
                             chunk.rockiness = 0.0;
                             chunk.surface_veg *= 1.0 - factor * rng.gen_range(0.25..0.9);
+
+                            if make_waypoint && offs == Vec2::zero() {
+                                chunk.contains_waypoint = true;
+                            }
                         });
                 }
             }
