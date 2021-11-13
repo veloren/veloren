@@ -1,5 +1,5 @@
 [
-    (9.0, LootTable("common.loot_tables.materials.common")),
-    (9.0, LootTable("common.loot_tables.food.prepared")),
+    (6.0, LootTable("common.loot_tables.materials.common")),
+    (12.0, LootTable("common.loot_tables.food.prepared")),
     (1.0, Item("common.items.armor.misc.head.wanderers_hat")),
 ]
