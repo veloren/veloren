@@ -224,15 +224,8 @@ impl<'a> PhysicsData<'a> {
             phys_cache.scaled_radius = flat_radius;
 
             let neighborhood_radius = match collider {
-<<<<<<< HEAD
                 Collider::CapsulePrism { radius, .. } => radius * scale,
-                Collider::Voxel { .. } | Collider::Point => flat_radius,
-=======
-                Some(Collider::CapsulePrism { radius, .. }) => radius * scale,
-                Some(Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point) | None => {
-                    flat_radius
-                },
->>>>>>> 51f014dd3 (Arbitrary volume airships)
+                Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => flat_radius,
             };
             phys_cache.neighborhood_radius = neighborhood_radius;
 
@@ -272,11 +265,7 @@ impl<'a> PhysicsData<'a> {
                         Some((p0, p1))
                     }
                 },
-<<<<<<< HEAD
-                Collider::Voxel { .. } | Collider::Point => None,
-=======
-                Some(Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point) | None => None,
->>>>>>> 51f014dd3 (Arbitrary volume airships)
+                Collider::Voxel { .. } | Collider::Volume(_) | Collider::Point => None,
             };
             phys_cache.origins = origins;
             phys_cache.ori = ori;
@@ -519,6 +508,9 @@ impl<'a> PhysicsData<'a> {
             ref read,
             ref write,
         } = self;
+
+        let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
         // NOTE: i32 places certain constraints on how far out collision works
         // NOTE: uses the radius of the entity and their current position rather than
         // the radius of their bounding sphere for the current frame of movement
@@ -538,7 +530,6 @@ impl<'a> PhysicsData<'a> {
         )
             .join()
         {
-            let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
             let vol = match collider {
                 Collider::Voxel { id } => voxel_colliders_manifest.colliders.get(&*id),
                 Collider::Volume(vol) => Some(&**vol),
@@ -1016,6 +1007,8 @@ impl<'a> PhysicsData<'a> {
                     let query_center = path_sphere.center.xy();
                     let query_radius = path_sphere.radius;
 
+                    let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
+
                     voxel_collider_spatial_grid
                         .in_circle_aabr(query_center, query_radius)
                         .filter_map(|entity| {
@@ -1042,7 +1035,6 @@ impl<'a> PhysicsData<'a> {
                                     return;
                                 }
 
-                                let voxel_colliders_manifest = VOXEL_COLLIDER_MANIFEST.read();
                                 let voxel_collider = match collider_other {
                                     Collider::Voxel { id } => {
                                         voxel_colliders_manifest.colliders.get(id)
@@ -1859,8 +1851,8 @@ fn resolve_e2e_collision(
         && (!is_sticky || is_mid_air)
         && diff.magnitude_squared() > 0.0
         && !is_projectile
-        && !collider_other.map_or(false, |c| c.is_voxel())
-        && !collider.map_or(false, |c| c.is_voxel())
+        && !collider_other.is_voxel()
+        && !collider.is_voxel()
     {
         const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
         let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);

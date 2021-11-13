@@ -893,7 +893,7 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
                 {
                     drop(terrain);
                     drop(block_change);
-                    let mut entity = server
+                    server
                         .state
                         .create_object(Default::default(), match block.get_sprite() {
                             // Create different containers depending on the original sprite
@@ -904,14 +904,12 @@ pub fn handle_bonk(server: &mut Server, pos: Vec3<f32>, owner: Option<Uid>, targ
                             _ => comp::object::Body::Pouch,
                         })
                         .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
-                        .with(item);
-
-                    entity = match block.get_sprite() {
-                        Some(SpriteKind::Bomb) => entity.with(comp::Object::Bomb { owner }),
-                        _ => entity,
-                    };
-
-                    entity.build();
+                        .with(item)
+                        .maybe_with(match block.get_sprite() {
+                            Some(SpriteKind::Bomb) => Some(comp::Object::Bomb { owner }),
+                            _ => None,
+                        })
+                        .build();
                 }
             };
         }

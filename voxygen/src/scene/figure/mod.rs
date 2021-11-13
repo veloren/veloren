@@ -4822,8 +4822,9 @@ impl FigureMgr {
                             &slow_jobs,
                         )
                     } else {
-                        println!("Cannot determine model");
-                        // No way to determine model
+                        // No way to determine model (this is okay, we might just not have received
+                        // the `Collider` for the entity yet. Wait until the
+                        // next tick.
                         break;
                     };
 

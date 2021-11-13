@@ -3657,6 +3657,7 @@ LillyPads: Some((
         ),
     ],
     wind_sway: 0.6,
+)),
 Bomb: Some((
     variations: [
         (

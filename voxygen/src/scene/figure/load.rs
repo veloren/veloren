@@ -87,6 +87,8 @@ fn recolor_grey(rgb: Rgb<u8>, color: Rgb<u8>) -> Rgb<u8> {
 /// A set of reloadable specifications for a Body.
 pub trait BodySpec: Sized {
     type Spec;
+    /// Cloned on each cache invalidation. If this type is expensive to clone,
+    /// place it behind an [`Arc`].
     type Manifests: Send + Sync + Clone;
     type Extra: Send + Sync;
 
