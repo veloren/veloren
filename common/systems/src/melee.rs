@@ -149,6 +149,7 @@ impl<'a> System<'a> for Sys {
                     let attacker_info = Some(AttackerInfo {
                         entity: attacker,
                         uid: *uid,
+                        group: read_data.groups.get(attacker),
                         energy: read_data.energies.get(attacker),
                         combo: read_data.combos.get(attacker),
                         inventory: read_data.inventories.get(attacker),
@@ -187,6 +188,7 @@ impl<'a> System<'a> for Sys {
                         attack_options,
                         1.0,
                         AttackSource::Melee,
+                        *read_data.time,
                         |e| server_emitter.emit(e),
                         |o| outcomes.push(o),
                     );

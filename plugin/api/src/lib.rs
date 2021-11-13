@@ -50,9 +50,11 @@ pub enum Action {
 /// ```
 /// Over this one:
 /// ```rust
+/// # use common::comp::Body;
+/// # use common::comp::body::humanoid;
 /// # use veloren_plugin_api::*;
 /// # let entityid = Uid(0);
-/// # fn retrieve_action(r: &Retrieve) -> Result<RetrieveResult, RetrieveError> { Ok(RetrieveResult::GetEntityHealth(Health::empty()))}
+/// # fn retrieve_action(r: &Retrieve) -> Result<RetrieveResult, RetrieveError> { Ok(RetrieveResult::GetEntityHealth(Health::new(Body::Humanoid(humanoid::Body::random()), 1))) }
 /// let life = if let RetrieveResult::GetEntityHealth(e) =
 ///     retrieve_action(&Retrieve::GetEntityHealth(entityid)).unwrap()
 /// {
@@ -75,9 +77,11 @@ pub enum Retrieve {
 ///
 /// Example:
 /// ```rust
+/// # use common::comp::Body;
+/// # use common::comp::body::humanoid;
 /// # use veloren_plugin_api::*;
 /// # let entityid = Uid(0);
-/// # fn retrieve_action(r: &Retrieve) -> Result<RetrieveResult, RetrieveError> { Ok(RetrieveResult::GetEntityHealth(Health::empty()))}
+/// # fn retrieve_action(r: &Retrieve) -> Result<RetrieveResult, RetrieveError> { Ok(RetrieveResult::GetEntityHealth(Health::new(Body::Humanoid(humanoid::Body::random()), 1)))}
 /// let life = if let RetrieveResult::GetEntityHealth(e) =
 ///     retrieve_action(&Retrieve::GetEntityHealth(entityid)).unwrap()
 /// {

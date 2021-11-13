@@ -1021,10 +1021,12 @@ fn handle_health(
             .write_storage::<comp::Health>()
             .get_mut(target)
         {
+            let time = server.state.ecs().read_resource::<Time>();
             let change = comp::HealthChange {
                 amount: hp - health.current(),
                 by: None,
                 cause: None,
+                time: *time,
             };
             health.change_by(change);
             Ok(())

@@ -1,6 +1,7 @@
 use crate::sync;
-use common::comp;
+use common::{comp, resources::Time};
 use serde::{Deserialize, Serialize};
+use specs::WorldExt;
 use std::marker::PhantomData;
 use sum_type::sum_type;
 
@@ -92,7 +93,12 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Auras(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Energy(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Combo(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::Health(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Health(mut comp) => {
+                // Time isn't synced between client and server so replace the Time from the
+                // server with the Client's local Time to enable accurate comparison.
+                comp.last_change.time = *world.read_resource::<Time>();
+                sync::handle_insert(comp, entity, world)
+            },
             EcsCompPacket::Poise(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::LightEmitter(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Inventory(comp) => sync::handle_insert(comp, entity, world),
@@ -132,7 +138,12 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Auras(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Energy(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Combo(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::Health(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Health(mut comp) => {
+                // Time isn't synced between client and server so replace the Time from the
+                // server with the Client's local Time to enable accurate comparison.
+                comp.last_change.time = *world.read_resource::<Time>();
+                sync::handle_modify(comp, entity, world)
+            },
             EcsCompPacket::Poise(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::LightEmitter(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Inventory(comp) => sync::handle_modify(comp, entity, world),

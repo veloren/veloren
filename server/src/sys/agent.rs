@@ -473,10 +473,13 @@ impl<'a> System<'a> for Sys {
                         // Target an entity that's attacking us if the attack
                         // was recent and we have a health component
                         match health {
-                            Some(health) if health.last_change.0 < DAMAGE_MEMORY_DURATION => {
-                                if let Some(by) = health.last_change.1.damage_by() {
+                            Some(health)
+                                if read_data.time.0 - health.last_change.time.0
+                                    < DAMAGE_MEMORY_DURATION =>
+                            {
+                                if let Some(by) = health.last_change.damage_by() {
                                     if let Some(attacker) =
-                                        read_data.uid_allocator.retrieve_entity_internal(by.id())
+                                        read_data.uid_allocator.retrieve_entity_internal(by.uid().0)
                                     {
                                         // If the target is dead or in a safezone, remove the
                                         // target and idle.
@@ -550,7 +553,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     }
                                 }
-                            },
+                            }
                             _ => {},
                         }
 
@@ -1581,17 +1584,19 @@ impl<'a> AgentData<'a> {
         let guard_duty = |e_health: &Health, e_alignment: Option<&Alignment>| {
             // I'm a guard and a villager is in distress
             let other_is_npc = matches!(e_alignment, Some(Alignment::Npc));
-            let remembers_damage = e_health.last_change.0 < 5.0;
+            let remembers_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
             let need_help = read_data.stats.get(*self.entity).map_or(false, |stats| {
                 stats.name == "Guard" && other_is_npc && remembers_damage
             });
 
-            let attacker_of = |health: &Health| health.last_change.1.damage_by();
+            let attacker_of = |health: &Health| health.last_change.damage_by();
 
             need_help
                 .then(|| {
                     attacker_of(e_health)
-                        .and_then(|attacker_uid| get_entity_by_id(attacker_uid.id(), read_data))
+                        .and_then(|damage_contributor| {
+                            get_entity_by_id(damage_contributor.uid().0, read_data)
+                        })
                         .and_then(|attacker| {
                             read_data
                                 .positions
@@ -4217,8 +4222,8 @@ impl<'a> AgentData<'a> {
     ) {
         if let Some(Target { target, .. }) = agent.target {
             if let Some(tgt_health) = read_data.healths.get(target) {
-                if let Some(by) = tgt_health.last_change.1.damage_by() {
-                    if let Some(attacker) = get_entity_by_id(by.id(), read_data) {
+                if let Some(by) = tgt_health.last_change.damage_by() {
+                    if let Some(attacker) = get_entity_by_id(by.uid().0, read_data) {
                         if agent.target.is_none() {
                             controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
                         }
@@ -4483,7 +4488,8 @@ fn decrement_awareness(agent: &mut Agent) {
 
 fn entity_was_attacked(entity: EcsEntity, read_data: &ReadData) -> bool {
     if let Some(entity_health) = read_data.healths.get(entity) {
-        entity_health.last_change.0 < 5.0 && entity_health.last_change.1.amount < 0.0
+        read_data.time.0 - entity_health.last_change.time.0 < 5.0
+            && entity_health.last_change.amount < 0.0
     } else {
         false
     }

@@ -54,7 +54,7 @@ use hashbrown::HashMap;
 use rand::{prelude::SliceRandom, thread_rng, Rng};
 use serde::Deserialize;
 use std::time::Instant;
-use tracing::{debug, warn};
+use tracing::{debug, trace, warn};
 
 /// Collection of all the tracks
 #[derive(Debug, Deserialize)]
@@ -289,9 +289,10 @@ impl MusicMgr {
             if interrupt {
                 self.last_interrupt = Instant::now();
             }
-            debug!(
+            trace!(
                 "pre-play_random_track: {:?} {:?}",
-                self.last_activity, music_state
+                self.last_activity,
+                music_state
             );
             if let Ok(next_activity) = self.play_random_track(audio, state, client, &music_state) {
                 self.last_activity = next_activity;

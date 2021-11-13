@@ -15,7 +15,7 @@ use tracing::{error, warn};
 //  - clients don't know which pets are theirs (could be easy to solve by
 //    putting owner uid in Role::Pet)
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct Group(u32);
 
 // TODO: Hack

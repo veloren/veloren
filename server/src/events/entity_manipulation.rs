@@ -11,6 +11,7 @@ use crate::{
 };
 use common::{
     combat,
+    combat::DamageContributor,
     comp::{
         self, aura, buff,
         chat::{KillSource, KillType},
@@ -33,9 +34,19 @@ use common_state::BlockChange;
 use comp::chat::GenericChatMsg;
 use hashbrown::HashSet;
 use rand::Rng;
-use specs::{join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, WorldExt};
-use tracing::error;
+use specs::{
+    join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
+};
+use std::{collections::HashMap, iter};
+use tracing::{debug, error};
 use vek::{Vec2, Vec3};
+
+#[derive(Hash, Eq, PartialEq)]
+enum DamageContrib {
+    Solo(EcsEntity),
+    Group(Group),
+    NotFound,
+}
 
 pub fn handle_poise(server: &Server, entity: EcsEntity, change: f32, knockback_dir: Vec3<f32>) {
     let ecs = &server.state.ecs();
@@ -153,7 +164,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
     // If it was a player that died
     if let Some(_player) = state.ecs().read_storage::<Player>().get(entity) {
         if let Some(uid) = state.ecs().read_storage::<Uid>().get(entity) {
-            let kill_source = match (last_change.cause, last_change.by) {
+            let kill_source = match (last_change.cause, last_change.by.map(|x| x.uid())) {
                 (Some(DamageSource::Melee), Some(by)) => get_attacker_name(KillType::Melee, by),
                 (Some(DamageSource::Projectile), Some(by)) => {
                     get_attacker_name(KillType::Projectile, by)
@@ -178,25 +189,20 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         }
     }
 
-    // Give EXP to the killer if entity had stats
+    // Award EXP to damage contributors
+    //
+    // NOTE: Debug logging is disabled by default for this module - to enable it add
+    // veloren_server::events::entity_manipulation=debug to RUST_LOG
     (|| {
-        let mut skill_set = state.ecs().write_storage::<SkillSet>();
+        let mut skill_sets = state.ecs().write_storage::<SkillSet>();
         let healths = state.ecs().read_storage::<Health>();
         let energies = state.ecs().read_storage::<Energy>();
         let inventories = state.ecs().read_storage::<Inventory>();
         let players = state.ecs().read_storage::<Player>();
         let bodies = state.ecs().read_storage::<Body>();
         let poises = state.ecs().read_storage::<comp::Poise>();
-        let by = if let Some(by) = last_change.by {
-            by
-        } else {
-            return;
-        };
-        let attacker = if let Some(attacker) = state.ecs().entity_from_uid(by.into()) {
-            attacker
-        } else {
-            return;
-        };
+        let positions = state.ecs().read_storage::<Pos>();
+        let groups = state.ecs().read_storage::<Group>();
 
         let (
             entity_skill_set,
@@ -205,37 +211,25 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             entity_inventory,
             entity_body,
             entity_poise,
+            entity_pos,
         ) = match (|| {
             Some((
-                skill_set.get(entity)?,
+                skill_sets.get(entity)?,
                 healths.get(entity)?,
                 energies.get(entity)?,
                 inventories.get(entity)?,
                 bodies.get(entity)?,
                 poises.get(entity)?,
+                positions.get(entity)?,
             ))
         })() {
             Some(comps) => comps,
             None => return,
         };
 
-        let groups = state.ecs().read_storage::<Group>();
-        let attacker_group = groups.get(attacker);
-        let destroyed_group = groups.get(entity);
-        // Don't give exp if attacker destroyed themselves or one of their group
-        // members, or a pvp kill
-        if (attacker_group.is_some() && attacker_group == destroyed_group)
-            || attacker == entity
-            || (players.get(entity).is_some() && players.get(attacker).is_some())
-        {
-            return;
-        }
-        // Maximum distance for other group members to receive exp
-        const MAX_EXP_DIST: f32 = 150.0;
-        // TODO: Scale xp from skillset rather than health, when NPCs have their own
-        // skillsets
+        // Calculate the total EXP award for the kill
         let msm = state.ecs().read_resource::<MaterialStatManifest>();
-        let mut exp_reward = combat::combat_rating(
+        let exp_reward = combat::combat_rating(
             entity_inventory,
             entity_health,
             entity_energy,
@@ -245,63 +239,134 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             &msm,
         ) * 20.0;
 
-        // Distribute EXP to group
-        let positions = state.ecs().read_storage::<Pos>();
+        let mut damage_contributors = HashMap::<DamageContrib, (u64, f32)>::new();
+        for (damage_contributor, damage) in entity_health.damage_contributions() {
+            match damage_contributor {
+                DamageContributor::Solo(uid) => {
+                    if let Some(attacker) = state.ecs().entity_from_uid(uid.0) {
+                        damage_contributors.insert(DamageContrib::Solo(attacker), (*damage, 0.0));
+                    } else {
+                        // An entity who was not in a group contributed damage but is now either
+                        // dead or offline. Add a placeholder to ensure that the contributor's exp
+                        // is discarded, not distributed between the other contributors
+                        damage_contributors.insert(DamageContrib::NotFound, (*damage, 0.0));
+                    }
+                },
+                DamageContributor::Group {
+                    entity_uid: _,
+                    group,
+                } => {
+                    // Damage made by entities who were in a group at the time of attack is
+                    // attributed to their group rather than themselves. This allows for all
+                    // members of a group to receive EXP, not just the damage dealers.
+                    let entry = damage_contributors
+                        .entry(DamageContrib::Group(*group))
+                        .or_insert((0, 0.0));
+                    (*entry).0 += damage;
+                },
+            }
+        }
+
+        // Calculate the percentage of total damage that each DamageContributor
+        // contributed
+        let total_damage: f64 = damage_contributors
+            .values()
+            .map(|(damage, _)| *damage as f64)
+            .sum();
+        damage_contributors
+            .iter_mut()
+            .for_each(|(_, (damage, percentage))| {
+                *percentage = (*damage as f64 / total_damage) as f32
+            });
+
         let alignments = state.ecs().read_storage::<Alignment>();
         let uids = state.ecs().read_storage::<Uid>();
         let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
         let inventories = state.ecs().read_storage::<comp::Inventory>();
-        if let (Some(attacker_group), Some(pos)) = (attacker_group, positions.get(entity)) {
-            // TODO: rework if change to groups makes it easier to iterate entities in a
-            // group
-            let mut non_pet_group_members_in_range = 1;
-            let members_in_range = (
-                &state.ecs().entities(),
-                &groups,
-                &positions,
-                alignments.maybe(),
-                &uids,
-            )
-                .join()
-                .filter(|(entity, group, member_pos, _, _)| {
-                    // Check if: in group, not main attacker, and in range
-                    *group == attacker_group
-                        && *entity != attacker
-                        && pos.0.distance_squared(member_pos.0) < MAX_EXP_DIST.powi(2)
-                })
-                .map(|(entity, _, _, alignment, uid)| {
-                    if !matches!(alignment, Some(Alignment::Owned(owner)) if owner != uid) {
-                        non_pet_group_members_in_range += 1;
-                    }
 
-                    (entity, uid)
-                })
-                .collect::<Vec<_>>();
-            // Divides exp reward by square root of number of people in group
-            exp_reward /= (non_pet_group_members_in_range as f32).sqrt();
-            members_in_range.into_iter().for_each(|(e, uid)| {
-                if let (Some(inventory), Some(mut skill_set)) =
-                    (inventories.get(e), skill_set.get_mut(e))
-                {
-                    handle_exp_gain(exp_reward, inventory, &mut skill_set, uid, &mut outcomes);
+        let destroyed_group = groups.get(entity);
+
+        let within_range = |attacker_pos: &Pos| {
+            // Maximum distance that an attacker must be from an entity at the time of its
+            // death to receive EXP for the kill
+            const MAX_EXP_DIST: f32 = 150.0;
+            entity_pos.0.distance_squared(attacker_pos.0) < MAX_EXP_DIST.powi(2)
+        };
+
+        let is_pvp_kill =
+            |attacker: Entity| players.get(entity).is_some() && players.get(attacker).is_some();
+
+        // Iterate through all contributors of damage for the killed entity, calculating
+        // how much EXP each contributor should be awarded based on their
+        // percentage of damage contribution
+        damage_contributors.iter().filter_map(|(damage_contributor, (_, damage_percent))| {
+            let contributor_exp = exp_reward * damage_percent;
+            match damage_contributor {
+                DamageContrib::Solo(attacker) => {
+                    // No exp for self kills or PvP 
+                    if *attacker == entity || is_pvp_kill(*attacker) { return None; }
+
+                    // Only give EXP to the attacker if they are within EXP range of the killed entity
+                    positions.get(*attacker).and_then(|attacker_pos| {
+                        if within_range(attacker_pos) {
+                            debug!("Awarding {} exp to individual {:?} who contributed {}% damage to the kill of {:?}", contributor_exp, attacker, *damage_percent * 100.0, entity);
+                            Some(iter::once((*attacker, contributor_exp)).collect())
+                        } else {
+                            None
+                        }
+                    })
+                },
+                DamageContrib::Group(group) => {
+                    // Don't give EXP to members in the destroyed entity's group
+                    if destroyed_group == Some(group) { return None; }
+
+                    // Only give EXP to members of the group that are within EXP range of the killed entity and aren't a pet
+                    let members_in_range = (
+                        &state.ecs().entities(),
+                        &groups,
+                        &positions,
+                        alignments.maybe(),
+                        &uids,
+                    )
+                        .join()
+                        .filter_map(|(member_entity, member_group, member_pos, alignment, uid)| {
+                            if *member_group == *group && within_range(member_pos) && !is_pvp_kill(member_entity) && !matches!(alignment, Some(Alignment::Owned(owner)) if owner != uid) {
+                                Some(member_entity)
+                            } else {
+                                None
+                            }
+                        })
+                        .collect::<Vec<_>>();
+
+                    if members_in_range.is_empty() { return None; }
+
+                    // Divide EXP reward by square root of number of people in group for group EXP scaling
+                    let exp_per_member = contributor_exp / (members_in_range.len() as f32).sqrt();
+
+                    debug!("Awarding {} exp per member of group ID {:?} with {} members which contributed {}% damage to the kill of {:?}", exp_per_member, group, members_in_range.len(), *damage_percent * 100.0, entity);
+                    Some(members_in_range.into_iter().map(|entity| (entity, exp_per_member)).collect::<Vec<(Entity, f32)>>())
+                },
+                DamageContrib::NotFound => {
+                    // Discard exp for dead/offline individual damage contributors
+                    None
                 }
-            });
-        }
-
-        if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory)) = (
-            skill_set.get_mut(attacker),
-            uids.get(attacker),
-            inventories.get(attacker),
-        ) {
-            // TODO: Discuss whether we should give EXP by Player Killing or not.
-            handle_exp_gain(
-                exp_reward,
-                attacker_inventory,
-                &mut attacker_skill_set,
-                attacker_uid,
-                &mut outcomes,
-            );
-        }
+            }
+        }).flatten().for_each(|(attacker, exp_reward)| {
+            // Process the calculated EXP rewards
+            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory)) = (
+                skill_sets.get_mut(attacker),
+                uids.get(attacker),
+                inventories.get(attacker),
+            ) {
+                handle_exp_gain(
+                    exp_reward,
+                    attacker_inventory,
+                    &mut attacker_skill_set,
+                    attacker_uid,
+                    &mut outcomes,
+                );
+            }
+        });
     })();
 
     let should_delete = if state
@@ -458,7 +523,9 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 stats.get(entity),
                 Some(DamageKind::Crushing),
             );
-            let change = damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0);
+            let time = server.state.ecs().read_resource::<Time>();
+            let change =
+                damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time);
             health.change_by(change);
         }
         // Handle poise change
@@ -774,6 +841,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                                 .map(|(entity, uid)| combat::AttackerInfo {
                                     entity,
                                     uid,
+                                    group: groups.get(entity),
                                     energy: energies.get(entity),
                                     combo: combos.get(entity),
                                     inventory: inventories.get(entity),
@@ -806,6 +874,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             target_group,
                         };
 
+                        let time = server.state.ecs().read_resource::<Time>();
                         attack.apply_attack(
                             attacker_info,
                             target_info,
@@ -813,6 +882,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             attack_options,
                             strength,
                             combat::AttackSource::Explosion,
+                            *time,
                             |e| emitter.emit(e),
                             |o| outcomes.push(o),
                         );

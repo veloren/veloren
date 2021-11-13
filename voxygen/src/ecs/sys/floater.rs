@@ -71,7 +71,7 @@ impl<'a> System<'a> for Sys {
                 // would just be a transient glitch in the display of these damage numbers)
                 // (maybe health changes could be sent to the client as a list
                 // of events)
-                if match health.last_change.1.by {
+                if match health.last_change.by.map(|x| x.uid()) {
                     // HealthSource::Damage { by: Some(by), .. }
                     // | HealthSource::Heal { by: Some(by) } => {
                     //     let by_me = my_uid.map_or(false, |&uid| by == uid);
@@ -101,12 +101,12 @@ impl<'a> System<'a> for Sys {
                     match last_floater {
                         Some(f) if f.timer < HP_ACCUMULATETIME => {
                             //TODO: Add "jumping" animation on floater when it changes its value
-                            f.hp_change += health.last_change.1.amount;
+                            f.hp_change += health.last_change.amount;
                         },
                         _ => {
                             hp_floater_list.floaters.push(HpFloater {
                                 timer: 0.0,
-                                hp_change: health.last_change.1.amount,
+                                hp_change: health.last_change.amount,
                                 rand: rand::random(),
                             });
                         },

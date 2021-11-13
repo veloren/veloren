@@ -35,7 +35,7 @@ use common::{
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, Last, LightAnimation,
         LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
     terrain::TerrainChunk,
     uid::UidAllocator,
@@ -752,9 +752,11 @@ impl FigureMgr {
             // Change in health as color!
             let col = health
                 .map(|h| {
+                    let time = scene_data.state.ecs().read_resource::<Time>();
+                    let time_since_health_change = time.0 - h.last_change.time.0;
                     vek::Rgba::broadcast(1.0)
                         + vek::Rgba::new(10.0, 10.0, 10.0, 0.0).map(|c| {
-                            (c / (1.0 + DAMAGE_FADE_COEFFICIENT * h.last_change.0)) as f32
+                            (c / (1.0 + DAMAGE_FADE_COEFFICIENT * time_since_health_change)) as f32
                         })
                 })
                 .unwrap_or_else(|| vek::Rgba::broadcast(1.0))
