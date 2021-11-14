@@ -6,6 +6,12 @@
         secondary: "common.abilities.sword.dash",
         abilities: [
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
+            // TODO: Remove these
+            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
+            (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
+            (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
+            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
+            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
         ],
     ),
     Tool(Axe): (

@@ -5,7 +5,7 @@ use super::{
     UI_MAIN, XP_COLOR,
 };
 use crate::{
-    hud,
+    hud::{self, util},
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
 };
 use conrod_core::{
@@ -18,12 +18,15 @@ use i18n::Localization;
 use client::{self, Client};
 use common::{
     comp::{
-        item::tool::ToolKind,
+        self,
+        ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
+        inventory::{item::tool::ToolKind, slot::EquipSlot},
         skills::{
             self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
             RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
+        Inventory,
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
@@ -39,6 +42,7 @@ widget_ids! {
         close,
         title,
         content_align,
+        // Skill tree stuffs
         exp_bar_bg,
         exp_bar_frame,
         exp_bar_content_align,
@@ -184,6 +188,18 @@ widget_ids! {
         skill_general_climb_2,
         skill_general_swim_0,
         skill_general_swim_1,
+        // Ability selection stuffs
+        ability_select_title,
+        active_abilities[],
+        active_abilities_bg[],
+        main_weap_title,
+        main_weap_abilities[],
+        main_weap_ability_titles[],
+        main_weap_ability_descs[],
+        off_weap_title,
+        off_weap_abilities[],
+        off_weap_ability_titles[],
+        off_weap_ability_descs[],
     }
 }
 
@@ -192,6 +208,8 @@ pub struct Diary<'a> {
     show: &'a Show,
     _client: &'a Client,
     skill_set: &'a SkillSet,
+    active_abilities: &'a ActiveAbilities,
+    inventory: &'a Inventory,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
@@ -208,11 +226,30 @@ pub struct Diary<'a> {
     created_btns_bot_r: usize,
 }
 
+pub struct DiaryShow {
+    pub skilltreetab: SelectedSkillTree,
+    pub section: DiarySection,
+    pub selected_ability: Option<AuxiliaryAbility>,
+}
+
+impl Default for DiaryShow {
+    fn default() -> Self {
+        Self {
+            skilltreetab: SelectedSkillTree::General,
+            section: DiarySection::SkillTrees,
+            selected_ability: None,
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 impl<'a> Diary<'a> {
     pub fn new(
         show: &'a Show,
         _client: &'a Client,
         skill_set: &'a SkillSet,
+        active_abilities: &'a ActiveAbilities,
+        inventory: &'a Inventory,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
@@ -225,6 +262,8 @@ impl<'a> Diary<'a> {
             show,
             _client,
             skill_set,
+            active_abilities,
+            inventory,
             imgs,
             item_imgs,
             fonts,
@@ -259,6 +298,14 @@ pub enum Event {
     Close,
     ChangeSkillTree(SelectedSkillTree),
     UnlockSkill(Skill),
+    ChangeSection(DiarySection),
+    SelectAbility(Option<AuxiliaryAbility>),
+    ChangeAbility(usize, AuxiliaryAbility),
+}
+
+pub enum DiarySection {
+    SkillTrees,
+    AbilitySelection,
 }
 
 impl<'a> Widget for Diary<'a> {
@@ -294,7 +341,6 @@ impl<'a> Widget for Diary<'a> {
         .font_id(self.fonts.cyri.conrod_id)
         .desc_text_color(TEXT_COLOR);
 
-        let sel_tab = &self.show.skilltreetab;
         //Animation timer Frame
         let frame_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8;
 
@@ -311,10 +357,26 @@ impl<'a> Widget for Diary<'a> {
             .set(state.frame, ui);
 
         // Icon
-        Image::new(self.imgs.spellbook_button)
+        // Image::new(self.imgs.spellbook_button)
+        //     .w_h(30.0, 27.0)
+        //     .top_left_with_margins_on(state.frame, 8.0, 8.0)
+        //     .set(state.icon, ui);
+        // Hack to get this to work for now, use spellbook image in top left as a button
+        if Button::image(self.imgs.spellbook_button)
             .w_h(30.0, 27.0)
             .top_left_with_margins_on(state.frame, 8.0, 8.0)
-            .set(state.icon, ui);
+            .set(state.icon, ui)
+            .was_clicked()
+        {
+            match self.show.diary_fields.section {
+                DiarySection::SkillTrees => {
+                    events.push(Event::ChangeSection(DiarySection::AbilitySelection))
+                },
+                DiarySection::AbilitySelection => {
+                    events.push(Event::ChangeSection(DiarySection::SkillTrees))
+                },
+            }
+        }
 
         // X-Button
         if Button::image(self.imgs.close_button)
@@ -343,239 +405,454 @@ impl<'a> Widget for Diary<'a> {
 
         // Contents
 
-        // Skill Trees
+        match self.show.diary_fields.section {
+            DiarySection::SkillTrees => {
+                // Skill Trees
+                let sel_tab = &self.show.diary_fields.skilltreetab;
 
-        // Skill Tree Selection
-        state.update(|s| {
-            s.weapon_btns
-                .resize(TREES.len(), &mut ui.widget_id_generator())
-        });
-        state.update(|s| {
-            s.weapon_imgs
-                .resize(TREES.len(), &mut ui.widget_id_generator())
-        });
-        state.update(|s| {
-            s.lock_imgs
-                .resize(TREES.len(), &mut ui.widget_id_generator())
-        });
+                // Skill Tree Selection
+                state.update(|s| {
+                    s.weapon_btns
+                        .resize(TREES.len(), &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.weapon_imgs
+                        .resize(TREES.len(), &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.lock_imgs
+                        .resize(TREES.len(), &mut ui.widget_id_generator())
+                });
 
-        // Draw skillgroup tab's icons
-        for (i, skilltree_name) in TREES.iter().copied().enumerate() {
-            let skill_group = match skill_tree_from_str(skilltree_name) {
-                Some(st) => st,
-                None => {
-                    tracing::warn!("unexpected tree name: {}", skilltree_name);
-                    continue;
-                },
-            };
+                // Draw skillgroup tab's icons
+                for (i, skilltree_name) in TREES.iter().copied().enumerate() {
+                    let skill_group = match skill_tree_from_str(skilltree_name) {
+                        Some(st) => st,
+                        None => {
+                            tracing::warn!("unexpected tree name: {}", skilltree_name);
+                            continue;
+                        },
+                    };
 
-            // Check if we have this skill tree unlocked
-            let locked = !self.skill_set.skill_group_accessible(skill_group);
+                    // Check if we have this skill tree unlocked
+                    let locked = !self.skill_set.skill_group_accessible(skill_group);
 
-            // Weapon button image
-            let btn_img = {
-                let img = match skilltree_name {
-                    "General Combat" => self.imgs.swords_crossed,
-                    "Sword" => self.imgs.sword,
-                    "Hammer" => self.imgs.hammer,
-                    "Axe" => self.imgs.axe,
-                    "Sceptre" => self.imgs.sceptre,
-                    "Bow" => self.imgs.bow,
-                    "Fire Staff" => self.imgs.staff,
-                    "Mining" => self.imgs.mining,
-                    _ => self.imgs.nothing,
-                };
+                    // Weapon button image
+                    let btn_img = {
+                        let img = match skilltree_name {
+                            "General Combat" => self.imgs.swords_crossed,
+                            "Sword" => self.imgs.sword,
+                            "Hammer" => self.imgs.hammer,
+                            "Axe" => self.imgs.axe,
+                            "Sceptre" => self.imgs.sceptre,
+                            "Bow" => self.imgs.bow,
+                            "Fire Staff" => self.imgs.staff,
+                            "Mining" => self.imgs.mining,
+                            _ => self.imgs.nothing,
+                        };
 
-                if i == 0 {
-                    Image::new(img).top_left_with_margins_on(state.content_align, 10.0, 5.0)
-                } else {
-                    Image::new(img).down_from(state.weapon_btns[i - 1], 5.0)
+                        if i == 0 {
+                            Image::new(img).top_left_with_margins_on(state.content_align, 10.0, 5.0)
+                        } else {
+                            Image::new(img).down_from(state.weapon_btns[i - 1], 5.0)
+                        }
+                    };
+                    btn_img.w_h(50.0, 50.0).set(state.weapon_imgs[i], ui);
+
+                    // Lock Image
+                    if locked {
+                        Image::new(self.imgs.lock)
+                            .w_h(50.0, 50.0)
+                            .middle_of(state.weapon_imgs[i])
+                            .graphics_for(state.weapon_imgs[i])
+                            .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
+                            .set(state.lock_imgs[i], ui);
+                    }
+
+                    // Weapon icons
+                    let have_points = {
+                        let available = self.skill_set.available_sp(skill_group);
+                        let earned = self.skill_set.earned_sp(skill_group);
+                        let total_cost = skill_group.total_skill_point_cost();
+
+                        available > 0 && (earned - available) < total_cost
+                    };
+
+                    let border_image = if skill_group == *sel_tab || have_points {
+                        self.imgs.wpn_icon_border_pressed
+                    } else {
+                        self.imgs.wpn_icon_border
+                    };
+
+                    let hover_image = if skill_group == *sel_tab {
+                        self.imgs.wpn_icon_border_pressed
+                    } else {
+                        self.imgs.wpn_icon_border_mo
+                    };
+
+                    let press_image = if skill_group == *sel_tab {
+                        self.imgs.wpn_icon_border_pressed
+                    } else {
+                        self.imgs.wpn_icon_border_press
+                    };
+
+                    let color = if skill_group != *sel_tab && have_points {
+                        Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+                    } else {
+                        TEXT_COLOR
+                    };
+
+                    let tooltip_txt = if locked {
+                        self.localized_strings.get("hud.skill.not_unlocked")
+                    } else {
+                        ""
+                    };
+
+                    let wpn_button = Button::image(border_image)
+                        .w_h(50.0, 50.0)
+                        .hover_image(hover_image)
+                        .press_image(press_image)
+                        .middle_of(state.weapon_imgs[i])
+                        .image_color(color)
+                        .with_tooltip(
+                            self.tooltip_manager,
+                            skilltree_name,
+                            tooltip_txt,
+                            &diary_tooltip,
+                            TEXT_COLOR,
+                        )
+                        .set(state.weapon_btns[i], ui);
+                    if wpn_button.was_clicked() {
+                        events.push(Event::ChangeSkillTree(skill_group))
+                    }
                 }
-            };
-            btn_img.w_h(50.0, 50.0).set(state.weapon_imgs[i], ui);
 
-            // Lock Image
-            if locked {
-                Image::new(self.imgs.lock)
-                    .w_h(50.0, 50.0)
-                    .middle_of(state.weapon_imgs[i])
-                    .graphics_for(state.weapon_imgs[i])
-                    .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
-                    .set(state.lock_imgs[i], ui);
-            }
+                // Exp Bars and Rank Display
+                let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
+                let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
+                let exp_percentage = current_exp / max_exp;
+                let rank = self.skill_set.earned_sp(*sel_tab);
+                let rank_txt = format!("{}", rank);
+                let exp_txt = format!("{}/{}", current_exp, max_exp);
+                let available_pts = self.skill_set.available_sp(*sel_tab);
+                let available_pts_txt = format!("{}", available_pts);
+                Image::new(self.imgs.diary_exp_bg)
+                    .w_h(480.0, 76.0)
+                    .mid_bottom_with_margin_on(state.content_align, 10.0)
+                    .set(state.exp_bar_bg, ui);
+                Rectangle::fill_with([400.0, 40.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(state.exp_bar_bg, 32.0, 40.0)
+                    .set(state.exp_bar_content_align, ui);
+                Image::new(self.imgs.bar_content)
+                    .w_h(400.0 * exp_percentage, 40.0)
+                    .top_left_with_margins_on(state.exp_bar_content_align, 0.0, 0.0)
+                    .color(Some(XP_COLOR))
+                    .set(state.exp_bar_content, ui);
+                Image::new(self.imgs.diary_exp_frame)
+                    .w_h(480.0, 76.0)
+                    .color(Some(UI_HIGHLIGHT_0))
+                    .middle_of(state.exp_bar_bg)
+                    .set(state.exp_bar_frame, ui);
+                // Show EXP bar text on hover
+                if ui
+                    .widget_input(state.exp_bar_frame)
+                    .mouse()
+                    .map_or(false, |m| m.is_over())
+                {
+                    Text::new(&exp_txt)
+                        .mid_top_with_margin_on(state.exp_bar_frame, 47.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(14))
+                        .color(TEXT_COLOR)
+                        .graphics_for(state.exp_bar_frame)
+                        .set(state.exp_bar_txt, ui);
+                }
+                Text::new(&rank_txt)
+                    .mid_top_with_margin_on(state.exp_bar_frame, match rank {
+                        0..=99 => 5.0,
+                        100..=999 => 8.0,
+                        _ => 10.0,
+                    })
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(match rank {
+                        0..=99 => 28,
+                        100..=999 => 21,
+                        _ => 15,
+                    }))
+                    .color(TEXT_COLOR)
+                    .set(state.exp_bar_rank, ui);
 
-            // Weapon icons
-            let have_points = {
-                let available = self.skill_set.available_sp(skill_group);
-                let earned = self.skill_set.earned_sp(skill_group);
-                let total_cost = skill_group.total_skill_point_cost();
-
-                available > 0 && (earned - available) < total_cost
-            };
-
-            let border_image = if skill_group == *sel_tab || have_points {
-                self.imgs.wpn_icon_border_pressed
-            } else {
-                self.imgs.wpn_icon_border
-            };
-
-            let hover_image = if skill_group == *sel_tab {
-                self.imgs.wpn_icon_border_pressed
-            } else {
-                self.imgs.wpn_icon_border_mo
-            };
-
-            let press_image = if skill_group == *sel_tab {
-                self.imgs.wpn_icon_border_pressed
-            } else {
-                self.imgs.wpn_icon_border_press
-            };
-
-            let color = if skill_group != *sel_tab && have_points {
-                Color::Rgba(0.92, 0.76, 0.0, frame_ani)
-            } else {
-                TEXT_COLOR
-            };
-
-            let tooltip_txt = if locked {
-                self.localized_strings.get("hud.skill.not_unlocked")
-            } else {
-                ""
-            };
-
-            let wpn_button = Button::image(border_image)
-                .w_h(50.0, 50.0)
-                .hover_image(hover_image)
-                .press_image(press_image)
-                .middle_of(state.weapon_imgs[i])
-                .image_color(color)
-                .with_tooltip(
-                    self.tooltip_manager,
-                    skilltree_name,
-                    tooltip_txt,
-                    &diary_tooltip,
-                    TEXT_COLOR,
+                Text::new(
+                    &self
+                        .localized_strings
+                        .get("hud.skill.sp_available")
+                        .replace("{number}", &available_pts_txt),
                 )
-                .set(state.weapon_btns[i], ui);
-            if wpn_button.was_clicked() {
-                events.push(Event::ChangeSkillTree(skill_group))
-            }
-        }
-
-        // Exp Bars and Rank Display
-        let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
-        let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
-        let exp_percentage = current_exp / max_exp;
-        let rank = self.skill_set.earned_sp(*sel_tab);
-        let rank_txt = format!("{}", rank);
-        let exp_txt = format!("{}/{}", current_exp, max_exp);
-        let available_pts = self.skill_set.available_sp(*sel_tab);
-        let available_pts_txt = format!("{}", available_pts);
-        Image::new(self.imgs.diary_exp_bg)
-            .w_h(480.0, 76.0)
-            .mid_bottom_with_margin_on(state.content_align, 10.0)
-            .set(state.exp_bar_bg, ui);
-        Rectangle::fill_with([400.0, 40.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.exp_bar_bg, 32.0, 40.0)
-            .set(state.exp_bar_content_align, ui);
-        Image::new(self.imgs.bar_content)
-            .w_h(400.0 * exp_percentage, 40.0)
-            .top_left_with_margins_on(state.exp_bar_content_align, 0.0, 0.0)
-            .color(Some(XP_COLOR))
-            .set(state.exp_bar_content, ui);
-        Image::new(self.imgs.diary_exp_frame)
-            .w_h(480.0, 76.0)
-            .color(Some(UI_HIGHLIGHT_0))
-            .middle_of(state.exp_bar_bg)
-            .set(state.exp_bar_frame, ui);
-        // Show EXP bar text on hover
-        if ui
-            .widget_input(state.exp_bar_frame)
-            .mouse()
-            .map_or(false, |m| m.is_over())
-        {
-            Text::new(&exp_txt)
-                .mid_top_with_margin_on(state.exp_bar_frame, 47.0)
+                .mid_top_with_margin_on(state.content_align, 700.0)
                 .font_id(self.fonts.cyri.conrod_id)
-                .font_size(self.fonts.cyri.scale(14))
-                .color(TEXT_COLOR)
-                .graphics_for(state.exp_bar_frame)
-                .set(state.exp_bar_txt, ui);
-        }
-        Text::new(&rank_txt)
-            .mid_top_with_margin_on(state.exp_bar_frame, match rank {
-                0..=99 => 5.0,
-                100..=999 => 8.0,
-                _ => 10.0,
-            })
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(match rank {
-                0..=99 => 28,
-                100..=999 => 21,
-                _ => 15,
-            }))
-            .color(TEXT_COLOR)
-            .set(state.exp_bar_rank, ui);
+                .font_size(self.fonts.cyri.scale(28))
+                .color(if available_pts > 0 {
+                    Color::Rgba(0.92, 0.76, 0.0, frame_ani)
+                } else {
+                    TEXT_COLOR
+                })
+                .set(state.available_pts_txt, ui);
+                // Skill Trees
+                // Alignment Placing
+                let x = 200.0;
+                let y = 100.0;
+                // Alignment rectangles for skills
+                Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(state.content_align, y, x)
+                    .set(state.skills_top_l_align, ui);
+                Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
+                    .top_right_with_margins_on(state.content_align, y, x)
+                    .set(state.skills_top_r_align, ui);
+                Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
+                    .bottom_left_with_margins_on(state.content_align, y, x)
+                    .set(state.skills_bot_l_align, ui);
+                Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
+                    .bottom_right_with_margins_on(state.content_align, y, x)
+                    .set(state.skills_bot_r_align, ui);
 
-        Text::new(
-            &self
-                .localized_strings
-                .get("hud.skill.sp_available")
-                .replace("{number}", &available_pts_txt),
-        )
-        .mid_top_with_margin_on(state.content_align, 700.0)
-        .font_id(self.fonts.cyri.conrod_id)
-        .font_size(self.fonts.cyri.scale(28))
-        .color(if available_pts > 0 {
-            Color::Rgba(0.92, 0.76, 0.0, frame_ani)
-        } else {
-            TEXT_COLOR
-        })
-        .set(state.available_pts_txt, ui);
-        // Skill Trees
-        // Alignment Placing
-        let x = 200.0;
-        let y = 100.0;
-        // Alignment rectangles for skills
-        Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-            .top_left_with_margins_on(state.content_align, y, x)
-            .set(state.skills_top_l_align, ui);
-        Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-            .top_right_with_margins_on(state.content_align, y, x)
-            .set(state.skills_top_r_align, ui);
-        Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-            .bottom_left_with_margins_on(state.content_align, y, x)
-            .set(state.skills_bot_l_align, ui);
-        Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-            .bottom_right_with_margins_on(state.content_align, y, x)
-            .set(state.skills_bot_r_align, ui);
+                match sel_tab {
+                    SelectedSkillTree::General => {
+                        self.handle_general_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Sword) => {
+                        self.handle_sword_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Hammer) => {
+                        self.handle_hammer_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Axe) => {
+                        self.handle_axe_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
+                        self.handle_sceptre_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Bow) => {
+                        self.handle_bow_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Staff) => {
+                        self.handle_staff_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    SelectedSkillTree::Weapon(ToolKind::Pick) => {
+                        self.handle_mining_skills_window(&diary_tooltip, state, ui, events)
+                    },
+                    _ => events,
+                }
+            },
+            DiarySection::AbilitySelection => {
+                use comp::ability::AbilityInput;
+                // Title for ability selection UI
+                Text::new("Ability Selection")
+                    .mid_top_with_margin_on(state.content_align, 2.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(34))
+                    .color(TEXT_COLOR)
+                    .set(state.ability_select_title, ui);
 
-        match sel_tab {
-            SelectedSkillTree::General => {
-                self.handle_general_skills_window(&diary_tooltip, state, ui, events)
+                // Display all active abilities on right of window
+                state.update(|s| {
+                    s.active_abilities
+                        .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.active_abilities_bg
+                        .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
+                });
+                for i in 0..MAX_ABILITIES {
+                    let ability_id = self
+                        .active_abilities
+                        .get_ability(AbilityInput::Auxiliary(i))
+                        .ability_id(Some(self.inventory));
+
+                    let image_size = 50.0;
+                    let image_offsets = 60.0 * i as f64;
+                    Image::new(self.imgs.inv_slot)
+                        .w_h(image_size, image_size)
+                        .top_right_with_margins_on(state.content_align, 150.0 + image_offsets, 30.0)
+                        .set(state.active_abilities_bg[i], ui);
+                    let ability_image = ability_id
+                        .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
+                    let (ability_title, ability_desc) =
+                        util::ability_description(ability_id.unwrap_or(""));
+                    if Button::image(ability_image)
+                        .w_h(image_size, image_size)
+                        .top_right_with_margins_on(state.content_align, 150.0 + image_offsets, 30.0)
+                        .with_tooltip(
+                            self.tooltip_manager,
+                            ability_title,
+                            ability_desc,
+                            &diary_tooltip,
+                            TEXT_COLOR,
+                        )
+                        .set(state.active_abilities[i], ui)
+                        .was_clicked()
+                    {
+                        events.push(Event::ChangeAbility(
+                            i,
+                            self.show
+                                .diary_fields
+                                .selected_ability
+                                .unwrap_or(AuxiliaryAbility::Empty),
+                        ));
+                        events.push(Event::SelectAbility(None));
+                    }
+                }
+
+                // Display list of abilities from main weapon
+                Text::new("Main Weapon Abilities")
+                    .top_left_with_margins_on(state.content_align, 75.0, 25.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(28))
+                    .color(TEXT_COLOR)
+                    .set(state.main_weap_title, ui);
+
+                // TODO: Maybe try to keep this as an iterator. Not sure how to get length
+                // though since size_hint didn't work
+                let main_weap_abilities: Vec<_> = ActiveAbilities::iter_unlocked_abilities(
+                    Some(self.inventory),
+                    Some(self.skill_set),
+                    EquipSlot::ActiveMainhand,
+                )
+                .map(AuxiliaryAbility::MainWeapon)
+                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
+                .collect();
+
+                let main_abilities_length = main_weap_abilities.len();
+
+                state.update(|s| {
+                    s.main_weap_abilities
+                        .resize(main_abilities_length, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.main_weap_ability_titles
+                        .resize(main_abilities_length, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.main_weap_ability_descs
+                        .resize(main_abilities_length, &mut ui.widget_id_generator())
+                });
+
+                for (i, (ability_id, ability)) in main_weap_abilities.iter().enumerate() {
+                    let image_offsets = 120.0 * i as f64;
+                    let ability_image = ability_id
+                        .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
+                    let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
+                    {
+                        TEXT_COLOR
+                    } else {
+                        XP_COLOR
+                    };
+                    let (ability_title, ability_desc) =
+                        util::ability_description(ability_id.unwrap_or(""));
+                    if Button::image(ability_image)
+                        .w_h(100.0, 100.0)
+                        .top_left_with_margins_on(state.main_weap_title, 40.0 + image_offsets, 0.0)
+                        .set(state.main_weap_abilities[i], ui)
+                        .was_clicked()
+                    {
+                        if Some(*ability) != self.show.diary_fields.selected_ability {
+                            events.push(Event::SelectAbility(Some(*ability)));
+                        } else {
+                            events.push(Event::SelectAbility(None));
+                        }
+                    }
+                    Text::new(ability_title)
+                        .top_left_with_margins_on(state.main_weap_abilities[i], 5.0, 125.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .color(ability_color)
+                        .set(state.main_weap_ability_titles[i], ui);
+                    Text::new(ability_desc)
+                        .top_left_with_margins_on(state.main_weap_abilities[i], 30.0, 125.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(16))
+                        .color(ability_color)
+                        .set(state.main_weap_ability_descs[i], ui);
+                }
+
+                // Display list of abilities from off weapon
+                let offset_state = if main_abilities_length > 0 {
+                    state.main_weap_abilities[main_abilities_length - 1]
+                } else {
+                    state.main_weap_title
+                };
+                Text::new("Off Weapon Abilities")
+                    .bottom_left_with_margins_on(offset_state, -50.0, 0.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(28))
+                    .color(TEXT_COLOR)
+                    .set(state.off_weap_title, ui);
+
+                // TODO: Maybe try to keep this as an iterator. Not sure how to get length
+                // though since size_hint didn't work
+                let off_weap_abilities: Vec<_> = ActiveAbilities::iter_unlocked_abilities(
+                    Some(self.inventory),
+                    Some(self.skill_set),
+                    EquipSlot::ActiveOffhand,
+                )
+                .map(AuxiliaryAbility::OffWeapon)
+                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
+                .collect();
+
+                let off_abilities_length = off_weap_abilities.len();
+
+                state.update(|s| {
+                    s.off_weap_abilities
+                        .resize(off_abilities_length, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.off_weap_ability_titles
+                        .resize(off_abilities_length, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.off_weap_ability_descs
+                        .resize(off_abilities_length, &mut ui.widget_id_generator())
+                });
+
+                for (i, (ability_id, ability)) in off_weap_abilities.iter().enumerate() {
+                    let image_offsets = 120.0 * i as f64;
+                    let ability_image = ability_id
+                        .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
+                    let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
+                    {
+                        TEXT_COLOR
+                    } else {
+                        XP_COLOR
+                    };
+                    let (ability_title, ability_desc) =
+                        util::ability_description(ability_id.unwrap_or(""));
+                    if Button::image(ability_image)
+                        .w_h(100.0, 100.0)
+                        .top_left_with_margins_on(state.off_weap_title, 40.0 + image_offsets, 0.0)
+                        .set(state.off_weap_abilities[i], ui)
+                        .was_clicked()
+                    {
+                        if Some(*ability) != self.show.diary_fields.selected_ability {
+                            events.push(Event::SelectAbility(Some(*ability)));
+                        } else {
+                            events.push(Event::SelectAbility(None));
+                        }
+                    }
+                    Text::new(ability_title)
+                        .top_left_with_margins_on(state.off_weap_abilities[i], 5.0, 125.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(24))
+                        .color(ability_color)
+                        .set(state.off_weap_ability_titles[i], ui);
+                    Text::new(ability_desc)
+                        .top_left_with_margins_on(state.off_weap_abilities[i], 30.0, 125.0)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(16))
+                        .color(ability_color)
+                        .set(state.off_weap_ability_descs[i], ui);
+                }
+
+                events
             },
-            SelectedSkillTree::Weapon(ToolKind::Sword) => {
-                self.handle_sword_skills_window(&diary_tooltip, state, ui, events)
-            },
-            SelectedSkillTree::Weapon(ToolKind::Hammer) => {
-                self.handle_hammer_skills_window(&diary_tooltip, state, ui, events)
-            },
-            SelectedSkillTree::Weapon(ToolKind::Axe) => {
-                self.handle_axe_skills_window(&diary_tooltip, state, ui, events)
-            },
-            SelectedSkillTree::Weapon(ToolKind::Sceptre) => {
-                self.handle_sceptre_skills_window(&diary_tooltip, state, ui, events)
-            },
-            SelectedSkillTree::Weapon(ToolKind::Bow) => {
-                self.handle_bow_skills_window(&diary_tooltip, state, ui, events)
-            },
-            SelectedSkillTree::Weapon(ToolKind::Staff) => {
-                self.handle_staff_skills_window(&diary_tooltip, state, ui, events)
-            },
-            SelectedSkillTree::Weapon(ToolKind::Pick) => {
-                self.handle_mining_skills_window(&diary_tooltip, state, ui, events)
-            },
-            _ => events,
         }
     }
 }

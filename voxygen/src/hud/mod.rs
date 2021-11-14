@@ -535,7 +535,6 @@ pub enum Event {
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
-    // TODO: This variant currently unused. UI is needed for it to be properly used.
     ChangeAbility(usize, comp::ability::AuxiliaryAbility),
 
     SettingsChange(SettingsChange),
@@ -651,7 +650,7 @@ pub struct Show {
     ingame: bool,
     chat_tab_settings_index: Option<usize>,
     settings_tab: SettingsTab,
-    skilltreetab: SelectedSkillTree,
+    diary_fields: diary::DiaryShow,
     crafting_tab: CraftingTab,
     crafting_search_key: Option<String>,
     craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
@@ -746,6 +745,7 @@ impl Show {
             self.salvage = false;
             self.bag = false;
             self.map = false;
+            self.diary_fields = diary::DiaryShow::default();
             self.diary = open;
             self.want_grab = !open;
         }
@@ -851,7 +851,7 @@ impl Show {
     }
 
     fn open_skill_tree(&mut self, tree_sel: SelectedSkillTree) {
-        self.skilltreetab = tree_sel;
+        self.diary_fields.skilltreetab = tree_sel;
         self.social = false;
     }
 
@@ -1045,7 +1045,7 @@ impl Hud {
                 group_menu: false,
                 chat_tab_settings_index: None,
                 settings_tab: SettingsTab::Interface,
-                skilltreetab: SelectedSkillTree::General,
+                diary_fields: diary::DiaryShow::default(),
                 crafting_tab: CraftingTab::All,
                 crafting_search_key: None,
                 craft_sprite: None,
@@ -3097,11 +3097,17 @@ impl Hud {
         if self.show.diary {
             let entity = client.entity();
             let skill_sets = ecs.read_storage::<comp::SkillSet>();
-            if let Some(skill_set) = skill_sets.get(entity) {
+            if let (Some(skill_set), Some(active_abilities), Some(inventory)) = (
+                skill_sets.get(entity),
+                active_abilities.get(entity),
+                inventories.get(entity),
+            ) {
                 for event in Diary::new(
                     &self.show,
                     client,
                     skill_set,
+                    active_abilities,
+                    inventory,
                     &self.imgs,
                     &self.item_imgs,
                     &self.fonts,
@@ -3122,6 +3128,15 @@ impl Hud {
                             self.show.open_skill_tree(tree_sel)
                         },
                         diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
+                        diary::Event::ChangeSection(section) => {
+                            self.show.diary_fields.section = section;
+                        },
+                        diary::Event::SelectAbility(ability) => {
+                            self.show.diary_fields.selected_ability = ability;
+                        },
+                        diary::Event::ChangeAbility(slot, new_ability) => {
+                            events.push(Event::ChangeAbility(slot, new_ability))
+                        },
                     }
                 }
             }

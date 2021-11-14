@@ -60,10 +60,12 @@ impl Default for ActiveAbilities {
 }
 
 impl ActiveAbilities {
-    pub fn new(inv: Option<&Inventory>, skill_set: Option<&SkillSet>) -> Self {
-        let mut pool = Self::default();
-        pool.auto_update(inv, skill_set);
-        pool
+    pub fn new(_inv: Option<&Inventory>, _skill_set: Option<&SkillSet>) -> Self {
+        // Maybe hook into loading saved variants when they exist here?
+        // let mut pool = Self::default();
+        // pool.auto_update(inv, skill_set);
+        // pool
+        Self::default()
     }
 
     pub fn change_ability(&mut self, slot: usize, new_ability: AuxiliaryAbility) {
@@ -150,35 +152,36 @@ impl ActiveAbilities {
         }
     }
 
-    // TODO: Potentially remove after there is an actual UI
-    pub fn auto_update(&mut self, inv: Option<&Inventory>, skill_set: Option<&SkillSet>) {
-        fn iter_unlocked_abilities<'a>(
-            inv: Option<&'a Inventory>,
-            skill_set: Option<&'a SkillSet>,
-            equip_slot: EquipSlot,
-        ) -> impl Iterator<Item = usize> + 'a {
-            inv.and_then(|inv| inv.equipped(equip_slot))
-                .into_iter()
-                .flat_map(|i| &i.item_config_expect().abilities.abilities)
-                .enumerate()
-                .filter_map(move |(i, (skill, _))| {
-                    skill
-                        .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
-                        .then_some(i)
-                })
-        }
-
-        let main_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
-            .map(AuxiliaryAbility::MainWeapon);
-        let off_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
-            .map(AuxiliaryAbility::OffWeapon);
-
-        (0..MAX_ABILITIES)
-            .zip(main_abilities.chain(off_abilities))
-            .for_each(|(i, ability)| {
-                self.change_ability(i, ability);
+    pub fn iter_unlocked_abilities<'a>(
+        inv: Option<&'a Inventory>,
+        skill_set: Option<&'a SkillSet>,
+        equip_slot: EquipSlot,
+    ) -> impl Iterator<Item = usize> + 'a {
+        inv.and_then(|inv| inv.equipped(equip_slot))
+            .into_iter()
+            .flat_map(|i| &i.item_config_expect().abilities.abilities)
+            .enumerate()
+            .filter_map(move |(i, (skill, _))| {
+                skill
+                    .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                    .then_some(i)
             })
     }
+
+    // TODO: Maybe keep this for autopopulating a new combination of weapons?
+    // pub fn auto_update(&mut self, inv: Option<&Inventory>, skill_set:
+    // Option<&SkillSet>) {     let main_abilities =
+    // Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
+    //         .map(AuxiliaryAbility::MainWeapon);
+    //     let off_abilities = Self::iter_unlocked_abilities(inv, skill_set,
+    // EquipSlot::ActiveOffhand)         .map(AuxiliaryAbility::OffWeapon);
+
+    //     (0..MAX_ABILITIES)
+    //         .zip(main_abilities.chain(off_abilities))
+    //         .for_each(|(i, ability)| {
+    //             self.change_ability(i, ability);
+    //         })
+    // }
 }
 
 pub enum AbilityInput {
