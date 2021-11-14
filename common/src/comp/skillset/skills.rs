@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// handled by dedicated ECS systems.
 // NOTE: if skill does use some constant, add it to corresponding
 // SkillTree Modifiers below.
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum Skill {
     General(GeneralSkill),
     Sword(SwordSkill),
@@ -26,7 +26,7 @@ pub enum Skill {
     UnlockGroup(SkillGroupKind),
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum SwordSkill {
     // Sword passives
     InterruptingAttacks,
@@ -50,7 +50,7 @@ pub enum SwordSkill {
     SSpins,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum AxeSkill {
     // Double strike upgrades
     DsCombo,
@@ -71,7 +71,7 @@ pub enum AxeSkill {
     LDistance,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum HammerSkill {
     // Single strike upgrades
     SsKnockback,
@@ -92,7 +92,7 @@ pub enum HammerSkill {
     LRange,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum BowSkill {
     // Passives
     ProjSpeed,
@@ -114,7 +114,7 @@ pub enum BowSkill {
     SSpread,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum StaffSkill {
     // Basic ranged upgrades
     BDamage,
@@ -133,7 +133,7 @@ pub enum StaffSkill {
     SCost,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum SceptreSkill {
     // Lifesteal beam upgrades
     LDamage,
@@ -153,31 +153,31 @@ pub enum SceptreSkill {
     ACost,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum GeneralSkill {
     HealthIncrease,
     EnergyIncrease,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum RollSkill {
     Cost,
     Strength,
     Duration,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum ClimbSkill {
     Cost,
     Speed,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum SwimSkill {
     Speed,
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum MiningSkill {
     Speed,
     OreGain,

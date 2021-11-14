@@ -5,18 +5,20 @@ use crate::{
         skills::{GeneralSkill, Skill},
     },
 };
-use hashbrown::{HashMap, HashSet};
+use bincode;
+use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::hash::Hash;
+use std::{collections::BTreeSet, hash::Hash};
 use tracing::{trace, warn};
 
 pub mod skills;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillTreeMap(HashMap<SkillGroupKind, HashSet<Skill>>);
+pub struct SkillTreeMap(HashMap<SkillGroupKind, BTreeSet<Skill>>);
 
 impl Asset for SkillTreeMap {
     type Loader = assets::RonLoader;
@@ -25,7 +27,7 @@ impl Asset for SkillTreeMap {
 }
 
 pub struct SkillGroupDef {
-    pub skills: HashSet<Skill>,
+    pub skills: BTreeSet<Skill>,
     pub total_skill_point_cost: u16,
 }
 
@@ -94,9 +96,24 @@ lazy_static! {
             "common.skill_trees.skill_prerequisites",
         ).0
     };
+    pub static ref SKILL_GROUP_HASHES: HashMap<SkillGroupKind, Vec<u8>> = {
+        let map = SkillTreeMap::load_expect_cloned(
+            "common.skill_trees.skills_skill-groups_manifest",
+        ).0;
+        let mut hashes = HashMap::new();
+        for (skill_group_kind, skills) in map.iter() {
+            let mut hasher = Sha256::new();
+            let bincode_input: Vec<_> = skills.iter().map(|skill| (*skill, skill.max_level())).collect();
+            let hash_input = bincode::serialize(&bincode_input).unwrap_or_default();
+            hasher.update(hash_input);
+            let hash_result = hasher.finalize();
+            hashes.insert(*skill_group_kind, hash_result.iter().copied().collect());
+        }
+        hashes
+    };
 }
 
-#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum SkillGroupKind {
     General,
     Weapon(ToolKind),
