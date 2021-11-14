@@ -26,7 +26,7 @@ pub struct SkillGroup {
     pub earned_exp: i32,
     pub spent_exp: i32,
     pub skills: String,
-    pub hash_val: String,
+    pub hash_val: Vec<u8>,
 }
 
 pub struct Pet {
