@@ -40,6 +40,7 @@ CREATE TABLE _skill_group
 	entity_id	        INTEGER NOT NULL,
 	skill_group_kind	TEXT NOT NULL,
     earned_exp          INTEGER NOT NULL,
+    spent_exp           INTEGER NOT NULL,
     skills              TEXT NOT NULL,
     hash_val            TEXT NOT NULL,
 	FOREIGN KEY(entity_id) REFERENCES entity(entity_id),
@@ -47,7 +48,7 @@ CREATE TABLE _skill_group
 );
 
 INSERT INTO _skill_group
-SELECT sg.entity_id, sg.skill_group_kind, sg.exp, "", ""
+SELECT sg.entity_id, sg.skill_group_kind, sg.exp, 0, "", ""
 FROM skill_group sg;
 
 -- Skills now tracked in skill_group table, can ust drop

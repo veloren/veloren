@@ -166,6 +166,7 @@ pub fn load_character_data(
         "
         SELECT  skill_group_kind,
                 earned_exp,
+                spent_exp,
                 skills,
                 hash_val
         FROM    skill_group
@@ -178,8 +179,9 @@ pub fn load_character_data(
                 entity_id: char_id,
                 skill_group_kind: row.get(0)?,
                 earned_exp: row.get(1)?,
-                skills: row.get(2)?,
-                hash_val: row.get(3)?,
+                spent_exp: row.get(2)?,
+                skills: row.get(3)?,
+                hash_val: row.get(4)?,
             })
         })?
         .filter_map(Result::ok)
@@ -424,9 +426,10 @@ pub fn create_character(
         INSERT INTO skill_group (entity_id,
                                  skill_group_kind,
                                  earned_exp,
+                                 spent_exp,
                                  skills,
                                  hash_val)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
     for skill_group in db_skill_groups {
@@ -434,6 +437,7 @@ pub fn create_character(
             &character_id as &dyn ToSql,
             &skill_group.skill_group_kind,
             &skill_group.earned_exp,
+            &skill_group.spent_exp,
             &skill_group.skills,
             &skill_group.hash_val,
         ])?;
@@ -1005,9 +1009,10 @@ pub fn update(
         INTO    skill_group (entity_id,
                              skill_group_kind,
                              earned_exp,
+                             spent_exp,
                              skills,
                              hash_val)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
     for skill_group in db_skill_groups {
@@ -1015,6 +1020,7 @@ pub fn update(
             &skill_group.entity_id as &dyn ToSql,
             &skill_group.skill_group_kind,
             &skill_group.earned_exp,
+            &skill_group.spent_exp,
             &skill_group.skills,
             &skill_group.hash_val,
         ])?;

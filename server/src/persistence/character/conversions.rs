@@ -544,20 +544,25 @@ fn convert_skill_groups_from_database(
             ordered_skills: Vec::new(),
         };
 
+        // Convert exp into skill points
         while new_skill_group.earn_skill_point().is_ok() {}
-        new_skill_groups.push(new_skill_group);
 
-        // If the hash stored of the skill group is the same as the current hash of the
-        // skill group, don't invalidate skills
-        if serde_json::from_str::<Vec<u8>>(&skill_group.hash_val)
-            .ok()
-            .as_ref()
-            == skillset::SKILL_GROUP_HASHES.get(&skill_group_kind)
+        // If the stored spent exp is the same as the spent exp after adding skill
+        // points, and the hash stored of the skill group is the same as the current
+        // hash of the skill group, don't invalidate skills; otherwise invalidate the
+        // skills in this skill_group.
+        if skill_group.spent_exp as u32 == new_skill_group.spent_exp
+            && serde_json::from_str::<Vec<u8>>(&skill_group.hash_val)
+                .ok()
+                .as_ref()
+                == skillset::SKILL_GROUP_HASHES.get(&skill_group_kind)
         {
             let mut new_skills =
                 serde_json::from_str::<Vec<skills::Skill>>(&skill_group.skills).unwrap_or_default();
             skills.append(&mut new_skills);
         }
+
+        new_skill_groups.push(new_skill_group);
     }
     (new_skill_groups, skills)
 }
@@ -572,6 +577,7 @@ pub fn convert_skill_groups_to_database(
             entity_id,
             skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
             earned_exp: sg.earned_exp as i32,
+            spent_exp: sg.spent_exp as i32,
             // If fails to convert, just forces a respec on next login
             skills: serde_json::to_string(&sg.ordered_skills).unwrap_or_else(|_| "".to_string()),
             hash_val: serde_json::to_string(
