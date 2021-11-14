@@ -166,7 +166,8 @@ pub fn load_character_data(
         "
         SELECT  skill_group_kind,
                 earned_exp,
-                skills
+                skills,
+                hash_val
         FROM    skill_group
         WHERE   entity_id = ?1",
     )?;
@@ -178,6 +179,7 @@ pub fn load_character_data(
                 skill_group_kind: row.get(0)?,
                 earned_exp: row.get(1)?,
                 skills: row.get(2)?,
+                hash_val: row.get(3)?,
             })
         })?
         .filter_map(Result::ok)
@@ -421,8 +423,10 @@ pub fn create_character(
         "
         INSERT INTO skill_group (entity_id,
                                  skill_group_kind,
-                                 earned_exp)
-        VALUES (?1, ?2, ?3)",
+                                 earned_exp,
+                                 skills,
+                                 hash_val)
+        VALUES (?1, ?2, ?3, ?4, ?5)",
     )?;
 
     for skill_group in db_skill_groups {
@@ -430,6 +434,8 @@ pub fn create_character(
             &character_id as &dyn ToSql,
             &skill_group.skill_group_kind,
             &skill_group.earned_exp,
+            &skill_group.skills,
+            &skill_group.hash_val,
         ])?;
     }
     drop(stmt);
@@ -998,8 +1004,10 @@ pub fn update(
         REPLACE
         INTO    skill_group (entity_id,
                              skill_group_kind,
-                             earned_exp)
-        VALUES (?1, ?2, ?3)",
+                             earned_exp,
+                             skills,
+                             hash_val)
+        VALUES (?1, ?2, ?3, ?4, ?5)",
     )?;
 
     for skill_group in db_skill_groups {
@@ -1007,6 +1015,8 @@ pub fn update(
             &skill_group.entity_id as &dyn ToSql,
             &skill_group.skill_group_kind,
             &skill_group.earned_exp,
+            &skill_group.skills,
+            &skill_group.hash_val,
         ])?;
     }
 

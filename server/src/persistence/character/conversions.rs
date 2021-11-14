@@ -566,6 +566,7 @@ pub fn convert_skill_groups_to_database(
             earned_exp: sg.earned_exp as i32,
             // If fails to convert, just forces a respec on next login
             skills: serde_json::to_string(&sg.ordered_skills).unwrap_or_else(|_| "".to_string()),
+            hash_val: "".to_string(),
         })
         .collect()
 }

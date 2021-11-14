@@ -14,6 +14,7 @@ WITH RECURSIVE sp_series(earned_sp, exp) AS (
     -- though slightly modified to account for sqlite lacking functions for floor and exp
     -- Floor modification is replacing floor(a) with round(a - 0.5)
     -- Exp mofidication is replacing exp(-a) with 1 / (2^(a*1.442695)) where 1.442695 = log(e)/log(2)
+    -- Bit shifting is used to emulate 2^a, though unfortunately this does have some mild accuracy issues
     SELECT earned_sp + 1,
            exp +
 			CASE
@@ -34,13 +35,26 @@ FROM sp_series;
 UPDATE skill_group
 SET exp = skill_group.exp + (SELECT exp FROM _sp_series WHERE earned_sp = skill_group.earned_sp);
 
--- Progress in earned_sp is tracked in exp now
-ALTER TABLE skill_group DROP COLUMN earned_sp;
--- available_sp is now useless to track, automatically recalculated when loading persisted skill groups
-ALTER TABLE skill_group DROP COLUMN available_sp;
--- Skills are now tracked in skill_group table as a json blob. Json blob fine since we can just invalidate and let people respec if it doesn't deserialize
-ALTER TABLE skill_group ADD COLUMN skills TEXT DEFAULT "" NOT NULL;
+CREATE TABLE _skill_group
+(
+	entity_id	        INTEGER NOT NULL,
+	skill_group_kind	TEXT NOT NULL,
+    earned_exp          INTEGER NOT NULL,
+    skills              TEXT NOT NULL,
+    hash_val            TEXT NOT NULL,
+	FOREIGN KEY(entity_id) REFERENCES entity(entity_id),
+	PRIMARY KEY(entity_id,skill_group_kind)
+);
+
+INSERT INTO _skill_group
+SELECT sg.entity_id, sg.skill_group_kind, sg.exp, "", ""
+FROM skill_group sg;
+
 -- Skills now tracked in skill_group table, can ust drop
 DROP TABLE skill;
+-- Table no longer needed
+DROP TABLE skill_group;
+-- Rename table to proper name
+ALTER TABLE _skill_group RENAME TO skill_group;
 -- Temp table no longer needed, drop it
 DROP TABLE _sp_series;
