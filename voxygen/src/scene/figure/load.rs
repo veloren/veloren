@@ -4536,7 +4536,7 @@ fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec
         },
     };
     let bone = f(spec);
-    let central = graceful_load_segment_fullspec(&["server.voxel.", &bone.central.0].concat());
+    let central = graceful_load_segment_fullspec(&["common.voxel.", &bone.central.0].concat());
 
     (central, Vec3::from(bone.offset))
 }
