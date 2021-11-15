@@ -202,7 +202,7 @@ pub mod figuredata {
             _: &str,
         ) -> Result<Self, assets::Error> {
             let manifest: AssetHandle<Ron<ShipCentralSpec>> =
-                AssetExt::load("common.tmp_manifests.ship_manifest")?;
+                AssetExt::load("common.manifests.ship_manifest")?;
             let mut colliders = HashMap::new();
             for (_, spec) in (manifest.read().0).0.iter() {
                 for bone in [&spec.bone0, &spec.bone1, &spec.bone2].iter() {
@@ -238,7 +238,7 @@ pub mod figuredata {
         // TODO: Load this from the ECS as a resource, and maybe make it more general than ships
         // (although figuring out how to keep the figure bones in sync with the terrain offsets seems
         // like a hard problem if they're not the same manifest)
-        pub static ref VOXEL_COLLIDER_MANIFEST: AssetHandle<ShipSpec> = AssetExt::load_expect("common.tmp_manifests.ship_manifest");
+        pub static ref VOXEL_COLLIDER_MANIFEST: AssetHandle<ShipSpec> = AssetExt::load_expect("common.manifests.ship_manifest");
     }
 
     #[test]
