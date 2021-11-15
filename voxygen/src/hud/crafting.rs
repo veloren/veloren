@@ -472,11 +472,8 @@ impl<'a> Widget for Crafting<'a> {
                         RecipeInput::TagSameItem(tag, _) => tag.name(),
                         // Works, but probably will have some...interesting false positives
                         // Code reviewers probably required to do magic to make not hacky
-                        RecipeInput::ListSameItem(_defs, _) => {
-                            // Cow::Owned(defs.iter().flat_map(|def| def.name().chars()).collect())
-                            // Code reviewers: I require someone who can solve a temporary value
-                            // being created
-                            Cow::Borrowed("Input")
+                        RecipeInput::ListSameItem(defs, _) => {
+                            Cow::Owned(defs.iter().map(|def| def.name()).collect())
                         },
                     }
                     .to_lowercase();
@@ -919,42 +916,39 @@ impl<'a> Widget for Crafting<'a> {
                     RecipeInput::Item(item_def) => Arc::clone(item_def),
                     RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
                         Arc::<ItemDef>::load_expect_cloned(
-                            &self
+                            self
                                 .inventory
                                 .slots()
-                                .filter_map(|slot| {
+                                .find_map(|slot| {
                                     slot.as_ref().and_then(|item| {
                                         if item.matches_recipe_input(recipe_input) {
-                                            Some(item.item_definition_id().to_string())
+                                            Some(item.item_definition_id())
                                         } else {
                                             None
                                         }
                                     })
                                 })
-                                .next()
-                                .unwrap_or_else(|| tag.exemplar_identifier().to_string()),
+                                .unwrap_or(&tag.exemplar_identifier()),
                         )
                     },
                     RecipeInput::ListSameItem(item_defs, _) => Arc::<ItemDef>::load_expect_cloned(
-                        &self
+                        self
                             .inventory
                             .slots()
-                            .filter_map(|slot| {
+                            .find_map(|slot| {
                                 slot.as_ref().and_then(|item| {
                                     if item.matches_recipe_input(recipe_input) {
-                                        Some(item.item_definition_id().to_string())
+                                        Some(item.item_definition_id())
                                     } else {
                                         None
                                     }
                                 })
                             })
-                            .next()
-                            .unwrap_or_else(|| {
+                            .unwrap_or({
                                 item_defs
                                     .first()
                                     .map(|i| i.item_definition_id())
                                     .unwrap_or("common.items.weapons.empty.empty")
-                                    .to_string()
                             }),
                     ),
                 };
@@ -1058,12 +1052,11 @@ impl<'a> Widget for Crafting<'a> {
                         RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
                             format!("Any {} item", tag.name())
                         },
-                        RecipeInput::ListSameItem(_item_defs, _) => {
-                            // format!("Any of {}", item_defs.iter().flat_map(|item_def|
-                            // item_def.name().chars()).collect::<String>())
-                            // Code reviewers: I require someone who can solve a temporary value
-                            // being created
-                            "Input".to_string()
+                        RecipeInput::ListSameItem(item_defs, _) => {
+                            format!(
+                                "Any of {}",
+                                item_defs.iter().map(|def| def.name()).collect::<String>()
+                            )
                         },
                     };
                     let input = format!(

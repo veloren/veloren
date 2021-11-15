@@ -291,8 +291,7 @@ where
             let component_index = inventory_items[index]
                 .position
                 .split('_')
-                .collect::<Vec<_>>()
-                .get(1)
+                .nth(1)
                 .and_then(|s| s.parse::<usize>().ok());
             // Returns mutable reference to parent item of original item, by grabbing
             // the component representing the parent item from the parent item's parent
@@ -468,12 +467,6 @@ pub fn convert_loadout_from_database_items(
                     db_item.parent_container_item_id, db_item.item_id
                 )));
             }
-            // loadout
-            //     .update_item_at_slot_using_persistence_key(&
-            // database_items[j].position, |parent| {
-            //         parent.add_component(item, &ABILITY_MAP,
-            // &MATERIAL_STATS_MANIFEST);     })
-            //     .map_err(convert_error)?;
         } else {
             return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in loadout",

@@ -296,7 +296,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             ItemKind::Consumable { effects, .. } => {
                                 maybe_effect = Some(effects.clone());
                                 Some(comp::InventoryUpdateEvent::Consumed(
-                                    item.name().to_string(),
+                                    item.name().into_owned(),
                                 ))
                             },
                             ItemKind::Throwable { kind, .. } => {

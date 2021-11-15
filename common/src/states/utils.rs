@@ -999,7 +999,7 @@ pub fn is_strafing(data: &JoinData<'_>, update: &StateUpdate) -> bool {
     (update.character.is_aimed() || update.should_strafe) && data.body.can_strafe()
 }
 
-// Returns tool and components
+/// Returns tool and components
 pub fn unwrap_tool_data<'a>(
     data: &'a JoinData,
     equip_slot: EquipSlot,

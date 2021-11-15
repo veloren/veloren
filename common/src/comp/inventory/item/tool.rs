@@ -144,7 +144,7 @@ impl Stats {
         }
     }
 
-    pub fn oned() -> Stats {
+    pub fn one() -> Stats {
         Stats {
             equip_time_secs: 1.0,
             power: 1.0,
@@ -254,7 +254,7 @@ impl StatKind {
     pub fn resolve_stats(&self, msm: &MaterialStatManifest, components: &[Item]) -> Stats {
         let mut stats = match self {
             StatKind::Direct(stats) => *stats,
-            StatKind::Modular => Stats::oned(),
+            StatKind::Modular => Stats::one(),
         };
         let mut multipliers: Vec<Stats> = Vec::new();
         for item in components.iter() {

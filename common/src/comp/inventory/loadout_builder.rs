@@ -169,7 +169,6 @@ impl Hands {
                         hands, material, tool, equip_slot
                     );
                 }
-                std::mem::drop(item);
             },
         }
     }

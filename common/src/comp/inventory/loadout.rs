@@ -151,15 +151,6 @@ impl Loadout {
                     .as_mut()
                     .ok_or(LoadoutError::NoParentAtSlot)
             })
-        // .map_or(Err(LoadoutError::InvalidPersistenceKey), |loadout_slot| {
-        //     loadout_slot
-        //         .slot
-        //         .as_mut()
-        //         .map_or(Err(LoadoutError::NoParentAtSlot), |item| {
-        //             f(item);
-        //             Ok(())
-        //         })
-        // })
     }
 
     /// Swaps the contents of two loadout slots
@@ -208,9 +199,8 @@ impl Loadout {
             .or_else(|| first.map(|x| x.equip_slot))
     }
 
-    /// Returns all items currently equipped that an item of the given ItemKind
-    /// could replace
-    pub(super) fn equipped_items_of_kind<'a>(
+    /// Returns all items currently equipped that an item could replace
+    pub(super) fn equipped_items_replaceable_by<'a>(
         &'a self,
         item: &'a Item,
     ) -> impl Iterator<Item = &'a Item> {

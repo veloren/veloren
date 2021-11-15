@@ -340,7 +340,7 @@ impl<'a> Widget for LootScroller<'a> {
                 .set(state.ids.message_icons[i], ui);
 
                 let label = if *amount == 1 {
-                    item.name().to_string()
+                    item.name().into_owned()
                 } else {
                     format!("{}x {}", amount, item.name())
                 };

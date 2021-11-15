@@ -464,7 +464,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let equip_slot = item
             .concrete_item()
-            .map(|item| inventory.equipped_items_of_kind(item))
+            .map(|item| inventory.equipped_items_replaceable_by(item))
             .into_iter()
             .flatten();
 

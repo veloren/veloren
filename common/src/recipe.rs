@@ -13,11 +13,19 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RecipeInput {
+    /// Only an item with a matching ItemDef can be used to satisfy this input
     Item(Arc<ItemDef>),
+    /// Any items with this tag can be used to satisfy this input
     Tag(ItemTag),
+    /// Similar to RecipeInput::Tag(_), but all items must be the same.
+    /// Specifically this means that a mix of different items with the tag
+    /// cannot be used.
     TagSameItem(ItemTag, u32),
-    // List similar to tag, but has items defined in centralized file
-    // Intent is to make it harder for tag to be innocuously added to an item breaking a recipe
+    /// List is similar to tag, but has items defined in centralized file
+    /// Similar to RecipeInput::TagSameItem(_), all items must be the same, they
+    /// cannot be a mix of different items defined in the list.
+    // Intent of using List over Tag is to make it harder for tag to be innocuously added to an
+    // item breaking a recipe
     ListSameItem(Vec<Arc<ItemDef>>, u32),
 }
 
@@ -101,10 +109,10 @@ impl Recipe {
                     .take(*slot, ability_map, msm)
                     .expect("Expected item to exist in the inventory");
                 components.push(component);
-                let claimed = slot_claims
+                let to_remove = slot_claims
                     .get_mut(slot)
                     .expect("If marked in component slots, should be in slot claims");
-                *claimed -= 1;
+                *to_remove -= 1;
             }
             for (slot, to_remove) in slot_claims.iter() {
                 for _ in 0..*to_remove {
@@ -376,10 +384,10 @@ impl assets::Compound for RecipeBook {
                 RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
                 RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag, *amount),
                 RawRecipeInput::ListSameItem(list) => {
-                    let assets = ItemList::load_expect_cloned(list).0;
+                    let assets = &ItemList::load_expect(list).read().0;
                     let items = assets
-                        .into_iter()
-                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(&asset))
+                        .iter()
+                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
                         .collect();
                     RecipeInput::ListSameItem(items, *amount)
                 },

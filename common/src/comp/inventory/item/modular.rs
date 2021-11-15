@@ -78,7 +78,7 @@ fn initialize_modular_assets() -> HashMap<String, RawItemDef> {
     let mut itemdefs = HashMap::new();
     for &toolkind in &SUPPORTED_TOOLKINDS {
         let (identifier, item) = make_weapon_def(toolkind);
-        itemdefs.insert(identifier.clone(), item);
+        itemdefs.insert(identifier, item);
     }
     itemdefs
 }
@@ -100,6 +100,19 @@ pub(super) fn synthesize_modular_asset(specifier: &str) -> Option<RawItemDef> {
 /// the damage component used and {Material} is from the material the damage
 /// component is created from.
 pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
+    // Closure to get material name from an item
+    let material_name = |component: &Item| {
+        component
+            .components()
+            .iter()
+            .filter_map(|comp| match comp.kind() {
+                ItemKind::Ingredient { descriptor, .. } => Some(descriptor.to_owned()),
+                _ => None,
+            })
+            .last()
+            .unwrap_or_else(|| "Modular".to_owned())
+    };
+
     match item.kind() {
         ItemKind::Tool(tool) => {
             let main_components = item.components().iter().filter(|comp| {
@@ -109,21 +122,7 @@ pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
             });
             // Last fine as there should only ever be one damage component on a weapon
             let (material_name, weapon_name) = if let Some(component) = main_components.last() {
-                let materials =
-                    component
-                        .components()
-                        .iter()
-                        .filter_map(|comp| match comp.kind() {
-                            ItemKind::Ingredient { .. } => Some(comp.kind()),
-                            _ => None,
-                        });
-                // TODO: Better handle multiple materials
-                let material_name =
-                    if let Some(ItemKind::Ingredient { descriptor, .. }) = materials.last() {
-                        descriptor
-                    } else {
-                        "Modular"
-                    };
+                let material_name = material_name(component);
                 let weapon_name =
                     if let ItemKind::ModularComponent(ModularComponent { weapon_name, .. }) =
                         component.kind()
@@ -134,32 +133,17 @@ pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
                     };
                 (material_name, weapon_name)
             } else {
-                ("Modular", tool.kind.identifier_name())
+                ("Modular".to_owned(), tool.kind.identifier_name())
             };
 
             Cow::Owned(format!("{} {}", material_name, weapon_name))
         },
-        ItemKind::ModularComponent(comp) => {
-            match comp.modkind {
-                ModularComponentKind::Damage => {
-                    let materials = item
-                        .components()
-                        .iter()
-                        .filter_map(|comp| match comp.kind() {
-                            ItemKind::Ingredient { .. } => Some(comp.kind()),
-                            _ => None,
-                        });
-                    // TODO: Better handle multiple materials
-                    let material_name =
-                        if let Some(ItemKind::Ingredient { descriptor, .. }) = materials.last() {
-                            descriptor
-                        } else {
-                            "Modular"
-                        };
-                    Cow::Owned(format!("{} {}", material_name, arg1))
-                },
-                ModularComponentKind::Held => Cow::Borrowed(arg1),
-            }
+        ItemKind::ModularComponent(comp) => match comp.modkind {
+            ModularComponentKind::Damage => {
+                let material_name = material_name(item);
+                Cow::Owned(format!("{} {}", material_name, arg1))
+            },
+            ModularComponentKind::Held => Cow::Borrowed(arg1),
         },
         _ => Cow::Borrowed("Modular Item"),
     }
@@ -168,12 +152,12 @@ pub(super) fn modular_name<'a>(item: &'a Item, arg1: &'a str) -> Cow<'a, str> {
 pub(super) fn resolve_quality(item: &Item) -> super::Quality {
     item.components
         .iter()
-        .fold(super::Quality::Common, |a, b| a.max(b.quality()))
+        .fold(super::Quality::Low, |a, b| a.max(b.quality()))
 }
 
 /// Returns directory that contains components for a particular combination of
 /// toolkind and modular component kind
-fn make_mod_comp_dir_def(tool: ToolKind, mod_kind: ModularComponentKind) -> String {
+fn make_mod_comp_dir_spec(tool: ToolKind, mod_kind: ModularComponentKind) -> String {
     const MOD_COMP_DIR_PREFIX: &str = "common.items.crafting_ing.modular";
     format!(
         "{}.{}.{}",
@@ -263,7 +247,7 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
     };
 
     // Creates components of modular weapon
-    let damage_comp_dir = make_mod_comp_dir_def(tool, ModularComponentKind::Damage);
+    let damage_comp_dir = make_mod_comp_dir_spec(tool, ModularComponentKind::Damage);
     let mut damage_component = create_component(&damage_comp_dir, hands);
     // Takes whichever is more restrictive of hand restriction passed in and hand
     // restriction from damage component e.g. if None is passed to function, and
@@ -271,8 +255,8 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
     // component have two handed restriction as well
     let damage_hands = unwrap_modular_component(&damage_component)
         .and_then(|mc| mc.hand_restriction)
-        .map_or(hands, Some);
-    let held_comp_dir = make_mod_comp_dir_def(tool, ModularComponentKind::Held);
+        .or(hands);
+    let held_comp_dir = make_mod_comp_dir_spec(tool, ModularComponentKind::Held);
     let mut held_component = create_component(&held_comp_dir, damage_hands);
     let material_component = Item::new_from_asset_expect(material.asset_identifier().expect(
         "Code reviewers: open comment here if I forget about this, I got lazy during a rebase",
@@ -296,7 +280,8 @@ pub fn random_weapon(tool: ToolKind, material: super::Material, hands: Option<Ha
     modular_weapon
 }
 
-// (Main component, material, hands)
+/// This is used as a key to uniquely identify the modular weapon in asset
+/// manifests in voxygen (Main component, material, hands)
 pub type ModularWeaponKey = (String, String, Hands);
 
 pub fn weapon_to_key(mod_weap: &dyn ItemDesc) -> ModularWeaponKey {
@@ -329,6 +314,8 @@ pub fn weapon_to_key(mod_weap: &dyn ItemDesc) -> ModularWeaponKey {
     (main_comp.to_owned(), material.to_owned(), hands)
 }
 
+/// This is used as a key to uniquely identify the modular weapon in asset
+/// manifests in voxygen (Main component, material)
 pub type ModularWeaponComponentKey = (String, String);
 
 pub enum ModularWeaponComponentKeyError {

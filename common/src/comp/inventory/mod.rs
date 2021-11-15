@@ -775,8 +775,11 @@ impl Inventory {
         true
     }
 
-    pub fn equipped_items_of_kind<'a>(&'a self, item: &'a Item) -> impl Iterator<Item = &'a Item> {
-        self.loadout.equipped_items_of_kind(item)
+    pub fn equipped_items_replaceable_by<'a>(
+        &'a self,
+        item: &'a Item,
+    ) -> impl Iterator<Item = &'a Item> {
+        self.loadout.equipped_items_replaceable_by(item)
     }
 
     pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }

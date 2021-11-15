@@ -259,9 +259,9 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
-                    LootSpec::Nothing => Vec::new().into_iter(),
+                    LootSpec::Nothing
                     // TODO: Let someone else wrangle modular weapons into the economy
-                    LootSpec::ModularWeapon { .. } => vec![].into_iter(),
+                    | LootSpec::ModularWeapon { .. } => Vec::new().into_iter(),
                 })
                 .collect(),
         }
