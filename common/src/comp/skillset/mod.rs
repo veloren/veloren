@@ -201,8 +201,8 @@ impl SkillGroup {
 /// refunding skills etc.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SkillSet {
-    pub skill_groups: Vec<SkillGroup>,
-    pub skills: HashMap<Skill, Option<u16>>,
+    skill_groups: Vec<SkillGroup>,
+    skills: HashMap<Skill, Option<u16>>,
     pub modify_health: bool,
     pub modify_energy: bool,
 }
@@ -221,7 +221,7 @@ impl Default for SkillSet {
                 SkillGroup::new(SkillGroupKind::General),
                 SkillGroup::new(SkillGroupKind::Weapon(ToolKind::Pick)),
             ],
-            skills: HashMap::new(),
+            skills: SkillSet::initial_skills(),
             modify_health: false,
             modify_energy: false,
         }
@@ -229,23 +229,78 @@ impl Default for SkillSet {
 }
 
 impl SkillSet {
-    /// Checks if the skill set of an entity contains a particular skill group
-    /// type
-    pub fn contains_skill_group(&self, skill_group_kind: SkillGroupKind) -> bool {
+    pub fn initial_skills() -> HashMap<Skill, Option<u16>> {
+        let mut skills = HashMap::new();
+        skills.insert(Skill::UnlockGroup(SkillGroupKind::General), None);
+        skills.insert(
+            Skill::UnlockGroup(SkillGroupKind::Weapon(ToolKind::Pick)),
+            None,
+        );
+        skills
+    }
+
+    pub fn load_from_database(
+        skill_groups: Vec<SkillGroup>,
+        mut all_skills: HashMap<SkillGroupKind, Vec<Skill>>,
+    ) -> Self {
+        let mut skillset = SkillSet {
+            skill_groups,
+            skills: SkillSet::initial_skills(),
+            modify_health: true,
+            modify_energy: true,
+        };
+
+        // Loops while checking the all_skills hashmap. For as long as it can find an
+        // entry where the skill group kind is unlocked, insert the skills corresponding
+        // to that skill group kind. When no more skill group kinds can be found, break
+        // the loop.
+        while let Some(skill_group_kind) = all_skills
+            .keys()
+            .find(|kind| skillset.has_skill(Skill::UnlockGroup(**kind)))
+            .copied()
+        {
+            // Remove valid skill group kind from the hash map so that loop eventually
+            // terminates.
+            if let Some(skills) = all_skills.remove(&skill_group_kind) {
+                let backup_skillset = skillset.clone();
+                // Iterate over all skills and make sure that unlocking them is successful. If
+                // any fail, fall back to skillset before unlocking any to allow a full respec
+                if !skills
+                    .iter()
+                    .all(|skill| skillset.unlock_skill(*skill).is_ok())
+                {
+                    skillset = backup_skillset;
+                }
+            }
+        }
+
+        skillset
+    }
+
+    /// Checks if a particular skill group is accessible for an entity
+    pub fn skill_group_accessible(&self, skill_group_kind: SkillGroupKind) -> bool {
         self.skill_groups
             .iter()
             .any(|x| x.skill_group_kind == skill_group_kind)
+            && self.has_skill(Skill::UnlockGroup(skill_group_kind))
     }
 
     ///  Unlocks a skill group for a player. It starts with 0 exp and 0 skill
     ///  points.
     pub fn unlock_skill_group(&mut self, skill_group_kind: SkillGroupKind) {
-        if !self.contains_skill_group(skill_group_kind) {
+        if !self
+            .skill_groups
+            .iter()
+            .any(|x| x.skill_group_kind == skill_group_kind)
+        {
             self.skill_groups.push(SkillGroup::new(skill_group_kind));
         } else {
             warn!("Tried to unlock already known skill group");
         }
     }
+
+    /// Returns an iterator over skill groups
+    pub fn skill_groups(&self) -> &Vec<SkillGroup> { &self.skill_groups }
 
     /// Returns a reference to a particular skill group in a skillset
     fn skill_group(&self, skill_group: SkillGroupKind) -> Option<&SkillGroup> {
@@ -376,32 +431,39 @@ impl SkillSet {
             let prerequisites_met = self.prerequisites_met(skill);
             // Check that skill is not yet at max level
             if !matches!(self.skills.get(&skill), Some(level) if *level == skill.max_level()) {
-                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-                    if prerequisites_met {
-                        if skill_group.available_sp >= skill.skill_cost(next_level) {
-                            skill_group.available_sp -= skill.skill_cost(next_level);
-                            skill_group.ordered_skills.push(skill);
-                            match skill {
-                                Skill::UnlockGroup(group) => {
-                                    self.unlock_skill_group(group);
-                                },
-                                Skill::General(GeneralSkill::HealthIncrease) => {
-                                    self.modify_health = true;
-                                },
-                                Skill::General(GeneralSkill::EnergyIncrease) => {
-                                    self.modify_energy = true;
-                                },
-                                _ => {},
+                if self.has_skill(Skill::UnlockGroup(skill_group_kind)) {
+                    if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
+                        if prerequisites_met {
+                            if skill_group.available_sp >= skill.skill_cost(next_level) {
+                                skill_group.available_sp -= skill.skill_cost(next_level);
+                                skill_group.ordered_skills.push(skill);
+                                match skill {
+                                    Skill::UnlockGroup(group) => {
+                                        self.unlock_skill_group(group);
+                                    },
+                                    Skill::General(GeneralSkill::HealthIncrease) => {
+                                        self.modify_health = true;
+                                    },
+                                    Skill::General(GeneralSkill::EnergyIncrease) => {
+                                        self.modify_energy = true;
+                                    },
+                                    _ => {},
+                                }
+                                self.skills.insert(skill, next_level);
+                                Ok(())
+                            } else {
+                                trace!(
+                                    "Tried to unlock skill for skill group with insufficient SP"
+                                );
+                                Err(SkillUnlockError::InsufficientSP)
                             }
-                            self.skills.insert(skill, next_level);
-                            Ok(())
                         } else {
-                            trace!("Tried to unlock skill for skill group with insufficient SP");
-                            Err(SkillUnlockError::InsufficientSP)
+                            trace!("Tried to unlock skill without meeting prerequisite skills");
+                            Err(SkillUnlockError::MissingPrerequisites)
                         }
                     } else {
-                        trace!("Tried to unlock skill without meeting prerequisite skills");
-                        Err(SkillUnlockError::MissingPrerequisites)
+                        trace!("Tried to unlock skill for a skill group that player does not have");
+                        Err(SkillUnlockError::UnavailableSkillGroup)
                     }
                 } else {
                     trace!("Tried to unlock skill for a skill group that player does not have");

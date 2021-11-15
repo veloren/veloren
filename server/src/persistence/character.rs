@@ -419,7 +419,8 @@ pub fn create_character(
     ])?;
     drop(stmt);
 
-    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups);
+    let db_skill_groups =
+        convert_skill_groups_to_database(character_id, skill_set.skill_groups().to_vec());
 
     let mut stmt = transactionn.prepare_cached(
         "
@@ -559,16 +560,6 @@ pub fn delete_character(
             "Requested character to delete does not belong to the requesting player".to_string(),
         ));
     }
-    // Delete skills
-    let mut stmt = transaction.prepare_cached(
-        "
-        DELETE
-        FROM    skill
-        WHERE   entity_id = ?1",
-    )?;
-
-    stmt.execute(&[&char_id])?;
-    drop(stmt);
 
     // Delete skill groups
     let mut stmt = transaction.prepare_cached(
@@ -1001,7 +992,8 @@ pub fn update(
         }
     }
 
-    let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups);
+    let db_skill_groups =
+        convert_skill_groups_to_database(char_id, char_skill_set.skill_groups().to_vec());
 
     let mut stmt = transaction.prepare_cached(
         "

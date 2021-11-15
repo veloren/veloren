@@ -130,7 +130,7 @@ impl<'a> System<'a> for Sys {
             }
 
             let skills_to_level = skill_set
-                .skill_groups
+                .skill_groups()
                 .iter()
                 .filter_map(|s_g| {
                     (s_g.available_experience() >= skill_set.skill_point_cost(s_g.skill_group_kind))

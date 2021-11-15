@@ -370,7 +370,7 @@ impl<'a> Widget for Diary<'a> {
             };
 
             // Check if we have this skill tree unlocked
-            let locked = !self.skill_set.contains_skill_group(skill_group);
+            let locked = !self.skill_set.skill_group_accessible(skill_group);
 
             // Weapon button image
             let btn_img = {

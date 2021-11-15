@@ -511,28 +511,17 @@ pub fn convert_stats_from_database(alias: String) -> common::comp::Stats {
 
 pub fn convert_skill_set_from_database(skill_groups: &[SkillGroup]) -> common::comp::SkillSet {
     let (skillless_skill_groups, skills) = convert_skill_groups_from_database(skill_groups);
-    let unskilled_skillset = skillset::SkillSet {
-        skill_groups: skillless_skill_groups,
-        skills: HashMap::new(),
-        modify_health: true,
-        modify_energy: true,
-    };
-    let mut skillset = unskilled_skillset.clone();
-    if skills
-        .iter()
-        .all(|skill| skillset.unlock_skill(*skill).is_ok())
-    {
-        skillset
-    } else {
-        unskilled_skillset
-    }
+    common::comp::SkillSet::load_from_database(skillless_skill_groups, skills)
 }
 
 fn convert_skill_groups_from_database(
     skill_groups: &[SkillGroup],
-) -> (Vec<skillset::SkillGroup>, Vec<skills::Skill>) {
+) -> (
+    Vec<skillset::SkillGroup>,
+    HashMap<skillset::SkillGroupKind, Vec<skills::Skill>>,
+) {
     let mut new_skill_groups = Vec::new();
-    let mut skills = Vec::new();
+    let mut all_skills = HashMap::new();
     for skill_group in skill_groups.iter() {
         let skill_group_kind = json_models::db_string_to_skill_group(&skill_group.skill_group_kind);
         let mut new_skill_group = skillset::SkillGroup {
@@ -551,17 +540,19 @@ fn convert_skill_groups_from_database(
         // points, and the hash stored of the skill group is the same as the current
         // hash of the skill group, don't invalidate skills; otherwise invalidate the
         // skills in this skill_group.
-        if skill_group.spent_exp as u32 == new_skill_group.spent_exp
+        let skills = if skill_group.spent_exp as u32 == new_skill_group.spent_exp
             && Some(&skill_group.hash_val) == skillset::SKILL_GROUP_HASHES.get(&skill_group_kind)
         {
-            let mut new_skills =
-                serde_json::from_str::<Vec<skills::Skill>>(&skill_group.skills).unwrap_or_default();
-            skills.append(&mut new_skills);
-        }
+            serde_json::from_str::<Vec<skills::Skill>>(&skill_group.skills).unwrap_or_default()
+        } else {
+            Vec::new()
+        };
+
+        all_skills.insert(skill_group_kind, skills);
 
         new_skill_groups.push(new_skill_group);
     }
-    (new_skill_groups, skills)
+    (new_skill_groups, all_skills)
 }
 
 pub fn convert_skill_groups_to_database(

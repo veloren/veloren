@@ -303,7 +303,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             let contributor_exp = exp_reward * damage_percent;
             match damage_contributor {
                 DamageContrib::Solo(attacker) => {
-                    // No exp for self kills or PvP 
+                    // No exp for self kills or PvP
                     if *attacker == entity || is_pvp_kill(*attacker) { return None; }
 
                     // Only give EXP to the attacker if they are within EXP range of the killed entity
@@ -1105,7 +1105,7 @@ fn handle_exp_gain(
             });
         if let Some(weapon) = tool_kind {
             // Only adds to xp pools if entity has that skill group available
-            if skill_set.contains_skill_group(SkillGroupKind::Weapon(weapon)) {
+            if skill_set.skill_group_accessible(SkillGroupKind::Weapon(weapon)) {
                 xp_pools.insert(SkillGroupKind::Weapon(weapon));
             }
         }
