@@ -207,10 +207,10 @@ pub mod figuredata {
             for (_, spec) in (manifest.read().0).0.iter() {
                 for bone in [&spec.bone0, &spec.bone1, &spec.bone2].iter() {
                     // TODO: Currently both client and server load models and manifests from
-                    // "server.voxel.". In order to support CSG procedural airships, we probably
+                    // "common.voxel.". In order to support CSG procedural airships, we probably
                     // need to load them in the server and sync them as an ECS resource.
                     let vox =
-                        cache.load::<DotVoxAsset>(&["server.voxel.", &bone.central.0].concat())?;
+                        cache.load::<DotVoxAsset>(&["common.voxel.", &bone.central.0].concat())?;
                     let dyna = Dyna::<Cell, (), ColumnAccess>::from_vox(&vox.read().0, false);
                     let dyna = dyna.map_into(|cell| {
                         if let Some(rgb) = cell.get_color() {
