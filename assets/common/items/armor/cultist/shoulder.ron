@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Shoulder("Cultist"),
         stats: (
-            protection: Normal(32.0),
+            protection: Normal(30.0),
             poise_resilience: Normal(5.0),
             energy_max: 9.0,
             energy_reward: 0.1,

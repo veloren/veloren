@@ -12,6 +12,6 @@ ItemDef(
             stealth: 0.025,
         ),
     )),
-    quality: Common,
+    quality: High,
     tags: [],
 )
