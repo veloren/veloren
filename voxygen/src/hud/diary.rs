@@ -10,7 +10,7 @@ use crate::{
 };
 use conrod_core::{
     color, image,
-    widget::{self, Button, Image, Rectangle, State, Text},
+    widget::{self, Button, Image, Rectangle, Scrollbar, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
@@ -190,6 +190,8 @@ widget_ids! {
         skill_general_swim_1,
         // Ability selection stuffs
         ability_select_title,
+        ability_scroll_align,
+        ability_scroller,
         active_abilities[],
         active_abilities_bg[],
         main_weap_title,
@@ -702,9 +704,20 @@ impl<'a> Widget for Diary<'a> {
                     }
                 }
 
+                // Scroller and alignment
+                Rectangle::fill_with([1098.0, 838.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(state.content_align, 0.0, 0.0)
+                    .scroll_kids_vertically()
+                    .set(state.ability_scroll_align, ui);
+
+                Scrollbar::y_axis(state.ability_scroll_align)
+                    .thickness(5.0)
+                    .rgba(0.33, 0.33, 0.33, 1.0)
+                    .set(state.ability_scroller, ui);
+
                 // Display list of abilities from main weapon
                 Text::new("Main Weapon Abilities")
-                    .top_left_with_margins_on(state.content_align, 75.0, 25.0)
+                    .top_left_with_margins_on(state.ability_scroll_align, 75.0, 25.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(28))
                     .color(TEXT_COLOR)
