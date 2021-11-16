@@ -5,13 +5,13 @@ ItemDef(
         kind: Head("Crown"),
         stats: (
             protection: Normal(12.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 9.0,
+            poise_resilience: Normal(2.0),
+            energy_max: 5.0,
             energy_reward: 0.1,
-            crit_power: 0.12,
+            crit_power: 0.1,
             stealth: 0.0,
         ),
     )),
-    quality: Common,
+    quality: Epic,
     tags: [],
 )
