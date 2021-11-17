@@ -320,14 +320,14 @@ impl Structure for House {
                 })),
             ),
         };
-        let roof_front = painter.prim(Primitive::and(roof_empty, roof_front_wall));
-        let roof_rear = painter.prim(Primitive::and(roof_empty, roof_rear_wall));
+        let roof_front = painter.prim(Primitive::intersect(roof_empty, roof_front_wall));
+        let roof_rear = painter.prim(Primitive::intersect(roof_empty, roof_rear_wall));
         painter.fill(
             roof_primitive,
             Fill::Block(Block::new(BlockKind::Wood, self.roof_color)),
         );
         painter.fill(roof_empty, Fill::Block(Block::empty()));
-        let roof_walls = painter.prim(Primitive::or(roof_front, roof_rear));
+        let roof_walls = painter.prim(Primitive::union(roof_front, roof_rear));
         painter.fill(
             roof_walls,
             Fill::Brick(BlockKind::Wood, Rgb::new(200, 180, 150), 24),
@@ -474,19 +474,19 @@ impl Structure for House {
                 Vec2::new(0.0, 1.0),
             ))
         };
-        let rafters1 = painter.prim(Primitive::or(left_rafter, right_rafter));
-        let rafters2 = painter.prim(Primitive::or(rafters1, top_rafter));
+        let rafters1 = painter.prim(Primitive::union(left_rafter, right_rafter));
+        let rafters2 = painter.prim(Primitive::union(rafters1, top_rafter));
 
         painter.fill(
-            painter.prim(Primitive::and(roof_beam, roof_walls)),
+            painter.prim(Primitive::intersect(roof_beam, roof_walls)),
             Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
         );
         painter.fill(
-            painter.prim(Primitive::or(roof_beam_left, roof_beam_right)),
+            painter.prim(Primitive::union(roof_beam_left, roof_beam_right)),
             Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
         );
         painter.fill(
-            painter.prim(Primitive::and(rafters2, roof_walls)),
+            painter.prim(Primitive::intersect(rafters2, roof_walls)),
             Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
         );
 
@@ -598,7 +598,9 @@ impl Structure for House {
             painter.fill(outer_level, wall_block_fill);
             painter.fill(inner_level, Fill::Block(Block::empty()));
 
-            let walls = painter.prim(Primitive::xor(outer_level, inner_level));
+            let walls = outer_level
+                .union(inner_level)
+                .and_not(outer_level.intersect(inner_level));
 
             // Wall Pillars
             // Only upper non-stone floors have wooden beams in the walls
@@ -643,7 +645,7 @@ impl Structure for House {
                         };
                         if temp.x <= self.bounds.max.x && temp.x >= self.bounds.min.x {
                             overhang_supports =
-                                painter.prim(Primitive::or(overhang_supports, support));
+                                painter.prim(Primitive::union(overhang_supports, support));
                         }
                     }
                     let pillar = painter.prim(Primitive::Aabb(Aabb {
@@ -654,7 +656,7 @@ impl Structure for House {
                             + Vec2::unit_x())
                         .with_z(alt + height),
                     }));
-                    pillars_y = painter.prim(Primitive::or(pillars_y, pillar));
+                    pillars_y = painter.prim(Primitive::union(pillars_y, pillar));
                 }
                 let mut pillars_x = painter.prim(Primitive::Empty);
                 for y in self.tile_aabr.min.y - 2..self.tile_aabr.max.y + 2 {
@@ -701,7 +703,7 @@ impl Structure for House {
                         };
                         if temp.y <= self.bounds.max.y && temp.y >= self.bounds.min.y {
                             overhang_supports =
-                                painter.prim(Primitive::or(overhang_supports, support));
+                                painter.prim(Primitive::union(overhang_supports, support));
                         }
                     }
                     let pillar = painter.prim(Primitive::Aabb(Aabb {
@@ -712,7 +714,7 @@ impl Structure for House {
                             + Vec2::unit_y())
                         .with_z(alt + height),
                     }));
-                    pillars_x = painter.prim(Primitive::or(pillars_x, pillar));
+                    pillars_x = painter.prim(Primitive::union(pillars_x, pillar));
                 }
                 let front_wall = if self.overhang < -4 && i > 1 {
                     painter.prim(Primitive::Empty)
@@ -769,12 +771,12 @@ impl Structure for House {
                     }
                 };
                 let pillars1 = if self.front % 2 == 0 {
-                    painter.prim(Primitive::and(pillars_y, front_wall))
+                    painter.prim(Primitive::intersect(pillars_y, front_wall))
                 } else {
-                    painter.prim(Primitive::and(pillars_x, front_wall))
+                    painter.prim(Primitive::intersect(pillars_x, front_wall))
                 };
-                let pillars2 = painter.prim(Primitive::and(pillars_x, pillars_y));
-                let pillars3 = painter.prim(Primitive::or(pillars1, pillars2));
+                let pillars2 = painter.prim(Primitive::intersect(pillars_x, pillars_y));
+                let pillars3 = painter.prim(Primitive::union(pillars1, pillars2));
                 let pillars4 = match self.front {
                     0 => painter.prim(Primitive::Aabb(Aabb {
                         min: Vec2::new(self.bounds.min.x - 1, self.bounds.min.y - 1)
@@ -813,9 +815,9 @@ impl Structure for House {
                             .with_z(alt + previous_height + 1),
                     })),
                 };
-                let pillars = painter.prim(Primitive::or(pillars3, pillars4));
+                let pillars = painter.prim(Primitive::union(pillars3, pillars4));
                 painter.fill(
-                    painter.prim(Primitive::and(walls, pillars)),
+                    painter.prim(Primitive::intersect(walls, pillars)),
                     Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
                 );
 
@@ -847,11 +849,11 @@ impl Structure for House {
                         _ => max.y < self.bounds.max.y && min.y > self.bounds.min.y,
                     };
                     if add_windows {
-                        windows = painter.prim(Primitive::or(windows, window));
+                        windows = painter.prim(Primitive::union(windows, window));
                     }
                 }
                 painter.fill(
-                    painter.prim(Primitive::and(walls, windows)),
+                    painter.prim(Primitive::intersect(walls, windows)),
                     Fill::Block(Block::air(SpriteKind::Window1).with_ori(2).unwrap()),
                 );
             }
@@ -877,11 +879,11 @@ impl Structure for House {
                         },
                     };
                     if add_windows {
-                        windows = painter.prim(Primitive::or(windows, window));
+                        windows = painter.prim(Primitive::union(windows, window));
                     };
                 }
                 painter.fill(
-                    painter.prim(Primitive::and(walls, windows)),
+                    painter.prim(Primitive::intersect(walls, windows)),
                     Fill::Block(Block::air(SpriteKind::Window1).with_ori(0).unwrap()),
                 );
             }
@@ -1157,13 +1159,13 @@ impl Structure for House {
                         .with_z(alt + previous_height + 1),
                     })),
                 };
-                let shed_walls = painter.prim(Primitive::or(shed_left_wall, shed_right_wall));
+                let shed_walls = painter.prim(Primitive::union(shed_left_wall, shed_right_wall));
                 painter.fill(
-                    painter.prim(Primitive::and(shed_walls, shed_empty)),
+                    painter.prim(Primitive::intersect(shed_walls, shed_empty)),
                     Fill::Brick(BlockKind::Wood, Rgb::new(200, 180, 150), 24),
                 );
                 painter.fill(
-                    painter.prim(Primitive::and(shed_wall_beams, shed_walls)),
+                    painter.prim(Primitive::intersect(shed_wall_beams, shed_walls)),
                     Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
                 );
 
@@ -1561,7 +1563,7 @@ impl Structure for House {
                         // 1),    }))
                         //},
                     };
-                    painter.prim(Primitive::or(ramp, support))
+                    painter.prim(Primitive::union(ramp, support))
                 } else {
                     let ramp = /*match self.front */{
                         //0 => {
@@ -1641,7 +1643,7 @@ impl Structure for House {
                         // previous_height + 1),    }))
                         //},
                     };
-                    painter.prim(Primitive::or(ramp, support))
+                    painter.prim(Primitive::union(ramp, support))
                 };
                 let stairwell = if i < 2 {
                     painter.prim(Primitive::Empty)

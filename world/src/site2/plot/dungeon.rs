@@ -1137,7 +1137,7 @@ impl Floor {
                     min: floor_aabb.min.with_x(j - 1),
                     max: floor_aabb.max.with_x(j),
                 }));
-                lighting_mask_x = painter.prim(Primitive::or(plane, lighting_mask_x));
+                lighting_mask_x = painter.prim(Primitive::union(plane, lighting_mask_x));
             }
             let mut lighting_mask_y = painter.prim(Primitive::Empty);
             let floor_h = floor_aabb.max.y - floor_aabb.min.y;
@@ -1147,9 +1147,11 @@ impl Floor {
                     min: floor_aabb.min.with_y(j - 1),
                     max: floor_aabb.max.with_y(j),
                 }));
-                lighting_mask_y = painter.prim(Primitive::or(plane, lighting_mask_y));
+                lighting_mask_y = painter.prim(Primitive::union(plane, lighting_mask_y));
             }
-            painter.prim(Primitive::xor(lighting_mask_x, lighting_mask_y))
+            lighting_mask_x
+                .union(lighting_mask_y)
+                .and_not(lighting_mask_x.intersect(lighting_mask_y))
         };
 
         // Declare collections of various disjoint primitives that need postprocessing
@@ -1189,7 +1191,7 @@ impl Floor {
                 tile_aabr,
                 floor_z + 1..floor_z + 2,
             )));
-            let lighting_plane = painter.prim(Primitive::and(lighting_plane, lighting_mask));
+            let lighting_plane = painter.prim(Primitive::intersect(lighting_plane, lighting_mask));
 
             let mut chests = None;
 
@@ -1225,10 +1227,10 @@ impl Floor {
                             }));
 
                             light = painter.prim(Primitive::diff(light, inner));
-                            lights = painter.prim(Primitive::or(light, lights));
+                            lights = painter.prim(Primitive::union(light, lights));
                         }
                     }
-                    lights = painter.prim(Primitive::and(lights, lighting_mask));
+                    lights = painter.prim(Primitive::intersect(lights, lighting_mask));
                     stairs_bb.push(bb);
                     stairs.push((stair, lights));
                 }
@@ -1323,12 +1325,12 @@ impl Floor {
                         let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
                         let mut lights = painter
                             .prim(Primitive::scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
-                        lights = painter.prim(Primitive::and(lighting_plane, lights));
+                        lights = painter.prim(Primitive::intersect(lighting_plane, lights));
                         // Only add the base (and shift the lights up)
                         // for boss-rooms pillars
                         if room.kind == RoomKind::Boss {
                             lights = painter.prim(Primitive::translate(lights, 3 * Vec3::unit_z()));
-                            pillar = painter.prim(Primitive::or(pillar, base));
+                            pillar = painter.prim(Primitive::union(pillar, base));
                         }
                         pillars.push((tile_center, pillar, lights));
                     }
@@ -1350,8 +1352,9 @@ impl Floor {
             painter.fill(tile_air, Fill::Block(vacant));
 
             // Place torches on the walls with the aforementioned spacing
-            let sconces_layer = painter.prim(Primitive::and(tile_air, lighting_plane));
-            let sconces_layer = painter.prim(Primitive::and(sconces_layer, wall_contour_surface));
+            let sconces_layer = painter.prim(Primitive::intersect(tile_air, lighting_plane));
+            let sconces_layer =
+                painter.prim(Primitive::intersect(sconces_layer, wall_contour_surface));
             painter.fill(sconces_layer, sconces_wall.clone());
 
             // Defer chest/floor sprite placement
@@ -1360,7 +1363,7 @@ impl Floor {
                 sprites.push((chest_sprite, chest_sprite_fill));
             }
 
-            let floor_sprite = painter.prim(Primitive::and(sprite_layer, floor_sprite));
+            let floor_sprite = painter.prim(Primitive::intersect(sprite_layer, floor_sprite));
             sprites.push((floor_sprite, floor_sprite_fill.clone()));
         }
 

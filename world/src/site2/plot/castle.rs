@@ -103,7 +103,7 @@ impl Structure for Castle {
                         }));
 
                         painter.fill(wall, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
-                        let sides = painter.prim(Primitive::or(parapet, parapet2));
+                        let sides = painter.prim(Primitive::union(parapet, parapet2));
                         painter.fill(sides, Fill::Brick(BlockKind::Rock, wall_rgb, 12));
                         if (x + y).is_odd() {
                             painter.fill(
@@ -163,7 +163,7 @@ impl Structure for Castle {
                         }));
 
                         painter.fill(
-                            painter.prim(Primitive::or(tower_upper, tower_upper2)),
+                            painter.prim(Primitive::union(tower_upper, tower_upper2)),
                             Fill::Brick(BlockKind::Rock, wall_rgb, 12),
                         );
 
@@ -198,10 +198,10 @@ impl Structure for Castle {
                                         .with_z(tower_total_height + parapet_height),
                                 }));
 
-                                painter.fill(
-                                    painter.prim(Primitive::xor(tower_top_outer, tower_top_inner)),
-                                    Fill::Brick(BlockKind::Rock, wall_rgb, 12),
-                                );
+                                tower_top_outer
+                                    .union(tower_top_inner)
+                                    .and_not(tower_top_outer.intersect(tower_top_inner))
+                                    .fill(Fill::Brick(BlockKind::Rock, wall_rgb, 12));
 
                                 for x in (wpos.x..wpos.x + ts).step_by(2 * parapet_gap as usize) {
                                     painter.fill(
