@@ -18,6 +18,7 @@
         "hud.crafting.loom": "Ткацкий станок",
         "hud.crafting.spinning_wheel": "Прялка",
         "hud.crafting.tanning_rack": "Стойка для дубления кожи",
+        "hud.crafting.salvaging_station": "Станция разборки",
         // Tabs
         "hud.crafting.tabs.all": "Все",
         "hud.crafting.tabs.armor": "Броня",
@@ -30,6 +31,8 @@
         "hud.crafting.tabs.weapon": "Оружие",
         "hud.crafting.tabs.bag": "Рюкзаки",
         "hud.crafting.tabs.processed_material": "Материалы",
+        "hud.crafting.dismantle_title": "Разборка",
+        "hud.crafting.dismantle_explanation" : "Наведите курсор на предмет что бы увидеть\nчто вы можете получить.\n\nДвойное нажатие для начала разборки.",
     },
 
 
