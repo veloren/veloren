@@ -404,17 +404,17 @@ impl Painter {
             inset,
             dir: 0,
         })
-        .union(self.prim(Primitive::Ramp {
+        .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
             dir: 1,
         }))
-        .union(self.prim(Primitive::Ramp {
+        .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
             dir: 2,
         }))
-        .union(self.prim(Primitive::Ramp {
+        .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
             dir: 3,
