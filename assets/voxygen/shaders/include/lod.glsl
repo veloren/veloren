@@ -10,14 +10,8 @@ layout(set = 0, binding = 6) uniform sampler s_alt;
 layout(set = 0, binding = 7) uniform texture2D t_horizon;
 layout(set = 0, binding = 8) uniform sampler s_horizon;
 
-const float MIN_SHADOW = 0.33;
 
-vec2 pos_to_uv(texture2D tex, sampler s, vec2 pos) {
-    // Want: (pixel + 0.5) / W
-    vec2 texSize = textureSize(sampler2D(tex, s), 0);
-    vec2 uv_pos = (focus_off.xy + pos + 16) / (32.0 * texSize);
-    return vec2(uv_pos.x, /*1.0 - */uv_pos.y);
-}
+const float MIN_SHADOW = 0.33;
 
 vec2 pos_to_tex(vec2 pos) {
     // Want: (pixel + 0.5)

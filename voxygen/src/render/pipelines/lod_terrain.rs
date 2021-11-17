@@ -36,6 +36,7 @@ pub struct LodData {
     pub alt: Texture,
     pub horizon: Texture,
     pub tgt_detail: u32,
+    pub clouds: Texture,
 }
 
 impl LodData {
@@ -52,6 +53,7 @@ impl LodData {
             &map_image,
             &alt_image,
             &horizon_image,
+            Vec2::new(1, 1),
             1,
             //map_border.into(),
         )
@@ -63,6 +65,7 @@ impl LodData {
         lod_base: &[u32],
         lod_alt: &[u32],
         lod_horizon: &[u32],
+        clouds_size: Vec2<u32>,
         tgt_detail: u32,
         //border_color: gfx::texture::PackedColor,
     ) -> Self {
@@ -132,12 +135,57 @@ impl LodData {
         );
         //             SamplerInfo {
         //                 border: [1.0, 0.0, 1.0, 0.0].into(),
+        let clouds = {
+            let texture_info = wgpu::TextureDescriptor {
+                label: None,
+                size: wgpu::Extent3d {
+                    width: clouds_size.x,
+                    height: clouds_size.y,
+                    depth_or_array_layers: 1,
+                },
+                mip_level_count: 1,
+                sample_count: 1,
+                dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Rgba8Unorm,
+                usage: wgpu::TextureUsage::SAMPLED | wgpu::TextureUsage::COPY_DST,
+            };
 
+            let sampler_info = wgpu::SamplerDescriptor {
+                label: None,
+                address_mode_u: wgpu::AddressMode::ClampToEdge,
+                address_mode_v: wgpu::AddressMode::ClampToEdge,
+                address_mode_w: wgpu::AddressMode::ClampToEdge,
+                mag_filter: wgpu::FilterMode::Linear,
+                min_filter: wgpu::FilterMode::Linear,
+                mipmap_filter: wgpu::FilterMode::Nearest,
+                border_color: Some(wgpu::SamplerBorderColor::TransparentBlack),
+                ..Default::default()
+            };
+
+            let view_info = wgpu::TextureViewDescriptor {
+                label: None,
+                format: Some(wgpu::TextureFormat::Rgba8Unorm),
+                dimension: Some(wgpu::TextureViewDimension::D2),
+                aspect: wgpu::TextureAspect::All,
+                base_mip_level: 0,
+                mip_level_count: None,
+                base_array_layer: 0,
+                array_layer_count: None,
+            };
+
+            renderer.create_texture_with_data_raw(
+                &texture_info,
+                &view_info,
+                &sampler_info,
+                vec![0; clouds_size.x as usize * clouds_size.y as usize * 4].as_slice(),
+            )
+        };
         Self {
             map,
             alt,
             horizon,
             tgt_detail,
+            clouds,
         }
     }
 }

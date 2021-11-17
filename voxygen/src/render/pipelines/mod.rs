@@ -401,6 +401,26 @@ impl GlobalsLayouts {
                 },
                 count: None,
             },
+            // clouds t_clouds
+            wgpu::BindGroupLayoutEntry {
+                binding: 12,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Texture {
+                    sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                    view_dimension: wgpu::TextureViewDimension::D2,
+                    multisampled: false,
+                },
+                count: None,
+            },
+            wgpu::BindGroupLayoutEntry {
+                binding: 13,
+                visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
+                ty: wgpu::BindingType::Sampler {
+                    filtering: true,
+                    comparison: false,
+                },
+                count: None,
+            },
         ]
     }
 
@@ -551,6 +571,14 @@ impl GlobalsLayouts {
             wgpu::BindGroupEntry {
                 binding: 11,
                 resource: wgpu::BindingResource::Sampler(&lod_data.map.sampler),
+            },
+            wgpu::BindGroupEntry {
+                binding: 12,
+                resource: wgpu::BindingResource::TextureView(&lod_data.clouds.view),
+            },
+            wgpu::BindGroupEntry {
+                binding: 13,
+                resource: wgpu::BindingResource::Sampler(&lod_data.clouds.sampler),
             },
         ]
     }

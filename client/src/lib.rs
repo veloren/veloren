@@ -48,6 +48,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
+    weather::Weather,
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -106,6 +107,7 @@ pub enum Event {
     CharacterEdited(CharacterId),
     CharacterError(String),
     MapMarker(comp::MapMarkerUpdate),
+    WeatherUpdate(Grid<Weather>),
 }
 
 pub struct WorldData {
@@ -2192,6 +2194,9 @@ impl Client {
             },
             ServerGeneral::MapMarker(event) => {
                 frontend_events.push(Event::MapMarker(event));
+            },
+            ServerGeneral::WeatherUpdate(weather) => {
+                frontend_events.push(Event::WeatherUpdate(weather));
             },
             _ => unreachable!("Not a in_game message"),
         }

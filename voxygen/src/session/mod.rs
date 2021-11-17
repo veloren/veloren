@@ -4,6 +4,7 @@ mod target;
 
 use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Duration};
 
+use itertools::Itertools;
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
@@ -323,6 +324,28 @@ impl SessionState {
                 },
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
+                },
+                client::Event::WeatherUpdate(weather) => {
+                    //weather
+                    //    .iter_mut()
+                    //    .for_each(|(p, c)| *c = if (p.x + p.y) % 2 == 0 { 1.0 } else { 0.0 });
+                    global_state.window.renderer_mut().update_texture(
+                        &self.scene.lod.get_data().clouds,
+                        [0, 0],
+                        [weather.size().x as u32, weather.size().y as u32],
+                        weather
+                            .iter()
+                            .map(|(_, w)| {
+                                [
+                                    (w.cloud * 255.0) as u8,
+                                    (w.rain + 128.0).clamp(0.0, 255.0) as u8,
+                                    (w.wind.x + 128.0).clamp(0.0, 255.0) as u8,
+                                    (w.wind.y + 128.0).clamp(0.0, 255.0) as u8,
+                                ]
+                            })
+                            .collect_vec()
+                            .as_slice(),
+                    );
                 },
             }
         }

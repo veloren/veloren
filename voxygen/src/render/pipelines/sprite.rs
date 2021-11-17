@@ -176,11 +176,11 @@ pub struct SpriteLayout {
 impl SpriteLayout {
     pub fn new(device: &wgpu::Device) -> Self {
         let mut entries = GlobalsLayouts::base_globals_layout();
-        debug_assert_eq!(12, entries.len()); // To remember to adjust the bindings below
+        debug_assert_eq!(14, entries.len()); // To remember to adjust the bindings below
         entries.extend_from_slice(&[
             // sprite_verts
             wgpu::BindGroupLayoutEntry {
-                binding: 12,
+                binding: 14,
                 visibility: wgpu::ShaderStage::VERTEX,
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Storage { read_only: true },
@@ -214,7 +214,7 @@ impl SpriteLayout {
         entries.extend_from_slice(&[
             // sprite_verts
             wgpu::BindGroupEntry {
-                binding: 12,
+                binding: 14,
                 resource: sprite_verts.0.buf.as_entire_binding(),
             },
         ]);
