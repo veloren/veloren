@@ -2,8 +2,6 @@
     // Gear
     (1.0, LootTable("common.loot_tables.weapons.tier-4")),
     (1.0, LootTable("common.loot_tables.armor.tier-4")),
-    (0.5, LootTable("common.loot_tables.weapons.tier-5")),
-    (0.5, LootTable("common.loot_tables.armor.tier-5")),
     (3.0, Item("common.items.armor.misc.head.spikeguard")),
     // Currency
     (3.0, ItemQuantity("common.items.utility.coins", 200, 500)),
