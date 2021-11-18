@@ -156,5 +156,9 @@
             vox_spec: ("armor.mail.orichalcum.belt", (-4.0, -3.5, 1.0)),
             color: None
         ),
+        "Merchant": (
+            vox_spec: ("armor.merchant.belt", (-5.0, -4.0, 2.0)),
+            color: None
+        ),
     },
 ))

@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bomb sprites (can be exploded with arrows or other explosions)
 - Campfire waypoints in towns
 - Arbitrary volume entities
+- New outfit for merchants
 
 ### Changed
 

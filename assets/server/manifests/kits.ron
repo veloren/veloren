@@ -369,4 +369,14 @@
         ("common.items.weapons.sceptre.belzeshrub",1),
         ("common.items.lantern.pumpkin",1),
     ],
+    "merchant": [
+        ("common.items.armor.merchant.back",1),
+        ("common.items.armor.merchant.belt",1),
+        ("common.items.armor.merchant.chest",1),
+        ("common.items.armor.merchant.hand",1),
+        ("common.items.armor.merchant.foot",1),        
+        ("common.items.armor.merchant.turban",1),
+        ("common.items.armor.merchant.pants",1),
+        ("common.items.armor.merchant.shoulder",1),        
+    ],
 })

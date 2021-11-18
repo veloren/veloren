@@ -1,11 +1,11 @@
 ({
-    Armor(Shoulders): Item("common.items.armor.twigsflowers.shoulder"),
-    Armor(Chest): Item("common.items.armor.twigsflowers.chest"),
-    Armor(Hands): Item("common.items.armor.twigsflowers.hand"),
-    Armor(Legs): Item("common.items.armor.twigsflowers.pants"),
-    Armor(Feet): Item("common.items.armor.twigsflowers.foot"),
-    Armor(Belt): Item("common.items.armor.twigsflowers.belt"),
-    Armor(Head): Item("common.items.armor.misc.head.hood"),
+    Armor(Shoulders): Item("common.items.armor.merchant.shoulder"),
+    Armor(Chest): Item("common.items.armor.merchant.chest"),
+    Armor(Hands): Item("common.items.armor.merchant.hand"),
+    Armor(Legs): Item("common.items.armor.merchant.pants"),
+    Armor(Feet): Item("common.items.armor.merchant.foot"),
+    Armor(Belt): Item("common.items.armor.merchant.belt"),
+    Armor(Head): Item("common.items.armor.merchant.turban"),
 
     Lantern: Item("common.items.lantern.black_0"),
     Armor(Neck): Item("common.items.armor.misc.neck.gem_of_resilience"),

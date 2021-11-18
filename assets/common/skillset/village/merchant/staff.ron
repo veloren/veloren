@@ -1,0 +1,17 @@
+([
+    Group(Weapon(Staff)),
+
+    // Fireball
+    Skill((Staff(BDamage), Some(3))),
+    Skill((Staff(BRegen), Some(2))),
+    Skill((Staff(BRadius), Some(2))),
+
+    // Flamethrower
+    Skill((Staff(FRange), Some(2))),
+    Skill((Staff(FDamage), Some(2))),
+    Skill((Staff(FDrain), Some(1))),
+    Skill((Staff(FVelocity), Some(1))),
+
+    // Shockwave
+    Skill((Staff(UnlockShockwave), None)),
+])

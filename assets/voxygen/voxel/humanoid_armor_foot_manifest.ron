@@ -156,5 +156,9 @@
           vox_spec: ("armor.mail.orichalcum.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
+        "Merchant": (
+            vox_spec: ("armor.merchant.foot", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
     },
 ))

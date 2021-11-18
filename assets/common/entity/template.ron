@@ -13,6 +13,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.village.merchant"),
-        SkillSetAsset("common.skillset.village.merchant"),
+        SkillSetAsset("common.skillset.village.merchant.merchant"),
     ],
 )

@@ -360,5 +360,15 @@
                 color: None
             )
         ),
+        "Merchant": (
+            left: (
+                vox_spec: ("armor.merchant.hand", (-2.5, -2.0, -4.0)),
+                color: None
+            ),
+            right:(
+                vox_spec: ("armor.merchant.hand", (-1.5, -2.0, -4.0)),
+                color: None
+            )
+        ),
     },
 ))

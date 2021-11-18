@@ -1215,6 +1215,51 @@
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
+    // Merchant
+    Armor(Chest("Merchant")): VoxTrans(
+        "voxel.armor.merchant.chest",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Armor(Pants("Merchant")): VoxTrans(
+        "voxel.armor.merchant.pants",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Belt("Merchant")): VoxTrans(
+        "voxel.armor.merchant.belt",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Foot("Merchant")): VoxTrans(
+        "voxel.armor.merchant.foot",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Hand("Merchant")): VoxTrans(
+        "voxel.armor.merchant.hand",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Shoulder("Merchant")): VoxTrans(
+        "voxel.armor.merchant.shoulder_l",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Armor(Chest("Merchant")): VoxTrans(
+        "voxel.armor.merchant.chest",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Armor(Pants("Merchant")): VoxTrans(
+        "voxel.armor.merchant.pants",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Armor(Hand("Merchant")): VoxTrans(
+        "voxel.armor.merchant.hand",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),    
+    Armor(Head("Merchant")): VoxTrans(
+        "voxel.armor.merchant.turban_human",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
+    ),
+    Armor(Back("Merchant")): VoxTrans(
+        "voxel.armor.merchant.back",
+        (0.0, 0.0, 0.0), (-90.0, 45.0,0.0), 0.9,
+    ),
     // Velorite Battlemage Set
     Armor(Chest("VeloriteMage")): VoxTrans(
         "voxel.armor.velorite_battlemage.chest",
