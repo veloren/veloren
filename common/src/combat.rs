@@ -3,11 +3,7 @@ use crate::comp::buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource};
 use crate::{
     comp::{
         inventory::{
-            item::{
-                armor::Protection,
-                tool::{self, Tool, ToolKind},
-                Item, ItemDesc, ItemKind, MaterialStatManifest,
-            },
+            item::{armor::Protection, tool::ToolKind, ItemDesc, ItemKind, MaterialStatManifest},
             slot::EquipSlot,
         },
         skillset::SkillGroupKind,
@@ -949,26 +945,28 @@ impl CombatBuff {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &Tool)> {
-    inv.equipped(slot).and_then(|i| {
-        if let ItemKind::Tool(tool) = &i.kind() {
-            Some((i, tool))
-        } else {
-            None
-        }
-    })
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
+pub fn get_weapon_kinds(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     (
-        equipped_item_and_tool(inv, EquipSlot::ActiveMainhand).map(|(_, tool)| tool.kind),
-        equipped_item_and_tool(inv, EquipSlot::ActiveOffhand).map(|(_, tool)| tool.kind),
+        inv.equipped(EquipSlot::ActiveMainhand).and_then(|i| {
+            if let ItemKind::Tool(tool) = &*i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        }),
+        inv.equipped(EquipSlot::ActiveOffhand).and_then(|i| {
+            if let ItemKind::Tool(tool) = &*i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        }),
     )
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
+// TODO: Either remove msm or use it as argument in fn kind
+pub fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
     const DAMAGE_WEIGHT: f32 = 2.0;
     const SPEED_WEIGHT: f32 = 3.0;
     const CRIT_CHANCE_WEIGHT: f32 = 1.25;
@@ -978,8 +976,8 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     const ENERGY_EFFICIENCY_WEIGHT: f32 = 0.0;
     const BUFF_STRENGTH_WEIGHT: f32 = 0.0;
 
-    if let ItemKind::Tool(tool) = item.kind() {
-        let stats = tool::Stats::from((msm, item.components(), tool));
+    if let ItemKind::Tool(tool) = &*item.kind() {
+        let stats = tool.stats;
 
         // TODO: Look into changing the 0.5 to reflect armor later maybe?
         // Since it is only for weapon though, it probably makes sense to leave
@@ -1018,7 +1016,7 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
-    let (mainhand, offhand) = get_weapons(inventory);
+    let (mainhand, offhand) = get_weapon_kinds(inventory);
     let mainhand_skills = if let Some(tool) = mainhand {
         skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
     } else {
@@ -1034,19 +1032,17 @@ fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
-    let mainhand_rating =
-        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveMainhand) {
-            weapon_rating(item, msm)
-        } else {
-            0.0
-        };
+    let mainhand_rating = if let Some(item) = inventory.equipped(EquipSlot::ActiveMainhand) {
+        weapon_rating(item, msm)
+    } else {
+        0.0
+    };
 
-    let offhand_rating =
-        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveOffhand) {
-            weapon_rating(item, msm)
-        } else {
-            0.0
-        };
+    let offhand_rating = if let Some(item) = inventory.equipped(EquipSlot::ActiveOffhand) {
+        weapon_rating(item, msm)
+    } else {
+        0.0
+    };
 
     mainhand_rating.max(offhand_rating)
 }
@@ -1118,7 +1114,7 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
     inventory.map_or(1.25, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.crit_power()
                 } else {
                     None
@@ -1136,7 +1132,7 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
     inventory.map_or(1.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.energy_reward()
                 } else {
                     None
@@ -1154,7 +1150,7 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
     inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.energy_max()
                 } else {
                     None
@@ -1186,7 +1182,7 @@ pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
     let stealth_sum = inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.stealth()
                 } else {
                     None
@@ -1206,7 +1202,7 @@ pub fn compute_protection(inventory: Option<&Inventory>) -> Option<f32> {
     inventory.map_or(Some(0.0), |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.protection()
                 } else {
                     None

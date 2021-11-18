@@ -4,7 +4,7 @@ pub mod modular;
 pub mod tool;
 
 // Reexports
-pub use modular::{ModularComponent, ModularComponentKind};
+pub use modular::{ModularBase, ModularComponent, ModularComponentKind};
 pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
 
 use crate::{
@@ -18,7 +18,6 @@ use core::{
     convert::TryFrom,
     mem,
     num::{NonZeroU32, NonZeroU64},
-    ops::Deref,
 };
 use crossbeam_utils::atomic::AtomicCell;
 use serde::{de, Deserialize, Serialize, Serializer};
@@ -71,12 +70,6 @@ pub struct Glider {
     pub kind: String,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
-pub enum QualityKind {
-    Direct(Quality),
-    Modular,
-}
-
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy, PartialOrd, Ord)]
 pub enum Quality {
     Low,       // Grey
@@ -90,10 +83,10 @@ pub enum Quality {
 }
 
 pub trait TagExampleInfo {
-    fn name(&self) -> Cow<'static, str>;
+    fn name(&self) -> &str;
     /// What item to show in the crafting hud if the player has nothing with the
     /// tag
-    fn exemplar_identifier(&self) -> Cow<'static, str>;
+    fn exemplar_identifier(&self) -> &str;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
@@ -215,11 +208,9 @@ impl Material {
 }
 
 impl TagExampleInfo for Material {
-    fn name(&self) -> Cow<'static, str> { Cow::Borrowed(self.into()) }
+    fn name(&self) -> &str { self.into() }
 
-    fn exemplar_identifier(&self) -> Cow<'static, str> {
-        Cow::Borrowed(self.asset_identifier().unwrap_or(""))
-    }
+    fn exemplar_identifier(&self) -> &str { self.asset_identifier().unwrap_or("") }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -238,36 +229,36 @@ pub enum ItemTag {
 }
 
 impl TagExampleInfo for ItemTag {
-    fn name(&self) -> Cow<'static, str> {
+    fn name(&self) -> &str {
         match self {
             ItemTag::Material(material) => material.name(),
-            ItemTag::MaterialKind(material_kind) => Cow::Borrowed(material_kind.into()),
-            ItemTag::Leather => Cow::Borrowed("leather"),
-            ItemTag::Cultist => Cow::Borrowed("cultist"),
-            ItemTag::Potion => Cow::Borrowed("potion"),
-            ItemTag::Food => Cow::Borrowed("food"),
-            ItemTag::BaseMaterial => Cow::Borrowed("basemat"),
-            ItemTag::CraftingTool => Cow::Borrowed("tool"),
-            ItemTag::Utility => Cow::Borrowed("utility"),
-            ItemTag::Bag => Cow::Borrowed("bag"),
-            ItemTag::SalvageInto(_) => Cow::Borrowed("salvage"),
+            ItemTag::MaterialKind(material_kind) => material_kind.into(),
+            ItemTag::Leather => "leather",
+            ItemTag::Cultist => "cultist",
+            ItemTag::Potion => "potion",
+            ItemTag::Food => "food",
+            ItemTag::BaseMaterial => "basemat",
+            ItemTag::CraftingTool => "tool",
+            ItemTag::Utility => "utility",
+            ItemTag::Bag => "bag",
+            ItemTag::SalvageInto(_) => "salvage",
         }
     }
 
     // TODO: Autogenerate these?
-    fn exemplar_identifier(&self) -> Cow<'static, str> {
+    fn exemplar_identifier(&self) -> &str {
         match self {
-            ItemTag::Material(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::MaterialKind(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::Leather => Cow::Borrowed("common.items.tag_examples.leather"),
-            ItemTag::Cultist => Cow::Borrowed("common.items.tag_examples.cultist"),
-            ItemTag::Potion => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::Food => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::BaseMaterial => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::CraftingTool => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::Utility => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::Bag => Cow::Borrowed("common.items.tag_examples.placeholder"),
-            ItemTag::SalvageInto(_) => Cow::Borrowed("common.items.tag_examples.placeholder"),
+            ItemTag::Material(_) => "common.items.tag_examples.placeholder",
+            ItemTag::MaterialKind(_) => "common.items.tag_examples.placeholder",
+            ItemTag::Leather => "common.items.tag_examples.leather",
+            ItemTag::Cultist => "common.items.tag_examples.cultist",
+            ItemTag::Potion => "common.items.tag_examples.placeholder",
+            ItemTag::Food => "common.items.tag_examples.placeholder",
+            ItemTag::BaseMaterial => "common.items.tag_examples.placeholder",
+            ItemTag::CraftingTool => "common.items.tag_examples.placeholder",
+            ItemTag::Utility => "common.items.tag_examples.placeholder",
+            ItemTag::Bag => "common.items.tag_examples.placeholder",
+            ItemTag::SalvageInto(_) => "common.items.tag_examples.placeholder",
         }
     }
 }
@@ -346,10 +337,10 @@ pub struct Item {
     /// could change invariants like whether it was stackable (invalidating
     /// the amount).
     #[serde(
-        serialize_with = "serialize_item_def",
-        deserialize_with = "deserialize_item_def"
+        serialize_with = "serialize_item_base",
+        deserialize_with = "deserialize_item_base"
     )]
-    item_def: Arc<ItemDef>,
+    item_base: ItemBase,
     /// components is hidden to maintain the following invariants:
     /// - It should only contain modular components (and enhancements, once they
     ///   exist)
@@ -374,7 +365,7 @@ use std::hash::{Hash, Hasher};
 // Used to find inventory item corresponding to hotbar slot
 impl Hash for Item {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.item_def.item_definition_id.hash(state);
+        self.item_definition_id().hash(state);
         self.components.hash(state);
     }
 }
@@ -382,33 +373,43 @@ impl Hash for Item {
 // Custom serialization for ItemDef, we only want to send the item_definition_id
 // over the network, the client will use deserialize_item_def to fetch the
 // ItemDef from assets.
-fn serialize_item_def<S: Serializer>(field: &Arc<ItemDef>, serializer: S) -> Result<S::Ok, S::Error>
+fn serialize_item_base<S: Serializer>(field: &ItemBase, serializer: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
 {
-    serializer.serialize_str(&field.item_definition_id)
+    serializer.serialize_str(match field {
+        ItemBase::Raw(item_def) => &item_def.item_definition_id,
+        // TODO: Encode this data somehow
+        ItemBase::Modular(_) => "modular",
+    })
 }
 
 // Custom de-serialization for ItemDef to retrieve the ItemDef from assets using
 // its asset specifier (item_definition_id)
-fn deserialize_item_def<'de, D>(deserializer: D) -> Result<Arc<ItemDef>, D::Error>
+fn deserialize_item_base<'de, D>(deserializer: D) -> Result<ItemBase, D::Error>
 where
     D: de::Deserializer<'de>,
 {
     struct ItemDefStringVisitor;
 
     impl<'de> de::Visitor<'de> for ItemDefStringVisitor {
-        type Value = Arc<ItemDef>;
+        type Value = ItemBase;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
             formatter.write_str("item def string")
         }
 
-        fn visit_str<E>(self, item_definition_id: &str) -> Result<Self::Value, E>
+        fn visit_str<E>(self, serialized_item_base: &str) -> Result<Self::Value, E>
         where
             E: de::Error,
         {
-            Ok(Arc::<ItemDef>::load_expect_cloned(item_definition_id))
+            Ok(match serialized_item_base {
+                // TODO: Make this work
+                "modular" => ItemBase::Modular(ModularBase::Tool(ToolKind::Empty)),
+                item_definition_id => {
+                    ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(item_definition_id))
+                },
+            })
         }
     }
 
@@ -422,14 +423,36 @@ pub enum ItemName {
     Component(String),
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ItemBase {
+    Raw(Arc<ItemDef>),
+    Modular(modular::ModularBase),
+}
+
+impl ItemBase {
+    fn num_slots(&self) -> u16 {
+        match self {
+            ItemBase::Raw(item_def) => item_def.num_slots(),
+            ItemBase::Modular(_) => 0,
+        }
+    }
+
+    fn item_definition_id(&self) -> &str {
+        match &self {
+            ItemBase::Raw(item_def) => &item_def.item_definition_id,
+            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
+        }
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
     #[serde(default)]
     item_definition_id: String,
-    pub name: ItemName,
+    pub name: String,
     pub description: String,
     pub kind: ItemKind,
-    pub quality: QualityKind,
+    pub quality: Quality,
     pub tags: Vec<ItemTag>,
     #[serde(default)]
     pub slots: u16,
@@ -457,17 +480,18 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
     type Error = ItemConfigError;
 
     fn try_from(
-        (item, ability_map, msm): (&Item, &AbilityMap, &MaterialStatManifest),
+        // TODO: Either remove msm or use it as argument in fn kind
+        (item, ability_map, _msm): (&Item, &AbilityMap, &MaterialStatManifest),
     ) -> Result<Self, Self::Error> {
-        if let ItemKind::Tool(tool) = &item.kind {
+        if let ItemKind::Tool(tool) = &*item.kind() {
             // If no custom ability set is specified, fall back to abilityset of tool kind.
             let tool_default = |tool_kind| {
                 let key = &AbilitySpec::Tool(tool_kind);
                 ability_map.get_ability_set(key)
             };
             let abilities = if let Some(set_key) = item.ability_spec() {
-                if let Some(set) = ability_map.get_ability_set(set_key) {
-                    set.clone().modified_by_tool(tool, msm, &item.components)
+                if let Some(set) = ability_map.get_ability_set(&*set_key) {
+                    set.clone().modified_by_tool(tool)
                 } else {
                     error!(
                         "Custom ability set: {:?} references non-existent set, falling back to \
@@ -477,7 +501,7 @@ impl TryFrom<(&Item, &AbilityMap, &MaterialStatManifest)> for ItemConfig {
                     tool_default(tool.kind).cloned().unwrap_or_default()
                 }
             } else if let Some(set) = tool_default(tool.kind) {
-                set.clone().modified_by_tool(tool, msm, &item.components)
+                set.clone().modified_by_tool(tool)
             } else {
                 error!(
                     "No ability set defined for tool: {:?}, falling back to default ability set.",
@@ -501,16 +525,6 @@ impl ItemDef {
                 | ItemKind::Ingredient { .. }
                 | ItemKind::Throwable { .. }
                 | ItemKind::Utility { .. }
-        )
-    }
-
-    pub fn is_modular(&self) -> bool {
-        matches!(
-            &self.kind,
-            ItemKind::Tool(tool::Tool {
-                stats: tool::StatKind::Modular,
-                ..
-            }) | ItemKind::ModularComponent(_)
         )
     }
 
@@ -568,14 +582,14 @@ impl ItemDef {
 /// please don't rely on this for anything!
 impl PartialEq for Item {
     fn eq(&self, other: &Self) -> bool {
-        self.item_def.item_definition_id == other.item_def.item_definition_id
+        if let (ItemBase::Raw(self_def), ItemBase::Raw(other_def)) =
+            (&self.item_base, &other.item_base)
+        {
+            self_def.item_definition_id == other_def.item_definition_id
+        } else {
+            false
+        }
     }
-}
-
-impl Deref for Item {
-    type Target = ItemDef;
-
-    fn deref(&self) -> &Self::Target { &self.item_def }
 }
 
 impl assets::Compound for ItemDef {
@@ -583,13 +597,6 @@ impl assets::Compound for ItemDef {
         cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, BoxedError> {
-        // load from the filesystem first, but if the file doesn't exist, see if it's a
-        // programmatically-generated asset
-        let raw = match cache.load::<RawItemDef>(specifier) {
-            Ok(handle) => handle.cloned(),
-            Err(e) => modular::synthesize_modular_asset(specifier).ok_or(e)?,
-        };
-
         let RawItemDef {
             name,
             description,
@@ -598,7 +605,7 @@ impl assets::Compound for ItemDef {
             tags,
             slots,
             ability_spec,
-        } = raw;
+        } = cache.load::<RawItemDef>(specifier)?.cloned();
 
         // Some commands like /give_item provide the asset specifier separated with \
         // instead of .
@@ -622,10 +629,10 @@ impl assets::Compound for ItemDef {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "ItemDef")]
 struct RawItemDef {
-    name: ItemName,
+    name: String,
     description: String,
     kind: ItemKind,
-    quality: QualityKind,
+    quality: Quality,
     tags: Vec<ItemTag>,
     #[serde(default)]
     slots: u16,
@@ -646,25 +653,22 @@ impl Item {
     // loadout when no weapon is present
     pub fn empty() -> Self { Item::new_from_asset_expect("common.items.weapons.empty.empty") }
 
-    pub fn new_from_item_def(
-        inner_item: Arc<ItemDef>,
+    pub fn new_from_item_base(
+        inner_item: ItemBase,
         input_components: &[Item],
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Self {
         let mut components = Vec::new();
-        if inner_item.is_modular() {
-            // recipe ensures that types match (i.e. no axe heads on a sword hilt, or double
-            // sword blades)
-            components.extend(
-                input_components
-                    .iter()
-                    .map(|comp| comp.duplicate(ability_map, msm)),
-            );
-        }
+        components.extend(
+            input_components
+                .iter()
+                .map(|comp| comp.duplicate(ability_map, msm)),
+        );
+
         let item_hash = {
             let mut s = DefaultHasher::new();
-            inner_item.item_definition_id.hash(&mut s);
+            inner_item.item_definition_id().hash(&mut s);
             components.hash(&mut s);
             s.finish()
         };
@@ -673,8 +677,8 @@ impl Item {
             item_id: Arc::new(AtomicCell::new(None)),
             amount: NonZeroU32::new(1).unwrap(),
             components,
-            slots: vec![None; inner_item.slots as usize],
-            item_def: inner_item,
+            slots: vec![None; inner_item.num_slots() as usize],
+            item_base: inner_item,
             item_config: None,
             hash: item_hash,
         };
@@ -685,11 +689,7 @@ impl Item {
     /// Creates a new instance of an `Item` from the provided asset identifier
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
-        let inner_item = Arc::<ItemDef>::load_expect_cloned(asset_specifier);
-        // TODO: Figure out better way to get msm and ability_map
-        let msm = MaterialStatManifest::default();
-        let ability_map = AbilityMap::default();
-        Item::new_from_item_def(inner_item, &[], &ability_map, &msm)
+        Item::new_from_asset(asset_specifier).expect("Expected asset to exist")
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -703,18 +703,26 @@ impl Item {
     /// Creates a new instance of an `Item from the provided asset identifier if
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
-        let inner_item = Arc::<ItemDef>::load_cloned(asset)?;
+        let inner_item = ItemBase::Raw(Arc::<ItemDef>::load_cloned(asset)?);
         // TODO: Get msm and ability_map less hackily
         let msm = MaterialStatManifest::default();
         let ability_map = AbilityMap::default();
-        Ok(Item::new_from_item_def(inner_item, &[], &ability_map, &msm))
+        Ok(Item::new_from_item_base(
+            inner_item,
+            &[],
+            &ability_map,
+            &msm,
+        ))
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID
     #[must_use]
     pub fn duplicate(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Self {
-        let mut new_item = Item::new_from_item_def(
-            Arc::clone(&self.item_def),
+        let mut new_item = Item::new_from_item_base(
+            match &self.item_base {
+                ItemBase::Raw(item_def) => ItemBase::Raw(Arc::clone(item_def)),
+                ItemBase::Modular(mod_base) => ItemBase::Modular(mod_base.duplicate()),
+            },
             &self.components,
             ability_map,
             msm,
@@ -827,18 +835,28 @@ impl Item {
         self.slots.iter_mut().filter_map(mem::take)
     }
 
-    pub fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
+    pub fn item_definition_id(&self) -> &str {
+        match &self.item_base {
+            ItemBase::Raw(item_def) => &item_def.item_definition_id,
+            // TODO: Should this be handled better?
+            ItemBase::Modular(_) => "",
+        }
+    }
 
     pub fn is_same_item_def(&self, item_def: &ItemDef) -> bool {
-        self.item_def.item_definition_id == item_def.item_definition_id
+        if let ItemBase::Raw(self_def) = &self.item_base {
+            self_def.item_definition_id == item_def.item_definition_id
+        } else {
+            false
+        }
     }
 
     pub fn matches_recipe_input(&self, recipe_input: &RecipeInput) -> bool {
         match recipe_input {
             RecipeInput::Item(item_def) => self.is_same_item_def(item_def),
-            RecipeInput::Tag(tag) => self.item_def.tags.contains(tag),
+            RecipeInput::Tag(tag) => self.tags().contains(tag),
             RecipeInput::TagSameItem(tag, amount) => {
-                self.item_def.tags.contains(tag) && u32::from(self.amount) >= *amount
+                self.tags().contains(tag) && u32::from(self.amount) >= *amount
             },
             RecipeInput::ListSameItem(item_defs, amount) => item_defs.iter().any(|item_def| {
                 self.is_same_item_def(item_def) && u32::from(self.amount) >= *amount
@@ -847,48 +865,65 @@ impl Item {
     }
 
     pub fn is_salvageable(&self) -> bool {
-        self.item_def
-            .tags
+        self.tags()
             .iter()
             .any(|tag| matches!(tag, ItemTag::SalvageInto(_)))
     }
 
     pub fn salvage_output(&self) -> impl Iterator<Item = &str> {
-        self.item_def
-            .tags
-            .iter()
-            .filter_map(|tag| {
-                if let ItemTag::SalvageInto(material) = tag {
-                    Some(material)
-                } else {
-                    None
-                }
-            })
-            .filter_map(|material| material.asset_identifier())
+        self.tags().iter().filter_map(|tag| {
+            if let ItemTag::SalvageInto(material) = tag {
+                material.asset_identifier()
+            } else {
+                None
+            }
+        })
     }
 
-    pub fn name(&self) -> Cow<'_, str> {
-        match &self.item_def.name {
-            ItemName::Direct(name) => Cow::Borrowed(name),
-            ItemName::Modular => modular::modular_name(self, ""),
-            ItemName::Component(name) => modular::modular_name(self, name),
+    pub fn name(&self) -> Cow<str> {
+        match &self.item_base {
+            ItemBase::Raw(item_def) => Cow::Borrowed(&item_def.name),
+            ItemBase::Modular(mod_base) => mod_base.generate_name(self.components()),
         }
     }
 
-    pub fn description(&self) -> &str { &self.item_def.description }
+    pub fn description(&self) -> &str {
+        match &self.item_base {
+            ItemBase::Raw(item_def) => &item_def.description,
+            // TODO: See if James wanted to make description, else leave with none
+            ItemBase::Modular(_) => "",
+        }
+    }
 
-    pub fn kind(&self) -> &ItemKind { &self.item_def.kind }
+    pub fn kind(&self) -> Cow<ItemKind> {
+        // TODO: Try to move further upward
+        let msm = MaterialStatManifest::default();
+        match &self.item_base {
+            ItemBase::Raw(item_def) => Cow::Borrowed(&item_def.kind),
+            ItemBase::Modular(mod_base) => mod_base.kind(self.components(), &msm),
+        }
+    }
 
     pub fn amount(&self) -> u32 { u32::from(self.amount) }
+
+    pub fn is_stackable(&self) -> bool {
+        match &self.item_base {
+            ItemBase::Raw(item_def) => item_def.is_stackable(),
+            // TODO: Let whoever implements stackable modular items deal with this
+            ItemBase::Modular(_) => false,
+        }
+    }
+
+    pub fn num_slots(&self) -> u16 { self.item_base.num_slots() }
 
     /// NOTE: invariant that amount() ≤ max_amount(), 1 ≤ max_amount(),
     /// and if !self.is_stackable(), self.max_amount() = 1.
     pub fn max_amount(&self) -> u32 { if self.is_stackable() { u32::MAX } else { 1 } }
 
     pub fn quality(&self) -> Quality {
-        match self.item_def.quality {
-            QualityKind::Direct(quality) => quality,
-            QualityKind::Modular => modular::resolve_quality(self),
+        match &self.item_base {
+            ItemBase::Raw(item_def) => item_def.quality,
+            ItemBase::Modular(mod_base) => mod_base.compute_quality(self.components()),
         }
     }
 
@@ -916,7 +951,27 @@ impl Item {
         block.get_sprite()?.collectible_id()?.to_item()
     }
 
-    pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }
+    pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
+        match &self.item_base {
+            ItemBase::Raw(item_def) => item_def.ability_spec.as_ref().map(Cow::Borrowed),
+            ItemBase::Modular(mod_base) => mod_base.ability_spec(self.components()),
+        }
+    }
+
+    pub fn tags(&self) -> &[ItemTag] {
+        match &self.item_base {
+            ItemBase::Raw(item_def) => &item_def.tags,
+            // TODO: Do this properly. It'll probably be important at some point.
+            ItemBase::Modular(_) => &[],
+        }
+    }
+
+    pub fn is_modular(&self) -> bool {
+        match &self.item_base {
+            ItemBase::Raw(_) => false,
+            ItemBase::Modular(_) => true,
+        }
+    }
 
     pub fn item_hash(&self) -> u64 { self.hash }
 
@@ -935,19 +990,21 @@ impl Item {
 /// for either an `Item` containing the definition, or the actual `ItemDef`
 pub trait ItemDesc {
     fn description(&self) -> &str;
-    fn name(&self) -> Cow<'_, str>;
-    fn kind(&self) -> &ItemKind;
+    fn name(&self) -> Cow<str>;
+    fn kind(&self) -> Cow<ItemKind>;
     fn quality(&self) -> Quality;
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
     fn tags(&self) -> &[ItemTag];
     fn concrete_item(&self) -> Option<&Item>;
 
+    fn is_modular(&self) -> bool;
+
     fn components(&self) -> &[Item] { self.concrete_item().map_or(&[], |i| i.components()) }
 
-    fn tool(&self) -> Option<&Tool> {
-        if let ItemKind::Tool(tool) = self.kind() {
-            Some(tool)
+    fn tool_info(&self) -> Option<ToolKind> {
+        if let ItemKind::Tool(tool) = &*self.kind() {
+            Some(tool.kind)
         } else {
             None
         }
@@ -955,48 +1012,33 @@ pub trait ItemDesc {
 }
 
 impl ItemDesc for Item {
-    fn description(&self) -> &str { &self.item_def.description }
+    fn description(&self) -> &str { self.description() }
 
-    fn name(&self) -> Cow<'_, str> { self.name() }
+    fn name(&self) -> Cow<str> { self.name() }
 
-    fn kind(&self) -> &ItemKind { &self.item_def.kind }
+    fn kind(&self) -> Cow<ItemKind> { self.kind() }
 
     fn quality(&self) -> Quality { self.quality() }
 
-    fn num_slots(&self) -> u16 { self.item_def.slots }
+    fn num_slots(&self) -> u16 { self.num_slots() }
 
-    fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }
+    fn item_definition_id(&self) -> &str { self.item_definition_id() }
 
-    fn tags(&self) -> &[ItemTag] { &self.item_def.tags }
+    fn tags(&self) -> &[ItemTag] { self.tags() }
 
     fn concrete_item(&self) -> Option<&Item> { Some(self) }
+
+    fn is_modular(&self) -> bool { self.is_modular() }
 }
 
 impl ItemDesc for ItemDef {
     fn description(&self) -> &str { &self.description }
 
-    fn name(&self) -> Cow<'_, str> {
-        match &self.name {
-            ItemName::Direct(name) | ItemName::Component(name) => Cow::Borrowed(name),
-            ItemName::Modular => {
-                let toolkind = if let ItemKind::Tool(tool) = &self.kind {
-                    tool.kind.identifier_name()
-                } else {
-                    "Weapon"
-                };
-                Cow::Owned(format!("Modular {}", toolkind))
-            },
-        }
-    }
+    fn name(&self) -> Cow<str> { Cow::Borrowed(&self.name) }
 
-    fn kind(&self) -> &ItemKind { &self.kind }
+    fn kind(&self) -> Cow<ItemKind> { Cow::Borrowed(&self.kind) }
 
-    fn quality(&self) -> Quality {
-        match &self.quality {
-            QualityKind::Direct(quality) => *quality,
-            QualityKind::Modular => Quality::Common,
-        }
-    }
+    fn quality(&self) -> Quality { self.quality }
 
     fn num_slots(&self) -> u16 { self.slots }
 
@@ -1005,6 +1047,8 @@ impl ItemDesc for ItemDef {
     fn tags(&self) -> &[ItemTag] { &self.tags }
 
     fn concrete_item(&self) -> Option<&Item> { None }
+
+    fn is_modular(&self) -> bool { false }
 }
 
 impl Component for Item {
@@ -1021,9 +1065,9 @@ impl Component for ItemDrop {
 impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn description(&self) -> &str { (*self).description() }
 
-    fn name(&self) -> Cow<'_, str> { (*self).name() }
+    fn name(&self) -> Cow<str> { (*self).name() }
 
-    fn kind(&self) -> &ItemKind { (*self).kind() }
+    fn kind(&self) -> Cow<ItemKind> { (*self).kind() }
 
     fn quality(&self) -> Quality { (*self).quality() }
 
@@ -1036,6 +1080,8 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn tags(&self) -> &[ItemTag] { (*self).tags() }
 
     fn concrete_item(&self) -> Option<&Item> { None }
+
+    fn is_modular(&self) -> bool { (*self).is_modular() }
 }
 
 /// Returns all item asset specifiers

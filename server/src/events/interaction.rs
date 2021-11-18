@@ -51,22 +51,22 @@ pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
             .map_or(true, |h| !h.is_dead)
         {
             let inventory_storage = ecs.read_storage::<Inventory>();
-            let lantern_opt = inventory_storage
+            let lantern_info = inventory_storage
                 .get(entity)
                 .and_then(|inventory| inventory.equipped(EquipSlot::Lantern))
                 .and_then(|item| {
-                    if let comp::item::ItemKind::Lantern(l) = item.kind() {
-                        Some(l)
+                    if let comp::item::ItemKind::Lantern(l) = &*item.kind() {
+                        Some((l.color(), l.strength()))
                     } else {
                         None
                     }
                 });
-            if let Some(lantern) = lantern_opt {
+            if let Some((col, strength)) = lantern_info {
                 let _ =
                     ecs.write_storage::<comp::LightEmitter>()
                         .insert(entity, comp::LightEmitter {
-                            col: lantern.color(),
-                            strength: lantern.strength(),
+                            col,
+                            strength,
                             flicker: 0.35,
                             animated: true,
                         });

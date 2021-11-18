@@ -2,7 +2,9 @@ use crate::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         inventory::slot::InvSlotId,
-        item::{modular, tool::AbilityMap, ItemDef, ItemKind, ItemTag, MaterialStatManifest},
+        item::{
+            modular, tool::AbilityMap, ItemBase, ItemDef, ItemKind, ItemTag, MaterialStatManifest,
+        },
         Inventory, Item,
     },
     terrain::SpriteKind,
@@ -123,8 +125,12 @@ impl Recipe {
             }
             let (item_def, quantity) = &self.output;
 
-            let mut crafted_item =
-                Item::new_from_item_def(Arc::clone(item_def), &[], ability_map, msm);
+            let mut crafted_item = Item::new_from_item_base(
+                ItemBase::Raw(Arc::clone(item_def)),
+                &[],
+                ability_map,
+                msm,
+            );
             for component in components {
                 crafted_item.add_component(component, ability_map, msm);
             }
@@ -244,19 +250,22 @@ pub fn modular_weapon(
 ) -> Result<Item, ModularWeaponError> {
     use modular::{ModularComponent, ModularComponentKind};
     // Closure to get inner modular component info from item in a given slot
-    let unwrap_modular = |slot| -> Option<&ModularComponent> {
-        if let Some(ItemKind::ModularComponent(mod_comp)) = inv.get(slot).map(|item| &item.kind) {
-            Some(mod_comp)
+    fn unwrap_modular(inv: &Inventory, slot: InvSlotId) -> Option<ModularComponent> {
+        if let Some(ItemKind::ModularComponent(mod_comp)) =
+            inv.get(slot).map(|item| item.kind()).as_deref()
+        {
+            // TODO: Remove
+            Some(mod_comp.clone())
         } else {
             None
         }
-    };
+    }
 
     // Checks if both components are comptabile, and if so returns the toolkind to
     // make weapon of
     let compatiblity = if let (Some(damage_component), Some(held_component)) = (
-        unwrap_modular(damage_component),
-        unwrap_modular(held_component),
+        unwrap_modular(inv, damage_component),
+        unwrap_modular(inv, held_component),
     ) {
         // Checks that damage and held component slots each contain a damage and held
         // modular component respectively
@@ -296,14 +305,14 @@ pub fn modular_weapon(
                 .take(held_component, ability_map, msm)
                 .expect("Expected component to exist");
 
-            // Initialize modular weapon
-            let mut modular_weapon = modular::initialize_modular_weapon(tool_kind);
-
-            // Insert components into modular weapon item
-            modular_weapon.add_component(damage_component, ability_map, msm);
-            modular_weapon.add_component(held_component, ability_map, msm);
-
-            Ok(modular_weapon)
+            // Create modular weapon
+            let components = vec![damage_component, held_component];
+            Ok(Item::new_from_item_base(
+                ItemBase::Modular(modular::ModularBase::Tool(tool_kind)),
+                &components,
+                ability_map,
+                msm,
+            ))
         },
         Err(err) => Err(err),
     }

@@ -283,11 +283,8 @@ impl Scene {
             inventory
                 .and_then(|inv| inv.equipped(equip_slot))
                 .and_then(|i| {
-                    if let ItemKind::Tool(tool) = i.kind() {
-                        Some((
-                            Some(tool.kind),
-                            Some(tool.hands.resolve_hands(i.components())),
-                        ))
+                    if let ItemKind::Tool(tool) = &*i.kind() {
+                        Some((Some(tool.kind), Some(tool.hands)))
                     } else {
                         None
                     }

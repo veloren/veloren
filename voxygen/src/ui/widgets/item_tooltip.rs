@@ -462,11 +462,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let quality = get_quality_col(item);
 
-        let equip_slot = item
-            .concrete_item()
-            .map(|item| inventory.equipped_items_replaceable_by(item))
-            .into_iter()
-            .flatten();
+        let item_kind = &*item.kind();
+
+        let equip_slot = inventory.equipped_items_of_kind(item_kind);
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
@@ -582,12 +580,12 @@ impl<'a> Widget for ItemTooltip<'a> {
             .set(state.ids.subtitle, ui);
 
         // Stats
-        match item.kind() {
+        match &*item.kind() {
             ItemKind::Tool(tool) => {
-                let power = tool.base_power(self.msm, item.components()) * 10.0;
-                let speed = tool.base_speed(self.msm, item.components());
-                let effect_power = tool.base_effect_power(self.msm, item.components()) * 10.0;
-                let crit_chance = tool.base_crit_chance(self.msm, item.components()) * 100.0;
+                let power = tool.base_power() * 10.0;
+                let speed = tool.base_speed();
+                let effect_power = tool.base_effect_power() * 10.0;
+                let crit_chance = tool.base_crit_chance() * 100.0;
                 let combat_rating = combat::weapon_rating(&item, self.msm) * 10.0;
 
                 // Combat Rating
@@ -667,14 +665,8 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                 if let Some(equipped_item) = first_equipped {
                     if let ItemKind::Tool(equipped_tool) = equipped_item.kind() {
-                        let tool_stats = tool
-                            .stats
-                            .resolve_stats(self.msm, item.components())
-                            .clamp_speed();
-                        let equipped_tool_stats = equipped_tool
-                            .stats
-                            .resolve_stats(self.msm, equipped_item.components())
-                            .clamp_speed();
+                        let tool_stats = tool.stats;
+                        let equipped_tool_stats = equipped_tool.stats;
                         let diff = tool_stats - equipped_tool_stats;
                         let power_diff =
                             util::comparison(tool_stats.power, equipped_tool_stats.power);
@@ -970,7 +962,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
 
                 if let Some(equipped_item) = first_equipped {
-                    if let ItemKind::Armor(equipped_armor) = equipped_item.kind() {
+                    if let ItemKind::Armor(equipped_armor) = &*equipped_item.kind() {
                         let diff = armor.stats - equipped_armor.stats;
                         let protection_diff = util::option_comparison(
                             &armor.protection(),

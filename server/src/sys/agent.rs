@@ -167,7 +167,7 @@ impl<'a> System<'a> for Sys {
                         .equipped(EquipSlot::Glider)
                         .as_ref()
                         .map_or(false, |item| {
-                            matches!(item.kind(), comp::item::ItemKind::Glider(_))
+                            matches!(&*item.kind(), comp::item::ItemKind::Glider(_))
                         });
 
                     let is_gliding = matches!(
@@ -701,7 +701,7 @@ impl<'a> AgentData<'a> {
             .equipped(EquipSlot::Lantern)
             .as_ref()
             .map_or(false, |item| {
-                matches!(item.kind(), comp::item::ItemKind::Lantern(_))
+                matches!(&*item.kind(), comp::item::ItemKind::Lantern(_))
             });
         let lantern_turned_on = self.light_emitter.is_some();
         let day_period = DayPeriod::from(read_data.time_of_day.0);
@@ -1496,7 +1496,7 @@ impl<'a> AgentData<'a> {
         let healing_value = |item: &Item| {
             let mut value = 0.0;
 
-            if let ItemKind::Consumable { kind, effects, .. } = &item.kind {
+            if let ItemKind::Consumable { kind, effects, .. } = &*item.kind() {
                 if matches!(kind, ConsumableKind::Drink)
                     || (relaxed && matches!(kind, ConsumableKind::Food))
                 {
@@ -1639,7 +1639,7 @@ impl<'a> AgentData<'a> {
             .as_ref()
             .map(|item| {
                 if let Some(ability_spec) = item.ability_spec() {
-                    match ability_spec {
+                    match &*ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
                             "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
@@ -1697,7 +1697,7 @@ impl<'a> AgentData<'a> {
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
                     }
-                } else if let ItemKind::Tool(tool) = &item.kind() {
+                } else if let ItemKind::Tool(tool) = &*item.kind() {
                     tool_tactic(tool.kind)
                 } else {
                     Tactic::SimpleMelee

@@ -4,7 +4,7 @@ use common::{
         inventory::trade_pricing::TradePricing,
         item::{
             armor::{Armor, ArmorKind, Protection},
-            tool::{Hands, StatKind, Stats, Tool, ToolKind},
+            tool::{Hands, Stats, Tool, ToolKind},
             Item, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest, ModularComponent,
         },
         BuffKind,
@@ -71,12 +71,12 @@ pub fn price_desc(
 }
 
 pub fn kind_text<'a>(item: &dyn ItemDesc, i18n: &'a Localization) -> Cow<'a, str> {
-    match item.kind() {
+    match &*item.kind() {
         ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(armor, i18n)),
         ItemKind::Tool(tool) => Cow::Owned(format!(
             "{} ({})",
             tool_kind(tool, i18n),
-            tool_hands(tool, item.components(), i18n)
+            tool_hands(tool, i18n)
         )),
         ItemKind::ModularComponent(_mc) => Cow::Borrowed(i18n.get("common.bag.shoulders")),
         ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),
@@ -106,7 +106,7 @@ pub fn modular_component_desc(
     msm: &MaterialStatManifest,
     description: &str,
 ) -> String {
-    let stats = StatKind::Direct(mc.stats).resolve_stats(msm, components);
+    let stats = mc.stats;
     let statblock = statblock_desc(&stats);
     let mut result = format!("Modular Component\n\n{}\n\n{}", statblock, description);
     if !components.is_empty() {
@@ -121,7 +121,7 @@ pub fn modular_component_desc(
 }
 
 pub fn stats_count(item: &dyn ItemDesc) -> usize {
-    let mut count = match item.kind() {
+    let mut count = match &*item.kind() {
         ItemKind::Armor(armor) => {
             if matches!(armor.kind, ArmorKind::Bag(_)) {
                 0
@@ -139,7 +139,7 @@ pub fn stats_count(item: &dyn ItemDesc) -> usize {
         _ => 0,
     };
 
-    let is_bag = match item.kind() {
+    let is_bag = match &*item.kind() {
         ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag(_)),
         _ => false,
     };
@@ -274,8 +274,8 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
 }
 
 /// Output the number of hands needed to hold a tool
-pub fn tool_hands<'a>(tool: &Tool, components: &[Item], i18n: &'a Localization) -> &'a str {
-    let hands = match tool.hands.resolve_hands(components) {
+pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
+    let hands = match tool.hands {
         Hands::One => i18n.get("common.hands.one"),
         Hands::Two => i18n.get("common.hands.two"),
     };

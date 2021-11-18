@@ -2,7 +2,7 @@ use crate::{
     assets::AssetExt,
     comp::inventory::item::{
         armor::{Armor, ArmorKind},
-        modular, tool, Glider, ItemDef, ItemDesc, ItemKind, Lantern, Throwable, Utility,
+        modular, Glider, ItemDef, ItemDesc, ItemKind, Lantern, Throwable, Utility,
     },
 };
 use serde::{Deserialize, Serialize};
@@ -26,15 +26,14 @@ pub enum ItemKey {
 
 impl<T: ItemDesc> From<&T> for ItemKey {
     fn from(item_desc: &T) -> Self {
-        let item_kind = item_desc.kind();
         let item_definition_id = item_desc.item_definition_id();
 
-        match item_kind {
-            ItemKind::Tool(tool) => {
-                use tool::StatKind;
-                match tool.stats {
-                    StatKind::Direct(_) => ItemKey::Tool(item_definition_id.to_owned()),
-                    StatKind::Modular => ItemKey::ModularWeapon(modular::weapon_to_key(item_desc)),
+        match &*item_desc.kind() {
+            ItemKind::Tool(_) => {
+                if item_desc.is_modular() {
+                    ItemKey::ModularWeapon(modular::weapon_to_key(item_desc))
+                } else {
+                    ItemKey::Tool(item_definition_id.to_owned())
                 }
             },
             ItemKind::ModularComponent(_) => {

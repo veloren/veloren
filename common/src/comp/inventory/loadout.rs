@@ -1,6 +1,6 @@
 use crate::comp::{
     inventory::{
-        item::{Hands, ItemKind},
+        item::{tool::Tool, Hands, ItemKind},
         slot::{ArmorSlot, EquipSlot},
         InvSlot,
     },
@@ -168,9 +168,13 @@ impl Loadout {
         assert_eq!(self.swap(equip_slot_a, item_b), None);
 
         // Check if items are valid in their new positions
-        if !self.slot_can_hold(equip_slot_a, self.equipped(equip_slot_a))
-            || !self.slot_can_hold(equip_slot_b, self.equipped(equip_slot_b))
-        {
+        if !self.slot_can_hold(
+            equip_slot_a,
+            self.equipped(equip_slot_a).map(|x| x.kind()).as_deref(),
+        ) || !self.slot_can_hold(
+            equip_slot_b,
+            self.equipped(equip_slot_b).map(|x| x.kind()).as_deref(),
+        ) {
             // If not, revert the swap
             let item_a = self.swap(equip_slot_a, None);
             let item_b = self.swap(equip_slot_b, item_a);
@@ -183,11 +187,11 @@ impl Loadout {
     /// returned, or if there are no free slots then the first occupied slot
     /// will be returned. The bool part of the tuple indicates whether an item
     /// is already equipped in the slot.
-    pub(super) fn get_slot_to_equip_into(&self, item: &Item) -> Option<EquipSlot> {
+    pub(super) fn get_slot_to_equip_into(&self, item_kind: &ItemKind) -> Option<EquipSlot> {
         let mut suitable_slots = self
             .slots
             .iter()
-            .filter(|s| self.slot_can_hold(s.equip_slot, Some(item)));
+            .filter(|s| self.slot_can_hold(s.equip_slot, Some(item_kind)));
 
         let first = suitable_slots.next();
 
@@ -199,14 +203,15 @@ impl Loadout {
             .or_else(|| first.map(|x| x.equip_slot))
     }
 
-    /// Returns all items currently equipped that an item could replace
-    pub(super) fn equipped_items_replaceable_by<'a>(
+    /// Returns all items currently equipped that an item of the given ItemKind
+    /// could replace
+    pub(super) fn equipped_items_of_kind<'a>(
         &'a self,
-        item: &'a Item,
+        item_kind: &'a ItemKind,
     ) -> impl Iterator<Item = &'a Item> {
         self.slots
             .iter()
-            .filter(move |s| self.slot_can_hold(s.equip_slot, Some(item)))
+            .filter(move |s| self.slot_can_hold(s.equip_slot, Some(item_kind)))
             .filter_map(|s| s.slot.as_ref())
     }
 
@@ -288,7 +293,7 @@ impl Loadout {
         let loadout_slot = self
             .slots
             .iter()
-            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, Some(&item)))
+            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, Some(&*item.kind())))
             .map(|s| s.equip_slot);
         if let Some(slot) = self
             .slots
@@ -307,55 +312,53 @@ impl Loadout {
     }
 
     /// Checks that a slot can hold a given item
-    pub(super) fn slot_can_hold(&self, equip_slot: EquipSlot, item: Option<&Item>) -> bool {
+    pub(super) fn slot_can_hold(
+        &self,
+        equip_slot: EquipSlot,
+        item_kind: Option<&ItemKind>,
+    ) -> bool {
         // Disallow equipping incompatible weapon pairs (i.e a two-handed weapon and a
         // one-handed weapon)
         if !(match equip_slot {
-            EquipSlot::ActiveMainhand => {
-                Loadout::is_valid_weapon_pair(item, self.equipped(EquipSlot::ActiveOffhand))
-            },
-            EquipSlot::ActiveOffhand => {
-                Loadout::is_valid_weapon_pair(self.equipped(EquipSlot::ActiveMainhand), item)
-            },
-            EquipSlot::InactiveMainhand => {
-                Loadout::is_valid_weapon_pair(item, self.equipped(EquipSlot::InactiveOffhand))
-            },
-            EquipSlot::InactiveOffhand => {
-                Loadout::is_valid_weapon_pair(self.equipped(EquipSlot::InactiveMainhand), item)
-            },
+            EquipSlot::ActiveMainhand => Loadout::is_valid_weapon_pair(
+                item_kind,
+                self.equipped(EquipSlot::ActiveOffhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
+            ),
+            EquipSlot::ActiveOffhand => Loadout::is_valid_weapon_pair(
+                self.equipped(EquipSlot::ActiveMainhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
+                item_kind,
+            ),
+            EquipSlot::InactiveMainhand => Loadout::is_valid_weapon_pair(
+                item_kind,
+                self.equipped(EquipSlot::InactiveOffhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
+            ),
+            EquipSlot::InactiveOffhand => Loadout::is_valid_weapon_pair(
+                self.equipped(EquipSlot::InactiveMainhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
+                item_kind,
+            ),
             _ => true,
         }) {
             return false;
         }
 
-        item.map_or(true, |item| equip_slot.can_hold(item))
+        item_kind.map_or(true, |item| equip_slot.can_hold(item))
     }
 
-    fn is_valid_weapon_pair(main_hand: Option<&Item>, off_hand: Option<&Item>) -> bool {
-        // Checks that a valid weapon pair is equipped, returns true if...
-        match (
-            main_hand.map(|i| (i.kind(), i.components())),
-            off_hand.map(|i| (i.kind(), i.components())),
-        ) {
-            // A weapon is being equipped in the mainhand, but not in the offhand
-            (Some((ItemKind::Tool(_), _)), None) => true,
-            // A weapon is being equipped in both slots, and both weapons are 1 handed
-            (
-                Some((ItemKind::Tool(tool_1), components_1)),
-                Some((ItemKind::Tool(tool_2), components_2)),
-            ) => {
-                matches!(
-                    (
-                        tool_1.hands.resolve_hands(components_1),
-                        tool_2.hands.resolve_hands(components_2)
-                    ),
-                    (Hands::One, Hands::One)
-                )
-            },
-            // A weapon is being unequipped that will result in both slots being empty
-            (None, None) => true,
-            _ => false,
-        }
+    #[rustfmt::skip]
+    fn is_valid_weapon_pair(main_hand: Option<&ItemKind>, off_hand: Option<&ItemKind>) -> bool {
+        matches!((main_hand, off_hand),
+            (Some(ItemKind::Tool(Tool { hands: Hands::One, .. })), None) |
+            (Some(ItemKind::Tool(Tool { hands: Hands::Two, .. })), None) |
+            (Some(ItemKind::Tool(Tool { hands: Hands::One, .. })), Some(ItemKind::Tool(Tool { hands: Hands::One, .. }))) |
+            (None, None))
     }
 
     pub(super) fn swap_equipped_weapons(&mut self) {
@@ -363,7 +366,7 @@ impl Loadout {
         // nothing is equipped in slot
         let valid_slot = |equip_slot| {
             self.equipped(equip_slot)
-                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(i)))
+                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(&*i.kind())))
         };
 
         // If every weapon is currently in a valid slot, after this change they will
@@ -456,12 +459,10 @@ mod tests {
         loadout.swap(EquipSlot::Armor(ArmorSlot::Bag1), Some(get_test_bag(1)));
 
         let result = loadout
-            .get_slot_to_equip_into(&Item::create_test_item_from_kind(ItemKind::Armor(
-                Armor::test_armor(
-                    ArmorKind::Bag("test".to_string()),
-                    Protection::Normal(0.0),
-                    Protection::Normal(0.0),
-                ),
+            .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
+                ArmorKind::Bag("test".to_string()),
+                Protection::Normal(0.0),
+                Protection::Normal(0.0),
             )))
             .unwrap();
 
@@ -478,12 +479,10 @@ mod tests {
         loadout.swap(EquipSlot::Armor(ArmorSlot::Bag4), Some(get_test_bag(1)));
 
         let result = loadout
-            .get_slot_to_equip_into(&Item::create_test_item_from_kind(ItemKind::Armor(
-                Armor::test_armor(
-                    ArmorKind::Bag("test".to_string()),
-                    Protection::Normal(0.0),
-                    Protection::Normal(0.0),
-                ),
+            .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
+                ArmorKind::Bag("test".to_string()),
+                Protection::Normal(0.0),
+                Protection::Normal(0.0),
             )))
             .unwrap();
 

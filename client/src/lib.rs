@@ -1091,8 +1091,9 @@ impl Client {
 
         // Closure to get inner modular component info from item in a given slot
         let unwrap_modular = |slot| {
-            if let Some(ItemKind::ModularComponent(mod_comp)) =
-                inventory.and_then(|inv| inv.get(slot).map(|item| &item.kind))
+            if let Some(ItemKind::ModularComponent(mod_comp)) = inventory
+                .and_then(|inv| inv.get(slot).map(|item| item.kind()))
+                .as_deref()
             {
                 Some(mod_comp.modkind)
             } else {

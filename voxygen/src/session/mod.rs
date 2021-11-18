@@ -410,8 +410,8 @@ impl PlayState for SessionState {
                 .inventories()
                 .get(player_entity)
                 .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
-                .and_then(|item| item.tool())
-                .map_or(false, |tool| tool.kind == ToolKind::Pick)
+                .and_then(|item| item.tool_info())
+                .map_or(false, |tool_kind| tool_kind == ToolKind::Pick)
                 && client.is_wielding() == Some(true);
 
             // Check to see whether we're aiming at anything

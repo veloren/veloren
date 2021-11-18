@@ -94,7 +94,7 @@ impl ActiveAbilities {
     ) -> [AuxiliaryAbility; MAX_ABILITIES] {
         let tool_kind = |slot| {
             inv.and_then(|inv| inv.equipped(slot))
-                .and_then(|item| match item.kind() {
+                .and_then(|item| match &*item.kind() {
                     ItemKind::Tool(tool) => Some(tool.kind),
                     _ => None,
                 })
@@ -148,12 +148,12 @@ impl ActiveAbilities {
         };
 
         let scale_ability = |ability: CharacterAbility, equip_slot| {
-            let tool_kind =
-                inv.and_then(|inv| inv.equipped(equip_slot))
-                    .and_then(|item| match &item.kind {
-                        ItemKind::Tool(tool) => Some(tool.kind),
-                        _ => None,
-                    });
+            let tool_kind = inv
+                .and_then(|inv| inv.equipped(equip_slot))
+                .and_then(|item| match &*item.kind() {
+                    ItemKind::Tool(tool) => Some(tool.kind),
+                    _ => None,
+                });
             ability.adjusted_by_skills(skill_set, tool_kind)
         };
 

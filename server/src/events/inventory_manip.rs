@@ -32,11 +32,11 @@ use common_net::msg::ServerGeneral;
 pub fn swap_lantern(
     storage: &mut WriteStorage<comp::LightEmitter>,
     entity: EcsEntity,
-    lantern: &item::Lantern,
+    (lantern_color, lantern_strength): (Rgb<f32>, f32),
 ) {
     if let Some(mut light) = storage.get_mut(entity) {
-        light.strength = lantern.strength();
-        light.col = lantern.color();
+        light.strength = lantern_strength;
+        light.col = lantern_color;
     }
 }
 
@@ -264,16 +264,19 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 Slot::Inventory(slot) => {
                     use item::ItemKind;
 
-                    let (is_equippable, lantern_opt) =
-                        inventory.get(slot).map_or((false, None), |i| {
-                            (i.kind().is_equippable(), match i.kind() {
-                                ItemKind::Lantern(lantern) => Some(lantern),
+                    let is_equippable = inventory
+                        .get(slot)
+                        .map_or(false, |i| i.kind().is_equippable());
+                    if is_equippable {
+                        if let Some(lantern_info) =
+                            inventory.get(slot).and_then(|i| match &*i.kind() {
+                                ItemKind::Lantern(lantern) => {
+                                    Some((lantern.color(), lantern.strength()))
+                                },
                                 _ => None,
                             })
-                        });
-                    if is_equippable {
-                        if let Some(lantern) = lantern_opt {
-                            swap_lantern(&mut state.ecs().write_storage(), entity, lantern);
+                        {
+                            swap_lantern(&mut state.ecs().write_storage(), entity, lantern_info);
                         }
                         if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
                             dropped_items.extend(inventory.equip(slot).into_iter().map(|x| {
@@ -292,7 +295,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         &state.ecs().read_resource::<AbilityMap>(),
                         &state.ecs().read_resource::<item::MaterialStatManifest>(),
                     ) {
-                        match item.kind() {
+                        match &*item.kind() {
                             ItemKind::Consumable { effects, .. } => {
                                 maybe_effect = Some(effects.clone());
                                 Some(comp::InventoryUpdateEvent::Consumed(
