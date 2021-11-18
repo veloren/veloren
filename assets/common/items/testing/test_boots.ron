@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Testing Boots"),
+    name: "Testing Boots"
     description: "Hopefully this test doesn't break!",
     kind: Armor(
         (
@@ -8,6 +8,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Steel Cape"),
+    name: "Steel Cape"
     description: "Metal alloy interlocking plates to improve protection.",
     kind: Armor((
         kind: Back("Steel"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(1.5)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Steel),
         SalvageInto(Steel),

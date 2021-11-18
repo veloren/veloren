@@ -177,9 +177,8 @@ fn get_tool_kind(kind: &ToolKind) -> String {
 
 fn get_tool_hands(tool: &Tool) -> String {
     match tool.hands {
-        HandsKind::Direct(Hands::One) => "One".to_string(),
-        HandsKind::Direct(Hands::Two) => "Two".to_string(),
-        HandsKind::Modular => "Modular".to_string(),
+        Hands::One => "One".to_string(),
+        Hands::Two => "Two".to_string(),
     }
 }
 

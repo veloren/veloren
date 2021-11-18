@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Worn out Sandals"),
+    name: "Worn out Sandals"
     description: "Loyal companions.",
     kind: Armor((
         kind: Foot("Sandal"),
         stats: (
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Giant Cultist Greatsword"),
+    name: "Giant Cultist Greatsword"
     description: "This belonged to an evil Cult Leader.",
     kind: Tool((
         kind: Sword,
-        hands: Direct(Two),
-        stats: Direct((
+        hands: Two,
+        stats: (
             equip_time_secs: 0.5,
             power: 1.6,
             effect_power: 1.0,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
     ability_spec: Some(Custom("Sword Simple")),
 )

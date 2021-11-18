@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Flowery Shirt"),
+    name: "Flowery Shirt"
     description: "Magically imbued twigs decorated with flowers and their stems, letting others know your intentions of peace and love.",
     kind: Armor((
         kind: Chest("TwigsFlowers"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(15.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

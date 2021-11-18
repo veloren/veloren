@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Apple Stick"),
+    name: "Apple Stick"
     description: "The stick makes it easier to carry!",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

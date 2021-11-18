@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Generic Biped Large"),
+    name: "Generic Biped Large"
     description: "Worn by bipeds.",
     kind: Armor((
         kind: Chest("GenericBipedLarge"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

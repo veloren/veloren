@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Dark Assassin Mask"),
+    name: "Dark Assassin Mask"
     description: "A general assassination mask preventing the wearer from being identified.",
     kind: Armor((
         kind: Head("AssaMask0"),
         stats: (
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

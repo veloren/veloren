@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Scale"),
+    name: "Scale"
     description: "Shiny scale from an animal.",
     kind: Ingredient(
         kind: "Scale",
         descriptor: "Scale",
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [MaterialKind(Hide), Material(Scale)],
 )

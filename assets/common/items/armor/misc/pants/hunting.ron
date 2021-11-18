@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Hunting Pants"),
+    name: "Hunting Pants"
     description: "Crafted from soft, supple leather.",
     kind: Armor((
         kind: Pants("Hunting"),
@@ -7,6 +7,6 @@ ItemDef(
             protection: Some(Normal(8.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

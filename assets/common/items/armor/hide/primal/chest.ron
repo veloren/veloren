@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Primal Cuirass"),
+    name: "Primal Cuirass"
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Chest("Primal"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.501),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Plate),
         SalvageInto(Plate),

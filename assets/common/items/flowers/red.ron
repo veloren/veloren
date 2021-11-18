@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Red Flower"),
+    name: "Red Flower"
     description: "Can be used as a dying ingredient.",
     kind: Ingredient(
         kind: "FlowerRed",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Strips"),
+    name: "Leather Strips"
     description: "Tanned animal hide strips formed into loose shoulder pads.",
     kind: Armor((
         kind: Shoulder("LeatherStrip"),
@@ -7,6 +7,6 @@ ItemDef(
             protection: Some(Normal(4.0)),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

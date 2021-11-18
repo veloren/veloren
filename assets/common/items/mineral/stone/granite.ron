@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Granite"),
+    name: "Granite"
     description: "A light-colored igneous rock.",
     kind: Ingredient(
         kind: "Granite",
         descriptor: "Granite",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

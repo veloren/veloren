@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Tidal Warrior Armor"),
+    name: "Tidal Warrior Armor"
     description: "Made of fish scales.",
     kind: Armor((
         kind: Chest("Tidal Warrior"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(0.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

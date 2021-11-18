@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Emerald"),
+    name: "Emerald"
     description: "A vibrant viridian gem.",
     kind: Ingredient(
         kind: "Emerald",
         descriptor: "Emerald",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

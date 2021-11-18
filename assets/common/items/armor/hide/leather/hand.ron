@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Gloves"),
+    name: "Leather Gloves"
     description: "Swift like the wind.",
     kind: Armor((
         kind: Hand("Leather"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.067),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

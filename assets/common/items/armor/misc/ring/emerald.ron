@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Emerald Ring"),
+    name: "Emerald Ring"
     description: "A cobalt ring with an emerald gem.",
     kind: Armor((
         kind: Ring("Emerald"),
@@ -9,6 +9,6 @@ ItemDef(
             energy_reward: Some(-0.1),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

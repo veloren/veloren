@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Quad Low Shell"),
+    name: "Quad Low Shell"
     description: "Shell.",
     kind: Armor((
         kind: Chest("QuadrupedLowShell"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(0.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

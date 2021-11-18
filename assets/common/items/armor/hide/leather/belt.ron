@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Belt"),
+    name: "Leather Belt"
     description: "Swift like the wind.",
     kind: Armor((
         kind: Belt("Leather"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.034),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

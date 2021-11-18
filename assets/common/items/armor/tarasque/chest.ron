@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Tarasque Cuirass"),
+    name: "Tarasque Cuirass"
     description: "The rough protective underbelly and back of a tarasque's shell, formed to fit humanoid proportions.",
     kind: Armor((
         kind: Chest("Tarasque"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(25.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Carapace),
     ],

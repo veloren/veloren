@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Orichalcum Ingot"),
+    name: "Orichalcum Ingot"
     description: "An ingot made of refined orichalcum.",
     kind: Ingredient(
         kind: "OrichalcumIngot",
         descriptor: "Orichalcum",
     ),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [MaterialKind(Metal), Material(Orichalcum)],
 )

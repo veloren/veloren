@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Empty Vial"),
+    name: "Empty Vial"
     description: "Can be filled with fluids.",
     kind: Ingredient(
         kind: "EmptyVial",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

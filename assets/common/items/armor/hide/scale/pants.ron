@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Scale Leggings"),
+    name: "Scale Leggings"
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Pants("Scale"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.2),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Scale),
         SalvageInto(Scale),

@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Strong Pincer"),
+    name: "Strong Pincer"
     description: "The pincer of some creature, it is very tough.",
     kind: Ingredient(
         kind: "StrongPincer",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

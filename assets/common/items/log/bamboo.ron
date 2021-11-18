@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Bamboo"),
+    name: "Bamboo"
     description: "A giant woody grass.",
     kind: Ingredient(
         kind: "Bamboo",
         descriptor: "Bamboo",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [MaterialKind(Wood), Material(Bamboo)],
 )

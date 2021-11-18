@@ -17,6 +17,6 @@ ItemDef(
         hand_restriction: Some(Two),
         weapon_name: "",
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

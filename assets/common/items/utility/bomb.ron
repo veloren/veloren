@@ -1,9 +1,9 @@
 ItemDef(
-    name: Direct("Bomb"),
+    name: "Bomb"
     description: "Boom!",
     kind: Throwable(
         kind: Bomb,
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Utility],
 )

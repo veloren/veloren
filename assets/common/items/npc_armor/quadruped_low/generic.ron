@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Quad Low Generic"),
+    name: "Quad Low Generic"
     description: "Scaly.",
     kind: Armor((
         kind: Chest("QuadrupedLowGeneric"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(0.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

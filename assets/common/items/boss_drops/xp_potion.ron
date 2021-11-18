@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Potion of Skill"),
+    name: "Potion of Skill"
     description: "It doesn't seem to be doing anything...",
     kind: Ingredient(
         kind: "Potion",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [Potion],
 )

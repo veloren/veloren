@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Minor Potion"),
+    name: "Minor Potion"
     description: "Made of apples with love.",
     kind: Consumable(
         kind: Drink,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Potion],
 )

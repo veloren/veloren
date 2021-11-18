@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Cultist Gloves"),
+    name: "Cultist Gloves"
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Hand("Cultist"),
@@ -12,7 +12,7 @@ ItemDef(
             stealth: Some(0.04),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Cultist,
     ],

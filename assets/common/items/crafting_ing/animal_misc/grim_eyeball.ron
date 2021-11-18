@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Grim Eyeball"),
+    name: "Grim Eyeball"
     description: "Casts a petrifying gaze.",
     kind: Ingredient(
         kind: "GrimEyeball",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

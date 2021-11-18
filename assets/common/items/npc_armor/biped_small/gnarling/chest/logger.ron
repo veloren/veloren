@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Gnarling"),
+    name: "Gnarling"
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Chest("GnarlingLogger"),
@@ -11,6 +11,6 @@ ItemDef(
             crit_power: Some(0.025),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

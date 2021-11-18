@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Animal Hide"),
+    name: "Animal Hide"
     description: "A pelt from an animal. Becomes leather.",
     kind: Ingredient(
         kind: "AnimalHide",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [
     ],
 )

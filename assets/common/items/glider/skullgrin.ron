@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Skullgrin"),
+    name: "Skullgrin"
     description: "Death from above.",
     kind: Glider(
         (
             kind: "Purple0",
         ),
     ),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

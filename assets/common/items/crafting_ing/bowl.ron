@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Bowl"),
+    name: "Bowl"
     description: "A simple bowl for preparing meals.",
     kind: Ingredient(
         kind: "Bowl",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

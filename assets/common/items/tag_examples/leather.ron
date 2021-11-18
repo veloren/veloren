@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Any leather"),
+    name: "Any leather"
     description: "Leathers tanned from hides.",
     kind: TagExamples(
         item_ids: [
@@ -8,7 +8,7 @@ ItemDef(
             "common.items.crafting_ing.leather.simple_leather",
         ],
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )
 

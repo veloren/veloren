@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Mushroom Stick"),
+    name: "Mushroom Stick"
     description: "Roasted mushrooms on a stick for easy carrying",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

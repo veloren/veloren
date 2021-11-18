@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Steel Shoulders"),
+    name: "Steel Shoulders"
     description: "The metal alloy plates provide better protection and comfort.",
     kind: Armor((
         kind: Shoulder("Steel"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Steel),
         SalvageInto(Steel),

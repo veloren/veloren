@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leafy Belt"),
+    name: "Leafy Belt"
     description: "Dried leaves cover over the standard twig belt, providing a slightly different texture.",
     kind: Armor((
         kind: Belt("TwigsLeaves"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(2.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

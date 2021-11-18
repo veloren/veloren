@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Horizon"),
+    name: "Horizon"
     description: "It isn't high noon.",
     kind: Glider(
         (
             kind: "Sunset",
         ),
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

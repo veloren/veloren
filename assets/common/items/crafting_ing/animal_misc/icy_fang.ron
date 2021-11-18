@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Icy Shard"),
+    name: "Icy Shard"
     description: "Looted from a frosty creature.",
     kind: Ingredient(
         kind: "IcyShard",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

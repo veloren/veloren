@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Husk"),
+    name: "Husk"
     description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Pants("Husk"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

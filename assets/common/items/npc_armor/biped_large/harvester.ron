@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Harvester Shirt"),
+    name: "Harvester Shirt"
     description: "Made of sunflowers.",
     kind: Armor((
         kind: Chest("Harvester"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(0.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

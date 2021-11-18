@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Dragonscale Gloves"),
+    name: "Dragonscale Gloves"
     description: "Power pulses through it.",
     kind: Armor((
         kind: Hand("Dragonscale"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.2),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Dragonscale),
         SalvageInto(Dragonscale),

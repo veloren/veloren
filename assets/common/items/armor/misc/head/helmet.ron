@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Helmet"),
+    name: "Helmet"
     description: "yep.",
     kind: Armor((
         kind: Head("Helmet"),

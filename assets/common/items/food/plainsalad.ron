@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Plain Salad"),
+    name: "Plain Salad"
     description: "Literally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

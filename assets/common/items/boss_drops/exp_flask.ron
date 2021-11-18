@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Flask of Velorite Dust"),
+    name: "Flask of Velorite Dust"
     description: "Take with plenty of water",
     kind: Ingredient(
         kind: "PotionExp",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [Potion],
 )

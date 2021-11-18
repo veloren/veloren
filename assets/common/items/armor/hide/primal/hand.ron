@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Primal Gauntlets"),
+    name: "Primal Gauntlets"
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Hand("Primal"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.167),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Plate),
         SalvageInto(Plate),

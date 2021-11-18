@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Simple Leather"),
+    name: "Simple Leather"
     description: "Light and flexible.",
     kind: Ingredient(
         kind: "SimpleLeather",
         descriptor: "Raw Hide",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [BaseMaterial, Leather, MaterialKind(Hide), Material(Rawhide)],
 )

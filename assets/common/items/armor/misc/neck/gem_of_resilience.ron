@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Gem of Resilience"),
+    name: "Gem of Resilience"
     description: "Surrounded by a discrete magical glow.",
     kind: Armor((
         kind: Neck("ResilienceGem"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

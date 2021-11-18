@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Dragonscale Leggings"),
+    name: "Dragonscale Leggings"
     description: "Power pulses through it.",
     kind: Armor((
         kind: Pants("Dragonscale"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.4),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Dragonscale),
         SalvageInto(Dragonscale),

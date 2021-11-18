@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Red Worker Shirt"),
+    name: "Red Worker Shirt"
     description: "Was used by a farmer, until recently.",
     kind: Armor((
         kind: Chest("WorkerRed0"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Troll Hide"),
+    name: "Troll Hide"
     description: "Looted from cave trolls.",
     kind: Ingredient(
         kind: "TrollLeather",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [BaseMaterial],
 )

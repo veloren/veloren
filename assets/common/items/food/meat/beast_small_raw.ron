@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Raw Meat Sliver"),
+    name: "Raw Meat Sliver"
     description: "Small hunk of beastly animal meat, best after cooking.",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Dwarven Cheese"),
+    name: "Dwarven Cheese"
     description: "Aromatic and nutritious",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Bloodsteel Girdle"),
+    name: "Bloodsteel Girdle"
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Belt("Bloodsteel"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(2.5)),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Bloodsteel),
         SalvageInto(Bloodsteel),

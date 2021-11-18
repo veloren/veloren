@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Sunsilk"),
+    name: "Sunsilk"
     description: "A supernaturally strong textile.",
     kind: Ingredient(
         kind: "Sunsilk",
         descriptor: "Sunsilken",
     ),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [MaterialKind(Cloth), Material(Sunsilk)],
 )

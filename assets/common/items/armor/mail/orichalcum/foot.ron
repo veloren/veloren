@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Orichalcum Warboots"),
+    name: "Orichalcum Warboots"
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Foot("Orichalcum"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Orichalcum),
         SalvageInto(Orichalcum),

@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Topaz"),
+    name: "Topaz"
     description: "An outstanding orange gem.",
     kind: Ingredient(
         kind: "Topaz",
         descriptor: "Topaz",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

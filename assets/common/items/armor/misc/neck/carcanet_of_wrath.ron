@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Carcanet of Wrath"),
+    name: "Carcanet of Wrath"
     description: "A necklace that gives even the most feeble beings immense amounts of power.",
     kind: Armor((
         kind: Neck("Carcanet"),
@@ -8,6 +8,6 @@ ItemDef(
             crit_power: Some(0.2),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

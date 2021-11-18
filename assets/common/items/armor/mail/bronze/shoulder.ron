@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Bronze Guards"),
+    name: "Bronze Guards"
     description: "Heavy and dull, but it can take a punch.",
     kind: Armor((
         kind: Shoulder("Bronze"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(2.0)),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [
         Material(Bronze),
         SalvageInto(Bronze),

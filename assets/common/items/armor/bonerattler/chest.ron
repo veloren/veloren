@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Bonerattler Cuirass"),
+    name: "Bonerattler Cuirass"
     description: "The spiny back and hide of a bonerattler fastened together into a protective cuirass.",
     kind: Armor((
         kind: Chest("Bonerattler"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(25.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

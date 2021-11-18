@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Collar"),
+    name: "Collar"
     description: "Tames wild animals within 5 blocks",
     kind: Utility(
         kind: Collar,
     ),
     amount: 1,
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Utility],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Witch Hat"),
+    name: "Witch Hat"
     description: "Draws strength from dark arts.",
     kind: Armor((
         kind: Head("Witch"),
@@ -10,7 +10,7 @@ ItemDef(
             energy_reward: Some(0.084),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Raw Bird Meat"),
+    name: "Raw Bird Meat"
     description: "A hefty drumstick.",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

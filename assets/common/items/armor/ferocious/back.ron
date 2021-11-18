@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Ferocious Mantle"),
+    name: "Ferocious Mantle"
     description: "The dark side of nature",
     kind: Armor((
         kind: Back("Ferocious"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Moonweave),
     ],

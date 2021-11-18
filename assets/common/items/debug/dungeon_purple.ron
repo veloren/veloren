@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Velorite Admin Cape"),
+    name: "Velorite Admin Cape"
     description: "Where did I put my banhammer again?",
     kind: Armor(
         (
@@ -8,6 +8,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Debug),
+    quality: Debug,
     tags: [],
 )

@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Bloodsteel Ingot"),
+    name: "Bloodsteel Ingot"
     description: "An alloy of bloodstone and iron.",
     kind: Ingredient(
         kind: "BloodsteelIngot",
         descriptor: "Bloodsteel",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [MaterialKind(Metal), Material(Bloodsteel)],
 )

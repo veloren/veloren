@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leafy Shoulders"),
+    name: "Leafy Shoulders"
     description: "Leaves cover over the twigs to provide better protection from the elements.",
     kind: Armor((
         kind: Shoulder("TwigsLeaves"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(9.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
     ],
 )

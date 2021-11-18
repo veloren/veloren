@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Velorite Battlemage Cloak"),
+    name: "Velorite Battlemage Cloak"
     description: "Keeps your shoulders warm.",
     kind: Armor((
         kind: Back("VeloriteMage"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(2.8)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Velorite),
     ],

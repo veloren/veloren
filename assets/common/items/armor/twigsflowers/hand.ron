@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Flowery Wraps"),
+    name: "Flowery Wraps"
     description: "Wrapped and intertwined twigs held together with magic and flowers with their stems, providing peace and protection for the wearer.",
     kind: Armor((
         kind: Hand("TwigsFlowers"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

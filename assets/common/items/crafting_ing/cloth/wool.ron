@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Soft Wool"),
+    name: "Soft Wool"
     description: "Soft wool from an animal.",
     kind: Ingredient(
         kind: "Wool",
         descriptor: "Woolen",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [MaterialKind(Cloth), Material(Wool)],
 )

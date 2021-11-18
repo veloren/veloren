@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Sharp Fang"),
+    name: "Sharp Fang"
     description: "Incredibly sharp tooth from a predatory animal.",
     kind: Ingredient(
         kind: "SharpFang",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Minotaur Armor"),
+    name: "Minotaur Armor"
     description: "The best defense is a good offense.",
     kind: Armor((
         kind: Chest("Minotaur"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(0.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

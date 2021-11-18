@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Assassin Boots"),
+    name: "Assassin Boots"
     description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Foot("Assassin"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(4.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

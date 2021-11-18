@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Sunflower Ice Tea"),
+    name: "Sunflower Ice Tea"
     description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
         kind: Drink,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Food],
 )

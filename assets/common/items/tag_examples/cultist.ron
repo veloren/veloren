@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Anything related to cultists"),
+    name: "Anything related to cultists"
     description: "These items are a little creepy.",
     kind: TagExamples(
         item_ids: [
@@ -11,7 +11,7 @@ ItemDef(
             "common.items.armor.cultist.shoulder",
         ],
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )
 

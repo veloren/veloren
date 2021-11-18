@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Basalt"),
+    name: "Basalt"
     description: "A dark volcanic rock.",
     kind: Ingredient(
         kind: "Basalt",
         descriptor: "Basalt",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

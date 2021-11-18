@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Plate Shoulder Pad"),
+    name: "Leather Plate Shoulder Pad"
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Shoulder("LeatherPlate"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(8.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

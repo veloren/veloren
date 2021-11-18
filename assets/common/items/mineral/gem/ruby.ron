@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Ruby"),
+    name: "Ruby"
     description: "A superbly scarlet gem.",
     kind: Ingredient(
         kind: "Ruby",
         descriptor: "Ruby",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

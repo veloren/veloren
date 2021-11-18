@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Druid Shoulderpads"),
+    name: "Druid Shoulderpads"
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Shoulder("Druid"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.134),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Lifecloth),
         SalvageInto(Lifecloth),

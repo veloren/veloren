@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Suspicious Paper Knife"),
+    name: "Suspicious Paper Knife"
     description: "Opens letters quickly.",
     kind: Tool((
         kind: Dagger,
-        hands: Direct(One),
-        stats: Direct((
-            equip_time_secs: 0.2,
+        hands: One,
+        stats: (
+            equip_time_secs: 0.0,
             power: 1.8,
             effect_power: 2.0,
             speed: 1.0,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [],
     ability_spec: None,
 )

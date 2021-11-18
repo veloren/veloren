@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Hard Carapace"),
+    name: "Hard Carapace"
     description: "Tough, hard carapace.",
     kind: Ingredient(
         kind: "Carapace",
         descriptor: "Carapace",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [MaterialKind(Hide), Material(Carapace)],
 )

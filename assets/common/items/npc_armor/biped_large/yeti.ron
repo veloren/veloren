@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Yeti Hide"),
+    name: "Yeti Hide"
     description: "Strong as Yeti itself.",
     kind: Armor((
         kind: Chest("Yeti"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(0.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

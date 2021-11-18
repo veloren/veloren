@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Cultist Skirt"),
+    name: "Cultist Skirt"
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Pants("Cultist"),
@@ -12,7 +12,7 @@ ItemDef(
             stealth: Some(0.08),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Cultist,
     ],

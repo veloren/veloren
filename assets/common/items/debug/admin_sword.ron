@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Admin Greatsword"),
+    name: "Admin Greatsword"
     description: "Shouldn't this be a hammer?",
     kind: Tool((
         kind: Sword,
-        hands: Direct(Two),
-        stats: Direct((
+        hands: Two,
+        stats: (
             equip_time_secs: 0.0,
             power: 999.9,
             effect_power: 999.9,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Debug),
+    quality: Debug,
     tags: [],
     ability_spec: None,
 )

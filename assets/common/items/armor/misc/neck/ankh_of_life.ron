@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Ankh of Life"),
+    name: "Ankh of Life"
     description: "A unique necklace of unkown origin... You can feel the power flowing through it.",
     kind: Armor((
         kind: Neck("Ankh"),
@@ -9,6 +9,6 @@ ItemDef(
             energy_reward: Some(0.1),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

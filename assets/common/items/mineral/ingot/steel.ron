@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Steel Ingot"),
+    name: "Steel Ingot"
     description: "An alloy of iron and coal that is much tougher than its components.",
     kind: Ingredient(
         kind: "SteelIngot",
         descriptor: "Steel",
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [MaterialKind(Metal), Material(Steel)],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Scratched Ring"),
+    name: "Scratched Ring"
     description: "Barely fits your finger.",
     kind: Armor((
         kind: Ring("Scratched"),
@@ -7,6 +7,6 @@ ItemDef(
             protection: Some(Normal(0.5)),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

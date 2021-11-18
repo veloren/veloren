@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Sagitta"),
+    name: "Sagitta"
     description: "Said to have slain a dragon with a single arrow",
     kind: Tool((
         kind: Bow,
-        hands: Direct(Two),
-        stats: Direct((
+        hands: Two,
+        stats: (
             equip_time_secs: 0.4,
             power: 2.5,
             effect_power: 0.8,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
     ability_spec: None,
 )

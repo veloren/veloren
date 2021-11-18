@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Savage Shoulder Pad"),
+    name: "Savage Shoulder Pad"
     description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Shoulder("Savage"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(15.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Twigs"),
+    name: "Twigs"
     description: "Found near trees.",
     kind: Ingredient(
         kind: "Twigs",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

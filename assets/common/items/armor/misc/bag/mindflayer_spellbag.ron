@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Mindflayer Spellbag"),
+    name: "Mindflayer Spellbag"
     description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [Bag],
     slots: 27,
 )

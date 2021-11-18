@@ -3,8 +3,8 @@ ItemDef(
     description: "",
     kind: Tool((
         kind: Bow,
-        hands: Direct(Two),
-        stats: Direct((
+        hands: Two,
+        stats: (
             equip_time_secs: 0.0,
             power: 2.0,
             effect_power: 0.8,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
     ability_spec: Some(Custom("Bow Simple")),
 )

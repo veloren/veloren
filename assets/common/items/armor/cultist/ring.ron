@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Cultist Signet Ring"),
+    name: "Cultist Signet Ring"
     description: "Once belonged to a cultist.",
     kind: Armor((
         kind: Ring("Cultist"),
@@ -10,6 +10,6 @@ ItemDef(
             crit_power: Some(0.02),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Plate Gloves"),
+    name: "Leather Plate Gloves"
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Hand("LeatherPlate"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(4.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

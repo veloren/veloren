@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Large Potion"),
+    name: "Large Potion"
     description: "Precious medicine.",
     kind: Consumable(
         kind: Drink,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Potion],
 )

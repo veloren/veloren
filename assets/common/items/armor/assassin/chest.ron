@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Assassin Chest"),
+    name: "Assassin Chest"
     description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Chest("Assassin"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(15.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

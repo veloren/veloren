@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Sunsilk Kilt"),
+    name: "Sunsilk Kilt"
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Pants("Sunsilk"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.2),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Sunsilk),
         SalvageInto(Sunsilk),

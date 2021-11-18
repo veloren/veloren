@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Primal Cape"),
+    name: "Primal Cape"
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
         kind: Back("Primal"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.084),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Plate),
         SalvageInto(Plate),

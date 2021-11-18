@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Shoulderpads"),
+    name: "Leather Shoulderpads"
     description: "Swift like the wind.",
     kind: Armor((
         kind: Shoulder("Leather"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.134),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

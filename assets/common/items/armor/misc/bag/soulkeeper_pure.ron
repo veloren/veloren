@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Purified Soulkeeper"),
+    name: "Purified Soulkeeper"
     description: "WIP",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [Bag],
     slots: 36,
 )

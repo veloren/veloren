@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Clay Golem Armor"),
+    name: "Clay Golem Armor"
     description: "Worn by clay golem.",
     kind: Armor((
         kind: Chest("Clay Golem"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
 )

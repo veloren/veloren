@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Admin's Cape"),
+    name: "Admin's Cape"
     description: "With great power comes\ngreat responsibility.",
     kind: Armor((
         kind: Back("Admin"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Invincible),
         ),
     )),
-    quality: Direct(Debug),
+    quality: Debug,
     tags: [],
 )

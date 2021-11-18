@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Fluffy Jackalope Slippers"),
+    name: "Fluffy Jackalope Slippers"
     description: "So warm and cozy!",
     kind: Armor((
         kind: Foot("Jackalope"),
         stats: (
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

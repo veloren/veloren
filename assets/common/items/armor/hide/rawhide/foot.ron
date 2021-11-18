@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Rawhide Shoes"),
+    name: "Rawhide Shoes"
     description: "'Tightly packed pieces of leather to endure all weather.",
     kind: Armor((
         kind: Foot("Rawhide"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.033),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [
         Material(Rawhide),
         SalvageInto(Rawhide),

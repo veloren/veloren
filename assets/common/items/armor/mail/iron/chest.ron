@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Iron Chestguard"),
+    name: "Iron Chestguard"
     description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
         kind: Chest("Iron"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Iron),
         SalvageInto(Iron),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Twig Belt"),
+    name: "Twig Belt"
     description: "Small bits of nature magically held together into the shape of a belt.",
     kind: Armor((
         kind: Belt("Twigs"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(2.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Tarasque Boots"),
+    name: "Tarasque Boots"
     description: "Tarasque claws form the outside of these boots, protecting the wearer's feet.",
     kind: Armor((
         kind: Foot("Tarasque"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(8.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Carapace),
     ],

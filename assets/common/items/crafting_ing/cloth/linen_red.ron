@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Red Linen"),
+    name: "Red Linen"
     description: "A flax fiber textile, dyed to stand out.",
     kind: Ingredient(
         kind: "LinenRed",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [MaterialKind(Cloth)],
 )

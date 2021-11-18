@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Cotton"),
+    name: "Cotton"
     description: "Easy to work with and multi-functional.",
     kind: Ingredient(
         kind: "Cotton",
         descriptor: "Cotton",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [MaterialKind(Cloth)],
 )

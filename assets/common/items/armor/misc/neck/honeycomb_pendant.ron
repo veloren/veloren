@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Honeycomb Pendant"),
+    name: "Honeycomb Pendant"
     description: "This necklace is always spewing out honey...",
     kind: Armor((
         kind: Neck("Honeycomb"),
@@ -9,6 +9,6 @@ ItemDef(
             energy_reward: Some(0.05),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

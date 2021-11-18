@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leafy Wraps"),
+    name: "Leafy Wraps"
     description: "Leaves help hide the magic-interlocking twigs, and provide mild protection from the elements.",
     kind: Armor((
         kind: Hand("TwigsLeaves"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

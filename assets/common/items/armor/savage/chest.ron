@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Savage Cuirass"),
+    name: "Savage Cuirass"
     description: "Brings the fury of the barbarians.",
     kind: Armor((
         kind: Chest("Savage"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(25.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

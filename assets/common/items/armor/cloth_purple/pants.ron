@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Purple Linen Skirt"),
+    name: "Purple Linen Skirt"
     description: "A stylish, rough fabric skirt, dyed purple.",
     kind: Armor((
         kind: Pants("ClothPurple"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

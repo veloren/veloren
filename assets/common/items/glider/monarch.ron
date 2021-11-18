@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Orange Monarch"),
+    name: "Orange Monarch"
     description: "The delicate wings flutter faintly.",
     kind: Glider(
         (
             kind: "ButterflyMonarch",
         ),
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

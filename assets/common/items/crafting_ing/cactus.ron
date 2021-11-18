@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Cactus"),
+    name: "Cactus"
     description: "Grows in warm and dry places.",
     kind: Ingredient(
         kind: "Cactus",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

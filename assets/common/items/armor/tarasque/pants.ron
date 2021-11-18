@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Tarasque Chausses"),
+    name: "Tarasque Chausses"
     description: "Fragmented tarasque shell tied together to form protective leg armor.",
     kind: Armor((
         kind: Pants("Tarasque"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(20.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Carapace),
     ],

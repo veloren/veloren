@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Cobalt Shoulderguards"),
+    name: "Cobalt Shoulderguards"
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Shoulder("Cobalt"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(8.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Cobalt),
         SalvageInto(Cobalt),

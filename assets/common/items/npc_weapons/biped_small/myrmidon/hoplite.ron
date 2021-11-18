@@ -3,8 +3,8 @@ ItemDef(
     description: "",
     kind: Tool((
         kind: Spear,
-        hands: Direct(Two),
-        stats: Direct((
+        hands: Two,
+        stats: (
             equip_time_secs: 0.0,
             power: 2.0,
             effect_power: 1.0,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
     ability_spec: None,
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Pirate Hat"),
+    name: "Pirate Hat"
     description: "It seems like a parrot was perched up here.",
     kind: Armor((
         kind: Head("Pirate"),

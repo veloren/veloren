@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Cloverleaf"),
+    name: "Cloverleaf"
     description: "Brings luck to its owner.",
     kind: Glider(
         (
             kind: "Starter",
         ),
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

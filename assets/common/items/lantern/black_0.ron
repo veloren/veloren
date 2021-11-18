@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Black Lantern"),
+    name: "Black Lantern"
     description: "Used by city guards.",
     kind: Lantern(
         (
@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 150,
         ),
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Utility],
 )

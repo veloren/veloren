@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Trollhide Pack"),
+    name: "Trollhide Pack"
     description: "Trolls were definitely hurt\nin the making of this.",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [Bag],
     slots: 18,
 )

@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Coins"),
+    name: "Coins"
     description: "Money can be exchanged for goods and services.",
     kind: Utility(
         kind: Coins,
     ),
     amount: 1,
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )
 

@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Rusty Dagger"),
+    name: "Rusty Dagger"
     description: "Easily concealed.",
     kind: Tool((
         kind: Dagger,
-        hands: Direct(One),
-        stats: Direct((
-            equip_time_secs: 0.2,
+        hands: One,
+        stats: (
+            equip_time_secs: 0.3,
             power: 1.0,
             effect_power: 0.5,
             speed: 1.0,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
     ability_spec: None,
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Twiggy Shoulders"),
+    name: "Twiggy Shoulders"
     description: "Spaulders made from tightly tied twigs.",
     kind: Armor((
         kind: Shoulder("Twigs"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(9.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
     ],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Test 9 slot bag"),
+    name: "Test 9 slot bag"
     description: "Used for unit tests do not delete",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [],
     slots: 9,
 )

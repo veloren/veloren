@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Eldwood Logs"),
+    name: "Eldwood Logs"
     description: "Old logs that emanate magic.",
     kind: Ingredient(
         kind: "EldwoodLogs",
         descriptor: "Eldwood",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [MaterialKind(Wood), Material(Eldwood)],
 )

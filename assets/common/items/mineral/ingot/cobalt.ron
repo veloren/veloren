@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Cobalt Ingot"),
+    name: "Cobalt Ingot"
     description: "A strikingly blue ingot.",
     kind: Ingredient(
         kind: "CobaltIngot",
         descriptor: "Cobalt",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [MaterialKind(Metal), Material(Cobalt)],
 )

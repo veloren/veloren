@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Purple Geode"),
+    name: "Purple Geode"
     description: "Emits a calming glow",
     kind: Lantern(
         (
@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 600,
         ),
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [Utility],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Twig Wraps"),
+    name: "Twig Wraps"
     description: "Magically imbued twigs interlocked into simple hand wraps.",
     kind: Armor((
         kind: Hand("Twigs"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

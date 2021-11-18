@@ -1493,7 +1493,7 @@ impl Client {
             .get(self.entity())
             .map_or((None, None), |inv| {
                 let tool_kind = |slot| {
-                    inv.equipped(slot).and_then(|item| match item.kind() {
+                    inv.equipped(slot).and_then(|item| match &*item.kind() {
                         comp::item::ItemKind::Tool(tool) => Some(tool.kind),
                         _ => None,
                     })

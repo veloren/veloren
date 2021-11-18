@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Thick Bone"),
+    name: "Thick Bone"
     description: "A bone sturdy enough to craft with.",
     kind: Ingredient(
         kind: "Bone",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

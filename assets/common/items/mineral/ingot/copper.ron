@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Copper Ingot"),
+    name: "Copper Ingot"
     description: "An ingot with a unique brown color.",
     kind: Ingredient(
         kind: "CopperIngot",
         descriptor: "Copper",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

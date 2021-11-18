@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Assassin Shoulder Guard"),
+    name: "Assassin Shoulder Guard"
     description: "Only the best for a member of the creed.",
     kind: Armor((
         kind: Shoulder("Assassin"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(8.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

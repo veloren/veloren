@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Feather"),
+    name: "Feather"
     description: "Feather from a bird.",
     kind: Ingredient(
         kind: "Feather",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

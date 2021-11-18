@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Moonweave Gloves"),
+    name: "Moonweave Gloves"
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Hand("Moonweave"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.084),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Moonweave),
         SalvageInto(Moonweave),

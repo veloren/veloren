@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Hardwood Logs"),
+    name: "Hardwood Logs"
     description: "Extra thick and sturdy logs.",
     kind: Ingredient(
         kind: "HardwoodLogs",
         descriptor: "Hardwood",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [MaterialKind(Wood), Material(Hardwood)],
 )

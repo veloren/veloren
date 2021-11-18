@@ -434,18 +434,22 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
         comp::InventoryManip::Swap(a, b) => {
+            use item::ItemKind;
             let ecs = state.ecs();
 
-            if let Some(comp::item::ItemKind::Lantern(lantern)) = match (a, b) {
+            if let Some(lantern_info) = match (a, b) {
                 // Only current possible lantern swap is between Slot::Inventory and Slot::Equip
                 // add more cases if needed
                 (Slot::Equip(slot::EquipSlot::Lantern), Slot::Inventory(slot))
                 | (Slot::Inventory(slot), Slot::Equip(slot::EquipSlot::Lantern)) => {
-                    inventory.get(slot).map(|item| item.kind())
+                    inventory.get(slot).and_then(|i| match &*i.kind() {
+                        ItemKind::Lantern(lantern) => Some((lantern.color(), lantern.strength())),
+                        _ => None,
+                    })
                 },
                 _ => None,
             } {
-                swap_lantern(&mut ecs.write_storage(), entity, lantern);
+                swap_lantern(&mut ecs.write_storage(), entity, lantern_info);
             }
 
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {

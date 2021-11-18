@@ -1,9 +1,9 @@
 ItemDef(
-    name: Direct("Training Dummy"),
+    name: "Training Dummy"
     description: "His name is William. Fire at will.",
     kind: Throwable(
         kind: TrainingDummy,
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Utility],
 )

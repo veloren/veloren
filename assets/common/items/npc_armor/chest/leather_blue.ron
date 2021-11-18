@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Blue Leather Cuirass"),
+    name: "Blue Leather Cuirass"
     description: "",
     kind: Armor(
         (
@@ -10,6 +10,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

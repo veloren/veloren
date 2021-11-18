@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Iron Legguards"),
+    name: "Iron Legguards"
     description: "Greaves forged from iron.",
     kind: Armor(
         (
@@ -10,6 +10,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

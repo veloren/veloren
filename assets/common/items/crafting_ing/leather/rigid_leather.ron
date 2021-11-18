@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Rigid Leather"),
+    name: "Rigid Leather"
     description: "Light but layered, perfect for protection.",
     kind: Ingredient(
         kind: "RigidLeather",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [BaseMaterial, Leather],
 )

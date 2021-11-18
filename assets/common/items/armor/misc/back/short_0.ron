@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Short leather Cape"),
+    name: "Short leather Cape"
     description: "Probably made of the finest leather.",
     kind: Armor((
         kind: Back("Short0"),
@@ -7,6 +7,6 @@ ItemDef(
             protection: Some(Normal(0.3)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

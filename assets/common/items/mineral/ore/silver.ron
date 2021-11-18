@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Silver Ore"),
+    name: "Silver Ore"
     description: "A precious shiny greyish-white metal.",
     kind: Ingredient(
         kind: "SilverOre",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

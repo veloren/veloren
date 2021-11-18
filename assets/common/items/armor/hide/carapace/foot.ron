@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Carapace Treads"),
+    name: "Carapace Treads"
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Foot("Carapace"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.133),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Carapace),
         SalvageInto(Carapace),

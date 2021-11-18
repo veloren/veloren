@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Thick Leather"),
+    name: "Thick Leather"
     description: "Strong and durable.",
     kind: Ingredient(
         kind: "ThickLeather",
         descriptor: "Leather",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [BaseMaterial, Leather, MaterialKind(Hide), Material(Leather)],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Rawhide Cloak"),
+    name: "Rawhide Cloak"
     description: "'Tightly packed pieces of leather to endure all weather.'",
     kind: Armor((
         kind: Back("Rawhide"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.017),
         ),
     )),
-    quality: Direct(Low),
+    quality: Low,
     tags: [
         Material(Rawhide),
         SalvageInto(Rawhide),

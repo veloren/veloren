@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Diamond"),
+    name: "Diamond"
     description: "A sparkling silver gem.",
     kind: Ingredient(
         kind: "Diamond",
         descriptor: "Diamond",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

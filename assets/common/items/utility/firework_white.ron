@@ -1,9 +1,9 @@
 ItemDef(
-    name: Direct("Firework White"),
+    name: "Firework White"
     description: "Twinkles like the stars",
     kind: Throwable(
         kind: Firework(White),
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Utility],
 )

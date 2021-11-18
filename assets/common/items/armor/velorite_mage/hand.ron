@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Velorite Battlemage Gauntlets"),
+    name: "Velorite Battlemage Gauntlets"
     description: "",
     kind: Armor((
         kind: Hand("VeloriteMage"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(11.5)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Velorite),
     ],

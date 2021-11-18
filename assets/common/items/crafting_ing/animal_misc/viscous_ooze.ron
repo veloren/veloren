@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Viscous Ooze"),
+    name: "Viscous Ooze"
     description: "A measure of viscous ooze from a slimy creature.",
     kind: Ingredient(
         kind: "ViscousOoze",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

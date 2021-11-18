@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Rock"),
+    name: "Rock"
     description: "A solid made up of a bunch of different minerals.",
     kind: Ingredient(
         kind: "Rock",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [],
 )

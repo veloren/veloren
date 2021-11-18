@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Blue Linen Belt"),
+    name: "Blue Linen Belt"
     description: "A stylish rough fabric belt, dyed blue.",
     kind: Armor((
         kind: Belt("ClothBlue"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

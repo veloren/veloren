@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Pirate Mantle"),
+    name: "Pirate Mantle"
     description: "",
     kind: Armor((
         kind: Shoulder("Pirate"),
@@ -11,7 +11,7 @@ ItemDef(
             crit_power: Some(0.08),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
     ],
 )

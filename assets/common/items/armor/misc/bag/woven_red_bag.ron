@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Woven Red Bag"),
+    name: "Woven Red Bag"
     description: "Made from some patches of dyed cloth.",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Bag],
     slots: 15,
 )

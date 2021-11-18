@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Bronze Ingot"),
+    name: "Bronze Ingot"
     description: "A sturdy alloy made from combining copper and tin.",
     kind: Ingredient(
         kind: "BronzeIngot",
         descriptor: "Bronze",
     ),
-    quality: Direct(Low),
+    quality: Low,
     tags: [MaterialKind(Metal), Material(Bronze)],
 )

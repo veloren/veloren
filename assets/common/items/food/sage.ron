@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Sage"),
+    name: "Sage"
     description: "A herb commonly used in tea.",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

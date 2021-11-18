@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Scale Shoulderguards"),
+    name: "Scale Shoulderguards"
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Shoulder("Scale"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.2),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
         Material(Scale),
         SalvageInto(Scale),

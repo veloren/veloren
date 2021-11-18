@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Meat"),
+    name: "Meat"
     description: "Meat. The lifeblood of mankind.",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

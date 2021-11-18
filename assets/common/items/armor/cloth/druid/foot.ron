@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Druid Kickers"),
+    name: "Druid Kickers"
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Foot("Druid"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.067),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Lifecloth),
         SalvageInto(Lifecloth),

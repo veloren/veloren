@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Flowery Shoulders"),
+    name: "Flowery Shoulders"
     description: "Flowers join the tied twigs to provide protection and peace to the wearer.",
     kind: Armor((
         kind: Shoulder("TwigsFlowers"),

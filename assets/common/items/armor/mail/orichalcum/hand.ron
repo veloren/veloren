@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Orichalcum Gloves"),
+    name: "Orichalcum Gloves"
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Hand("Orichalcum"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(6.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Orichalcum),
         SalvageInto(Orichalcum),

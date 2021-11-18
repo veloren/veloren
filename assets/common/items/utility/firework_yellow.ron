@@ -1,9 +1,9 @@
 ItemDef(
-    name: Direct("Firework Yellow"),
+    name: "Firework Yellow"
     description: "The Great Doctor passed away after\ntesting this contraption indoors.",
     kind: Throwable(
         kind: Firework(Yellow),
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Utility],
 )

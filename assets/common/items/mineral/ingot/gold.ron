@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Gold Ingot"),
+    name: "Gold Ingot"
     description: "An ingot made of refined metallic gold.",
     kind: Ingredient(
         kind: "GoldIngot",
         descriptor: "Golden",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Ferocious Shorts"),
+    name: "Ferocious Shorts"
     description: "The dark side of nature",
     kind: Armor((
         kind: Pants("Ferocious"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(48.0)),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Moonweave),
     ],

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Thief Bandana"),
+    name: "Thief Bandana"
     description: "Common bandit's mask.",
     kind: Armor((
         kind: Head("Thief"),
@@ -8,6 +8,6 @@ ItemDef(
             stealth: Some(0.18),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

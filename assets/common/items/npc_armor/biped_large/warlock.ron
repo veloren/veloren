@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Giant Warlock Chest"),
+    name: "Giant Warlock Chest"
     description: "Made of darkest silk.",
     kind: Armor((
         kind: Chest("GiantWarlock"),
@@ -10,6 +10,6 @@ ItemDef(
             energy_reward: Some(1.0),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

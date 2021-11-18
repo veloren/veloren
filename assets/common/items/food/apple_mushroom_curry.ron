@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Mushroom Curry"),
+    name: "Mushroom Curry"
     description: "Who could say no to that?",
     kind: Consumable(
         kind: ComplexFood,
@@ -28,6 +28,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Food],
 )

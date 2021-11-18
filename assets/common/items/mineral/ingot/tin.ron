@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Tin Ingot"),
+    name: "Tin Ingot"
     description: "An ingot primarily used to make bronze.",
     kind: Ingredient(
         kind: "TinIngot",
         descriptor: "Tin",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

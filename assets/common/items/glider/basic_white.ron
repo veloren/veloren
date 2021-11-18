@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Plain Cloth Glider"),
+    name: "Plain Cloth Glider"
     description: "Simple, but classy.",
     kind: Glider(
         (
             kind: "PlainCloth",
         ),
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

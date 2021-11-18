@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Druid Cape"),
+    name: "Druid Cape"
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Back("Druid"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.034),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Lifecloth),
         SalvageInto(Lifecloth),

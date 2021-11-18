@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Giant Warlord Chest"),
+    name: "Giant Warlord Chest"
     description: "Made of darkest steel.",
     kind: Armor((
         kind: Chest("GiantWarlord"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

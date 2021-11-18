@@ -899,7 +899,8 @@ impl<'a> Widget for Diary<'a> {
                     .equipped(EquipSlot::ActiveMainhand)
                     .zip(self.inventory.equipped(EquipSlot::ActiveOffhand))
                     .map_or(false, |(a, b)| {
-                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) = (&a.kind, &b.kind)
+                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
+                            (&*a.kind(), &*b.kind())
                         {
                             (a.ability_spec(), tool_a.kind) == (b.ability_spec(), tool_b.kind)
                         } else {
@@ -1152,20 +1153,16 @@ impl<'a> Widget for Diary<'a> {
                     let main_weap_stats = self
                         .inventory
                         .equipped(EquipSlot::ActiveMainhand)
-                        .and_then(|item| match &item.kind {
-                            ItemKind::Tool(tool) => {
-                                Some(tool.stats.resolve_stats(self.msm, item.components()))
-                            },
+                        .and_then(|item| match &*item.kind() {
+                            ItemKind::Tool(tool) => Some(tool.stats),
                             _ => None,
                         });
 
                     let off_weap_stats = self
                         .inventory
                         .equipped(EquipSlot::ActiveOffhand)
-                        .and_then(|item| match &item.kind {
-                            ItemKind::Tool(tool) => {
-                                Some(tool.stats.resolve_stats(self.msm, item.components()))
-                            },
+                        .and_then(|item| match &*item.kind() {
+                            ItemKind::Tool(tool) => Some(tool.stats),
                             _ => None,
                         });
 

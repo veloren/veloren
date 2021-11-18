@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Amethyst Ring"),
+    name: "Amethyst Ring"
     description: "A tin ring with an amethyst gem.",
     kind: Armor((
         kind: Ring("Amethyst"),
@@ -8,6 +8,6 @@ ItemDef(
             energy_reward: Some(0.05),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

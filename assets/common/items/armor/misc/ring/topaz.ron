@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Topaz Ring"),
+    name: "Topaz Ring"
     description: "A copper ring with a topaz gem.",
     kind: Armor((
         kind: Ring("Topaz"),
@@ -8,6 +8,6 @@ ItemDef(
             energy_max: Some(5.0),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [],
 )

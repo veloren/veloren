@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Iron Ingot"),
+    name: "Iron Ingot"
     description: "An incredibly commonplace metal.",
     kind: Ingredient(
         kind: "IronIngot",
         descriptor: "Iron",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [MaterialKind(Metal), Material(Iron)],
 )

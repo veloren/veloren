@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Exclamation hat"),
+    name: "Exclamation hat"
     description: "You feel like bestowing quests.",
     kind: Armor((
         kind: Head("Exclamation"),
         stats: (
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

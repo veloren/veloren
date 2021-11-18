@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Green Linen Coat"),
+    name: "Green Linen Coat"
     description: "A rough fabric coat, dyed green.",
     kind: Armor((
         kind: Shoulder("ClothGreen"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

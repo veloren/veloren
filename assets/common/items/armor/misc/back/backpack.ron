@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Traveler's Backpack"),
+    name: "Traveler's Backpack"
     description: "Comfort and capacity united.",
     kind: Armor((
         kind: Back("Backpack"),
         stats: (
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [Bag],
     slots: 18,
 )

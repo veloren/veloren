@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Moonweave"),
+    name: "Moonweave"
     description: "A light yet very sturdy textile.",
     kind: Ingredient(
         kind: "Moonweave",
         descriptor: "Moonwoven",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [MaterialKind(Cloth), Material(Moonweave)],
 )

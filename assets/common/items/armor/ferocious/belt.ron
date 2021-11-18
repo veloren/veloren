@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Ferocious Sash"),
+    name: "Ferocious Sash"
     description: "The dark side of nature",
     kind: Armor((
         kind: Belt("Ferocious"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(12.0)),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Moonweave),
     ],

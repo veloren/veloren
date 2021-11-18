@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Carapace Leggings"),
+    name: "Carapace Leggings"
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Pants("Carapace"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.266),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Carapace),
         SalvageInto(Carapace),

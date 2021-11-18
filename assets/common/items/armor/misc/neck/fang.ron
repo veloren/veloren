@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Fang Necklace"),
+    name: "Fang Necklace"
     description: "Only the most savage beings can handle the power of this necklace...",
     kind: Armor((
         kind: Neck("Fang"),
@@ -8,6 +8,6 @@ ItemDef(
             crit_power: Some(0.07),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

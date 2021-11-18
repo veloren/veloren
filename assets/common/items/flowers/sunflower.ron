@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Sunflower"),
+    name: "Sunflower"
     description: "Smells like summer.",
     kind: Ingredient(
         kind: "Flower",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

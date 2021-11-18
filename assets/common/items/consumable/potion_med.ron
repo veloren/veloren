@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Medium Potion"),
+    name: "Medium Potion"
     description: "Enchanted healing flask.",
     kind: Consumable(
         kind: Drink,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Potion],
 )

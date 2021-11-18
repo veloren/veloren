@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Magic Lantern"),
+    name: "Magic Lantern"
     description: "Illuminates even the darkest dungeon\nA great monster was slain for this item",
     kind: Lantern(
         (
@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 300,
         ),
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [Utility],
 )

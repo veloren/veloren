@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Reliable Backpack"),
+    name: "Reliable Backpack"
     description: "It will never give you up.",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [Bag],
     slots: 16,
 )

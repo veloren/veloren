@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Lime Zest Lantern"),
+    name: "Lime Zest Lantern"
     description: "It has an opening that could fit a ring...",
     kind: Lantern(
         (
@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 250,
         ),
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Utility],
 )

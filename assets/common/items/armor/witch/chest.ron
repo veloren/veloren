@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Witch Robe"),
+    name: "Witch Robe"
     description: "",
     kind: Armor((
         kind: Chest("Witch"),
@@ -11,7 +11,7 @@ ItemDef(
             crit_power: Some(0.125),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
     ],
 )

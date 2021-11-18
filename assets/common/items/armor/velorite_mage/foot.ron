@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Velorite Battlemage Boots"),
+    name: "Velorite Battlemage Boots"
     description: "",
     kind: Armor((
         kind: Foot("VeloriteMage"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(5.9)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Velorite),
     ],

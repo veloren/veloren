@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Long Tusk"),
+    name: "Long Tusk"
     description: "A pointy tusk from some beast.",
     kind: Ingredient(
         kind: "LongTusk",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

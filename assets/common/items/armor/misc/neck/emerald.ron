@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Emerald Necklace"),
+    name: "Emerald Necklace"
     description: "A cobalt necklace, bearing beautiful emerald gems.",
     kind: Armor((
         kind: Neck("Emerald"),
@@ -9,6 +9,6 @@ ItemDef(
             energy_reward: Some(-0.2),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

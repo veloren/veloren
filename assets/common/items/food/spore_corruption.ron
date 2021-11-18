@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Spore of Corruption"),
+    name: "Spore of Corruption"
     description: "You feel an evil force pulsating within.\n\nIt may be unwise to hold on to it for too long...",
     kind: Consumable(
         kind: ComplexFood,
@@ -28,6 +28,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [Food],
 )

@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Placeholder"),
+    name: "Placeholder"
     description: "This is a placeholder because we intend to autogenerate these from the tags later",
     kind: Ingredient(
         kind: "Placeholder",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )
 

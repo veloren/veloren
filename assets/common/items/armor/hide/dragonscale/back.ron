@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Dragonscale Cape"),
+    name: "Dragonscale Cape"
     description: "Power pulses through it.",
     kind: Armor((
         kind: Back("Dragonscale"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.1),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Dragonscale),
         SalvageInto(Dragonscale),

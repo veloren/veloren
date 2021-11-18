@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Ruby Ring"),
+    name: "Ruby Ring"
     description: "A silver ring with a ruby gem.",
     kind: Armor((
         kind: Ring("Ruby"),
@@ -9,6 +9,6 @@ ItemDef(
             crit_power: Some(-0.03),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [],
 )

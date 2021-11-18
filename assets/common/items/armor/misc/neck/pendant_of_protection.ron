@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Pendant of Protection"),
+    name: "Pendant of Protection"
     description: "You feel as if something is always watching you...",
     kind: Armor((
         kind: Neck("Pendant"),
@@ -7,6 +7,6 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

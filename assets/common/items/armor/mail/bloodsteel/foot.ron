@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Bloodsteel Sabatons"),
+    name: "Bloodsteel Sabatons"
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Foot("Bloodsteel"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(5.0)),
         ),
     )),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [
         Material(Bloodsteel),
         SalvageInto(Bloodsteel),

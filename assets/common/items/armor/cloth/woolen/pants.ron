@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Woolen Pants"),
+    name: "Woolen Pants"
     description: "Thick and ready for the snow.",
     kind: Armor((
         kind: Pants("Woolen"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.066),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Wool),
         SalvageInto(Wool),

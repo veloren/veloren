@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Lifecloth"),
+    name: "Lifecloth"
     description: "A fabric imbued with special properties.",
     kind: Ingredient(
         kind: "Lifecloth",
         descriptor: "Lifecloth",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [MaterialKind(Cloth), Material(Lifecloth)],
 )

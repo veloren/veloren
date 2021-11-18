@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Caduceus"),
+    name: "Caduceus"
     description: "The snakes seem to be alive",
     kind: Tool((
         kind: Sceptre,
-        hands: Direct(Two),
-        stats: Direct((
+        hands: Two,
+        stats: (
             equip_time_secs: 0.4,
             power: 1.67,
             effect_power: 1.5,
@@ -13,9 +13,9 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [],
     ability_spec: None,
 )

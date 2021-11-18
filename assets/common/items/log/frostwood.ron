@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Frostwood Logs"),
+    name: "Frostwood Logs"
     description: "Chilly wood that comes from cold biomes. Cold to the touch.",
     kind: Ingredient(
         kind: "FrostwoodLogs",
         descriptor: "Frostwood",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [MaterialKind(Wood), Material(Frostwood)],
 )

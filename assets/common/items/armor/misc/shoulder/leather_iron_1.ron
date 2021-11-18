@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Iron and Leather Spaulders"),
+    name: "Iron and Leather Spaulders"
     description: "Leather inset with heavy iron spikes provide solid protection to the wearer.",
     kind: Armor((
         kind: Shoulder("IronLeather1"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(9.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

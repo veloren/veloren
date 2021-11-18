@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Red Bandana"),
+    name: "Red Bandana"
     description: "Very sneaky, but also, bright red.",
     kind: Armor((
         kind: Head("Red"),
@@ -8,6 +8,6 @@ ItemDef(
             stealth: Some(0.15),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

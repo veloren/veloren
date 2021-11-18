@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Potent Potion"),
+    name: "Potent Potion"
     description: "A potent healing potion.",
     kind: Consumable(
         kind: Drink,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [Potion],
 )

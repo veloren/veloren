@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leafy Boots"),
+    name: "Leafy Boots"
     description: "Leaves cover the magically entwined twigs to provide simple protection from the elements.",
     kind: Armor((
         kind: Foot("TwigsLeaves"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(3.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

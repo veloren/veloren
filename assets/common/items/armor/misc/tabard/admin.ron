@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Admin's Tabard"),
+    name: "Admin's Tabard"
     description: "With great power comes great responsibility.",
     kind: Armor((
         kind: Tabard("Admin"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Invincible),
         ),
     )),
-    quality: Direct(Debug),
+    quality: Debug,
     tags: [],
 )

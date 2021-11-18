@@ -1,9 +1,9 @@
 ItemDef(
-    name: Direct("Firework Purple"),
+    name: "Firework Purple"
     description: "Cult favourite.",
     kind: Throwable(
         kind: Firework(Purple),
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Utility],
 )

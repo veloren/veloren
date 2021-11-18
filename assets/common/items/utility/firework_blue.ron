@@ -1,9 +1,9 @@
 ItemDef(
-    name: Direct("Firework Blue"),
+    name: "Firework Blue"
     description: "Recommended clearance: 42 chonks",
     kind: Throwable(
         kind: Firework(Blue),
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Utility],
 )

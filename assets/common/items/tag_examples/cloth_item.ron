@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Any cloth item"),
+    name: "Any cloth item"
     description: "Various colored fabric armors.",
     kind: TagExamples(
         item_ids: [
@@ -20,6 +20,6 @@ ItemDef(
             "common.items.armor.cloth_purple.shoulder",
         ],
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

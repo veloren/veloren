@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Knitted Red Pouch"),
+    name: "Knitted Red Pouch"
     description: "Made from some patches of dyed cloth.",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [Bag],
     slots: 9,
 )

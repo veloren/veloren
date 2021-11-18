@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Dragonscale Chestplate"),
+    name: "Dragonscale Chestplate"
     description: "Power pulses through it.",
     kind: Armor((
         kind: Chest("Dragonscale"),
@@ -9,7 +9,7 @@ ItemDef(
             stealth: Some(0.6),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Dragonscale),
         SalvageInto(Dragonscale),

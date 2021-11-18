@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Orichalcum Mantle"),
+    name: "Orichalcum Mantle"
     description: "An ancient alloy. Myths remain of heroes who wore this armor.",
     kind: Armor((
         kind: Shoulder("Orichalcum"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(12.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Orichalcum),
         SalvageInto(Orichalcum),

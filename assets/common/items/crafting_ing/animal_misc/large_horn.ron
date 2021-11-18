@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Large Horn"),
+    name: "Large Horn"
     description: "A huge sharp horn from an animal.",
     kind: Ingredient(
         kind: "LargeHorn",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

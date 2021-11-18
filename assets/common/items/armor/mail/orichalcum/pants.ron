@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Orichalcum Legplates"),
+    name: "Orichalcum Legplates"
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Pants("Orichalcum"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(12.0)),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Orichalcum),
         SalvageInto(Orichalcum),

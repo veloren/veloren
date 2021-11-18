@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Plate"),
+    name: "Plate"
     description: "Durable plate from an armored animal.",
     kind: Ingredient(
         kind: "Plate",
         descriptor: "Plate",
     ),
-    quality: Direct(Epic),
+    quality: Epic,
     tags: [MaterialKind(Hide), Material(Plate)],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Any leather item"),
+    name: "Any leather item"
     description: "Various leather armors.",
     kind: TagExamples(
         item_ids: [
@@ -18,6 +18,6 @@ ItemDef(
 
         ],
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

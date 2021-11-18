@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Haniwa Talisman"),
+    name: "Haniwa Talisman"
     description: "A talisman depicting a figure of unkown origin.",
     kind: Armor((
         kind: Neck("Haniwa"),
@@ -8,6 +8,6 @@ ItemDef(
             poise_resilience: Some(Normal(2.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

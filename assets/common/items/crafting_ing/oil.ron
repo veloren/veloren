@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Oil"),
+    name: "Oil"
     description: "A measure of thick, sludgy oil.",
     kind: Ingredient(
         kind: "Oil",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

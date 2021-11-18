@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Any woven cloth"),
+    name: "Any woven cloth"
     description: "Cloths spun from plant material.",
     kind: TagExamples(
         item_ids: [
@@ -11,7 +11,7 @@ ItemDef(
             "common.items.crafting_ing.cloth.sunsilk",
         ],
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )
 

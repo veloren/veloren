@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Sunsilk Cape"),
+    name: "Sunsilk Cape"
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Back("Sunsilk"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.05),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Sunsilk),
         SalvageInto(Sunsilk),

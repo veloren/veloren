@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Velorite Chest"),
+    name: "Velorite Chest"
     description: "",
     kind: Armor(
         (
@@ -8,6 +8,6 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Debug),
+    quality: Debug,
     tags: [],
 )

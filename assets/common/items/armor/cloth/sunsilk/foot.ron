@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Sunsilk Footwraps"),
+    name: "Sunsilk Footwraps"
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Foot("Sunsilk"),
@@ -10,7 +10,7 @@ ItemDef(
             stealth: Some(0.1),
         ),
     )),
-    quality: Direct(Legendary),
+    quality: Legendary,
     tags: [
         Material(Sunsilk),
         SalvageInto(Sunsilk),

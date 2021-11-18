@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Apple"),
+    name: "Apple"
     description: "Red and juicy",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Lettuce"),
+    name: "Lettuce"
     description: "A vibrant green leafy vegetable. Lettuce make some salads!",
     kind: Consumable(
         kind: Food,
@@ -17,6 +17,6 @@ ItemDef(
             )),
         ]
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [Food],
 )

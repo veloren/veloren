@@ -1,10 +1,10 @@
 ItemDef(
-    name: Direct("Amethyst"),
+    name: "Amethyst"
     description: "A precious purple gem.",
     kind: Ingredient(
         kind: "Amethyst",
         descriptor: "Amethyst",
     ),
-    quality: Direct(Common),
+    quality: Common,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Flowery Boots"),
+    name: "Flowery Boots"
     description: "Woven and magically imbued, these boots of twigs and flowers provide simple protection and peace to the wearer.",
     kind: Armor((
         kind: Foot("TwigsFlowers"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(3.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

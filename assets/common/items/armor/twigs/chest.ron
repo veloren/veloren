@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Twig Shirt"),
+    name: "Twig Shirt"
     description: "Small sticks magically imbued to hold together to form a shirt.",
     kind: Armor((
         kind: Chest("Twigs"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(15.0)),
         ),
     )),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [
     ],
 )

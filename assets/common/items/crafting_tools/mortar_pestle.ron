@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Mortar and Pestle"),
+    name: "Mortar and Pestle"
     description: "Crushes and grinds things into\na fine powder or paste.\nUsed to craft various items.",
     kind: Ingredient(
         kind: "MortarPestle",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(Moderate),
+    quality: Moderate,
     tags: [CraftingTool],
 )

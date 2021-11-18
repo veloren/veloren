@@ -1,11 +1,11 @@
 ItemDef(
-    name: Direct("Velorite"),
+    name: "Velorite"
     description: "Just a slight touch makes you feel\nthe knowledge of ancient times",
     kind: Ingredient(
         kind: "Velorite",
         // Descriptor not needed
         descriptor: "",
     ),
-    quality: Direct(High),
+    quality: High,
     tags: [],
 )

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Blue Cloth Pads"),
+    name: "Blue Cloth Pads"
     description: "Simple shoulderpads made from blue cloth.",
     kind: Armor((
         kind: Shoulder("ClothBlue1"),
@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(1.0)),
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

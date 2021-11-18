@@ -1,12 +1,12 @@
 ItemDef(
-    name: Direct("Purple Linen Boots"),
+    name: "Purple Linen Boots"
     description: "Cobbled rough fabric boots, dyed purple.",
     kind: Armor((
         kind: Foot("ClothPurple"),
         stats: (
         ),
     )),
-    quality: Direct(Common),
+    quality: Common,
     tags: [
         Material(Linen),
         SalvageInto(Linen),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Leather Plate Chest"),
+    name: "Leather Plate Chest"
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Chest("LeatherPlate"),
@@ -8,7 +8,7 @@ ItemDef(
             poise_resilience: Some(Normal(12.0)),
         ),
     )),
-    quality: Direct(High),
+    quality: High,
     tags: [
         Material(Leather),
         SalvageInto(Leather),

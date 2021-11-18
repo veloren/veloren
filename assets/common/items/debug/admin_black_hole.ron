@@ -1,5 +1,5 @@
 ItemDef(
-    name: Direct("Admin's Black Hole"),
+    name: "Admin's Black Hole"
     description: "It just works.",
     kind: Armor(
         (
@@ -8,7 +8,7 @@ ItemDef(
             ),
         )
     ),
-    quality: Direct(Debug),
+    quality: Debug,
     tags: [],
     slots: 900,
 )
