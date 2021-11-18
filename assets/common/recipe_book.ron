@@ -1879,6 +1879,16 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
+     "merchant turban": (
+        output: ("common.items.armor.merchant.turban", 1),
+        inputs: [
+            (Item("common.items.crafting_ing.cloth.linen_red"), 20),
+            (Item("common.items.mineral.gem.diamond"), 4),
+            (Item("common.items.crafting_ing.mindflayer_bag_damaged"), 1),
+            (Item("common.items.crafting_tools.sewing_set"), 0),
+        ],
+        craft_sprite: Some(CraftingBench),        
+    ),
     //"metal_blade": (
     //    output: ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
     //    inputs: [

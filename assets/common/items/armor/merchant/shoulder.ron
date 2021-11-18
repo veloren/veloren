@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Merchant Mantle",
+    description: "",
+    kind: Armor((
+        kind: Shoulder("Merchant"),
+        stats: (
+            protection: Normal(32.0),
+            poise_resilience: Normal(5.0),
+            energy_max: 9.0,
+            energy_reward: 0.1,
+            crit_power: 0.08,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+
+    ],
+)

@@ -1,0 +1,5 @@
+([
+    Tree("common.skillset.village.merchant.sword"),
+    Tree("common.skillset.village.merchant.bow"),
+    Tree("common.skillset.village.merchant.staff"),
+])

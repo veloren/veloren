@@ -6,9 +6,14 @@ EntityConfig (
     // TODO: consider giving some gold/gems/materials?
     loot: LootTable("common.loot_tables.creature.humanoid"),
 
-    hands: TwoHanded(Item("common.items.weapons.bow.eldwood-0")),
+    hands: TwoHanded(Choice([
+        (2.0, Some(Item("common.items.weapons.bow.eldwood-0"))),
+        (1.0, Some(Item("common.items.weapons.sword.steel-0"))),
+        (1.0, Some(Item("common.items.weapons.sword_1h.bloodsteel-0"))),
+        (2.0, Some(Item("common.items.weapons.staff.flamethrower_0"))),
+    ])),
 
     meta: [
-        SkillSetAsset("common.skillset.village.merchant"),
+        SkillSetAsset("common.skillset.village.merchant.merchant"),
     ],
 )

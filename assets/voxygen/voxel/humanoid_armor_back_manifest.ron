@@ -120,5 +120,9 @@
             vox_spec: ("armor.mail.orichalcum.back", (-5.0, -4.5, -12.0)),
             color: None
         ),
+        "Merchant": (
+            vox_spec: ("armor.merchant.back", (-9.0, -7.0, -12.0)),
+            color: None
+        ),
     },
 ))

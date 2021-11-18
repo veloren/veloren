@@ -1,0 +1,18 @@
+ItemDef(
+    name: "Merchant Backpack",
+    description: "",
+    kind: Armor((
+        kind: Back("Merchant"),
+        stats: (
+            protection: Normal(1.0),
+            poise_resilience: Normal(0.0),
+            energy_max: 0,
+            energy_reward: 0.0,
+            crit_power: 0.017,
+            stealth: 0.017,
+        ),
+    )),
+    quality: High,
+    slots: 18,
+    tags: [],
+)

@@ -1,0 +1,19 @@
+ItemDef(
+    name: "Merchant Gloves",
+    description: "",
+    kind: Armor((
+        kind: Hand("Merchant"),
+        stats: (
+            protection: Normal(16.0),
+            poise_resilience: Normal(2.0),
+            energy_max: 4.5,
+            energy_reward: 0.045,
+            crit_power: 0.04,
+            stealth: 0.0,
+        ),
+    )),
+    quality: Epic,
+    tags: [
+
+    ],
+)
