@@ -600,7 +600,7 @@ impl Structure for House {
 
             let walls = outer_level
                 .union(inner_level)
-                .and_not(outer_level.intersect(inner_level));
+                .subtract(outer_level.intersect(inner_level));
 
             // Wall Pillars
             // Only upper non-stone floors have wooden beams in the walls
@@ -1368,11 +1368,11 @@ impl Structure for House {
                     let window_ori = if self.front % 2 == 0 { 0 } else { 2 };
                     if valid_dormer {
                         painter.fill(
-                            painter.prim(Primitive::diff(dormer_box, shed)),
+                            painter.prim(Primitive::subtract(dormer_box, shed)),
                             Fill::Brick(BlockKind::Wood, Rgb::new(200, 180, 150), 24),
                         );
                         painter.fill(
-                            painter.prim(Primitive::diff(dormer_roof, shed)),
+                            painter.prim(Primitive::subtract(dormer_roof, shed)),
                             Fill::Block(Block::new(BlockKind::Wood, self.roof_color)),
                         );
                         painter.fill(window_cavity, Fill::Block(Block::empty()));
