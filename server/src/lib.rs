@@ -464,26 +464,36 @@ impl Server {
         runtime.block_on(network.listen(ListenAddr::Tcp(settings.gameserver_address)))?;
         runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
         if let Some(quic) = &settings.quic_files {
+            use rustls_pemfile::Item;
             use std::fs;
             match || -> Result<_, Box<dyn std::error::Error>> {
-                let mut server_config =
-                    quinn::ServerConfigBuilder::new(quinn::ServerConfig::default());
                 let key = fs::read(&quic.key)?;
                 let key = if quic.key.extension().map_or(false, |x| x == "der") {
-                    quinn::PrivateKey::from_der(&key)?
+                    rustls::PrivateKey(key)
                 } else {
-                    quinn::PrivateKey::from_pem(&key)?
+                    debug!("convert pem key to der");
+                    let key = rustls_pemfile::read_all(&mut key.as_slice())?
+                        .into_iter()
+                        .find_map(|item| match item {
+                            Item::RSAKey(v) | Item::PKCS8Key(v) => Some(v),
+                            Item::X509Certificate(_) => None,
+                        })
+                        .ok_or("No valid pem key in file")?;
+                    rustls::PrivateKey(key)
                 };
                 let cert_chain = fs::read(&quic.cert)?;
                 let cert_chain = if quic.cert.extension().map_or(false, |x| x == "der") {
-                    quinn::CertificateChain::from_certs(Some(
-                        quinn::Certificate::from_der(&cert_chain).unwrap(),
-                    ))
+                    vec![rustls::Certificate(cert_chain)]
                 } else {
-                    quinn::CertificateChain::from_pem(&cert_chain)?
+                    debug!("convert pem cert to der");
+                    let certs = rustls_pemfile::certs(&mut cert_chain.as_slice())?;
+                    certs
+                        .into_iter()
+                        .map(|cert| rustls::Certificate(cert))
+                        .collect()
                 };
-                server_config.certificate(cert_chain, key)?;
-                Ok(server_config.build())
+                let server_config = quinn::ServerConfig::with_single_cert(cert_chain, key)?;
+                Ok(server_config)
             }() {
                 Ok(server_config) => {
                     warn!(

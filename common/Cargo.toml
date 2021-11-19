@@ -28,9 +28,9 @@ enum-iterator = "0.7"
 vek = { version = "=0.14.1", features = ["serde"] }
 
 # Strum
-strum = { version = "0.21", features = ["derive"] }
+strum = { version = "0.23", features = ["derive"] }
 # TODO: remove this and rewrite every use of strum_macros to strum
-strum_macros = "0.21"
+strum_macros = "0.23"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 approx = "0.4.0"
@@ -82,7 +82,7 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "8be2abc
 criterion = "0.3"
 
 #test
-tracing-subscriber = { version = "0.2.15", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec", "env-filter"] }
+tracing-subscriber = { version = "0.2.25", default-features = false, features = ["fmt", "chrono", "ansi", "smallvec", "env-filter"] }
 
 [[bench]]
 name = "chonk_benchmark"

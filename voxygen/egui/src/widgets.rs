@@ -6,7 +6,7 @@ pub(crate) fn filterable_list(
     search_text: &str,
     selected_index: &mut usize,
 ) {
-    let scroll_area = ScrollArea::auto_sized();
+    let scroll_area = ScrollArea::vertical();
     scroll_area.show(ui, |ui| {
         ui.spacing_mut().item_spacing = Vec2::new(0.0, 2.0);
         let search_text = search_text.to_lowercase();
@@ -27,7 +27,11 @@ pub(crate) fn filterable_list(
     });
 }
 
-pub(crate) fn two_col_row(ui: &mut Ui, label: impl Into<Label>, content: impl Into<Label>) {
+pub(crate) fn two_col_row(
+    ui: &mut Ui,
+    label: impl Into<Label> + core::fmt::Display,
+    content: impl Into<Label> + core::fmt::Display,
+) {
     ui.label(label);
     ui.label(content);
     ui.end_row();

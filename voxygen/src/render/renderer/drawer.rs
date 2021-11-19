@@ -367,7 +367,7 @@ impl<'frame> Drawer<'frame> {
     pub fn draw_egui(&mut self, platform: &mut Platform, scale_factor: f32) {
         span!(guard, "Draw egui");
 
-        let (_output, paint_commands) = platform.end_frame();
+        let (_output, paint_commands) = platform.end_frame(None);
 
         let paint_jobs = platform.context().tessellate(paint_commands);
 

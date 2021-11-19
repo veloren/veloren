@@ -17,7 +17,7 @@ deunicode = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 tracing = "0.1"
 # Diagnostic
-ron = "0.6"
+ron = "0.7"
 git2 = { version = "0.13", default-features = false, optional = true }
 
 # Binary

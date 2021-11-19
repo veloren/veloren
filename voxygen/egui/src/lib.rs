@@ -14,8 +14,7 @@ use common::{
 };
 use core::mem;
 use egui::{
-    plot::{Plot, Value},
-    widgets::plot::Curve,
+    plot::{Line, Plot, Value, Values},
     CollapsingHeader, Color32, Grid, Pos2, ScrollArea, Slider, Ui, Window,
 };
 
@@ -262,13 +261,13 @@ pub fn maintain_egui_inner(
 
     Window::new("🔧 Settings")
         .open(&mut windows.egui_settings)
-        .scroll(true)
+        .vscroll(true)
         .show(ctx, |ui| {
             ctx.settings_ui(ui);
         });
     Window::new("🔍 Inspection")
         .open(&mut windows.egui_inspection)
-        .scroll(true)
+        .vscroll(true)
         .show(ctx, |ui| {
             ctx.inspection_ui(ui);
         });
@@ -285,13 +284,13 @@ pub fn maintain_egui_inner(
         .default_width(200.0)
         .default_height(200.0)
         .show(ctx, |ui| {
-            let plot = Plot::new("Frame Time").curve(Curve::from_values_iter(
+            let plot = Plot::new("Frame Time").line(Line::new(Values::from_values_iter(
                 egui_state
                     .frame_times
                     .iter()
                     .enumerate()
                     .map(|(i, x)| Value::new(i as f64, *x)),
-            ));
+            )));
             ui.add(plot);
         });
 
@@ -321,7 +320,7 @@ pub fn maintain_egui_inner(
                         .text("Cylinder height"),
                 );
 
-                let scroll_area = ScrollArea::from_max_height(800.0);
+                let scroll_area = ScrollArea::vertical().max_height(800.0);
                 let (_current_scroll, _max_scroll) = scroll_area.show(ui, |ui| {
                     Grid::new("entities_grid")
                         .spacing([40.0, 4.0])
