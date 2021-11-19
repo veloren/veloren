@@ -6,7 +6,7 @@ pub(crate) fn filterable_list(
     search_text: &str,
     selected_index: &mut usize,
 ) {
-    let scroll_area = ScrollArea::vertical();
+    let scroll_area = ScrollArea::auto_sized();
     scroll_area.show(ui, |ui| {
         ui.spacing_mut().item_spacing = Vec2::new(0.0, 2.0);
         let search_text = search_text.to_lowercase();

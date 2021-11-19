@@ -1468,18 +1468,7 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "788148861d80b87d28d64440a3d31cae190e50ccc3ea585597466d38428365d7"
 dependencies = [
- "epaint 0.12.0",
-]
-
-[[package]]
-name = "egui"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c8d416a3343cbfc6f4d17bb1cba46b4d7efecb9ee541967763e0b5e04e5fae7"
-dependencies = [
- "ahash 0.7.6",
- "epaint 0.15.0",
- "nohash-hasher",
+ "epaint",
 ]
 
 [[package]]
@@ -1494,11 +1483,11 @@ dependencies = [
 
 [[package]]
 name = "egui_winit_platform"
-version = "0.11.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0ae306ae9cd296ed3178d518fd0d9edf45f176cfdfe31ff77b7051c5f1d5278"
+checksum = "cd4cf17c0cd4dbcf2f8fef55a3592b9b7cfd970576c7302d8ba5c521b8560371"
 dependencies = [
- "egui 0.15.0",
+ "egui",
  "winit",
 ]
 
@@ -1513,12 +1502,6 @@ name = "emath"
 version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e73d6c8c70eadb71756fbbc3c303ab25e163b46b656886dd250de5636efea12"
-
-[[package]]
-name = "emath"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24a1aaa922d55da6a2bf32957c3d153e7fb9d52ed8d69777a75092240172eb6e"
 
 [[package]]
 name = "encoding_rs"
@@ -1597,22 +1580,9 @@ checksum = "80e2db640801230bdda80629bc3a063927a462f5eaf38a98da676954e78ccb99"
 dependencies = [
  "ahash 0.7.6",
  "atomic_refcell",
- "emath 0.12.0",
+ "emath",
  "ordered-float 2.8.0",
  "rusttype 0.9.2",
-]
-
-[[package]]
-name = "epaint"
-version = "0.15.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "16bb4d3b8bbbd132c99d2a5efec8567e8b6d09b742f758ae6cf1e4b104fe0231"
-dependencies = [
- "ab_glyph",
- "ahash 0.7.6",
- "atomic_refcell",
- "emath 0.15.0",
- "nohash-hasher",
 ]
 
 [[package]]
@@ -1621,7 +1591,7 @@ version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "59c4f6cbede1fc8f836384f85295a59199a4825940abcc3a8a29cfe2e3c37583"
 dependencies = [
- "egui 0.12.0",
+ "egui",
 ]
 
 [[package]]
@@ -3441,12 +3411,6 @@ dependencies = [
  "libc",
  "memoffset 0.6.4",
 ]
-
-[[package]]
-name = "nohash-hasher"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bf50223579dc7cdcfb3bfcacf7069ff68243f8c363f62ffa99cf000a6b9c451"
 
 [[package]]
 name = "noise"
@@ -6408,7 +6372,7 @@ dependencies = [
  "directories-next",
  "dispatch 0.1.4",
  "dot_vox",
- "egui 0.15.0",
+ "egui",
  "egui_wgpu_backend",
  "egui_winit_platform",
  "enum-iterator",
@@ -6497,7 +6461,7 @@ dependencies = [
 name = "veloren-voxygen-egui"
 version = "0.9.0"
 dependencies = [
- "egui 0.15.0",
+ "egui",
  "egui_winit_platform",
  "lazy_static",
  "veloren-client",
