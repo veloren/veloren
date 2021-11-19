@@ -49,7 +49,7 @@ fn main() {
             seed_elements: false,
             world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
             // world_file: sim::FileOpts::Load(_map_file),
-            // world_file: sim::FileOpts::Save,
+            // world_file: sim::FileOpts::Save(sim::SizeOpts::default()),
             ..WorldOpts::default()
         },
         &threadpool,
