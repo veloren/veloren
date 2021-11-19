@@ -13,6 +13,14 @@ use tracing::*;
 use tracing_subscriber::EnvFilter;
 use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promises, Stream};
 
+// sleep time when only internal rust calculations are done
+#[allow(dead_code)]
+pub const SLEEP_INTERNAL: std::time::Duration = std::time::Duration::from_millis(3000);
+// sleep time when we interact with the system, e.g. actually send TCP/UDP
+// package
+#[allow(dead_code)]
+pub const SLEEP_EXTERNAL: std::time::Duration = std::time::Duration::from_millis(5000);
+
 #[allow(dead_code)]
 pub fn setup(tracing: bool, sleep: u64) -> (u64, u64) {
     if sleep > 0 {

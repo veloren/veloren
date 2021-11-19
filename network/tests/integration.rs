@@ -2,17 +2,9 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{NetworkError, StreamError};
 mod helper;
-use helper::{mpsc, network_participant_stream, quic, tcp, udp};
+use helper::{mpsc, network_participant_stream, quic, tcp, udp, SLEEP_EXTERNAL, SLEEP_INTERNAL};
 use std::io::ErrorKind;
 use veloren_network::{ConnectAddr, ListenAddr, Network, Pid, Promises};
-
-#[test]
-#[ignore]
-fn network_20s() {
-    let (_, _) = helper::setup(false, 0);
-    let (_, _n_a, _, _, _n_b, _, _) = network_participant_stream(tcp());
-    std::thread::sleep(std::time::Duration::from_secs(30));
-}
 
 #[test]
 fn stream_simple() {
@@ -30,7 +22,7 @@ fn stream_try_recv() {
     let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcp());
 
     s1_a.send(4242u32).unwrap();
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.try_recv(), Ok(Some(4242u32)));
     drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
@@ -160,7 +152,7 @@ fn failed_listen_on_used_ports() -> std::result::Result<(), Box<dyn std::error::
     let tcp1 = tcp();
     r.block_on(network.listen(udp1.0.clone()))?;
     r.block_on(network.listen(tcp1.0.clone()))?;
-    std::thread::sleep(std::time::Duration::from_millis(200));
+    std::thread::sleep(SLEEP_INTERNAL);
 
     let network2 = Network::new(Pid::new(), &r);
     let e1 = r.block_on(network2.listen(udp1.0));
@@ -260,13 +252,13 @@ fn multiple_try_recv() {
 
     s1_a.send("asd").unwrap();
     s1_a.send(11u32).unwrap();
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.try_recv(), Ok(Some("asd".to_string())));
     assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
     assert_eq!(s1_b.try_recv::<String>(), Ok(None));
 
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
     drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
