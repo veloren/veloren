@@ -22,14 +22,14 @@ use std::sync::Arc;
 use tokio::runtime::Runtime;
 use veloren_network::{Network, ParticipantError, Pid, Promises, StreamError};
 mod helper;
-use helper::{network_participant_stream, tcp};
+use helper::{network_participant_stream, tcp, SLEEP_EXTERNAL, SLEEP_INTERNAL};
 
 #[test]
 fn close_network() {
     let (_, _) = helper::setup(false, 0);
     let (r, _, _p1_a, mut s1_a, _, _p1_b, mut s1_b) = network_participant_stream(tcp());
 
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_INTERNAL);
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     let msg1: Result<String, _> = r.block_on(s1_b.recv());
@@ -57,7 +57,7 @@ fn close_stream() {
     let (r, _n_a, _, mut s1_a, _n_b, _, _) = network_participant_stream(tcp());
 
     // s1_b is dropped directly while s1_a isn't
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_INTERNAL);
 
     assert_eq!(s1_a.send("Hello World"), Err(StreamError::StreamClosed));
     assert_eq!(
@@ -95,7 +95,7 @@ fn stream_simple_3msg_then_close() {
     assert_eq!(r.block_on(s1_b.recv()), Ok(42));
     assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.send("Hello World"), Err(StreamError::StreamClosed));
 }
 
@@ -109,7 +109,7 @@ fn stream_send_first_then_receive() {
     s1_a.send(42).unwrap();
     s1_a.send("3rdMessage").unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(r.block_on(s1_b.recv()), Ok(1u8));
     assert_eq!(r.block_on(s1_b.recv()), Ok(42));
     assert_eq!(r.block_on(s1_b.recv()), Ok("3rdMessage".to_string()));
@@ -123,7 +123,7 @@ fn stream_send_1_then_close_stream() {
     s1_a.send("this message must be received, even if stream is closed already!")
         .unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     let exp = Ok("this message must be received, even if stream is closed already!".to_string());
     assert_eq!(r.block_on(s1_b.recv()), exp);
     println!("all received and done");
@@ -168,7 +168,7 @@ fn stream_send_100000_then_close_stream_remote2() {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
     drop(_s1_b);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop(s1_a);
     //no receiving
     drop((_n_a, _p_a, _n_b, _p_b)); //clean teardown
@@ -182,7 +182,7 @@ fn stream_send_100000_then_close_stream_remote3() {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
     drop(_s1_b);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop(s1_a);
     //no receiving
     drop((_n_a, _p_a, _n_b, _p_b)); //clean teardown
@@ -196,9 +196,9 @@ fn close_part_then_network() {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
     drop(p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop(n_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_INTERNAL);
 }
 
 #[test]
@@ -209,9 +209,9 @@ fn close_network_then_part() {
         s1_a.send("woop_PARTY_HARD_woop").unwrap();
     }
     drop(n_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop(p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_INTERNAL);
 }
 
 #[test]
@@ -223,7 +223,7 @@ fn close_network_then_disconnect_part() {
     }
     drop(n_a);
     assert!(r.block_on(p_a.disconnect()).is_err());
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop((_n_b, _p_b)); //clean teardown
 }
 
@@ -236,7 +236,7 @@ fn close_runtime_then_network() {
     }
     drop(r);
     drop(_n_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop(_p_b);
 }
 
@@ -249,7 +249,7 @@ fn close_runtime_then_part() {
     }
     drop(r);
     drop(_p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     drop(_p_b);
     drop(_n_a);
 }
@@ -289,7 +289,7 @@ fn opened_stream_before_remote_part_is_closed() {
     s2_a.send("HelloWorld").unwrap();
     let mut s2_b = r.block_on(p_b.opened()).unwrap();
     drop(p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(r.block_on(s2_b.recv()), Ok("HelloWorld".to_string()));
     drop((_n_a, _n_b, p_b)); //clean teardown
 }
@@ -301,7 +301,7 @@ fn opened_stream_after_remote_part_is_closed() {
     let mut s2_a = r.block_on(p_a.open(3, Promises::empty(), 0)).unwrap();
     s2_a.send("HelloWorld").unwrap();
     drop(p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     let mut s2_b = r.block_on(p_b.opened()).unwrap();
     assert_eq!(r.block_on(s2_b.recv()), Ok("HelloWorld".to_string()));
     assert_eq!(
@@ -318,7 +318,7 @@ fn open_stream_after_remote_part_is_closed() {
     let mut s2_a = r.block_on(p_a.open(4, Promises::empty(), 0)).unwrap();
     s2_a.send("HelloWorld").unwrap();
     drop(p_a);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     let mut s2_b = r.block_on(p_b.opened()).unwrap();
     assert_eq!(r.block_on(s2_b.recv()), Ok("HelloWorld".to_string()));
     assert_eq!(
@@ -355,7 +355,7 @@ fn open_participant_before_remote_part_is_closed() {
     drop(s1_b);
     drop(p_b);
     drop(n_b);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     let mut s1_a = r.block_on(p_a.opened()).unwrap();
     assert_eq!(r.block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
 }
@@ -374,7 +374,7 @@ fn open_participant_after_remote_part_is_closed() {
     drop(s1_b);
     drop(p_b);
     drop(n_b);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL);
     let p_a = r.block_on(n_a.connected()).unwrap();
     let mut s1_a = r.block_on(p_a.opened()).unwrap();
     assert_eq!(r.block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
@@ -397,12 +397,12 @@ fn close_network_scheduler_completely() {
     assert_eq!(r.block_on(s1_a.recv()), Ok("HelloWorld".to_string()));
     drop(n_a);
     drop(n_b);
-    std::thread::sleep(std::time::Duration::from_millis(1000));
+    std::thread::sleep(SLEEP_EXTERNAL); //p_b is INTERNAL, but p_a is EXTERNAL
 
     drop(p_b);
     drop(p_a);
     let runtime = Arc::try_unwrap(r).expect("runtime is not alone, there still exist a reference");
-    runtime.shutdown_timeout(std::time::Duration::from_secs(300));
+    runtime.shutdown_timeout(SLEEP_INTERNAL);
 }
 
 #[test]
@@ -412,7 +412,7 @@ fn dont_panic_on_multiply_recv_after_close() {
 
     s1_a.send(11u32).unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
     assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
     // There was a "Feature" in futures::channels that they panic when you call recv
@@ -427,7 +427,7 @@ fn dont_panic_on_recv_send_after_close() {
 
     s1_a.send(11u32).unwrap();
     drop(s1_a);
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
     assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
     assert_eq!(s1_b.send("foobar"), Err(StreamError::StreamClosed));
@@ -441,7 +441,7 @@ fn dont_panic_on_multiple_send_after_close() {
     s1_a.send(11u32).unwrap();
     drop(s1_a);
     drop(_p_a);
-    std::thread::sleep(std::time::Duration::from_secs(1));
+    std::thread::sleep(SLEEP_EXTERNAL);
     assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(11u32)));
     assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
     assert_eq!(s1_b.send("foobar"), Err(StreamError::StreamClosed));
