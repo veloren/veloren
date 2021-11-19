@@ -4732,6 +4732,7 @@ version = "0.20.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dac4581f0fc0e0efd529d069e8189ec7b90b8e7680e21beb35141bdc45f36040"
 dependencies = [
+ "log",
  "ring",
  "sct 0.7.0",
  "webpki 0.22.0",
@@ -6229,6 +6230,7 @@ dependencies = [
  "quinn",
  "rand 0.8.4",
  "rcgen",
+ "rustls 0.20.1",
  "serde",
  "shellexpand",
  "tokio",

@@ -487,10 +487,7 @@ impl Server {
                 } else {
                     debug!("convert pem cert to der");
                     let certs = rustls_pemfile::certs(&mut cert_chain.as_slice())?;
-                    certs
-                        .into_iter()
-                        .map(|cert| rustls::Certificate(cert))
-                        .collect()
+                    certs.into_iter().map(rustls::Certificate).collect()
                 };
                 let server_config = quinn::ServerConfig::with_single_cert(cert_chain, key)?;
                 Ok(server_config)

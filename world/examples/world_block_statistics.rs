@@ -236,7 +236,7 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
         }
     }
     let mut f = File::create("palettes.ron")?;
-    let pretty = ron::ser::PrettyConfig::default().with_depth_limit(2);
+    let pretty = ron::ser::PrettyConfig::default().depth_limit(2);
     write!(f, "{}", ron::ser::to_string_pretty(&palettes, pretty)?)?;
     Ok(())
 }

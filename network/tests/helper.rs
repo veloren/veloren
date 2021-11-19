@@ -103,34 +103,28 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
     const LOCALHOST: &str = "localhost";
     let port = UDP_PORTS.fetch_add(1, Ordering::Relaxed);
 
-    let transport_config = quinn::TransportConfig::default();
-    let mut server_config = quinn::ServerConfig::default();
-    server_config.transport = Arc::new(transport_config);
-    let mut server_config = quinn::ServerConfigBuilder::new(server_config);
-
     trace!("generating self-signed certificate");
     let cert = rcgen::generate_simple_self_signed(vec![LOCALHOST.into()]).unwrap();
     let key = cert.serialize_private_key_der();
     let cert = cert.serialize_der().unwrap();
 
-    let key = quinn::PrivateKey::from_der(&key).expect("private key failed");
-    let cert = quinn::Certificate::from_der(&cert).expect("cert failed");
-    server_config
-        .certificate(quinn::CertificateChain::from_certs(vec![cert.clone()]), key)
-        .expect("set cert failed");
+    let key = rustls::PrivateKey(key);
+    let cert = rustls::Certificate(cert);
 
-    let server_config = server_config.build();
+    let mut root_store = rustls::RootCertStore::empty();
+    root_store.add(&cert).expect("cannot add cert to rootstore");
 
-    let mut client_config = quinn::ClientConfigBuilder::default();
-    client_config
-        .add_certificate_authority(cert)
-        .expect("adding certificate failed");
-
-    let client_config = client_config.build();
+    let server_config = quinn::ServerConfig::with_single_cert(vec![cert], key)
+        .expect("Server Config Cert/Key failed");
+    let client_config = quinn::ClientConfig::with_root_certificates(root_store);
+    use std::net::{IpAddr, Ipv4Addr};
     (
-        ListenAddr::Quic(SocketAddr::from(([127, 0, 0, 1], port)), server_config),
+        ListenAddr::Quic(
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port),
+            server_config,
+        ),
         ConnectAddr::Quic(
-            SocketAddr::from(([127, 0, 0, 1], port)),
+            SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port),
             client_config,
             LOCALHOST.to_owned(),
         ),
