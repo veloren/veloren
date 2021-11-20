@@ -287,6 +287,7 @@ impl AudioFrontend {
         Ok(())
     }
 
+    // plays a file at a given volume in the channel with a given tag
     fn play_ambient(
         &mut self,
         channel_tag: AmbientChannelTag,
@@ -294,52 +295,63 @@ impl AudioFrontend {
         volume_multiplier: f32,
     ) {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.get_ambient_channel(channel_tag, volume_multiplier) {
+            if let Some(channel) = self.get_ambient_channel(channel_tag) {
+                channel.set_volume(volume_multiplier);
                 channel.play(load_ogg(sound));
             }
         }
     }
 
+    // adds a new ambient channel of the given tag at zero volume
+    fn new_ambient_channel(&mut self, channel_tag: AmbientChannelTag) {
+        if let Some(audio_stream) = &self.audio_stream {
+            let ambient_channel = AmbientChannel::new(audio_stream, channel_tag, 0.0);
+            self.ambient_channels.push(ambient_channel);
+        }
+    }
+
+    // retrieves the channel currently having the given tag
     fn get_ambient_channel(
         &mut self,
         channel_tag: AmbientChannelTag,
-        volume_multiplier: f32,
     ) -> Option<&mut AmbientChannel> {
-        if let Some(audio_stream) = &self.audio_stream {
-            if self.ambient_channels.is_empty() {
-                let mut ambient_channel =
-                    AmbientChannel::new(audio_stream, channel_tag, volume_multiplier);
-                ambient_channel.set_volume(self.get_sfx_volume());
-                self.ambient_channels.push(ambient_channel);
-            } else {
-                let sfx_volume = self.get_sfx_volume();
-                for channel in self.ambient_channels.iter_mut() {
-                    if channel.get_tag() == channel_tag {
-                        channel.set_multiplier(volume_multiplier);
-                        channel.set_volume(sfx_volume);
-                        return Some(channel);
-                    }
+        if self.audio_stream.is_some() {
+            let mut tag_match = false;
+            let mut found_channel = None;
+            for channel in self.ambient_channels.iter_mut() {
+                if channel.get_tag() == channel_tag {
+                    tag_match = true;
+                    found_channel = Some(channel);
+                    break;
                 }
             }
+            if tag_match {
+                return found_channel;
+            } else {
+                return None;
+            }
+        } else {
+            return None;
         }
-
-        None
     }
 
-    fn set_ambient_volume(&mut self, volume_multiplier: f32) {
+    // sets the volume of the channel with the given tag to the given volume
+    fn set_ambient_volume(&mut self, channel_tag: AmbientChannelTag, volume_multiplier: f32) {
         if self.audio_stream.is_some() {
             let sfx_volume = self.get_sfx_volume();
-            if let Some(channel) = self.ambient_channels.iter_mut().last() {
+            if let Some(channel) = self.get_ambient_channel(channel_tag) {
                 channel.set_multiplier(volume_multiplier);
                 channel.set_volume(sfx_volume);
             }
         }
     }
 
-    fn get_ambient_volume(&mut self) -> f32 {
+    // retrieves volume (pre-sfx-setting) of the channel with a given tag
+    fn get_ambient_volume(&mut self, channel_tag: AmbientChannelTag) -> f32 {
         if self.audio_stream.is_some() {
-            if let Some(channel) = self.ambient_channels.iter_mut().last() {
-                channel.get_volume() / self.get_sfx_volume()
+            if let Some(channel) = self.get_ambient_channel(channel_tag) {
+                let channel_multiplier = channel.get_multiplier();
+                channel_multiplier
             } else {
                 0.0
             }
@@ -406,8 +418,10 @@ impl AudioFrontend {
         }
     }
 
+    // this retrieves the current setting for sfx volume
     pub fn get_sfx_volume(&self) -> f32 { self.sfx_volume * self.master_volume }
 
+    // this retrieves the current setting for music volume
     pub fn get_music_volume(&self) -> f32 { self.music_volume * self.master_volume }
 
     pub fn sfx_enabled(&self) -> bool { self.get_sfx_volume() > 0.0 }

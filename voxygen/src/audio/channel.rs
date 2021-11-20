@@ -160,6 +160,7 @@ impl MusicChannel {
 #[derive(Debug, PartialEq, Clone, Copy, Deserialize)]
 pub enum AmbientChannelTag {
     Wind,
+    Rain,
 }
 /// A AmbientChannel uses a non-positional audio sink designed to play sounds
 /// which are always heard at the camera's position.
@@ -179,7 +180,7 @@ impl AmbientChannel {
                 sink,
             },
             Err(_) => {
-                warn!("Failed to create rodio sink. May not play wind sounds.");
+                warn!("Failed to create rodio sink. May not play ambient sounds.");
                 Self {
                     tag,
                     multiplier,
@@ -206,6 +207,8 @@ impl AmbientChannel {
     pub fn set_multiplier(&mut self, multiplier: f32) { self.multiplier = multiplier; }
 
     pub fn get_volume(&mut self) -> f32 { self.sink.volume() }
+
+    pub fn get_multiplier(&mut self) -> f32 { self.multiplier }
 
     pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
 }

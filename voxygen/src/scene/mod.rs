@@ -19,7 +19,12 @@ pub use self::{
     trail::TrailMgr,
 };
 use crate::{
-    audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
+    audio::{
+        ambient::{AmbientRainMgr, AmbientWindMgr},
+        music::MusicMgr,
+        sfx::SfxMgr,
+        AudioFrontend,
+    },
     render::{
         create_skybox_mesh, CloudsLocals, Consts, Drawer, GlobalModel, Globals, GlobalsBindGroup,
         Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow, ShadowLocals,
@@ -102,7 +107,8 @@ pub struct Scene {
     figure_mgr: FigureMgr,
     pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
-    ambient_mgr: AmbientMgr,
+    ambient_wind_mgr: AmbientWindMgr,
+    ambient_rain_mgr: AmbientRainMgr,
 }
 
 pub struct SceneData<'a> {
@@ -314,7 +320,8 @@ impl Scene {
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::default(),
-            ambient_mgr: AmbientMgr::default(),
+            ambient_wind_mgr: AmbientWindMgr::default(),
+            ambient_rain_mgr: AmbientRainMgr::default(),
         }
     }
 
@@ -1066,7 +1073,9 @@ impl Scene {
             client,
         );
         self.music_mgr.maintain(audio, scene_data.state, client);
-        self.ambient_mgr
+        self.ambient_wind_mgr
+            .maintain(audio, scene_data.state, client, &self.camera);
+        self.ambient_rain_mgr
             .maintain(audio, scene_data.state, client, &self.camera);
     }
 

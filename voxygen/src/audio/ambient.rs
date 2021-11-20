@@ -29,18 +29,26 @@ pub struct AmbientItem {
     tag: AmbientChannelTag,
 }
 
-pub struct AmbientMgr {
-    soundtrack: AssetHandle<AmbientCollection>,
+pub struct AmbientWindMgr {
+    ambience: AssetHandle<AmbientCollection>,
     began_playing: Instant,
     next_track_change: f32,
     volume: f32,
     tree_multiplier: f32,
 }
 
-impl Default for AmbientMgr {
+pub struct AmbientRainMgr {
+    ambience: AssetHandle<AmbientCollection>,
+    began_playing: Instant,
+    next_track_change: f32,
+    volume: f32,
+    rain_intensity: f32,
+}
+
+impl Default for AmbientWindMgr {
     fn default() -> Self {
         Self {
-            soundtrack: Self::load_soundtrack_items(),
+            ambience: load_ambience_items(),
             began_playing: Instant::now(),
             next_track_change: 0.0,
             volume: 0.0,
@@ -49,7 +57,19 @@ impl Default for AmbientMgr {
     }
 }
 
-impl AmbientMgr {
+impl Default for AmbientRainMgr {
+    fn default() -> Self {
+        Self {
+            ambience: load_ambience_items(),
+            began_playing: Instant::now(),
+            next_track_change: 0.0,
+            volume: 0.0,
+            rain_intensity: 0.0,
+        }
+    }
+}
+
+impl AmbientWindMgr {
     /// Checks whether the previous track has completed. If so, sends a
     /// request to play the next (random) track
     pub fn maintain(
@@ -59,7 +79,7 @@ impl AmbientMgr {
         client: &Client,
         camera: &Camera,
     ) {
-        if audio.sfx_enabled() && !self.soundtrack.read().tracks.is_empty() {
+        if audio.sfx_enabled() && !self.ambience.read().tracks.is_empty() {
             let focus_off = camera.get_focus_pos().map(f32::trunc);
             let cam_pos = camera.dependents().cam_pos + focus_off;
 
@@ -95,6 +115,7 @@ impl AmbientMgr {
                 {
                     volume_multiplier *= 0.1;
                 }
+                // Is the camera roughly under the terrain?
                 if cam_pos.z < terrain_alt - 10.0 {
                     volume_multiplier = 0.0;
                 }
@@ -103,38 +124,119 @@ impl AmbientMgr {
             };
 
             // Transitions the ambient sounds (more) smoothly
-            self.volume = audio.get_ambient_volume();
-            audio.set_ambient_volume(Lerp::lerp(self.volume, target_volume, 0.01));
+            if audio.get_ambient_channel(AmbientChannelTag::Wind).is_none() {
+                audio.new_ambient_channel(AmbientChannelTag::Wind);
+            } else {
+                self.volume = audio.get_ambient_volume(AmbientChannelTag::Wind);
+                audio.set_ambient_volume(
+                    AmbientChannelTag::Wind,
+                    Lerp::lerp(self.volume, target_volume, 0.01),
+                );
+            }
 
             if self.began_playing.elapsed().as_secs_f32() > self.next_track_change {
-                // Right now there is only wind non-positional sfx so it is always
-                // selected. Modify this variable assignment when adding other non-
-                // positional sfx
-                let soundtrack = self.soundtrack.read();
-                let track = &soundtrack
+                let ambience = self.ambience.read();
+                let wind_track = &ambience
                     .tracks
                     .iter()
                     .find(|track| track.tag == AmbientChannelTag::Wind);
-
-                if let Some(track) = track {
-                    self.began_playing = Instant::now();
-                    self.next_track_change = track.length;
-
-                    audio.play_ambient(AmbientChannelTag::Wind, &track.path, target_volume);
+                self.began_playing = Instant::now();
+                if let Some(wind_track) = wind_track {
+                    self.next_track_change = wind_track.length;
+                    audio.play_ambient(AmbientChannelTag::Wind, &wind_track.path, target_volume);
                 }
             }
         }
     }
+}
 
-    fn load_soundtrack_items() -> AssetHandle<AmbientCollection> {
-        AmbientCollection::load_or_insert_with("voxygen.audio.ambient", |error| {
-            warn!(
-                "Error reading ambience config file, ambience will not be available: {:#?}",
-                error
-            );
-            AmbientCollection::default()
-        })
+impl AmbientRainMgr {
+    /// Checks whether the previous track has completed. If so, sends a
+    /// request to play the next (random) track
+    pub fn maintain(
+        &mut self,
+        audio: &mut AudioFrontend,
+        state: &State,
+        client: &Client,
+        camera: &Camera,
+    ) {
+        if audio.sfx_enabled() && !self.ambience.read().tracks.is_empty() {
+            let focus_off = camera.get_focus_pos().map(f32::trunc);
+            let cam_pos = camera.dependents().cam_pos + focus_off;
+
+            let terrain_alt = if let Some(chunk) = client.current_chunk() {
+                chunk.meta().alt()
+            } else {
+                0.0
+            };
+
+            // multipler at end will have to change depending on how intense rain normally
+            // is
+            self.rain_intensity = client.current_weather().rain * 5.0;
+
+            let mut volume_multiplier = self.rain_intensity;
+
+            // TODO: make rain diminish with distance above terrain
+            let target_volume = {
+                // Checks if the camera is underwater to stop ambient sounds
+                if state
+                    .terrain()
+                    .get((cam_pos).map(|e| e.floor() as i32))
+                    .map(|b| b.is_liquid())
+                    .unwrap_or(false)
+                {
+                    volume_multiplier *= 0.1;
+                }
+                // Is the camera roughly under the terrain?
+                if cam_pos.z < terrain_alt - 10.0 {
+                    volume_multiplier = 0.0;
+                }
+
+                volume_multiplier = volume_multiplier.clamped(0.0, 1.0);
+
+                // possibly remove noise
+                if volume_multiplier < 0.05 {
+                    0.0
+                } else {
+                    volume_multiplier
+                }
+            };
+
+            // Transitions the ambient sounds (more) smoothly
+            if audio.get_ambient_channel(AmbientChannelTag::Rain).is_none() {
+                audio.new_ambient_channel(AmbientChannelTag::Rain);
+            } else {
+                self.volume = audio.get_ambient_volume(AmbientChannelTag::Rain);
+                audio.set_ambient_volume(
+                    AmbientChannelTag::Rain,
+                    Lerp::lerp(self.volume, target_volume, 0.01),
+                );
+            }
+
+            if self.began_playing.elapsed().as_secs_f32() > self.next_track_change {
+                let ambience = self.ambience.read();
+                let rain_track = &ambience
+                    .tracks
+                    .iter()
+                    .find(|track| track.tag == AmbientChannelTag::Rain);
+                self.began_playing = Instant::now();
+                if let Some(rain_track) = rain_track {
+                    self.next_track_change = rain_track.length;
+                    audio.play_ambient(AmbientChannelTag::Rain, &rain_track.path, target_volume);
+                }
+            }
+        }
     }
+}
+
+fn load_ambience_items() -> AssetHandle<AmbientCollection> {
+    AmbientCollection::load_or_insert_with("voxygen.audio.ambient", |error| {
+        warn!(
+            "Error reading ambience config file, ambience will not be available: {:#?}",
+            error
+        );
+        AmbientCollection::default()
+    })
 }
 
 impl assets::Asset for AmbientCollection {
