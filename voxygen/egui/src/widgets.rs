@@ -27,11 +27,7 @@ pub(crate) fn filterable_list(
     });
 }
 
-pub(crate) fn two_col_row(
-    ui: &mut Ui,
-    label: impl Into<Label> + core::fmt::Display,
-    content: impl Into<Label> + core::fmt::Display,
-) {
+pub(crate) fn two_col_row(ui: &mut Ui, label: impl Into<Label>, content: impl Into<Label>) {
     ui.label(label);
     ui.label(content);
     ui.end_row();
