@@ -243,12 +243,12 @@ pub enum ModularWeaponError {
 
 pub fn modular_weapon(
     inv: &mut Inventory,
-    damage_component: InvSlotId,
-    held_component: InvSlotId,
+    primary_component: InvSlotId,
+    secondary_component: InvSlotId,
     ability_map: &AbilityMap,
     msm: &MaterialStatManifest,
 ) -> Result<Item, ModularWeaponError> {
-    use modular::{ModularComponent, ModularComponentKind};
+    use modular::ModularComponent;
     // Closure to get inner modular component info from item in a given slot
     fn unwrap_modular(inv: &Inventory, slot: InvSlotId) -> Option<ModularComponent> {
         if let Some(ItemKind::ModularComponent(mod_comp)) =
@@ -263,25 +263,32 @@ pub fn modular_weapon(
 
     // Checks if both components are comptabile, and if so returns the toolkind to
     // make weapon of
-    let compatiblity = if let (Some(damage_component), Some(held_component)) = (
-        unwrap_modular(inv, damage_component),
-        unwrap_modular(inv, held_component),
+    let compatiblity = if let (Some(primary_component), Some(secondary_component)) = (
+        unwrap_modular(inv, primary_component),
+        unwrap_modular(inv, secondary_component),
     ) {
         // Checks that damage and held component slots each contain a damage and held
         // modular component respectively
-        if matches!(damage_component.modkind, ModularComponentKind::Damage)
-            && matches!(held_component.modkind, ModularComponentKind::Held)
+        if let (
+            ModularComponent::ToolPrimaryComponent {
+                toolkind: tool_a,
+                hand_restriction: hands_a,
+                ..
+            },
+            ModularComponent::ToolSecondaryComponent {
+                toolkind: tool_b,
+                hand_restriction: hands_b,
+                ..
+            },
+        ) = (primary_component, secondary_component)
         {
             // Checks that both components are of the same tool kind
-            if damage_component.toolkind == held_component.toolkind {
+            if tool_a == tool_b {
                 // Checks that if both components have a hand restriction, they are the same
-                let hands_check = damage_component.hand_restriction.map_or(true, |hands| {
-                    held_component
-                        .hand_restriction
-                        .map_or(true, |hands2| hands == hands2)
-                });
+                let hands_check =
+                    hands_a.map_or(true, |hands| hands_b.map_or(true, |hands2| hands == hands2));
                 if hands_check {
-                    Ok(damage_component.toolkind)
+                    Ok(tool_a)
                 } else {
                     Err(ModularWeaponError::DifferentHands)
                 }
@@ -298,15 +305,15 @@ pub fn modular_weapon(
     match compatiblity {
         Ok(tool_kind) => {
             // Remove components from inventory
-            let damage_component = inv
-                .take(damage_component, ability_map, msm)
+            let primary_component = inv
+                .take(primary_component, ability_map, msm)
                 .expect("Expected component to exist");
-            let held_component = inv
-                .take(held_component, ability_map, msm)
+            let secondary_component = inv
+                .take(secondary_component, ability_map, msm)
                 .expect("Expected component to exist");
 
             // Create modular weapon
-            let components = vec![damage_component, held_component];
+            let components = vec![primary_component, secondary_component];
             Ok(Item::new_from_item_base(
                 ItemBase::Modular(modular::ModularBase::Tool(tool_kind)),
                 &components,

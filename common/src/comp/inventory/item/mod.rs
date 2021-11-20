@@ -4,7 +4,7 @@ pub mod modular;
 pub mod tool;
 
 // Reexports
-pub use modular::{ModularBase, ModularComponent, ModularComponentKind};
+pub use modular::{ModularBase, ModularComponent};
 pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
 
 use crate::{
@@ -528,14 +528,6 @@ impl ItemDef {
         )
     }
 
-    pub fn is_component(&self, kind: ModularComponentKind) -> bool {
-        if let ItemKind::ModularComponent(ModularComponent { modkind, .. }) = self.kind {
-            kind == modkind
-        } else {
-            false
-        }
-    }
-
     // currently needed by trade_pricing
     pub fn id(&self) -> &str { &self.item_definition_id }
 
@@ -896,11 +888,14 @@ impl Item {
     }
 
     pub fn kind(&self) -> Cow<ItemKind> {
-        // TODO: Try to move further upward
-        let msm = MaterialStatManifest::default();
         match &self.item_base {
             ItemBase::Raw(item_def) => Cow::Borrowed(&item_def.kind),
-            ItemBase::Modular(mod_base) => mod_base.kind(self.components(), &msm),
+            ItemBase::Modular(mod_base) => {
+                // TODO: Try to move further upward
+                let msm = MaterialStatManifest::default();
+
+                mod_base.kind(self.components(), &msm)
+            },
         }
     }
 

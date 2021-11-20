@@ -25,6 +25,7 @@ use common::{
         chat::{KillSource, KillType},
         controller::CraftEvent,
         group,
+        inventory::item::{modular, ItemKind},
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
@@ -1082,41 +1083,44 @@ impl Client {
         slot_b: InvSlotId,
         sprite_pos: Vec3<i32>,
     ) -> bool {
-        use comp::item::{
-            modular::ModularComponentKind::{Damage, Held},
-            ItemKind,
-        };
         let inventories = self.inventories();
         let inventory = inventories.get(self.entity());
 
+        enum ModKind {
+            Primary,
+            Secondary,
+        }
+
         // Closure to get inner modular component info from item in a given slot
-        let unwrap_modular = |slot| {
-            if let Some(ItemKind::ModularComponent(mod_comp)) = inventory
-                .and_then(|inv| inv.get(slot).map(|item| item.kind()))
-                .as_deref()
-            {
-                Some(mod_comp.modkind)
-            } else {
-                None
-            }
+        let mod_kind = |slot| match inventory
+            .and_then(|inv| inv.get(slot).map(|item| item.kind()))
+            .as_deref()
+        {
+            Some(ItemKind::ModularComponent(modular::ModularComponent::ToolPrimaryComponent {
+                ..
+            })) => Some(ModKind::Primary),
+            Some(ItemKind::ModularComponent(
+                modular::ModularComponent::ToolSecondaryComponent { .. },
+            )) => Some(ModKind::Secondary),
+            _ => None,
         };
 
         // Gets slot order of damage and held components if two provided slots contains
-        // both a damage and held component
-        let slot_order = match (unwrap_modular(slot_a), unwrap_modular(slot_b)) {
-            (Some(Damage), Some(Held)) => Some((slot_a, slot_b)),
-            (Some(Held), Some(Damage)) => Some((slot_b, slot_a)),
+        // both a primary and secondary component
+        let slot_order = match (mod_kind(slot_a), mod_kind(slot_b)) {
+            (Some(ModKind::Primary), Some(ModKind::Secondary)) => Some((slot_a, slot_b)),
+            (Some(ModKind::Secondary), Some(ModKind::Primary)) => Some((slot_b, slot_a)),
             _ => None,
         };
 
         drop(inventories);
 
-        if let Some((damage_component, held_component)) = slot_order {
+        if let Some((primary_component, secondary_component)) = slot_order {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
                     craft_event: CraftEvent::ModularWeapon {
-                        damage_component,
-                        held_component,
+                        primary_component,
+                        secondary_component,
                     },
                     craft_sprite: Some(sprite_pos),
                 },

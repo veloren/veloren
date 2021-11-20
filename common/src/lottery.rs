@@ -69,20 +69,7 @@ impl<T> Lottery<T> {
         .1
     }
 
-    pub fn choose_seeded_owned(mut self, seed: u32) -> T {
-        let x = ((seed % 65536) as f32 / 65536.0) * self.total;
-        self.items
-            .remove(
-                self.items
-                    .binary_search_by(|(y, _)| y.partial_cmp(&x).unwrap())
-                    .unwrap_or_else(|i| i.saturating_sub(1)),
-            )
-            .1
-    }
-
     pub fn choose(&self) -> &T { self.choose_seeded(thread_rng().gen()) }
-
-    pub fn choose_owned(self) -> T { self.choose_seeded_owned(thread_rng().gen()) }
 
     pub fn iter(&self) -> impl Iterator<Item = &(f32, T)> { self.items.iter() }
 
@@ -143,7 +130,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                 tool,
                 material,
                 hands,
-            } => Some(item::modular::random_weapon(*tool, *material, *hands)),
+            } => item::modular::random_weapon(*tool, *material, *hands).ok(),
         }
     }
 }

@@ -668,8 +668,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     }
                 },
                 CraftEvent::ModularWeapon {
-                    damage_component,
-                    held_component,
+                    primary_component,
+                    secondary_component,
                 } => {
                     let sprite = craft_sprite
                         .filter(|pos| {
@@ -696,8 +696,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     if matches!(sprite, Some(SpriteKind::CraftingBench)) {
                         recipe::modular_weapon(
                             &mut inventory,
-                            damage_component,
-                            held_component,
+                            primary_component,
+                            secondary_component,
                             ability_map,
                             &msm,
                         )

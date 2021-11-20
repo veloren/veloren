@@ -106,9 +106,12 @@ pub fn modular_component_desc(
     msm: &MaterialStatManifest,
     description: &str,
 ) -> String {
-    let stats = mc.stats;
-    let statblock = statblock_desc(&stats);
-    let mut result = format!("Modular Component\n\n{}\n\n{}", statblock, description);
+    let mut result = format!("Modular Component\n\n{}", description);
+    if let Some(tool_stats) = mc.tool_stats(components, msm) {
+        let statblock = statblock_desc(&tool_stats);
+        result += "\n\n";
+        result += &statblock;
+    }
     if !components.is_empty() {
         result += "\n\nMade from:\n";
         for component in components {

@@ -100,8 +100,8 @@ pub enum CraftEvent {
     Salvage(InvSlotId),
     // TODO: Maybe look at making this more general when there are more modular recipes?
     ModularWeapon {
-        damage_component: InvSlotId,
-        held_component: InvSlotId,
+        primary_component: InvSlotId,
+        secondary_component: InvSlotId,
     },
 }
 

@@ -1946,6 +1946,7 @@ where
                     .map_err(|_| format!("Unknown item: {:#?}", item_id))?,
                 KitSpec::ModularWeapon { tool, material } => {
                     comp::item::modular::random_weapon(*tool, *material, None)
+                        .map_err(|err| format!("{:#?}", err))?
                 },
             };
             let mut res = Ok(());

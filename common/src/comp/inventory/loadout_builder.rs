@@ -133,7 +133,7 @@ impl Hands {
                 tool,
                 material,
                 hands,
-            } => Some(item::modular::random_weapon(*tool, *material, *hands)),
+            } => item::modular::random_weapon(*tool, *material, *hands).ok(),
         }
     }
 
