@@ -200,7 +200,7 @@ impl Structure for Castle {
 
                                 tower_top_outer
                                     .union(tower_top_inner)
-                                    .subtract(tower_top_outer.intersect(tower_top_inner))
+                                    .without(tower_top_outer.intersect(tower_top_inner))
                                     .fill(Fill::Brick(BlockKind::Rock, wall_rgb, 12));
 
                                 for x in (wpos.x..wpos.x + ts).step_by(2 * parapet_gap as usize) {

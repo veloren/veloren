@@ -50,7 +50,7 @@ pub enum Primitive {
     Intersect(Id<Primitive>, Id<Primitive>),
     Union(Id<Primitive>, Id<Primitive>),
     // Not commutative
-    Subtract(Id<Primitive>, Id<Primitive>),
+    Without(Id<Primitive>, Id<Primitive>),
     // Operators
     Rotate(Id<Primitive>, Mat3<i32>),
     Translate(Id<Primitive>, Vec3<i32>),
@@ -66,8 +66,8 @@ impl Primitive {
         Self::Union(a.into(), b.into())
     }
 
-    pub fn subtract(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
-        Self::Subtract(a.into(), b.into())
+    pub fn without(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Without(a.into(), b.into())
     }
 
     pub fn sampling(a: impl Into<Id<Primitive>>, f: Box<dyn Fn(Vec3<i32>) -> bool>) -> Self {
@@ -225,7 +225,7 @@ impl Fill {
             Primitive::Union(a, b) => {
                 self.contains_at(tree, *a, pos) || self.contains_at(tree, *b, pos)
             },
-            Primitive::Subtract(a, b) => {
+            Primitive::Without(a, b) => {
                 self.contains_at(tree, *a, pos) && !self.contains_at(tree, *b, pos)
             },
             Primitive::Rotate(prim, mat) => {
@@ -340,7 +340,7 @@ impl Fill {
                 self.get_bounds_inner(tree, *b),
                 |a, b| a.union(b),
             )?,
-            Primitive::Subtract(a, _) => self.get_bounds_inner(tree, *a)?,
+            Primitive::Without(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Rotate(prim, mat) => {
                 let aabb = self.get_bounds_inner(tree, *prim)?;
                 let extent = *mat * Vec3::from(aabb.size());
@@ -452,8 +452,8 @@ impl<'a> PrimitiveRef<'a> {
         self.painter.prim(Primitive::intersect(self, other))
     }
 
-    pub fn subtract(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::subtract(self, other))
+    pub fn without(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::without(self, other))
     }
 
     pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
@@ -498,7 +498,7 @@ pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
             min: aabb.min + vec,
             max: aabb.max - vec,
         }));
-        prim(Primitive::Subtract(ret, sub))
+        prim(Primitive::Without(ret, sub))
     };
     let mut ret = prim(Primitive::Aabb(aabb));
     ret = f(prim, ret, Vec3::new(1, 0, 0));
