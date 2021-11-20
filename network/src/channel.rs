@@ -226,23 +226,20 @@ impl Protocols {
         metrics: ProtocolMetricCache,
     ) -> Result<Self, NetworkConnectError> {
         let config = config.clone();
-        let endpoint = quinn::Endpoint::builder();
 
         use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
         let bindsock = match addr {
-            SocketAddr::V4(_) => SocketAddr::new(IpAddr::V4(Ipv4Addr::new(0, 0, 0, 0)), 0),
-            SocketAddr::V6(_) => {
-                SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 0)
-            },
+            SocketAddr::V4(_) => SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), 0),
+            SocketAddr::V6(_) => SocketAddr::new(IpAddr::V6(Ipv6Addr::UNSPECIFIED), 0),
         };
-        let (endpoint, _) = match endpoint.bind(&bindsock) {
+        let endpoint = match quinn::Endpoint::client(bindsock) {
             Ok(e) => e,
-            Err(quinn::EndpointError::Socket(e)) => return Err(NetworkConnectError::Io(e)),
+            Err(e) => return Err(NetworkConnectError::Io(e)),
         };
 
         info!("Connecting Quic to: {}", &addr);
-        let connecting = endpoint.connect_with(config, &addr, &name).map_err(|e| {
+        let connecting = endpoint.connect_with(config, addr, &name).map_err(|e| {
             trace!(?e, "error setting up quic");
             NetworkConnectError::Io(std::io::Error::new(
                 std::io::ErrorKind::ConnectionAborted,
@@ -276,11 +273,9 @@ impl Protocols {
         s2s_stop_listening_r: oneshot::Receiver<()>,
         c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
     ) -> std::io::Result<()> {
-        let mut endpoint = quinn::Endpoint::builder();
-        endpoint.listen(server_config);
-        let (_endpoint, mut listener) = match endpoint.bind(&addr) {
+        let (_endpoint, mut listener) = match quinn::Endpoint::server(server_config, addr) {
             Ok(v) => v,
-            Err(quinn::EndpointError::Socket(e)) => return Err(e),
+            Err(e) => return Err(e),
         };
         trace!(?addr, "Quic Listener bound");
         let mut end_receiver = s2s_stop_listening_r.fuse();

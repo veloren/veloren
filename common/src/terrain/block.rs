@@ -7,7 +7,7 @@ use num_derive::FromPrimitive;
 use num_traits::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::ops::Deref;
-use strum_macros::{EnumIter, EnumString, ToString};
+use strum_macros::{Display, EnumIter, EnumString};
 use vek::*;
 
 make_case_elim!(
@@ -24,7 +24,7 @@ make_case_elim!(
         FromPrimitive,
         EnumString,
         EnumIter,
-        ToString,
+        Display,
     )]
     #[repr(u8)]
     pub enum BlockKind {

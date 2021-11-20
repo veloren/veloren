@@ -235,7 +235,7 @@ impl Client {
                     "QUIC is enabled. This is experimental and you won't be able to connect to \
                      TCP servers unless deactivated"
                 );
-                let config = quinn::ClientConfigBuilder::default().build();
+                let config = quinn::ClientConfig::with_native_roots();
                 addr::try_connect(&network, &hostname, prefer_ipv6, |a| {
                     ConnectAddr::Quic(a, config.clone(), hostname.clone())
                 })
