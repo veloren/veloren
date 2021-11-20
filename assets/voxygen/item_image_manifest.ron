@@ -2507,8 +2507,9 @@
         "voxel.sprite.spore.corruption_spore",
         (0.0, 0.0, 0.0), (-30.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.apple_stick"): Png(
-        "element.items.item_apple_stick",
+    Consumable("common.items.food.apple_stick"): VoxTrans(
+        "voxel.object.apple_stick",
+        (0.3, 0.0, 0.0), (-55.0, 60.0, 10.0), 1.0,
     ),
     Consumable("common.items.food.mushroom_stick"): Png(
         "element.items.item_shroom_stick",
