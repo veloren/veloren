@@ -1,0 +1,9 @@
+([
+    Group(Weapon(Staff)),
+
+    // Fireball
+    Skill((Staff(BDamage), Some(1))),
+    Skill((Staff(BRegen), Some(1))),
+    Skill((Staff(BRadius), Some(1))),
+
+])

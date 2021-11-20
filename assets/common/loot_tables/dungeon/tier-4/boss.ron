@@ -2,6 +2,7 @@
     // Armor
     (10.0, LootTable("common.loot_tables.weapons.tier-5")),
     (10.0, LootTable("common.loot_tables.armor.tier-5")),
+    // Misc
     (1.0, Item("common.items.armor.misc.neck.carcanet_of_wrath")),
     // Legendary weapons
     (1.0, LootTable("common.loot_tables.weapons.legendary_melee")),

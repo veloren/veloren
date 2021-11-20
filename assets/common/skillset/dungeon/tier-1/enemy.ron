@@ -1,4 +1,5 @@
 ([
     //You can always add more :P
     Tree("common.skillset.dungeon.tier-1.bow"),
+    Tree("common.skillset.dungeon.tier-1.staff"),
 ])

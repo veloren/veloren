@@ -6,10 +6,10 @@ ItemDef(
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.0,
-            power: 1.1,
+            power: 1.2,
             effect_power: 0.8,
-            speed: 0.3,
-            crit_chance: 0.066083916,
+            speed: 0.7,
+            crit_chance: 0.05965909,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,

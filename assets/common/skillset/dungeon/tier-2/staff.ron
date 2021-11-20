@@ -1,0 +1,13 @@
+([
+    Group(Weapon(Staff)),
+
+    // Fireball
+    Skill((Staff(BDamage), Some(2))),
+    Skill((Staff(BRegen), Some(2))),
+    Skill((Staff(BRadius), Some(1))),
+
+    // Flamethrower
+    Skill((Staff(FRange), Some(2))),
+    Skill((Staff(FDamage), Some(2))),
+
+])

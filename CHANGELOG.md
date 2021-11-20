@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Agents using fireball projectiles aim at the feet instead of the eyes
 - Explosions can now have a nonzero minimum falloff
 - EXP on kill is now shared based on damage contribution
+- Dungeons have somewhat proper scaling. The higher the dungeon the harder it gets, Cultist staying unchanged while Mino is now at its level.
 
 ### Removed
 
