@@ -288,7 +288,7 @@ pub fn modular_weapon(
                 let hands_check =
                     hands_a.map_or(true, |hands| hands_b.map_or(true, |hands2| hands == hands2));
                 if hands_check {
-                    Ok(tool_a)
+                    Ok(())
                 } else {
                     Err(ModularWeaponError::DifferentHands)
                 }
@@ -303,7 +303,7 @@ pub fn modular_weapon(
     };
 
     match compatiblity {
-        Ok(tool_kind) => {
+        Ok(()) => {
             // Remove components from inventory
             let primary_component = inv
                 .take(primary_component, ability_map, msm)
@@ -315,7 +315,7 @@ pub fn modular_weapon(
             // Create modular weapon
             let components = vec![primary_component, secondary_component];
             Ok(Item::new_from_item_base(
-                ItemBase::Modular(modular::ModularBase::Tool(tool_kind)),
+                ItemBase::Modular(modular::ModularBase::Tool),
                 &components,
                 ability_map,
                 msm,

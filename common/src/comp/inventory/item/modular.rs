@@ -11,13 +11,13 @@ use std::{borrow::Cow, sync::Arc};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModularBase {
-    Tool(ToolKind),
+    Tool,
 }
 
 impl ModularBase {
     pub(super) fn duplicate(&self) -> Self {
         match self {
-            ModularBase::Tool(toolkind) => ModularBase::Tool(*toolkind),
+            ModularBase::Tool => ModularBase::Tool,
         }
     }
 
@@ -53,9 +53,20 @@ impl ModularBase {
                 .fold(tool::Stats::one(), |a, b| a * b)
         }
 
+        let toolkind = components
+            .iter()
+            .find_map(|comp| match &*comp.kind() {
+                ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {
+                    toolkind,
+                    ..
+                }) => Some(*toolkind),
+                _ => None,
+            })
+            .unwrap_or(ToolKind::Empty);
+
         match self {
-            ModularBase::Tool(toolkind) => Cow::Owned(ItemKind::Tool(tool::Tool {
-                kind: *toolkind,
+            ModularBase::Tool => Cow::Owned(ItemKind::Tool(tool::Tool {
+                kind: toolkind,
                 hands: resolve_hands(components),
                 stats: resolve_stats(components, msm),
             })),
@@ -67,7 +78,7 @@ impl ModularBase {
     /// the damage component is created from.
     pub fn generate_name(&self, components: &[Item]) -> Cow<str> {
         match self {
-            ModularBase::Tool(_toolkind) => {
+            ModularBase::Tool => {
                 let name = components
                     .iter()
                     .find_map(|comp| match &*comp.kind() {
@@ -101,9 +112,15 @@ impl ModularBase {
             .fold(Quality::Low, |a, b| a.max(b.quality()))
     }
 
-    pub fn ability_spec(&self, _components: &[Item]) -> Option<Cow<AbilitySpec>> {
+    pub fn ability_spec(&self, components: &[Item]) -> Option<Cow<AbilitySpec>> {
         match self {
-            ModularBase::Tool(toolkind) => Some(Cow::Owned(AbilitySpec::Tool(*toolkind))),
+            ModularBase::Tool => components.iter().find_map(|comp| match &*comp.kind() {
+                ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {
+                    toolkind,
+                    ..
+                }) => Some(Cow::Owned(AbilitySpec::Tool(*toolkind))),
+                _ => None,
+            }),
         }
     }
 }
@@ -329,7 +346,7 @@ pub fn random_weapon(
         // Create modular weapon
         let components = vec![primary_component, secondary_component];
         Ok(Item::new_from_item_base(
-            ItemBase::Modular(ModularBase::Tool(tool)),
+            ItemBase::Modular(ModularBase::Tool),
             &components,
             &ability_map,
             &msm,

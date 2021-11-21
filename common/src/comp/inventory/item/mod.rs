@@ -405,7 +405,7 @@ where
         {
             Ok(match serialized_item_base {
                 // TODO: Make this work
-                "modular" => ItemBase::Modular(ModularBase::Tool(ToolKind::Empty)),
+                "modular" => ItemBase::Modular(ModularBase::Tool),
                 item_definition_id => {
                     ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(item_definition_id))
                 },
