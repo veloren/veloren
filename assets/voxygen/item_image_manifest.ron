@@ -2424,7 +2424,7 @@
     ),
     Armor(Bag("GreenMid")): VoxTrans(
         "voxel.armor.misc.bag.liana_kit",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.5, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("LeatherSmall")): VoxTrans(
         "voxel.armor.misc.bag.tiny_leather_pouch",
@@ -2436,11 +2436,11 @@
     ),
     Armor(Bag("RedMed")): VoxTrans(
         "voxel.armor.misc.bag.woven_red_bag",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.5, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("RedSmall")): VoxTrans(
         "voxel.armor.misc.bag.knitted_red_pouch",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
+        (0.3, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
     ),
     Armor(Bag("RedTiny")): VoxTrans(
         "voxel.armor.misc.bag.tiny_red_pouch",
@@ -2452,12 +2452,12 @@
     ),
     // Consumables
     Consumable("common.items.food.apple"): VoxTrans(
-        "voxel.object.apple",
-        (1.0, 0.5, 0.0), (-60.0, 30.0, 20.0), 0.9,
+        "voxel.object.apple_half",
+        (-0.5, 0.5, 0.0), (-60.0, -45.0, -15.0), 0.9,
     ),
     Consumable("common.items.food.coconut"): VoxTrans(
-        "voxel.object.coconut",
-        (0.0, 0.5, 0.0), (-55.0, 30.0, 20.0), 0.9,
+        "voxel.object.coconut_half",
+        (0.1, -0.5, 0.0), (-55.0, 30.0, 20.0), 0.8,
     ),
     Consumable("common.items.food.cactus_colada"): VoxTrans(
         "voxel.object.cactus_drink",
@@ -2872,8 +2872,9 @@
         "voxel.sprite.mineral.ore.coal",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("Honey"): Png(
-        "element.items.item_honey",
+    Ingredient("Honey"): VoxTrans(
+        "voxel.object.honey",
+        (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
     ),
     Ingredient("MortarPestle"): Png(
         "element.items.item_mortarpestlecoco",
