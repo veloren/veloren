@@ -90,8 +90,8 @@ coverage:
     - ln -s /dockercache/target target
     - cat ./.gitlab/scripts/linux-aarch64.sh
     - source ./.gitlab/scripts/linux-aarch64.sh
-    - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
-    - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
+    - cp -r target/aarch64-unknown-linux-gnu/release/veloren-server-cli $CI_PROJECT_DIR
+    - cp -r target/aarch64-unknown-linux-gnu/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
     paths:
       - veloren-server-cli
