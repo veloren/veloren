@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Medium Bow Limbs"),
+    name: "Medium Bow Limbs",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(

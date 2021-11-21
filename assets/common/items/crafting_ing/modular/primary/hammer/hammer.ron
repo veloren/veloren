@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Hammer Head"),
+    name: "Hammer Head",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Hammer",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Ornate Sceptre Shaft"),
+    name: "Ornate Sceptre Shaft",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Ornate Sceptre",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

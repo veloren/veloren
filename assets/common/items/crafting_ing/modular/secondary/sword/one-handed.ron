@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("One-Handed Sword Hilt"),
+    name: "One-Handed Sword Hilt",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(

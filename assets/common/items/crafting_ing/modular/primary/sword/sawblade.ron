@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Sawblade"),
+    name: "Sawblade",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Sawblade",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

@@ -498,6 +498,9 @@ mod tests {
 
     #[test]
     fn commit_trade_with_stackable_item_test() {
+        use common::{assets::AssetExt, comp::item::ItemDef};
+        use std::sync::Arc;
+
         let (mockworld, player, merchant) = create_mock_trading_world(1, 20);
 
         prepare_merchant_inventory(&mockworld, merchant);
@@ -513,8 +516,11 @@ mod tests {
             ))
             .expect(capmsg);
 
-        let potion =
-            common::comp::Item::new_from_asset_expect("common.items.consumable.potion_minor");
+        let potion_asset = "common.items.consumable.potion_minor";
+
+        let potion = common::comp::Item::new_from_asset_expect(potion_asset);
+        let potion_def = Arc::<ItemDef>::load_expect_cloned(potion_asset);
+
         let merchantinv = inventories.get_mut(merchant).expect(invmsg);
 
         let potioninvid = merchantinv
@@ -546,7 +552,7 @@ mod tests {
 
         let mut inventories = mockworld.write_component::<Inventory>();
         let playerinv = inventories.get_mut(player).expect(invmsg);
-        let potioncount = playerinv.item_count(&(*potion));
+        let potioncount = playerinv.item_count(&potion_def);
         assert_eq!(potioncount, 2);
     }
 

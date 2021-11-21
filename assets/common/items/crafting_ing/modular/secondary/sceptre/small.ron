@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Small Nature Core"),
+    name: "Small Nature Core",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(

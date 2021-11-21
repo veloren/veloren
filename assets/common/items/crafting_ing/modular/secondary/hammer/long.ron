@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Long Hammer Haft"),
+    name: "Long Hammer Haft",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(

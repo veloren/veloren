@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Crozier Shaft"),
+    name: "Crozier Shaft",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Crozier",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

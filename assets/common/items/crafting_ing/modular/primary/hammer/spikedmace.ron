@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Spiked Mace Head"),
+    name: "Spiked Mace Head",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Spiked Mace",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

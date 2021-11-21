@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Ornate Sword Blade"),
+    name: "Ornate Sword Blade",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Ornate Sword",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

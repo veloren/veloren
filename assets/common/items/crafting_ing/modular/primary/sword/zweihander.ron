@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Zweihander Blade"),
+    name: "Zweihander Blade",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Zweihander",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

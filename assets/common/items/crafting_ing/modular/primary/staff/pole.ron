@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Pole Shaft"),
+    name: "Pole Shaft",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Pole",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

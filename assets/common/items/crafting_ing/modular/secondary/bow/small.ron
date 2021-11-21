@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Small Bow Grip"),
+    name: "Small Bow Grip",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(

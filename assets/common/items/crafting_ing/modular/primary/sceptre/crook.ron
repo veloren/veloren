@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Crook Shaft"),
+    name: "Crook Shaft",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Crook",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 

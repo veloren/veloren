@@ -1,5 +1,5 @@
 ItemDef(
-    name: Component("Greatbow Limbs"),
+    name: "Greatbow Limbs",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -18,7 +18,7 @@ ItemDef(
             weapon_name: "Greatbow",
         )
     ),
-    quality: Modular,
+    quality: Low,
     tags: [],
 )
 
