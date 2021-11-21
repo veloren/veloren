@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Red Bandana"
+    name: "Red Bandana",
     description: "Very sneaky, but also, bright red.",
     kind: Armor((
         kind: Head("Red"),

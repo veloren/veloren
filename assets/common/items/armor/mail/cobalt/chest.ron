@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Chestpiece"
+    name: "Cobalt Chestpiece",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Chest("Cobalt"),

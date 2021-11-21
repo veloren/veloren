@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ferocious Wraps"
+    name: "Ferocious Wraps",
     description: "The dark side of nature",
     kind: Armor((
         kind: Hand("Ferocious"),

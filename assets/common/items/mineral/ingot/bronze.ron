@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Ingot"
+    name: "Bronze Ingot",
     description: "A sturdy alloy made from combining copper and tin.",
     kind: Ingredient(
         kind: "BronzeIngot",

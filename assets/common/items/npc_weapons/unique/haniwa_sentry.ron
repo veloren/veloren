@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Haniwa Sentry"
+    name: "Haniwa Sentry",
     description: "Rotating turret weapon",
     kind: Tool((
         kind: Natural,

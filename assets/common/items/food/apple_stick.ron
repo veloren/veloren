@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Apple Stick"
+    name: "Apple Stick",
     description: "The stick makes it easier to carry!",
     kind: Consumable(
         kind: Food,

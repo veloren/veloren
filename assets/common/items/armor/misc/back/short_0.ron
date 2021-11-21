@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Short leather Cape"
+    name: "Short leather Cape",
     description: "Probably made of the finest leather.",
     kind: Armor((
         kind: Back("Short0"),

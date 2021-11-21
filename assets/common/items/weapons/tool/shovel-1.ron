@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Shovel"
+    name: "Shovel",
     description: "It's been recently cleaned.",
     kind: Tool((
         kind: Farming,

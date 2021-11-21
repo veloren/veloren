@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonlit Love"
+    name: "Moonlit Love",
     description: "Love is in the air.",
     kind: Glider(
         (

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gold Necklace"
+    name: "Gold Necklace",
     description: "An expensive gold necklace... looks stolen.",
     kind: Armor((
         kind: Neck("Gold"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Caduceus"
+    name: "Caduceus",
     description: "The snakes seem to be alive",
     kind: Tool((
         kind: Sceptre,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Girdle"
+    name: "Scale Girdle",
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Belt("Scale"),

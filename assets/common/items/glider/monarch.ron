@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orange Monarch"
+    name: "Orange Monarch",
     description: "The delicate wings flutter faintly.",
     kind: Glider(
         (

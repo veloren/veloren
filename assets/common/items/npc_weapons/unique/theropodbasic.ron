@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Theropod Basic"
+    name: "Theropod Basic",
     description: "testing123",
     kind: Tool((
         kind: Natural,

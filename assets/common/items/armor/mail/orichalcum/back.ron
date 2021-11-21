@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Cape"
+    name: "Orichalcum Cape",
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Back("Orichalcum"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sage"
+    name: "Sage",
     description: "A herb commonly used in tea.",
     kind: Consumable(
         kind: Food,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Woolen Cloak"
+    name: "Woolen Cloak",
     description: "Thick and ready for the snow.",
     kind: Armor((
         kind: Back("Woolen"),

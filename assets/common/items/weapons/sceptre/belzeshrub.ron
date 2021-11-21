@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Belzeshrub the Broom God"
+    name: "Belzeshrub the Broom God",
     description: "'Is it... alive?'",
     kind: Tool((
         kind: Sceptre,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Plain Salad"
+    name: "Plain Salad",
     description: "Literally just chopped lettuce. Does this even count as a salad?",
     kind: Consumable(
         kind: Food,

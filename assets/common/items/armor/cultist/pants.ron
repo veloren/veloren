@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Skirt"
+    name: "Cultist Skirt",
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Pants("Cultist"),

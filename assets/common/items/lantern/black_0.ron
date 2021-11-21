@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Black Lantern"
+    name: "Black Lantern",
     description: "Used by city guards.",
     kind: Lantern(
         (

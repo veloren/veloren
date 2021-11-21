@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Falcon"
+    name: "Blue Falcon",
     description: "Sky colored.",
     kind: Glider(
         (

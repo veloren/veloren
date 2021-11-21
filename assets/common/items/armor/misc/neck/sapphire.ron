@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sapphire Necklace"
+    name: "Sapphire Necklace",
     description: "A sturdy iron necklace, with polished sapphire gems embedded into it.",
     kind: Armor((
         kind: Neck("Sapphire"),

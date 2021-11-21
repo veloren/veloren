@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orange Worker Shirt"
+    name: "Orange Worker Shirt",
     description: "Was used by a farmer, until recently.",
     kind: Armor((
         kind: Chest("WorkerOrange0"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Velorite Chest"
+    name: "Velorite Chest",
     description: "",
     kind: Armor(
         (

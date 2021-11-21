@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Horizon"
+    name: "Horizon",
     description: "It isn't high noon.",
     kind: Glider(
         (

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Any woven cloth"
+    name: "Any woven cloth",
     description: "Cloths spun from plant material.",
     kind: TagExamples(
         item_ids: [

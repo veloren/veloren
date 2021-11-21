@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Clay Golem Armor"
+    name: "Clay Golem Armor",
     description: "Worn by clay golem.",
     kind: Armor((
         kind: Chest("Clay Golem"),

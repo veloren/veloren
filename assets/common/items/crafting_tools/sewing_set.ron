@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sewing Set"
+    name: "Sewing Set",
     description: "Used to craft various items.",
     kind: Ingredient(
         kind: "SewingSet",

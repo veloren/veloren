@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Training Dummy"
+    name: "Training Dummy",
     description: "His name is William. Fire at will.",
     kind: Throwable(
         kind: TrainingDummy,

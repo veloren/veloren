@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Aquatic Night"
+    name: "Aquatic Night",
     description: "The stars are beautiful tonight.",
     kind: Glider(
         (

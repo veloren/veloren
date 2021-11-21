@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Ingot"
+    name: "Orichalcum Ingot",
     description: "An ingot made of refined orichalcum.",
     kind: Ingredient(
         kind: "OrichalcumIngot",

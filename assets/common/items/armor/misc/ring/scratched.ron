@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scratched Ring"
+    name: "Scratched Ring",
     description: "Barely fits your finger.",
     kind: Armor((
         kind: Ring("Scratched"),

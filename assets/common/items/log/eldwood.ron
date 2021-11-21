@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Eldwood Logs"
+    name: "Eldwood Logs",
     description: "Old logs that emanate magic.",
     kind: Ingredient(
         kind: "EldwoodLogs",

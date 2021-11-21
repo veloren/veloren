@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron and Leather Spaulders"
+    name: "Iron and Leather Spaulders",
     description: "Leather inset with heavy iron spikes provide solid protection to the wearer.",
     kind: Armor((
         kind: Shoulder("IronLeather1"),

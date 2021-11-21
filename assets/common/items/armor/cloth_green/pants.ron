@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Green Linen Skirt"
+    name: "Green Linen Skirt",
     description: "A stylish, rough fabric skirt, dyed green.",
     kind: Armor((
         kind: Pants("ClothGreen"),

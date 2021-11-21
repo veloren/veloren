@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sunsilk Cape"
+    name: "Sunsilk Cape",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
         kind: Back("Sunsilk"),

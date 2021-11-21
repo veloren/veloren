@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Purple Geode"
+    name: "Purple Geode",
     description: "Emits a calming glow",
     kind: Lantern(
         (

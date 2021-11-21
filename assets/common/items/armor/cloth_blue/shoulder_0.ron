@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Linen Coat"
+    name: "Blue Linen Coat",
     description: "A rough fabric coat, dyed blue.",
     kind: Armor((
         kind: Shoulder("ClothBlue0"),

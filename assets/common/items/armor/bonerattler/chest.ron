@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bonerattler Cuirass"
+    name: "Bonerattler Cuirass",
     description: "The spiny back and hide of a bonerattler fastened together into a protective cuirass.",
     kind: Armor((
         kind: Chest("Bonerattler"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gold Ingot"
+    name: "Gold Ingot",
     description: "An ingot made of refined metallic gold.",
     kind: Ingredient(
         kind: "GoldIngot",

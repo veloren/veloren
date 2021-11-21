@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Admin's Black Hole"
+    name: "Admin's Black Hole",
     description: "It just works.",
     kind: Armor(
         (

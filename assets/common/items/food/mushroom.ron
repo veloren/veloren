@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mushroom"
+    name: "Mushroom",
     description: "Hopefully this one is not poisonous",
     kind: Consumable(
         kind: Food,

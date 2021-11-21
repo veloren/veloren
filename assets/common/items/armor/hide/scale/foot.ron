@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Sabatons"
+    name: "Scale Sabatons",
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Foot("Scale"),

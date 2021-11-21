@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cooked Bird Meat"
+    name: "Cooked Bird Meat",
     description: "Best enjoyed with one in each hand.",
     kind: Consumable(
         kind: Food,

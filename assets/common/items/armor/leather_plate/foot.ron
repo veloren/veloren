@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Plate Boots"
+    name: "Leather Plate Boots",
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Foot("LeatherPlate"),

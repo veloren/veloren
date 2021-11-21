@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Woven Red Bag"
+    name: "Woven Red Bag",
     description: "Made from some patches of dyed cloth.",
     kind: Armor(
         (

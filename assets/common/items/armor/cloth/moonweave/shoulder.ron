@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Moonweave Shoulders"
+    name: "Moonweave Shoulders",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
         kind: Shoulder("Moonweave"),

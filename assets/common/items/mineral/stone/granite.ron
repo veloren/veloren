@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Granite"
+    name: "Granite",
     description: "A light-colored igneous rock.",
     kind: Ingredient(
         kind: "Granite",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pirate Belt"
+    name: "Pirate Belt",
     description: "",
     kind: Armor((
         kind: Belt("Pirate"),

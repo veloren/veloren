@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ferocious Sash"
+    name: "Ferocious Sash",
     description: "The dark side of nature",
     kind: Armor((
         kind: Belt("Ferocious"),

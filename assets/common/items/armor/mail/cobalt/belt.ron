@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Girdle"
+    name: "Cobalt Girdle",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Belt("Cobalt"),

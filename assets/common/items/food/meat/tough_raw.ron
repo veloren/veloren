@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Raw Tough Meat"
+    name: "Raw Tough Meat",
     description: "Peculiar bit of meat, best after cooking.",
     kind: Consumable(
         kind: Food,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Wendigo Magic"
+    name: "Wendigo Magic",
     description: "spook.",
     kind: Tool((
         kind: Natural,

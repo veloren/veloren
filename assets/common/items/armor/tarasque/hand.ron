@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tarasque Gauntlets"
+    name: "Tarasque Gauntlets",
     description: "Shattered fragments from a tarasque shell shaped into a protective gauntlets.",
     kind: Armor((
         kind: Hand("Tarasque"),

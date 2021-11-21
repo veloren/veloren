@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leaves Glider"
+    name: "Leaves Glider",
     description: "Soar among the trees",
     kind: Glider(
         (

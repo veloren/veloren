@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Turret"
+    name: "Turret",
     description: "Turret weapon",
     kind: Tool((
         kind: Natural,

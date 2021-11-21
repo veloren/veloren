@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Minotaur Axe"
+    name: "Minotaur Axe",
     description: "Placeholder",
     kind: Tool((
         kind: Natural,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragon Scale"
+    name: "Dragon Scale",
     description: "Tough scale from a legendary beast.",
     kind: Ingredient(
         kind: "DragonScale",

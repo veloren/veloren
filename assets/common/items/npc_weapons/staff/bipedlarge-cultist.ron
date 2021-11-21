@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Giant Cultist Staff"
+    name: "Giant Cultist Staff",
     description: "The fire gives off no heat.",
     kind: Tool((
         kind: Staff,

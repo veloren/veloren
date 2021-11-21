@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Red Lantern"
+    name: "Red Lantern",
     description: "Caution: contents hot",
     kind: Lantern(
         (

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Velorite Admin Cape"
+    name: "Velorite Admin Cape",
     description: "Where did I put my banhammer again?",
     kind: Armor(
         (

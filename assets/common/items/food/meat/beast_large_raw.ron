@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Raw Meat Slab"
+    name: "Raw Meat Slab",
     description: "Chunk of beastly animal meat, best after cooking.",
     kind: Consumable(
         kind: Food,

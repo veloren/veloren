@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Leather Guards"
+    name: "Blue Leather Guards",
     description: "",
     kind: Armor(
         (

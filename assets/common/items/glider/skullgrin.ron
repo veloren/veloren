@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Skullgrin"
+    name: "Skullgrin",
     description: "Death from above.",
     kind: Glider(
         (

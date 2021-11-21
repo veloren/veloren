@@ -1,5 +1,5 @@
 ItemDef(
-    name: "The Root of Evil"
+    name: "The Root of Evil",
     description: "'Everything comes at a price...'",
     kind: Tool((
         kind: Sceptre,

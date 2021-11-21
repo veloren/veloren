@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cobalt Cape"
+    name: "Cobalt Cape",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
         kind: Back("Cobalt"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Magical Cultist Warhammer"
+    name: "Magical Cultist Warhammer",
     description: "This belonged to an evil Cult Leader.",
     kind: Tool((
         kind: Hammer,

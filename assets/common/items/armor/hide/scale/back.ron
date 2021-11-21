@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Cape"
+    name: "Scale Cape",
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Back("Scale"),

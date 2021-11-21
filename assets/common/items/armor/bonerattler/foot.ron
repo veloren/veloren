@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bonerattler Boots"
+    name: "Bonerattler Boots",
     description: "Boots made from the claws and hide of a bonerattler.",
     kind: Armor((
         kind: Foot("Bonerattler"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tidal Totem"
+    name: "Tidal Totem",
     description: "Yeet",
     kind: Tool((
         kind: Natural,

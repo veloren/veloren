@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Raw Bird Meat"
+    name: "Raw Bird Meat",
     description: "A hefty drumstick.",
     kind: Consumable(
         kind: Food,

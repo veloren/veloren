@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Blue Morpho"
+    name: "Blue Morpho",
     description: "The delicate wings flutter faintly.",
     kind: Glider(
         (

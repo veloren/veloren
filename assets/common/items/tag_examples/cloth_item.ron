@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Any cloth item"
+    name: "Any cloth item",
     description: "Various colored fabric armors.",
     kind: TagExamples(
         item_ids: [

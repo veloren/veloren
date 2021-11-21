@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mjolnir"
+    name: "Mjolnir",
     description: "It's crackling with lightning.",
     kind: Tool((
         kind: Hammer,

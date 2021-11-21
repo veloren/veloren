@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Icy Shard"
+    name: "Icy Shard",
     description: "Looted from a frosty creature.",
     kind: Ingredient(
         kind: "IcyShard",

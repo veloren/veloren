@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pitchfork"
+    name: "Pitchfork",
     description: "One of the prongs is broken.",
     kind: Tool((
         kind: Farming,

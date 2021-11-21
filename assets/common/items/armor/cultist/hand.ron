@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Gloves"
+    name: "Cultist Gloves",
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Hand("Cultist"),

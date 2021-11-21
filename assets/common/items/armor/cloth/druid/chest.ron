@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Druid Chestguard"
+    name: "Druid Chestguard",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
         kind: Chest("Druid"),

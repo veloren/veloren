@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Ore"
+    name: "Iron Ore",
     description: "An incredibly common but incredibly versatile metal.",
     kind: Ingredient(
         kind: "IronOre",

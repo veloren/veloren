@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tidal Claws"
+    name: "Tidal Claws",
     description: "Snip snap",
     kind: Tool((
         kind: Natural,

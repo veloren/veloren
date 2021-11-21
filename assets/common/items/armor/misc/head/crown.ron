@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Crown"
+    name: "Crown",
     description: "Fit for a king.",
     kind: Armor((
         kind: Head("Crown"),

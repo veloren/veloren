@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Scale Chestpiece"
+    name: "Scale Chestpiece",
     description: "Each embedded scale provides protection.",
     kind: Armor((
         kind: Chest("Scale"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Basalt"
+    name: "Basalt",
     description: "A dark volcanic rock.",
     kind: Ingredient(
         kind: "Basalt",

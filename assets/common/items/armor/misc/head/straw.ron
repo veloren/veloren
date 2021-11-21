@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Straw Hat"
+    name: "Straw Hat",
     description: "Simple and stylish.",
     kind: Armor((
         kind: Head("Straw"),

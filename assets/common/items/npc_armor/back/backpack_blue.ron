@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rugged Backpack"
+    name: "Rugged Backpack",
     description: "Keeps all your stuff together.",
     kind: Armor(
         (

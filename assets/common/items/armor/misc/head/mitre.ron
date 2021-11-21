@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mitre"
+    name: "Mitre",
     description: "Calls strength from above.",
     kind: Armor((
         kind: Head("Mitre"),

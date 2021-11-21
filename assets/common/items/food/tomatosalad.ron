@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tomato Salad"
+    name: "Tomato Salad",
     description: "Leafy salad with some chopped, juicy tomatoes mixed in.",
     kind: Consumable(
         kind: Food,

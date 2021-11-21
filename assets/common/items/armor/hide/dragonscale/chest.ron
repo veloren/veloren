@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Chestplate"
+    name: "Dragonscale Chestplate",
     description: "Power pulses through it.",
     kind: Armor((
         kind: Chest("Dragonscale"),

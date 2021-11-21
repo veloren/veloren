@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tin Ingot"
+    name: "Tin Ingot",
     description: "An ingot primarily used to make bronze.",
     kind: Ingredient(
         kind: "TinIngot",

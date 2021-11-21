@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Amethyst"
+    name: "Amethyst",
     description: "A precious purple gem.",
     kind: Ingredient(
         kind: "Amethyst",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Silken Cape"
+    name: "Silken Cape",
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
         kind: Back("Silken"),

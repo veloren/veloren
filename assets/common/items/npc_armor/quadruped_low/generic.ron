@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Low Generic"
+    name: "Quad Low Generic",
     description: "Scaly.",
     kind: Armor((
         kind: Chest("QuadrupedLowGeneric"),

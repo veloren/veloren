@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Feather"
+    name: "Feather",
     description: "Feather from a bird.",
     kind: Ingredient(
         kind: "Feather",

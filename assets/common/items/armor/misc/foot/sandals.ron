@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Worn out Sandals"
+    name: "Worn out Sandals",
     description: "Loyal companions.",
     kind: Armor((
         kind: Foot("Sandal"),

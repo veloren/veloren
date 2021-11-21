@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Headband"
+    name: "Headband",
     description: "yep.",
     kind: Armor((
         kind: Head("Headband"),

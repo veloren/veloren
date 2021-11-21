@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pickaxe"
+    name: "Pickaxe",
     description: "It has a chipped edge.",
     kind: Tool((
         kind: Farming,

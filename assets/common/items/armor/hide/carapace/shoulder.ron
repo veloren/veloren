@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Carapace Shoulderpads"
+    name: "Carapace Shoulderpads",
     description: "Shell that once shielded a beast.",
     kind: Armor((
         kind: Shoulder("Carapace"),

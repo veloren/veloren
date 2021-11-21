@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Laevateinn"
+    name: "Laevateinn",
     description: "Can shatter the gate of death",
     kind: Tool((
         kind: Staff,

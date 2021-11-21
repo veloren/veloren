@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Cap"
+    name: "Leather Cap",
     description: "Swift like the wind.",
     kind: Armor((
         kind: Head("Leather"),

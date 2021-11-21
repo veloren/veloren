@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tomato"
+    name: "Tomato",
     description: "A red fruit. Not actually a vegetable.",
     kind: Consumable(
         kind: Food,

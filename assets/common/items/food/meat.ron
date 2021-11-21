@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Meat"
+    name: "Meat",
     description: "Meat. The lifeblood of mankind.",
     kind: Consumable(
         kind: Food,

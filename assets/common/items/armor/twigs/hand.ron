@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Twig Wraps"
+    name: "Twig Wraps",
     description: "Magically imbued twigs interlocked into simple hand wraps.",
     kind: Armor((
         kind: Hand("Twigs"),

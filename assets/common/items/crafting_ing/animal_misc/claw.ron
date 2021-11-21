@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Predator Claw"
+    name: "Predator Claw",
     description: "Incredibly sharp claw from a predatory animal.",
     kind: Ingredient(
         kind: "Claw",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Medium Grass"
+    name: "Medium Grass",
     description: "Greener than an orc's snout.",
     kind: Ingredient(
         kind: "Grass",

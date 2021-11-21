@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Chausses"
+    name: "Steel Chausses",
     description: "The metal alloy provides improvements to fit, durability, and lightness.",
     kind: Armor((
         kind: Pants("Steel"),

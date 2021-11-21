@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sunflower Ice Tea"
+    name: "Sunflower Ice Tea",
     description: "Brewed from freshly shelled sunflower seeds",
     kind: Consumable(
         kind: Drink,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Broom"
+    name: "Broom",
     description: "It's beginning to fall apart.",
     kind: Tool((
         kind: Farming,

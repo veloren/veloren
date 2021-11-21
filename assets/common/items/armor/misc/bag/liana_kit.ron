@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Liana Kit"
+    name: "Liana Kit",
     description: "Woven from dried lianas.",
     kind: Armor(
         (

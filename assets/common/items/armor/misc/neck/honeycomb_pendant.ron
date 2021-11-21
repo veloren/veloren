@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Honeycomb Pendant"
+    name: "Honeycomb Pendant",
     description: "This necklace is always spewing out honey...",
     kind: Armor((
         kind: Neck("Honeycomb"),

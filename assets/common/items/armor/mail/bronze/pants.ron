@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bronze Pantalons"
+    name: "Bronze Pantalons",
     description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
         kind: Pants("Bronze"),

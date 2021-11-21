@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Seashell Necklace"
+    name: "Seashell Necklace",
     description: "Contains the guardian aura of the ocean",
     kind: Armor((
         kind: Neck("Shell"),

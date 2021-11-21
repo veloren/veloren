@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Fang Necklace"
+    name: "Fang Necklace",
     description: "Only the most savage beings can handle the power of this necklace...",
     kind: Armor((
         kind: Neck("Fang"),

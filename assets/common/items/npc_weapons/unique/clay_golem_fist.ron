@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Clay Golem Fists"
+    name: "Clay Golem Fists",
     description: "Yeet.",
     kind: Tool((
         kind: Natural,

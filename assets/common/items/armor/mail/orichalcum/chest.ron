@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Orichalcum Chestguard"
+    name: "Orichalcum Chestguard",
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
         kind: Chest("Orichalcum"),

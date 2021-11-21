@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gold Ring"
+    name: "Gold Ring",
     description: "A plain gold ring... almost as if it is missing a gem.",
     kind: Armor((
         kind: Ring("Gold"),

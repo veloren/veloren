@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gem of Resilience"
+    name: "Gem of Resilience",
     description: "Surrounded by a discrete magical glow.",
     kind: Armor((
         kind: Neck("ResilienceGem"),

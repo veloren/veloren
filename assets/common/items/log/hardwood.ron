@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hardwood Logs"
+    name: "Hardwood Logs",
     description: "Extra thick and sturdy logs.",
     kind: Ingredient(
         kind: "HardwoodLogs",

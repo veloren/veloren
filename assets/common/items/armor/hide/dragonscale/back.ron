@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Cape"
+    name: "Dragonscale Cape",
     description: "Power pulses through it.",
     kind: Armor((
         kind: Back("Dragonscale"),

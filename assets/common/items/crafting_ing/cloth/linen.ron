@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Linen"
+    name: "Linen",
     description: "A textile made from flax fibers.",
     kind: Ingredient(
         kind: "Linen",

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cactus Colada"
+    name: "Cactus Colada",
     description: "Giving you that special prickle.",
     kind: Consumable(
         kind: Drink,

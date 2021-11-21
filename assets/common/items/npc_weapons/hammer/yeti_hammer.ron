@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Yeti Hammer"
+    name: "Yeti Hammer",
     description: "Placeholder",
     kind: Tool((
         kind: Natural,

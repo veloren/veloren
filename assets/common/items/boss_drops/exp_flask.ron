@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Flask of Velorite Dust"
+    name: "Flask of Velorite Dust",
     description: "Take with plenty of water",
     kind: Ingredient(
         kind: "PotionExp",

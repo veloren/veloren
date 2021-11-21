@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Witch Boots"
+    name: "Witch Boots",
     description: "",
     kind: Armor((
         kind: Foot("Witch"),

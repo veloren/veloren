@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Hunting Pants"
+    name: "Hunting Pants",
     description: "Crafted from soft, supple leather.",
     kind: Armor((
         kind: Pants("Hunting"),

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Topaz"
+    name: "Topaz",
     description: "An outstanding orange gem.",
     kind: Ingredient(
         kind: "Topaz",

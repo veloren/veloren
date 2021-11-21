@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Mushroom Stick"
+    name: "Mushroom Stick",
     description: "Roasted mushrooms on a stick for easy carrying",
     kind: Consumable(
         kind: Food,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cooked Meat Slab"
+    name: "Cooked Meat Slab",
     description: "Medium Rare.",
     kind: Consumable(
         kind: Food,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Damaged Gladius"
+    name: "Damaged Gladius",
     description: "This blade has seen better days.",
     kind: Tool((
         kind: Sword,

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Strips"
+    name: "Leather Strips",
     description: "Simple and versatile.",
     kind: Ingredient(
         kind: "LeatherStrips",

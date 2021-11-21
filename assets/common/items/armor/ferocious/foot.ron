@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Ferocious Waraji"
+    name: "Ferocious Waraji",
     description: "The dark side of nature",
     kind: Armor((
         kind: Foot("Ferocious"),

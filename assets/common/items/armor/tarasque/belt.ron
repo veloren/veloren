@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Tarasque Belt"
+    name: "Tarasque Belt",
     description: "Shattered band of a tarasque shell, making for a strong belt.",
     kind: Armor((
         kind: Belt("Tarasque"),

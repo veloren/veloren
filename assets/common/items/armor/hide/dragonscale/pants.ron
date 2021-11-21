@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Dragonscale Leggings"
+    name: "Dragonscale Leggings",
     description: "Power pulses through it.",
     kind: Armor((
         kind: Pants("Dragonscale"),

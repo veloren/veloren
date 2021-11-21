@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Bloodsteel Legs"
+    name: "Bloodsteel Legs",
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
         kind: Pants("Bloodsteel"),

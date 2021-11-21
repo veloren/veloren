@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Linen Vest"
+    name: "Linen Vest",
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
         kind: Chest("Linen"),

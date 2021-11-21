@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Sunflower"
+    name: "Sunflower",
     description: "Smells like summer.",
     kind: Ingredient(
         kind: "Flower",

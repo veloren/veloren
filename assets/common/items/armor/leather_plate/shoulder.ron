@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Leather Plate Shoulder Pad"
+    name: "Leather Plate Shoulder Pad",
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
         kind: Shoulder("LeatherPlate"),

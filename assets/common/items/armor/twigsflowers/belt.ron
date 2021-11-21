@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Flowery Belt"
+    name: "Flowery Belt",
     description: "Magically imbued twigs, held together with a flower intertwining its stem to hold the belt together.",
     kind: Armor((
         kind: Belt("TwigsFlowers"),

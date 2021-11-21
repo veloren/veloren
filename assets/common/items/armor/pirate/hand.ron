@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Pirate Gloves"
+    name: "Pirate Gloves",
     description: "",
     kind: Armor((
         kind: Hand("Pirate"),

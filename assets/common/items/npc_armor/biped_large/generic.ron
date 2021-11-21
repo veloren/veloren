@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Generic Biped Large"
+    name: "Generic Biped Large",
     description: "Worn by bipeds.",
     kind: Armor((
         kind: Chest("GenericBipedLarge"),

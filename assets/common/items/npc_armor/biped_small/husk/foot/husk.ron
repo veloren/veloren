@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Husk"
+    name: "Husk",
     description: "Ceremonial attire used by members..",
     kind: Armor((
         kind: Foot("Husk"),

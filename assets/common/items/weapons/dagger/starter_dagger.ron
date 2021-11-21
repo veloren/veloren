@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Rusty Dagger"
+    name: "Rusty Dagger",
     description: "Easily concealed.",
     kind: Tool((
         kind: Dagger,

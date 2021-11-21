@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Steel Ingot"
+    name: "Steel Ingot",
     description: "An alloy of iron and coal that is much tougher than its components.",
     kind: Ingredient(
         kind: "SteelIngot",

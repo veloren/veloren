@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Velorite Fragment"
+    name: "Velorite Fragment",
     description: "Small runes sparkle on its surface",
     kind: Ingredient(
         kind: "VeloriteFrag",

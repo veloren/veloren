@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Iron Legguards"
+    name: "Iron Legguards",
     description: "Greaves forged from iron.",
     kind: Armor(
         (

@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Med Quick"
+    name: "Quad Med Quick",
     description: "testing123",
     kind: Tool((
         kind: Natural,

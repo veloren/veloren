@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Quad Low Shell"
+    name: "Quad Low Shell",
     description: "Shell.",
     kind: Armor((
         kind: Chest("QuadrupedLowShell"),

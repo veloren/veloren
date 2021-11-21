@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Medium Potion"
+    name: "Medium Potion",
     description: "Enchanted healing flask.",
     kind: Consumable(
         kind: Drink,

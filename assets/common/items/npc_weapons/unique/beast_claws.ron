@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Beast Claws"
+    name: "Beast Claws",
     description: "Was attached to a beast.",
     kind: Tool((
         kind: Natural,

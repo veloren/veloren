@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Admin Greatsword"
+    name: "Admin Greatsword",
     description: "Shouldn't this be a hammer?",
     kind: Tool((
         kind: Sword,

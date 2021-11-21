@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Gnome"
+    name: "Gnome",
     description: "Ceremonial attire used by members.",
     kind: Armor((
         kind: Chest("Gnome"),

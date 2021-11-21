@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Purified Soulkeeper"
+    name: "Purified Soulkeeper",
     description: "WIP",
     kind: Armor(
         (
