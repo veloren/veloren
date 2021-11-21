@@ -380,7 +380,7 @@ where
     serializer.serialize_str(match field {
         ItemBase::Raw(item_def) => &item_def.item_definition_id,
         // TODO: Encode this data somehow
-        ItemBase::Modular(_) => "modular",
+        ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
     })
 }
 
@@ -403,13 +403,13 @@ where
         where
             E: de::Error,
         {
-            Ok(match serialized_item_base {
-                // TODO: Make this work
-                "modular" => ItemBase::Modular(ModularBase::Tool),
-                item_definition_id => {
-                    ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(item_definition_id))
+            Ok(
+                if serialized_item_base.starts_with("veloren.core.pseudo_items.modular.") {
+                    ItemBase::Modular(ModularBase::load_from_pseudo_id(serialized_item_base))
+                } else {
+                    ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(serialized_item_base))
                 },
-            })
+            )
         }
     }
 
@@ -448,6 +448,9 @@ impl ItemBase {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
     #[serde(default)]
+    /// The string that refers to the filepath to the asset, relative to the
+    /// assets folder, which the ItemDef is loaded from. The name space
+    /// prepended with `veloren.core` is reserved for veloren functions.
     item_definition_id: String,
     pub name: String,
     pub description: String,
@@ -541,7 +544,7 @@ impl ItemDef {
     ) -> Self {
         Self {
             item_definition_id,
-            name: ItemName::Direct("test item name".to_owned()),
+            name: "test item name".to_owned(),
             description: "test item description".to_owned(),
             kind,
             quality,
@@ -555,7 +558,7 @@ impl ItemDef {
     pub fn create_test_itemdef_from_kind(kind: ItemKind) -> Self {
         Self {
             item_definition_id: "test.item".to_string(),
-            name: ItemName::Direct("test item name".to_owned()),
+            name: "test item name".to_owned(),
             description: "test item description".to_owned(),
             kind,
             quality: Quality::Common,
@@ -681,7 +684,8 @@ impl Item {
     /// Creates a new instance of an `Item` from the provided asset identifier
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
-        Item::new_from_asset(asset_specifier).expect("Expected asset to exist")
+        let err_string = format!("Expected asset to exist: {}", asset_specifier);
+        Item::new_from_asset(asset_specifier).expect(&err_string)
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -695,7 +699,11 @@ impl Item {
     /// Creates a new instance of an `Item from the provided asset identifier if
     /// it exists
     pub fn new_from_asset(asset: &str) -> Result<Self, Error> {
-        let inner_item = ItemBase::Raw(Arc::<ItemDef>::load_cloned(asset)?);
+        let inner_item = if asset.starts_with("veloren.core.pseudo_items.modular") {
+            ItemBase::Modular(ModularBase::load_from_pseudo_id(asset))
+        } else {
+            ItemBase::Raw(Arc::<ItemDef>::load_cloned(asset)?)
+        };
         // TODO: Get msm and ability_map less hackily
         let msm = MaterialStatManifest::default();
         let ability_map = AbilityMap::default();
@@ -830,8 +838,7 @@ impl Item {
     pub fn item_definition_id(&self) -> &str {
         match &self.item_base {
             ItemBase::Raw(item_def) => &item_def.item_definition_id,
-            // TODO: Should this be handled better?
-            ItemBase::Modular(_) => "",
+            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
         }
     }
 
@@ -972,8 +979,8 @@ impl Item {
 
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
-        Self::new_from_item_def(
-            Arc::new(ItemDef::create_test_itemdef_from_kind(kind)),
+        Self::new_from_item_base(
+            ItemBase::Raw(Arc::new(ItemDef::create_test_itemdef_from_kind(kind))),
             &[],
             &Default::default(),
             &Default::default(),

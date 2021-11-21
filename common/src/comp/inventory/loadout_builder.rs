@@ -162,8 +162,9 @@ impl Hands {
                 material,
                 hands,
             } => {
-                let item = item::modular::random_weapon(*tool, *material, *hands);
-                if !equip_slot.can_hold(&item) {
+                let item = item::modular::random_weapon(*tool, *material, *hands)
+                    .expect("Invalid modular weapon");
+                if !equip_slot.can_hold(&*item.kind()) {
                     panic!(
                         "Tried to place {:?} handed {:?} {:?} into {:?}",
                         hands, material, tool, equip_slot

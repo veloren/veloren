@@ -21,6 +21,23 @@ impl ModularBase {
         }
     }
 
+    // DO NOT CHANGE. THIS IS A PERSISTENCE RELATED FUNCTION. MUST MATCH THE
+    // FUNCTION BELOW.
+    pub fn pseudo_item_id(&self) -> &str {
+        match self {
+            ModularBase::Tool => "veloren.core.pseudo_items.modular.tool",
+        }
+    }
+
+    // DO NOT CHANGE. THIS IS A PERSISTENCE RELATED FUNCTION. MUST MATCH THE
+    // FUNCTION ABOVE.
+    pub fn load_from_pseudo_id(id: &str) -> Self {
+        match id {
+            "veloren.core.pseudo_items.modular.tool" => ModularBase::Tool,
+            _ => panic!("Attempted to load a non existent pseudo item: {}", id),
+        }
+    }
+
     pub fn kind(&self, components: &[Item], msm: &MaterialStatManifest) -> Cow<ItemKind> {
         fn resolve_hands(components: &[Item]) -> Hands {
             // Checks if weapon has components that restrict hands to two. Restrictions to
@@ -183,14 +200,11 @@ const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [
     ToolKind::Sceptre,
 ];
 
-const WEAPON_PREFIX: &str = "common.items.weapons.modular";
-
-fn make_weapon_id(toolkind: ToolKind) -> String {
-    format!("{}.{}", WEAPON_PREFIX, toolkind.identifier_name())
-}
+type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Arc<ItemDef>, Option<Hands>)>>;
+type SecondaryComponentPool = HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>>;
 
 lazy_static! {
-    static ref PRIMARY_COMPONENT_POOL: HashMap<(ToolKind, String), Vec<(Arc<ItemDef>, Option<Hands>)>> = {
+    static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
         let mut component_pool = HashMap::new();
 
         // Load recipe book (done to check that material is valid for a particular component)
@@ -246,7 +260,7 @@ lazy_static! {
         component_pool
     };
 
-    static ref SECONDARY_COMPONENT_POOL: HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>> = {
+    static ref SECONDARY_COMPONENT_POOL: SecondaryComponentPool = {
         let mut component_pool = HashMap::new();
 
         const ASSET_PREFIX: &str = "common.items.crafting_ing.modular.secondary";

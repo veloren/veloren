@@ -3,7 +3,7 @@ use crate::comp::{
         armor,
         armor::{ArmorKind, Protection},
         tool::AbilityMap,
-        ItemDef, ItemKind, MaterialStatManifest, Quality,
+        ItemBase, ItemDef, ItemKind, MaterialStatManifest, Quality,
     },
     Item,
 };
@@ -22,8 +22,8 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
         slots,
     );
 
-    Item::new_from_item_def(
-        Arc::new(item_def),
+    Item::new_from_item_base(
+        ItemBase::Raw(Arc::new(item_def)),
         &[],
         &AbilityMap::default(),
         &MaterialStatManifest::default(),
