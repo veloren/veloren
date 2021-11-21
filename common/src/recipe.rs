@@ -125,15 +125,12 @@ impl Recipe {
             }
             let (item_def, quantity) = &self.output;
 
-            let mut crafted_item = Item::new_from_item_base(
+            let crafted_item = Item::new_from_item_base(
                 ItemBase::Raw(Arc::clone(item_def)),
-                &[],
+                &components,
                 ability_map,
                 msm,
             );
-            for component in components {
-                crafted_item.add_component(component, ability_map, msm);
-            }
             let mut crafted_items = Vec::with_capacity(*quantity as usize);
             for _ in 0..*quantity {
                 crafted_items.push(crafted_item.duplicate(ability_map, msm));

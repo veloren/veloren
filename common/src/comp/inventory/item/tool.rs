@@ -39,7 +39,6 @@ pub enum ToolKind {
 }
 
 impl ToolKind {
-    // Changing this will break persistence of modular weapons
     pub fn identifier_name(&self) -> &'static str {
         match self {
             ToolKind::Sword => "sword",

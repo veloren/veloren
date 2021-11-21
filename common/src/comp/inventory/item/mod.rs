@@ -806,7 +806,7 @@ impl Item {
         }
     }
 
-    pub fn add_component(
+    pub fn persistence_access_add_component(
         &mut self,
         component: Item,
         ability_map: &AbilityMap,
@@ -820,7 +820,7 @@ impl Item {
         self.update_item_config(ability_map, msm);
     }
 
-    pub fn component_mut(&mut self, index: usize) -> Option<&mut Self> {
+    pub fn persistence_access_mutable_component(&mut self, index: usize) -> Option<&mut Self> {
         self.components.get_mut(index)
     }
 
@@ -998,11 +998,10 @@ pub trait ItemDesc {
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
     fn tags(&self) -> &[ItemTag];
-    fn concrete_item(&self) -> Option<&Item>;
 
     fn is_modular(&self) -> bool;
 
-    fn components(&self) -> &[Item] { self.concrete_item().map_or(&[], |i| i.components()) }
+    fn components(&self) -> &[Item];
 
     fn tool_info(&self) -> Option<ToolKind> {
         if let ItemKind::Tool(tool) = &*self.kind() {
@@ -1028,9 +1027,9 @@ impl ItemDesc for Item {
 
     fn tags(&self) -> &[ItemTag] { self.tags() }
 
-    fn concrete_item(&self) -> Option<&Item> { Some(self) }
-
     fn is_modular(&self) -> bool { self.is_modular() }
+
+    fn components(&self) -> &[Item] { self.components() }
 }
 
 impl ItemDesc for ItemDef {
@@ -1048,9 +1047,9 @@ impl ItemDesc for ItemDef {
 
     fn tags(&self) -> &[ItemTag] { &self.tags }
 
-    fn concrete_item(&self) -> Option<&Item> { None }
-
     fn is_modular(&self) -> bool { false }
+
+    fn components(&self) -> &[Item] { &[] }
 }
 
 impl Component for Item {
@@ -1080,8 +1079,6 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
     fn components(&self) -> &[Item] { (*self).components() }
 
     fn tags(&self) -> &[ItemTag] { (*self).tags() }
-
-    fn concrete_item(&self) -> Option<&Item> { None }
 
     fn is_modular(&self) -> bool { (*self).is_modular() }
 }

@@ -296,7 +296,7 @@ where
             // Returns mutable reference to parent item of original item, by grabbing
             // the component representing the parent item from the parent item's parent
             // item
-            component_index.and_then(move |i| parent.component_mut(i))
+            component_index.and_then(move |i| parent.persistence_access_mutable_component(i))
         } else {
             None
         }
@@ -400,7 +400,11 @@ pub fn convert_inventory_from_database_items(
                 &mut inventory,
                 &|inv, s| inv.slot_mut(slot(s).ok()?).and_then(|a| a.as_mut()),
             ) {
-                parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
+                parent.persistence_access_add_component(
+                    item,
+                    &ABILITY_MAP,
+                    &MATERIAL_STATS_MANIFEST,
+                );
             } else {
                 return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
@@ -459,7 +463,11 @@ pub fn convert_loadout_from_database_items(
                     l.get_mut_item_at_slot_using_persistence_key(s).ok()
                 })
             {
-                parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
+                parent.persistence_access_add_component(
+                    item,
+                    &ABILITY_MAP,
+                    &MATERIAL_STATS_MANIFEST,
+                );
             } else {
                 return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
