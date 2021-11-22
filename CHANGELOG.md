@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Campfire waypoints in towns
 - Arbitrary volume entities
 - New outfit for merchants
+- Nightly linux Aarch64 builds are now produced (distribution via airshipper will follow soon)
 
 ### Changed
 
