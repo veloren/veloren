@@ -38,29 +38,12 @@ debug = false
 codegen-units = 8
 lto = false
 incremental = true
-# All dependencies (but not this crate itself)
+# All packages that aren't members of this workspace
 [profile.dev.package."*"]
 # TODO: seems like opt-level=2 should be sufficient here....
 opt-level = 3
-[profile.dev.package."veloren-network"]
-opt-level = 2
 [profile.dev.package."veloren-network-protocol"]
 opt-level = 3
-incremental = false
-[profile.dev.package."veloren-common"]
-opt-level = 2
-[profile.dev.package."veloren-common-systems"]
-incremental = false
-[profile.dev.package."veloren-client"]
-opt-level = 2
-[profile.dev.package."veloren-server"]
-opt-level = 2
-[profile.dev.package."veloren-server-cli"]
-opt-level = 2
-[profile.dev.package."veloren-voxygen"]
-opt-level = 2
-[profile.dev.package."veloren-world"]
-opt-level = 2
 
 
 # this profile is used by developers if dev doesn't has enough debug information,
