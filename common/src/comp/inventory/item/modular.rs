@@ -287,8 +287,8 @@ pub fn random_weapon(
 ) -> Result<Item, ModularWeaponCreationError> {
     if let Some(material_id) = material.asset_identifier() {
         // Loads default ability map and material stat manifest for later use
-        let ability_map = AbilityMap::load().read();
-        let msm = MaterialStatManifest::load().read();
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
 
         let mut rng = thread_rng();
 
@@ -310,8 +310,8 @@ pub fn random_weapon(
             let comp = Item::new_from_item_base(
                 ItemBase::Raw(Arc::clone(def)),
                 vec![material],
-                &ability_map,
-                &msm,
+                ability_map,
+                msm,
             );
             (comp, hand_restriction.or(*hand))
         };
@@ -331,20 +331,15 @@ pub fn random_weapon(
                 .choose(&mut rng)
                 .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
                 .0;
-            Item::new_from_item_base(
-                ItemBase::Raw(Arc::clone(def)),
-                Vec::new(),
-                &ability_map,
-                &msm,
-            )
+            Item::new_from_item_base(ItemBase::Raw(Arc::clone(def)), Vec::new(), ability_map, msm)
         };
 
         // Create modular weapon
         Ok(Item::new_from_item_base(
             ItemBase::Modular(ModularBase::Tool),
             vec![primary_component, secondary_component],
-            &ability_map,
-            &msm,
+            ability_map,
+            msm,
         ))
     } else {
         Err(ModularWeaponCreationError::MaterialNotFound)

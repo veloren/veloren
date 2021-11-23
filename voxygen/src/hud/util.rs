@@ -382,8 +382,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
 }
 
 #[rustfmt::skip]
-pub fn ability_description(ability_id: &str) -> (&str, &str) {
-    match ability_id {
+pub fn ability_description(ability_id: &str) -> (Cow<str>, &str) {
+    let (name, desc) = match ability_id {
         // Debug stick
         "common.abilities.debug.possess" => (
             "Possessing Arrow",
@@ -423,5 +423,6 @@ pub fn ability_description(ability_id: &str) -> (&str, &str) {
             "Ability has no title",
             "Ability has no description."
         ),
-    }
+    };
+    (Cow::Borrowed(name), desc)
 }

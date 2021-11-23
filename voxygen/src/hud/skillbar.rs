@@ -30,7 +30,6 @@ use conrod_core::{
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
-use std::borrow::Cow;
 use vek::*;
 
 widget_ids! {
@@ -613,10 +612,7 @@ impl<'a> Skillbar<'a> {
                             .get(i)
                             .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
                     })
-                    .map(|a| {
-                        let (title, desc) = util::ability_description(a);
-                        (Cow::Borrowed(title), desc)
-                    }),
+                    .map(util::ability_description),
             })
         };
 

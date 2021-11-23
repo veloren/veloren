@@ -422,8 +422,8 @@ mod tests {
     ) -> (World, EcsEntity, EcsEntity) {
         let mut mockworld = World::new();
         mockworld.insert(UidAllocator::new());
-        mockworld.insert(MaterialStatManifest::default());
-        mockworld.insert(AbilityMap::default());
+        mockworld.insert(MaterialStatManifest::load().cloned());
+        mockworld.insert(AbilityMap::load().cloned());
         mockworld.register::<Inventory>();
         mockworld.register::<Uid>();
 

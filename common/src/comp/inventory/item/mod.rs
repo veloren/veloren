@@ -712,13 +712,13 @@ impl Item {
             ItemBase::Raw(Arc::<ItemDef>::load_cloned(asset)?)
         };
         // TODO: Get msm and ability_map less hackily
-        let msm = MaterialStatManifest::load().read();
-        let ability_map = AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+        let ability_map = &AbilityMap::load().read();
         Ok(Item::new_from_item_base(
             inner_item,
             Vec::new(),
-            &ability_map,
-            &msm,
+            ability_map,
+            msm,
         ))
     }
 
@@ -994,11 +994,13 @@ impl Item {
 
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
         Self::new_from_item_base(
             ItemBase::Raw(Arc::new(ItemDef::create_test_itemdef_from_kind(kind))),
             Vec::new(),
-            &Default::default(),
-            &Default::default(),
+            ability_map,
+            msm,
         )
     }
 }
