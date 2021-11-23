@@ -2400,55 +2400,55 @@
     // Bags
     Armor(Bag("RedFace")): VoxTrans(
         "voxel.armor.misc.bag.soulkeeper_cursed",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("BlackHole")): VoxTrans(
         "voxel.armor.misc.bag.admin_black_hole",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("BlueFace")): VoxTrans(
         "voxel.armor.misc.bag.soulkeeper_pure",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("PurpleSkull")): VoxTrans(
         "voxel.armor.misc.bag.mindflayer_spellbag",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.1, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
     Armor(Bag("GreenLarge")): VoxTrans(
         "voxel.armor.misc.bag.troll_hide_pack",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("LeatherLarge")): VoxTrans(
         "voxel.armor.misc.bag.reliable_backpack",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("GreenMid")): VoxTrans(
         "voxel.armor.misc.bag.liana_kit",
-        (0.5, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("LeatherSmall")): VoxTrans(
         "voxel.armor.misc.bag.tiny_leather_pouch",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
     Armor(Bag("RedLarge")): VoxTrans(
         "voxel.armor.misc.bag.sturdy_red_backpack",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("RedMed")): VoxTrans(
         "voxel.armor.misc.bag.woven_red_bag",
-        (0.5, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("RedSmall")): VoxTrans(
         "voxel.armor.misc.bag.knitted_red_pouch",
-        (0.3, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
+        (0.3, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
     Armor(Bag("RedTiny")): VoxTrans(
         "voxel.armor.misc.bag.tiny_red_pouch",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.8,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Armor(Bag("BluePouch")): VoxTrans(
         "voxel.armor.misc.bag.heavy_seabag",
-        (0.0, 0.0, 0.0), (-80.0, 20.0, 5.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     // Consumables
     Consumable("common.items.food.apple"): VoxTrans(
@@ -2501,7 +2501,7 @@
     ),
     Consumable("common.items.food.apple_mushroom_curry"): VoxTrans(
         "voxel.object.mushroom_curry",
-        (-0.3, 2.0, 0.0), (-50.0, 20.0, 17.0), 0.9,
+        (-0.3, 2.0, 0.0), (-50.0, 20.0, 17.0), 1.0,
     ),
     Consumable("common.items.food.spore_corruption"): VoxTrans(
         "voxel.sprite.spore.corruption_spore",
@@ -2515,8 +2515,9 @@
         "voxel.object.mushroom_stick",
         (0.3, 0.0, 0.0), (-55.0, 60.0, 5.0), 1.0,
     ),
-    Consumable("common.items.food.sunflower_icetea"): Png(
-        "element.items.item_sunflower_tea",
+    Consumable("common.items.food.sunflower_icetea"): VoxTrans(
+        "voxel.object.sunflower_ice_tea",
+        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.0,
     ),
     Consumable("common.items.food.carrot"): VoxTrans(
         "voxel.sprite.carrot.carrot",
@@ -2624,8 +2625,9 @@
         "voxel.weapon.hammer.craftsman",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
     ),
-    Ingredient("SewingSet"): Png(
-        "element.items.sewing_set",
+    Ingredient("SewingSet"): VoxTrans(
+        "voxel.object.sewing_set",
+        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.0,
     ),
     Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
@@ -2655,14 +2657,16 @@
         "voxel.sprite.seashells.shell-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient("IcyShard"): Png(
-        "element.items.item_ice_shard",
+    Ingredient("IcyShard"): VoxTrans(
+        "voxel.object.ice_shard",
+        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.0,
     ),
     Ingredient("FlayerBagDamaged"): Png(
         "element.items.item_flayer_soul",
     ),
-    Ingredient("RaptorFeather"): Png(
-        "element.items.item_raptor_feather",
+    Ingredient("RaptorFeather"): VoxTrans(
+        "voxel.object.raptor_feather",
+        (-0.2, 0.0, 0.0), (10.0, 30.0, -2.0), 1.0,
     ),
     Ingredient("Twigs"): VoxTrans(
         "voxel.sprite.twigs.twigs-0",
@@ -2698,7 +2702,7 @@
     ),
     Ingredient("LeatherStrips"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.leather_strips",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (0.5, 0.0, 0.0), (-20.0, 10.0, 60.0), 1.0,
     ),
     Ingredient("Plate"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.plate",
