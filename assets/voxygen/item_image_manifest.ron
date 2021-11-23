@@ -2517,7 +2517,7 @@
     ),
     Consumable("common.items.food.sunflower_icetea"): VoxTrans(
         "voxel.object.sunflower_ice_tea",
-        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-50.0, -60.0, -35.0), 0.9,
     ),
     Consumable("common.items.food.carrot"): VoxTrans(
         "voxel.sprite.carrot.carrot",
@@ -2627,7 +2627,7 @@
     ),
     Ingredient("SewingSet"): VoxTrans(
         "voxel.object.sewing_set",
-        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.0,
+        (0.0, 0.5, 0.0), (-50.0, 10.0, 5.0), 1.0,
     ),
     Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
@@ -2659,7 +2659,7 @@
     ),
     Ingredient("IcyShard"): VoxTrans(
         "voxel.object.ice_shard",
-        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.0,
+        (-1.0, 0.7, 0.0), (-60.0, -30.0, 10.0), 0.9,
     ),
     Ingredient("FlayerBagDamaged"): Png(
         "element.items.item_flayer_soul",
