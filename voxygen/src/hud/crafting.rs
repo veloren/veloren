@@ -198,12 +198,10 @@ impl CraftingTab {
             },
             CraftingTab::Glider => matches!(&*item.kind(), ItemKind::Glider(_)),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
-            CraftingTab::ProcessedMaterial => item.tags().iter().any(|tag| {
-                matches!(
-                    tag,
-                    &ItemTag::MaterialKind(_) | &ItemTag::Leather | &ItemTag::BaseMaterial
-                )
-            }),
+            CraftingTab::ProcessedMaterial => item
+                .tags()
+                .iter()
+                .any(|tag| matches!(tag, &ItemTag::MaterialKind(_) | &ItemTag::BaseMaterial)),
             CraftingTab::Bag => item.tags().contains(&ItemTag::Bag),
             CraftingTab::Tool => item.tags().contains(&ItemTag::CraftingTool),
             CraftingTab::Utility => item.tags().contains(&ItemTag::Utility),
@@ -469,10 +467,10 @@ impl<'a> Widget for Crafting<'a> {
                     let input_name = match input {
                         RecipeInput::Item(def) => def.name(),
                         RecipeInput::Tag(tag) => Cow::Borrowed(tag.name()),
-                        RecipeInput::TagSameItem(tag, _) => Cow::Borrowed(tag.name()),
+                        RecipeInput::TagSameItem(tag) => Cow::Borrowed(tag.name()),
                         // Works, but probably will have some...interesting false positives
                         // Code reviewers probably required to do magic to make not hacky
-                        RecipeInput::ListSameItem(defs, _) => {
+                        RecipeInput::ListSameItem(defs) => {
                             Cow::Owned(defs.iter().map(|def| def.name()).collect())
                         },
                     }
@@ -914,13 +912,13 @@ impl<'a> Widget for Crafting<'a> {
             for (i, (recipe_input, amount, _)) in recipe.inputs.iter().enumerate() {
                 let item_def = match recipe_input {
                     RecipeInput::Item(item_def) => Arc::clone(item_def),
-                    RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
+                    RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => {
                         Arc::<ItemDef>::load_expect_cloned(
                             self.inventory
                                 .slots()
                                 .find_map(|slot| {
                                     slot.as_ref().and_then(|item| {
-                                        if item.matches_recipe_input(recipe_input) {
+                                        if item.matches_recipe_input(recipe_input, *amount) {
                                             Some(item.item_definition_id())
                                         } else {
                                             None
@@ -930,12 +928,12 @@ impl<'a> Widget for Crafting<'a> {
                                 .unwrap_or_else(|| tag.exemplar_identifier()),
                         )
                     },
-                    RecipeInput::ListSameItem(item_defs, _) => Arc::<ItemDef>::load_expect_cloned(
+                    RecipeInput::ListSameItem(item_defs) => Arc::<ItemDef>::load_expect_cloned(
                         self.inventory
                             .slots()
                             .find_map(|slot| {
                                 slot.as_ref().and_then(|item| {
-                                    if item.matches_recipe_input(recipe_input) {
+                                    if item.matches_recipe_input(recipe_input, *amount) {
                                         Some(item.item_definition_id())
                                     } else {
                                         None
@@ -1047,10 +1045,10 @@ impl<'a> Widget for Crafting<'a> {
                     // Ingredients
                     let name = match recipe_input {
                         RecipeInput::Item(_) => item_def.name().to_string(),
-                        RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag, _) => {
+                        RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => {
                             format!("Any {} item", tag.name())
                         },
-                        RecipeInput::ListSameItem(item_defs, _) => {
+                        RecipeInput::ListSameItem(item_defs) => {
                             format!(
                                 "Any of {}",
                                 item_defs.iter().map(|def| def.name()).collect::<String>()

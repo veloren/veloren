@@ -2,7 +2,7 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    assets::{self, Asset, AssetExt},
+    assets::{self, Asset, AssetExt, AssetHandle},
     comp::{skills::Skill, CharacterAbility},
 };
 use hashbrown::HashMap;
@@ -217,19 +217,16 @@ impl DivAssign<usize> for Stats {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MaterialStatManifest(pub HashMap<String, Stats>);
 
+impl MaterialStatManifest {
+    pub fn load() -> AssetHandle<Self> { Self::load_expect("common.material_stats_manifest") }
+}
+
 // This could be a Compound that also loads the keys, but the RecipeBook
 // Compound impl already does that, so checking for existence here is redundant.
 impl Asset for MaterialStatManifest {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
-}
-
-impl Default for MaterialStatManifest {
-    fn default() -> MaterialStatManifest {
-        // TODO: Don't do this, loading a default should have no ability to panic
-        MaterialStatManifest::load_expect_cloned("common.material_stats_manifest")
-    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -348,16 +345,9 @@ pub struct AbilityItem {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityMap<T = AbilityItem>(HashMap<AbilitySpec, AbilitySet<T>>);
 
-impl Default for AbilityMap {
-    fn default() -> Self {
-        // TODO: Revert to old default
-        if let Ok(map) = Self::load_cloned("common.abilities.ability_set_manifest") {
-            map
-        } else {
-            let mut map = HashMap::new();
-            map.insert(AbilitySpec::Tool(ToolKind::Empty), AbilitySet::default());
-            AbilityMap(map)
-        }
+impl AbilityMap {
+    pub fn load() -> AssetHandle<Self> {
+        Self::load_expect("common.abilities.ability_set_manifest")
     }
 }
 

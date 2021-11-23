@@ -22,13 +22,19 @@ pub enum RecipeInput {
     /// Similar to RecipeInput::Tag(_), but all items must be the same.
     /// Specifically this means that a mix of different items with the tag
     /// cannot be used.
-    TagSameItem(ItemTag, u32),
+    /// TODO: Currently requires that all items must be in the same slot.
+    /// Eventually should be reworked so that items can be spread over multiple
+    /// slots.
+    TagSameItem(ItemTag),
     /// List is similar to tag, but has items defined in centralized file
     /// Similar to RecipeInput::TagSameItem(_), all items must be the same, they
     /// cannot be a mix of different items defined in the list.
     // Intent of using List over Tag is to make it harder for tag to be innocuously added to an
     // item breaking a recipe
-    ListSameItem(Vec<Arc<ItemDef>>, u32),
+    /// TODO: Currently requires that all items must be in the same slot.
+    /// Eventually should be reworked so that items can be spread over multiple
+    /// slots.
+    ListSameItem(Vec<Arc<ItemDef>>),
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -62,7 +68,8 @@ impl Recipe {
         self.inputs
             .iter()
             .enumerate()
-            .for_each(|(i, (input, mut required, mut is_component))| {
+            .for_each(|(i, (input, amount, mut is_component))| {
+                let mut required = *amount;
                 // Check used for recipes that have an input that is not consumed, e.g.
                 // craftsman hammer
                 let mut contains_any = false;
@@ -75,7 +82,7 @@ impl Recipe {
                     // Checks that the item in the slot can be used for the input
                     if let Some(item) = inv
                         .get(*slot)
-                        .filter(|item| item.matches_recipe_input(input))
+                        .filter(|item| item.matches_recipe_input(input, *amount))
                     {
                         // Gets the number of items claimed from the slot, or sets to 0 if slot has
                         // not been claimed by another input yet
@@ -165,14 +172,15 @@ impl Recipe {
         // The inputs to a recipe that have missing items, and the amount missing
         let mut missing = Vec::<(&RecipeInput, u32)>::new();
 
-        for (i, (input, mut needed, _)) in self.inputs().enumerate() {
+        for (i, (input, amount, _)) in self.inputs().enumerate() {
+            let mut needed = amount;
             let mut contains_any = false;
             // Checks through every slot, filtering to only those that contain items that
             // can satisfy the input
             for (inv_slot_id, slot) in inv.slots_with_id() {
                 if let Some(item) = slot
                     .as_ref()
-                    .filter(|item| item.matches_recipe_input(&*input))
+                    .filter(|item| item.matches_recipe_input(&*input, amount))
                 {
                     let claim = slot_claims.entry(inv_slot_id).or_insert(0);
                     slots.push((i as u32, inv_slot_id));
@@ -390,14 +398,14 @@ impl assets::Compound for RecipeBook {
             let def = match &input {
                 RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
                 RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
-                RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag, *amount),
+                RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag),
                 RawRecipeInput::ListSameItem(list) => {
                     let assets = &ItemList::load_expect(list).read().0;
                     let items = assets
                         .iter()
                         .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
                         .collect();
-                    RecipeInput::ListSameItem(items, *amount)
+                    RecipeInput::ListSameItem(items)
                 },
             };
             Ok((def, *amount, *is_mod_comp))

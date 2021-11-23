@@ -36,8 +36,9 @@ pub struct ItemModelPair {
 // shouldn't matter unless someone's hot-reloading material stats on the live
 // server
 lazy_static! {
-    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
-    pub static ref ABILITY_MAP: AbilityMap = AbilityMap::default();
+    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest =
+        MaterialStatManifest::load().cloned();
+    pub static ref ABILITY_MAP: AbilityMap = AbilityMap::load().cloned();
 }
 
 /// Returns a vector that contains all item rows to upsert; parent is

@@ -219,7 +219,6 @@ impl TagExampleInfo for Material {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
-    Leather,
     Material(Material),
     MaterialKind(MaterialKind),
     Cultist,
@@ -237,7 +236,6 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::Material(material) => material.name(),
             ItemTag::MaterialKind(material_kind) => material_kind.into(),
-            ItemTag::Leather => "leather",
             ItemTag::Cultist => "cultist",
             ItemTag::Potion => "potion",
             ItemTag::Food => "food",
@@ -254,7 +252,6 @@ impl TagExampleInfo for ItemTag {
         match self {
             ItemTag::Material(_) => "common.items.tag_examples.placeholder",
             ItemTag::MaterialKind(_) => "common.items.tag_examples.placeholder",
-            ItemTag::Leather => "common.items.tag_examples.leather",
             ItemTag::Cultist => "common.items.tag_examples.cultist",
             ItemTag::Potion => "common.items.tag_examples.placeholder",
             ItemTag::Food => "common.items.tag_examples.placeholder",
@@ -715,8 +712,8 @@ impl Item {
             ItemBase::Raw(Arc::<ItemDef>::load_cloned(asset)?)
         };
         // TODO: Get msm and ability_map less hackily
-        let msm = MaterialStatManifest::default();
-        let ability_map = AbilityMap::default();
+        let msm = MaterialStatManifest::load().read();
+        let ability_map = AbilityMap::load().read();
         Ok(Item::new_from_item_base(
             inner_item,
             Vec::new(),
@@ -862,15 +859,15 @@ impl Item {
         }
     }
 
-    pub fn matches_recipe_input(&self, recipe_input: &RecipeInput) -> bool {
+    pub fn matches_recipe_input(&self, recipe_input: &RecipeInput, amount: u32) -> bool {
         match recipe_input {
             RecipeInput::Item(item_def) => self.is_same_item_def(item_def),
             RecipeInput::Tag(tag) => self.tags().contains(tag),
-            RecipeInput::TagSameItem(tag, amount) => {
-                self.tags().contains(tag) && u32::from(self.amount) >= *amount
+            RecipeInput::TagSameItem(tag) => {
+                self.tags().contains(tag) && u32::from(self.amount) >= amount
             },
-            RecipeInput::ListSameItem(item_defs, amount) => item_defs.iter().any(|item_def| {
-                self.is_same_item_def(item_def) && u32::from(self.amount) >= *amount
+            RecipeInput::ListSameItem(item_defs) => item_defs.iter().any(|item_def| {
+                self.is_same_item_def(item_def) && u32::from(self.amount) >= amount
             }),
         }
     }
@@ -893,7 +890,13 @@ impl Item {
 
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => Cow::Borrowed(&item_def.name),
+            ItemBase::Raw(item_def) => {
+                if self.components.is_empty() {
+                    Cow::Borrowed(&item_def.name)
+                } else {
+                    modular::modify_name(&item_def.name, self)
+                }
+            },
             ItemBase::Modular(mod_base) => mod_base.generate_name(self.components()),
         }
     }
@@ -911,7 +914,7 @@ impl Item {
             ItemBase::Raw(item_def) => Cow::Borrowed(&item_def.kind),
             ItemBase::Modular(mod_base) => {
                 // TODO: Try to move further upward
-                let msm = MaterialStatManifest::default();
+                let msm = MaterialStatManifest::load().read();
 
                 mod_base.kind(self.components(), &msm)
             },

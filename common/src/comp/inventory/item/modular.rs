@@ -1,5 +1,5 @@
 use super::{
-    tool::{self, AbilitySpec, Hands, MaterialStatManifest},
+    tool::{self, AbilityMap, AbilitySpec, Hands, MaterialStatManifest},
     Item, ItemBase, ItemDef, ItemDesc, ItemKind, Material, Quality, ToolKind,
 };
 use crate::{assets::AssetExt, recipe};
@@ -287,8 +287,8 @@ pub fn random_weapon(
 ) -> Result<Item, ModularWeaponCreationError> {
     if let Some(material_id) = material.asset_identifier() {
         // Loads default ability map and material stat manifest for later use
-        let ability_map = Default::default();
-        let msm = Default::default();
+        let ability_map = AbilityMap::load().read();
+        let msm = MaterialStatManifest::load().read();
 
         let mut rng = thread_rng();
 
@@ -348,6 +348,25 @@ pub fn random_weapon(
         ))
     } else {
         Err(ModularWeaponCreationError::MaterialNotFound)
+    }
+}
+
+pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
+    if let ItemKind::ModularComponent(_) = &*item.kind() {
+        if let Some(material_name) = item
+            .components()
+            .iter()
+            .find_map(|comp| match &*comp.kind() {
+                ItemKind::Ingredient { descriptor, .. } => Some(descriptor.to_owned()),
+                _ => None,
+            })
+        {
+            Cow::Owned(format!("{} {}", material_name, item_name))
+        } else {
+            Cow::Borrowed(item_name)
+        }
+    } else {
+        Cow::Borrowed(item_name)
     }
 }
 

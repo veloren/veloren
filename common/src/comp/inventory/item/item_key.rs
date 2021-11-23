@@ -50,6 +50,7 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                         }
                     },
                     ModularComponent::ToolSecondaryComponent { .. } => {
+                        // TODO: Maybe use a different ItemKey?
                         ItemKey::Tool(item_definition_id.to_owned())
                     },
                 }

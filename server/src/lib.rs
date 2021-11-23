@@ -73,7 +73,7 @@ use common::{
     calendar::Calendar,
     character::CharacterId,
     cmd::ChatCommand,
-    comp::{self, item::MaterialStatManifest},
+    comp,
     event::{EventBus, ServerEvent},
     recipe::default_recipe_book,
     resources::{BattleMode, Time, TimeOfDay},
@@ -310,7 +310,7 @@ impl Server {
         );
         state.ecs_mut().insert(ability_map);
 
-        let msm = comp::inventory::item::MaterialStatManifest::default();
+        let msm = comp::inventory::item::MaterialStatManifest::load().cloned();
         state.ecs_mut().insert(msm);
 
         state.ecs_mut().insert(CharacterLoader::new(
@@ -1087,7 +1087,11 @@ impl Server {
                 client_timeout: self.settings().client_timeout,
                 world_map: self.map.clone(),
                 recipe_book: default_recipe_book().cloned(),
-                material_stats: MaterialStatManifest::default(),
+                material_stats: (&*self
+                    .state
+                    .ecs()
+                    .read_resource::<comp::item::tool::MaterialStatManifest>())
+                    .clone(),
                 ability_map: (&*self
                     .state
                     .ecs()
