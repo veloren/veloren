@@ -1864,7 +1864,7 @@
         craft_sprite: Some(CraftingBench),
     ),
     "winged coronet": (
-        output: ("common.items.armor.misc.head.winged_coronet", 1, false),
+        output: ("common.items.armor.misc.head.winged_coronet", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ingot.gold"), 4, false),

@@ -36,11 +36,22 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                     ItemKey::Tool(item_definition_id.to_owned())
                 }
             },
-            ItemKind::ModularComponent(_) => {
-                match modular::weapon_component_to_key(item_desc) {
-                    Ok(key) => ItemKey::ModularWeaponComponent(key),
-                    // TODO: Maybe use a different ItemKey?
-                    Err(_) => ItemKey::Tool(item_definition_id.to_owned()),
+            ItemKind::ModularComponent(mod_comp) => {
+                use modular::ModularComponent;
+                match mod_comp {
+                    ModularComponent::ToolPrimaryComponent { .. } => {
+                        match modular::weapon_component_to_key(
+                            item_definition_id,
+                            item_desc.components(),
+                        ) {
+                            Ok(key) => ItemKey::ModularWeaponComponent(key),
+                            // TODO: Maybe use a different ItemKey?
+                            Err(_) => ItemKey::Tool(item_definition_id.to_owned()),
+                        }
+                    },
+                    ModularComponent::ToolSecondaryComponent { .. } => {
+                        ItemKey::Tool(item_definition_id.to_owned())
+                    },
                 }
             },
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),

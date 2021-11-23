@@ -205,7 +205,7 @@ impl Loadout {
 
     /// Returns all items currently equipped that an item of the given ItemKind
     /// could replace
-    pub(super) fn equipped_items_of_kind<'a>(
+    pub(super) fn equipped_items_replaceable_by<'a>(
         &'a self,
         item_kind: &'a ItemKind,
     ) -> impl Iterator<Item = &'a Item> {

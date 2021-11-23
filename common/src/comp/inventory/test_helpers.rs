@@ -24,7 +24,7 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
 
     Item::new_from_item_base(
         ItemBase::Raw(Arc::new(item_def)),
-        &[],
+        Vec::new(),
         &AbilityMap::default(),
         &MaterialStatManifest::default(),
     )

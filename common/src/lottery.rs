@@ -130,7 +130,20 @@ impl<T: AsRef<str>> LootSpec<T> {
                 tool,
                 material,
                 hands,
-            } => item::modular::random_weapon(*tool, *material, *hands).ok(),
+            } => item::modular::random_weapon(*tool, *material, *hands).map_or_else(
+                |e| {
+                    warn!(
+                        ?e,
+                        "error while creating modular weapon. Toolkind: {:?}, Material: {:?}, \
+                         Hands: {:?}",
+                        tool,
+                        material,
+                        hands
+                    );
+                    None
+                },
+                Option::Some,
+            ),
         }
     }
 }

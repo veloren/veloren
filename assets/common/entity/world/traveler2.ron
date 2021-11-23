@@ -17,18 +17,66 @@
                 (1, Asset("common.loadout.world.traveler2.carapace")),
             ]),
             active_hands: ([
-                (1, "common.items.weapons.sword.steel-0"),
-                (1, "common.items.weapons.axe.steel_axe-0"),
-                (1, "common.items.weapons.hammer.steel_hammer-0"),
-                (1, "common.items.weapons.bow.metal-0"),
-                (1, "common.items.weapons.staff.golden_khakkara"),
-                (1, "common.items.weapons.sceptre.totem_green"),
-                (1, "common.items.weapons.sword.cobalt-0"),
-                (1, "common.items.weapons.axe.cobalt_axe-0"),
-                (1, "common.items.weapons.hammer.cobalt_hammer-0"),
-                (1, "common.items.weapons.bow.frostwood-0"),
-                (1, "common.items.weapons.staff.aurora"),
-                (1, "common.items.weapons.sceptre.loops0"),
+                (1, (
+                    tool: Sword,
+                    material: Steel,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Axe,
+                    material: Steel,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Hammer,
+                    material: Steel,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Bow,
+                    material: Hardwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Staff,
+                    material: Hardwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sceptre,
+                    material: Hardwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sword,
+                    material: Cobalt,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Axe,
+                    material: Cobalt,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Hammer,
+                    material: Cobalt,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Bow,
+                    material: Ironwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Staff,
+                    material: Ironwood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sceptre,
+                    material: Ironwood,
+                    hands: None,
+                )),
             ], None),
         )),
         items: [

@@ -942,7 +942,7 @@ impl<'a> Widget for Crafting<'a> {
                                     }
                                 })
                             })
-                            .unwrap_or({
+                            .unwrap_or_else(|| {
                                 item_defs
                                     .first()
                                     .map(|i| i.item_definition_id())

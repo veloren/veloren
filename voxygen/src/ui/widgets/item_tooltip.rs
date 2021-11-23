@@ -464,7 +464,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let item_kind = &*item.kind();
 
-        let equip_slot = inventory.equipped_items_of_kind(item_kind);
+        let equip_slot = inventory.equipped_items_replaceable_by(item_kind);
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 

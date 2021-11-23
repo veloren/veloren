@@ -15,12 +15,6 @@ pub enum ModularBase {
 }
 
 impl ModularBase {
-    pub(super) fn duplicate(&self) -> Self {
-        match self {
-            ModularBase::Tool => ModularBase::Tool,
-        }
-    }
-
     // DO NOT CHANGE. THIS IS A PERSISTENCE RELATED FUNCTION. MUST MATCH THE
     // FUNCTION BELOW.
     pub fn pseudo_item_id(&self) -> &str {
@@ -106,13 +100,16 @@ impl ModularBase {
                             let material_name = comp
                                 .components()
                                 .iter()
-                                .find_map(|mat| match &*mat.kind() {
-                                    ItemKind::Ingredient { descriptor, .. } => {
-                                        Some(descriptor.to_owned())
+                                .find_map(|mat| match mat.kind() {
+                                    Cow::Owned(ItemKind::Ingredient { descriptor, .. }) => {
+                                        Some(Cow::Owned(descriptor))
+                                    },
+                                    Cow::Borrowed(ItemKind::Ingredient { descriptor, .. }) => {
+                                        Some(Cow::Borrowed(descriptor.as_str()))
                                     },
                                     _ => None,
                                 })
-                                .unwrap_or_else(|| "Modular".to_owned());
+                                .unwrap_or_else(|| "Modular".into());
                             Some(format!("{} {}", material_name, weapon_name))
                         },
                         _ => None,
@@ -126,7 +123,7 @@ impl ModularBase {
     pub fn compute_quality(&self, components: &[Item]) -> Quality {
         components
             .iter()
-            .fold(Quality::Low, |a, b| a.max(b.quality()))
+            .fold(Quality::MIN, |a, b| a.max(b.quality()))
     }
 
     pub fn ability_spec(&self, components: &[Item]) -> Option<Cow<AbilitySpec>> {
@@ -165,26 +162,15 @@ impl ModularComponent {
     ) -> Option<tool::Stats> {
         match self {
             Self::ToolPrimaryComponent { stats, .. } => {
-                let mut material_multipliers = Vec::new();
-                for component in components.iter() {
-                    if let Some(tool_stats) = msm.0.get(component.item_definition_id()) {
-                        material_multipliers.push(*tool_stats);
-                    }
-                }
+                let average_material_mult = components
+                    .iter()
+                    .filter_map(|comp| msm.0.get(comp.item_definition_id()).copied().zip(Some(1)))
+                    .reduce(|(stats_a, count_a), (stats_b, count_b)| {
+                        (stats_a + stats_b, count_a + count_b)
+                    })
+                    .map_or_else(tool::Stats::one, |(stats_sum, count)| stats_sum / count);
 
-                // Take the average of the material multipliers
-                let material_mult = if !material_multipliers.is_empty() {
-                    let mut average_mult = tool::Stats::zero();
-                    for stat in material_multipliers.iter() {
-                        average_mult += *stat;
-                    }
-                    average_mult /= material_multipliers.len();
-                    average_mult
-                } else {
-                    tool::Stats::one()
-                };
-
-                Some(*stats * material_mult)
+                Some(*stats * average_material_mult)
             },
             Self::ToolSecondaryComponent { stats, .. } => Some(*stats),
         }
@@ -208,8 +194,8 @@ lazy_static! {
         let mut component_pool = HashMap::new();
 
         // Load recipe book (done to check that material is valid for a particular component)
-        let recipe::RawRecipeBook(recipes) =
-            recipe::RawRecipeBook::load_expect_cloned("common.recipe_book");
+        let recipe_book = recipe::RawRecipeBook::load_expect("common.recipe_book");
+        let recipes = &recipe_book.read().0;
 
         const ASSET_PREFIX: &str = "common.items.crafting_ing.modular.primary";
 
@@ -309,59 +295,54 @@ pub fn random_weapon(
         let material = Item::new_from_asset_expect(material_id);
         let primary_components = PRIMARY_COMPONENT_POOL
             .get(&(tool, material_id.to_owned()))
-            .map_or(Vec::new(), |components| {
-                components
-                    .iter()
-                    .filter(|(_def, hand)| match (hand_restriction, hand) {
-                        (Some(restriction), Some(hand)) => restriction == *hand,
-                        (None, _) | (_, None) => true,
-                    })
-                    .map(|entry| (1.0, entry))
-                    .collect::<Vec<_>>()
-            });
+            .into_iter()
+            .flatten()
+            .filter(|(_def, hand)| match (hand_restriction, hand) {
+                (Some(restriction), Some(hand)) => restriction == *hand,
+                (None, _) | (_, None) => true,
+            })
+            .collect::<Vec<_>>();
 
         let (primary_component, hand_restriction) = {
             let (def, hand) = primary_components
                 .choose(&mut rng)
-                .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?
-                .1;
+                .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
             let comp = Item::new_from_item_base(
                 ItemBase::Raw(Arc::clone(def)),
-                &[material],
+                vec![material],
                 &ability_map,
                 &msm,
             );
             (comp, hand_restriction.or(*hand))
         };
 
-        let secondary_components =
-            SECONDARY_COMPONENT_POOL
-                .get(&tool)
-                .map_or(Vec::new(), |components| {
-                    components
-                        .iter()
-                        .filter(|(_def, hand)| match (hand_restriction, hand) {
-                            (Some(restriction), Some(hand)) => restriction == *hand,
-                            (None, _) | (_, None) => true,
-                        })
-                        .map(|entry| (1.0, entry))
-                        .collect::<Vec<_>>()
-                });
+        let secondary_components = SECONDARY_COMPONENT_POOL
+            .get(&tool)
+            .into_iter()
+            .flatten()
+            .filter(|(_def, hand)| match (hand_restriction, hand) {
+                (Some(restriction), Some(hand)) => restriction == *hand,
+                (None, _) | (_, None) => true,
+            })
+            .collect::<Vec<_>>();
 
         let secondary_component = {
             let def = &secondary_components
                 .choose(&mut rng)
                 .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
-                .1
                 .0;
-            Item::new_from_item_base(ItemBase::Raw(Arc::clone(def)), &[], &ability_map, &msm)
+            Item::new_from_item_base(
+                ItemBase::Raw(Arc::clone(def)),
+                Vec::new(),
+                &ability_map,
+                &msm,
+            )
         };
 
         // Create modular weapon
-        let components = vec![primary_component, secondary_component];
         Ok(Item::new_from_item_base(
             ItemBase::Modular(ModularBase::Tool),
-            &components,
+            vec![primary_component, secondary_component],
             &ability_map,
             &msm,
         ))
@@ -407,29 +388,17 @@ pub type ModularWeaponComponentKey = (String, String);
 
 pub enum ModularWeaponComponentKeyError {
     MaterialNotFound,
-    NotMainComponent,
 }
 
 pub fn weapon_component_to_key(
-    mod_weap_comp: &dyn ItemDesc,
+    item_def_id: &str,
+    components: &[Item],
 ) -> Result<ModularWeaponComponentKey, ModularWeaponComponentKeyError> {
-    match if let ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { .. }) =
-        &*mod_weap_comp.kind()
-    {
-        let component_id = mod_weap_comp.item_definition_id().to_owned();
-        let material_id = mod_weap_comp
-            .components()
-            .iter()
-            .find_map(|mat| match &*mat.kind() {
-                ItemKind::Ingredient { .. } => Some(mat.item_definition_id().to_owned()),
-                _ => None,
-            });
-        Some((component_id, material_id))
-    } else {
-        None
-    } {
-        Some((component_id, Some(material_id))) => Ok((component_id, material_id)),
-        Some((_component_id, None)) => Err(ModularWeaponComponentKeyError::MaterialNotFound),
-        None => Err(ModularWeaponComponentKeyError::NotMainComponent),
+    match components.iter().find_map(|mat| match &*mat.kind() {
+        ItemKind::Ingredient { .. } => Some(mat.item_definition_id().to_owned()),
+        _ => None,
+    }) {
+        Some(material_id) => Ok((item_def_id.to_owned(), material_id)),
+        None => Err(ModularWeaponComponentKeyError::MaterialNotFound),
     }
 }

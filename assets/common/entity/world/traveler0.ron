@@ -12,12 +12,36 @@
                 (1, Asset("common.loadout.world.traveler0.rawhide")),
             ]),
             active_hands: ([
-                (1, "common.items.weapons.sword.bronze-0"),
-                (1, "common.items.weapons.axe.bronze_axe-0"),
-                (1, "common.items.weapons.hammer.bronze_hammer-0"),
-                (1, "common.items.weapons.bow.bone-0"),
-                (1, "common.items.weapons.staff.fiery_wishing_rod"),
-                (1, "common.items.weapons.sceptre.root_green0"),
+                (1, (
+                    tool: Sword,
+                    material: Bronze,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Axe,
+                    material: Bronze,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Hammer,
+                    material: Bronze,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Bow,
+                    material: Wood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Staff,
+                    material: Wood,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sceptre,
+                    material: Wood,
+                    hands: None,
+                )),
             ], None),
         )),
         items: [

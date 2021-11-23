@@ -12,12 +12,36 @@
                 (1, Asset("common.loadout.world.traveler1.wool")),
             ]),
             active_hands: ([
-                (1, "common.items.weapons.sword.iron-0"),
-                (1, "common.items.weapons.axe.iron_axe-0"),
-                (1, "common.items.weapons.hammer.iron_hammer-0"),
-                (1, "common.items.weapons.bow.hardwood-0"),
-                (1, "common.items.weapons.staff.heated_arm"),
-                (1, "common.items.weapons.sceptre.staff_nature"),
+                (1, (
+                    tool: Sword,
+                    material: Iron,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Axe,
+                    material: Iron,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Hammer,
+                    material: Iron,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Bow,
+                    material: Bamboo,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Staff,
+                    material: Bamboo,
+                    hands: None,
+                )),
+                (1, (
+                    tool: Sceptre,
+                    material: Bamboo,
+                    hands: None,
+                )),
             ], None),
         )),
         items: [

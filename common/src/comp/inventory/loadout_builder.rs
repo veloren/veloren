@@ -72,6 +72,13 @@ impl ItemSpec {
                 };
                 Ok(item)
             },
+            ItemSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => {
+                item::modular::random_weapon(*tool, *material, *hands)
+            },
         }
     }
 
@@ -156,20 +163,6 @@ impl Hands {
                     choice.validate()?;
                 }
                 Ok(())
-            },
-            ItemSpec::ModularWeapon {
-                tool,
-                material,
-                hands,
-            } => {
-                let item = item::modular::random_weapon(*tool, *material, *hands)
-                    .expect("Invalid modular weapon");
-                if !equip_slot.can_hold(&*item.kind()) {
-                    panic!(
-                        "Tried to place {:?} handed {:?} {:?} into {:?}",
-                        hands, material, tool, equip_slot
-                    );
-                }
             },
         }
     }

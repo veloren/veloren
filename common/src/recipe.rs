@@ -11,7 +11,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum RecipeInput {
@@ -127,7 +127,7 @@ impl Recipe {
 
             let crafted_item = Item::new_from_item_base(
                 ItemBase::Raw(Arc::clone(item_def)),
-                &components,
+                components,
                 ability_map,
                 msm,
             );
@@ -247,15 +247,12 @@ pub fn modular_weapon(
 ) -> Result<Item, ModularWeaponError> {
     use modular::ModularComponent;
     // Closure to get inner modular component info from item in a given slot
-    fn unwrap_modular(inv: &Inventory, slot: InvSlotId) -> Option<ModularComponent> {
-        if let Some(ItemKind::ModularComponent(mod_comp)) =
-            inv.get(slot).map(|item| item.kind()).as_deref()
-        {
-            // TODO: Remove
-            Some(mod_comp.clone())
-        } else {
-            None
-        }
+    fn unwrap_modular(inv: &Inventory, slot: InvSlotId) -> Option<Cow<ModularComponent>> {
+        inv.get(slot).and_then(|item| match item.kind() {
+            Cow::Owned(ItemKind::ModularComponent(mod_comp)) => Some(Cow::Owned(mod_comp)),
+            Cow::Borrowed(ItemKind::ModularComponent(mod_comp)) => Some(Cow::Borrowed(mod_comp)),
+            _ => None,
+        })
     }
 
     // Checks if both components are comptabile, and if so returns the toolkind to
@@ -277,13 +274,12 @@ pub fn modular_weapon(
                 hand_restriction: hands_b,
                 ..
             },
-        ) = (primary_component, secondary_component)
+        ) = (&*primary_component, &*secondary_component)
         {
             // Checks that both components are of the same tool kind
             if tool_a == tool_b {
                 // Checks that if both components have a hand restriction, they are the same
-                let hands_check =
-                    hands_a.map_or(true, |hands| hands_b.map_or(true, |hands2| hands == hands2));
+                let hands_check = hands_a.zip(*hands_b).map_or(true, |(a, b)| a == b);
                 if hands_check {
                     Ok(())
                 } else {
@@ -310,10 +306,9 @@ pub fn modular_weapon(
                 .expect("Expected component to exist");
 
             // Create modular weapon
-            let components = vec![primary_component, secondary_component];
             Ok(Item::new_from_item_base(
                 ItemBase::Modular(modular::ModularBase::Tool),
-                &components,
+                vec![primary_component, secondary_component],
                 ability_map,
                 msm,
             ))

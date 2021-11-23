@@ -82,6 +82,10 @@ pub enum Quality {
     Debug,     // Red
 }
 
+impl Quality {
+    pub const MIN: Self = Self::Low;
+}
+
 pub trait TagExampleInfo {
     fn name(&self) -> &str;
     /// What item to show in the crafting hud if the player has nothing with the
@@ -379,20 +383,19 @@ where
 {
     serializer.serialize_str(match field {
         ItemBase::Raw(item_def) => &item_def.item_definition_id,
-        // TODO: Encode this data somehow
         ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
     })
 }
 
-// Custom de-serialization for ItemDef to retrieve the ItemDef from assets using
-// its asset specifier (item_definition_id)
+// Custom de-serialization for ItemBase to retrieve the ItemBase from assets
+// using its asset specifier (item_definition_id)
 fn deserialize_item_base<'de, D>(deserializer: D) -> Result<ItemBase, D::Error>
 where
     D: de::Deserializer<'de>,
 {
-    struct ItemDefStringVisitor;
+    struct ItemBaseStringVisitor;
 
-    impl<'de> de::Visitor<'de> for ItemDefStringVisitor {
+    impl<'de> de::Visitor<'de> for ItemBaseStringVisitor {
         type Value = ItemBase;
 
         fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -413,7 +416,7 @@ where
         }
     }
 
-    deserializer.deserialize_str(ItemDefStringVisitor)
+    deserializer.deserialize_str(ItemBaseStringVisitor)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -581,6 +584,7 @@ impl PartialEq for Item {
             (&self.item_base, &other.item_base)
         {
             self_def.item_definition_id == other_def.item_definition_id
+                && self.components == other.components
         } else {
             false
         }
@@ -592,6 +596,15 @@ impl assets::Compound for ItemDef {
         cache: &assets::AssetCache<S>,
         specifier: &str,
     ) -> Result<Self, BoxedError> {
+        if specifier.starts_with("veloren.core.") {
+            return Err(format!(
+                "Attempted to load an asset from a specifier reserved for core veloren functions. \
+                 Specifier: {}",
+                specifier
+            )
+            .into());
+        }
+
         let RawItemDef {
             name,
             description,
@@ -650,17 +663,10 @@ impl Item {
 
     pub fn new_from_item_base(
         inner_item: ItemBase,
-        input_components: &[Item],
+        components: Vec<Item>,
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Self {
-        let mut components = Vec::new();
-        components.extend(
-            input_components
-                .iter()
-                .map(|comp| comp.duplicate(ability_map, msm)),
-        );
-
         let item_hash = {
             let mut s = DefaultHasher::new();
             inner_item.item_definition_id().hash(&mut s);
@@ -684,8 +690,12 @@ impl Item {
     /// Creates a new instance of an `Item` from the provided asset identifier
     /// Panics if the asset does not exist.
     pub fn new_from_asset_expect(asset_specifier: &str) -> Self {
-        let err_string = format!("Expected asset to exist: {}", asset_specifier);
-        Item::new_from_asset(asset_specifier).expect(&err_string)
+        Item::new_from_asset(asset_specifier).unwrap_or_else(|err| {
+            panic!(
+                "Expected asset to exist: {}, instead got error {:?}",
+                asset_specifier, err
+            );
+        })
     }
 
     /// Creates a Vec containing one of each item that matches the provided
@@ -709,7 +719,7 @@ impl Item {
         let ability_map = AbilityMap::default();
         Ok(Item::new_from_item_base(
             inner_item,
-            &[],
+            Vec::new(),
             &ability_map,
             &msm,
         ))
@@ -718,12 +728,17 @@ impl Item {
     /// Duplicates an item, creating an exact copy but with a new item ID
     #[must_use]
     pub fn duplicate(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Self {
+        let duplicated_components = self
+            .components
+            .iter()
+            .map(|comp| comp.duplicate(ability_map, msm))
+            .collect();
         let mut new_item = Item::new_from_item_base(
             match &self.item_base {
                 ItemBase::Raw(item_def) => ItemBase::Raw(Arc::clone(item_def)),
-                ItemBase::Modular(mod_base) => ItemBase::Modular(mod_base.duplicate()),
+                ItemBase::Modular(mod_base) => ItemBase::Modular(mod_base.clone()),
             },
-            &self.components,
+            duplicated_components,
             ability_map,
             msm,
         );
@@ -812,9 +827,6 @@ impl Item {
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) {
-        // TODO: hook for typechecking (not needed atm if this is only used by DB
-        // persistence, but will definitely be needed once enhancement slots are
-        // added to prevent putting a sword into another sword)
         self.components.push(component);
         // adding a component changes the stats, so recalculate the ItemConfig
         self.update_item_config(ability_map, msm);
@@ -981,7 +993,7 @@ impl Item {
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
         Self::new_from_item_base(
             ItemBase::Raw(Arc::new(ItemDef::create_test_itemdef_from_kind(kind))),
-            &[],
+            Vec::new(),
             &Default::default(),
             &Default::default(),
         )
@@ -1056,7 +1068,7 @@ impl Component for Item {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct ItemDrop(pub Item);
 
 impl Component for ItemDrop {

@@ -8,7 +8,7 @@ use crate::{
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
-    ops::{AddAssign, DivAssign, Mul, MulAssign, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub},
     time::Duration,
 };
 
@@ -139,28 +139,39 @@ impl Asset for Stats {
     const EXTENSION: &'static str = "ron";
 }
 
-impl AddAssign<Stats> for Stats {
-    fn add_assign(&mut self, other: Stats) {
-        self.equip_time_secs += other.equip_time_secs;
-        self.power += other.power;
-        self.effect_power += other.effect_power;
-        self.speed += other.speed;
-        self.crit_chance += other.crit_chance;
-        self.range += other.range;
-        self.energy_efficiency += other.energy_efficiency;
-        self.buff_strength += other.buff_strength;
+impl Add<Stats> for Stats {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self {
+        Self {
+            equip_time_secs: self.equip_time_secs + other.equip_time_secs,
+            power: self.power + other.power,
+            effect_power: self.effect_power + other.effect_power,
+            speed: self.speed + other.speed,
+            crit_chance: self.crit_chance + other.crit_chance,
+            range: self.range + other.range,
+            energy_efficiency: self.energy_efficiency + other.energy_efficiency,
+            buff_strength: self.buff_strength + other.buff_strength,
+        }
     }
 }
-impl MulAssign<Stats> for Stats {
-    fn mul_assign(&mut self, other: Stats) {
-        self.equip_time_secs *= other.equip_time_secs;
-        self.power *= other.power;
-        self.effect_power *= other.effect_power;
-        self.speed *= other.speed;
-        self.crit_chance *= other.crit_chance;
-        self.range *= other.range;
-        self.energy_efficiency *= other.energy_efficiency;
-        self.buff_strength *= other.buff_strength;
+impl AddAssign<Stats> for Stats {
+    fn add_assign(&mut self, other: Stats) { *self = *self + other; }
+}
+impl Sub<Stats> for Stats {
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        Self {
+            equip_time_secs: self.equip_time_secs - other.equip_time_secs,
+            power: self.power - other.power,
+            effect_power: self.effect_power - other.effect_power,
+            speed: self.speed - other.speed,
+            crit_chance: self.crit_chance - other.crit_chance,
+            range: self.range - other.range,
+            energy_efficiency: self.range - other.energy_efficiency,
+            buff_strength: self.buff_strength - other.buff_strength,
+        }
     }
 }
 impl Mul<Stats> for Stats {
@@ -179,34 +190,28 @@ impl Mul<Stats> for Stats {
         }
     }
 }
-impl DivAssign<usize> for Stats {
-    fn div_assign(&mut self, scalar: usize) {
-        self.equip_time_secs /= scalar as f32;
-        self.power /= scalar as f32;
-        self.effect_power /= scalar as f32;
-        self.speed /= scalar as f32;
-        self.crit_chance /= scalar as f32;
-        self.range /= scalar as f32;
-        self.energy_efficiency /= scalar as f32;
-        self.buff_strength /= scalar as f32;
-    }
+impl MulAssign<Stats> for Stats {
+    fn mul_assign(&mut self, other: Stats) { *self = *self * other; }
 }
-
-impl Sub<Stats> for Stats {
+impl Div<usize> for Stats {
     type Output = Self;
 
-    fn sub(self, other: Self) -> Self::Output {
+    fn div(self, scalar: usize) -> Self {
+        let scalar = scalar as f32;
         Self {
-            equip_time_secs: self.equip_time_secs - other.equip_time_secs,
-            power: self.power - other.power,
-            effect_power: self.effect_power - other.effect_power,
-            speed: self.speed - other.speed,
-            crit_chance: self.crit_chance - other.crit_chance,
-            range: self.range - other.range,
-            energy_efficiency: self.range - other.energy_efficiency,
-            buff_strength: self.buff_strength - other.buff_strength,
+            equip_time_secs: self.equip_time_secs / scalar,
+            power: self.power / scalar,
+            effect_power: self.effect_power / scalar,
+            speed: self.speed / scalar,
+            crit_chance: self.crit_chance / scalar,
+            range: self.range / scalar,
+            energy_efficiency: self.energy_efficiency / scalar,
+            buff_strength: self.buff_strength / scalar,
         }
     }
+}
+impl DivAssign<usize> for Stats {
+    fn div_assign(&mut self, scalar: usize) { *self = *self / scalar; }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -262,11 +267,9 @@ impl Tool {
 
     pub fn base_effect_power(&self) -> f32 { self.stats.effect_power }
 
-    pub fn base_speed(&self) -> f32 {
-        // Has floor to prevent infinite durations being created later down due to a
-        // divide by zero
-        self.stats.speed.max(0.1)
-    }
+    /// Has floor to prevent infinite durations being created later down due to
+    /// a divide by zero
+    pub fn base_speed(&self) -> f32 { self.stats.speed.max(0.1) }
 
     pub fn base_crit_chance(&self) -> f32 { self.stats.crit_chance }
 
