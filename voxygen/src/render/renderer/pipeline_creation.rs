@@ -415,8 +415,8 @@ fn create_ingame_and_shadow_pipelines(
         clouds_task,
         bloom_task,
         postprocess_task,
-        // TODO: if these are ever actually optionally done, counting them 
-        // as tasks to do beforehand seems kind of iffy since they will just 
+        // TODO: if these are ever actually optionally done, counting them
+        // as tasks to do beforehand seems kind of iffy since they will just
         // be skipped
         point_shadow_task,
         terrain_directed_shadow_task,

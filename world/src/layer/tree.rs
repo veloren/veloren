@@ -35,6 +35,7 @@ static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
 pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
     // TODO: Get rid of this
+    #[allow(clippy::large_enum_variant)]
     enum TreeModel {
         Structure(Structure),
         Procedural(ProceduralTree, StructureBlock),

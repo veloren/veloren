@@ -125,8 +125,8 @@ fn main() {
             logs_dir.join(&log_filename).display(),
             reason,
             panic_info,
-            common::util::GIT_HASH.to_string(),
-            common::util::GIT_DATE.to_string()
+            *common::util::GIT_HASH,
+            *common::util::GIT_DATE
         );
 
         error!(

@@ -94,9 +94,12 @@ impl ItemSpec {
         match self {
             ItemSpec::Item(specifier) => {
                 let item = Item::new_from_asset_expect(specifier);
-                if !equip_slot.can_hold(&item.kind) {
-                    panic!("Tried to place {} into {:?}", specifier, equip_slot);
-                }
+                assert!(
+                    equip_slot.can_hold(&item.kind),
+                    "Tried to place {} into {:?}",
+                    specifier,
+                    equip_slot
+                );
                 std::mem::drop(item);
             },
             ItemSpec::Choice(items) => {

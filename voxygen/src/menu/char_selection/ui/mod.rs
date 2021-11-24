@@ -812,8 +812,14 @@ impl Controls {
                     };
 
                 // TODO: tooltips
-                let [ref mut human_button, ref mut orc_button, ref mut dwarf_button, ref mut elf_button, ref mut undead_button, ref mut danari_button] =
-                    species_buttons;
+                let [
+                    ref mut human_button,
+                    ref mut orc_button,
+                    ref mut dwarf_button,
+                    ref mut elf_button,
+                    ref mut undead_button,
+                    ref mut danari_button,
+                ] = species_buttons;
                 let species = Column::with_children(vec![
                     Row::with_children(vec![
                         icon_button_tooltip(
@@ -874,8 +880,14 @@ impl Controls {
                 ])
                 .spacing(1);
 
-                let [ref mut sword_button, ref mut swords_button, ref mut axe_button, ref mut hammer_button, ref mut bow_button, ref mut staff_button] =
-                    tool_buttons;
+                let [
+                    ref mut sword_button,
+                    ref mut swords_button,
+                    ref mut axe_button,
+                    ref mut hammer_button,
+                    ref mut bow_button,
+                    ref mut staff_button,
+                ] = tool_buttons;
                 let tool = Column::with_children(vec![
                     Row::with_children(vec![
                         icon_button_tooltip(
@@ -1245,7 +1257,7 @@ impl Controls {
                 i18n.get("main.login.server_version"),
                 mismatched_version,
                 i18n.get("main.login.client_version"),
-                common::util::GIT_HASH.to_string()
+                *common::util::GIT_HASH
             ))
             .size(self.fonts.cyri.scale(18))
             .color(iced::Color::from_rgb(1.0, 0.0, 0.0))
@@ -1356,11 +1368,11 @@ impl Controls {
                     *offhand = value.1;
                     inventory.replace_loadout_item(
                         EquipSlot::ActiveMainhand,
-                        mainhand.map(|specifier| Item::new_from_asset_expect(specifier)),
+                        mainhand.map(Item::new_from_asset_expect),
                     );
                     inventory.replace_loadout_item(
                         EquipSlot::ActiveOffhand,
-                        offhand.map(|specifier| Item::new_from_asset_expect(specifier)),
+                        offhand.map(Item::new_from_asset_expect),
                     );
                 }
             },

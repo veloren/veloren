@@ -2348,15 +2348,12 @@ impl Hud {
                 (time_in_seconds as u64 % 86400) as u32,
                 0,
             );
-            Text::new(&format!(
-                "Time: {}",
-                current_time.format("%H:%M").to_string()
-            ))
-            .color(TEXT_COLOR)
-            .down_from(self.ids.loaded_distance, V_PAD)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(14))
-            .set(self.ids.time, ui_widgets);
+            Text::new(&format!("Time: {}", current_time.format("%H:%M")))
+                .color(TEXT_COLOR)
+                .down_from(self.ids.loaded_distance, V_PAD)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .set(self.ids.time, ui_widgets);
 
             // Number of entities
             let entity_count = client.state().ecs().entities().join().count();
@@ -3875,7 +3872,7 @@ impl Hud {
         // thread pool
         let _pool = client.state().ecs().read_resource::<SlowJobPool>();
         self.ui.maintain(
-            &mut global_state.window.renderer_mut(),
+            global_state.window.renderer_mut(),
             None,
             //Some(&pool),
             Some(proj_mat * view_mat * Mat4::translation_3d(-focus_off)),

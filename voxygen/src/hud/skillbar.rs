@@ -610,7 +610,7 @@ impl<'a> Skillbar<'a> {
                     .abilities
                     .get(i)
                     .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
-                    .map(|id| util::ability_description(id)),
+                    .map(util::ability_description),
             })
         };
 

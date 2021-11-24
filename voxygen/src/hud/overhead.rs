@@ -148,12 +148,12 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
-                + if info.health.map_or(false, |h| should_show_healthbar(h)) {
+                + if info.health.map_or(false, should_show_healthbar) {
                     5 + if info.energy.is_some() { 1 } else { 0 }
                 } else {
                     0
                 }
-                + if info.health.map_or(false, |h| decayed_health_displayed(h)) {
+                + if info.health.map_or(false, decayed_health_displayed) {
                     1
                 } else {
                     0
@@ -446,7 +446,7 @@ impl<'a> Widget for Overhead<'a> {
                         .parent(id)
                         .set(state.ids.level, ui);
                     }
-                }
+                },
                 _ => {},
             }
         }

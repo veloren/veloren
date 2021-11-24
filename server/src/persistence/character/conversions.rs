@@ -481,7 +481,7 @@ pub fn convert_body_from_database(
         _ => {
             return Err(PersistenceError::ConversionError(format!(
                 "{} is not a supported body type for deserialization",
-                variant.to_string()
+                variant
             )));
         },
     })
@@ -516,8 +516,7 @@ fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, P
     common::comp::Item::new_from_asset(item_definition_id).map_err(|err| {
         PersistenceError::AssetError(format!(
             "Error loading item asset: {} - {}",
-            item_definition_id,
-            err.to_string()
+            item_definition_id, err
         ))
     })
 }

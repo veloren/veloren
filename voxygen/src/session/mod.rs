@@ -111,9 +111,9 @@ impl SessionState {
             #[cfg(not(target_os = "macos"))]
             if let Some(uid) = client.uid() {
                 let identiy = if let Some(info) = client.player_list().get(&uid) {
-                    format!("{}-{}", info.player_alias, uid.to_string())
+                    format!("{}-{}", info.player_alias, uid)
                 } else {
-                    format!("unknown-{}", uid.to_string())
+                    format!("unknown-{}", uid)
                 };
                 mumble_link.set_identity(&identiy);
                 // TODO: evaluate context
@@ -285,11 +285,7 @@ impl SessionState {
                 client::Event::Kicked(reason) => {
                     global_state.info_message = Some(format!(
                         "{}: {}",
-                        global_state
-                            .i18n
-                            .read()
-                            .get("main.login.kicked")
-                            .to_string(),
+                        global_state.i18n.read().get("main.login.kicked"),
                         reason
                     ));
                     return Ok(TickAction::Disconnect);
@@ -842,7 +838,7 @@ impl PlayState for SessionState {
                             },
                             _ => {},
                         }
-                    }
+                    },
                     Event::AnalogGameInput(input) => match input {
                         AnalogGameInput::MovementX(v) => {
                             self.key_state.analog_matrix.x = v;
@@ -1502,7 +1498,7 @@ impl PlayState for SessionState {
     /// Render the session to the screen.
     ///
     /// This method should be called once per frame.
-    fn render<'a>(&'a self, mut drawer: &mut Drawer<'a>, settings: &Settings) {
+    fn render<'a>(&'a self, drawer: &mut Drawer<'a>, settings: &Settings) {
         span!(_guard, "render", "<Session as PlayState>::render");
 
         // Render world
@@ -1529,7 +1525,7 @@ impl PlayState for SessionState {
             };
 
             self.scene.render(
-                &mut drawer,
+                drawer,
                 client.state(),
                 client.entity(),
                 client.get_tick(),

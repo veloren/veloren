@@ -553,7 +553,7 @@ impl<'a> System<'a> for Sys {
                                         }
                                     }
                                 }
-                            }
+                            },
                             _ => {},
                         }
 
@@ -1464,7 +1464,7 @@ impl<'a> AgentData<'a> {
                         {
                             value +=
                                 data.strength * data.duration.map_or(0.0, |d| d.as_secs() as f32);
-                        }
+                        },
                         _ => {},
                     }
                 }

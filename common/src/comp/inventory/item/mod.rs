@@ -779,7 +779,7 @@ impl Item {
 
     /// Returns an iterator that drains items contained within the item's slots
     pub fn drain(&mut self) -> impl Iterator<Item = Item> + '_ {
-        self.slots.iter_mut().filter_map(|x| mem::take(x))
+        self.slots.iter_mut().filter_map(mem::take)
     }
 
     pub fn item_definition_id(&self) -> &str { &self.item_def.item_definition_id }

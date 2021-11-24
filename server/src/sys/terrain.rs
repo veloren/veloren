@@ -378,6 +378,8 @@ impl<'a> System<'a> for Sys {
 /// Convinient structure to use when you need to create new npc
 /// from EntityInfo
 // TODO: better name?
+// TODO: if this is send around network, optimize the large_enum_variant
+#[allow(clippy::large_enum_variant)]
 pub enum NpcData {
     Data {
         pos: Pos,

@@ -119,7 +119,7 @@ pub fn handle_process_trade_action(
                                 .ecs()
                                 .read_component::<Inventory>()
                                 .get(e)
-                                .map(|i| ReducedInventory::from(i));
+                                .map(ReducedInventory::from);
                             // Get price info from the first Agent in the trade (currently, an
                             // Agent will never initiate a trade with another agent though)
                             #[cfg(feature = "worldgen")]
