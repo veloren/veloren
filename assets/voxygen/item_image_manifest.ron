@@ -2509,7 +2509,7 @@
     ),
     Consumable("common.items.food.apple_stick"): VoxTrans(
         "voxel.object.apple_stick",
-        (0.3, 0.0, 0.0), (-55.0, 60.0, 5.0), 1.0,
+        (-0.5, -0.3, 0.0), (-55.0, 60.0, 5.0), 1.0,
     ),
     Consumable("common.items.food.mushroom_stick"): VoxTrans(
         "voxel.object.mushroom_stick",
@@ -2627,7 +2627,7 @@
     ),
     Ingredient("SewingSet"): VoxTrans(
         "voxel.object.sewing_set",
-        (0.0, 0.5, 0.0), (-50.0, 10.0, 5.0), 1.0,
+        (0.0, -0.1, 0.0), (-45.0, 15.0, 15.0), 1.0,
     ),
     Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
@@ -2659,7 +2659,7 @@
     ),
     Ingredient("IcyShard"): VoxTrans(
         "voxel.object.ice_shard",
-        (-1.0, 0.7, 0.0), (-60.0, -30.0, 10.0), 0.9,
+        (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
     ),
     Ingredient("FlayerBagDamaged"): Png(
         "element.items.item_flayer_soul",
@@ -2690,7 +2690,7 @@
     ),
     Ingredient("ThickLeather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.thick_leather",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (-0.3, 0.0, 0.0), (-20.0, 15.0, 20.0), 0.9,
     ),
     Ingredient("RigidLeather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.rigid_leather",
