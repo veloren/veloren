@@ -1328,8 +1328,8 @@ impl<'a> AgentData<'a> {
                     } else {
                         if balance1 > 0.0 {
                             let msg = format!(
-                                "That only covers {:.1}% of my costs!",
-                                balance0 / balance1 * 100.0
+                                "That only covers {:.0}% of my costs!",
+                                (balance0 / balance1 * 100.0).floor()
                             );
                             if let Some(tgt_data) = &agent.target {
                                 // If talking with someone in particular, "tell" it only to them
