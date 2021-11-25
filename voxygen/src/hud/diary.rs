@@ -42,6 +42,8 @@ widget_ids! {
         close,
         title,
         content_align,
+        section_imgs[],
+        section_btns[],
         // Skill tree stuffs
         exp_bar_bg,
         exp_bar_frame,
@@ -188,7 +190,9 @@ widget_ids! {
         skill_general_climb_2,
         skill_general_swim_0,
         skill_general_swim_1,
-        // Ability selection stuffs
+        // Ability selection
+        spellbook_btn,
+        spellbook_btn_bg,
         ability_select_title,
         ability_scroll_align,
         ability_scroller,
@@ -296,6 +300,8 @@ const TREES: [&str; 8] = [
     "Mining",
 ];
 
+const SECTIONS: [&str; 2] = ["Abilities", "Skill-Trees"];
+
 pub enum Event {
     Close,
     ChangeSkillTree(SelectedSkillTree),
@@ -305,6 +311,7 @@ pub enum Event {
     ChangeAbility(usize, AuxiliaryAbility),
 }
 
+#[derive(PartialEq)]
 pub enum DiarySection {
     SkillTrees,
     AbilitySelection,
@@ -359,26 +366,10 @@ impl<'a> Widget for Diary<'a> {
             .set(state.frame, ui);
 
         // Icon
-        // Image::new(self.imgs.spellbook_button)
-        //     .w_h(30.0, 27.0)
-        //     .top_left_with_margins_on(state.frame, 8.0, 8.0)
-        //     .set(state.icon, ui);
-        // Hack to get this to work for now, use spellbook image in top left as a button
-        if Button::image(self.imgs.spellbook_button)
+        Image::new(self.imgs.spellbook_button)
             .w_h(30.0, 27.0)
             .top_left_with_margins_on(state.frame, 8.0, 8.0)
-            .set(state.icon, ui)
-            .was_clicked()
-        {
-            match self.show.diary_fields.section {
-                DiarySection::SkillTrees => {
-                    events.push(Event::ChangeSection(DiarySection::AbilitySelection))
-                },
-                DiarySection::AbilitySelection => {
-                    events.push(Event::ChangeSection(DiarySection::SkillTrees))
-                },
-            }
-        }
+            .set(state.icon, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
@@ -406,7 +397,80 @@ impl<'a> Widget for Diary<'a> {
             .set(state.content_align, ui);
 
         // Contents
+        // Section buttons
+        let sel_section = &self.show.diary_fields.section;
 
+        // Update len
+        state.update(|s| {
+            s.section_imgs
+                .resize(SECTIONS.len(), &mut ui.widget_id_generator())
+        });
+        state.update(|s| {
+            s.section_btns
+                .resize(SECTIONS.len(), &mut ui.widget_id_generator())
+        });
+        for (i, section_name) in SECTIONS.iter().copied().enumerate() {
+            let section = match section_from_str(section_name) {
+                Some(st) => st,
+                None => {
+                    tracing::warn!("unexpected section name: {}", section_name);
+                    continue;
+                },
+            };
+            // Section Icons
+            let section_desc = match section_name {
+                "Abilities" => "List of your currently available abilities.",
+                "Skill-Trees" => "Test",
+                _ => "",
+            };
+            let btn_img = {
+                let img = match section_name {
+                    "Abilities" => self.imgs.spellbook_ico,
+                    "Skill-Trees" => self.imgs.skilltree_ico,
+                    _ => self.imgs.nothing,
+                };
+                if i == 0 {
+                    Image::new(img).top_left_with_margins_on(state.content_align, 0.0, -50.0)
+                } else {
+                    Image::new(img).down_from(state.section_btns[i - 1], 5.0)
+                }
+            };
+            btn_img.w_h(50.0, 50.0).set(state.section_imgs[i], ui);
+            // Section Buttons
+            let border_image = if section == *sel_section {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border
+            };
+
+            let hover_image = if section == *sel_section {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_mo
+            };
+
+            let press_image = if section == *sel_section {
+                self.imgs.wpn_icon_border_pressed
+            } else {
+                self.imgs.wpn_icon_border_press
+            };
+            let section_buttons = Button::image(border_image)
+                .w_h(50.0, 50.0)
+                .hover_image(hover_image)
+                .press_image(press_image)
+                .middle_of(state.section_imgs[i])
+                .with_tooltip(
+                    self.tooltip_manager,
+                    section_name,
+                    section_desc,
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.section_btns[i], ui);
+            if section_buttons.was_clicked() {
+                events.push(Event::ChangeSection(section))
+            }
+        }
         match self.show.diary_fields.section {
             DiarySection::SkillTrees => {
                 // Skill Trees
@@ -528,6 +592,55 @@ impl<'a> Widget for Diary<'a> {
                         events.push(Event::ChangeSkillTree(skill_group))
                     }
                 }
+
+                // Spellbook Icon BG and icon
+                let spellbook_btn = Button::image(
+                    if self.show.diary_fields.section == DiarySection::AbilitySelection {
+                        self.imgs.wpn_icon_border_pressed
+                    } else {
+                        self.imgs.wpn_icon_border
+                    },
+                )
+                .w_h(50.0, 50.0)
+                .hover_image(
+                    if self.show.diary_fields.section == DiarySection::AbilitySelection {
+                        self.imgs.wpn_icon_border_pressed
+                    } else {
+                        self.imgs.wpn_icon_border_mo
+                    },
+                )
+                .press_image(
+                    if self.show.diary_fields.section == DiarySection::AbilitySelection {
+                        self.imgs.wpn_icon_border_pressed
+                    } else {
+                        self.imgs.wpn_icon_border_press
+                    },
+                )
+                .top_left_with_margins_on(state.content_align, 10.0, 5.0)
+                .with_tooltip(
+                    self.tooltip_manager,
+                    "Spellbook",
+                    "",
+                    &diary_tooltip,
+                    TEXT_COLOR,
+                )
+                .set(state.spellbook_btn_bg, ui);
+                if spellbook_btn.was_clicked() {
+                    match self.show.diary_fields.section {
+                        DiarySection::SkillTrees => {
+                            events.push(Event::ChangeSection(DiarySection::AbilitySelection))
+                        },
+                        DiarySection::AbilitySelection => {
+                            events.push(Event::ChangeSection(DiarySection::SkillTrees))
+                        },
+                    }
+                }
+
+                Image::new(self.imgs.spellbook_button)
+                    .w_h(40.0, 36.0)
+                    .middle_of(state.spellbook_btn_bg)
+                    .graphics_for(state.spellbook_btn_bg)
+                    .set(state.spellbook_btn, ui);
 
                 // Exp Bars and Rank Display
                 let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
@@ -880,6 +993,14 @@ fn skill_tree_from_str(string: &str) -> Option<SelectedSkillTree> {
         "Bow" => Some(SelectedSkillTree::Weapon(ToolKind::Bow)),
         "Fire Staff" => Some(SelectedSkillTree::Weapon(ToolKind::Staff)),
         "Mining" => Some(SelectedSkillTree::Weapon(ToolKind::Pick)),
+        _ => None,
+    }
+}
+
+fn section_from_str(string: &str) -> Option<DiarySection> {
+    match string {
+        "Abilities" => Some(DiarySection::AbilitySelection),
+        "Skill-Trees" => Some(DiarySection::SkillTrees),
         _ => None,
     }
 }
