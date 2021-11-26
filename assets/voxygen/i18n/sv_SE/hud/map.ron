@@ -10,7 +10,7 @@
         "hud.map.difficulty": "Svårighet",
         "hud.map.towns": "Samhällen",
         "hud.map.castles": "Borgar",
-        "hud.map.dungeons": "Dungeons", // TODO translate dungeon
+        "hud.map.dungeons": "Dungeons",
         "hud.map.caves": "Grottor",
         "hud.map.cave": "Grotta",
         "hud.map.peaks": "Berg",
@@ -19,8 +19,8 @@
         "hud.map.tree": "Jätteträd",
         "hud.map.town": "Samhälle",
         "hud.map.castle": "Borg",
-        "hud.map.dungeon": "Dungeon", // TODO
-        "hud.map.difficulty_dungeon": "Dungeon\n\nSvårighet: {difficulty}", // TODO
+        "hud.map.dungeon": "Dungeon",
+        "hud.map.difficulty_dungeon": "Dungeon\n\nSvårighet: {difficulty}",
         "hud.map.drag": "Drag",
         "hud.map.zoom": "Zooma",
         "hud.map.mid_click": "Markera landmärke",

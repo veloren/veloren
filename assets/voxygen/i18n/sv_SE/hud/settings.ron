@@ -20,8 +20,8 @@
         "hud.settings.opacity": "Transparens",
         "hud.settings.hotbar": "Snabbåtkomst",
         "hud.settings.toggle_shortcuts": "Växla genvägar",
-        "hud.settings.buffs_skillbar": "Buffs at Skillbar", // TODO
-        "hud.settings.buffs_mmap": "Buffs at Minimap", // TODO
+        "hud.settings.buffs_skillbar": "Effekter vid Förmågomätarna",
+        "hud.settings.buffs_mmap": "Effekter vid Minikartan",
         "hud.settings.toggle_bar_experience": "Visa/dölj erfarenhetsmätare",
         "hud.settings.scrolling_combat_text": "Rullande stridstext",
         "hud.settings.single_damage_number": "Ett enda skadenummer",
