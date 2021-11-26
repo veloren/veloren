@@ -23,7 +23,7 @@
         // Tutorial Button
         "hud.tutorial_btn": r#"Instruktioner"#,
         "hud.tutorial_click_here": r#"Tryck [ {key} ] för att frigöra din muspekare och klicka på den här knappen!"#,
-        "hud.tutorial_elements": r#"Crafting"#, // TODO: translate crafting
+        "hud.tutorial_elements": r#"Tillverkning"#,
 
 "hud.temp_quest_headline": r#"Var hälsad!"#,
 "hud.temp_quest_text": r#"Du kan börja din färd med att utforska den här byn och samla ihop lite förnödenheter.

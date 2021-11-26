@@ -75,8 +75,8 @@ https://veloren.net/account/."#,
             "Du kan skriva /group eller /g för att endast prata med spelare i din nuvarande grupp.",
             "Använd /tell följt av ett spelarnamn och meddelande för att kommunicera direkt med en spelare.",
             "Håll ett öga öppet för mat, kistor och andra fynd som finns utspridda över hela världen!",
-            "Inventory filled with food? Try crafting better food from it!", /// TODO translate crafting
-            "Wondering what there is to do? Try out one of the dungeons marked on the map!", /// TODO translate dungeon
+            "Är dina väskor fyllda med mat? Testa att tillverka bättre mat från den!",
+            "Undrar du vad det finns att göra? Testa på en av dungeonsarna markerade på kartan!",
             "Glöm inte anpassa grafiken för din dator. Tryck '{gameinput.settings}' för att öppna inställningarna.",
             "Delad glädje är dubbel glädje! Tryck '{gameinput.social}' för att se vilka som spelar just nu.",
             "Tryck '{gameinput.dance}' för att dansa. Party!",
@@ -85,8 +85,10 @@ https://veloren.net/account/."#,
             "Om du vill gå med i utvecklargruppen eller bara snacka med oss får du gärna logga in på vår Discord-server.",
             "Du kan välja att visa din hälsostatus i inställningarna.",
             "Sitt nära en lägereld (tryck '{gameinput.sit}') för att långsamt återhämta dig från skador.",
-            "Behöver du fler säckar eller bättre rustning för din fortsatta färd? Tryck '{gameinput.crafting}' för att öppna the crafting menu!", /// TODO translate crafting
-            "Försök att hoppa när du rullar genom kreatur.",
+            "Behöver du fler väskor eller bättre rustning för din fortsatta färd? Tryck '{gameinput.crafting}' för att öppna tillverkningsmenyn!",
+            "Tryck '{gameinput.roll}' för att rulla. Det är användbart att rulla för att röra sig fortare och undvika fiendernas attacker.",
+            "Undrar du vad et föremål används till? Sök efter 'input:<item name>' i tillverkningmenyn för att se vilka recept det används i.",
+            "Har du hittat något coolt? Ta en bild av det med '{gameinput.screenshot}'."
         ],
     }
 )

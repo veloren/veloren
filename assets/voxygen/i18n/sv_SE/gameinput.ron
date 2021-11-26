@@ -16,7 +16,7 @@
         "gameinput.slot8": "Snabbåtkomst ruta 8",
         "gameinput.slot9": "Snabbåtkomst ruta 9",
         "gameinput.slot10": "Snabbåtkomst ruta 10",
-        "gameinput.swaploadout": "Swap Loadout", // TODO
+        "gameinput.swaploadout": "Byt utrustning",
         "gameinput.togglecursor": "Visa/dölj mus",
         "gameinput.help": "Visa/dölj hjälpfönster",
         "gameinput.toggleinterface": "Visa/dölj gränssnitt",
@@ -58,7 +58,7 @@
         "gameinput.acceptgroupinvite": "Acceptera gruppinbjudan",
         "gameinput.declinegroupinvite": "Avböj gruppinbjudan",
         "gameinput.cyclecamera": "Byt kamera",
-        "gameinput.crafting": "Crafting", // TODO translate crafting
+        "gameinput.crafting": "Tillverkning",
         "gameinput.fly": "Flyg",
         "gameinput.sneak": "Smyg",
         "gameinput.swimdown": "Dyk neråt",
