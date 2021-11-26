@@ -51,7 +51,7 @@ fn main() -> io::Result<()> {
     let (_guards, _guards2) = if basic {
         (vec![], common_frontend::init_stdout(None))
     } else {
-        (common_frontend::init(None, || LOG.clone()), vec![])
+        (common_frontend::init(None, &|| LOG.clone()), vec![])
     };
 
     // Load settings

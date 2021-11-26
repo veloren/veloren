@@ -560,7 +560,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "serde",
- "time",
+ "time 0.1.44",
  "winapi 0.3.9",
 ]
 
@@ -3009,9 +3009,9 @@ dependencies = [
 
 [[package]]
 name = "matchers"
-version = "0.0.1"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f099785f7595cc4b4553a174ce30dd7589ef93391ff414dbb67f62392b9e0ce1"
+checksum = "8263075bb86c5a1b1427b5ae862e8889656f126e9f77c484496e8b47cf5c5558"
 dependencies = [
  "regex-automata",
 ]
@@ -5628,6 +5628,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "time"
+version = "0.3.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "41effe7cfa8af36f439fac33861b66b049edc6f9a32331e2312660529c1c24ad"
+dependencies = [
+ "itoa",
+ "libc",
+]
+
+[[package]]
 name = "tinytemplate"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5747,13 +5757,13 @@ dependencies = [
 
 [[package]]
 name = "tracing-appender"
-version = "0.1.2"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9965507e507f12c8901432a33e31131222abac31edd90cabbcf85cf544b7127a"
+checksum = "94571df2eae3ed4353815ea5a90974a594a1792d8782ff2cbcc9392d1101f366"
 dependencies = [
- "chrono",
  "crossbeam-channel",
- "tracing-subscriber 0.2.25",
+ "time 0.3.5",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -5789,32 +5799,21 @@ dependencies = [
 
 [[package]]
 name = "tracing-subscriber"
-version = "0.2.25"
+version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0e0d2eaa99c3c2e41547cfa109e910a68ea03823cccad4a0525dcbc9b01e8c71"
+checksum = "7507ec620f809cdf07cccb5bc57b13069a88031b795efd4079b1c71b66c1613d"
 dependencies = [
  "ansi_term 0.12.1",
- "chrono",
  "lazy_static",
  "matchers",
  "regex",
  "sharded-slab",
  "smallvec",
  "thread_local",
+ "time 0.3.5",
  "tracing",
  "tracing-core",
  "tracing-log",
-]
-
-[[package]]
-name = "tracing-subscriber"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "80a4ddde70311d8da398062ecf6fc2c309337de6b0f77d6c27aff8d53f6fca52"
-dependencies = [
- "sharded-slab",
- "thread_local",
- "tracing-core",
 ]
 
 [[package]]
@@ -5824,7 +5823,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773057bb2b440e868776522a0587f732b1125116f12aca0eb37dea48d55ad2cd"
 dependencies = [
  "tracing-core",
- "tracing-subscriber 0.3.1",
+ "tracing-subscriber",
  "tracy-client",
 ]
 
@@ -6095,7 +6094,7 @@ dependencies = [
  "strum",
  "strum_macros",
  "tracing",
- "tracing-subscriber 0.2.25",
+ "tracing-subscriber",
  "uuid",
  "vek",
  "veloren-common-assets",
@@ -6143,7 +6142,7 @@ dependencies = [
  "tracing",
  "tracing-appender",
  "tracing-log",
- "tracing-subscriber 0.2.25",
+ "tracing-subscriber",
  "tracing-tracy",
  "veloren-common-base",
 ]
@@ -6236,7 +6235,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tracing",
- "tracing-subscriber 0.2.25",
+ "tracing-subscriber",
  "veloren-network-protocol",
 ]
 
@@ -6531,7 +6530,7 @@ dependencies = [
  "strum",
  "svg_fmt",
  "tracing",
- "tracing-subscriber 0.2.25",
+ "tracing-subscriber",
  "vek",
  "veloren-common",
  "veloren-common-base",
