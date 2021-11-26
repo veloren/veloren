@@ -25,12 +25,14 @@ use crate::{
     },
     terrain::SpriteKind,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{convert::TryFrom, time::Duration};
 
 pub const MAX_ABILITIES: usize = 5;
+pub type AuxiliaryKey = (Option<ToolKind>, Option<ToolKind>);
 
 // TODO: Potentially look into storing previous ability sets for weapon
 // combinations and automatically reverting back to them on switching to that
@@ -41,7 +43,7 @@ pub struct ActiveAbilities {
     pub primary: PrimaryAbility,
     pub secondary: SecondaryAbility,
     pub movement: MovementAbility,
-    pub abilities: [AuxiliaryAbility; MAX_ABILITIES],
+    pub auxiliary_sets: HashMap<AuxiliaryKey, [AuxiliaryAbility; MAX_ABILITIES]>,
 }
 
 impl Component for ActiveAbilities {
@@ -54,7 +56,7 @@ impl Default for ActiveAbilities {
             primary: PrimaryAbility::Tool,
             secondary: SecondaryAbility::Tool,
             movement: MovementAbility::Species,
-            abilities: [AuxiliaryAbility::Empty; MAX_ABILITIES],
+            auxiliary_sets: HashMap::new(),
         }
     }
 }
@@ -68,22 +70,46 @@ impl ActiveAbilities {
         Self::default()
     }
 
-    pub fn change_ability(&mut self, slot: usize, new_ability: AuxiliaryAbility) {
-        if let Some(ability) = self.abilities.get_mut(slot) {
+    pub fn change_ability(
+        &mut self,
+        slot: usize,
+        auxiliary_key: AuxiliaryKey,
+        new_ability: AuxiliaryAbility,
+    ) {
+        let auxiliary_set = self
+            .auxiliary_sets
+            .entry(auxiliary_key)
+            .or_insert([AuxiliaryAbility::Empty; 5]);
+        if let Some(ability) = auxiliary_set.get_mut(slot) {
             *ability = new_ability;
         }
     }
 
-    pub fn get_ability(&self, input: AbilityInput) -> Ability {
+    pub fn get_ability(&self, input: AbilityInput, inventory: Option<&Inventory>) -> Ability {
         match input {
             AbilityInput::Primary => self.primary.into(),
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
-            AbilityInput::Auxiliary(index) => self
-                .abilities
-                .get(index)
-                .copied()
-                .map(|a| a.into())
+            AbilityInput::Auxiliary(index) => inventory
+                .and_then(|inv| {
+                    let tool_kind = |slot| {
+                        inv.equipped(slot).and_then(|item| match item.kind() {
+                            ItemKind::Tool(tool) => Some(tool.kind),
+                            _ => None,
+                        })
+                    };
+
+                    let aux_key = (
+                        tool_kind(EquipSlot::ActiveMainhand),
+                        tool_kind(EquipSlot::ActiveOffhand),
+                    );
+
+                    self.auxiliary_sets
+                        .get(&aux_key)
+                        .and_then(|entry| entry.get(index))
+                        .copied()
+                        .map(|a| a.into())
+                })
                 .unwrap_or(Ability::Empty),
         }
     }
@@ -98,7 +124,7 @@ impl ActiveAbilities {
         body: Option<&Body>,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
-        let ability = self.get_ability(input);
+        let ability = self.get_ability(input, inv);
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -166,6 +192,30 @@ impl ActiveAbilities {
                     .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
                     .then_some(i)
             })
+    }
+
+    pub fn iter_aux_abilities<'a>(
+        &'a self,
+        inventory: Option<&'a Inventory>,
+    ) -> impl Iterator<Item = &AuxiliaryAbility> + 'a {
+        inventory
+            .and_then(|inv| {
+                let tool_kind = |slot| {
+                    inv.equipped(slot).and_then(|item| match item.kind() {
+                        ItemKind::Tool(tool) => Some(tool.kind),
+                        _ => None,
+                    })
+                };
+
+                let aux_key = (
+                    tool_kind(EquipSlot::ActiveMainhand),
+                    tool_kind(EquipSlot::ActiveOffhand),
+                );
+
+                self.auxiliary_sets.get(&aux_key)
+            })
+            .into_iter()
+            .flatten()
     }
 
     // TODO: Maybe keep this for autopopulating a new combination of weapons?

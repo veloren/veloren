@@ -607,8 +607,8 @@ impl<'a> Skillbar<'a> {
                     .get_by_hash(i)
                     .map(|item| (item.name(), item.description())),
                 hotbar::SlotContents::Ability(i) => active_abilities
-                    .abilities
-                    .get(i)
+                    .iter_aux_abilities(Some(inventory))
+                    .nth(i)
                     .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
                     .map(util::ability_description),
             })

@@ -141,8 +141,8 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
             },
             hotbar::SlotContents::Ability(i) => {
                 let ability_id = active_abilities
-                    .abilities
-                    .get(i)
+                    .iter_aux_abilities(Some(inventory))
+                    .nth(i)
                     .and_then(|a| Ability::from(*a).ability_id(Some(inventory)));
 
                 ability_id

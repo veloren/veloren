@@ -110,9 +110,13 @@ impl<'a> System<'a> for Sys {
                             server_emitter.emit(ServerEvent::Sound { sound });
                         }
                     },
-                    ControlEvent::ChangeAbility { slot, new_ability } => {
+                    ControlEvent::ChangeAbility {
+                        slot,
+                        auxiliary_key,
+                        new_ability,
+                    } => {
                         if let Some(mut active_abilities) = active_abilities.get_mut(entity) {
-                            active_abilities.change_ability(slot, new_ability);
+                            active_abilities.change_ability(slot, auxiliary_key, new_ability);
                         }
                     },
                 }

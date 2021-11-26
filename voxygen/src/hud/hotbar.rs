@@ -70,8 +70,7 @@ impl State {
         {
             use common::comp::ability::AuxiliaryAbility;
             for ((i, ability), hotbar_slot) in active_abilities
-                .abilities
-                .iter()
+                .iter_aux_abilities(client.inventories().get(client.entity()))
                 .enumerate()
                 .zip(self.slots.iter_mut())
             {
