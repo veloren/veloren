@@ -11,7 +11,8 @@
     option_zip,
     trait_alias,
     type_alias_impl_trait,
-    extend_one
+    extend_one,
+    arbitrary_enum_discriminant
 )]
 #![feature(hash_drain_filter)]
 

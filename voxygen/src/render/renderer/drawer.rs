@@ -393,7 +393,7 @@ impl<'frame> Drawer<'frame> {
         );
 
         self.borrow.egui_render_pass.execute(
-            &mut self.encoder.as_mut().unwrap(),
+            self.encoder.as_mut().unwrap(),
             self.taking_screenshot
                 .as_ref()
                 .map_or(&self.swap_tex.view, |s| s.texture_view()),

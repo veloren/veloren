@@ -121,7 +121,7 @@ impl Inventory {
     /// Sorts the inventory using the next sort order
     pub fn sort(&mut self) {
         let sort_order = self.next_sort_order;
-        let mut items: Vec<Item> = self.slots_mut().filter_map(|x| mem::take(x)).collect();
+        let mut items: Vec<Item> = self.slots_mut().filter_map(mem::take).collect();
 
         items.sort_by(|a, b| match sort_order {
             InventorySortOrder::Name => Ord::cmp(a.name(), b.name()),

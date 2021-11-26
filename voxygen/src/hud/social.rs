@@ -256,7 +256,7 @@ impl<'a> Widget for Social<'a> {
                 None => format!(
                     "{} [{}]",
                     alias.clone(),
-                    self.localized_strings.get("hud.group.in_menu").to_string()
+                    self.localized_strings.get("hud.group.in_menu")
                 ), // character select or spectating
             };
             let acc_name_txt = format!(

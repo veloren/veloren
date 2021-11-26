@@ -106,25 +106,25 @@ impl TileGrid {
                     {
                         aabr.max.x += 1;
                         last_growth = i;
-                    }
+                    },
                     1 if (aabr.min.x..aabr.max.x + 1)
                         .all(|x| self.get(Vec2::new(x, aabr.max.y)).is_empty()) =>
                     {
                         aabr.max.y += 1;
                         last_growth = i;
-                    }
+                    },
                     2 if (aabr.min.y..aabr.max.y + 1)
                         .all(|y| self.get(Vec2::new(aabr.min.x - 1, y)).is_empty()) =>
                     {
                         aabr.min.x -= 1;
                         last_growth = i;
-                    }
+                    },
                     3 if (aabr.min.x..aabr.max.x + 1)
                         .all(|x| self.get(Vec2::new(x, aabr.min.y - 1)).is_empty()) =>
                     {
                         aabr.min.y -= 1;
                         last_growth = i;
-                    }
+                    },
                     _ => {},
                 }
             }

@@ -386,7 +386,7 @@ impl<'a> InventoryScroller<'a> {
                 if self.show_salvage && item.is_salvageable() {
                     let salvage_result: Vec<_> = item
                         .salvage_output()
-                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
+                        .map(Arc::<ItemDef>::load_expect_cloned)
                         .map(|item| item as Arc<dyn ItemDesc>)
                         .collect();
 

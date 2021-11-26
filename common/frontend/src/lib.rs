@@ -84,7 +84,7 @@ where
     let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
         Some(Ok(env)) => {
             let mut filter = base_exceptions(EnvFilter::new(""));
-            for s in env.split(',').into_iter() {
+            for s in env.split(',') {
                 match s.parse() {
                     Ok(d) => filter = filter.add_directive(d),
                     Err(err) => println!("WARN ignoring log directive: `{}`: {}", s, err),

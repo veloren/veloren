@@ -93,7 +93,7 @@ impl Tui {
                 if [HelpDisplayed, MissingRequiredArgument, UnknownArgument].contains(&e.kind) =>
             {
                 println!("{}", e.message);
-            }
+            },
             Err(e) => {
                 error!("{:?}", e);
                 return false;

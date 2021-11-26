@@ -343,7 +343,7 @@ impl<'a> Widget for Chat<'a> {
         // Chat input uses a rectangle as its background.
         if input_focused {
             // Shallow comparison of ChatMode.
-            let discrim = |x| std::mem::discriminant(x);
+            let discrim = std::mem::discriminant;
             if discrim(&state.input.mode) != discrim(&self.client.chat_mode) {
                 state.update(|s| {
                     s.input.mode = self.client.chat_mode.clone();

@@ -170,7 +170,7 @@ pub fn try_salvage(
         let salvage_item = inv.get(slot).expect("Expected item to exist in inventory");
         let salvage_output: Vec<_> = salvage_item
             .salvage_output()
-            .map(|asset| Item::new_from_asset_expect(asset))
+            .map(Item::new_from_asset_expect)
             .collect();
         if salvage_output.is_empty() {
             // If no output items, assume salvaging was a failure

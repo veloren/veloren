@@ -317,7 +317,7 @@ where
                 if *id == widget && !filled =>
             {
                 self.state = ManagerState::Idle;
-            }
+            },
             _ => (),
         }
 

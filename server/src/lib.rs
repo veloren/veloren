@@ -445,7 +445,7 @@ impl Server {
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
         // Register trackers
-        sys::sentinel::register_trackers(&mut state.ecs_mut());
+        sys::sentinel::register_trackers(state.ecs_mut());
 
         state.ecs_mut().insert(DeletedEntities::default());
 

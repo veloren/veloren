@@ -826,7 +826,7 @@ pub fn tick_site_economy(
     site.economy.marginal_surplus = demand.map(|g, demand| supply[g] - demand);
 
     // plan trading with other sites
-    let mut external_orders = &mut index.trade.orders;
+    let external_orders = &mut index.trade.orders;
     let mut potential_trade = GoodMap::from_default(0.0);
     // use last year's generated transportation for merchants (could we do better?
     // this is in line with the other professions)
@@ -836,7 +836,7 @@ pub fn tick_site_economy(
             site,
             &site_id,
             transportation_capacity,
-            &mut external_orders,
+            external_orders,
             &mut potential_trade,
         );
         site.economy.active_exports = GoodMap::from_iter(trade.iter().map(|(g, a)| (g, -*a)), 0.0); // TODO: check for availability?

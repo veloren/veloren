@@ -285,8 +285,8 @@ impl SpriteKind {
     /// What loot table does collecting this sprite draw from?
     #[inline]
     pub fn collectible_id(&self) -> Option<LootSpec<&'static str>> {
-        let item = |id: &'static str| LootSpec::Item(id);
-        let table = |id: &'static str| LootSpec::LootTable(id);
+        let item = LootSpec::Item;
+        let table = LootSpec::LootTable;
         Some(match self {
             SpriteKind::Apple => item("common.items.food.apple"),
             SpriteKind::Mushroom => item("common.items.food.mushroom"),

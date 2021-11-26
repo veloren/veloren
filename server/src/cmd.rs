@@ -969,7 +969,7 @@ fn handle_time(
                 0,
             );
             let msg = match current_time {
-                Some(time) => format!("It is {}", time.format("%H:%M").to_string()),
+                Some(time) => format!("It is {}", time.format("%H:%M")),
                 None => String::from("Unknown Time"),
             };
             server.notify_client(
@@ -1000,7 +1000,7 @@ fn handle_time(
             client,
             ServerGeneral::server_msg(
                 ChatType::CommandInfo,
-                format!("Time changed to: {}", new_time.format("%H:%M").to_string(),),
+                format!("Time changed to: {}", new_time.format("%H:%M")),
             ),
         );
     }
@@ -2952,8 +2952,8 @@ fn handle_version(
             ChatType::CommandInfo,
             format!(
                 "Server is running {}[{}]",
-                common::util::GIT_HASH.to_string(),
-                common::util::GIT_DATE.to_string(),
+                *common::util::GIT_HASH,
+                *common::util::GIT_DATE,
             ),
         ),
     );

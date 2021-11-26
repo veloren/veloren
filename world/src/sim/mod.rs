@@ -624,7 +624,7 @@ impl WorldSim {
         //
         // Based on this estimate, we have:
         //   delta_t_scale ≡ (Δt / Δt') = time_scale
-        let delta_t_scale = |n: f32| time_scale(n);
+        let delta_t_scale = time_scale;
         //   alpha_scale ≡ (α / α') = height_scale^(-1)
         let alpha_scale = |n: f32| height_scale(n).recip() as f32;
         //

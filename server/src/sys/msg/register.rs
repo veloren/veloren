@@ -107,7 +107,7 @@ impl<'a> System<'a> for Sys {
 
         let mut finished_pending = vec![];
         let mut retries = vec![];
-        for (entity, client, mut pending) in
+        for (entity, client, pending) in
             (&read_data.entities, &read_data.clients, &mut pending_logins).join()
         {
             if let Err(e) = || -> std::result::Result<(), crate::error::Error> {
@@ -121,7 +121,7 @@ impl<'a> System<'a> for Sys {
                 };
 
                 let (username, uuid) = match login_provider.login(
-                    &mut pending,
+                    pending,
                     #[cfg(feature = "plugins")]
                     &ecs_world,
                     #[cfg(feature = "plugins")]

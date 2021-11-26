@@ -546,7 +546,7 @@ impl<'a> Widget for Trade<'a> {
 
     fn update(mut self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Trade::update");
-        let widget::UpdateArgs { mut state, ui, .. } = args;
+        let widget::UpdateArgs { state, ui, .. } = args;
 
         let mut event = None;
         let (trade, prices) = match self.client.pending_trade() {
@@ -572,18 +572,14 @@ impl<'a> Widget for Trade<'a> {
             });
         }
 
-        self.background(&mut state, ui);
-        self.title(&mut state, ui);
-        self.phase_indicator(&mut state, ui, trade);
+        self.background(state, ui);
+        self.title(state, ui);
+        self.phase_indicator(state, ui, trade);
 
-        event = self
-            .item_pane(&mut state, ui, trade, prices, false)
-            .or(event);
-        event = self
-            .item_pane(&mut state, ui, trade, prices, true)
-            .or(event);
-        event = self.accept_decline_buttons(&mut state, ui, trade).or(event);
-        event = self.close_button(&mut state, ui).or(event);
+        event = self.item_pane(state, ui, trade, prices, false).or(event);
+        event = self.item_pane(state, ui, trade, prices, true).or(event);
+        event = self.accept_decline_buttons(state, ui, trade).or(event);
+        event = self.close_button(state, ui).or(event);
 
         event
     }
