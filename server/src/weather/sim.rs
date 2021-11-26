@@ -30,24 +30,6 @@ struct Cell {
 }
 /// Used to sample weather that isn't simulated
 fn sample_cell(p: Vec2<i32>, time: f64) -> Cell {
-    /*let noise = FastNoise::new(0b10110_101_1100_1111_10010_101_1110);
-    // Feeding sensible values into the simulation
-    Cell {
-        wind: Vec2::new(
-            noise.get(p.as_().with_z(time / 1000.0)),
-            noise.get(p.as_().with_z(-time / 1000.0)),
-        ) * ((noise.get(p.as_().with_z(time / 1000.0 + 200.0)) + 1.0) * 0.5).powf(2.0)
-            * 30.0
-            + 5.0,
-        temperature: noise.get(p.as_().with_z(time / 1000.0 + 300.0)).powf(3.0) * 10.0
-            + BASE_TEMPERATURE
-            + 273.3, /* 10 -> 30 C */
-        moisture: BASE_MOISTURE + noise.get(p.as_().with_z(time / 100.0 + 400.0)).powf(3.0) * 0.2,
-        cloud: noise
-            .get((p.as_() / 2.0).with_z(time / 100.0 + 400.0))
-            .powf(2.0)
-            * 1.0,
-    } */
     Cell {
         wind: Vec2::new(10.0, 0.0),
         temperature: 20.0,
