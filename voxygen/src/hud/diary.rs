@@ -1,8 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
-    Position, PositionSpecifier, Show, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR, UI_HIGHLIGHT_0,
-    UI_MAIN, XP_COLOR,
+    Position, PositionSpecifier, Show, BLACK, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR,
+    UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
     hud::{self, util},
@@ -32,6 +32,7 @@ use common::{
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
 use hashbrown::HashMap;
+use inline_tweak::*;
 use std::borrow::Cow;
 
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
@@ -193,10 +194,11 @@ widget_ids! {
         skill_general_swim_0,
         skill_general_swim_1,
         // Ability selection
+        spellbook_art,
+        spellbook_skills_bg,
         spellbook_btn,
         spellbook_btn_bg,
         ability_select_title,
-        ability_scroll_align,
         ability_scroller,
         active_abilities[],
         active_abilities_bg[],
@@ -302,7 +304,8 @@ const TREES: [&str; 8] = [
     "Fire Staff",
     "Mining",
 ];
-
+// Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
+// armour catalogue, Achievements...
 const SECTIONS: [&str; 2] = ["Abilities", "Skill-Trees"];
 
 pub enum Event {
@@ -789,13 +792,16 @@ impl<'a> Widget for Diary<'a> {
             },
             DiarySection::AbilitySelection => {
                 use comp::ability::AbilityInput;
-                // Title for ability selection UI
-                Text::new("Ability Selection")
-                    .mid_top_with_margin_on(state.ids.content_align, 2.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(34))
-                    .color(TEXT_COLOR)
-                    .set(state.ids.ability_select_title, ui);
+                // Background Art
+                Image::new(self.imgs.book_bg)
+                    .w_h(299.0 * 4.0, 184.0 * 4.0)
+                    .mid_top_with_margin_on(state.ids.content_align, tweak!(4.0))
+                    //.graphics_for(state.ids.content_align)
+                    .set(state.ids.spellbook_art, ui);
+                Image::new(self.imgs.skills_bg)
+                    .w_h(240.0 * 2.0, 40.0 * 2.0)
+                    .mid_bottom_with_margin_on(state.ids.content_align, tweak!(8.0))
+                    .set(state.ids.spellbook_skills_bg, ui);
 
                 // Display all active abilities on right of window
                 state.update(|s| {
@@ -818,27 +824,28 @@ impl<'a> Widget for Diary<'a> {
                         )
                         .ability_id(Some(self.inventory));
 
-                    let image_size = 50.0;
-                    let image_offsets = 60.0 * i as f64;
-                    Image::new(self.imgs.inv_slot)
-                        .w_h(image_size, image_size)
-                        .top_right_with_margins_on(
-                            state.ids.content_align,
-                            150.0 + image_offsets,
-                            30.0,
-                        )
-                        .set(state.ids.active_abilities_bg[i], ui);
+                    let image_size = tweak!(80.0);
+                    let image_offsets = tweak!(92.0) * i as f64;
+                    let mut ability_slot =
+                        Image::new(self.imgs.inv_slot).w_h(image_size, image_size);
+                    if i == 0 {
+                        ability_slot = ability_slot.top_left_with_margins_on(
+                            state.ids.spellbook_skills_bg,
+                            tweak!(0.0),
+                            tweak!(32.0) + image_offsets,
+                        );
+                    } else {
+                        ability_slot =
+                            ability_slot.right_from(state.ids.active_abilities_bg[i - 1], tweak!(4.0))
+                    }
+                    ability_slot.set(state.ids.active_abilities_bg[i], ui);
                     let ability_image = ability_id
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
                     let (ability_title, ability_desc) =
                         util::ability_description(ability_id.unwrap_or(""));
                     if Button::image(ability_image)
-                        .w_h(image_size, image_size)
-                        .top_right_with_margins_on(
-                            state.ids.content_align,
-                            150.0 + image_offsets,
-                            30.0,
-                        )
+                        .w_h(image_size * tweak!(0.9), image_size * tweak!(0.9))
+                        .middle_of(state.ids.active_abilities_bg[i])
                         .with_tooltip(
                             self.tooltip_manager,
                             ability_title,
@@ -860,23 +867,19 @@ impl<'a> Widget for Diary<'a> {
                     }
                 }
 
-                // Scroller and alignment
-                Rectangle::fill_with([1098.0, 838.0], color::TRANSPARENT)
-                    .top_left_with_margins_on(state.ids.content_align, 0.0, 0.0)
-                    .scroll_kids_vertically()
-                    .set(state.ids.ability_scroll_align, ui);
-
-                Scrollbar::y_axis(state.ids.ability_scroll_align)
+                // Scrollbar
+                Scrollbar::y_axis(state.ids.spellbook_art)
                     .thickness(5.0)
+                    .middle_of(state.ids.spellbook_art)
                     .rgba(0.33, 0.33, 0.33, 1.0)
                     .set(state.ids.ability_scroller, ui);
 
                 // Display list of abilities from main weapon
                 Text::new("Main Weapon Abilities")
-                    .top_left_with_margins_on(state.ids.ability_scroll_align, 75.0, 25.0)
+                    .top_left_with_margins_on(state.ids.spellbook_art, 75.0, 25.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(28))
-                    .color(TEXT_COLOR)
+                    .color(BLACK)
                     .set(state.ids.main_weap_title, ui);
 
                 // TODO: Maybe try to keep this as an iterator. Not sure how to get length
@@ -919,7 +922,7 @@ impl<'a> Widget for Diary<'a> {
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
                     let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
                     {
-                        TEXT_COLOR
+                        BLACK
                     } else {
                         XP_COLOR
                     };
@@ -944,14 +947,16 @@ impl<'a> Widget for Diary<'a> {
                     Text::new(ability_title)
                         .top_left_with_margins_on(state.ids.main_weap_abilities[i], 5.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(24))
+                        .font_size(self.fonts.cyri.scale(tweak!(28)))
                         .color(ability_color)
+                        .graphics_for(state.ids.main_weap_abilities[i])
                         .set(state.ids.main_weap_ability_titles[i], ui);
                     Text::new(ability_desc)
                         .top_left_with_margins_on(state.ids.main_weap_abilities[i], 30.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(16))
+                        .font_size(self.fonts.cyri.scale(tweak!(18)))
                         .color(ability_color)
+                        .graphics_for(state.ids.main_weap_abilities[i])
                         .set(state.ids.main_weap_ability_descs[i], ui);
                 }
 
@@ -965,7 +970,7 @@ impl<'a> Widget for Diary<'a> {
                     .bottom_left_with_margins_on(offset_state, -50.0, 0.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(28))
-                    .color(TEXT_COLOR)
+                    .color(BLACK)
                     .set(state.ids.off_weap_title, ui);
 
                 // TODO: Maybe try to keep this as an iterator. Not sure how to get length
@@ -1008,7 +1013,7 @@ impl<'a> Widget for Diary<'a> {
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
                     let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
                     {
-                        TEXT_COLOR
+                        BLACK
                     } else {
                         XP_COLOR
                     };
@@ -1050,7 +1055,7 @@ impl<'a> Widget for Diary<'a> {
                     let ability_id = Ability::from(ability).ability_id(Some(self.inventory));
                     if let Some(ability_id) = ability_id {
                         Image::new(util::ability_image(self.imgs, ability_id))
-                            .w_h(50.0, 50.0)
+                            .w_h(80.0, 80.0)
                             .xy(mouse_pos)
                             .set(state.ids.dragged_ability, ui);
                     }
