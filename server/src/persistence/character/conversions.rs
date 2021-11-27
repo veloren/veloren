@@ -1,6 +1,6 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Character, Item, SkillGroup},
+    models::{AbilitySets, Character, Item, SkillGroup},
 };
 
 use crate::persistence::{
@@ -601,4 +601,30 @@ pub fn convert_skill_groups_to_database<'a, I: Iterator<Item = &'a skillset::Ski
                 .unwrap_or_default(),
         })
         .collect()
+}
+
+pub fn convert_active_abilities_to_database(
+    entity_id: CharacterId,
+    active_abilities: &ability::ActiveAbilities,
+) -> AbilitySets {
+    let ability_sets = active_abilities
+        .auxiliary_sets
+        .iter()
+        .filter_map(|set| serde_json::to_string(&set).ok())
+        .collect::<Vec<String>>();
+    AbilitySets {
+        entity_id,
+        ability_sets: serde_json::to_string(&ability_sets).unwrap_or_default(),
+    }
+}
+
+pub fn convert_active_abilities_from_database(
+    ability_sets: &AbilitySets,
+) -> ability::ActiveAbilities {
+    let ability_sets = core::iter::once(ability_sets)
+        .flat_map(|sets| serde_json::from_str::<Vec<String>>(&sets.ability_sets))
+        .flatten()
+        .filter_map(|set| serde_json::from_str::<(ability::AuxiliaryKey, [ability::AuxiliaryAbility; ability::MAX_ABILITIES])>(&set).ok())
+        .collect::<HashMap<ability::AuxiliaryKey, [ability::AuxiliaryAbility; ability::MAX_ABILITIES]>>();
+    ability::ActiveAbilities::new(ability_sets)
 }

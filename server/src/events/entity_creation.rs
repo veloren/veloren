@@ -42,6 +42,7 @@ pub fn handle_loaded_character_data(
         comp::Inventory,
         Option<comp::Waypoint>,
         Vec<(comp::Pet, comp::Body, comp::Stats)>,
+        comp::ActiveAbilities,
     ),
 ) {
     server

@@ -2,7 +2,7 @@ use crate::{persistence::character_updater, presence::Presence, sys::SysSchedule
 use common::{
     comp::{
         pet::{is_tameable, Pet},
-        Alignment, Body, Inventory, SkillSet, Stats, Waypoint,
+        ActiveAbilities, Alignment, Body, Inventory, SkillSet, Stats, Waypoint,
     },
     uid::Uid,
 };
@@ -25,6 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Waypoint>,
         ReadStorage<'a, Pet>,
         ReadStorage<'a, Stats>,
+        ReadStorage<'a, ActiveAbilities>,
         WriteExpect<'a, character_updater::CharacterUpdater>,
         Write<'a, SysScheduler<Self>>,
     );
@@ -45,6 +46,7 @@ impl<'a> System<'a> for Sys {
             player_waypoints,
             pets,
             stats,
+            active_abilities,
             mut updater,
             mut scheduler,
         ): Self::SystemData,
@@ -57,11 +59,18 @@ impl<'a> System<'a> for Sys {
                     &player_inventories,
                     &uids,
                     player_waypoints.maybe(),
+                    &active_abilities,
                 )
                     .join()
                     .filter_map(
-                        |(presence, skill_set, inventory, player_uid, waypoint)| match presence.kind
-                        {
+                        |(
+                            presence,
+                            skill_set,
+                            inventory,
+                            player_uid,
+                            waypoint,
+                            active_abilities,
+                        )| match presence.kind {
                             PresenceKind::Character(id) => {
                                 let pets = (&alignments, &bodies, &stats, &pets)
                                     .join()
@@ -78,7 +87,7 @@ impl<'a> System<'a> for Sys {
                                     })
                                     .collect();
 
-                                Some((id, skill_set, inventory, pets, waypoint))
+                                Some((id, skill_set, inventory, pets, waypoint, active_abilities))
                             },
                             PresenceKind::Spectator => None,
                         },

@@ -29,6 +29,7 @@ pub type PersistedComponents = (
     comp::Inventory,
     Option<comp::Waypoint>,
     Vec<PetPersistenceData>,
+    comp::ActiveAbilities,
 );
 
 pub type EditableComponents = (comp::Body,);

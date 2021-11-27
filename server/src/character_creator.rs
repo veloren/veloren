@@ -69,7 +69,15 @@ pub fn create_character(
         entity,
         player_uuid,
         character_alias,
-        (body, stats, skill_set, inventory, waypoint, Vec::new()),
+        (
+            body,
+            stats,
+            skill_set,
+            inventory,
+            waypoint,
+            Vec::new(),
+            Default::default(),
+        ),
     );
     Ok(())
 }

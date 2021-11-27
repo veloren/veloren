@@ -62,12 +62,11 @@ impl Default for ActiveAbilities {
 }
 
 impl ActiveAbilities {
-    pub fn new(_inv: Option<&Inventory>, _skill_set: Option<&SkillSet>) -> Self {
-        // Maybe hook into loading saved variants when they exist here?
-        // let mut pool = Self::default();
-        // pool.auto_update(inv, skill_set);
-        // pool
-        Self::default()
+    pub fn new(auxiliary_sets: HashMap<AuxiliaryKey, [AuxiliaryAbility; MAX_ABILITIES]>) -> Self {
+        ActiveAbilities {
+            auxiliary_sets,
+            ..Self::default()
+        }
     }
 
     pub fn change_ability(

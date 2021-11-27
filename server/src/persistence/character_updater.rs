@@ -24,6 +24,7 @@ pub type CharacterUpdateData = (
     comp::Inventory,
     Vec<PetPersistenceData>,
     Option<comp::Waypoint>,
+    comp::ability::ActiveAbilities,
 );
 
 pub type PetPersistenceData = (comp::Pet, comp::Body, comp::Stats);
@@ -330,21 +331,25 @@ impl CharacterUpdater {
                 &'a comp::Inventory,
                 Vec<PetPersistenceData>,
                 Option<&'a comp::Waypoint>,
+                &'a comp::ability::ActiveAbilities,
             ),
         >,
     ) {
         let updates = updates
-            .map(|(character_id, skill_set, inventory, pets, waypoint)| {
-                (
-                    character_id,
+            .map(
+                |(character_id, skill_set, inventory, pets, waypoint, active_abilities)| {
                     (
-                        skill_set.clone(),
-                        inventory.clone(),
-                        pets,
-                        waypoint.cloned(),
-                    ),
-                )
-            })
+                        character_id,
+                        (
+                            skill_set.clone(),
+                            inventory.clone(),
+                            pets,
+                            waypoint.cloned(),
+                            active_abilities.clone(),
+                        ),
+                    )
+                },
+            )
             .chain(self.pending_logout_updates.drain())
             .collect::<Vec<_>>();
 
@@ -382,18 +387,19 @@ fn execute_batch_update(
     let mut transaction = connection.connection.transaction()?;
     transaction.set_drop_behavior(DropBehavior::Rollback);
     trace!("Transaction started for character batch update");
-    updates
-        .into_iter()
-        .try_for_each(|(character_id, (stats, inventory, pets, waypoint))| {
+    updates.into_iter().try_for_each(
+        |(character_id, (stats, inventory, pets, waypoint, active_abilities))| {
             super::character::update(
                 character_id,
                 stats,
                 inventory,
                 pets,
                 waypoint,
+                active_abilities,
                 &mut transaction,
             )
-        })?;
+        },
+    )?;
     transaction.commit()?;
 
     trace!("Commit for character batch update completed");
