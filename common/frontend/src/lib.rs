@@ -32,10 +32,10 @@ const RUST_LOG_ENV: &str = "RUST_LOG";
 ///
 /// By default a few directives are set to `warn` by default, until explicitly
 /// overwritten! e.g. `RUST_LOG="gfx_device_gl=debug"`
-pub fn init<W2>(log_path_file: Option<(&Path, &str)>, terminal: W2) -> Vec<impl Drop>
+pub fn init<W2>(log_path_file: Option<(&Path, &str)>, terminal: &'static W2) -> Vec<impl Drop>
 where
-    W2: MakeWriter + 'static,
-    <W2 as MakeWriter>::Writer: Send + Sync,
+    W2: MakeWriter<'static> + 'static,
+    <W2 as MakeWriter<'static>>::Writer: 'static + Send + Sync,
 {
     // To hold the guards that we create, they will cause the logs to be
     // flushed when they're dropped.
@@ -157,5 +157,5 @@ where
 }
 
 pub fn init_stdout(log_path_file: Option<(&Path, &str)>) -> Vec<impl Drop> {
-    init(log_path_file, || StandardStream::stdout(ColorChoice::Auto))
+    init(log_path_file, &|| StandardStream::stdout(ColorChoice::Auto))
 }
