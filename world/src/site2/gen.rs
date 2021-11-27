@@ -47,11 +47,10 @@ pub enum Primitive {
     Prefab(Box<PrefabStructure>),
 
     // Combinators
-    And(Id<Primitive>, Id<Primitive>),
-    Or(Id<Primitive>, Id<Primitive>),
-    Xor(Id<Primitive>, Id<Primitive>),
+    Intersect(Id<Primitive>, Id<Primitive>),
+    Union(Id<Primitive>, Id<Primitive>),
     // Not commutative
-    Diff(Id<Primitive>, Id<Primitive>),
+    Without(Id<Primitive>, Id<Primitive>),
     // Operators
     Rotate(Id<Primitive>, Mat3<i32>),
     Translate(Id<Primitive>, Vec3<i32>),
@@ -59,20 +58,16 @@ pub enum Primitive {
 }
 
 impl Primitive {
-    pub fn and(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
-        Self::And(a.into(), b.into())
+    pub fn intersect(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Intersect(a.into(), b.into())
     }
 
-    pub fn or(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
-        Self::Or(a.into(), b.into())
+    pub fn union(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Union(a.into(), b.into())
     }
 
-    pub fn xor(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
-        Self::Xor(a.into(), b.into())
-    }
-
-    pub fn diff(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
-        Self::Diff(a.into(), b.into())
+    pub fn without(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
+        Self::Without(a.into(), b.into())
     }
 
     pub fn sampling(a: impl Into<Id<Primitive>>, f: Box<dyn Fn(Vec3<i32>) -> bool>) -> Self {
@@ -224,16 +219,13 @@ impl Fill {
             },
             Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
-            Primitive::And(a, b) => {
+            Primitive::Intersect(a, b) => {
                 self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
             },
-            Primitive::Or(a, b) => {
+            Primitive::Union(a, b) => {
                 self.contains_at(tree, *a, pos) || self.contains_at(tree, *b, pos)
             },
-            Primitive::Xor(a, b) => {
-                self.contains_at(tree, *a, pos) ^ self.contains_at(tree, *b, pos)
-            },
-            Primitive::Diff(a, b) => {
+            Primitive::Without(a, b) => {
                 self.contains_at(tree, *a, pos) && !self.contains_at(tree, *b, pos)
             },
             Primitive::Rotate(prim, mat) => {
@@ -338,17 +330,17 @@ impl Fill {
             },
             Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Prefab(p) => p.get_bounds(),
-            Primitive::And(a, b) => or_zip_with(
+            Primitive::Intersect(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
                 self.get_bounds_inner(tree, *b),
                 |a, b| a.intersection(b),
             )?,
-            Primitive::Or(a, b) | Primitive::Xor(a, b) => or_zip_with(
+            Primitive::Union(a, b) => or_zip_with(
                 self.get_bounds_inner(tree, *a),
                 self.get_bounds_inner(tree, *b),
                 |a, b| a.union(b),
             )?,
-            Primitive::Diff(a, _) => self.get_bounds_inner(tree, *a)?,
+            Primitive::Without(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Rotate(prim, mat) => {
                 let aabb = self.get_bounds_inner(tree, *prim)?;
                 let extent = *mat * Vec3::from(aabb.size());
@@ -412,17 +404,17 @@ impl Painter {
             inset,
             dir: 0,
         })
-        .union(self.prim(Primitive::Ramp {
+        .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
             dir: 1,
         }))
-        .union(self.prim(Primitive::Ramp {
+        .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
             dir: 2,
         }))
-        .union(self.prim(Primitive::Ramp {
+        .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
             dir: 3,
@@ -453,7 +445,15 @@ impl<'a> From<PrimitiveRef<'a>> for Id<Primitive> {
 
 impl<'a> PrimitiveRef<'a> {
     pub fn union(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::and(self, other))
+        self.painter.prim(Primitive::union(self, other))
+    }
+
+    pub fn intersect(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::intersect(self, other))
+    }
+
+    pub fn without(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::without(self, other))
     }
 
     pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
@@ -498,7 +498,7 @@ pub fn aabb_corners<F: FnMut(Primitive) -> Id<Primitive>>(
             min: aabb.min + vec,
             max: aabb.max - vec,
         }));
-        prim(Primitive::Diff(ret, sub))
+        prim(Primitive::Without(ret, sub))
     };
     let mut ret = prim(Primitive::Aabb(aabb));
     ret = f(prim, ret, Vec3::new(1, 0, 0));

@@ -1137,7 +1137,7 @@ impl Floor {
                     min: floor_aabb.min.with_x(j - 1),
                     max: floor_aabb.max.with_x(j),
                 }));
-                lighting_mask_x = painter.prim(Primitive::or(plane, lighting_mask_x));
+                lighting_mask_x = painter.prim(Primitive::union(plane, lighting_mask_x));
             }
             let mut lighting_mask_y = painter.prim(Primitive::Empty);
             let floor_h = floor_aabb.max.y - floor_aabb.min.y;
@@ -1147,9 +1147,11 @@ impl Floor {
                     min: floor_aabb.min.with_y(j - 1),
                     max: floor_aabb.max.with_y(j),
                 }));
-                lighting_mask_y = painter.prim(Primitive::or(plane, lighting_mask_y));
+                lighting_mask_y = painter.prim(Primitive::union(plane, lighting_mask_y));
             }
-            painter.prim(Primitive::xor(lighting_mask_x, lighting_mask_y))
+            lighting_mask_x
+                .union(lighting_mask_y)
+                .without(lighting_mask_x.intersect(lighting_mask_y))
         };
 
         // Declare collections of various disjoint primitives that need postprocessing
@@ -1182,14 +1184,14 @@ impl Floor {
                 tile_aabr,
                 floor_z..floor_z + 1,
             )));
-            let sprite_layer = painter.prim(Primitive::diff(sprite_layer, wall_contours));
+            let sprite_layer = painter.prim(Primitive::without(sprite_layer, wall_contours));
 
             // Lights are 2 units above the floor, and aligned with the `lighting_mask` grid
             let lighting_plane = painter.prim(Primitive::Aabb(aabr_with_z(
                 tile_aabr,
                 floor_z + 1..floor_z + 2,
             )));
-            let lighting_plane = painter.prim(Primitive::and(lighting_plane, lighting_mask));
+            let lighting_plane = painter.prim(Primitive::intersect(lighting_plane, lighting_mask));
 
             let mut chests = None;
 
@@ -1224,11 +1226,11 @@ impl Floor {
                                 max: (aabb.max - Vec3::new(1, 1, 0)).with_z(floor_z + i + 1),
                             }));
 
-                            light = painter.prim(Primitive::diff(light, inner));
-                            lights = painter.prim(Primitive::or(light, lights));
+                            light = painter.prim(Primitive::without(light, inner));
+                            lights = painter.prim(Primitive::union(light, lights));
                         }
                     }
-                    lights = painter.prim(Primitive::and(lights, lighting_mask));
+                    lights = painter.prim(Primitive::intersect(lights, lighting_mask));
                     stairs_bb.push(bb);
                     stairs.push((stair, lights));
                 }
@@ -1261,7 +1263,7 @@ impl Floor {
                             tile_aabr,
                             floor_z - 7..floor_z,
                         )));
-                        let tile_pit = painter.prim(Primitive::diff(tile_pit, wall_contours));
+                        let tile_pit = painter.prim(Primitive::without(tile_pit, wall_contours));
                         painter.fill(tile_pit, Fill::Block(vacant));
 
                         // Fill with lava
@@ -1269,7 +1271,7 @@ impl Floor {
                             tile_aabr,
                             floor_z - 7..floor_z - 5,
                         )));
-                        let tile_lava = painter.prim(Primitive::diff(tile_lava, wall_contours));
+                        let tile_lava = painter.prim(Primitive::without(tile_lava, wall_contours));
                         //pits.push(tile_pit);
                         //pits.push(tile_lava);
                         painter.fill(tile_lava, Fill::Block(lava));
@@ -1323,12 +1325,12 @@ impl Floor {
                         let scale = (pillar_thickness + 2) as f32 / pillar_thickness as f32;
                         let mut lights = painter
                             .prim(Primitive::scale(pillar, Vec2::broadcast(scale).with_z(1.0)));
-                        lights = painter.prim(Primitive::and(lighting_plane, lights));
+                        lights = painter.prim(Primitive::intersect(lighting_plane, lights));
                         // Only add the base (and shift the lights up)
                         // for boss-rooms pillars
                         if room.kind == RoomKind::Boss {
                             lights = painter.prim(Primitive::translate(lights, 3 * Vec3::unit_z()));
-                            pillar = painter.prim(Primitive::or(pillar, base));
+                            pillar = painter.prim(Primitive::union(pillar, base));
                         }
                         pillars.push((tile_center, pillar, lights));
                     }
@@ -1346,21 +1348,22 @@ impl Floor {
                 tile_aabr,
                 floor_z..floor_z + height,
             )));
-            let tile_air = painter.prim(Primitive::diff(tile_air, wall_contours));
+            let tile_air = painter.prim(Primitive::without(tile_air, wall_contours));
             painter.fill(tile_air, Fill::Block(vacant));
 
             // Place torches on the walls with the aforementioned spacing
-            let sconces_layer = painter.prim(Primitive::and(tile_air, lighting_plane));
-            let sconces_layer = painter.prim(Primitive::and(sconces_layer, wall_contour_surface));
+            let sconces_layer = painter.prim(Primitive::intersect(tile_air, lighting_plane));
+            let sconces_layer =
+                painter.prim(Primitive::intersect(sconces_layer, wall_contour_surface));
             painter.fill(sconces_layer, sconces_wall.clone());
 
             // Defer chest/floor sprite placement
             if let Some((chest_sprite, chest_sprite_fill)) = chests {
-                let chest_sprite = painter.prim(Primitive::diff(chest_sprite, wall_contours));
+                let chest_sprite = painter.prim(Primitive::without(chest_sprite, wall_contours));
                 sprites.push((chest_sprite, chest_sprite_fill));
             }
 
-            let floor_sprite = painter.prim(Primitive::and(sprite_layer, floor_sprite));
+            let floor_sprite = painter.prim(Primitive::intersect(sprite_layer, floor_sprite));
             sprites.push((floor_sprite, floor_sprite_fill.clone()));
         }
 
@@ -1394,7 +1397,7 @@ impl Floor {
             // Prevent sprites from floating above the stairs
             let stair_bb_up = painter.prim(Primitive::translate(*stair_bb, Vec3::unit_z()));
             for (sprite, _) in sprites.iter_mut() {
-                *sprite = painter.prim(Primitive::diff(*sprite, stair_bb_up));
+                *sprite = painter.prim(Primitive::without(*sprite, stair_bb_up));
             }
         }
         // Place the stairs themselves, and lights within the stairwells
