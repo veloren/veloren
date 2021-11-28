@@ -780,7 +780,11 @@ impl<'a> Widget for Diary<'a> {
                 for i in 0..MAX_ABILITIES {
                     let ability_id = self
                         .active_abilities
-                        .get_ability(AbilityInput::Auxiliary(i), Some(self.inventory))
+                        .get_ability(
+                            AbilityInput::Auxiliary(i),
+                            Some(self.inventory),
+                            Some(self.skill_set),
+                        )
                         .ability_id(Some(self.inventory));
 
                     let image_size = 50.0;

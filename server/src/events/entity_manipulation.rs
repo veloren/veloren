@@ -1,6 +1,7 @@
 use crate::{
     client::Client,
     comp::{
+        ability,
         agent::{Agent, AgentEvent, Sound, SoundKind},
         skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
@@ -1259,4 +1260,27 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
         entity,
         buff_change: buff::BuffChange::RemoveByKind(buff::BuffKind::Saturation),
     });
+}
+
+pub fn handle_change_ability(
+    server: &Server,
+    entity: EcsEntity,
+    slot: usize,
+    auxiliary_key: ability::AuxiliaryKey,
+    new_ability: ability::AuxiliaryAbility,
+) {
+    let ecs = &server.state.ecs();
+    let inventories = ecs.read_storage::<comp::Inventory>();
+    let skill_sets = ecs.read_storage::<comp::SkillSet>();
+
+    if let Some(mut active_abilities) = ecs.write_storage::<comp::ActiveAbilities>().get_mut(entity)
+    {
+        active_abilities.change_ability(
+            slot,
+            auxiliary_key,
+            new_ability,
+            inventories.get(entity),
+            skill_sets.get(entity),
+        );
+    }
 }

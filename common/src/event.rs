@@ -204,6 +204,12 @@ pub enum ServerEvent {
     EntityAttackedHook {
         entity: EcsEntity,
     },
+    ChangeAbility {
+        entity: EcsEntity,
+        slot: usize,
+        auxiliary_key: comp::ability::AuxiliaryKey,
+        new_ability: comp::ability::AuxiliaryAbility,
+    },
 }
 
 pub struct EventBus<E> {
