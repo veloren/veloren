@@ -381,10 +381,8 @@ pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + '
     let get_color =
         |_: &mut (), pos: Vec3<i32>| flat_get(pos).get_color().unwrap_or_else(Rgb::zero);
     let get_opacity = |_: &mut (), pos: Vec3<i32>| !flat_get(pos).is_opaque();
-    #[allow(clippy::redundant_closure)]
-    let flat_get = |pos| flat_get(pos);
     let should_draw = |_: &mut (), pos: Vec3<i32>, delta: Vec3<i32>, _uv| {
-        should_draw_greedy(pos, delta, flat_get)
+        should_draw_greedy(pos, delta, &flat_get)
     };
     // NOTE: Conversion to f32 is fine since this i32 is actually in bounds for u16.
     let mesh_delta = Vec3::new(0.0, 0.0, (z_start + range.min.z) as f32);

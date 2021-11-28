@@ -171,7 +171,7 @@ impl Attack {
         1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
     }
 
-    #[allow(clippy::too_many_arguments, clippy::redundant_closure)]
+    #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
         attacker: Option<AttackerInfo>,
@@ -220,8 +220,8 @@ impl Attack {
                 attack_source,
                 dir,
                 damage.damage.kind,
-                |e| emit(e),
-                |o| emit_outcome(o),
+                &mut emit,
+                &mut emit_outcome,
             );
             let change = damage.damage.calculate_health_change(
                 damage_reduction,
