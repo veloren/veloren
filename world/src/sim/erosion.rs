@@ -1750,10 +1750,7 @@ pub(crate) fn fill_sinks<F: Float + Send + Sync>(
     let range = 0..map_size_lg.chunks_len();
     let oldh = range
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| h(posi),
-        )
+        .map(&h)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     let mut newh = oldh
@@ -2577,10 +2574,7 @@ pub fn do_erosion(
     // Stream power law slope exponent--link between channel slope and erosion rate.
     let n = (0..map_size_lg.chunks_len())
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| n(posi),
-        )
+        .map(&n)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law concavity index (θ = m/n), turned into an exponent on
@@ -2593,44 +2587,29 @@ pub fn do_erosion(
     // Stream power law erodability constant for fluvial erosion (bedrock)
     let kf = (0..map_size_lg.chunks_len())
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| kf(posi),
-        )
+        .map(&kf)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Stream power law erodability constant for hillslope diffusion (bedrock)
     let kd = (0..map_size_lg.chunks_len())
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| kd(posi),
-        )
+        .map(&kd)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     // Deposition coefficient
     let g = (0..map_size_lg.chunks_len())
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| g(posi),
-        )
+        .map(&g)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     let epsilon_0 = (0..map_size_lg.chunks_len())
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| epsilon_0(posi),
-        )
+        .map(&epsilon_0)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     let alpha = (0..map_size_lg.chunks_len())
         .into_par_iter()
-        .map(
-            #[allow(clippy::redundant_closure)]
-            |posi| alpha(posi),
-        )
+        .map(&alpha)
         .collect::<Vec<_>>()
         .into_boxed_slice();
     let mut wh = vec![0.0; map_size_lg.chunks_len()].into_boxed_slice();
@@ -2676,12 +2655,6 @@ pub fn do_erosion(
     let g = |posi: usize| g[posi];
     let epsilon_0 = |posi: usize| epsilon_0[posi];
     let alpha = |posi: usize| alpha[posi];
-    #[allow(clippy::redundant_closure)]
-    let height_scale = |n| height_scale(n);
-    #[allow(clippy::redundant_closure)]
-    let k_da_scale = |q| k_da_scale(q);
-    #[allow(clippy::redundant_closure)]
-    let is_ocean = |posi| is_ocean(posi);
 
     (0..n_steps).for_each(|i| {
         debug!("Erosion iteration #{:?}", i);
@@ -2703,9 +2676,9 @@ pub fn do_erosion(
             g,
             epsilon_0,
             alpha,
-            is_ocean,
-            height_scale,
-            k_da_scale,
+            &is_ocean,
+            &height_scale,
+            &k_da_scale,
             threadpool,
         );
     });
