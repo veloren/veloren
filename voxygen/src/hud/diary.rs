@@ -10,6 +10,7 @@ use crate::{
 };
 use conrod_core::{
     color, image,
+    input::state::mouse::ButtonPosition,
     widget::{self, Button, Image, Rectangle, Scrollbar, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
@@ -30,6 +31,7 @@ use common::{
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
+use hashbrown::HashMap;
 use std::borrow::Cow;
 
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
@@ -206,6 +208,7 @@ widget_ids! {
         off_weap_abilities[],
         off_weap_ability_titles[],
         off_weap_ability_descs[],
+        dragged_ability,
     }
 }
 
@@ -317,12 +320,25 @@ pub enum DiarySection {
     AbilitySelection,
 }
 
+pub struct DiaryState {
+    ids: Ids,
+    dragged_ability: Option<AuxiliaryAbility>,
+    id_ability_map: HashMap<widget::Id, AuxiliaryAbility>,
+}
+
 impl<'a> Widget for Diary<'a> {
     type Event = Vec<Event>;
-    type State = Ids;
+    type State = DiaryState;
     type Style = ();
 
-    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State { Ids::new(id_gen) }
+    fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
+        DiaryState {
+            ids: Ids::new(id_gen),
+            dragged_ability: None,
+            // Constructed during update sequence
+            id_ability_map: HashMap::new(),
+        }
+    }
 
     fn style(&self) -> Self::Style {}
 
@@ -330,6 +346,10 @@ impl<'a> Widget for Diary<'a> {
         common_base::prof_span!("Diary::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut events = Vec::new();
+
+        state.update(|s| {
+            s.id_ability_map.clear();
+        });
 
         // Tooltips
         let diary_tooltip = Tooltip::new({
@@ -357,27 +377,27 @@ impl<'a> Widget for Diary<'a> {
             .w_h(1202.0, 886.0)
             .mid_top_with_margin_on(ui.window, 5.0)
             .color(Some(UI_MAIN))
-            .set(state.bg, ui);
+            .set(state.ids.bg, ui);
 
         Image::new(self.imgs.diary_frame)
             .w_h(1202.0, 886.0)
-            .middle_of(state.bg)
+            .middle_of(state.ids.bg)
             .color(Some(UI_HIGHLIGHT_0))
-            .set(state.frame, ui);
+            .set(state.ids.frame, ui);
 
         // Icon
         Image::new(self.imgs.spellbook_button)
             .w_h(30.0, 27.0)
-            .top_left_with_margins_on(state.frame, 8.0, 8.0)
-            .set(state.icon, ui);
+            .top_left_with_margins_on(state.ids.frame, 8.0, 8.0)
+            .set(state.ids.icon, ui);
 
         // X-Button
         if Button::image(self.imgs.close_button)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
             .press_image(self.imgs.close_btn_press)
-            .top_right_with_margins_on(state.frame, 0.0, 0.0)
-            .set(state.close, ui)
+            .top_right_with_margins_on(state.ids.frame, 0.0, 0.0)
+            .set(state.ids.close, ui)
             .was_clicked()
         {
             events.push(Event::Close);
@@ -385,16 +405,16 @@ impl<'a> Widget for Diary<'a> {
 
         // Title
         Text::new(self.localized_strings.get("hud.diary"))
-            .mid_top_with_margin_on(state.frame, 3.0)
+            .mid_top_with_margin_on(state.ids.frame, 3.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(29))
             .color(TEXT_COLOR)
-            .set(state.title, ui);
+            .set(state.ids.title, ui);
 
         // Content Alignment
         Rectangle::fill_with([599.0 * 2.0, 419.0 * 2.0], color::TRANSPARENT)
-            .mid_top_with_margin_on(state.frame, 46.0)
-            .set(state.content_align, ui);
+            .mid_top_with_margin_on(state.ids.frame, 46.0)
+            .set(state.ids.content_align, ui);
 
         // Contents
         // Section buttons
@@ -402,11 +422,13 @@ impl<'a> Widget for Diary<'a> {
 
         // Update len
         state.update(|s| {
-            s.section_imgs
+            s.ids
+                .section_imgs
                 .resize(SECTIONS.len(), &mut ui.widget_id_generator())
         });
         state.update(|s| {
-            s.section_btns
+            s.ids
+                .section_btns
                 .resize(SECTIONS.len(), &mut ui.widget_id_generator())
         });
         for (i, section_name) in SECTIONS.iter().copied().enumerate() {
@@ -430,12 +452,12 @@ impl<'a> Widget for Diary<'a> {
                     _ => self.imgs.nothing,
                 };
                 if i == 0 {
-                    Image::new(img).top_left_with_margins_on(state.content_align, 0.0, -50.0)
+                    Image::new(img).top_left_with_margins_on(state.ids.content_align, 0.0, -50.0)
                 } else {
-                    Image::new(img).down_from(state.section_btns[i - 1], 5.0)
+                    Image::new(img).down_from(state.ids.section_btns[i - 1], 5.0)
                 }
             };
-            btn_img.w_h(50.0, 50.0).set(state.section_imgs[i], ui);
+            btn_img.w_h(50.0, 50.0).set(state.ids.section_imgs[i], ui);
             // Section Buttons
             let border_image = if section == *sel_section {
                 self.imgs.wpn_icon_border_pressed
@@ -458,7 +480,7 @@ impl<'a> Widget for Diary<'a> {
                 .w_h(50.0, 50.0)
                 .hover_image(hover_image)
                 .press_image(press_image)
-                .middle_of(state.section_imgs[i])
+                .middle_of(state.ids.section_imgs[i])
                 .with_tooltip(
                     self.tooltip_manager,
                     section_name,
@@ -466,7 +488,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.section_btns[i], ui);
+                .set(state.ids.section_btns[i], ui);
             if section_buttons.was_clicked() {
                 events.push(Event::ChangeSection(section))
             }
@@ -478,15 +500,18 @@ impl<'a> Widget for Diary<'a> {
 
                 // Skill Tree Selection
                 state.update(|s| {
-                    s.weapon_btns
+                    s.ids
+                        .weapon_btns
                         .resize(TREES.len(), &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.weapon_imgs
+                    s.ids
+                        .weapon_imgs
                         .resize(TREES.len(), &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.lock_imgs
+                    s.ids
+                        .lock_imgs
                         .resize(TREES.len(), &mut ui.widget_id_generator())
                 });
 
@@ -518,21 +543,25 @@ impl<'a> Widget for Diary<'a> {
                         };
 
                         if i == 0 {
-                            Image::new(img).top_left_with_margins_on(state.content_align, 10.0, 5.0)
+                            Image::new(img).top_left_with_margins_on(
+                                state.ids.content_align,
+                                10.0,
+                                5.0,
+                            )
                         } else {
-                            Image::new(img).down_from(state.weapon_btns[i - 1], 5.0)
+                            Image::new(img).down_from(state.ids.weapon_btns[i - 1], 5.0)
                         }
                     };
-                    btn_img.w_h(50.0, 50.0).set(state.weapon_imgs[i], ui);
+                    btn_img.w_h(50.0, 50.0).set(state.ids.weapon_imgs[i], ui);
 
                     // Lock Image
                     if locked {
                         Image::new(self.imgs.lock)
                             .w_h(50.0, 50.0)
-                            .middle_of(state.weapon_imgs[i])
-                            .graphics_for(state.weapon_imgs[i])
+                            .middle_of(state.ids.weapon_imgs[i])
+                            .graphics_for(state.ids.weapon_imgs[i])
                             .color(Some(Color::Rgba(1.0, 1.0, 1.0, 0.8)))
-                            .set(state.lock_imgs[i], ui);
+                            .set(state.ids.lock_imgs[i], ui);
                     }
 
                     // Weapon icons
@@ -578,7 +607,7 @@ impl<'a> Widget for Diary<'a> {
                         .w_h(50.0, 50.0)
                         .hover_image(hover_image)
                         .press_image(press_image)
-                        .middle_of(state.weapon_imgs[i])
+                        .middle_of(state.ids.weapon_imgs[i])
                         .image_color(color)
                         .with_tooltip(
                             self.tooltip_manager,
@@ -587,7 +616,7 @@ impl<'a> Widget for Diary<'a> {
                             &diary_tooltip,
                             TEXT_COLOR,
                         )
-                        .set(state.weapon_btns[i], ui);
+                        .set(state.ids.weapon_btns[i], ui);
                     if wpn_button.was_clicked() {
                         events.push(Event::ChangeSkillTree(skill_group))
                     }
@@ -616,7 +645,7 @@ impl<'a> Widget for Diary<'a> {
                         self.imgs.wpn_icon_border_press
                     },
                 )
-                .top_left_with_margins_on(state.content_align, 10.0, 5.0)
+                .top_left_with_margins_on(state.ids.content_align, 10.0, 5.0)
                 .with_tooltip(
                     self.tooltip_manager,
                     "Spellbook",
@@ -624,7 +653,7 @@ impl<'a> Widget for Diary<'a> {
                     &diary_tooltip,
                     TEXT_COLOR,
                 )
-                .set(state.spellbook_btn_bg, ui);
+                .set(state.ids.spellbook_btn_bg, ui);
                 if spellbook_btn.was_clicked() {
                     match self.show.diary_fields.section {
                         DiarySection::SkillTrees => {
@@ -638,9 +667,9 @@ impl<'a> Widget for Diary<'a> {
 
                 Image::new(self.imgs.spellbook_button)
                     .w_h(40.0, 36.0)
-                    .middle_of(state.spellbook_btn_bg)
-                    .graphics_for(state.spellbook_btn_bg)
-                    .set(state.spellbook_btn, ui);
+                    .middle_of(state.ids.spellbook_btn_bg)
+                    .graphics_for(state.ids.spellbook_btn_bg)
+                    .set(state.ids.spellbook_btn, ui);
 
                 // Exp Bars and Rank Display
                 let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
@@ -653,37 +682,37 @@ impl<'a> Widget for Diary<'a> {
                 let available_pts_txt = format!("{}", available_pts);
                 Image::new(self.imgs.diary_exp_bg)
                     .w_h(480.0, 76.0)
-                    .mid_bottom_with_margin_on(state.content_align, 10.0)
-                    .set(state.exp_bar_bg, ui);
+                    .mid_bottom_with_margin_on(state.ids.content_align, 10.0)
+                    .set(state.ids.exp_bar_bg, ui);
                 Rectangle::fill_with([400.0, 40.0], color::TRANSPARENT)
-                    .top_left_with_margins_on(state.exp_bar_bg, 32.0, 40.0)
-                    .set(state.exp_bar_content_align, ui);
+                    .top_left_with_margins_on(state.ids.exp_bar_bg, 32.0, 40.0)
+                    .set(state.ids.exp_bar_content_align, ui);
                 Image::new(self.imgs.bar_content)
                     .w_h(400.0 * exp_percentage, 40.0)
-                    .top_left_with_margins_on(state.exp_bar_content_align, 0.0, 0.0)
+                    .top_left_with_margins_on(state.ids.exp_bar_content_align, 0.0, 0.0)
                     .color(Some(XP_COLOR))
-                    .set(state.exp_bar_content, ui);
+                    .set(state.ids.exp_bar_content, ui);
                 Image::new(self.imgs.diary_exp_frame)
                     .w_h(480.0, 76.0)
                     .color(Some(UI_HIGHLIGHT_0))
-                    .middle_of(state.exp_bar_bg)
-                    .set(state.exp_bar_frame, ui);
+                    .middle_of(state.ids.exp_bar_bg)
+                    .set(state.ids.exp_bar_frame, ui);
                 // Show EXP bar text on hover
                 if ui
-                    .widget_input(state.exp_bar_frame)
+                    .widget_input(state.ids.exp_bar_frame)
                     .mouse()
                     .map_or(false, |m| m.is_over())
                 {
                     Text::new(&exp_txt)
-                        .mid_top_with_margin_on(state.exp_bar_frame, 47.0)
+                        .mid_top_with_margin_on(state.ids.exp_bar_frame, 47.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(14))
                         .color(TEXT_COLOR)
-                        .graphics_for(state.exp_bar_frame)
-                        .set(state.exp_bar_txt, ui);
+                        .graphics_for(state.ids.exp_bar_frame)
+                        .set(state.ids.exp_bar_txt, ui);
                 }
                 Text::new(&rank_txt)
-                    .mid_top_with_margin_on(state.exp_bar_frame, match rank {
+                    .mid_top_with_margin_on(state.ids.exp_bar_frame, match rank {
                         0..=99 => 5.0,
                         100..=999 => 8.0,
                         _ => 10.0,
@@ -695,7 +724,7 @@ impl<'a> Widget for Diary<'a> {
                         _ => 15,
                     }))
                     .color(TEXT_COLOR)
-                    .set(state.exp_bar_rank, ui);
+                    .set(state.ids.exp_bar_rank, ui);
 
                 Text::new(
                     &self
@@ -703,7 +732,7 @@ impl<'a> Widget for Diary<'a> {
                         .get("hud.skill.sp_available")
                         .replace("{number}", &available_pts_txt),
                 )
-                .mid_top_with_margin_on(state.content_align, 700.0)
+                .mid_top_with_margin_on(state.ids.content_align, 700.0)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(28))
                 .color(if available_pts > 0 {
@@ -711,24 +740,24 @@ impl<'a> Widget for Diary<'a> {
                 } else {
                     TEXT_COLOR
                 })
-                .set(state.available_pts_txt, ui);
+                .set(state.ids.available_pts_txt, ui);
                 // Skill Trees
                 // Alignment Placing
                 let x = 200.0;
                 let y = 100.0;
                 // Alignment rectangles for skills
                 Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-                    .top_left_with_margins_on(state.content_align, y, x)
-                    .set(state.skills_top_l_align, ui);
+                    .top_left_with_margins_on(state.ids.content_align, y, x)
+                    .set(state.ids.skills_top_l_align, ui);
                 Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-                    .top_right_with_margins_on(state.content_align, y, x)
-                    .set(state.skills_top_r_align, ui);
+                    .top_right_with_margins_on(state.ids.content_align, y, x)
+                    .set(state.ids.skills_top_r_align, ui);
                 Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-                    .bottom_left_with_margins_on(state.content_align, y, x)
-                    .set(state.skills_bot_l_align, ui);
+                    .bottom_left_with_margins_on(state.ids.content_align, y, x)
+                    .set(state.ids.skills_bot_l_align, ui);
                 Rectangle::fill_with([124.0 * 2.0, 124.0 * 2.0], color::TRANSPARENT)
-                    .bottom_right_with_margins_on(state.content_align, y, x)
-                    .set(state.skills_bot_r_align, ui);
+                    .bottom_right_with_margins_on(state.ids.content_align, y, x)
+                    .set(state.ids.skills_bot_r_align, ui);
 
                 match sel_tab {
                     SelectedSkillTree::General => {
@@ -762,19 +791,21 @@ impl<'a> Widget for Diary<'a> {
                 use comp::ability::AbilityInput;
                 // Title for ability selection UI
                 Text::new("Ability Selection")
-                    .mid_top_with_margin_on(state.content_align, 2.0)
+                    .mid_top_with_margin_on(state.ids.content_align, 2.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(34))
                     .color(TEXT_COLOR)
-                    .set(state.ability_select_title, ui);
+                    .set(state.ids.ability_select_title, ui);
 
                 // Display all active abilities on right of window
                 state.update(|s| {
-                    s.active_abilities
+                    s.ids
+                        .active_abilities
                         .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.active_abilities_bg
+                    s.ids
+                        .active_abilities_bg
                         .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
                 });
                 for i in 0..MAX_ABILITIES {
@@ -791,15 +822,23 @@ impl<'a> Widget for Diary<'a> {
                     let image_offsets = 60.0 * i as f64;
                     Image::new(self.imgs.inv_slot)
                         .w_h(image_size, image_size)
-                        .top_right_with_margins_on(state.content_align, 150.0 + image_offsets, 30.0)
-                        .set(state.active_abilities_bg[i], ui);
+                        .top_right_with_margins_on(
+                            state.ids.content_align,
+                            150.0 + image_offsets,
+                            30.0,
+                        )
+                        .set(state.ids.active_abilities_bg[i], ui);
                     let ability_image = ability_id
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
                     let (ability_title, ability_desc) =
                         util::ability_description(ability_id.unwrap_or(""));
                     if Button::image(ability_image)
                         .w_h(image_size, image_size)
-                        .top_right_with_margins_on(state.content_align, 150.0 + image_offsets, 30.0)
+                        .top_right_with_margins_on(
+                            state.ids.content_align,
+                            150.0 + image_offsets,
+                            30.0,
+                        )
                         .with_tooltip(
                             self.tooltip_manager,
                             ability_title,
@@ -807,7 +846,7 @@ impl<'a> Widget for Diary<'a> {
                             &diary_tooltip,
                             TEXT_COLOR,
                         )
-                        .set(state.active_abilities[i], ui)
+                        .set(state.ids.active_abilities[i], ui)
                         .was_clicked()
                     {
                         events.push(Event::ChangeAbility(
@@ -823,22 +862,22 @@ impl<'a> Widget for Diary<'a> {
 
                 // Scroller and alignment
                 Rectangle::fill_with([1098.0, 838.0], color::TRANSPARENT)
-                    .top_left_with_margins_on(state.content_align, 0.0, 0.0)
+                    .top_left_with_margins_on(state.ids.content_align, 0.0, 0.0)
                     .scroll_kids_vertically()
-                    .set(state.ability_scroll_align, ui);
+                    .set(state.ids.ability_scroll_align, ui);
 
-                Scrollbar::y_axis(state.ability_scroll_align)
+                Scrollbar::y_axis(state.ids.ability_scroll_align)
                     .thickness(5.0)
                     .rgba(0.33, 0.33, 0.33, 1.0)
-                    .set(state.ability_scroller, ui);
+                    .set(state.ids.ability_scroller, ui);
 
                 // Display list of abilities from main weapon
                 Text::new("Main Weapon Abilities")
-                    .top_left_with_margins_on(state.ability_scroll_align, 75.0, 25.0)
+                    .top_left_with_margins_on(state.ids.ability_scroll_align, 75.0, 25.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(28))
                     .color(TEXT_COLOR)
-                    .set(state.main_weap_title, ui);
+                    .set(state.ids.main_weap_title, ui);
 
                 // TODO: Maybe try to keep this as an iterator. Not sure how to get length
                 // though since size_hint didn't work
@@ -854,19 +893,27 @@ impl<'a> Widget for Diary<'a> {
                 let main_abilities_length = main_weap_abilities.len();
 
                 state.update(|s| {
-                    s.main_weap_abilities
+                    s.ids
+                        .main_weap_abilities
                         .resize(main_abilities_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.main_weap_ability_titles
+                    s.ids
+                        .main_weap_ability_titles
                         .resize(main_abilities_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.main_weap_ability_descs
+                    s.ids
+                        .main_weap_ability_descs
                         .resize(main_abilities_length, &mut ui.widget_id_generator())
                 });
 
                 for (i, (ability_id, ability)) in main_weap_abilities.iter().enumerate() {
+                    let map_id = state.ids.main_weap_abilities[i];
+                    state.update(|s| {
+                        s.id_ability_map.insert(map_id, *ability);
+                    });
+
                     let image_offsets = 120.0 * i as f64;
                     let ability_image = ability_id
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
@@ -880,8 +927,12 @@ impl<'a> Widget for Diary<'a> {
                         util::ability_description(ability_id.unwrap_or(""));
                     if Button::image(ability_image)
                         .w_h(100.0, 100.0)
-                        .top_left_with_margins_on(state.main_weap_title, 40.0 + image_offsets, 0.0)
-                        .set(state.main_weap_abilities[i], ui)
+                        .top_left_with_margins_on(
+                            state.ids.main_weap_title,
+                            40.0 + image_offsets,
+                            0.0,
+                        )
+                        .set(state.ids.main_weap_abilities[i], ui)
                         .was_clicked()
                     {
                         if Some(*ability) != self.show.diary_fields.selected_ability {
@@ -891,31 +942,31 @@ impl<'a> Widget for Diary<'a> {
                         }
                     }
                     Text::new(ability_title)
-                        .top_left_with_margins_on(state.main_weap_abilities[i], 5.0, 125.0)
+                        .top_left_with_margins_on(state.ids.main_weap_abilities[i], 5.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(24))
                         .color(ability_color)
-                        .set(state.main_weap_ability_titles[i], ui);
+                        .set(state.ids.main_weap_ability_titles[i], ui);
                     Text::new(ability_desc)
-                        .top_left_with_margins_on(state.main_weap_abilities[i], 30.0, 125.0)
+                        .top_left_with_margins_on(state.ids.main_weap_abilities[i], 30.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(16))
                         .color(ability_color)
-                        .set(state.main_weap_ability_descs[i], ui);
+                        .set(state.ids.main_weap_ability_descs[i], ui);
                 }
 
                 // Display list of abilities from off weapon
                 let offset_state = if main_abilities_length > 0 {
-                    state.main_weap_abilities[main_abilities_length - 1]
+                    state.ids.main_weap_abilities[main_abilities_length - 1]
                 } else {
-                    state.main_weap_title
+                    state.ids.main_weap_title
                 };
                 Text::new("Off Weapon Abilities")
                     .bottom_left_with_margins_on(offset_state, -50.0, 0.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(28))
                     .color(TEXT_COLOR)
-                    .set(state.off_weap_title, ui);
+                    .set(state.ids.off_weap_title, ui);
 
                 // TODO: Maybe try to keep this as an iterator. Not sure how to get length
                 // though since size_hint didn't work
@@ -931,19 +982,27 @@ impl<'a> Widget for Diary<'a> {
                 let off_abilities_length = off_weap_abilities.len();
 
                 state.update(|s| {
-                    s.off_weap_abilities
+                    s.ids
+                        .off_weap_abilities
                         .resize(off_abilities_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.off_weap_ability_titles
+                    s.ids
+                        .off_weap_ability_titles
                         .resize(off_abilities_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
-                    s.off_weap_ability_descs
+                    s.ids
+                        .off_weap_ability_descs
                         .resize(off_abilities_length, &mut ui.widget_id_generator())
                 });
 
                 for (i, (ability_id, ability)) in off_weap_abilities.iter().enumerate() {
+                    let map_id = state.ids.off_weap_abilities[i];
+                    state.update(|s| {
+                        s.id_ability_map.insert(map_id, *ability);
+                    });
+
                     let image_offsets = 120.0 * i as f64;
                     let ability_image = ability_id
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
@@ -957,8 +1016,12 @@ impl<'a> Widget for Diary<'a> {
                         util::ability_description(ability_id.unwrap_or(""));
                     if Button::image(ability_image)
                         .w_h(100.0, 100.0)
-                        .top_left_with_margins_on(state.off_weap_title, 40.0 + image_offsets, 0.0)
-                        .set(state.off_weap_abilities[i], ui)
+                        .top_left_with_margins_on(
+                            state.ids.off_weap_title,
+                            40.0 + image_offsets,
+                            0.0,
+                        )
+                        .set(state.ids.off_weap_abilities[i], ui)
                         .was_clicked()
                     {
                         if Some(*ability) != self.show.diary_fields.selected_ability {
@@ -968,17 +1031,61 @@ impl<'a> Widget for Diary<'a> {
                         }
                     }
                     Text::new(ability_title)
-                        .top_left_with_margins_on(state.off_weap_abilities[i], 5.0, 125.0)
+                        .top_left_with_margins_on(state.ids.off_weap_abilities[i], 5.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(24))
                         .color(ability_color)
-                        .set(state.off_weap_ability_titles[i], ui);
+                        .set(state.ids.off_weap_ability_titles[i], ui);
                     Text::new(ability_desc)
-                        .top_left_with_margins_on(state.off_weap_abilities[i], 30.0, 125.0)
+                        .top_left_with_margins_on(state.ids.off_weap_abilities[i], 30.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(16))
                         .color(ability_color)
-                        .set(state.off_weap_ability_descs[i], ui);
+                        .set(state.ids.off_weap_ability_descs[i], ui);
+                }
+
+                let mouse_pos = ui.global_input().current.mouse.xy;
+                // Handle dragging
+                if let Some(ability) = state.dragged_ability {
+                    let ability_id = Ability::from(ability).ability_id(Some(self.inventory));
+                    if let Some(ability_id) = ability_id {
+                        Image::new(util::ability_image(self.imgs, ability_id))
+                            .w_h(50.0, 50.0)
+                            .xy(mouse_pos)
+                            .set(state.ids.dragged_ability, ui);
+                    }
+                }
+                let input = &ui.global_input().current;
+                match input.mouse.buttons.left() {
+                    // If mouse button was pushed down over some id
+                    ButtonPosition::Down(_, Some(id)) => {
+                        if state.dragged_ability.is_none() {
+                            if let Some(ability) = state.id_ability_map.get(id).copied() {
+                                state.update(|s| {
+                                    s.dragged_ability = Some(ability);
+                                });
+                            }
+                        }
+                    },
+                    ButtonPosition::Up => {
+                        if let (Some(ability), Some(id)) =
+                            (state.dragged_ability, input.widget_under_mouse)
+                        {
+                            if let Some(index) = state
+                                .ids
+                                .active_abilities
+                                .iter()
+                                .enumerate()
+                                .find_map(|(i, slot_id)| (id == *slot_id).then_some(i))
+                            {
+                                events.push(Event::ChangeAbility(index, ability));
+                            }
+                        }
+                        state.update(|s| {
+                            s.dragged_ability = None;
+                        });
+                    },
+                    _ => {},
                 }
 
                 events
@@ -1029,17 +1136,17 @@ impl<'a> Diary<'a> {
     fn handle_general_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
         let tree_title = self.localized_strings.get("common.weapons.general");
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -1067,9 +1174,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.general_combat_render_0, ui);
+        .set(state.ids.general_combat_render_0, ui);
 
         Image::new(animate_by_pulse(
             &self
@@ -1078,9 +1185,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.general_combat_render_0)
+        .middle_of(state.ids.general_combat_render_0)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.general_combat_render_1, ui);
+        .set(state.ids.general_combat_render_1, ui);
 
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
@@ -1091,110 +1198,110 @@ impl<'a> Diary<'a> {
             SkillIcon::Unlockable {
                 skill: Skill::General(HealthIncrease),
                 image: self.imgs.health_plus_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_general_stat_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_general_stat_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::General(EnergyIncrease),
                 image: self.imgs.energy_plus_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_general_stat_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_general_stat_1,
             },
             // Top right skills
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Sword)),
                 image: self.imgs.unlock_sword_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_general_tree_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_general_tree_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Axe)),
                 image: self.imgs.unlock_axe_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_general_tree_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_general_tree_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Hammer)),
                 image: self.imgs.unlock_hammer_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_general_tree_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_general_tree_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Bow)),
                 image: self.imgs.unlock_bow_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_general_tree_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_general_tree_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Staff)),
                 image: self.imgs.unlock_staff_skill0,
-                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
-                id: state.skill_general_tree_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                id: state.ids.skill_general_tree_4,
             },
             SkillIcon::Unlockable {
                 skill: Skill::UnlockGroup(Weapon(Sceptre)),
                 image: self.imgs.unlock_sceptre_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
-                id: state.skill_general_tree_5,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
+                id: state.ids.skill_general_tree_5,
             },
             // Bottom left skills
             SkillIcon::Descriptive {
                 title: "hud.skill.dodge_title",
                 desc: "hud.skill.dodge",
                 image: self.imgs.skill_dodge_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_general_roll_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_general_roll_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Roll(RollSkill::Cost),
                 image: self.imgs.utility_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_general_roll_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_general_roll_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Roll(Strength),
                 image: self.imgs.utility_speed_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_general_roll_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_general_roll_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Roll(Duration),
                 image: self.imgs.utility_duration_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_general_roll_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_general_roll_3,
             },
             // Bottom right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.climbing_title",
                 desc: "hud.skill.climbing",
                 image: self.imgs.skill_climbing_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[0], 3.0),
-                id: state.skill_general_climb_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
+                id: state.ids.skill_general_climb_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Climb(ClimbSkill::Cost),
                 image: self.imgs.utility_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[1], 3.0),
-                id: state.skill_general_climb_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[1], 3.0),
+                id: state.ids.skill_general_climb_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Climb(ClimbSkill::Speed),
                 image: self.imgs.utility_speed_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[2], 3.0),
-                id: state.skill_general_climb_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[2], 3.0),
+                id: state.ids.skill_general_climb_2,
             },
             SkillIcon::Descriptive {
                 title: "hud.skill.swim_title",
                 desc: "hud.skill.swim",
                 image: self.imgs.skill_swim_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[3], 3.0),
-                id: state.skill_general_swim_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[3], 3.0),
+                id: state.ids.skill_general_swim_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Swim(SwimSkill::Speed),
                 image: self.imgs.utility_speed_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[4], 3.0),
-                id: state.skill_general_swim_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[4], 3.0),
+                id: state.ids.skill_general_swim_1,
             },
         ];
 
@@ -1205,7 +1312,7 @@ impl<'a> Diary<'a> {
     fn handle_sword_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -1213,11 +1320,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.weapons.sword");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -1245,9 +1352,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.sword_render, ui);
+        .set(state.ids.sword_render, ui);
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
             // Top Left skills
@@ -1258,114 +1365,114 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.sw_trip_str_title",
                 desc: "hud.skill.sw_trip_str",
                 image: self.imgs.twohsword_m1,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_sword_combo_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_sword_combo_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(TsCombo),
                 image: self.imgs.physical_combo_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_sword_combo_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_sword_combo_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(TsDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_sword_combo_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_sword_combo_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(TsSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_sword_combo_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_sword_combo_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(TsRegen),
                 image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
-                id: state.skill_sword_combo_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
+                id: state.ids.skill_sword_combo_4,
             },
             // Top right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.sw_dash_title",
                 desc: "hud.skill.sw_dash",
                 image: self.imgs.twohsword_m2,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_sword_dash_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_sword_dash_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(DDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_sword_dash_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_sword_dash_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(DDrain),
                 image: self.imgs.physical_energy_drain_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_sword_dash_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_sword_dash_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(DCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_sword_dash_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_sword_dash_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(DSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
-                id: state.skill_sword_dash_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                id: state.ids.skill_sword_dash_4,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(DChargeThrough),
                 image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
-                id: state.skill_sword_dash_5,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
+                id: state.ids.skill_sword_dash_5,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(DScaling),
                 image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[6], 3.0),
-                id: state.skill_sword_dash_6,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[6], 3.0),
+                id: state.ids.skill_sword_dash_6,
             },
             // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::Sword(UnlockSpin),
                 image: self.imgs.sword_whirlwind,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_sword_spin_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_sword_spin_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(SDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_sword_spin_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_sword_spin_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(SSpeed),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_sword_spin_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_sword_spin_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(SCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_sword_spin_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_sword_spin_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sword(SSpins),
                 image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
-                id: state.skill_sword_spin_4,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
+                id: state.ids.skill_sword_spin_4,
             },
             // Bottom right skills
             SkillIcon::Unlockable {
                 skill: Skill::Sword(InterruptingAttacks),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[0], 3.0),
-                id: state.skill_sword_passive_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
+                id: state.ids.skill_sword_passive_0,
             },
         ];
 
@@ -1376,7 +1483,7 @@ impl<'a> Diary<'a> {
     fn handle_hammer_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -1384,11 +1491,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.weapons.hammer");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -1416,9 +1523,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.hammer_render, ui);
+        .set(state.ids.hammer_render, ui);
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
             // Top Left skills
@@ -1429,101 +1536,101 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.hmr_single_strike_title",
                 desc: "hud.skill.hmr_single_strike",
                 image: self.imgs.twohhammer_m1,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_hammer_combo_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_hammer_combo_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(SsKnockback),
                 image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_hammer_combo_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_hammer_combo_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(SsDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_hammer_combo_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_hammer_combo_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(SsSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_hammer_combo_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_hammer_combo_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(SsRegen),
                 image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
-                id: state.skill_hammer_combo_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
+                id: state.ids.skill_hammer_combo_4,
             },
             // Top right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.hmr_charged_melee_title",
                 desc: "hud.skill.hmr_charged_melee",
                 image: self.imgs.hammergolf,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_hammer_charged_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_hammer_charged_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(CKnockback),
                 image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_hammer_charged_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_hammer_charged_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(CDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_hammer_charged_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_hammer_charged_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(CDrain),
                 image: self.imgs.physical_energy_drain_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_hammer_charged_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_hammer_charged_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(CSpeed),
                 image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
-                id: state.skill_hammer_charged_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                id: state.ids.skill_hammer_charged_4,
             },
             // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(UnlockLeap),
                 image: self.imgs.hammerleap,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_hammer_leap_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_hammer_leap_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(LDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_hammer_leap_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_hammer_leap_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(LKnockback),
                 image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_hammer_leap_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_hammer_leap_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(LCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_hammer_leap_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_hammer_leap_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(LDistance),
                 image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
-                id: state.skill_hammer_leap_4,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
+                id: state.ids.skill_hammer_leap_4,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Hammer(LRange),
                 image: self.imgs.physical_radius_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[5], 3.0),
-                id: state.skill_hammer_leap_5,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[5], 3.0),
+                id: state.ids.skill_hammer_leap_5,
             },
         ];
 
@@ -1534,7 +1641,7 @@ impl<'a> Diary<'a> {
     fn handle_axe_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -1542,11 +1649,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.weapons.axe");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -1574,9 +1681,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.axe_render, ui);
+        .set(state.ids.axe_render, ui);
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
             // Top Left skills
@@ -1587,101 +1694,101 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.axe_double_strike_title",
                 desc: "hud.skill.axe_double_strike",
                 image: self.imgs.twohaxe_m1,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_axe_combo_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_axe_combo_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(DsCombo),
                 image: self.imgs.physical_combo_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_axe_combo_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_axe_combo_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(DsDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_axe_combo_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_axe_combo_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(DsSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_axe_combo_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_axe_combo_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(DsRegen),
                 image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
-                id: state.skill_axe_combo_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
+                id: state.ids.skill_axe_combo_4,
             },
             // Top right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.axe_spin_title",
                 desc: "hud.skill.axe_spin",
                 image: self.imgs.axespin,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_axe_spin_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_axe_spin_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(SInfinite),
                 image: self.imgs.physical_infinite_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_axe_spin_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_axe_spin_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(SDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_axe_spin_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_axe_spin_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(SHelicopter),
                 image: self.imgs.physical_helicopter_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_axe_spin_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_axe_spin_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(SSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
-                id: state.skill_axe_spin_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                id: state.ids.skill_axe_spin_4,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(SCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
-                id: state.skill_axe_spin_5,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
+                id: state.ids.skill_axe_spin_5,
             },
             // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::Axe(UnlockLeap),
                 image: self.imgs.skill_axe_leap_slash,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_axe_leap_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_axe_leap_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(LDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_axe_leap_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_axe_leap_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(LKnockback),
                 image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_axe_leap_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_axe_leap_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(LCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_axe_leap_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_axe_leap_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Axe(LDistance),
                 image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
-                id: state.skill_axe_leap_4,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
+                id: state.ids.skill_axe_leap_4,
             },
         ];
 
@@ -1692,7 +1799,7 @@ impl<'a> Diary<'a> {
     fn handle_sceptre_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -1700,11 +1807,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.weapons.sceptre");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -1732,9 +1839,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.sceptre_render, ui);
+        .set(state.ids.sceptre_render, ui);
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
             // Top Left skills
@@ -1745,95 +1852,95 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.sc_lifesteal_title",
                 desc: "hud.skill.sc_lifesteal",
                 image: self.imgs.skill_sceptre_lifesteal,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_sceptre_lifesteal_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_sceptre_lifesteal_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(LDamage),
                 image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_sceptre_lifesteal_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_sceptre_lifesteal_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(LRange),
                 image: self.imgs.magic_distance_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_sceptre_lifesteal_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_sceptre_lifesteal_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(LLifesteal),
                 image: self.imgs.magic_lifesteal_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_sceptre_lifesteal_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_sceptre_lifesteal_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(LRegen),
                 image: self.imgs.magic_energy_regen_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
-                id: state.skill_sceptre_lifesteal_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
+                id: state.ids.skill_sceptre_lifesteal_4,
             },
             // Top right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.sc_heal_title",
                 desc: "hud.skill.sc_heal",
                 image: self.imgs.skill_sceptre_heal,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_sceptre_heal_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_sceptre_heal_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(HHeal),
                 image: self.imgs.heal_heal_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_sceptre_heal_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_sceptre_heal_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(HDuration),
                 image: self.imgs.heal_duration_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_sceptre_heal_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_sceptre_heal_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(HRange),
                 image: self.imgs.heal_radius_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_sceptre_heal_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_sceptre_heal_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(HCost),
                 image: self.imgs.heal_cost_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
-                id: state.skill_sceptre_heal_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                id: state.ids.skill_sceptre_heal_4,
             },
             // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(UnlockAura),
                 image: self.imgs.skill_sceptre_aura,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_sceptre_aura_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_sceptre_aura_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(AStrength),
                 image: self.imgs.buff_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_sceptre_aura_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_sceptre_aura_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(ADuration),
                 image: self.imgs.buff_duration_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_sceptre_aura_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_sceptre_aura_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(ARange),
                 image: self.imgs.buff_radius_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_sceptre_aura_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_sceptre_aura_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Sceptre(ACost),
                 image: self.imgs.buff_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
-                id: state.skill_sceptre_aura_4,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
+                id: state.ids.skill_sceptre_aura_4,
             },
         ];
 
@@ -1844,7 +1951,7 @@ impl<'a> Diary<'a> {
     fn handle_bow_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -1852,11 +1959,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.weapons.bow");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -1884,8 +1991,8 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
-        .set(state.bow_render, ui);
+        .middle_of(state.ids.content_align)
+        .set(state.ids.bow_render, ui);
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
             // Top Left skills
@@ -1896,102 +2003,102 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.bow_charged_title",
                 desc: "hud.skill.bow_charged",
                 image: self.imgs.bow_m1,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_bow_charged_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_bow_charged_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(CDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_bow_charged_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_bow_charged_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(CRegen),
                 image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_bow_charged_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_bow_charged_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(CKnockback),
                 image: self.imgs.physical_knockback_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_bow_charged_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_bow_charged_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(CSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[4], 3.0),
-                id: state.skill_bow_charged_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
+                id: state.ids.skill_bow_charged_4,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(CMove),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[5], 3.0),
-                id: state.skill_bow_charged_5,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[5], 3.0),
+                id: state.ids.skill_bow_charged_5,
             },
             // Top right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.bow_repeater_title",
                 desc: "hud.skill.bow_repeater",
                 image: self.imgs.bow_m2,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_bow_repeater_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_bow_repeater_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(RDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_bow_repeater_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_bow_repeater_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(RCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_bow_repeater_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_bow_repeater_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(RSpeed),
                 image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_bow_repeater_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_bow_repeater_3,
             },
             // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::Bow(UnlockShotgun),
                 image: self.imgs.skill_bow_jump_burst,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_bow_shotgun_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_bow_shotgun_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(SDamage),
                 image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_bow_shotgun_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_bow_shotgun_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(SCost),
                 image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_bow_shotgun_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_bow_shotgun_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(SArrows),
                 image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_bow_shotgun_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_bow_shotgun_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Bow(SSpread),
                 image: self.imgs.physical_explosion_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
-                id: state.skill_bow_shotgun_4,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
+                id: state.ids.skill_bow_shotgun_4,
             },
             // Bottom right skills
             SkillIcon::Unlockable {
                 skill: Skill::Bow(ProjSpeed),
                 image: self.imgs.physical_projectile_speed_skill,
-                position: MidTopWithMarginOn(state.skills_bot_r[0], 3.0),
-                id: state.skill_bow_passive_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
+                id: state.ids.skill_bow_passive_0,
             },
         ];
 
@@ -2002,7 +2109,7 @@ impl<'a> Diary<'a> {
     fn handle_staff_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -2010,11 +2117,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.weapons.staff");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -2042,9 +2149,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.staff_render, ui);
+        .set(state.ids.staff_render, ui);
 
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
@@ -2056,89 +2163,89 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.st_fireball_title",
                 desc: "hud.skill.st_fireball",
                 image: self.imgs.fireball,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_staff_basic_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_staff_basic_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(BDamage),
                 image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_staff_basic_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_staff_basic_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(BRegen),
                 image: self.imgs.magic_energy_regen_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_staff_basic_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_staff_basic_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(BRadius),
                 image: self.imgs.magic_radius_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_staff_basic_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_staff_basic_3,
             },
             // Top right skills
             SkillIcon::Descriptive {
                 title: "hud.skill.st_flamethrower_title",
                 desc: "hud.skill.st_flamethrower",
                 image: self.imgs.flamethrower,
-                position: MidTopWithMarginOn(state.skills_top_r[0], 3.0),
-                id: state.skill_staff_beam_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
+                id: state.ids.skill_staff_beam_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(FDamage),
                 image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[1], 3.0),
-                id: state.skill_staff_beam_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
+                id: state.ids.skill_staff_beam_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(FDrain),
                 image: self.imgs.magic_energy_drain_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[2], 3.0),
-                id: state.skill_staff_beam_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
+                id: state.ids.skill_staff_beam_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(FRange),
                 image: self.imgs.magic_radius_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[3], 3.0),
-                id: state.skill_staff_beam_3,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
+                id: state.ids.skill_staff_beam_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(FVelocity),
                 image: self.imgs.magic_projectile_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_r[4], 3.0),
-                id: state.skill_staff_beam_4,
+                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
+                id: state.ids.skill_staff_beam_4,
             },
             // Bottom left skills
             SkillIcon::Unlockable {
                 skill: Skill::Staff(UnlockShockwave),
                 image: self.imgs.fire_aoe,
-                position: MidTopWithMarginOn(state.skills_bot_l[0], 3.0),
-                id: state.skill_staff_shockwave_0,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
+                id: state.ids.skill_staff_shockwave_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(SDamage),
                 image: self.imgs.magic_damage_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[1], 3.0),
-                id: state.skill_staff_shockwave_1,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
+                id: state.ids.skill_staff_shockwave_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(SKnockback),
                 image: self.imgs.magic_knockback_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[2], 3.0),
-                id: state.skill_staff_shockwave_2,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
+                id: state.ids.skill_staff_shockwave_2,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(SCost),
                 image: self.imgs.magic_cost_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[3], 3.0),
-                id: state.skill_staff_shockwave_3,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
+                id: state.ids.skill_staff_shockwave_3,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Staff(SRange),
                 image: self.imgs.magic_radius_skill,
-                position: MidTopWithMarginOn(state.skills_bot_l[4], 3.0),
-                id: state.skill_staff_shockwave_4,
+                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
+                id: state.ids.skill_staff_shockwave_4,
             },
         ];
 
@@ -2149,7 +2256,7 @@ impl<'a> Diary<'a> {
     fn handle_mining_skills_window(
         &mut self,
         diary_tooltip: &Tooltip,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         mut events: Vec<Event>,
     ) -> Vec<Event> {
@@ -2157,11 +2264,11 @@ impl<'a> Diary<'a> {
         let tree_title = self.localized_strings.get("common.tool.mining");
 
         Text::new(tree_title)
-            .mid_top_with_margin_on(state.content_align, 2.0)
+            .mid_top_with_margin_on(state.ids.content_align, 2.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(34))
             .color(TEXT_COLOR)
-            .set(state.tree_title_txt, ui);
+            .set(state.ids.tree_title_txt, ui);
 
         // Number of skills per rectangle per weapon, start counting at 0
         // Maximum of 9 skills/8 indices
@@ -2189,9 +2296,9 @@ impl<'a> Diary<'a> {
             self.pulse,
         ))
         .wh(ART_SIZE)
-        .middle_of(state.content_align)
+        .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
-        .set(state.pick_render, ui);
+        .set(state.ids.pick_render, ui);
 
         use PositionSpecifier::MidTopWithMarginOn;
         let skill_buttons = &[
@@ -2203,26 +2310,26 @@ impl<'a> Diary<'a> {
                 title: "hud.skill.pick_strike_title",
                 desc: "hud.skill.pick_strike",
                 image: self.imgs.pickaxe,
-                position: MidTopWithMarginOn(state.skills_top_l[0], 3.0),
-                id: state.skill_pick_m1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
+                id: state.ids.skill_pick_m1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Pick(Speed),
                 image: self.imgs.pickaxe_speed_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[1], 3.0),
-                id: state.skill_pick_m1_0,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
+                id: state.ids.skill_pick_m1_0,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Pick(OreGain),
                 image: self.imgs.pickaxe_oregain_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[2], 3.0),
-                id: state.skill_pick_m1_1,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
+                id: state.ids.skill_pick_m1_1,
             },
             SkillIcon::Unlockable {
                 skill: Skill::Pick(GemGain),
                 image: self.imgs.pickaxe_gemgain_skill,
-                position: MidTopWithMarginOn(state.skills_top_l[3], 3.0),
-                id: state.skill_pick_m1_2,
+                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
+                id: state.ids.skill_pick_m1_2,
             },
         ];
 
@@ -2279,7 +2386,7 @@ impl<'a> Diary<'a> {
 
     fn setup_state_for_skill_icons(
         &mut self,
-        state: &mut State<Ids>,
+        state: &mut State<DiaryState>,
         ui: &mut UiCell,
         skills_top_l: usize,
         skills_top_r: usize,
@@ -2288,19 +2395,23 @@ impl<'a> Diary<'a> {
     ) {
         // Update widget id array len
         state.update(|s| {
-            s.skills_top_l
+            s.ids
+                .skills_top_l
                 .resize(skills_top_l, &mut ui.widget_id_generator())
         });
         state.update(|s| {
-            s.skills_top_r
+            s.ids
+                .skills_top_r
                 .resize(skills_top_r, &mut ui.widget_id_generator())
         });
         state.update(|s| {
-            s.skills_bot_l
+            s.ids
+                .skills_bot_l
                 .resize(skills_bot_l, &mut ui.widget_id_generator())
         });
         state.update(|s| {
-            s.skills_bot_r
+            s.ids
+                .skills_bot_r
                 .resize(skills_bot_r, &mut ui.widget_id_generator())
         });
 
@@ -2350,52 +2461,52 @@ impl<'a> Diary<'a> {
         while self.created_btns_top_l < skills_top_l {
             let pos = skill_pos(
                 self.created_btns_top_l,
-                state.skills_top_l_align,
-                state.skills_top_l[0],
+                state.ids.skills_top_l_align,
+                state.ids.skills_top_l[0],
             );
             Button::image(self.imgs.wpn_icon_border_skills)
                 .w_h(80.0, 100.0)
                 .position(pos)
-                .set(state.skills_top_l[self.created_btns_top_l], ui);
+                .set(state.ids.skills_top_l[self.created_btns_top_l], ui);
             self.created_btns_top_l += 1;
         }
         // TOP-RIGHT Skills
         while self.created_btns_top_r < skills_top_r {
             let pos = skill_pos(
                 self.created_btns_top_r,
-                state.skills_top_r_align,
-                state.skills_top_r[0],
+                state.ids.skills_top_r_align,
+                state.ids.skills_top_r[0],
             );
             Button::image(self.imgs.wpn_icon_border_skills)
                 .w_h(80.0, 100.0)
                 .position(pos)
-                .set(state.skills_top_r[self.created_btns_top_r], ui);
+                .set(state.ids.skills_top_r[self.created_btns_top_r], ui);
             self.created_btns_top_r += 1;
         }
         // BOTTOM-LEFT Skills
         while self.created_btns_bot_l < skills_bot_l {
             let pos = skill_pos(
                 self.created_btns_bot_l,
-                state.skills_bot_l_align,
-                state.skills_bot_l[0],
+                state.ids.skills_bot_l_align,
+                state.ids.skills_bot_l[0],
             );
             Button::image(self.imgs.wpn_icon_border_skills)
                 .w_h(80.0, 100.0)
                 .position(pos)
-                .set(state.skills_bot_l[self.created_btns_bot_l], ui);
+                .set(state.ids.skills_bot_l[self.created_btns_bot_l], ui);
             self.created_btns_bot_l += 1;
         }
         // BOTTOM-RIGHT Skills
         while self.created_btns_bot_r < skills_bot_r {
             let pos = skill_pos(
                 self.created_btns_bot_r,
-                state.skills_bot_r_align,
-                state.skills_bot_r[0],
+                state.ids.skills_bot_r_align,
+                state.ids.skills_bot_r[0],
             );
             Button::image(self.imgs.wpn_icon_border_skills)
                 .w_h(80.0, 100.0)
                 .position(pos)
-                .set(state.skills_bot_r[self.created_btns_bot_r], ui);
+                .set(state.ids.skills_bot_r[self.created_btns_bot_r], ui);
             self.created_btns_bot_r += 1;
         }
     }
