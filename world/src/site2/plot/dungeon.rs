@@ -119,7 +119,6 @@ impl Dungeon {
             .unwrap_or(200.0)
     }
 
-    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: wpos.distance_squared(self.origin) > 64i32.pow(2),

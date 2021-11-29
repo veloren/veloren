@@ -23,7 +23,6 @@ use veloren_world::{
 const W: usize = 1024;
 const H: usize = 1024;
 
-#[allow(clippy::needless_update)] // TODO: Pending review in #587
 fn main() {
     FmtSubscriber::builder()
         .with_max_level(Level::ERROR)
@@ -48,9 +47,8 @@ fn main() {
         WorldOpts {
             seed_elements: false,
             world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
-            // world_file: sim::FileOpts::Load(_map_file),
-            // world_file: sim::FileOpts::Save(sim::SizeOpts::default()),
-            ..WorldOpts::default()
+            /* world_file: sim::FileOpts::Load(_map_file),
+             * world_file: sim::FileOpts::Save(sim::SizeOpts::default()), */
         },
         &threadpool,
     );

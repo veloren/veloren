@@ -201,7 +201,6 @@ pub struct Server {
 
 impl Server {
     /// Create a new `Server`
-    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn new(
         settings: Settings,
         editable_settings: EditableSettings,
@@ -356,7 +355,6 @@ impl Server {
                     // Load default map from assets.
                     FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
                 },
-                ..WorldOpts::default()
             },
             state.thread_pool(),
         );

@@ -11,7 +11,6 @@ use world::{sim, World};
 const CENTER: Vec2<i32> = Vec2 { x: 512, y: 512 };
 const GEN_SIZE: i32 = 4;
 
-#[allow(clippy::needless_update)] // TODO: Pending review in #587
 pub fn criterion_benchmark(c: &mut Criterion) {
     let pool = rayon::ThreadPoolBuilder::new().build().unwrap();
     // Generate chunks here to test
@@ -24,7 +23,6 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             // directly with a closure.
             seed_elements: true,
             world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
-            ..Default::default()
         },
         &pool,
     );
