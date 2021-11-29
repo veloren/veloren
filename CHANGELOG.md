@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Many know water generation problems
 - Trading over long distances using ghost characters or client-side exploits is no longer possible
 - Merchant cost percentages displayed as floored, whole numbers
+- Bodies of water no longer contain black chunks on the voxel minimap.
 
 ## [0.11.0] - 2021-09-11
 

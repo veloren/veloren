@@ -83,7 +83,7 @@ impl VoxelMinimap {
 
     /// Each layer is a slice of the terrain near that z-level
     fn composite_layer_slice(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Rgba<u8>, bool)>>) {
-        for z in chunk.get_min_z()..chunk.get_max_z() {
+        for z in chunk.get_min_z()..=chunk.get_max_z() {
             let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
                 let mut rgba = Rgba::<f32>::zero();
                 let (weights, zoff) = (&[1, 2, 4, 1, 1, 1][..], -2);
@@ -104,7 +104,7 @@ impl VoxelMinimap {
 
     /// Each layer is the overhead as if its z-level were the ceiling
     fn composite_layer_overhead(chunk: &TerrainChunk, layers: &mut Vec<Grid<(Rgba<u8>, bool)>>) {
-        for z in chunk.get_min_z()..chunk.get_max_z() {
+        for z in chunk.get_min_z()..=chunk.get_max_z() {
             let grid = Grid::populate_from(Vec2::new(32, 32), |v| {
                 let mut rgba = None;
 
