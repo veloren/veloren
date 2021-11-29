@@ -548,7 +548,6 @@ impl Settlement {
 
     pub fn radius(&self) -> f32 { 400.0 }
 
-    #[allow(clippy::needless_update)] // TODO: Pending review in #587
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             trees: self
