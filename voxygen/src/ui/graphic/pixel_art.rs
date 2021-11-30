@@ -34,7 +34,6 @@ const EPSILON: f32 = 0.0001;
 // we can now calculate the combined alpha value
 // and E6 can then be solved for c3
 //     E9: c3 = (A1 * c1 * a1 + A2 * c2 * a2) / a3
-#[allow(clippy::manual_saturating_arithmetic)] // TODO: Pending review in #587
 pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> RgbaImage {
     span!(_guard, "resize_pixel_art");
     let (width, height) = image.dimensions();
@@ -52,9 +51,7 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
         let xsmax = (xsmin + wratio).min(width as f32);
         // Min and max pixels covered
         let xminp = xsmin.floor() as u32;
-        let xmaxp = ((xsmax - EPSILON).ceil() as u32)
-            .checked_sub(1)
-            .unwrap_or(0);
+        let xmaxp = ((xsmax - EPSILON).ceil() as u32).saturating_sub(1);
         // Fraction of first pixel to use
         let first_x_frac = if xminp != xmaxp {
             1.0 - xsmin.fract()
@@ -68,9 +65,7 @@ pub fn resize_pixel_art(image: &RgbaImage, new_width: u32, new_height: u32) -> R
             let ysmax = (ysmin + hratio).min(height as f32);
             // Min and max of pixels covered
             let yminp = ysmin.floor() as u32;
-            let ymaxp = ((ysmax - EPSILON).ceil() as u32)
-                .checked_sub(1)
-                .unwrap_or(0);
+            let ymaxp = ((ysmax - EPSILON).ceil() as u32).saturating_sub(1);
             // Fraction of first pixel to use
             let first_y_frac = if yminp != ymaxp {
                 1.0 - ysmin.fract()
