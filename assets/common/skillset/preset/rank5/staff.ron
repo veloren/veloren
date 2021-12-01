@@ -2,20 +2,20 @@
     Group(Weapon(Staff)),
 
     // Fireball
-    Skill((Staff(BDamage), Some(3))),
-    Skill((Staff(BRegen), Some(2))),
-    Skill((Staff(BRadius), Some(3))),
+    Skill((Staff(BDamage), 3)),
+    Skill((Staff(BRegen), 2)),
+    Skill((Staff(BRadius), 3)),
 
     // Flamethrower
-    Skill((Staff(FRange), Some(2))),
-    Skill((Staff(FDamage), Some(3))),
-    Skill((Staff(FDrain), Some(2))),
-    Skill((Staff(FVelocity), Some(2))),
+    Skill((Staff(FRange), 2)),
+    Skill((Staff(FDamage), 3)),
+    Skill((Staff(FDrain), 2)),
+    Skill((Staff(FVelocity), 2)),
 
     // Shockwave
-    Skill((Staff(UnlockShockwave), None)),
-    Skill((Staff(SDamage), Some(2))),
-    Skill((Staff(SKnockback), Some(2))),
-    Skill((Staff(SRange), Some(2))),
-    Skill((Staff(SCost), Some(2))),
+    Skill((Staff(UnlockShockwave), 1)),
+    Skill((Staff(SDamage), 2)),
+    Skill((Staff(SKnockback), 2)),
+    Skill((Staff(SRange), 2)),
+    Skill((Staff(SCost), 2)),
 ])

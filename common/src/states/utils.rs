@@ -437,7 +437,7 @@ fn swim_move(
         let force = efficiency * force;
         let mut water_accel = force / data.mass.0;
 
-        if let Ok(Some(level)) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
+        if let Ok(level) = data.skill_set.skill_level(Skill::Swim(SwimSkill::Speed)) {
             let modifiers = SKILL_MODIFIERS.general_tree.swim;
             water_accel *= modifiers.speed.powi(level.into());
         }

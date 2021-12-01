@@ -22,7 +22,6 @@ pub enum Skill {
     Climb(ClimbSkill),
     Swim(SwimSkill),
     Pick(MiningSkill),
-    // TODO: Don't do this, maybe Sharp has idea?
     UnlockGroup(SkillGroupKind),
 }
 
@@ -41,7 +40,7 @@ pub enum SwordSkill {
     DDamage,
     DScaling,
     DSpeed,
-    DInfinite, // Represents charge through, not migrated because laziness
+    DChargeThrough,
     // Spin upgrades
     UnlockSpin,
     SDamage,
@@ -187,23 +186,30 @@ pub enum MiningSkill {
 impl Skill {
     /// Returns a vec of prerequisite skills (it should only be necessary to
     /// note direct prerequisites)
-    pub fn prerequisite_skills(&self) -> impl Iterator<Item = (Skill, Option<u16>)> {
+    /// Automatically filters itself from the skills returned
+    pub fn prerequisite_skills(&self) -> impl Iterator<Item = (Skill, u16)> + '_ {
         SKILL_PREREQUISITES
             .get(self)
             .into_iter()
             .flatten()
-            .map(|(skill, level)| (*skill, *level))
+            .filter_map(move |(skill, level)| {
+                if self == skill {
+                    None
+                } else {
+                    Some((*skill, *level))
+                }
+            })
     }
 
     /// Returns the cost in skill points of unlocking a particular skill
-    pub fn skill_cost(&self, level: Option<u16>) -> u16 {
+    pub fn skill_cost(&self, level: u16) -> u16 {
         // TODO: Better balance the costs later
-        level.unwrap_or(1)
+        level
     }
 
     /// Returns the maximum level a skill can reach, returns None if the skill
     /// doesn't level
-    pub fn max_level(&self) -> Option<u16> { SKILL_MAX_LEVEL.get(self).copied().flatten() }
+    pub fn max_level(&self) -> u16 { SKILL_MAX_LEVEL.get(self).copied().unwrap_or(1) }
 
     /// Returns the skill group type for a skill from the static skill group
     /// definitions.

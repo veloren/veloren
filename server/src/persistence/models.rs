@@ -23,8 +23,8 @@ pub struct Body {
 pub struct SkillGroup {
     pub entity_id: i64,
     pub skill_group_kind: String,
-    pub earned_exp: i32,
-    pub spent_exp: i32,
+    pub earned_exp: i64,
+    pub spent_exp: i64,
     pub skills: String,
     pub hash_val: Vec<u8>,
 }

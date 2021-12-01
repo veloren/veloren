@@ -221,7 +221,6 @@ impl StateExt for State {
                 body,
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
-                    .unwrap_or(None)
                     .unwrap_or(0),
             ))
             .with(stats)
@@ -508,11 +507,9 @@ impl StateExt for State {
             let (health_level, energy_level) = (
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
-                    .unwrap_or(None)
                     .unwrap_or(0),
                 skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
-                    .unwrap_or(None)
                     .unwrap_or(0),
             );
             self.write_component_ignore_entity_dead(entity, comp::Health::new(body, health_level));

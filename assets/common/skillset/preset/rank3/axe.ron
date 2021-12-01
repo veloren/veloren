@@ -2,19 +2,19 @@
     Group(Weapon(Axe)),
 
     // DoubleStrike
-    Skill((Axe(DsCombo), None)),
-    Skill((Axe(DsDamage), Some(1))),
-    Skill((Axe(DsRegen), Some(1))),
-    Skill((Axe(DsSpeed), Some(1))),
+    Skill((Axe(DsCombo), 1)),
+    Skill((Axe(DsDamage), 1)),
+    Skill((Axe(DsRegen), 1)),
+    Skill((Axe(DsSpeed), 1)),
 
     // Spin
-    Skill((Axe(SInfinite), None)),
-    Skill((Axe(SHelicopter), None)),
-    Skill((Axe(SDamage), Some(1))),
-    Skill((Axe(SSpeed), Some(1))),
-    Skill((Axe(SCost), Some(1))),
+    Skill((Axe(SInfinite), 1)),
+    Skill((Axe(SHelicopter), 1)),
+    Skill((Axe(SDamage), 1)),
+    Skill((Axe(SSpeed), 1)),
+    Skill((Axe(SCost), 1)),
 
     // Leap
-    Skill((Axe(UnlockLeap), None)),
-    Skill((Axe(LDamage), Some(1))),
+    Skill((Axe(UnlockLeap), 1)),
+    Skill((Axe(LDamage), 1)),
 ])

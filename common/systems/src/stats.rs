@@ -140,17 +140,17 @@ impl<'a> System<'a> for Sys {
 
             if !skills_to_level.is_empty() {
                 for skill_group in skills_to_level {
-                    if skill_set.earn_skill_point(skill_group).is_err() {
-                        warn!(
+                    match skill_set.earn_skill_point(skill_group) {
+                        Ok(_) => outcomes.push(Outcome::SkillPointGain {
+                            uid: *uid,
+                            skill_tree: skill_group,
+                            total_points: skill_set.earned_sp(skill_group),
+                            pos: pos.0,
+                        }),
+                        Err(_) => warn!(
                             "Attempted to add skill point to group which is inelgible to earn one"
-                        );
+                        ),
                     }
-                    outcomes.push(Outcome::SkillPointGain {
-                        uid: *uid,
-                        skill_tree: skill_group,
-                        total_points: skill_set.earned_sp(skill_group),
-                        pos: pos.0,
-                    });
                 }
             }
         }
@@ -167,7 +167,6 @@ impl<'a> System<'a> for Sys {
             if skill_set.modify_health {
                 let health_level = skill_set
                     .skill_level(Skill::General(GeneralSkill::HealthIncrease))
-                    .unwrap_or(None)
                     .unwrap_or(0);
                 health.update_max_hp(*body, health_level);
                 skill_set.modify_health = false;
@@ -175,7 +174,6 @@ impl<'a> System<'a> for Sys {
             if skill_set.modify_energy {
                 let energy_level = skill_set
                     .skill_level(Skill::General(GeneralSkill::EnergyIncrease))
-                    .unwrap_or(None)
                     .unwrap_or(0);
                 energy.update_max_energy(*body, energy_level);
                 skill_set.modify_energy = false;

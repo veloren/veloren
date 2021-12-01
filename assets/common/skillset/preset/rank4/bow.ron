@@ -2,24 +2,24 @@
     Group(Weapon(Bow)),
 
     // Projectile Speed
-    Skill((Bow(ProjSpeed), Some(2))),
+    Skill((Bow(ProjSpeed), 2)),
 
     // Charged
-    Skill((Bow(CDamage), Some(2))),
-    Skill((Bow(CKnockback), Some(2))),
-    Skill((Bow(CSpeed), Some(2))),
-    Skill((Bow(CRegen), Some(1))),
-    Skill((Bow(CMove), Some(1))),
+    Skill((Bow(CDamage), 2)),
+    Skill((Bow(CKnockback), 2)),
+    Skill((Bow(CSpeed), 2)),
+    Skill((Bow(CRegen), 1)),
+    Skill((Bow(CMove), 1)),
 
     // Repeater
-    Skill((Bow(RDamage), Some(2))),
-    Skill((Bow(RCost), Some(1))),
-    Skill((Bow(RSpeed), Some(1))),
+    Skill((Bow(RDamage), 2)),
+    Skill((Bow(RCost), 1)),
+    Skill((Bow(RSpeed), 1)),
 
     // Shotgun
-    Skill((Bow(UnlockShotgun), None)),
-    Skill((Bow(SDamage), Some(1))),
-    Skill((Bow(SCost), Some(1))),
-    Skill((Bow(SArrows), Some(1))),
-    Skill((Bow(SSpread), Some(1))),
+    Skill((Bow(UnlockShotgun), 1)),
+    Skill((Bow(SDamage), 1)),
+    Skill((Bow(SCost), 1)),
+    Skill((Bow(SArrows), 1)),
+    Skill((Bow(SSpread), 1)),
 ])

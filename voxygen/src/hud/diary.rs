@@ -903,7 +903,7 @@ impl<'a> Diary<'a> {
                 id: state.skill_sword_dash_4,
             },
             SkillIcon::Unlockable {
-                skill: Skill::Sword(DInfinite),
+                skill: Skill::Sword(DChargeThrough),
                 image: self.imgs.physical_distance_skill,
                 position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
                 id: state.skill_sword_dash_5,
@@ -1996,11 +1996,8 @@ impl<'a> Diary<'a> {
         diary_tooltip: &Tooltip,
     ) {
         let label = if self.skill_set.prerequisites_met(skill) {
-            let current = self
-                .skill_set
-                .skill_level(skill)
-                .map_or(0, |l| l.unwrap_or(1));
-            let max = skill.max_level().unwrap_or(1);
+            let current = self.skill_set.skill_level(skill).unwrap_or(0);
+            let max = skill.max_level();
             format!("{}/{}", current, max)
         } else {
             "".to_owned()
@@ -2195,7 +2192,7 @@ fn sword_skill_strings(skill: SwordSkill, i18n: &Localization) -> (&str, Cow<str
             "hud.skill.sw_dash_speed",
             modifiers.dash.forward_speed,
         ),
-        SwordSkill::DInfinite => localize(
+        SwordSkill::DChargeThrough => localize(
             i18n,
             "hud.skill.sw_dash_charge_through_title",
             "hud.skill.sw_dash_charge_through",

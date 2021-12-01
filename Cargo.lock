@@ -6191,7 +6191,6 @@ name = "veloren-common"
 version = "0.10.0"
 dependencies = [
  "approx 0.4.0",
- "bincode",
  "bitflags",
  "chrono",
  "chrono-tz",
@@ -6216,6 +6215,7 @@ dependencies = [
  "ron 0.7.0",
  "roots",
  "serde",
+ "serde_json",
  "serde_repr",
  "sha2",
  "slab",

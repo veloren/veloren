@@ -5,7 +5,6 @@ use crate::{
         skills::{GeneralSkill, Skill},
     },
 };
-use bincode;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
@@ -17,6 +16,9 @@ use tracing::{trace, warn};
 
 pub mod skills;
 
+/// BTreeSet is used here to ensure that skills are ordered. This is important
+/// to ensure that the hash created from it is consistent so that we don't
+/// needlessly force a respec when loading skills from persistence.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillTreeMap(HashMap<SkillGroupKind, BTreeSet<Skill>>);
 
@@ -32,7 +34,7 @@ pub struct SkillGroupDef {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillLevelMap(HashMap<Skill, Option<u16>>);
+pub struct SkillLevelMap(HashMap<Skill, u16>);
 
 impl Asset for SkillLevelMap {
     type Loader = assets::RonLoader;
@@ -41,7 +43,7 @@ impl Asset for SkillLevelMap {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SkillPrerequisitesMap(HashMap<Skill, HashMap<Skill, Option<u16>>>);
+pub struct SkillPrerequisitesMap(HashMap<Skill, HashMap<Skill, u16>>);
 
 impl Asset for SkillPrerequisitesMap {
     type Loader = assets::RonLoader;
@@ -63,14 +65,11 @@ lazy_static! {
                 total_skill_point_cost: skills
                     .iter()
                     .map(|skill| {
-                        if let Some(max_level) = skill.max_level() {
-                            (1..=max_level)
-                                .into_iter()
-                                .map(|level| skill.skill_cost(Some(level)))
-                                .sum()
-                        } else {
-                            skill.skill_cost(None)
-                        }
+                        let max_level = skill.max_level();
+                        (1..=max_level)
+                            .into_iter()
+                            .map(|level| skill.skill_cost(level))
+                            .sum::<u16>()
                     })
                     .sum()
             })
@@ -85,13 +84,13 @@ lazy_static! {
         map.iter().flat_map(|(sgk, skills)| skills.into_iter().map(move |s| (*s, *sgk))).collect()
     };
     // Loads the maximum level that a skill can obtain
-    pub static ref SKILL_MAX_LEVEL: HashMap<Skill, Option<u16>> = {
+    pub static ref SKILL_MAX_LEVEL: HashMap<Skill, u16> = {
         SkillLevelMap::load_expect_cloned(
             "common.skill_trees.skill_max_levels",
         ).0
     };
     // Loads the prerequisite skills for a particular skill
-    pub static ref SKILL_PREREQUISITES: HashMap<Skill, HashMap<Skill, Option<u16>>> = {
+    pub static ref SKILL_PREREQUISITES: HashMap<Skill, HashMap<Skill, u16>> = {
         SkillPrerequisitesMap::load_expect_cloned(
             "common.skill_trees.skill_prerequisites",
         ).0
@@ -103,9 +102,9 @@ lazy_static! {
         let mut hashes = HashMap::new();
         for (skill_group_kind, skills) in map.iter() {
             let mut hasher = Sha256::new();
-            let bincode_input: Vec<_> = skills.iter().map(|skill| (*skill, skill.max_level())).collect();
-            let hash_input = bincode::serialize(&bincode_input).unwrap_or_default();
-            hasher.update(hash_input);
+            let json_input: Vec<_> = skills.iter().map(|skill| (*skill, skill.max_level())).collect();
+            let hash_input = serde_json::to_string(&json_input).unwrap_or_default();
+            hasher.update(hash_input.as_bytes());
             let hash_result = hasher.finalize();
             hashes.insert(*skill_group_kind, hash_result.iter().copied().collect());
         }
@@ -121,6 +120,8 @@ pub enum SkillGroupKind {
 
 impl SkillGroupKind {
     /// Gets the cost in experience of earning a skill point
+    /// Changing this is forward compatible with persistence and will
+    /// automatically force a respec for skill group kinds that are affected.
     pub fn skill_point_cost(self, level: u16) -> u32 {
         const EXP_INCREMENT: f32 = 10.0;
         const STARTING_EXP: f32 = 70.0;
@@ -186,9 +187,21 @@ impl SkillGroup {
     pub fn earn_skill_point(&mut self) -> Result<(), SpRewardError> {
         let sp_cost = self.skill_group_kind.skill_point_cost(self.earned_sp);
         if self.available_experience() >= sp_cost {
-            self.spent_exp = self.spent_exp.saturating_add(sp_cost);
-            self.available_sp = self.available_sp.saturating_add(1);
-            self.earned_sp = self.earned_sp.saturating_add(1);
+            let new_spent_exp = self
+                .spent_exp
+                .checked_add(sp_cost)
+                .ok_or(SpRewardError::Overflow)?;
+            let new_earned_sp = self
+                .earned_sp
+                .checked_add(1)
+                .ok_or(SpRewardError::Overflow)?;
+            let new_available_sp = self
+                .available_sp
+                .checked_add(1)
+                .ok_or(SpRewardError::Overflow)?;
+            self.spent_exp = new_spent_exp;
+            self.earned_sp = new_earned_sp;
+            self.available_sp = new_available_sp;
             Ok(())
         } else {
             Err(SpRewardError::InsufficientExp)
@@ -202,7 +215,7 @@ impl SkillGroup {
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SkillSet {
     skill_groups: Vec<SkillGroup>,
-    skills: HashMap<Skill, Option<u16>>,
+    skills: HashMap<Skill, u16>,
     pub modify_health: bool,
     pub modify_energy: bool,
 }
@@ -229,12 +242,12 @@ impl Default for SkillSet {
 }
 
 impl SkillSet {
-    pub fn initial_skills() -> HashMap<Skill, Option<u16>> {
+    pub fn initial_skills() -> HashMap<Skill, u16> {
         let mut skills = HashMap::new();
-        skills.insert(Skill::UnlockGroup(SkillGroupKind::General), None);
+        skills.insert(Skill::UnlockGroup(SkillGroupKind::General), 1);
         skills.insert(
             Skill::UnlockGroup(SkillGroupKind::Weapon(ToolKind::Pick)),
-            None,
+            1,
         );
         skills
     }
@@ -310,10 +323,15 @@ impl SkillSet {
     }
 
     /// Returns a mutable reference to a particular skill group in a skillset
+    /// Requires that skillset contains skill that unlocks the skill group
     fn skill_group_mut(&mut self, skill_group: SkillGroupKind) -> Option<&mut SkillGroup> {
+        // In order to mutate skill group, we check that the prerequisite skill has been
+        // acquired, as this is one of the requirements for us to consider the skill
+        // group accessible.
+        let skill_group_accessible = self.skill_group_accessible(skill_group);
         self.skill_groups
             .iter_mut()
-            .find(|s_g| s_g.skill_group_kind == skill_group)
+            .find(|s_g| s_g.skill_group_kind == skill_group && skill_group_accessible)
     }
 
     /// Adds experience to the skill group within an entity's skill set
@@ -347,13 +365,13 @@ impl SkillSet {
         skill_group_kind: SkillGroupKind,
         number_of_skill_points: u16,
     ) {
-        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.available_sp = skill_group
-                .available_sp
-                .saturating_add(number_of_skill_points);
-            skill_group.earned_sp = skill_group.earned_sp.saturating_add(number_of_skill_points);
-        } else {
-            warn!("Tried to add skill points to a skill group that player does not have");
+        for _ in 0..number_of_skill_points {
+            let exp_needed = self.skill_point_cost(skill_group_kind);
+            self.add_experience(skill_group_kind, exp_needed);
+            if self.earn_skill_point(skill_group_kind).is_err() {
+                warn!("Failed to add skill point");
+                break;
+            }
         }
     }
 
@@ -397,11 +415,7 @@ impl SkillSet {
     /// Checks if player has sufficient skill points to purchase a skill
     pub fn sufficient_skill_points(&self, skill: Skill) -> bool {
         if let Some(skill_group_kind) = skill.skill_group_kind() {
-            if let Some(skill_group) = self
-                .skill_groups
-                .iter()
-                .find(|x| x.skill_group_kind == skill_group_kind)
-            {
+            if let Some(skill_group) = self.skill_group(skill_group_kind) {
                 let needed_sp = self.skill_cost(skill);
                 skill_group.available_sp >= needed_sp
             } else {
@@ -413,13 +427,13 @@ impl SkillSet {
     }
 
     /// Checks the next level of a skill
-    fn next_skill_level(&self, skill: Skill) -> Option<u16> {
+    fn next_skill_level(&self, skill: Skill) -> u16 {
         if let Ok(level) = self.skill_level(skill) {
-            // If already has skill, and that skill has levels, level + 1
-            level.map(|l| l + 1)
+            // If already has skill, then level + 1
+            level + 1
         } else {
-            // Else if the skill has levels, 1
-            skill.max_level().map(|_| 1)
+            // Otherwise the next level is the first level
+            1
         }
     }
 
@@ -431,39 +445,35 @@ impl SkillSet {
             let prerequisites_met = self.prerequisites_met(skill);
             // Check that skill is not yet at max level
             if !matches!(self.skills.get(&skill), Some(level) if *level == skill.max_level()) {
-                if self.has_skill(Skill::UnlockGroup(skill_group_kind)) {
-                    if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-                        if prerequisites_met {
-                            if skill_group.available_sp >= skill.skill_cost(next_level) {
-                                skill_group.available_sp -= skill.skill_cost(next_level);
-                                skill_group.ordered_skills.push(skill);
-                                match skill {
-                                    Skill::UnlockGroup(group) => {
-                                        self.unlock_skill_group(group);
-                                    },
-                                    Skill::General(GeneralSkill::HealthIncrease) => {
-                                        self.modify_health = true;
-                                    },
-                                    Skill::General(GeneralSkill::EnergyIncrease) => {
-                                        self.modify_energy = true;
-                                    },
-                                    _ => {},
-                                }
-                                self.skills.insert(skill, next_level);
-                                Ok(())
-                            } else {
-                                trace!(
-                                    "Tried to unlock skill for skill group with insufficient SP"
-                                );
-                                Err(SkillUnlockError::InsufficientSP)
+                if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
+                    if prerequisites_met {
+                        if let Some(new_available_sp) = skill_group
+                            .available_sp
+                            .checked_sub(skill.skill_cost(next_level))
+                        {
+                            skill_group.available_sp = new_available_sp;
+                            skill_group.ordered_skills.push(skill);
+                            match skill {
+                                Skill::UnlockGroup(group) => {
+                                    self.unlock_skill_group(group);
+                                },
+                                Skill::General(GeneralSkill::HealthIncrease) => {
+                                    self.modify_health = true;
+                                },
+                                Skill::General(GeneralSkill::EnergyIncrease) => {
+                                    self.modify_energy = true;
+                                },
+                                _ => {},
                             }
+                            self.skills.insert(skill, next_level);
+                            Ok(())
                         } else {
-                            trace!("Tried to unlock skill without meeting prerequisite skills");
-                            Err(SkillUnlockError::MissingPrerequisites)
+                            trace!("Tried to unlock skill for skill group with insufficient SP");
+                            Err(SkillUnlockError::InsufficientSP)
                         }
                     } else {
-                        trace!("Tried to unlock skill for a skill group that player does not have");
-                        Err(SkillUnlockError::UnavailableSkillGroup)
+                        trace!("Tried to unlock skill without meeting prerequisite skills");
+                        Err(SkillUnlockError::MissingPrerequisites)
                     }
                 } else {
                     trace!("Tried to unlock skill for a skill group that player does not have");
@@ -486,6 +496,7 @@ impl SkillSet {
     pub fn has_available_sp(&self) -> bool {
         self.skill_groups.iter().any(|sg| {
             sg.available_sp > 0
+            // Subtraction in bounds because of the invariant that available_sp <= earned_sp
                 && (sg.earned_sp - sg.available_sp) < sg.skill_group_kind.total_skill_point_cost()
         })
     }
@@ -503,7 +514,7 @@ impl SkillSet {
     pub fn has_skill(&self, skill: Skill) -> bool { self.skills.contains_key(&skill) }
 
     /// Returns the level of the skill
-    pub fn skill_level(&self, skill: Skill) -> Result<Option<u16>, SkillError> {
+    pub fn skill_level(&self, skill: Skill) -> Result<u16, SkillError> {
         if let Some(level) = self.skills.get(&skill).copied() {
             Ok(level)
         } else {
@@ -513,7 +524,7 @@ impl SkillSet {
 
     /// Returns the level of the skill or passed value as default
     pub fn skill_level_or(&self, skill: Skill, default: u16) -> u16 {
-        if let Ok(Some(level)) = self.skill_level(skill) {
+        if let Ok(level) = self.skill_level(skill) {
             level
         } else {
             default
@@ -521,6 +532,7 @@ impl SkillSet {
     }
 }
 
+#[derive(Debug)]
 pub enum SkillError {
     MissingSkill,
 }
@@ -537,4 +549,5 @@ pub enum SkillUnlockError {
 pub enum SpRewardError {
     InsufficientExp,
     UnavailableSkillGroup,
+    Overflow,
 }

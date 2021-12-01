@@ -530,6 +530,8 @@ fn convert_skill_groups_from_database(
             spent_exp: 0,
             available_sp: 0,
             earned_sp: 0,
+            // Ordered skills empty here as skills get inserted later as they are unlocked, so long
+            // as there is not a respec.
             ordered_skills: Vec::new(),
         };
 
@@ -559,16 +561,17 @@ pub fn convert_skill_groups_to_database(
     entity_id: CharacterId,
     skill_groups: Vec<skillset::SkillGroup>,
 ) -> Vec<SkillGroup> {
+    let skill_group_hashes = &skillset::SKILL_GROUP_HASHES;
     skill_groups
         .into_iter()
         .map(|sg| SkillGroup {
             entity_id,
             skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
-            earned_exp: sg.earned_exp as i32,
-            spent_exp: sg.spent_exp as i32,
+            earned_exp: i64::from(sg.earned_exp),
+            spent_exp: i64::from(sg.spent_exp),
             // If fails to convert, just forces a respec on next login
             skills: serde_json::to_string(&sg.ordered_skills).unwrap_or_else(|_| "".to_string()),
-            hash_val: skillset::SKILL_GROUP_HASHES
+            hash_val: skill_group_hashes
                 .get(&sg.skill_group_kind)
                 .cloned()
                 .unwrap_or_default(),

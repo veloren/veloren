@@ -1,4 +1,4 @@
 ([
-    Skill((General(HealthIncrease), Some(10))),
-    Skill((General(EnergyIncrease), Some(5))),
+    Skill((General(HealthIncrease), 10)),
+    Skill((General(EnergyIncrease), 5)),
 ])

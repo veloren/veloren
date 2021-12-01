@@ -34,10 +34,10 @@ impl Data {
     pub fn create_adjusted_by_skills(join_data: &JoinData) -> Self {
         let modifiers = SKILL_MODIFIERS.general_tree.climb;
         let mut data = Data::default();
-        if let Ok(Some(level)) = join_data.skill_set.skill_level(Skill::Climb(Cost)) {
+        if let Ok(level) = join_data.skill_set.skill_level(Skill::Climb(Cost)) {
             data.static_data.energy_cost *= modifiers.energy_cost.powi(level.into());
         }
-        if let Ok(Some(level)) = join_data.skill_set.skill_level(Skill::Climb(Speed)) {
+        if let Ok(level) = join_data.skill_set.skill_level(Skill::Climb(Speed)) {
             data.static_data.movement_speed *= modifiers.speed.powi(level.into());
         }
         data

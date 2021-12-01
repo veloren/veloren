@@ -2,11 +2,11 @@
     Group(Weapon(Sceptre)),
 
     // Beam
-    Skill((Sceptre(LDamage), Some(1))),
-    Skill((Sceptre(LRange), Some(1))),
+    Skill((Sceptre(LDamage), 1)),
+    Skill((Sceptre(LRange), 1)),
 
     // Heal
-    Skill((Sceptre(HHeal), Some(1))),
-    Skill((Sceptre(HDuration), Some(1))),
+    Skill((Sceptre(HHeal), 1)),
+    Skill((Sceptre(HDuration), 1)),
 
 ])

@@ -27,7 +27,7 @@
         (Sword(DDamage), 2),
         (Sword(DScaling), 3),
         (Sword(DSpeed), 1),
-        (Sword(DInfinite), 1),
+        (Sword(DChargeThrough), 1),
 
         (Sword(UnlockSpin), 1),
         (Sword(SDamage), 2),
@@ -157,7 +157,7 @@
         (Sword(DDamage), 2),
         (Sword(DScaling), 2),
         (Sword(DSpeed), 1),
-        (Sword(DInfinite), 1),
+        (Sword(DChargeThrough), 1),
 
         (Sword(UnlockSpin), 1),
         (Sword(SDamage), 1),

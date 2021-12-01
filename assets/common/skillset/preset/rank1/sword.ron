@@ -1,14 +1,14 @@
 ([
     Group(Weapon(Sword)),
 
-    Skill((Sword(InterruptingAttacks), None)),
+    Skill((Sword(InterruptingAttacks), 1)),
 
     // TripleStrike
-    Skill((Sword(TsCombo), None)),
-    Skill((Sword(TsDamage), Some(1))),
-    Skill((Sword(TsRegen), Some(1))),
+    Skill((Sword(TsCombo), 1)),
+    Skill((Sword(TsDamage), 1)),
+    Skill((Sword(TsRegen), 1)),
 
     // Dash
-    Skill((Sword(DCost), Some(1))),
+    Skill((Sword(DCost), 1)),
 
 ])
