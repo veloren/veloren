@@ -85,6 +85,7 @@ image_ids! {
         pickaxe_ico: "voxygen.element.weapons.pickaxe",
         skilltree_ico: "voxygen.element.ui.diary.buttons.skilltree",
         spellbook_ico: "voxygen.element.ui.diary.buttons.spellbook",
+        stats_ico: "voxygen.element.ui.diary.buttons.stats",
         lock: "voxygen.element.ui.diary.buttons.lock",
         wpn_icon_border_skills: "voxygen.element.ui.diary.buttons.border_skills",
         wpn_icon_border: "voxygen.element.ui.generic.buttons.border",

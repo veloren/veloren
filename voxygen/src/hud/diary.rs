@@ -211,6 +211,9 @@ widget_ids! {
         off_weap_ability_titles[],
         off_weap_ability_descs[],
         dragged_ability,
+        // Stats
+        stat_names[],
+        stat_values[],
     }
 }
 
@@ -304,9 +307,25 @@ const TREES: [&str; 8] = [
     "Fire Staff",
     "Mining",
 ];
+
+const STATS: [&str; 12] = [
+    "Hitpoints",
+    "Energy",
+    "Combat-Rating",
+    "Protection",
+    "Stun-Resistance",
+    "Crit-Power",
+    "Energy Reward",
+    "Stealth",
+    "Weapon Power",
+    "Weapon Speed",
+    "Weapon Poise",
+    "Weapon Crit-Chance",
+];
+
 // Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
 // armour catalogue, Achievements...
-const SECTIONS: [&str; 2] = ["Abilities", "Skill-Trees"];
+const SECTIONS: [&str; 3] = ["Abilities", "Skill-Trees", "Stats"];
 
 pub enum Event {
     Close,
@@ -321,6 +340,7 @@ pub enum Event {
 pub enum DiarySection {
     SkillTrees,
     AbilitySelection,
+    Stats,
 }
 
 pub struct DiaryState {
@@ -445,13 +465,15 @@ impl<'a> Widget for Diary<'a> {
             // Section Icons
             let section_desc = match section_name {
                 "Abilities" => "List of your currently available abilities.",
-                "Skill-Trees" => "Test",
+                "Skill-Trees" => "",
+                "Stats" => "",
                 _ => "",
             };
             let btn_img = {
                 let img = match section_name {
                     "Abilities" => self.imgs.spellbook_ico,
                     "Skill-Trees" => self.imgs.skilltree_ico,
+                    "Stats" => self.imgs.stats_ico,
                     _ => self.imgs.nothing,
                 };
                 if i == 0 {
@@ -665,6 +687,9 @@ impl<'a> Widget for Diary<'a> {
                         DiarySection::AbilitySelection => {
                             events.push(Event::ChangeSection(DiarySection::SkillTrees))
                         },
+                        DiarySection::Stats => {
+                            events.push(Event::ChangeSection(DiarySection::Stats))
+                        },
                     }
                 }
 
@@ -835,8 +860,8 @@ impl<'a> Widget for Diary<'a> {
                             tweak!(32.0) + image_offsets,
                         );
                     } else {
-                        ability_slot =
-                            ability_slot.right_from(state.ids.active_abilities_bg[i - 1], tweak!(4.0))
+                        ability_slot = ability_slot
+                            .right_from(state.ids.active_abilities_bg[i - 1], tweak!(4.0))
                     }
                     ability_slot.set(state.ids.active_abilities_bg[i], ui);
                     let ability_image = ability_id
@@ -1095,6 +1120,86 @@ impl<'a> Widget for Diary<'a> {
 
                 events
             },
+            DiarySection::Stats => {
+                let hp = 100;
+                let energy = 50;
+                let cr = 1;
+                let prot = 1;
+                let stun_res = 1;
+                let critpwr = 1;
+                let energ_rew = 1;
+                let stealth = 1;
+                let wpn_pwr = 1;
+                let wpn_spd = 1;
+                let wpn_poi = 1;
+                let wpn_crit = 1;
+
+                // Background Art
+                Image::new(self.imgs.book_bg)
+                    .w_h(299.0 * 4.0, 184.0 * 4.0)
+                    .mid_top_with_margin_on(state.ids.content_align, tweak!(4.0))
+                    .set(state.ids.spellbook_art, ui);
+
+                state.update(|s| {
+                    s.ids
+                        .stat_names
+                        .resize(STATS.len(), &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.ids
+                        .stat_values
+                        .resize(STATS.len(), &mut ui.widget_id_generator())
+                });
+                for (i, stat) in STATS.iter().copied().enumerate() {
+                    // Stat names
+                    let mut txt = Text::new(stat)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(29))
+                        .color(BLACK);
+
+                    if i == 0 {
+                        txt = txt.top_left_with_margins_on(
+                            state.ids.spellbook_art,
+                            tweak!(20.0),
+                            tweak!(20.0),
+                        );
+                    } else {
+                        txt = txt.down_from(state.ids.stat_names[i - 1], tweak!(10.0));
+                    };
+                    txt.set(state.ids.stat_names[i], ui);
+
+                    // Stat values
+                    let value = match stat {
+                        "Hitpoints" => format!("{}", hp),
+                        "Energy" => format!("{}", energy),
+                        "Combat-Rating" => format!("{}", cr),
+                        "Protection" => format!("{}", prot),
+                        "Stun-Resistance" => format!("{}", stun_res),
+                        "Crit-Power" => format!("{}", critpwr),
+                        "Energy Reward" => format!("{}", energ_rew),
+                        "Stealth" => format!("{}", stealth),
+                        "Weapon Power" => format!("{}", wpn_pwr),
+                        "Weapon Speed" => format!("{}", wpn_spd),
+                        "Weapon Poise" => format!("{}", wpn_poi),
+                        "Weapon Crit-Chance" => format!("{}%", wpn_crit),
+                        _ => "".to_string(),
+                    };
+
+                    let mut number = Text::new(&value)
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(29))
+                        .color(BLACK);
+
+                    if i == 0 {
+                        number = number.right_from(state.ids.stat_names[i], tweak!(300.0));
+                    } else {
+                        number = number.down_from(state.ids.stat_values[i - 1], tweak!(10.0));
+                    };
+                    number.set(state.ids.stat_values[i], ui);
+                }
+
+                events
+            },
         }
     }
 }
@@ -1117,6 +1222,7 @@ fn section_from_str(string: &str) -> Option<DiarySection> {
     match string {
         "Abilities" => Some(DiarySection::AbilitySelection),
         "Skill-Trees" => Some(DiarySection::SkillTrees),
+        "Stats" => Some(DiarySection::Stats),
         _ => None,
     }
 }
