@@ -3477,9 +3477,10 @@ fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
             for _ in 0..*level {
                 let cost = skill_set.skill_cost(*skill);
                 skill_set.add_skill_points(group, cost);
-                skill_set
-                    .unlock_skill(*skill)
-                    .map_err(|err| format!("{:?}", err))?;
+                match skill_set.unlock_skill(*skill) {
+                    Ok(_) | Err(comp::skillset::SkillUnlockError::SkillAlreadyUnlocked) => Ok(()),
+                    Err(err) => Err(format!("{:?}", err)),
+                }?;
             }
         }
         Ok(())

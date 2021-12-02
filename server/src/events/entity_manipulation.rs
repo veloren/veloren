@@ -353,16 +353,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             }
         }).flatten().for_each(|(attacker, exp_reward)| {
             // Process the calculated EXP rewards
-            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory)) = (
+            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory), Some(pos)) = (
                 skill_sets.get_mut(attacker),
                 uids.get(attacker),
                 inventories.get(attacker),
+                positions.get(attacker),
             ) {
                 handle_exp_gain(
                     exp_reward,
                     attacker_inventory,
                     &mut attacker_skill_set,
                     attacker_uid,
+                    pos,
                     &mut outcomes,
                 );
             }
@@ -1087,6 +1089,7 @@ fn handle_exp_gain(
     inventory: &Inventory,
     skill_set: &mut SkillSet,
     uid: &Uid,
+    pos: &Pos,
     outcomes: &mut Vec<Outcome>,
 ) {
     use comp::inventory::{item::ItemKind, slot::EquipSlot};
@@ -1117,7 +1120,16 @@ fn handle_exp_gain(
     add_tool_from_slot(EquipSlot::InactiveOffhand);
     let num_pools = xp_pools.len() as f32;
     for pool in xp_pools.iter() {
-        skill_set.add_experience(*pool, (exp_reward / num_pools).ceil() as u32);
+        if let Some(level_outcome) =
+            skill_set.add_experience(*pool, (exp_reward / num_pools).ceil() as u32)
+        {
+            outcomes.push(Outcome::SkillPointGain {
+                uid: *uid,
+                skill_tree: *pool,
+                total_points: level_outcome,
+                pos: pos.0,
+            });
+        }
     }
     outcomes.push(Outcome::ExpChange {
         uid: *uid,

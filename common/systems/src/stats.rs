@@ -7,16 +7,12 @@ use common::{
         StatsModifier,
     },
     event::{EventBus, ServerEvent},
-    outcome::Outcome,
     resources::{DeltaTime, EntitiesDiedLastTick, Time},
-    uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use hashbrown::HashSet;
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
 };
-use tracing::warn;
 use vek::Vec3;
 
 const ENERGY_REGEN_ACCEL: f32 = 1.0;
@@ -29,7 +25,6 @@ pub struct ReadData<'a> {
     time: Read<'a, Time>,
     server_bus: Read<'a, EventBus<ServerEvent>>,
     positions: ReadStorage<'a, Pos>,
-    uids: ReadStorage<'a, Uid>,
     bodies: ReadStorage<'a, Body>,
     char_states: ReadStorage<'a, CharacterState>,
     inventories: ReadStorage<'a, Inventory>,
@@ -49,7 +44,6 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Combo>,
         Write<'a, EntitiesDiedLastTick>,
-        Write<'a, Vec<Outcome>>,
     );
 
     const NAME: &'static str = "stats";
@@ -67,7 +61,6 @@ impl<'a> System<'a> for Sys {
             mut energies,
             mut combos,
             mut entities_died_last_tick,
-            mut outcomes,
         ): Self::SystemData,
     ) {
         entities_died_last_tick.0.clear();
@@ -75,11 +68,9 @@ impl<'a> System<'a> for Sys {
         let dt = read_data.dt.0;
 
         // Update stats
-        for (entity, uid, stats, mut skill_set, mut health, pos, mut energy, inventory) in (
+        for (entity, stats, mut health, pos, mut energy, inventory) in (
             &read_data.entities,
-            &read_data.uids,
             &stats,
-            &mut skill_sets,
             &mut healths,
             &read_data.positions,
             &mut energies,
@@ -127,30 +118,6 @@ impl<'a> System<'a> for Sys {
             // If modifier sufficiently different, mutably access energy
             if change_energy {
                 energy.update_maximum(energy_mods);
-            }
-
-            let skills_to_level = skill_set
-                .skill_groups()
-                .filter_map(|s_g| {
-                    (s_g.available_exp >= skill_set.skill_point_cost(s_g.skill_group_kind))
-                        .then(|| s_g.skill_group_kind)
-                })
-                .collect::<HashSet<_>>();
-
-            if !skills_to_level.is_empty() {
-                for skill_group in skills_to_level {
-                    match skill_set.earn_skill_point(skill_group) {
-                        Ok(_) => outcomes.push(Outcome::SkillPointGain {
-                            uid: *uid,
-                            skill_tree: skill_group,
-                            total_points: skill_set.earned_sp(skill_group),
-                            pos: pos.0,
-                        }),
-                        Err(_) => warn!(
-                            "Attempted to add skill point to group which is inelgible to earn one"
-                        ),
-                    }
-                }
             }
         }
 

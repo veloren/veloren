@@ -190,7 +190,7 @@ impl SkillGroup {
     pub fn spent_exp(&self) -> u32 { self.earned_exp - self.available_exp }
 
     /// Adds a skill point while subtracting the necessary amount of experience
-    pub fn earn_skill_point(&mut self) -> Result<(), SpRewardError> {
+    fn earn_skill_point(&mut self) -> Result<(), SpRewardError> {
         let sp_cost = self.skill_group_kind.skill_point_cost(self.earned_sp);
         // If there is insufficient available exp, checked sub will fail as the result
         // would be less than 0
@@ -212,9 +212,19 @@ impl SkillGroup {
         Ok(())
     }
 
-    pub fn add_experience(&mut self, amount: u32) {
+    /// Also attempts to earn a skill point after adding experience. If a skill
+    /// point was earned, returns how many skill points the skill group now has
+    /// earned in total.
+    pub fn add_experience(&mut self, amount: u32) -> Option<u16> {
         self.earned_exp = self.earned_exp.saturating_add(amount);
         self.available_exp = self.available_exp.saturating_add(amount);
+
+        let mut return_val = None;
+        // Attempt to earn skill point
+        while self.earn_skill_point().is_ok() {
+            return_val = Some(self.earned_sp);
+        }
+        return_val
     }
 }
 
@@ -342,12 +352,15 @@ impl SkillSet {
         }
     }
 
-    /// Adds experience to the skill group within an entity's skill set
-    pub fn add_experience(&mut self, skill_group_kind: SkillGroupKind, amount: u32) {
+    /// Adds experience to the skill group within an entity's skill set, will
+    /// attempt to earn a skill point while doing so. If a skill point was
+    /// earned, returns the number of earned skill points in the skill group.
+    pub fn add_experience(&mut self, skill_group_kind: SkillGroupKind, amount: u32) -> Option<u16> {
         if let Some(skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.add_experience(amount);
+            skill_group.add_experience(amount)
         } else {
             warn!("Tried to add experience to a skill group that player does not have");
+            None
         }
     }
 
@@ -376,22 +389,6 @@ impl SkillSet {
         for _ in 0..number_of_skill_points {
             let exp_needed = self.skill_point_cost(skill_group_kind);
             self.add_experience(skill_group_kind, exp_needed);
-            if self.earn_skill_point(skill_group_kind).is_err() {
-                warn!("Failed to add skill point");
-                break;
-            }
-        }
-    }
-
-    /// Adds a skill point while subtracting the necessary amount of experience
-    pub fn earn_skill_point(
-        &mut self,
-        skill_group_kind: SkillGroupKind,
-    ) -> Result<(), SpRewardError> {
-        if let Some(skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.earn_skill_point()
-        } else {
-            Err(SpRewardError::UnavailableSkillGroup)
         }
     }
 

@@ -339,15 +339,25 @@ pub fn handle_mine_block(
                             .0
                             .get(item.item_definition_id()),
                     ) {
-                        skillset.add_experience(SkillGroupKind::Weapon(tool), *exp_reward);
-                        state
-                            .ecs()
-                            .write_resource::<Vec<Outcome>>()
-                            .push(Outcome::ExpChange {
+                        let skill_group = SkillGroupKind::Weapon(tool);
+                        let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
+                        let positions = state.ecs().read_component::<comp::Pos>();
+                        if let (Some(level_outcome), Some(pos)) = (
+                            skillset.add_experience(skill_group, *exp_reward),
+                            positions.get(entity),
+                        ) {
+                            outcomes.push(Outcome::SkillPointGain {
                                 uid,
-                                exp: *exp_reward,
-                                xp_pools: HashSet::from_iter(vec![SkillGroupKind::Weapon(tool)]),
+                                skill_tree: skill_group,
+                                total_points: level_outcome,
+                                pos: pos.0,
                             });
+                        }
+                        outcomes.push(Outcome::ExpChange {
+                            uid,
+                            exp: *exp_reward,
+                            xp_pools: HashSet::from_iter(vec![skill_group]),
+                        });
                     }
                     use common::comp::skills::{MiningSkill, Skill, SKILL_MODIFIERS};
                     use rand::Rng;

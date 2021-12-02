@@ -543,12 +543,9 @@ fn convert_skill_groups_from_database(
 
         // Add experience to skill group through method to ensure invariant of
         // (earned_exp >= available_exp) are maintained
+        // Adding experience will automatically earn all possible skill points
         let skill_group_exp = skill_group.earned_exp.clamp(0, i64::from(u32::MAX)) as u32;
         new_skill_group.add_experience(skill_group_exp);
-
-        // Convert exp into skill points, earn_skill_point will only return an error
-        // when it is no longer able to spend exp to acquire another skill point
-        while new_skill_group.earn_skill_point().is_ok() {}
 
         use skillset::SkillsPersistenceError;
 
