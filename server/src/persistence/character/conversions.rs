@@ -521,11 +521,11 @@ fn convert_skill_groups_from_database(
 ) -> (
     // Skill groups in the vec do not contain skills, those are added later. The skill group only
     // contains fields related to experience and skill points
-    Vec<skillset::SkillGroup>,
+    HashMap<skillset::SkillGroupKind, skillset::SkillGroup>,
     //
     HashMap<skillset::SkillGroupKind, Result<Vec<skills::Skill>, skillset::SkillsPersistenceError>>,
 ) {
-    let mut new_skill_groups = Vec::new();
+    let mut new_skill_groups = HashMap::new();
     let mut deserialized_skills = HashMap::new();
     for skill_group in skill_groups.iter() {
         let skill_group_kind = json_models::db_string_to_skill_group(&skill_group.skill_group_kind);
@@ -579,14 +579,14 @@ fn convert_skill_groups_from_database(
 
         deserialized_skills.insert(skill_group_kind, skills_result);
 
-        new_skill_groups.push(new_skill_group);
+        new_skill_groups.insert(skill_group_kind, new_skill_group);
     }
     (new_skill_groups, deserialized_skills)
 }
 
-pub fn convert_skill_groups_to_database(
+pub fn convert_skill_groups_to_database<'a, I: Iterator<Item = &'a skillset::SkillGroup>>(
     entity_id: CharacterId,
-    skill_groups: Vec<skillset::SkillGroup>,
+    skill_groups: I,
 ) -> Vec<SkillGroup> {
     let skill_group_hashes = &skillset::SKILL_GROUP_HASHES;
     skill_groups

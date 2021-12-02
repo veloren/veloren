@@ -419,8 +419,7 @@ pub fn create_character(
     ])?;
     drop(stmt);
 
-    let db_skill_groups =
-        convert_skill_groups_to_database(character_id, skill_set.skill_groups().to_vec());
+    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups());
 
     let mut stmt = transactionn.prepare_cached(
         "
@@ -992,8 +991,7 @@ pub fn update(
         }
     }
 
-    let db_skill_groups =
-        convert_skill_groups_to_database(char_id, char_skill_set.skill_groups().to_vec());
+    let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups());
 
     let mut stmt = transaction.prepare_cached(
         "

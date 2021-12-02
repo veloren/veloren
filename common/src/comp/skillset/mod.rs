@@ -159,6 +159,8 @@ impl SkillGroupKind {
 /// skill group.
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct SkillGroup {
+    // Invariant should be maintained that this is the same kind as the key that the skill group is
+    // inserted into the skillset as.
     pub skill_group_kind: SkillGroupKind,
     // The invariant that (earned_exp >= available_exp) should not be violated
     pub available_exp: u32,
@@ -221,7 +223,7 @@ impl SkillGroup {
 /// refunding skills etc.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct SkillSet {
-    skill_groups: Vec<SkillGroup>,
+    skill_groups: HashMap<SkillGroupKind, SkillGroup>,
     skills: HashMap<Skill, u16>,
     pub modify_health: bool,
     pub modify_energy: bool,
@@ -236,15 +238,19 @@ impl Default for SkillSet {
     /// unlocked skills in them - used when adding a skill set to a new
     /// player
     fn default() -> Self {
-        Self {
-            skill_groups: vec![
-                SkillGroup::new(SkillGroupKind::General),
-                SkillGroup::new(SkillGroupKind::Weapon(ToolKind::Pick)),
-            ],
+        // Create an empty skillset
+        let mut skill_group = Self {
+            skill_groups: HashMap::new(),
             skills: SkillSet::initial_skills(),
             modify_health: false,
             modify_energy: false,
-        }
+        };
+
+        // Insert default skill groups
+        skill_group.unlock_skill_group(SkillGroupKind::General);
+        skill_group.unlock_skill_group(SkillGroupKind::Weapon(ToolKind::Pick));
+
+        skill_group
     }
 }
 
@@ -260,7 +266,7 @@ impl SkillSet {
     }
 
     pub fn load_from_database(
-        skill_groups: Vec<SkillGroup>,
+        skill_groups: HashMap<SkillGroupKind, SkillGroup>,
         mut all_skills: HashMap<SkillGroupKind, Result<Vec<Skill>, SkillsPersistenceError>>,
     ) -> Self {
         let mut skillset = SkillSet {
@@ -299,34 +305,27 @@ impl SkillSet {
 
     /// Checks if a particular skill group is accessible for an entity
     pub fn skill_group_accessible(&self, skill_group_kind: SkillGroupKind) -> bool {
-        self.skill_groups
-            .iter()
-            .any(|x| x.skill_group_kind == skill_group_kind)
+        self.skill_groups.contains_key(&skill_group_kind)
             && self.has_skill(Skill::UnlockGroup(skill_group_kind))
     }
 
     ///  Unlocks a skill group for a player. It starts with 0 exp and 0 skill
     ///  points.
     pub fn unlock_skill_group(&mut self, skill_group_kind: SkillGroupKind) {
-        if !self
-            .skill_groups
-            .iter()
-            .any(|x| x.skill_group_kind == skill_group_kind)
-        {
-            self.skill_groups.push(SkillGroup::new(skill_group_kind));
+        if !self.skill_groups.contains_key(&skill_group_kind) {
+            self.skill_groups
+                .insert(skill_group_kind, SkillGroup::new(skill_group_kind));
         } else {
             warn!("Tried to unlock already known skill group");
         }
     }
 
     /// Returns an iterator over skill groups
-    pub fn skill_groups(&self) -> &Vec<SkillGroup> { &self.skill_groups }
+    pub fn skill_groups(&self) -> impl Iterator<Item = &SkillGroup> { self.skill_groups.values() }
 
     /// Returns a reference to a particular skill group in a skillset
     fn skill_group(&self, skill_group: SkillGroupKind) -> Option<&SkillGroup> {
-        self.skill_groups
-            .iter()
-            .find(|s_g| s_g.skill_group_kind == skill_group)
+        self.skill_groups.get(&skill_group)
     }
 
     /// Returns a mutable reference to a particular skill group in a skillset
@@ -336,9 +335,11 @@ impl SkillSet {
         // acquired, as this is one of the requirements for us to consider the skill
         // group accessible.
         let skill_group_accessible = self.skill_group_accessible(skill_group);
-        self.skill_groups
-            .iter_mut()
-            .find(|s_g| s_g.skill_group_kind == skill_group && skill_group_accessible)
+        if skill_group_accessible {
+            self.skill_groups.get_mut(&skill_group)
+        } else {
+            None
+        }
     }
 
     /// Adds experience to the skill group within an entity's skill set
@@ -501,10 +502,10 @@ impl SkillSet {
 
     /// Checks if the player has available SP to spend
     pub fn has_available_sp(&self) -> bool {
-        self.skill_groups.iter().any(|sg| {
+        self.skill_groups.iter().any(|(kind, sg)| {
             sg.available_sp > 0
             // Subtraction in bounds because of the invariant that available_sp <= earned_sp
-                && (sg.earned_sp - sg.available_sp) < sg.skill_group_kind.total_skill_point_cost()
+                && (sg.earned_sp - sg.available_sp) < kind.total_skill_point_cost()
         })
     }
 
