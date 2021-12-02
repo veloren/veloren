@@ -187,18 +187,15 @@ impl Skill {
     /// Returns a vec of prerequisite skills (it should only be necessary to
     /// note direct prerequisites)
     /// Automatically filters itself from the skills returned
+    /// Is unable to detect cyclic dependencies, so ensure that there are no
+    /// cycles if you modify the prerequisite map.
     pub fn prerequisite_skills(&self) -> impl Iterator<Item = (Skill, u16)> + '_ {
         SKILL_PREREQUISITES
             .get(self)
             .into_iter()
             .flatten()
-            .filter_map(move |(skill, level)| {
-                if self == skill {
-                    None
-                } else {
-                    Some((*skill, *level))
-                }
-            })
+            .filter(move |(skill, _)| self != *skill)
+            .map(|(skill, level)| (*skill, *level))
     }
 
     /// Returns the cost in skill points of unlocking a particular skill

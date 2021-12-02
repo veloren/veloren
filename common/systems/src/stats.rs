@@ -133,7 +133,7 @@ impl<'a> System<'a> for Sys {
                 .skill_groups()
                 .iter()
                 .filter_map(|s_g| {
-                    (s_g.available_experience() >= skill_set.skill_point_cost(s_g.skill_group_kind))
+                    (s_g.available_exp >= skill_set.skill_point_cost(s_g.skill_group_kind))
                         .then(|| s_g.skill_group_kind)
                 })
                 .collect::<HashSet<_>>();

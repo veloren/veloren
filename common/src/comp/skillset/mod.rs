@@ -42,6 +42,9 @@ impl Asset for SkillLevelMap {
     const EXTENSION: &'static str = "ron";
 }
 
+/// Contains the prerequisite skills for each skill. It cannot currently detect
+/// cyclic dependencies, so if you modify the prerequisite map ensure that there
+/// are no cycles of prerequisites.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SkillPrerequisitesMap(HashMap<Skill, HashMap<Skill, u16>>);
 
@@ -157,10 +160,10 @@ impl SkillGroupKind {
 #[derive(Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub struct SkillGroup {
     pub skill_group_kind: SkillGroupKind,
-    // How much exp has been used for skill points
-    pub spent_exp: u32,
-    // How much exp has been earned in total
+    // The invariant that (earned_exp >= available_exp) should not be violated
+    pub available_exp: u32,
     pub earned_exp: u32,
+    // The invariant that (earned_sp >= available_sp) should not be violated
     pub available_sp: u16,
     pub earned_sp: u16,
     // Used for persistence
@@ -171,7 +174,7 @@ impl SkillGroup {
     fn new(skill_group_kind: SkillGroupKind) -> SkillGroup {
         SkillGroup {
             skill_group_kind,
-            spent_exp: 0,
+            available_exp: 0,
             earned_exp: 0,
             available_sp: 0,
             earned_sp: 0,
@@ -179,33 +182,37 @@ impl SkillGroup {
         }
     }
 
-    /// Returns the available experience that could be used to earn another
-    /// skill point in a particular skill group.
-    pub fn available_experience(&self) -> u32 { self.earned_exp - self.spent_exp }
+    /// Returns the amount of experience in a skill group that has been spent to
+    /// acquire skill points Relies on the invariant that (earned_exp >=
+    /// available_exp) to ensure function does not underflow
+    pub fn spent_exp(&self) -> u32 { self.earned_exp - self.available_exp }
 
     /// Adds a skill point while subtracting the necessary amount of experience
     pub fn earn_skill_point(&mut self) -> Result<(), SpRewardError> {
         let sp_cost = self.skill_group_kind.skill_point_cost(self.earned_sp);
-        if self.available_experience() >= sp_cost {
-            let new_spent_exp = self
-                .spent_exp
-                .checked_add(sp_cost)
-                .ok_or(SpRewardError::Overflow)?;
-            let new_earned_sp = self
-                .earned_sp
-                .checked_add(1)
-                .ok_or(SpRewardError::Overflow)?;
-            let new_available_sp = self
-                .available_sp
-                .checked_add(1)
-                .ok_or(SpRewardError::Overflow)?;
-            self.spent_exp = new_spent_exp;
-            self.earned_sp = new_earned_sp;
-            self.available_sp = new_available_sp;
-            Ok(())
-        } else {
-            Err(SpRewardError::InsufficientExp)
-        }
+        // If there is insufficient available exp, checked sub will fail as the result
+        // would be less than 0
+        let new_available_exp = self
+            .available_exp
+            .checked_sub(sp_cost)
+            .ok_or(SpRewardError::InsufficientExp)?;
+        let new_earned_sp = self
+            .earned_sp
+            .checked_add(1)
+            .ok_or(SpRewardError::Overflow)?;
+        let new_available_sp = self
+            .available_sp
+            .checked_add(1)
+            .ok_or(SpRewardError::Overflow)?;
+        self.available_exp = new_available_exp;
+        self.earned_sp = new_earned_sp;
+        self.available_sp = new_available_sp;
+        Ok(())
+    }
+
+    pub fn add_experience(&mut self, amount: u32) {
+        self.earned_exp = self.earned_exp.saturating_add(amount);
+        self.available_exp = self.available_exp.saturating_add(amount);
     }
 }
 
@@ -254,7 +261,7 @@ impl SkillSet {
 
     pub fn load_from_database(
         skill_groups: Vec<SkillGroup>,
-        mut all_skills: HashMap<SkillGroupKind, Vec<Skill>>,
+        mut all_skills: HashMap<SkillGroupKind, Result<Vec<Skill>, SkillsPersistenceError>>,
     ) -> Self {
         let mut skillset = SkillSet {
             skill_groups,
@@ -274,7 +281,7 @@ impl SkillSet {
         {
             // Remove valid skill group kind from the hash map so that loop eventually
             // terminates.
-            if let Some(skills) = all_skills.remove(&skill_group_kind) {
+            if let Some(Ok(skills)) = all_skills.remove(&skill_group_kind) {
                 let backup_skillset = skillset.clone();
                 // Iterate over all skills and make sure that unlocking them is successful. If
                 // any fail, fall back to skillset before unlocking any to allow a full respec
@@ -336,8 +343,8 @@ impl SkillSet {
 
     /// Adds experience to the skill group within an entity's skill set
     pub fn add_experience(&mut self, skill_group_kind: SkillGroupKind, amount: u32) {
-        if let Some(mut skill_group) = self.skill_group_mut(skill_group_kind) {
-            skill_group.earned_exp = skill_group.earned_exp.saturating_add(amount);
+        if let Some(skill_group) = self.skill_group_mut(skill_group_kind) {
+            skill_group.add_experience(amount);
         } else {
             warn!("Tried to add experience to a skill group that player does not have");
         }
@@ -346,7 +353,7 @@ impl SkillSet {
     /// Gets the available experience for a particular skill group
     pub fn available_experience(&self, skill_group: SkillGroupKind) -> u32 {
         self.skill_group(skill_group)
-            .map_or(0, |s_g| s_g.available_experience())
+            .map_or(0, |s_g| s_g.available_exp)
     }
 
     /// Checks how much experience is needed for the next skill point in a tree
@@ -521,15 +528,6 @@ impl SkillSet {
             Err(SkillError::MissingSkill)
         }
     }
-
-    /// Returns the level of the skill or passed value as default
-    pub fn skill_level_or(&self, skill: Skill, default: u16) -> u16 {
-        if let Ok(level) = self.skill_level(skill) {
-            level
-        } else {
-            default
-        }
-    }
 }
 
 #[derive(Debug)]
@@ -546,8 +544,16 @@ pub enum SkillUnlockError {
     NoParentSkillTree,
 }
 
+#[derive(Debug)]
 pub enum SpRewardError {
     InsufficientExp,
     UnavailableSkillGroup,
     Overflow,
+}
+
+#[derive(Debug)]
+pub enum SkillsPersistenceError {
+    HashMismatch,
+    DeserializationFailure,
+    SpentExpMismatch,
 }

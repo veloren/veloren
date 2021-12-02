@@ -1242,7 +1242,7 @@ impl CharacterAbility {
 
                 if skillset.has_skill(Sword(TsCombo)) {
                     let speed_segments = f32::from(Sword(TsSpeed).max_level()) + 1.0;
-                    let speed_level = f32::from(skillset.skill_level_or(Sword(TsSpeed), 0));
+                    let speed_level = f32::from(skillset.skill_level(Sword(TsSpeed)).unwrap_or(0));
                     *speed_increase = (speed_level + 1.0) / speed_segments;
                     *max_speed_increase = (speed_level + 1.0) / speed_segments;
                 } else {
@@ -1250,7 +1250,7 @@ impl CharacterAbility {
                     *max_speed_increase = 0.0;
                 }
 
-                let energy_level = skillset.skill_level_or(Sword(TsRegen), 0);
+                let energy_level = skillset.skill_level(Sword(TsRegen)).unwrap_or(0);
 
                 let stages = u16::try_from(stage_data.len())
                     .expect("number of stages can't be more than u16");
@@ -1258,7 +1258,7 @@ impl CharacterAbility {
                 *max_energy_gain *= f32::from((energy_level + 1) * stages - 1)
                     * f32::from(stages - 1)
                     / f32::from(Sword(TsRegen).max_level() + 1);
-                *scales_from_combo = skillset.skill_level_or(Sword(TsDamage), 0).into();
+                *scales_from_combo = skillset.skill_level(Sword(TsDamage)).unwrap_or(0).into();
             },
             CharacterAbility::DashMelee {
                 ref mut is_interruptible,
@@ -1308,7 +1308,7 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sword(SCost)) {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
                 }
-                let spin_level = skillset.skill_level_or(Sword(SSpins), 0);
+                let spin_level = skillset.skill_level(Sword(SSpins)).unwrap_or(0);
                 *num_spins = u32::from(spin_level) * modifiers.num + 1;
             },
             _ => {},
@@ -1333,11 +1333,11 @@ impl CharacterAbility {
                     stage_data.pop();
                 }
                 let speed_segments = f32::from(Axe(DsSpeed).max_level());
-                let speed_level = f32::from(skillset.skill_level_or(Axe(DsSpeed), 0));
+                let speed_level = f32::from(skillset.skill_level(Axe(DsSpeed)).unwrap_or(0));
                 *speed_increase *= speed_level / speed_segments;
                 *max_speed_increase *= speed_level / speed_segments;
 
-                let energy_level = skillset.skill_level_or(Axe(DsRegen), 0);
+                let energy_level = skillset.skill_level(Axe(DsRegen)).unwrap_or(0);
 
                 let stages = u16::try_from(stage_data.len())
                     .expect("number of stages can't be more than u16");
@@ -1345,7 +1345,7 @@ impl CharacterAbility {
                 *max_energy_gain *= f32::from((energy_level + 1) * stages - 1).max(1.0)
                     * f32::from(stages - 1).max(1.0)
                     / f32::from(Axe(DsRegen).max_level() + 1);
-                *scales_from_combo = skillset.skill_level_or(Axe(DsDamage), 0).into();
+                *scales_from_combo = skillset.skill_level(Axe(DsDamage)).unwrap_or(0).into();
             },
             CharacterAbility::SpinMelee {
                 ref mut base_damage,
@@ -1424,11 +1424,11 @@ impl CharacterAbility {
                         .collect::<Vec<_>>();
                 }
                 let speed_segments = f32::from(Hammer(SsSpeed).max_level());
-                let speed_level = f32::from(skillset.skill_level_or(Hammer(SsSpeed), 0));
+                let speed_level = f32::from(skillset.skill_level(Hammer(SsSpeed)).unwrap_or(0));
                 *speed_increase *= speed_level / speed_segments;
                 *max_speed_increase *= speed_level / speed_segments;
 
-                let energy_level = skillset.skill_level_or(Hammer(SsRegen), 0);
+                let energy_level = skillset.skill_level(Hammer(SsRegen)).unwrap_or(0);
 
                 let stages = u16::try_from(stage_data.len())
                     .expect("number of stages can't be more than u16");
@@ -1436,7 +1436,7 @@ impl CharacterAbility {
                 *max_energy_gain *= f32::from((energy_level + 1) * stages)
                     / f32::from((Hammer(SsRegen).max_level() + 1) * stages);
 
-                *scales_from_combo = skillset.skill_level_or(Hammer(SsDamage), 0).into();
+                *scales_from_combo = skillset.skill_level(Hammer(SsDamage)).unwrap_or(0).into();
             },
             CharacterAbility::ChargedMelee {
                 ref mut scaled_damage,
@@ -1604,9 +1604,9 @@ impl CharacterAbility {
                 ref mut projectile, ..
             } => {
                 let modifiers = SKILL_MODIFIERS.staff_tree.fireball;
-                let damage_level = skillset.skill_level_or(Staff(BDamage), 0);
-                let regen_level = skillset.skill_level_or(Staff(BRegen), 0);
-                let range_level = skillset.skill_level_or(Staff(BRadius), 0);
+                let damage_level = skillset.skill_level(Staff(BDamage)).unwrap_or(0);
+                let regen_level = skillset.skill_level(Staff(BRegen)).unwrap_or(0);
+                let range_level = skillset.skill_level(Staff(BRadius)).unwrap_or(0);
                 let power = modifiers.power.powi(damage_level.into());
                 let regen = modifiers.regen.powi(regen_level.into());
                 let range = modifiers.range.powi(range_level.into());
