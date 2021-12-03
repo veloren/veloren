@@ -11,7 +11,7 @@ use crate::{
 use conrod_core::{
     color, image,
     input::state::mouse::ButtonPosition,
-    widget::{self, Button, Image, Rectangle, Scrollbar, State, Text},
+    widget::{self, Button, Image, Rectangle, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
@@ -202,21 +202,21 @@ widget_ids! {
         skill_general_swim_1,
         // Ability selection
         spellbook_art,
+        sb_page_left_align,
+        sb_page_right_align,
         spellbook_skills_bg,
         spellbook_btn,
         spellbook_btn_bg,
         ability_select_title,
-        ability_scroller,
+        ability_page_left,
+        ability_page_right,
         active_abilities[],
         active_abilities_bg[],
-        main_weap_title,
-        main_weap_abilities[],
-        main_weap_ability_titles[],
-        main_weap_ability_descs[],
-        off_weap_title,
-        off_weap_abilities[],
-        off_weap_ability_titles[],
-        off_weap_ability_descs[],
+        main_weap_select,
+        off_weap_select,
+        abilities[],
+        ability_titles[],
+        ability_descs[],
         dragged_ability,
         // Stats
         stat_names[],
@@ -350,10 +350,17 @@ pub enum DiarySection {
     Stats,
 }
 
+enum AbilitySource {
+    MainWeapon,
+    OffWeapon,
+}
+
 pub struct DiaryState {
     ids: Ids,
     dragged_ability: Option<AuxiliaryAbility>,
     id_ability_map: HashMap<widget::Id, AuxiliaryAbility>,
+    ability_source: AbilitySource,
+    ability_page: usize,
 }
 
 impl<'a> Widget for Diary<'a> {
@@ -367,6 +374,8 @@ impl<'a> Widget for Diary<'a> {
             dragged_ability: None,
             // Constructed during update sequence
             id_ability_map: HashMap::new(),
+            ability_source: AbilitySource::MainWeapon,
+            ability_page: 0,
         }
     }
 
@@ -835,6 +844,13 @@ impl<'a> Widget for Diary<'a> {
                     .mid_bottom_with_margin_on(state.ids.content_align, tweak!(8.0))
                     .set(state.ids.spellbook_skills_bg, ui);
 
+                Rectangle::fill_with([299.0 * 2.0, 184.0 * 4.0], color::TRANSPARENT)
+                    .top_left_with_margins_on(state.ids.spellbook_art, 0.0, 0.0)
+                    .set(state.ids.sb_page_left_align, ui);
+                Rectangle::fill_with([299.0 * 2.0, 184.0 * 4.0], color::TRANSPARENT)
+                    .top_right_with_margins_on(state.ids.spellbook_art, 0.0, 0.0)
+                    .set(state.ids.sb_page_right_align, ui);
+
                 // Display all active abilities on right of window
                 state.update(|s| {
                     s.ids
@@ -899,57 +915,116 @@ impl<'a> Widget for Diary<'a> {
                     }
                 }
 
-                // Scrollbar
-                Scrollbar::y_axis(state.ids.spellbook_art)
-                    .thickness(5.0)
-                    .middle_of(state.ids.spellbook_art)
-                    .rgba(0.33, 0.33, 0.33, 1.0)
-                    .set(state.ids.ability_scroller, ui);
-
-                // Display list of abilities from main weapon
-                Text::new("Main Weapon Abilities")
-                    .top_left_with_margins_on(state.ids.spellbook_art, 75.0, 25.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(28))
-                    .color(BLACK)
-                    .set(state.ids.main_weap_title, ui);
+                // Switch between mainhand and offhand weapon abilities
+                if Button::image(self.imgs.spellbook_ico)
+                    .bottom_left_with_margins_on(state.ids.content_align, tweak!(5.0), tweak!(5.0))
+                    .w_h(40.0, 40.0)
+                    .set(state.ids.main_weap_select, ui)
+                    .was_clicked()
+                {
+                    state.update(|s| {
+                        s.ability_source = AbilitySource::MainWeapon;
+                        s.ability_page = 0;
+                    })
+                }
+                if Button::image(self.imgs.spellbook_ico)
+                    .mid_right_with_margin_on(state.ids.main_weap_select, tweak!(-45.0))
+                    .w_h(40.0, 40.0)
+                    .set(state.ids.off_weap_select, ui)
+                    .was_clicked()
+                {
+                    state.update(|s| {
+                        s.ability_source = AbilitySource::OffWeapon;
+                        s.ability_page = 0;
+                    })
+                }
 
                 // TODO: Maybe try to keep this as an iterator. Not sure how to get length
                 // though since size_hint didn't work
-                let main_weap_abilities: Vec<_> = ActiveAbilities::iter_unlocked_abilities(
-                    Some(self.inventory),
-                    Some(self.skill_set),
-                    EquipSlot::ActiveMainhand,
-                )
-                .map(AuxiliaryAbility::MainWeapon)
-                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
-                .collect();
+                let abilities: Vec<_> = match state.ability_source {
+                    AbilitySource::MainWeapon => ActiveAbilities::iter_unlocked_abilities(
+                        Some(self.inventory),
+                        Some(self.skill_set),
+                        EquipSlot::ActiveMainhand,
+                    )
+                    .map(AuxiliaryAbility::MainWeapon)
+                    .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
+                    .collect(),
+                    AbilitySource::OffWeapon => ActiveAbilities::iter_unlocked_abilities(
+                        Some(self.inventory),
+                        Some(self.skill_set),
+                        EquipSlot::ActiveOffhand,
+                    )
+                    .map(AuxiliaryAbility::OffWeapon)
+                    .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
+                    .collect(),
+                };
 
-                let main_abilities_length = main_weap_abilities.len();
+                const ABILITIES_PER_PAGE: usize = 12;
 
+                let page_indices = abilities.len() / ABILITIES_PER_PAGE;
+
+                if state.ability_page > page_indices {
+                    state.update(|s| s.ability_page = 0);
+                }
+
+                let update_length = abilities.len().min(12);
                 state.update(|s| {
                     s.ids
-                        .main_weap_abilities
-                        .resize(main_abilities_length, &mut ui.widget_id_generator())
+                        .abilities
+                        .resize(update_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
-                        .main_weap_ability_titles
-                        .resize(main_abilities_length, &mut ui.widget_id_generator())
+                        .ability_titles
+                        .resize(update_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
-                        .main_weap_ability_descs
-                        .resize(main_abilities_length, &mut ui.widget_id_generator())
+                        .ability_descs
+                        .resize(update_length, &mut ui.widget_id_generator())
                 });
 
-                for (i, (ability_id, ability)) in main_weap_abilities.iter().enumerate() {
-                    let map_id = state.ids.main_weap_abilities[i];
+                // Page buttons
+                if state.ability_page > 0 {
+                    // Only show left button if not on first page
+                    if Button::image(self.imgs.spellbook_ico)
+                        .bottom_left_with_margins_on(state.ids.sb_page_left_align, -5.0, 0.0)
+                        .w_h(40.0, 40.0)
+                        .set(state.ids.ability_page_left, ui)
+                        .was_clicked()
+                    {
+                        state.update(|s| s.ability_page -= 1);
+                    }
+                }
+                if state.ability_page < page_indices {
+                    // Only show right button if not on last page
+                    if Button::image(self.imgs.spellbook_ico)
+                        .bottom_right_with_margins_on(state.ids.sb_page_right_align, -5.0, 0.0)
+                        .w_h(40.0, 40.0)
+                        .set(state.ids.ability_page_right, ui)
+                        .was_clicked()
+                    {
+                        state.update(|s| s.ability_page += 1);
+                    }
+                }
+
+                let ability_start = state.ability_page * ABILITIES_PER_PAGE;
+                let abilities_range = ability_start..(ability_start + ABILITIES_PER_PAGE);
+
+                for (id_index, (ability_id, ability)) in abilities
+                    .iter()
+                    .enumerate()
+                    .filter_map(|(i, ability_info)| {
+                        abilities_range.contains(&i).then_some(ability_info)
+                    })
+                    .enumerate()
+                {
+                    let map_id = state.ids.abilities[id_index];
                     state.update(|s| {
                         s.id_ability_map.insert(map_id, *ability);
                     });
 
-                    let image_offsets = 120.0 * i as f64;
                     let ability_image = ability_id
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
                     let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
@@ -960,14 +1035,15 @@ impl<'a> Widget for Diary<'a> {
                     };
                     let (ability_title, ability_desc) =
                         util::ability_description(ability_id.unwrap_or(""));
+                    let (align_state, image_offsets) = if id_index < 6 {
+                        (state.ids.sb_page_left_align, 120.0 * id_index as f64)
+                    } else {
+                        (state.ids.sb_page_right_align, 120.0 * (id_index - 6) as f64)
+                    };
                     if Button::image(ability_image)
                         .w_h(100.0, 100.0)
-                        .top_left_with_margins_on(
-                            state.ids.main_weap_title,
-                            40.0 + image_offsets,
-                            0.0,
-                        )
-                        .set(state.ids.main_weap_abilities[i], ui)
+                        .top_left_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
+                        .set(state.ids.abilities[id_index], ui)
                         .was_clicked()
                     {
                         if Some(*ability) != self.show.diary_fields.selected_ability {
@@ -977,108 +1053,19 @@ impl<'a> Widget for Diary<'a> {
                         }
                     }
                     Text::new(ability_title)
-                        .top_left_with_margins_on(state.ids.main_weap_abilities[i], 5.0, 125.0)
+                        .top_left_with_margins_on(state.ids.abilities[id_index], 5.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(tweak!(28)))
                         .color(ability_color)
-                        .graphics_for(state.ids.main_weap_abilities[i])
-                        .set(state.ids.main_weap_ability_titles[i], ui);
+                        .graphics_for(state.ids.abilities[id_index])
+                        .set(state.ids.ability_titles[id_index], ui);
                     Text::new(ability_desc)
-                        .top_left_with_margins_on(state.ids.main_weap_abilities[i], 30.0, 125.0)
+                        .top_left_with_margins_on(state.ids.abilities[id_index], 30.0, 125.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(tweak!(18)))
                         .color(ability_color)
-                        .graphics_for(state.ids.main_weap_abilities[i])
-                        .set(state.ids.main_weap_ability_descs[i], ui);
-                }
-
-                // Display list of abilities from off weapon
-                let offset_state = if main_abilities_length > 0 {
-                    state.ids.main_weap_abilities[main_abilities_length - 1]
-                } else {
-                    state.ids.main_weap_title
-                };
-                Text::new("Off Weapon Abilities")
-                    .bottom_left_with_margins_on(offset_state, -50.0, 0.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(28))
-                    .color(BLACK)
-                    .set(state.ids.off_weap_title, ui);
-
-                // TODO: Maybe try to keep this as an iterator. Not sure how to get length
-                // though since size_hint didn't work
-                let off_weap_abilities: Vec<_> = ActiveAbilities::iter_unlocked_abilities(
-                    Some(self.inventory),
-                    Some(self.skill_set),
-                    EquipSlot::ActiveOffhand,
-                )
-                .map(AuxiliaryAbility::OffWeapon)
-                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
-                .collect();
-
-                let off_abilities_length = off_weap_abilities.len();
-
-                state.update(|s| {
-                    s.ids
-                        .off_weap_abilities
-                        .resize(off_abilities_length, &mut ui.widget_id_generator())
-                });
-                state.update(|s| {
-                    s.ids
-                        .off_weap_ability_titles
-                        .resize(off_abilities_length, &mut ui.widget_id_generator())
-                });
-                state.update(|s| {
-                    s.ids
-                        .off_weap_ability_descs
-                        .resize(off_abilities_length, &mut ui.widget_id_generator())
-                });
-
-                for (i, (ability_id, ability)) in off_weap_abilities.iter().enumerate() {
-                    let map_id = state.ids.off_weap_abilities[i];
-                    state.update(|s| {
-                        s.id_ability_map.insert(map_id, *ability);
-                    });
-
-                    let image_offsets = 120.0 * i as f64;
-                    let ability_image = ability_id
-                        .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
-                    let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
-                    {
-                        BLACK
-                    } else {
-                        XP_COLOR
-                    };
-                    let (ability_title, ability_desc) =
-                        util::ability_description(ability_id.unwrap_or(""));
-                    if Button::image(ability_image)
-                        .w_h(100.0, 100.0)
-                        .top_left_with_margins_on(
-                            state.ids.off_weap_title,
-                            40.0 + image_offsets,
-                            0.0,
-                        )
-                        .set(state.ids.off_weap_abilities[i], ui)
-                        .was_clicked()
-                    {
-                        if Some(*ability) != self.show.diary_fields.selected_ability {
-                            events.push(Event::SelectAbility(Some(*ability)));
-                        } else {
-                            events.push(Event::SelectAbility(None));
-                        }
-                    }
-                    Text::new(ability_title)
-                        .top_left_with_margins_on(state.ids.off_weap_abilities[i], 5.0, 125.0)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(24))
-                        .color(ability_color)
-                        .set(state.ids.off_weap_ability_titles[i], ui);
-                    Text::new(ability_desc)
-                        .top_left_with_margins_on(state.ids.off_weap_abilities[i], 30.0, 125.0)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(16))
-                        .color(ability_color)
-                        .set(state.ids.off_weap_ability_descs[i], ui);
+                        .graphics_for(state.ids.abilities[id_index])
+                        .set(state.ids.ability_descs[id_index], ui);
                 }
 
                 let mouse_pos = ui.global_input().current.mouse.xy;
