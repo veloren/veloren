@@ -3097,10 +3097,22 @@ impl Hud {
         if self.show.diary {
             let entity = client.entity();
             let skill_sets = ecs.read_storage::<comp::SkillSet>();
-            if let (Some(skill_set), Some(active_abilities), Some(inventory)) = (
+            if let (
+                Some(skill_set),
+                Some(active_abilities),
+                Some(inventory),
+                Some(health),
+                Some(energy),
+                Some(body),
+                Some(poise),
+            ) = (
                 skill_sets.get(entity),
                 active_abilities.get(entity),
                 inventories.get(entity),
+                healths.get(entity),
+                energies.get(entity),
+                bodies.get(entity),
+                poises.get(entity),
             ) {
                 for event in Diary::new(
                     &self.show,
@@ -3108,6 +3120,11 @@ impl Hud {
                     skill_set,
                     active_abilities,
                     inventory,
+                    health,
+                    energy,
+                    poise,
+                    body,
+                    &msm,
                     &self.imgs,
                     &self.item_imgs,
                     &self.fonts,

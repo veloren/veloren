@@ -761,46 +761,29 @@ impl Damage {
         inventory: Option<&Inventory>,
         stats: Option<&Stats>,
     ) -> f32 {
-        let inventory_dr = if let Some(inventory) = inventory {
-            let protection = inventory
-                .equipped_items()
-                .filter_map(|item| {
-                    if let ItemKind::Armor(armor) = &item.kind() {
-                        Some(armor.protection())
-                    } else {
-                        None
-                    }
-                })
-                .map(|protection| match protection {
-                    Some(Protection::Normal(protection)) => Some(protection),
-                    Some(Protection::Invincible) => None,
-                    None => Some(0.0),
-                })
-                .sum::<Option<f32>>();
+        let protection = compute_protection(inventory);
 
-            let penetration = if let Some(damage) = damage {
-                if let DamageKind::Piercing = damage.kind {
-                    (damage.value * PIERCING_PENETRATION_FRACTION)
-                        .min(protection.unwrap_or(0.0))
-                        .max(0.0)
-                } else {
-                    0.0
-                }
+        let penetration = if let Some(damage) = damage {
+            if let DamageKind::Piercing = damage.kind {
+                (damage.value * PIERCING_PENETRATION_FRACTION)
+                    .min(protection.unwrap_or(0.0))
+                    .max(0.0)
             } else {
                 0.0
-            };
-
-            let protection = protection.map(|p| p - penetration);
-
-            const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
-
-            match protection {
-                Some(dr) => dr / (FIFTY_PERCENT_DR_THRESHOLD + dr.abs()),
-                None => 1.0,
             }
         } else {
             0.0
         };
+
+        let protection = protection.map(|p| p - penetration);
+
+        const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
+
+        let inventory_dr = match protection {
+            Some(dr) => dr / (FIFTY_PERCENT_DR_THRESHOLD + dr.abs()),
+            None => 1.0,
+        };
+
         let stats_dr = if let Some(stats) = stats {
             stats.damage_reduction
         } else {
@@ -1170,5 +1153,27 @@ pub fn compute_stealth_coefficient(inventory: Option<&Inventory>) -> f32 {
                 }
             })
             .fold(2.0, |a, b| a + b.max(0.0))
+    })
+}
+
+/// Computes the total protection provided from armor. Is used to determine the
+/// damage reduction applied to damage received by an entity None indicates that
+/// the armor equipped makes the entity invulnerable
+#[cfg(not(target_arch = "wasm32"))]
+pub fn compute_protection(inventory: Option<&Inventory>) -> Option<f32> {
+    inventory.map_or(Some(0.0), |inv| {
+        inv.equipped_items()
+            .filter_map(|item| {
+                if let ItemKind::Armor(armor) = &item.kind() {
+                    armor.protection()
+                } else {
+                    None
+                }
+            })
+            .map(|protection| match protection {
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
+            })
+            .sum::<Option<f32>>()
     })
 }

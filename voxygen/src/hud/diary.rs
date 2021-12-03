@@ -18,16 +18,23 @@ use i18n::Localization;
 
 use client::{self, Client};
 use common::{
+    combat,
     comp::{
         self,
         ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
-        inventory::{item::tool::ToolKind, slot::EquipSlot},
+        inventory::{
+            item::{
+                tool::{MaterialStatManifest, ToolKind},
+                ItemKind,
+            },
+            slot::EquipSlot,
+        },
         skills::{
             self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
             RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
         skillset::{SkillGroupKind, SkillSet},
-        Inventory,
+        Body, Energy, Health, Inventory, Poise,
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
@@ -224,6 +231,11 @@ pub struct Diary<'a> {
     skill_set: &'a SkillSet,
     active_abilities: &'a ActiveAbilities,
     inventory: &'a Inventory,
+    health: &'a Health,
+    energy: &'a Energy,
+    poise: &'a Poise,
+    body: &'a Body,
+    msm: &'a MaterialStatManifest,
     imgs: &'a Imgs,
     item_imgs: &'a ItemImgs,
     fonts: &'a Fonts,
@@ -264,6 +276,11 @@ impl<'a> Diary<'a> {
         skill_set: &'a SkillSet,
         active_abilities: &'a ActiveAbilities,
         inventory: &'a Inventory,
+        health: &'a Health,
+        energy: &'a Energy,
+        poise: &'a Poise,
+        body: &'a Body,
+        msm: &'a MaterialStatManifest,
         imgs: &'a Imgs,
         item_imgs: &'a ItemImgs,
         fonts: &'a Fonts,
@@ -278,6 +295,11 @@ impl<'a> Diary<'a> {
             skill_set,
             active_abilities,
             inventory,
+            health,
+            energy,
+            poise,
+            body,
+            msm,
             imgs,
             item_imgs,
             fonts,
@@ -306,21 +328,6 @@ const TREES: [&str; 8] = [
     "Bow",
     "Fire Staff",
     "Mining",
-];
-
-const STATS: [&str; 12] = [
-    "Hitpoints",
-    "Energy",
-    "Combat-Rating",
-    "Protection",
-    "Stun-Resistance",
-    "Crit-Power",
-    "Energy Reward",
-    "Stealth",
-    "Weapon Power",
-    "Weapon Speed",
-    "Weapon Poise",
-    "Weapon Crit-Chance",
 ];
 
 // Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
@@ -1121,18 +1128,21 @@ impl<'a> Widget for Diary<'a> {
                 events
             },
             DiarySection::Stats => {
-                let hp = 100;
-                let energy = 50;
-                let cr = 1;
-                let prot = 1;
-                let stun_res = 1;
-                let critpwr = 1;
-                let energ_rew = 1;
-                let stealth = 1;
-                let wpn_pwr = 1;
-                let wpn_spd = 1;
-                let wpn_poi = 1;
-                let wpn_crit = 1;
+                const STATS: [&str; 13] = [
+                    "Hitpoints",
+                    "Energy",
+                    "Poise",
+                    "Combat-Rating",
+                    "Protection",
+                    "Stun-Resistance",
+                    "Crit-Power",
+                    "Energy Reward",
+                    "Stealth",
+                    "Weapon Power",
+                    "Weapon Speed",
+                    "Weapon Poise",
+                    "Weapon Crit-Chance",
+                ];
 
                 // Background Art
                 Image::new(self.imgs.book_bg)
@@ -1168,21 +1178,112 @@ impl<'a> Widget for Diary<'a> {
                     };
                     txt.set(state.ids.stat_names[i], ui);
 
+                    let main_weap_stats = self
+                        .inventory
+                        .equipped(EquipSlot::ActiveMainhand)
+                        .and_then(|item| match &item.kind {
+                            ItemKind::Tool(tool) => {
+                                Some(tool.stats.resolve_stats(self.msm, item.components()))
+                            },
+                            _ => None,
+                        });
+
+                    let off_weap_stats = self
+                        .inventory
+                        .equipped(EquipSlot::ActiveOffhand)
+                        .and_then(|item| match &item.kind {
+                            ItemKind::Tool(tool) => {
+                                Some(tool.stats.resolve_stats(self.msm, item.components()))
+                            },
+                            _ => None,
+                        });
+
                     // Stat values
                     let value = match stat {
-                        "Hitpoints" => format!("{}", hp),
-                        "Energy" => format!("{}", energy),
-                        "Combat-Rating" => format!("{}", cr),
-                        "Protection" => format!("{}", prot),
-                        "Stun-Resistance" => format!("{}", stun_res),
-                        "Crit-Power" => format!("{}", critpwr),
-                        "Energy Reward" => format!("{}", energ_rew),
-                        "Stealth" => format!("{}", stealth),
-                        "Weapon Power" => format!("{}", wpn_pwr),
-                        "Weapon Speed" => format!("{}", wpn_spd),
-                        "Weapon Poise" => format!("{}", wpn_poi),
-                        "Weapon Crit-Chance" => format!("{}%", wpn_crit),
-                        _ => "".to_string(),
+                        "Hitpoints" => format!("{}", self.health.base_max() as u32),
+                        "Energy" => format!("{}", self.energy.base_max() as u32),
+                        "Poise" => format!("{}", self.poise.base_max() as u32),
+                        "Combat-Rating" => {
+                            let cr = combat::combat_rating(
+                                self.inventory,
+                                self.health,
+                                self.energy,
+                                self.poise,
+                                self.skill_set,
+                                *self.body,
+                                self.msm,
+                            );
+                            format!("{:.2}", cr)
+                        },
+                        "Protection" => {
+                            let protection = combat::compute_protection(Some(self.inventory));
+                            match protection {
+                                Some(prot) => format!("{}", prot),
+                                None => String::from("Invincible"),
+                            }
+                        },
+                        "Stun-Resistance" => {
+                            let stun_res = Poise::compute_poise_damage_reduction(self.inventory);
+                            format!("{}%", stun_res * 100.0)
+                        },
+                        "Crit-Power" => {
+                            let critpwr = combat::compute_crit_mult(Some(self.inventory));
+                            format!("x{}", critpwr)
+                        },
+                        "Energy Reward" => {
+                            let energy_rew =
+                                combat::compute_energy_reward_mod(Some(self.inventory));
+                            format!("{:+.0}%", (energy_rew - 1.0) * 100.0)
+                        },
+                        "Stealth" => {
+                            let stealth = combat::compute_stealth_coefficient(Some(self.inventory));
+                            format!("{}", stealth)
+                        },
+                        "Weapon Power" => match (main_weap_stats, off_weap_stats) {
+                            (Some(m_stats), Some(o_stats)) => {
+                                format!("{}   {}", m_stats.power, o_stats.power)
+                            },
+                            (Some(stats), None) | (None, Some(stats)) => format!("{}", stats.power),
+                            _ => String::new(),
+                        },
+                        "Weapon Speed" => {
+                            let spd_fmt = |sp| (sp - 1.0) * 100.0;
+                            match (main_weap_stats, off_weap_stats) {
+                                (Some(m_stats), Some(o_stats)) => format!(
+                                    "{:+.0}%   {:+.0}%",
+                                    spd_fmt(m_stats.speed),
+                                    spd_fmt(o_stats.speed)
+                                ),
+                                (Some(stats), None) | (None, Some(stats)) => {
+                                    format!("{:+.0}%", spd_fmt(stats.speed))
+                                },
+                                _ => String::new(),
+                            }
+                        },
+                        "Weapon Poise" => match (main_weap_stats, off_weap_stats) {
+                            (Some(m_stats), Some(o_stats)) => {
+                                format!("{}   {}", m_stats.effect_power, o_stats.effect_power)
+                            },
+                            (Some(stats), None) | (None, Some(stats)) => {
+                                format!("{}", stats.effect_power)
+                            },
+                            _ => String::new(),
+                        },
+                        "Weapon Crit-Chance" => {
+                            let crit_fmt = |cc| cc * 100.0;
+                            match (main_weap_stats, off_weap_stats) {
+                                (Some(m_stats), Some(o_stats)) => format!(
+                                    "{:.1}%   {:.1}%",
+                                    crit_fmt(m_stats.crit_chance),
+                                    crit_fmt(o_stats.crit_chance)
+                                ),
+                                (Some(stats), None) | (None, Some(stats)) => {
+                                    format!("{:.1}%", crit_fmt(stats.crit_chance))
+                                },
+                                _ => String::new(),
+                            }
+                        },
+                        _ => String::new(),
                     };
 
                     let mut number = Text::new(&value)
