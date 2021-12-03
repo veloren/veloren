@@ -301,7 +301,6 @@ impl RegionMap {
     }
 
     /// Add a region using its key
-    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     fn remove_index(&mut self, index: usize) {
         // Remap neighbor indices for neighbors of the region that will be moved from
         // the end of the index map
@@ -312,10 +311,10 @@ impl RegionMap {
                 .map(|(_, v)| v)
                 .unwrap()
                 .neighbors;
-            for i in 0..8 {
-                if let Some(idx) = moved_neighbors[i] {
+            for (i, possible_idx) in moved_neighbors.iter().enumerate() {
+                if let Some(idx) = possible_idx {
                     self.regions
-                        .get_index_mut(idx)
+                        .get_index_mut(*idx)
                         .map(|(_, v)| v)
                         .unwrap()
                         .neighbors[(i + 4) % 8] = Some(index);
