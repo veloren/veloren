@@ -408,7 +408,6 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
         }
     });
 }
-#[allow(clippy::eval_order_dependence)]
 pub fn apply_caves_supplement<'a>(
     // NOTE: Used only for dynamic elements like chests and entities!
     dynamic_rng: &mut impl Rng,
