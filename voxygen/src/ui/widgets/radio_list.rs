@@ -115,7 +115,6 @@ impl<'a, T> Widget for RadioList<'a, T> {
 
     fn style(&self) -> Self::Style {}
 
-    #[allow(clippy::needless_range_loop)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs {
             id,
@@ -165,7 +164,7 @@ impl<'a, T> Widget for RadioList<'a, T> {
             .unwrap_or(selected);
 
         let (x, y, w, h) = rect.x_y_w_h();
-        for i in 0..num_items {
+        for (i, _j) in options_labels.iter().enumerate().take(num_items) {
             let image = if i == current_selection {
                 t_image
             } else {
