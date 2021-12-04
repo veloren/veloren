@@ -350,16 +350,10 @@ pub enum DiarySection {
     Stats,
 }
 
-enum AbilitySource {
-    MainWeapon,
-    OffWeapon,
-}
-
 pub struct DiaryState {
     ids: Ids,
     dragged_ability: Option<AuxiliaryAbility>,
     id_ability_map: HashMap<widget::Id, AuxiliaryAbility>,
-    ability_source: AbilitySource,
     ability_page: usize,
 }
 
@@ -374,7 +368,6 @@ impl<'a> Widget for Diary<'a> {
             dragged_ability: None,
             // Constructed during update sequence
             id_ability_map: HashMap::new(),
-            ability_source: AbilitySource::MainWeapon,
             ability_page: 0,
         }
     }
@@ -915,54 +908,49 @@ impl<'a> Widget for Diary<'a> {
                     }
                 }
 
-                // Switch between mainhand and offhand weapon abilities
-                if Button::image(self.imgs.spellbook_ico)
-                    .bottom_left_with_margins_on(state.ids.content_align, tweak!(5.0), tweak!(5.0))
-                    .w_h(40.0, 40.0)
-                    .set(state.ids.main_weap_select, ui)
-                    .was_clicked()
-                {
-                    state.update(|s| {
-                        s.ability_source = AbilitySource::MainWeapon;
-                        s.ability_page = 0;
-                    })
-                }
-                if Button::image(self.imgs.spellbook_ico)
-                    .mid_right_with_margin_on(state.ids.main_weap_select, tweak!(-45.0))
-                    .w_h(40.0, 40.0)
-                    .set(state.ids.off_weap_select, ui)
-                    .was_clicked()
-                {
-                    state.update(|s| {
-                        s.ability_source = AbilitySource::OffWeapon;
-                        s.ability_page = 0;
-                    })
-                }
+                let same_weap_kinds = self
+                    .inventory
+                    .equipped(EquipSlot::ActiveMainhand)
+                    .zip(self.inventory.equipped(EquipSlot::ActiveOffhand))
+                    .map_or(false, |(a, b)| {
+                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) = (&a.kind, &b.kind)
+                        {
+                            (a.ability_spec(), tool_a.kind) == (b.ability_spec(), tool_b.kind)
+                        } else {
+                            false
+                        }
+                    });
 
                 // TODO: Maybe try to keep this as an iterator. Not sure how to get length
                 // though since size_hint didn't work
-                let abilities: Vec<_> = match state.ability_source {
-                    AbilitySource::MainWeapon => ActiveAbilities::iter_unlocked_abilities(
-                        Some(self.inventory),
-                        Some(self.skill_set),
-                        EquipSlot::ActiveMainhand,
-                    )
-                    .map(AuxiliaryAbility::MainWeapon)
-                    .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
-                    .collect(),
-                    AbilitySource::OffWeapon => ActiveAbilities::iter_unlocked_abilities(
-                        Some(self.inventory),
-                        Some(self.skill_set),
-                        EquipSlot::ActiveOffhand,
-                    )
-                    .map(AuxiliaryAbility::OffWeapon)
-                    .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a))
-                    .collect(),
+                let main_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
+                    Some(self.inventory),
+                    Some(self.skill_set),
+                    EquipSlot::ActiveMainhand,
+                )
+                .map(AuxiliaryAbility::MainWeapon)
+                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
+                let off_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
+                    Some(self.inventory),
+                    Some(self.skill_set),
+                    EquipSlot::ActiveOffhand,
+                )
+                .map(AuxiliaryAbility::OffWeapon)
+                .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
+
+                let abilities: Vec<_> = if same_weap_kinds {
+                    // When the weapons have the same ability kind, interweave the abilities
+                    main_weap_abilities
+                        .zip(off_weap_abilities)
+                        .flat_map(|(a, b)| [a, b])
+                        .collect()
+                } else {
+                    main_weap_abilities.chain(off_weap_abilities).collect()
                 };
 
                 const ABILITIES_PER_PAGE: usize = 12;
 
-                let page_indices = abilities.len() / ABILITIES_PER_PAGE;
+                let page_indices = (abilities.len() - 1) / ABILITIES_PER_PAGE;
 
                 if state.ability_page > page_indices {
                     state.update(|s| s.ability_page = 0);
