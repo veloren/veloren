@@ -92,6 +92,7 @@ pub enum ClientGeneral {
     RequestLossyTerrainCompression {
         lossy_terrain_compression: bool,
     },
+    AcknowledgePersistenceLoadError,
 }
 
 impl ClientMsg {
@@ -130,7 +131,8 @@ impl ClientMsg {
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
-                        | ClientGeneral::RequestLossyTerrainCompression { .. } => {
+                        | ClientGeneral::RequestLossyTerrainCompression { .. }
+                        | ClientGeneral::AcknowledgePersistenceLoadError => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

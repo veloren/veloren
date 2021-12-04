@@ -538,6 +538,7 @@ pub enum Event {
     ChangeAbility(usize, comp::ability::AuxiliaryAbility),
 
     SettingsChange(SettingsChange),
+    AcknowledgePersistenceLoadError,
 }
 
 // TODO: Are these the possible layouts we want?
@@ -888,6 +889,7 @@ impl Show {
 pub struct PromptDialogSettings {
     message: String,
     affirmative_event: Event,
+    negative_option: bool,
     negative_event: Option<Event>,
     outcome_via_keypress: Option<bool>,
 }
@@ -897,6 +899,7 @@ impl PromptDialogSettings {
         Self {
             message,
             affirmative_event,
+            negative_option: true,
             negative_event,
             outcome_via_keypress: None,
         }
@@ -904,6 +907,11 @@ impl PromptDialogSettings {
 
     pub fn set_outcome_via_keypress(&mut self, outcome: bool) {
         self.outcome_via_keypress = Some(outcome);
+    }
+
+    pub fn with_no_negative_option(mut self) -> Self {
+        self.negative_option = false;
+        self
     }
 }
 
@@ -1128,6 +1136,47 @@ impl Hud {
             let entities = ecs.entities();
             let me = client.entity();
             let poises = ecs.read_storage::<comp::Poise>();
+
+            // Check if there was a persistence load error of the skillset, and if so
+            // display a dialog prompt
+            if self.show.prompt_dialog.is_none() {
+                if let Some(skill_set) = skill_sets.get(me) {
+                    if let Some(persistence_error) = skill_set.persistence_load_error {
+                        use comp::skillset::SkillsPersistenceError;
+                        let persistence_error = match persistence_error {
+                            SkillsPersistenceError::HashMismatch => {
+                                "There was a difference detected in one of your skill groups since \
+                                 you last played."
+                            },
+                            SkillsPersistenceError::DeserializationFailure => {
+                                "There was a error in loading some of your skills from the \
+                                 database."
+                            },
+                            SkillsPersistenceError::SpentExpMismatch => {
+                                "The amount of free experience you had in one of your skill groups \
+                                 differed from when you last played."
+                            },
+                            SkillsPersistenceError::SkillsUnlockFailed => {
+                                "Your skills were not able to be obtained in the same order you \
+                                 acquired them. Prerequisites or costs may have changed."
+                            },
+                        };
+                        let common_message = "At least one of your skill groups has been \
+                                              invalidated. You will need to re-assign your skill \
+                                              points to get skills.";
+                        let persistence_error =
+                            format!("{}\n{}", persistence_error, common_message);
+                        let prompt_dialog = PromptDialogSettings::new(
+                            persistence_error,
+                            Event::AcknowledgePersistenceLoadError,
+                            None,
+                        )
+                        .with_no_negative_option();
+                        // self.set_prompt_dialog(prompt_dialog);
+                        self.show.prompt_dialog = Some(prompt_dialog);
+                    }
+                }
+            }
 
             if (client.pending_trade().is_some() && !self.show.trade)
                 || (client.pending_trade().is_none() && self.show.trade)

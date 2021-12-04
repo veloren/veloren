@@ -237,6 +237,9 @@ pub struct SkillSet {
     skills: HashMap<Skill, u16>,
     pub modify_health: bool,
     pub modify_energy: bool,
+    /// Used to indicate to the frontend that there was an error in loading the
+    /// skillset from the database
+    pub persistence_load_error: Option<SkillsPersistenceError>,
 }
 
 impl Component for SkillSet {
@@ -254,6 +257,7 @@ impl Default for SkillSet {
             skills: SkillSet::initial_skills(),
             modify_health: false,
             modify_energy: false,
+            persistence_load_error: None,
         };
 
         // Insert default skill groups
@@ -284,6 +288,7 @@ impl SkillSet {
             skills: SkillSet::initial_skills(),
             modify_health: true,
             modify_energy: true,
+            persistence_load_error: None,
         };
 
         // Loops while checking the all_skills hashmap. For as long as it can find an
@@ -297,15 +302,26 @@ impl SkillSet {
         {
             // Remove valid skill group kind from the hash map so that loop eventually
             // terminates.
-            if let Some(Ok(skills)) = all_skills.remove(&skill_group_kind) {
-                let backup_skillset = skillset.clone();
-                // Iterate over all skills and make sure that unlocking them is successful. If
-                // any fail, fall back to skillset before unlocking any to allow a full respec
-                if !skills
-                    .iter()
-                    .all(|skill| skillset.unlock_skill(*skill).is_ok())
-                {
-                    skillset = backup_skillset;
+            if let Some(skills_result) = all_skills.remove(&skill_group_kind) {
+                match skills_result {
+                    Ok(skills) => {
+                        let backup_skillset = skillset.clone();
+                        // Iterate over all skills and make sure that unlocking them is successful.
+                        // If any fail, fall back to skillset before
+                        // unlocking any to allow a full respec
+                        if !skills
+                            .iter()
+                            .all(|skill| skillset.unlock_skill(*skill).is_ok())
+                        {
+                            skillset = backup_skillset;
+                            // If unlocking failed, set persistence_load_error
+                            skillset.persistence_load_error =
+                                Some(SkillsPersistenceError::SkillsUnlockFailed)
+                        }
+                    },
+                    Err(persistence_error) => {
+                        skillset.persistence_load_error = Some(persistence_error)
+                    },
                 }
             }
         }
@@ -549,9 +565,10 @@ pub enum SpRewardError {
     Overflow,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone, Copy, Deserialize, Serialize)]
 pub enum SkillsPersistenceError {
     HashMismatch,
     DeserializationFailure,
     SpentExpMismatch,
+    SkillsUnlockFailed,
 }

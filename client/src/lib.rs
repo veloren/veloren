@@ -756,7 +756,8 @@ impl Client {
                     | ClientGeneral::RequestSiteInfo(_)
                     | ClientGeneral::UnlockSkillGroup(_)
                     | ClientGeneral::RequestPlayerPhysics { .. }
-                    | ClientGeneral::RequestLossyTerrainCompression { .. } => {
+                    | ClientGeneral::RequestLossyTerrainCompression { .. }
+                    | ClientGeneral::AcknowledgePersistenceLoadError => {
                         #[cfg(feature = "tracy")]
                         {
                             ingame = 1.0;
@@ -1407,6 +1408,10 @@ impl Client {
             slot,
             new_ability,
         }))
+    }
+
+    pub fn acknolwedge_persistence_load_error(&mut self) {
+        self.send_msg(ClientGeneral::AcknowledgePersistenceLoadError)
     }
 
     /// Execute a single client tick, handle input and update the game state by
