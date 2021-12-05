@@ -35,7 +35,6 @@ pub type PersistedComponents = (
 // This macro is called at build-time, and produces the necessary migration info
 // for the `run_migrations` call below.
 mod embedded {
-    #![allow(clippy::nonstandard_macro_braces)] //tmp as of false positive !?
     use refinery::embed_migrations;
     embed_migrations!("./src/migrations");
 }

@@ -258,7 +258,6 @@ pub fn create_quad(
     create_quad_vert_gradient(rect, uv_rect, color, color, mode)
 }
 
-#[allow(clippy::many_single_char_names)]
 pub fn create_quad_vert_gradient(
     rect: Aabr<f32>,
     uv_rect: Aabr<f32>,

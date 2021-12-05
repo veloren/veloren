@@ -39,8 +39,6 @@ pub fn linear_to_srgba(col: Rgba<f32>) -> Rgba<f32> {
 
 /// Convert rgb to hsv. Expects rgb to be [0, 1].
 #[inline(always)]
-#[allow(clippy::many_single_char_names)]
-#[allow(clippy::float_cmp)] // TODO: Pending review in #587
 pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
     let (r, g, b) = rgb.into_tuple();
     let (max, min, diff, add) = {
@@ -73,7 +71,6 @@ pub fn rgb_to_hsv(rgb: Rgb<f32>) -> Vec3<f32> {
 
 /// Convert hsv to rgb. Expects h [0, 360], s [0, 1], v [0, 1]
 #[inline(always)]
-#[allow(clippy::many_single_char_names)]
 pub fn hsv_to_rgb(hsv: Vec3<f32>) -> Rgb<f32> {
     let (h, s, v) = hsv.into_tuple();
     let c = s * v;

@@ -83,7 +83,6 @@ impl<'a> Widget for Popup<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Popup::update");
         let widget::UpdateArgs { state, ui, .. } = args;

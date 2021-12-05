@@ -91,7 +91,6 @@ impl TooltipManager {
     }
 
     // return true if visible
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn set_tooltip(
         &mut self,
         tooltip: &Tooltip,

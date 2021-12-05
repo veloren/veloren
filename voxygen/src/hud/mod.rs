@@ -3803,7 +3803,6 @@ impl Hud {
         handled
     }
 
-    #[allow(clippy::blocks_in_if_conditions)] // TODO: Pending review in #587
     pub fn maintain(
         &mut self,
         client: &Client,

@@ -147,7 +147,6 @@ pub fn handle_create_npc(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn handle_create_ship(
     server: &mut Server,
     pos: comp::Pos,

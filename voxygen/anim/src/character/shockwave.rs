@@ -27,7 +27,6 @@ impl Animation for ShockwaveAnimation {
     const UPDATE_FN: &'static [u8] = b"character_shockwave\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_shockwave")]
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (_ability_info, hands, _global_time, velocity, stage_section): Self::Dependency<'a>,

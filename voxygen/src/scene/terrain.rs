@@ -376,7 +376,6 @@ pub struct SpriteRenderContext {
 pub type SpriteRenderContextLazy = Box<dyn FnMut(&mut Renderer) -> SpriteRenderContext>;
 
 impl SpriteRenderContext {
-    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     pub fn new(renderer: &mut Renderer) -> SpriteRenderContextLazy {
         let max_texture_size = renderer.max_texture_size();
 

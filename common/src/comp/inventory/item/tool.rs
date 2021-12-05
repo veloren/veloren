@@ -264,7 +264,6 @@ pub struct Tool {
 impl Tool {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for CSV import of stats
-    #[allow(clippy::too_many_arguments)]
     pub fn new(kind: ToolKind, hands: Hands, stats: Stats) -> Self {
         Self {
             kind,
@@ -378,7 +377,6 @@ impl<T> AbilitySet<T> {
     }
 }
 
-#[allow(clippy::derivable_impls)]
 impl Default for AbilitySet<AbilityItem> {
     fn default() -> Self {
         AbilitySet {

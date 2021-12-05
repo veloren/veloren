@@ -1,7 +1,6 @@
 //! Versioned whitelist settings files.
 
 // NOTE: Needed to allow the second-to-last migration to call try_into().
-#![allow(clippy::useless_conversion)]
 
 use super::{MIGRATION_UPGRADE_GUARANTEE, WHITELIST_FILENAME as FILENAME};
 use crate::settings::editable::{EditableSetting, Version};
@@ -118,6 +117,7 @@ mod v0 {
     impl TryFrom<Whitelist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
+        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: Whitelist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Whitelist::migrate(value)

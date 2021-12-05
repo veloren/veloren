@@ -371,7 +371,6 @@ impl LoadoutBuilder {
     /// Will panic if asset is broken
     pub fn from_asset_expect(asset_specifier: &str, rng: Option<&mut impl Rng>) -> Self {
         // It's impossible to use lambdas because `loadout` is used by value
-        #![allow(clippy::option_if_let_else)]
         let loadout = Self::empty();
 
         if let Some(rng) = rng {
@@ -463,7 +462,6 @@ impl LoadoutBuilder {
         };
 
         // closures can't be used here, because it moves value
-        #[allow(clippy::option_if_let_else)]
         if let Some(chest) = chest {
             self.chest(Some(Item::new_from_asset_expect(chest)))
         } else {

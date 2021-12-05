@@ -159,7 +159,6 @@ pub fn init(
                     wpos.distance_squared(spawn_point.0.xy().map(|x| x as i64))
                 })
                 .map(|(id, _)| id);
-            #[allow(clippy::single_match)]
             match &site.kind {
                 #[allow(clippy::single_match)]
                 SiteKind::Dungeon(dungeon) => match dungeon.dungeon_difficulty() {

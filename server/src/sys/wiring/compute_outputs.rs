@@ -49,7 +49,6 @@ pub fn compute_outputs(system_data: &WiringData) -> HashMap<Entity, HashMap<Stri
         .collect()
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn compute_output_with_key(
     // yes, this function is defined only to make one place
     // look a bit nicer
@@ -73,7 +72,6 @@ pub fn compute_output_with_key(
     )
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn compute_output(
     output_formula: &OutputFormula,
     inputs: &HashMap<String, f32>,
@@ -130,7 +128,6 @@ fn output_formula_on_death(
     0.0
 }
 
-#[allow(clippy::too_many_arguments)]
 fn output_formula_logic(
     logic: &Logic,
     inputs: &HashMap<String, f32>,

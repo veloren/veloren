@@ -46,7 +46,6 @@ pub(crate) struct LazyTerrainMessage {
 pub const SAFE_ZONE_RADIUS: f32 = 200.0;
 
 impl LazyTerrainMessage {
-    #[allow(clippy::new_without_default)]
     pub(crate) fn new() -> Self {
         Self {
             lazy_msg_lo: None,

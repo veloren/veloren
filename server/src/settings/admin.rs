@@ -1,7 +1,6 @@
 //! Versioned admins settings files.
 
 // NOTE: Needed to allow the second-to-last migration to call try_into().
-#![allow(clippy::useless_conversion)]
 
 use super::{ADMINS_FILENAME as FILENAME, MIGRATION_UPGRADE_GUARANTEE};
 use crate::settings::editable::{EditableSetting, Version};
@@ -118,6 +117,7 @@ mod v0 {
     impl TryFrom<Admins> for Final {
         type Error = <Final as EditableSetting>::Error;
 
+        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: Admins) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Admins::migrate(value)

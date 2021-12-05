@@ -2921,7 +2921,6 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    #[allow(clippy::branches_sharing_code)] //TODO: evaluate
     fn handle_quadlow_ranged_attack(
         &self,
         agent: &mut Agent,

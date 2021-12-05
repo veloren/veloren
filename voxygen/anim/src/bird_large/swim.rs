@@ -7,7 +7,6 @@ use std::ops::Mul;
 pub struct SwimAnimation;
 
 impl Animation for SwimAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = f32;
     type Skeleton = BirdLargeSkeleton;
 

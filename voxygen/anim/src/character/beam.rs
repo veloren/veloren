@@ -25,7 +25,6 @@ impl Animation for BeamAnimation {
     const UPDATE_FN: &'static [u8] = b"character_beam\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_beam")]
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (ability_info, hands, _global_time, velocity, stage_section): Self::Dependency<'a>,

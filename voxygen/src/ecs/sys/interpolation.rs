@@ -91,7 +91,6 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-#[allow(clippy::collapsible_match)]
 fn base_ori_interp(body: &Body) -> f32 {
     match body {
         Body::Object(object) => match object {

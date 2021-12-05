@@ -26,7 +26,6 @@ pub struct ChunkGenerator {
     metrics: Arc<ChunkGenMetrics>,
 }
 impl ChunkGenerator {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new(metrics: ChunkGenMetrics) -> Self {
         let (chunk_tx, chunk_rx) = crossbeam_channel::unbounded();
         Self {

@@ -135,7 +135,6 @@ pub fn compute_matrices<S: Skeleton>(
         let lock = LIB.lock().unwrap();
         let lib = &lock.as_ref().unwrap().lib;
 
-        #[allow(clippy::type_complexity)]
         let compute_fn: voxygen_dynlib::Symbol<
             fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT], S::Body) -> Offsets,
         > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
@@ -187,7 +186,6 @@ pub trait Animation {
             let lock = LIB.lock().unwrap();
             let lib = &lock.as_ref().unwrap().lib;
 
-            #[allow(clippy::type_complexity)]
             let update_fn: voxygen_dynlib::Symbol<
                 fn(
                     &Self::Skeleton,

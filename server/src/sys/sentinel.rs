@@ -1,3 +1,4 @@
+#![allow(clippy::large_enum_variant)]
 use common::{
     comp::{
         item::{tool::AbilityMap, MaterialStatManifest},

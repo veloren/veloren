@@ -11,7 +11,6 @@ use specs::{Entities, Join, ReadStorage, WriteStorage};
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         WriteStorage<'a, Invite>,

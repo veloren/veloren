@@ -48,7 +48,6 @@ pub struct BuffsBar<'a> {
 }
 
 impl<'a> BuffsBar<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         imgs: &'a Imgs,
         fonts: &'a Fonts,

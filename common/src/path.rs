@@ -487,7 +487,6 @@ impl Chaser {
     }
 }
 
-#[allow(clippy::float_cmp)] // TODO: Pending review in #587
 fn walkable<V>(vol: &V, pos: Vec3<i32>) -> bool
 where
     V: BaseVol<Vox = Block> + ReadVol,
@@ -951,7 +950,6 @@ fn informed_rrt_connect(
 /// along the axis between the foci. The value of the search parameter must be
 /// greater than zero. In order to increase the sample area, the
 /// search_parameter should be increased linearly as the search continues.
-#[allow(clippy::many_single_char_names)]
 #[cfg(rrt_pathfinding)]
 pub fn point_on_prolate_spheroid(
     focus1: Vec3<f32>,

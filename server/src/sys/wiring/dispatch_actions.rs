@@ -147,7 +147,6 @@ fn dispatch_action_set_light(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 fn dispatch_action_set_block(
     coord: vek::Vec3<i32>,
     block: Block,

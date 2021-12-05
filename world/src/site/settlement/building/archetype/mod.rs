@@ -20,7 +20,6 @@ pub trait Archetype {
     where
         Self: Sized;
 
-    #[allow(clippy::too_many_arguments)]
     fn draw(
         &self,
         index: IndexRef,

@@ -164,7 +164,6 @@ pub fn maintain(
         let lock = LIB.lock().unwrap();
         let lib = &lock.as_ref().unwrap().lib;
 
-        #[allow(clippy::type_complexity)]
         let maintain_fn: voxygen_dynlib::Symbol<
             fn(
                 &mut Platform,
