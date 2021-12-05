@@ -67,8 +67,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
     type Index = (Vec2<i32>, IndexRef<'a>);
     type Sample = Option<ColumnSample<'a>>;
 
-    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);

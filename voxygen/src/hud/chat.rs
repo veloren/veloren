@@ -203,7 +203,6 @@ impl<'a> Widget for Chat<'a> {
 
     fn style(&self) -> Self::Style {}
 
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         common_base::prof_span!("Chat::update");
 

@@ -6,7 +6,6 @@ use specs::{Read, WriteExpect};
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (Read<'a, EventBus<ServerEvent>>, WriteExpect<'a, RtSim>);
 
     const NAME: &'static str = "rtsim::load_chunks";

@@ -8,7 +8,6 @@ use std::f32::consts::PI;
 pub struct CollectAnimation;
 
 impl Animation for CollectAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (Vec3<f32>, f32, Option<StageSection>, Vec3<f32>);
     type Skeleton = CharacterSkeleton;
 
@@ -16,7 +15,6 @@ impl Animation for CollectAnimation {
     const UPDATE_FN: &'static [u8] = b"character_collect\0";
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_collect")]
-    #[allow(clippy::single_match)] // TODO: Pending review in #587
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (position, _global_time, stage_section, sprite_pos): Self::Dependency<'a>,

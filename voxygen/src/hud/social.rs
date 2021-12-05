@@ -58,7 +58,6 @@ pub struct Social<'a> {
 }
 
 impl<'a> Social<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         show: &'a Show,
         client: &'a Client,

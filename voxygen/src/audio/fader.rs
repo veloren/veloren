@@ -117,7 +117,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     fn fade_out_completes() {
         let mut fader = Fader::fade_out(Duration::from_secs(10), 1.0);
 
@@ -161,7 +160,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     fn update_target_volume_fading_in_when_currently_above() {
         let mut fader = Fader::fade_in(Duration::from_secs(10), 1.0);
 
@@ -178,7 +176,6 @@ mod tests {
     }
 
     #[test]
-    #[allow(clippy::float_cmp)] // TODO: Pending review in #587
     fn update_target_volume_fading_in_when_currently_below() {
         let mut fader = Fader::fade_in(Duration::from_secs(20), 1.0);
 

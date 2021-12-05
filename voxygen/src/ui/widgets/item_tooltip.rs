@@ -110,7 +110,6 @@ impl ItemTooltipManager {
         }
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn set_tooltip<'a, I>(
         &mut self,
         tooltip: &'a ItemTooltip,

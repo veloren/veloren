@@ -413,7 +413,6 @@ impl BParticipant {
             .fetch_sub(Self::BARR_SEND, Ordering::SeqCst);
     }
 
-    #[allow(clippy::too_many_arguments)]
     async fn recv_mgr(
         &self,
         b2a_stream_opened_s: mpsc::UnboundedSender<Stream>,

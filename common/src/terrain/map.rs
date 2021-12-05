@@ -147,7 +147,6 @@ impl MapSizeLg {
     // not technically been stabilized yet, Clippy probably doesn't check for this
     // case yet.  When it can, or when is_some() is stabilized as a `const fn`,
     // we should deal with this.
-    #[allow(clippy::result_unit_err)]
     /// Construct a new `MapSizeLg`, returning an error if the needed invariants
     /// do not hold and the vector otherwise.
     ///
@@ -430,7 +429,6 @@ impl<'a> MapConfig<'a> {
     /// sample_wpos is a simple function that, given a *column* position,
     /// returns the approximate altitude at that column.  When in doubt, try
     /// using `MapConfig::sample_wpos` for this.
-    #[allow(clippy::many_single_char_names)]
     pub fn generate(
         &self,
         sample_pos: impl Fn(Vec2<i32>) -> MapSample,

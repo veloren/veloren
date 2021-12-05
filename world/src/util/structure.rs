@@ -41,7 +41,6 @@ impl StructureGen2d {
     fn spread_mul(spread: u32) -> u32 { spread * 2 }
 
     #[inline]
-    #[allow(clippy::too_many_arguments)]
     fn index_to_sample_internal(
         freq: i32,
         freq_offset: i32,

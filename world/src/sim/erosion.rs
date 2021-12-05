@@ -697,8 +697,6 @@ impl m32 {
 ///     Prediction in Geomorphology, Geophysical Monograph 135.
 ///     Copyright 2003 by the American Geophysical Union
 ///     10.1029/135GM09
-#[allow(clippy::many_single_char_names)]
-#[allow(clippy::too_many_arguments)]
 fn erode(
     // Underlying map dimensions.
     map_size_lg: MapSizeLg,
@@ -2341,7 +2339,6 @@ pub fn mrec_downhill(
 /// * A bitmask representing which neighbors are downhill.
 /// * Stack order for multiple receivers (from top to bottom).
 /// * The weight for each receiver, for each node.
-#[allow(clippy::too_many_arguments)]
 #[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     map_size_lg: MapSizeLg,
@@ -2534,8 +2531,6 @@ pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
 }
 
 /// Perform erosion n times.
-#[allow(clippy::many_single_char_names)]
-#[allow(clippy::too_many_arguments)]
 pub fn do_erosion(
     map_size_lg: MapSizeLg,
     _max_uplift: f32,

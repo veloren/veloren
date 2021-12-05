@@ -1869,7 +1869,6 @@ where
     }
 }
 
-#[allow(clippy::float_cmp)] // TODO: Pending review in #587
 fn handle_object(
     server: &mut Server,
     client: EcsEntity,

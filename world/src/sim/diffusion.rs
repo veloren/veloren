@@ -37,7 +37,6 @@ use rayon::prelude::*;
 
   implicit none
 */
-#[allow(clippy::too_many_arguments)]
 pub fn diffusion(
     nx: usize,
     ny: usize,
@@ -405,7 +404,6 @@ pub fn diffusion(
       INTEGER n
       double precision a(n),b(n),c(n),r(n),u(n)
 */
-#[allow(clippy::many_single_char_names)]
 pub fn tridag(a: &[f64], b: &[f64], c: &[f64], r: &[f64], u: &mut [f64], n: usize) {
     /*
           INTEGER j

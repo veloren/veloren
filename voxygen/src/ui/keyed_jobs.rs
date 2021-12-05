@@ -21,7 +21,6 @@ pub struct KeyedJobs<K, V> {
 const KEYEDJOBS_GC_INTERVAL: Duration = Duration::from_secs(1);
 
 impl<K: Hash + Eq + Send + Sync + 'static + Clone, V: Send + Sync + 'static> KeyedJobs<K, V> {
-    #[allow(clippy::new_without_default)]
     pub fn new(name: &'static str) -> Self {
         let (tx, rx) = crossbeam_channel::unbounded();
         Self {

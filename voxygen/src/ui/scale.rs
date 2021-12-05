@@ -85,7 +85,6 @@ impl Scale {
 
     /// Updates window size
     /// Returns true if the value was changed
-    #[allow(clippy::float_cmp)]
     pub fn surface_resized(&mut self, new_res: Vec2<u32>) -> bool {
         let old_res = self.physical_resolution;
         self.physical_resolution = new_res;
@@ -94,7 +93,6 @@ impl Scale {
 
     /// Updates scale factor
     /// Returns true if the value was changed
-    #[allow(clippy::float_cmp)]
     pub fn scale_factor_changed(&mut self, scale_factor: f64) -> bool {
         let old_scale_factor = self.scale_factor;
         self.scale_factor = scale_factor;

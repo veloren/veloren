@@ -1,7 +1,6 @@
 //! Versioned banlist settings files.
 
 // NOTE: Needed to allow the second-to-last migration to call try_into().
-#![allow(clippy::useless_conversion)]
 
 use super::{BANLIST_FILENAME as FILENAME, MIGRATION_UPGRADE_GUARANTEE};
 use crate::settings::editable::{EditableSetting, Version};
@@ -180,6 +179,7 @@ mod v0 {
     impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
+        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value)

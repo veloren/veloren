@@ -401,7 +401,6 @@ impl SlowJobPool {
 mod tests {
     use super::*;
 
-    #[allow(clippy::blacklisted_name)]
     fn mock_pool(
         pool_threads: usize,
         global_threads: u64,

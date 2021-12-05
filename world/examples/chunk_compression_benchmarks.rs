@@ -147,7 +147,6 @@ impl PackingFormula for TallPacking {
     #[inline(always)]
     fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) { (dims.x, dims.y * dims.z) }
 
-    #[allow(clippy::many_single_char_names)]
     #[inline(always)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let i = x;
@@ -253,7 +252,6 @@ pub struct MixedEncoding;
 
 impl VoxelImageEncoding for MixedEncoding {
     type Output = (Vec<u8>, [usize; 3]);
-    #[allow(clippy::type_complexity)]
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
@@ -592,9 +590,7 @@ impl<P: RTreeParams> NearestNeighbor for RTree<ColorPoint, P> {
 pub struct PaletteEncoding<'a, NN: NearestNeighbor, const N: u32>(&'a HashMap<BlockKind, NN>);
 
 impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncoding<'a, NN, N> {
-    #[allow(clippy::type_complexity)]
     type Output = CompressedData<(Vec<u8>, [usize; 4])>;
-    #[allow(clippy::type_complexity)]
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
@@ -655,7 +651,6 @@ impl<'a, NN: NearestNeighbor, const N: u32> VoxelImageEncoding for PaletteEncodi
     }
 }
 
-#[allow(clippy::many_single_char_names)]
 fn histogram_to_dictionary(histogram: &HashMap<Vec<u8>, usize>, dictionary: &mut Vec<u8>) {
     let mut tmp: Vec<(Vec<u8>, usize)> = histogram.iter().map(|(k, v)| (k.clone(), *v)).collect();
     tmp.sort_by_key(|(_, count)| *count);

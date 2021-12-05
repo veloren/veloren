@@ -7,7 +7,6 @@ use common::states::utils::StageSection;
 pub struct ShockwaveAnimation;
 
 impl Animation for ShockwaveAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (Option<StageSection>, bool);
     type Skeleton = BirdLargeSkeleton;
 

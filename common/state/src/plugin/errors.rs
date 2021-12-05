@@ -1,7 +1,6 @@
 use bincode::ErrorKind;
 use wasmer::{ExportError, InstantiationError, RuntimeError};
 
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum PluginError {
     Io(std::io::Error),

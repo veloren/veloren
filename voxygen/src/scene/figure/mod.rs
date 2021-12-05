@@ -4960,7 +4960,6 @@ impl FigureMgr {
             });
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render<'a>(
         &'a self,
         drawer: &mut FigureDrawer<'_, 'a>,
@@ -5011,7 +5010,6 @@ impl FigureMgr {
         }
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn render_player<'a>(
         &'a self,
         drawer: &mut FigureDrawer<'_, 'a>,

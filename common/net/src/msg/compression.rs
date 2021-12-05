@@ -85,7 +85,6 @@ impl<const FLIP_X: bool> PackingFormula for WidePacking<FLIP_X> {
     #[inline(always)]
     fn dimensions(&self, dims: Vec3<u32>) -> (u32, u32) { (dims.x * dims.z, dims.y) }
 
-    #[allow(clippy::many_single_char_names)]
     #[inline(always)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let i0 = if FLIP_X {
@@ -113,7 +112,6 @@ impl PackingFormula for GridLtrPacking {
         (dims.x * rootz, dims.y * rootz)
     }
 
-    #[allow(clippy::many_single_char_names)]
     #[inline(always)]
     fn index(&self, dims: Vec3<u32>, x: u32, y: u32, z: u32) -> (u32, u32) {
         let rootz = (dims.z as f64).sqrt().ceil() as u32;
@@ -337,7 +335,6 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
         Some((a, b, c, d))
     }
 
-    #[allow(clippy::many_single_char_names)]
     fn get_block(ws: &Self::Workspace, x: u32, y: u32, is_border: bool) -> Block {
         if let Some(kind) = BlockKind::from_u8(ws.0.get_pixel(x, y).0[0]) {
             if kind.is_filled() {

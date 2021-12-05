@@ -13,7 +13,6 @@ use specs::{Entities, Join, Read, ReadStorage};
 use tracing::{debug, error, warn};
 
 impl Sys {
-    #[allow(clippy::too_many_arguments)]
     fn handle_general_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,

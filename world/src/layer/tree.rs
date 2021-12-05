@@ -671,7 +671,6 @@ impl ProceduralTree {
     // returning the index and AABB of the branch. This AABB gets propagated
     // down to the parent and is used later during sampling to cull the branches to
     // be sampled.
-    #[allow(clippy::too_many_arguments)]
     fn add_branch(
         &mut self,
         config: &TreeConfig,

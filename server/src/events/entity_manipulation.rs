@@ -105,15 +105,15 @@ pub fn handle_knockback(server: &Server, entity: EcsEntity, impulse: Vec3<f32>) 
 /// other players. If the entity that killed it had stats, then give it exp for
 /// the kill. Experience given is equal to the level of the entity that was
 /// killed times 10.
-// NOTE: Clippy incorrectly warns about a needless collect here because it does not
-// understand that the pet count (which is computed during the first iteration over the
-// members in range) is actually used by the second iteration over the members in range;
-// since we have no way of knowing the pet count before the first loop finishes, we
-// definitely need at least two loops.   Then (currently) our only options are to store
-// the member list in temporary space (e.g. by collecting to a vector), or to repeat
-// the loop; but repeating the loop would currently be very inefficient since it has to
-// rescan every entity on the server again.
-#[allow(clippy::needless_collect)]
+// NOTE: Clippy incorrectly warns about a needless collect here because it does
+// not understand that the pet count (which is computed during the first
+// iteration over the members in range) is actually used by the second iteration
+// over the members in range; since we have no way of knowing the pet count
+// before the first loop finishes, we definitely need at least two loops.   Then
+// (currently) our only options are to store the member list in temporary space
+// (e.g. by collecting to a vector), or to repeat the loop; but repeating the
+// loop would currently be very inefficient since it has to rescan every entity
+// on the server again.
 pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: HealthChange) {
     let state = server.state_mut();
 
@@ -581,7 +581,6 @@ pub fn handle_respawn(server: &Server, entity: EcsEntity) {
     }
 }
 
-#[allow(clippy::blocks_in_if_conditions)]
 pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, owner: Option<Uid>) {
     // Go through all other entities
     let ecs = &server.state.ecs();

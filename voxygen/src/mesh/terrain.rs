@@ -224,7 +224,6 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
-#[allow(clippy::many_single_char_names)]
 #[allow(clippy::type_complexity)]
 pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
     vol: &'a VolGrid2d<V>,
