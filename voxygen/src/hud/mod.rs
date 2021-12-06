@@ -109,6 +109,7 @@ use std::{
     sync::Arc,
     time::{Duration, Instant},
 };
+use tracing::warn;
 use vek::*;
 
 const TEXT_COLOR: Color = Color::Rgba(1.0, 1.0, 1.0, 1.0);
@@ -909,6 +910,7 @@ impl PromptDialogSettings {
         self.outcome_via_keypress = Some(outcome);
     }
 
+    #[must_use]
     pub fn with_no_negative_option(mut self) -> Self {
         self.negative_option = false;
         self
@@ -1161,13 +1163,13 @@ impl Hud {
                                  acquired them. Prerequisites or costs may have changed."
                             },
                         };
-                        let common_message = "At least one of your skill groups has been \
-                                              invalidated. You will need to re-assign your skill \
-                                              points to get skills.";
-                        let persistence_error =
-                            format!("{}\n{}", persistence_error, common_message);
+
+                        let common_message = "Some of your skill points have been reset. You will \
+                                              need to reassign them.";
+
+                        warn!("{}\n{}", persistence_error, common_message);
                         let prompt_dialog = PromptDialogSettings::new(
-                            persistence_error,
+                            format!("{}\n", common_message),
                             Event::AcknowledgePersistenceLoadError,
                             None,
                         )

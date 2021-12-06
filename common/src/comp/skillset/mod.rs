@@ -84,7 +84,7 @@ lazy_static! {
         let map = SkillTreeMap::load_expect_cloned(
             "common.skill_trees.skills_skill-groups_manifest",
         ).0;
-        map.iter().flat_map(|(sgk, skills)| skills.into_iter().map(move |s| (*s, *sgk))).collect()
+        map.iter().flat_map(|(sgk, skills)| skills.iter().map(move |s| (*s, *sgk))).collect()
     };
     // Loads the maximum level that a skill can obtain
     pub static ref SKILL_MAX_LEVEL: HashMap<Skill, u16> = {

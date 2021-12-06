@@ -143,8 +143,13 @@ impl<'a> Widget for PromptDialog<'a> {
                 self.prompt_dialog_settings.affirmative_event.clone(),
             ));
         }
-        Text::new("Accept")
-            .bottom_right_with_margins_on(state.ids.accept_key, 5.0, -65.0)
+        let accept_txt = if self.prompt_dialog_settings.negative_option {
+            "Accept"
+        } else {
+            "Ok"
+        };
+        Text::new(accept_txt)
+            .bottom_left_with_margins_on(state.ids.accept_key, 4.0, 28.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(18))
             .color(TEXT_COLOR)
