@@ -3,9 +3,12 @@ use crate::{
     util::{FastNoise, RandomField, RandomPerm, Sampler, SmallCache},
     IndexRef,
 };
-use common::terrain::{
-    structure::{self, StructureBlock},
-    Block, BlockKind, SpriteKind,
+use common::{
+    calendar::Calendar,
+    terrain::{
+        structure::{self, StructureBlock},
+        Block, BlockKind, SpriteKind,
+    },
 };
 use core::ops::{Div, Mul, Range};
 use serde::Deserialize;
@@ -33,17 +36,18 @@ impl<'a> BlockGen<'a> {
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
         index: IndexRef<'a>,
+        calendar: Option<&'a Calendar>,
     ) -> Option<&'b ColumnSample<'a>> {
         cache
-            .get(wpos, |wpos| column_gen.get((wpos, index)))
+            .get(wpos, |wpos| column_gen.get((wpos, index, calendar)))
             .as_ref()
     }
 
-    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: IndexRef<'a>) -> Option<ZCache<'a>> {
+    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: IndexRef<'a>, calendar: Option<&'a Calendar>) -> Option<ZCache<'a>> {
         let BlockGen { column_gen } = self;
 
         // Main sample
-        let sample = column_gen.get((wpos, index))?;
+        let sample = column_gen.get((wpos, index, calendar))?;
 
         Some(ZCache { sample })
     }

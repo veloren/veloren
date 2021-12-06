@@ -5,6 +5,7 @@ use crate::{
     IndexRef, CONFIG,
 };
 use common::{
+    calendar::{Calendar, CalendarEvent},
     terrain::{
         quadratic_nearest_point, river_spline_coeffs, uniform_idx_as_vec2, vec2_as_uniform_idx,
         TerrainChunkSize,
@@ -64,10 +65,10 @@ impl<'a> ColumnGen<'a> {
 }
 
 impl<'a> Sampler<'a> for ColumnGen<'a> {
-    type Index = (Vec2<i32>, IndexRef<'a>);
+    type Index = (Vec2<i32>, IndexRef<'a>, Option<&'a Calendar>);
     type Sample = Option<ColumnSample<'a>>;
 
-    fn get(&self, (wpos, index): Self::Index) -> Option<ColumnSample<'a>> {
+    fn get(&self, (wpos, index, calendar): Self::Index) -> Option<ColumnSample<'a>> {
         let wposf = wpos.map(|e| e as f64);
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
 
@@ -1079,8 +1080,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         );
 
         // Snow covering
+        let thematic_snow = calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
         let snow_cover = temp
-            .sub(CONFIG.snow_temp)
+            .sub(if thematic_snow {
+                CONFIG.tropical_temp
+            } else {
+                CONFIG.snow_temp
+            })
             .max(-humidity.sub(CONFIG.desert_hum))
             .mul(4.0)
             .add(((marble - 0.5) / 0.5) * 0.5)

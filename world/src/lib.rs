@@ -120,7 +120,7 @@ impl World {
         // TODO
     }
 
-    pub fn get_map_data(&self, index: IndexRef, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
+    pub fn get_map_data(&self, index: IndexRef, calendar: Option<&Calendar>, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
         threadpool.install(|| {
             // we need these numbers to create unique ids for cave ends
             let num_sites = self.civs().sites().count() as u64;
@@ -179,14 +179,14 @@ impl World {
                             }),
                     )
                     .collect(),
-                ..self.sim.get_map(index)
+                ..self.sim.get_map(index, calendar)
             }
         })
     }
 
     pub fn sample_columns(
         &self,
-    ) -> impl Sampler<Index = (Vec2<i32>, IndexRef), Sample = Option<ColumnSample>> + '_ {
+    ) -> impl Sampler<Index = (Vec2<i32>, IndexRef, Option<&'_ Calendar>), Sample = Option<ColumnSample>> + '_ {
         ColumnGen::new(&self.sim)
     }
 
@@ -218,6 +218,8 @@ impl World {
         mut should_continue: impl FnMut() -> bool,
         time: Option<(TimeOfDay, Calendar)>,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
+        let calendar = time.as_ref().map(|(_, cal)| cal);
+
         let mut sampler = self.sample_blocks();
 
         let chunk_wpos2d = chunk_pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
@@ -225,7 +227,7 @@ impl World {
         let grid_border = 4;
         let zcache_grid = Grid::populate_from(
             TerrainChunkSize::RECT_SIZE.map(|e| e as i32) + grid_border * 2,
-            |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs, index),
+            |offs| sampler.get_z_cache(chunk_wpos2d - grid_border + offs, index, calendar),
         );
 
         let air = Block::air(SpriteKind::Empty);
@@ -348,6 +350,7 @@ impl World {
                 chunks: &self.sim,
                 index,
                 chunk: sim_chunk,
+                calendar,
             },
             chunk: &mut chunk,
             entities: Vec::new(),
@@ -363,7 +366,7 @@ impl World {
             layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
         }
         if index.features.trees {
-            layer::apply_trees_to(&mut canvas, &mut dynamic_rng);
+            layer::apply_trees_to(&mut canvas, &mut dynamic_rng, calendar);
         }
         if index.features.scatter {
             layer::apply_scatter_to(&mut canvas, &mut dynamic_rng);
@@ -425,7 +428,7 @@ impl World {
             index,
             sim_chunk,
             &mut supplement,
-            time,
+            time.as_ref(),
         );
 
         // Apply site supplementary information

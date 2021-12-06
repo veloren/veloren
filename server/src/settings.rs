@@ -14,7 +14,7 @@ pub use server_description::ServerDescription;
 pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
 
 use chrono::Utc;
-use common::{calendar::CalendarEvent, resources::BattleMode};
+use common::{calendar::{Calendar, CalendarEvent}, resources::BattleMode};
 use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
@@ -72,6 +72,17 @@ pub enum CalendarMode {
 
 impl Default for CalendarMode {
     fn default() -> Self { Self::Auto }
+}
+
+impl CalendarMode {
+    pub fn calendar_now(&self) -> Calendar {
+        match self {
+            CalendarMode::None => Calendar::default(),
+            CalendarMode::Auto => Calendar::from_tz(None),
+            CalendarMode::Timezone(tz) => Calendar::from_tz(Some(*tz)),
+            CalendarMode::Events(events) => Calendar::from_events(events.clone()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -39,6 +39,7 @@ use crate::{
     IndexRef, CONFIG,
 };
 use common::{
+    calendar::Calendar,
     assets::{self, AssetExt},
     grid::Grid,
     lottery::Lottery,
@@ -1460,7 +1461,7 @@ impl WorldSim {
 
     /// Draw a map of the world based on chunk information.  Returns a buffer of
     /// u32s.
-    pub fn get_map(&self, index: IndexRef) -> WorldMapMsg {
+    pub fn get_map(&self, index: IndexRef, calendar: Option<&Calendar>) -> WorldMapMsg {
         let mut map_config = MapConfig::orthographic(
             self.map_size_lg(),
             core::ops::RangeInclusive::new(CONFIG.sea_level, CONFIG.sea_level + self.max_height),
@@ -1485,8 +1486,11 @@ impl WorldSim {
                     || Box::new(BlockGen::new(ColumnGen::new(self))),
                     |_block_gen, posi| {
                         let sample = column_sample.get(
-                            (uniform_idx_as_vec2(self.map_size_lg(), posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
-                             index)
+                            (
+                                uniform_idx_as_vec2(self.map_size_lg(), posi) * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+                                index,
+                                calendar,
+                            )
                         )?;
                         // sample.water_level = CONFIG.sea_level.max(sample.water_level);
 

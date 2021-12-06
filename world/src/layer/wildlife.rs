@@ -287,7 +287,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     index: IndexRef,
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
-    time: Option<(TimeOfDay, Calendar)>,
+    time: Option<&(TimeOfDay, Calendar)>,
 ) {
     let scatter = &index.wildlife_spawns;
 
@@ -305,7 +305,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             };
 
             let underwater = col_sample.water_level > col_sample.alt;
-            let (current_day_period, calendar) = if let Some((time, calendar)) = &time {
+            let (current_day_period, calendar) = if let Some((time, calendar)) = time {
                 (DayPeriod::from(time.0), Some(calendar))
             } else {
                 (DayPeriod::Noon, None)

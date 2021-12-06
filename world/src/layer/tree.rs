@@ -7,6 +7,7 @@ use crate::{
 };
 use common::{
     assets::AssetHandle,
+    calendar::{Calendar, CalendarEvent},
     terrain::{
         structure::{Structure, StructureBlock, StructuresGroup},
         Block, BlockKind, SpriteKind,
@@ -33,7 +34,7 @@ static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
-pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
+pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng, calendar: Option<&Calendar>) {
     // TODO: Get rid of this
     #[allow(clippy::large_enum_variant)]
     enum TreeModel {
@@ -63,7 +64,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
         } in trees
         {
             let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
-                let col = ColumnGen::new(info.chunks()).get((pos, info.index()))?;
+                let col = ColumnGen::new(info.chunks()).get((pos, info.index(), calendar))?;
 
                 // Ensure that it's valid to place a *thing* here
                 if col.alt < col.water_level
@@ -135,7 +136,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng) {
                             ForestKind::Pine => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
-                                        TreeConfig::pine(&mut RandomPerm::new(seed), scale),
+                                        TreeConfig::pine(&mut RandomPerm::new(seed), scale, calendar),
                                         &mut RandomPerm::new(seed),
                                     ),
                                     StructureBlock::PineLeaves,
@@ -547,7 +548,7 @@ impl TreeConfig {
         }
     }
 
-    pub fn pine(rng: &mut impl Rng, scale: f32) -> Self {
+    pub fn pine(rng: &mut impl Rng, scale: f32, calendar: Option<&Calendar>) -> Self {
         let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
         let log_scale = 1.0 + scale.log2().max(0.0);
 
@@ -567,7 +568,11 @@ impl TreeConfig {
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
             inhabited: false,
-            hanging_sprites: &[(0.0001, SpriteKind::Beehive)],
+            hanging_sprites: if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas)) {
+                &[(0.0001, SpriteKind::Beehive), (0.01, SpriteKind::Orb)]
+            } else {
+                &[(0.0001, SpriteKind::Beehive)]
+            },
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 35, 15)),
         }
     }
