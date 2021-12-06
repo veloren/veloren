@@ -4,8 +4,9 @@ SpawnEntry (
     rules: [
         Pack(
             groups: [
-                (1, (1, 1, "common.entity.wild.aggressive.wendigo")),
-                (1, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
+                (9, (1, 1, "common.entity.wild.aggressive.wendigo")),
+                (9, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
+                (1, (1, 1, "common.entity.wild.aggressive.yeti_christmas")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],
