@@ -27,6 +27,8 @@ pub use common_assets as assets;
 #[cfg(not(target_arch = "wasm32"))]
 mod cached_spatial_grid;
 #[cfg(not(target_arch = "wasm32"))]
+pub mod calendar;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod character;
 #[cfg(not(target_arch = "wasm32"))] pub mod clock;
 #[cfg(not(target_arch = "wasm32"))] pub mod cmd;

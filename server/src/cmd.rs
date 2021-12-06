@@ -18,6 +18,7 @@ use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
 use common::{
     assets,
+    calendar::Calendar,
     cmd::{
         ChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
     },
@@ -986,9 +987,14 @@ fn handle_time(
     // wait for the next 100th tick to receive the update).
     let mut tod_lazymsg = None;
     let clients = server.state.ecs().read_storage::<Client>();
+    let calendar = server.state.ecs().read_resource::<Calendar>();
     for client in (&clients).join() {
-        let msg = tod_lazymsg
-            .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(TimeOfDay(new_time))));
+        let msg = tod_lazymsg.unwrap_or_else(|| {
+            client.prepare(ServerGeneral::TimeOfDay(
+                TimeOfDay(new_time),
+                (*calendar).clone(),
+            ))
+        });
         let _ = client.send_prepared(&msg);
         tod_lazymsg = Some(msg);
     }

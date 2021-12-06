@@ -1,0 +1,47 @@
+use chrono::{DateTime, Datelike, Local, TimeZone, Utc};
+use chrono_tz::Tz;
+use hashbrown::HashSet;
+use serde::{Deserialize, Serialize};
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[repr(u16)]
+pub enum CalendarEvent {
+    Christmas = 0,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
+pub struct Calendar {
+    events: HashSet<CalendarEvent>,
+}
+
+impl Calendar {
+    pub fn is_event(&self, event: CalendarEvent) -> bool { self.events.contains(&event) }
+
+    pub fn events(&self) -> impl ExactSizeIterator<Item = &CalendarEvent> + '_ {
+        self.events.iter()
+    }
+
+    pub fn from_events(events: Vec<CalendarEvent>) -> Self {
+        Self {
+            events: events.into_iter().collect(),
+        }
+    }
+
+    pub fn from_tz(tz: Option<Tz>) -> Self {
+        let mut this = Self::default();
+
+        let now = match tz {
+            Some(tz) => {
+                let utc = Utc::now().naive_utc();
+                DateTime::<Tz>::from_utc(utc, tz.offset_from_utc_datetime(&utc)).naive_local()
+            },
+            None => Local::now().naive_local(),
+        };
+
+        if now.month() == 12 && (24..=26).contains(&now.day()) {
+            this.events.insert(CalendarEvent::Christmas);
+        }
+
+        this
+    }
+}

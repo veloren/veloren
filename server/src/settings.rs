@@ -14,7 +14,7 @@ pub use server_description::ServerDescription;
 pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
 
 use chrono::Utc;
-use common::resources::BattleMode;
+use common::{calendar::CalendarEvent, resources::BattleMode};
 use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};
@@ -63,6 +63,18 @@ impl ServerBattleMode {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum CalendarMode {
+    None,
+    Auto,
+    Timezone(chrono_tz::Tz),
+    Events(Vec<CalendarEvent>),
+}
+
+impl Default for CalendarMode {
+    fn default() -> Self { Self::Auto }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Settings {
     pub gameserver_address: SocketAddr,
@@ -84,6 +96,7 @@ pub struct Settings {
     pub spawn_town: Option<String>,
     pub safe_spawn: bool,
     pub max_player_for_kill_broadcast: Option<usize>,
+    pub calendar_mode: CalendarMode,
 
     /// Experimental feature. No guaranteed forwards-compatibility, may be
     /// removed at *any time* with no migration.
@@ -107,6 +120,7 @@ impl Default for Settings {
             max_view_distance: Some(65),
             banned_words_files: Vec::new(),
             max_player_group_size: 6,
+            calendar_mode: CalendarMode::Auto,
             client_timeout: Duration::from_secs(40),
             spawn_town: None,
             safe_spawn: true,

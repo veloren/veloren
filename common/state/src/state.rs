@@ -5,6 +5,7 @@ use crate::plugin::PluginMgr;
 #[cfg(feature = "plugins")]
 use common::uid::UidAllocator;
 use common::{
+    calendar::Calendar,
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
@@ -199,6 +200,7 @@ impl State {
 
         // Register synced resources used by the ECS.
         ecs.insert(TimeOfDay(0.0));
+        ecs.insert(Calendar::default());
 
         // Register unsynced resources used by the ECS.
         ecs.insert(Time(0.0));

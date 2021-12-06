@@ -49,6 +49,7 @@ use crate::{
 };
 use common::{
     assets,
+    calendar::Calendar,
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
     terrain::{
@@ -215,7 +216,7 @@ impl World {
         chunk_pos: Vec2<i32>,
         // TODO: misleading name
         mut should_continue: impl FnMut() -> bool,
-        time: Option<TimeOfDay>,
+        time: Option<(TimeOfDay, Calendar)>,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let mut sampler = self.sample_blocks();
 

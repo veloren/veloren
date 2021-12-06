@@ -1,6 +1,7 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     assets::{self, AssetExt},
+    calendar::{Calendar, CalendarEvent},
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
     terrain::Block,
@@ -40,7 +41,12 @@ impl assets::Asset for SpawnEntry {
 impl SpawnEntry {
     pub fn from(asset_specifier: &str) -> Self { Self::load_expect_cloned(asset_specifier) }
 
-    pub fn request(&self, requested_period: DayPeriod, underwater: bool) -> Option<Pack> {
+    pub fn request(
+        &self,
+        requested_period: DayPeriod,
+        calendar: Option<&Calendar>,
+        underwater: bool,
+    ) -> Option<Pack> {
         self.rules
             .iter()
             .find(|pack| {
@@ -48,8 +54,15 @@ impl SpawnEntry {
                     .day_period
                     .iter()
                     .any(|period| *period == requested_period);
+                let calendar_match = if let Some(calendar) = calendar {
+                    pack.calendar_events.as_ref().map_or(true, |events| {
+                        events.iter().any(|event| calendar.is_event(*event))
+                    })
+                } else {
+                    false
+                };
                 let water_match = pack.is_underwater == underwater;
-                time_match && water_match
+                time_match && calendar_match && water_match
             })
             .cloned()
     }
@@ -97,6 +110,9 @@ pub struct Pack {
     pub groups: Vec<(Weight, (Min, Max, String))>,
     pub is_underwater: bool,
     pub day_period: Vec<DayPeriod>,
+    #[serde(default)]
+    pub calendar_events: Option<Vec<CalendarEvent>>, /* None implies that the group isn't
+                                                      * limited by calendar events */
 }
 
 impl Pack {
@@ -271,7 +287,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     index: IndexRef,
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
-    time: Option<TimeOfDay>,
+    time: Option<(TimeOfDay, Calendar)>,
 ) {
     let scatter = &index.wildlife_spawns;
 
@@ -289,12 +305,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             };
 
             let underwater = col_sample.water_level > col_sample.alt;
-            let current_day_period;
-            if let Some(time) = time {
-                current_day_period = DayPeriod::from(time.0)
+            let (current_day_period, calendar) = if let Some((time, calendar)) = &time {
+                (DayPeriod::from(time.0), Some(calendar))
             } else {
-                current_day_period = DayPeriod::Noon
-            }
+                (DayPeriod::Noon, None)
+            };
 
             let entity_group = scatter
                 .iter()
@@ -305,7 +320,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         .then(|| {
                             entry
                                 .read()
-                                .request(current_day_period, underwater)
+                                .request(current_day_period, calendar, underwater)
                                 .and_then(|pack| {
                                     (dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
                                         && col_sample.gradient < Some(1.3))

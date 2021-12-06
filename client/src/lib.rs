@@ -1790,8 +1790,9 @@ impl Client {
                     return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                 }
             },
-            ServerGeneral::TimeOfDay(time_of_day) => {
+            ServerGeneral::TimeOfDay(time_of_day, calendar) => {
                 self.target_time_of_day = Some(time_of_day);
+                *self.state.ecs_mut().write_resource() = calendar;
             },
             ServerGeneral::EntitySync(entity_sync_package) => {
                 self.state

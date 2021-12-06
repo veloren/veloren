@@ -12,6 +12,7 @@ bin_csv = ["ron", "csv", "structopt"]
 bin_graphviz = ["petgraph"]
 bin_cmd_doc_gen = []
 rrt_pathfinding = ["kiddo"]
+calendar_events = []
 
 default = ["simd"]
 
@@ -26,6 +27,8 @@ serde = { version = "1.0.110", features = ["derive", "rc"] }
 # Util
 enum-iterator = "0.7"
 vek = { version = "=0.14.1", features = ["serde"] }
+chrono = "0.4"
+chrono-tz = "0.6"
 
 # Strum
 strum = { version = "0.23", features = ["derive"] }

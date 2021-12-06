@@ -4,6 +4,7 @@ use super::{
 };
 use crate::sync;
 use common::{
+    calendar::Calendar,
     character::{self, CharacterItem},
     comp::{self, invite::InviteKind, item::MaterialStatManifest},
     outcome::Outcome,
@@ -176,7 +177,7 @@ pub enum ServerGeneral {
     ChatMsg(comp::ChatMsg),
     ChatMode(comp::ChatMode),
     SetPlayerEntity(Uid),
-    TimeOfDay(TimeOfDay),
+    TimeOfDay(TimeOfDay, Calendar),
     EntitySync(sync::EntitySyncPackage),
     CompSync(sync::CompSyncPackage<EcsCompPacket>),
     CreateEntity(sync::EntityPackage<EcsCompPacket>),
@@ -305,7 +306,7 @@ impl ServerMsg {
                         | ServerGeneral::ChatMsg(_)
                         | ServerGeneral::ChatMode(_)
                         | ServerGeneral::SetPlayerEntity(_)
-                        | ServerGeneral::TimeOfDay(_)
+                        | ServerGeneral::TimeOfDay(_, _)
                         | ServerGeneral::EntitySync(_)
                         | ServerGeneral::CompSync(_)
                         | ServerGeneral::CreateEntity(_)
