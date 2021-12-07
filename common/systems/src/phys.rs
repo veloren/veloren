@@ -1764,6 +1764,7 @@ fn voxel_collider_bounding_sphere(
 }
 
 /// Returns whether interesction between entities occured
+#[allow(clippy::too_many_arguments)]
 fn resolve_e2e_collision(
     // utility variables for our entity
     collision_registered: &mut bool,

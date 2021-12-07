@@ -267,6 +267,7 @@ pub struct Skillbar<'a> {
 }
 
 impl<'a> Skillbar<'a> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         global_state: &'a GlobalState,

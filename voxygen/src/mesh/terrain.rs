@@ -224,6 +224,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub fn generate_mesh<'a, V: RectRasterableVol<Vox = Block> + ReadVol + Debug + 'static>(
     vol: &'a VolGrid2d<V>,
     (range, max_texture_size, _boi): (Aabb<i32>, Vec2<u16>, &'a BlocksOfInterest),
