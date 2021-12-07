@@ -114,7 +114,6 @@ pub struct Map<'a> {
     map_drag: Vec2<f64>,
 }
 impl<'a> Map<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         show: &'a Show,
         client: &'a Client,

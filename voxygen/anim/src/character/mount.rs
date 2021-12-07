@@ -8,7 +8,6 @@ use std::{f32::consts::PI, ops::Mul};
 pub struct MountAnimation;
 
 impl Animation for MountAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,

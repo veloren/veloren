@@ -459,7 +459,6 @@ impl Timer {
     }
 }
 
-#[allow(clippy::type_complexity)]
 #[derive(Clone, Debug)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
@@ -533,7 +532,6 @@ impl Agent {
         self
     }
 
-    #[allow(clippy::type_complexity)]
     #[must_use]
     pub fn with_position_pid_controller(
         mut self,

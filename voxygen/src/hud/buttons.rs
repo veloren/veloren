@@ -66,7 +66,6 @@ pub struct Buttons<'a> {
 }
 
 impl<'a> Buttons<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         client: &'a Client,
         show_bag: bool,

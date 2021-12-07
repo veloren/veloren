@@ -89,7 +89,6 @@ pub struct Group<'a> {
 }
 
 impl<'a> Group<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         show: &'a mut Show,
         client: &'a Client,

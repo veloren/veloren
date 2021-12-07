@@ -8,7 +8,6 @@ use core::{f32::consts::PI, ops::Mul};
 pub struct SwimWieldAnimation;
 
 impl Animation for SwimWieldAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,

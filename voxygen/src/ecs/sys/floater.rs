@@ -15,7 +15,6 @@ pub const HP_ACCUMULATETIME: f32 = 1.0;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, PlayerEntity>,

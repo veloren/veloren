@@ -51,7 +51,6 @@ impl Screen {
         }
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub(super) fn view(
         &mut self,
         fonts: &Fonts,

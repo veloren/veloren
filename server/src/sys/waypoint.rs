@@ -15,7 +15,6 @@ const NOTIFY_TIME: f64 = 10.0;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadStorage<'a, Pos>,

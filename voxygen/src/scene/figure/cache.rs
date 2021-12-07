@@ -280,7 +280,6 @@ impl CharacterCacheKey {
     }
 }
 
-#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub struct FigureModelCache<Skel = anim::character::CharacterSkeleton>
 where
     Skel: Skeleton,
@@ -295,7 +294,6 @@ impl<Skel: Skeleton> FigureModelCache<Skel>
 where
     Skel::Body: BodySpec + Eq + Hash,
 {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         // NOTE: It might be better to bubble this error up rather than panicking.
         let manifests = <Skel::Body as BodySpec>::load_spec().unwrap();

@@ -66,7 +66,6 @@ use vek::*;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadData<'a>,
         Write<'a, EventBus<ServerEvent>>,
@@ -2173,7 +2172,6 @@ impl<'a> AgentData<'a> {
     /// multiplies the movement speed by a value less than 1.0.
     /// A `None` value implies a multiplier of 1.0.
     /// Returns `false` if the pathfinding algorithm fails to return a path
-    #[allow(clippy::too_many_arguments)]
     fn path_toward_target(
         &self,
         agent: &mut Agent,

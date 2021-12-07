@@ -24,7 +24,6 @@ pub struct Recipe {
     pub craft_sprite: Option<SpriteKind>,
 }
 
-#[allow(clippy::type_complexity)]
 impl Recipe {
     /// Perform a recipe, returning a list of missing items on failure
     pub fn craft_simple(

@@ -90,7 +90,6 @@ pub struct RegionMap {
     tick: u64,
 }
 impl RegionMap {
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
         Self {
             regions: IndexMap::default(),

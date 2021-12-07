@@ -11,7 +11,6 @@ use specs::{Join, Read, ReadExpect, ReadStorage};
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
         Read<'a, TerrainChanges>,

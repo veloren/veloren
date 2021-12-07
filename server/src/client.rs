@@ -44,7 +44,6 @@ impl Component for Client {
 }
 
 impl Client {
-    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         client_type: ClientType,
         participant: Participant,

@@ -149,7 +149,6 @@ pub struct GraphicCache {
     // Stores the location of graphics rendered at a particular resolution and cached on the cpu
     cache_map: HashMap<Parameters, CachedDetails>,
 
-    #[allow(clippy::type_complexity)]
     keyed_jobs: KeyedJobs<(Id, Vec2<u16>), Option<(RgbaImage, Option<Rgba<f32>>)>>,
 }
 impl GraphicCache {
@@ -405,7 +404,6 @@ impl GraphicCache {
 }
 
 // Draw a graphic at the specified dimensions
-#[allow(clippy::type_complexity)]
 fn draw_graphic(
     graphic_map: &GraphicMap,
     graphic_id: Id,

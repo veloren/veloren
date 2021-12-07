@@ -245,7 +245,6 @@ impl<V, S: RectVolSize, M: Clone> Iterator for ChonkIterHelper<V, S, M> {
     }
 }
 
-#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub struct ChonkPosIter<V, S: RectVolSize, M: Clone> {
     outer: ChonkIterHelper<V, S, M>,
     opt_inner: Option<(i32, ChunkPosIter<V, SubChunkSize<S>, M>)>,

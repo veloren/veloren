@@ -18,7 +18,6 @@ use std::sync::atomic::Ordering;
 use tracing::{debug, warn};
 
 impl Sys {
-    #[allow(clippy::too_many_arguments)]
     fn handle_client_character_screen_msg(
         server_emitter: &mut common::event::Emitter<'_, ServerEvent>,
         entity: specs::Entity,
@@ -186,7 +185,6 @@ impl Sys {
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,

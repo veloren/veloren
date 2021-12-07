@@ -12,7 +12,6 @@ use core::f32::consts::PI;
 pub struct RepeaterAnimation;
 
 impl Animation for RepeaterAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<AbilityInfo>,
         (Option<Hands>, Option<Hands>),

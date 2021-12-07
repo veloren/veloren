@@ -13,7 +13,6 @@ pub struct Input {
 pub struct ShockwaveAnimation;
 
 impl Animation for ShockwaveAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<AbilityInfo>,
         (Option<Hands>, Option<Hands>),

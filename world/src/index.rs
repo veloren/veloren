@@ -139,7 +139,6 @@ pub struct Noise {
 }
 
 impl Noise {
-    #[allow(clippy::identity_op)]
     fn new(seed: u32) -> Self {
         Self {
             cave_nz: SuperSimplex::new().set_seed(seed + 0),

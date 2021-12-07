@@ -67,7 +67,6 @@ impl Sys {
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,

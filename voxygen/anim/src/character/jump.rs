@@ -7,7 +7,6 @@ use core::f32::consts::PI;
 
 pub struct JumpAnimation;
 impl Animation for JumpAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,

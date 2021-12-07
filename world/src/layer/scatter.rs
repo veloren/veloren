@@ -21,7 +21,6 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
     use WaterMode::*;
 
     use SpriteKind::*;
-    #[allow(clippy::type_complexity)]
     // TODO: Add back all sprites we had before
     let scatter: &[(
         _,

@@ -310,7 +310,6 @@ impl<'a> System<'a> for Sys {
 
 /// Assumes upright cylinder
 /// See page 12 of https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.396.7952&rep=rep1&type=pdf
-#[allow(clippy::too_many_arguments)]
 fn sphere_wedge_cylinder_collision(
     // Values for spherical wedge
     real_pos: Vec3<f32>,

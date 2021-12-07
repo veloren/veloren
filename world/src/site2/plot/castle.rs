@@ -42,7 +42,6 @@ impl Castle {
 }
 
 impl Structure for Castle {
-    #[allow(clippy::identity_op)]
     fn render(&self, site: &Site, _land: &Land, painter: &Painter) {
         let wall_height = 24;
         let parapet_height = 2;

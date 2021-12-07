@@ -2339,7 +2339,6 @@ pub fn mrec_downhill(
 /// * A bitmask representing which neighbors are downhill.
 /// * Stack order for multiple receivers (from top to bottom).
 /// * The weight for each receiver, for each node.
-#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 pub fn get_multi_rec<F: fmt::Debug + Float + Sync + Into<Compute>>(
     map_size_lg: MapSizeLg,
     h: impl Fn(usize) -> F + Sync,

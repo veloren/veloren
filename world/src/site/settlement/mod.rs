@@ -558,7 +558,6 @@ impl Settlement {
         }
     }
 
-    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     pub fn apply_to<'a>(
         &'a self,
         index: IndexRef,

@@ -11,7 +11,6 @@ use core::f32::consts::PI;
 pub struct StunnedAnimation;
 
 impl Animation for StunnedAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         Vec3<f32>,

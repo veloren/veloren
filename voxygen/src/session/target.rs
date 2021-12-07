@@ -44,7 +44,6 @@ impl<T> Target<T> {
 pub const MAX_TARGET_RANGE: f32 = 300.0;
 
 /// Calculate what the cursor is pointing at within the 3d scene
-#[allow(clippy::type_complexity)]
 pub(super) fn targets_under_cursor(
     client: &Client,
     cam_pos: Vec3<f32>,

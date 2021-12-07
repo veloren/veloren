@@ -15,7 +15,6 @@ use vek::*;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'a, UidAllocator>,
         Entities<'a>,

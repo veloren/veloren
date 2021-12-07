@@ -3,7 +3,7 @@
 #![allow(
     clippy::option_map_unit_fn,
     clippy::blocks_in_if_conditions,
-    clippy::too_many_arguments
+    clippy::identity_op
 )]
 #![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]

@@ -818,7 +818,6 @@ pub(super) fn initial_create_pipelines(
 /// Use this to recreate all the pipelines in the background.
 /// TODO: report progress
 /// NOTE: this tries to use all the CPU cores to complete as soon as possible
-#[allow(clippy::type_complexity)]
 pub(super) fn recreate_pipelines(
     device: Arc<wgpu::Device>,
     immutable_layouts: Arc<ImmutableLayouts>,

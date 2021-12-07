@@ -14,7 +14,6 @@ use specs::{Join, ReadStorage, Write, WriteExpect};
 pub struct Sys;
 
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         ReadStorage<'a, Alignment>,
         ReadStorage<'a, Body>,

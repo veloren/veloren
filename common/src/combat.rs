@@ -176,7 +176,6 @@ impl Attack {
         1.0 - (1.0 - damage_reduction) * (1.0 - block_reduction)
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub fn apply_attack(
         &self,
         attacker: Option<AttackerInfo>,
