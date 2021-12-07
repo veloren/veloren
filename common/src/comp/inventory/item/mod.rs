@@ -219,7 +219,9 @@ impl TagExampleInfo for Material {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ItemTag {
+    /// Used to indicate that an item is composed of this material
     Material(Material),
+    /// Used to indicate that an item is composed of this material kind
     MaterialKind(MaterialKind),
     Cultist,
     Potion,

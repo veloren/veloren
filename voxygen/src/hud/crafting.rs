@@ -28,7 +28,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
-use std::{borrow::Cow, sync::Arc};
+use std::sync::Arc;
 
 use strum::{EnumIter, IntoEnumIterator};
 
@@ -464,22 +464,23 @@ impl<'a> Widget for Crafting<'a> {
                         .all(|&substring| output_name.contains(substring))
                 },
                 SearchFilter::Input => recipe.inputs().any(|(input, _, _)| {
-                    let input_name = match input {
-                        RecipeInput::Item(def) => def.name(),
-                        RecipeInput::Tag(tag) => Cow::Borrowed(tag.name()),
-                        RecipeInput::TagSameItem(tag) => Cow::Borrowed(tag.name()),
-                        // Works, but probably will have some...interesting false positives
-                        // Code reviewers probably required to do magic to make not hacky
+                    let search = |input_name: &str| {
+                        let input_name = input_name.to_lowercase();
+                        search_keys
+                            .iter()
+                            .all(|&substring| input_name.contains(substring))
+                    };
+
+                    match input {
+                        RecipeInput::Item(def) => search(&def.name()),
+                        RecipeInput::Tag(tag) => search(tag.name()),
+                        RecipeInput::TagSameItem(tag) => search(tag.name()),
                         RecipeInput::ListSameItem(defs) => {
-                            Cow::Owned(defs.iter().map(|def| def.name()).collect())
+                            defs.iter().any(|def| search(&def.name()))
                         },
                     }
-                    .to_lowercase();
-                    search_keys
-                        .iter()
-                        .all(|&substring| input_name.contains(substring))
                 }),
-                _ => false,
+                SearchFilter::Nonexistant => false,
             })
             .map(|(name, recipe)| {
                 let has_materials = self.client.available_recipes().get(name.as_str()).is_some();

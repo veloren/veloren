@@ -258,10 +258,12 @@ pub fn convert_waypoint_from_database_json(
 }
 
 // Used to handle cases of modular items that are composed of components.
-// Returns a mutable reference to the parent of an item that is a component. If
-// parent item is itself a component, recursively goes through inventory until
-// it grabs component.
-fn get_mutable_parent_item<'a, 'b, T>(
+// When called with the index of a component's parent item, it can get a mutable
+// reference to that parent item so that the component can be added to the
+// parent item. If the item corresponding to the index this is called on is
+// itself a component, recursively goes through inventory until it grabs
+// component.
+fn get_mutable_item<'a, 'b, T>(
     index: usize,
     inventory_items: &'a [Item],
     item_indices: &'a HashMap<i64, usize>,
@@ -271,14 +273,14 @@ fn get_mutable_parent_item<'a, 'b, T>(
 where
     'b: 'a,
 {
-    // First checks if parent item is itself also a component, if it is, tries to
-    // get a mutable reference to itself by getting a mutable reference to the item
-    // that is its own parent
+    // First checks if item is a component, if it is, tries to get a mutable
+    // reference to itself by getting a mutable reference to the item that is its
+    // parent
     if inventory_items[index].position.contains("component_") {
         if let Some(parent) = item_indices
             .get(&inventory_items[index].parent_container_item_id)
             .and_then(move |i| {
-                get_mutable_parent_item(
+                get_mutable_item(
                     *i,
                     inventory_items,
                     item_indices,
@@ -294,9 +296,8 @@ where
                 .split('_')
                 .nth(1)
                 .and_then(|s| s.parse::<usize>().ok());
-            // Returns mutable reference to parent item of original item, by grabbing
-            // the component representing the parent item from the parent item's parent
-            // item
+            // Returns mutable reference to component item by accessing the component
+            // through its parent item item
             component_index.and_then(move |i| parent.persistence_access_mutable_component(i))
         } else {
             None
@@ -394,7 +395,7 @@ pub fn convert_inventory_from_database_items(
                 ));
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            if let Some(parent) = get_mutable_parent_item(
+            if let Some(parent) = get_mutable_item(
                 j,
                 inventory_items,
                 &item_indices,
@@ -460,7 +461,7 @@ pub fn convert_loadout_from_database_items(
                 .map_err(convert_error)?;
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
             if let Some(parent) =
-                get_mutable_parent_item(j, database_items, &item_indices, &mut loadout, &|l, s| {
+                get_mutable_item(j, database_items, &item_indices, &mut loadout, &|l, s| {
                     l.get_mut_item_at_slot_using_persistence_key(s).ok()
                 })
             {

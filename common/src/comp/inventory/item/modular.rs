@@ -369,7 +369,7 @@ pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
 /// manifests in voxygen (Main component, material, hands)
 pub type ModularWeaponKey = (String, String, Hands);
 
-pub fn weapon_to_key(mod_weap: &dyn ItemDesc) -> ModularWeaponKey {
+pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
     let hands = if let ItemKind::Tool(tool) = &*mod_weap.kind() {
         tool.hands
     } else {
