@@ -4,7 +4,7 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use std::{borrow::Cow, path::PathBuf, sync::Arc};
+use std::{borrow::Cow, fmt, path::PathBuf, sync::Arc};
 
 pub use assets_manager::{
     asset::{DirLoadable, Ron},
@@ -144,6 +144,16 @@ pub fn read_expect_dir<T: DirLoadable>(
         .map(|entry| T::load_expect(entry).read())
 }
 
+#[derive(Debug)]
+pub struct AssetError(String, Error);
+
+impl std::error::Error for AssetError {}
+impl fmt::Display for AssetError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Failed to load '{}': {}", self.0, self.1)
+    }
+}
+
 impl<T: Compound> AssetExt for T {
     fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> {
         use std::io;
@@ -167,6 +177,10 @@ impl<T: Compound> AssetExt for T {
         // for `cache.load(specifier)` above.
         match from_override {
             Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => ASSETS.load(specifier),
+            Err(e) => Err(Error::Conversion(Box::new(AssetError(
+                specifier.to_string(),
+                e,
+            )))),
             _ => from_override,
         }
     }
