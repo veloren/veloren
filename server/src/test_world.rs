@@ -36,7 +36,7 @@ impl IndexOwned {
 impl World {
     pub fn generate(_seed: u32) -> (Self, IndexOwned) { (Self, IndexOwned) }
 
-    pub fn tick(&self, dt: Duration) {}
+    pub fn tick(&self) {}
 
     #[inline(always)]
     pub const fn map_size_lg(&self) -> MapSizeLg { DEFAULT_WORLD_CHUNKS_LG }

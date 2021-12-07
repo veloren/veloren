@@ -377,11 +377,11 @@ mod v1 {
                 // An unban record following a ban is valid if the role of the person doing the
                 // unbanning is at least the privilege level of the person who did the ban.
                 (BanAction::Unban(unban), Some(BanAction::Ban(ban))) => {
-                    if unban.performed_by_role >= ban.performed_by_role() {
-                        return Ok(());
+                    return if unban.performed_by_role >= ban.performed_by_role() {
+                        Ok(())
                     } else {
-                        return Err(BanErrorKind::PermissionDenied(BanKind::Unban));
-                    }
+                        Err(BanErrorKind::PermissionDenied(BanKind::Unban))
+                    };
                 },
             };
 

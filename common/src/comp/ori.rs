@@ -79,7 +79,7 @@ impl Ori {
     /// let ori1 = Ori::from(Dir::new(Vec3::unit_x()));
     /// let ori2 = Ori::default().rotated(roll_right).rotated(pitch_up);
     ///
-    /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= std::f32::EPSILON);
+    /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= f32::EPSILON);
     /// ```
     #[must_use]
     pub fn rotated(self, q: Quaternion<f32>) -> Self {
@@ -100,7 +100,7 @@ impl Ori {
     /// let ori1 = Ori::from(Dir::up());
     /// let ori2 = Ori::default().prerotated(roll_right).prerotated(pitch_up);
     ///
-    /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= std::f32::EPSILON);
+    /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= f32::EPSILON);
     /// ```
     #[must_use]
     pub fn prerotated(self, q: Quaternion<f32>) -> Self {
@@ -280,17 +280,17 @@ impl Ori {
     /// let zenith = vek::Vec3::unit_z();
     ///
     /// let rl = Ori::default().rolled_left(ang);
-    /// assert!((rl.up().angle_between(zenith) - ang).abs() <= std::f32::EPSILON);
-    /// assert!(rl.uprighted().up().angle_between(zenith) <= std::f32::EPSILON);
+    /// assert!((rl.up().angle_between(zenith) - ang).abs() <= f32::EPSILON);
+    /// assert!(rl.uprighted().up().angle_between(zenith) <= f32::EPSILON);
     ///
     /// let pd_rr = Ori::default().pitched_down(ang).rolled_right(ang);
     /// let pd_upr = pd_rr.uprighted();
     ///
-    /// assert!((pd_upr.up().angle_between(zenith) - ang).abs() <= std::f32::EPSILON);
+    /// assert!((pd_upr.up().angle_between(zenith) - ang).abs() <= f32::EPSILON);
     ///
     /// let ang1 = pd_upr.rolled_right(ang).up().angle_between(zenith);
     /// let ang2 = pd_rr.up().angle_between(zenith);
-    /// assert!((ang1 - ang2).abs() <= std::f32::EPSILON);
+    /// assert!((ang1 - ang2).abs() <= f32::EPSILON);
     /// ```
     #[must_use]
     pub fn uprighted(self) -> Self { self.look_dir().into() }
