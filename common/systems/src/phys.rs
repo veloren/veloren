@@ -239,7 +239,7 @@ impl<'a> PhysicsData<'a> {
                     //
                     // Other advantage of early-return is that we don't
                     // later divide by zero and return NaN
-                    if len < std::f32::EPSILON * 10.0 {
+                    if len < f32::EPSILON * 10.0 {
                         Some((*p0, *p0))
                     } else {
                         // Apply orientation to origins of prism.
@@ -1897,7 +1897,7 @@ struct ColliderContext<'a> {
 /// Find pushback vector and collision_distance we assume between this
 /// colliders.
 fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f32) {
-    const DIFF_THRESHOLD: f32 = std::f32::EPSILON;
+    const DIFF_THRESHOLD: f32 = f32::EPSILON;
     let our_radius = c0.previous_cache.neighborhood_radius;
     let their_radius = c1.previous_cache.neighborhood_radius;
     let collision_dist = our_radius + their_radius;

@@ -1,7 +1,7 @@
 use crate::path::Path;
 use core::{
     cmp::Ordering::{self, Equal},
-    f32, fmt,
+    fmt,
     hash::{BuildHasher, Hash},
 };
 use hashbrown::{HashMap, HashSet};

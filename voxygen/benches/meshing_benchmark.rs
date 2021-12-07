@@ -59,10 +59,10 @@ pub fn criterion_benchmark(c: &mut Criterion) {
         // The region to actually mesh
         let min_z = volume
             .iter()
-            .fold(std::i32::MAX, |min, (_, chunk)| chunk.get_min_z().min(min));
+            .fold(i32::MAX, |min, (_, chunk)| chunk.get_min_z().min(min));
         let max_z = volume
             .iter()
-            .fold(std::i32::MIN, |max, (_, chunk)| chunk.get_max_z().max(max));
+            .fold(i32::MIN, |max, (_, chunk)| chunk.get_max_z().max(max));
 
         let aabb = Aabb {
             min: Vec3::from(aabr.min) + Vec3::unit_z() * (min_z - 1),
