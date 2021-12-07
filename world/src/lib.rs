@@ -120,7 +120,12 @@ impl World {
         // TODO
     }
 
-    pub fn get_map_data(&self, index: IndexRef, calendar: Option<&Calendar>, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
+    pub fn get_map_data(
+        &self,
+        index: IndexRef,
+        calendar: Option<&Calendar>,
+        threadpool: &rayon::ThreadPool,
+    ) -> WorldMapMsg {
         threadpool.install(|| {
             // we need these numbers to create unique ids for cave ends
             let num_sites = self.civs().sites().count() as u64;
@@ -186,7 +191,10 @@ impl World {
 
     pub fn sample_columns(
         &self,
-    ) -> impl Sampler<Index = (Vec2<i32>, IndexRef, Option<&'_ Calendar>), Sample = Option<ColumnSample>> + '_ {
+    ) -> impl Sampler<
+        Index = (Vec2<i32>, IndexRef, Option<&'_ Calendar>),
+        Sample = Option<ColumnSample>,
+    > + '_ {
         ColumnGen::new(&self.sim)
     }
 

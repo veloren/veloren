@@ -280,6 +280,7 @@ impl Fill {
                         *seed,
                         col_sample,
                         Block::air,
+                        canvas_info.calendar(),
                     )
                 }),
                 Fill::Sampling(f) => f(pos),

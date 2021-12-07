@@ -4,7 +4,7 @@ use crate::{
     IndexRef,
 };
 use common::{
-    calendar::Calendar,
+    calendar::{Calendar, CalendarEvent},
     terrain::{
         structure::{self, StructureBlock},
         Block, BlockKind, SpriteKind,
@@ -43,7 +43,12 @@ impl<'a> BlockGen<'a> {
             .as_ref()
     }
 
-    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: IndexRef<'a>, calendar: Option<&'a Calendar>) -> Option<ZCache<'a>> {
+    pub fn get_z_cache(
+        &mut self,
+        wpos: Vec2<i32>,
+        index: IndexRef<'a>,
+        calendar: Option<&'a Calendar>,
+    ) -> Option<ZCache<'a>> {
         let BlockGen { column_gen } = self;
 
         // Main sample
@@ -241,6 +246,7 @@ pub fn block_from_structure(
     structure_seed: u32,
     sample: &ColumnSample,
     mut with_sprite: impl FnMut(SpriteKind) -> Block,
+    calendar: Option<&Calendar>,
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed);
 
@@ -316,15 +322,21 @@ pub fn block_from_structure(
             };
 
             range.map(|range| {
-                Block::new(
-                    BlockKind::Leaves,
-                    Rgb::<f32>::lerp(
-                        Rgb::<u8>::from(range.start).map(f32::from),
-                        Rgb::<u8>::from(range.end).map(f32::from),
-                        lerp,
+                if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas))
+                    && field.chance(pos + structure_pos, 0.025)
+                {
+                    Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0))
+                } else {
+                    Block::new(
+                        BlockKind::Leaves,
+                        Rgb::<f32>::lerp(
+                            Rgb::<u8>::from(range.start).map(f32::from),
+                            Rgb::<u8>::from(range.end).map(f32::from),
+                            lerp,
+                        )
+                        .map(|e| e as u8),
                     )
-                    .map(|e| e as u8),
-                )
+                }
             })
         },
         StructureBlock::BirchWood => {

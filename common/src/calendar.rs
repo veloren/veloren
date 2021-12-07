@@ -1,6 +1,5 @@
 use chrono::{DateTime, Datelike, Local, TimeZone, Utc};
 use chrono_tz::Tz;
-use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -11,7 +10,7 @@ pub enum CalendarEvent {
 
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Calendar {
-    events: HashSet<CalendarEvent>,
+    events: Vec<CalendarEvent>,
 }
 
 impl Calendar {
@@ -21,11 +20,7 @@ impl Calendar {
         self.events.iter()
     }
 
-    pub fn from_events(events: Vec<CalendarEvent>) -> Self {
-        Self {
-            events: events.into_iter().collect(),
-        }
-    }
+    pub fn from_events(events: Vec<CalendarEvent>) -> Self { Self { events } }
 
     pub fn from_tz(tz: Option<Tz>) -> Self {
         let mut this = Self::default();
@@ -39,7 +34,7 @@ impl Calendar {
         };
 
         if now.month() == 12 && (24..=26).contains(&now.day()) {
-            this.events.insert(CalendarEvent::Christmas);
+            this.events.push(CalendarEvent::Christmas);
         }
 
         this

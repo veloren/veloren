@@ -39,8 +39,8 @@ use crate::{
     IndexRef, CONFIG,
 };
 use common::{
-    calendar::Calendar,
     assets::{self, AssetExt},
+    calendar::Calendar,
     grid::Grid,
     lottery::Lottery,
     spiral::Spiral2d,

@@ -361,7 +361,11 @@ impl Server {
         );
 
         #[cfg(feature = "worldgen")]
-        let map = world.get_map_data(index.as_index_ref(), Some(&settings.calendar_mode.calendar_now()), state.thread_pool());
+        let map = world.get_map_data(
+            index.as_index_ref(),
+            Some(&settings.calendar_mode.calendar_now()),
+            state.thread_pool(),
+        );
 
         #[cfg(not(feature = "worldgen"))]
         let (world, index) = World::generate(settings.world_seed);
@@ -597,7 +601,12 @@ impl Server {
         // Update calendar events as time changes
         // TODO: If a lot of calendar events get added, this might become expensive.
         // Maybe don't do this every tick?
-        let new_calendar = self.state.ecs().read_resource::<Settings>().calendar_mode.calendar_now();
+        let new_calendar = self
+            .state
+            .ecs()
+            .read_resource::<Settings>()
+            .calendar_mode
+            .calendar_now();
         *self.state.ecs_mut().write_resource::<Calendar>() = new_calendar;
 
         // This tick function is the centre of the Veloren universe. Most server-side

@@ -14,7 +14,10 @@ pub use server_description::ServerDescription;
 pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};
 
 use chrono::Utc;
-use common::{calendar::{Calendar, CalendarEvent}, resources::BattleMode};
+use common::{
+    calendar::{Calendar, CalendarEvent},
+    resources::BattleMode,
+};
 use core::time::Duration;
 use portpicker::pick_unused_port;
 use serde::{Deserialize, Serialize};

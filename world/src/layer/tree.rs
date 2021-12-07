@@ -34,7 +34,11 @@ static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
 
-pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng, calendar: Option<&Calendar>) {
+pub fn apply_trees_to(
+    canvas: &mut Canvas,
+    dynamic_rng: &mut impl Rng,
+    calendar: Option<&Calendar>,
+) {
     // TODO: Get rid of this
     #[allow(clippy::large_enum_variant)]
     enum TreeModel {
@@ -136,7 +140,11 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng, calendar:
                             ForestKind::Pine => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
-                                        TreeConfig::pine(&mut RandomPerm::new(seed), scale, calendar),
+                                        TreeConfig::pine(
+                                            &mut RandomPerm::new(seed),
+                                            scale,
+                                            calendar,
+                                        ),
                                         &mut RandomPerm::new(seed),
                                     ),
                                     StructureBlock::PineLeaves,
@@ -257,6 +265,7 @@ pub fn apply_trees_to(canvas: &mut Canvas, dynamic_rng: &mut impl Rng, calendar:
                     tree.seed,
                     col,
                     Block::air,
+                    calendar,
                 )
                 .map(|block| {
                     // Add lights to the tree

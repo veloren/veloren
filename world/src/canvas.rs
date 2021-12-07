@@ -29,6 +29,8 @@ pub struct CanvasInfo<'a> {
 }
 
 impl<'a> CanvasInfo<'a> {
+    pub fn calendar(&self) -> Option<&'a Calendar> { self.calendar }
+
     pub fn wpos(&self) -> Vec2<i32> { self.wpos }
 
     pub fn area(&self) -> Aabr<i32> {
@@ -53,9 +55,11 @@ impl<'a> CanvasInfo<'a> {
     /// This function does not (currently) cache generated columns.
     pub fn col_or_gen(&self, wpos: Vec2<i32>) -> Option<Cow<'a, ColumnSample>> {
         self.col(wpos).map(Cow::Borrowed).or_else(|| {
-            Some(Cow::Owned(
-                ColumnGen::new(self.chunks()).get((wpos, self.index(), self.calendar))?,
-            ))
+            Some(Cow::Owned(ColumnGen::new(self.chunks()).get((
+                wpos,
+                self.index(),
+                self.calendar,
+            ))?))
         })
     }
 
@@ -224,6 +228,7 @@ impl<'a> Canvas<'a> {
                             seed,
                             col,
                             |sprite| block.with_sprite(sprite),
+                            info.calendar,
                         ) {
                             if !new_block.is_air() {
                                 if with_snow && col.snow_cover && above {
