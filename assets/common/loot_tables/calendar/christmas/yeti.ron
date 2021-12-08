@@ -1,0 +1,5 @@
+[
+    (5.0, ItemQuantity("common.items.food.blue_cheese", 1, 10)),
+    (6.0, ItemQuantity("common.items.mineral.ore.coal", 1, 3)),
+    (1.0, ItemQuantity("common.items.mineral.gem.diamond", 1, 1)),
+]

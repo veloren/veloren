@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("yeti"),
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.event.yeti"),
+    loot: LootTable("common.loot_tables.calendar.christmas.yeti"),
 
     hands: Uninit,
 
