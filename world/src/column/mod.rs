@@ -1120,9 +1120,21 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let ice_depth = if snow_factor < -0.25
             && water_vel.magnitude_squared() < (0.1f32 + marble_mid * 0.2).powi(2)
         {
+            let cliff = (sim.gen_ctx.hill_nz.get((wposf3d.div(180.0)).into_array()) as f32)
+                .add((marble_mid - 0.5) * 0.2)
+                .abs()
+                .powi(3)
+                .mul(32.0);
+            let cliff_ctrl = (sim.gen_ctx.hill_nz.get((wposf3d.div(128.0)).into_array()) as f32)
+                .sub(0.4)
+                .add((marble_mid - 0.5) * 0.2)
+                .mul(32.0)
+                .clamped(0.0, 1.0);
+
             ((1.0 - Lerp::lerp(marble, Lerp::lerp(marble_mid, marble_small, 0.25), 0.5)) * 5.0
                 - 1.5)
                 .max(0.0)
+                + cliff * cliff_ctrl
         } else {
             0.0
         };

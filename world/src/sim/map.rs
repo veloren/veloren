@@ -216,7 +216,7 @@ pub fn sample_pos(
     };
     let rgb =
         if is_water && is_ice && column_data.map_or(false, |(_, _, ice_depth)| ice_depth > 0.0) {
-            Rgb::new(200, 225, 255)
+            CONFIG.ice_color
         } else {
             match (river_kind, (is_water, true_alt >= true_sea_level)) {
                 (_, (false, _)) | (None, (_, true)) | (Some(RiverKind::River { .. }), _) => {
