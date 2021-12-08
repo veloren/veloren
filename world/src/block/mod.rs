@@ -54,7 +54,7 @@ impl<'a> BlockGen<'a> {
         // Main sample
         let sample = column_gen.get((wpos, index, calendar))?;
 
-        Some(ZCache { sample })
+        Some(ZCache { sample, calendar })
     }
 
     pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
@@ -74,8 +74,9 @@ impl<'a> BlockGen<'a> {
             //tree_density,
             //forest_kind,
             //close_structures,
-            // marble,
-            // marble_small,
+            marble,
+            marble_mid,
+            marble_small,
             rock,
             // temp,
             // humidity,
@@ -83,6 +84,8 @@ impl<'a> BlockGen<'a> {
             snow_cover,
             cliff_offset,
             cliff_height,
+            // water_vel,
+            ice_depth,
             ..
         } = sample;
 
@@ -204,8 +207,12 @@ impl<'a> BlockGen<'a> {
             }
         })
         .or_else(|| {
+            let over_water = height < water_height;
             // Water
-            if (wposf.z as f32) < water_height {
+            if over_water && (wposf.z as f32 - water_height).abs() < ice_depth {
+                // TODO: Ice block
+                Some(Block::new(BlockKind::WeakRock, Rgb::new(200, 225, 255)))
+            } else if (wposf.z as f32) < water_height {
                 // Ocean
                 Some(water)
             } else {
@@ -217,6 +224,7 @@ impl<'a> BlockGen<'a> {
 
 pub struct ZCache<'a> {
     pub sample: ColumnSample<'a>,
+    pub calendar: Option<&'a Calendar>,
 }
 
 impl<'a> ZCache<'a> {
@@ -232,7 +240,7 @@ impl<'a> ZCache<'a> {
 
         let ground_max = self.sample.alt + warp + rocks + 2.0;
 
-        let max = ground_max.max(self.sample.water_level + 2.0);
+        let max = ground_max.max(self.sample.water_level + 2.0 + self.sample.ice_depth);
 
         (min, max)
     }

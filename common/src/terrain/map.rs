@@ -299,6 +299,11 @@ pub struct MapConfig<'a> {
     ///
     /// Defaults to true.
     pub is_water: bool,
+    /// When `is_water` is true, controls whether an ice layer should appear on
+    /// that water.
+    ///
+    /// Defaults to true.
+    pub is_ice: bool,
     /// If true, 3D lighting and shading are turned on.  Otherwise, a plain
     /// altitude map is used.
     ///
@@ -403,6 +408,7 @@ impl<'a> MapConfig<'a> {
 
             is_basement: false,
             is_water: true,
+            is_ice: true,
             is_shaded: true,
             is_temperature: false,
             is_humidity: false,
@@ -581,13 +587,16 @@ impl<'a> MapConfig<'a> {
             let g_water = 32.0 * water_color_factor;
             let b_water = 64.0 * water_color_factor;
             if has_river {
-                let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
-                    .map(|e| e as f64 / 255.0);
-                rgb = water_rgb;
-                k_s = Rgb::new(1.0, 1.0, 1.0);
-                k_d = water_rgb;
-                k_a = water_rgb;
-                alpha = 0.255;
+                // Rudimentary ice check
+                if !rgb.map(|e| e > 0.6).reduce_and() {
+                    let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
+                        .map(|e| e as f64 / 255.0);
+                    rgb = water_rgb;
+                    k_s = Rgb::new(1.0, 1.0, 1.0);
+                    k_d = water_rgb;
+                    k_a = water_rgb;
+                    alpha = 0.255;
+                }
             }
 
             let downhill_alt = sample_wpos(downhill_wpos);

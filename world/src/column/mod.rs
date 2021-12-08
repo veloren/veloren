@@ -91,6 +91,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 wpos,
                 |chunk| if chunk.river.near_water() { 1.0 } else { 0.0 },
             )?;
+        let water_vel = sim.get_interpolated(wpos, |chunk| chunk.river.velocity)?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
         let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
         let sim_chunk = sim.get(chunk_pos)?;
@@ -1081,7 +1082,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         // Snow covering
         let thematic_snow = calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
-        let snow_cover = temp
+        let snow_factor = temp
             .sub(if thematic_snow {
                 CONFIG.tropical_temp
             } else {
@@ -1092,17 +1093,17 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .add(((marble - 0.5) / 0.5) * 0.5)
             .add(((marble_mid - 0.5) / 0.5) * 0.25)
             .add(((marble_small - 0.5) / 0.5) * 0.175);
-        let (alt, ground, sub_surface_color) = if snow_cover <= 0.0 && alt > water_level {
+        let (alt, ground, sub_surface_color) = if snow_factor <= 0.0 && alt > water_level {
             // Allow snow cover.
             (
-                alt + 1.0 - snow_cover.max(0.0),
-                Rgb::lerp(snow, ground, snow_cover),
+                alt + 1.0 - snow_factor.max(0.0),
+                Rgb::lerp(snow, ground, snow_factor),
                 Lerp::lerp(sub_surface_color, ground, alt.sub(basement).mul(0.15)),
             )
         } else {
             (alt, ground, sub_surface_color)
         };
-        let snow_cover = snow_cover <= 0.0;
+        let snow_cover = snow_factor <= 0.0;
 
         // Make river banks not have grass
         let ground = water_dist
@@ -1115,6 +1116,16 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let path = sim.get_nearest_path(wpos);
         let cave = sim.get_nearest_cave(wpos);
+
+        let ice_depth = if snow_factor < -0.25
+            && water_vel.magnitude_squared() < (0.1f32 + marble_mid * 0.2).powi(2)
+        {
+            ((1.0 - Lerp::lerp(marble, Lerp::lerp(marble_mid, marble_small, 0.25), 0.5)) * 5.0
+                - 1.5)
+                .max(0.0)
+        } else {
+            0.0
+        };
 
         Some(ColumnSample {
             alt,
@@ -1149,6 +1160,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             },
             forest_kind: sim_chunk.forest_kind,
             marble,
+            marble_mid,
             marble_small,
             rock,
             temp,
@@ -1162,6 +1174,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             snow_cover,
             cliff_offset,
             cliff_height,
+            water_vel,
+            ice_depth,
 
             chunk: sim_chunk,
         })
@@ -1181,6 +1195,7 @@ pub struct ColumnSample<'a> {
     pub tree_density: f32,
     pub forest_kind: ForestKind,
     pub marble: f32,
+    pub marble_mid: f32,
     pub marble_small: f32,
     pub rock: f32,
     pub temp: f32,
@@ -1194,6 +1209,8 @@ pub struct ColumnSample<'a> {
     pub snow_cover: bool,
     pub cliff_offset: f32,
     pub cliff_height: f32,
+    pub water_vel: Vec3<f32>,
+    pub ice_depth: f32,
 
     pub chunk: &'a SimChunk,
 }

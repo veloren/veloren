@@ -177,6 +177,7 @@ fn main() {
 
             is_basement,
             is_water,
+            is_ice: true,
             is_shaded,
             is_temperature,
             is_humidity,
