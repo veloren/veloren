@@ -2480,7 +2480,7 @@
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
     Consumable("common.items.food.cheese"): VoxTrans(
-        "voxel.object.cheese-0",
+        "voxel.object.cheese",
         (0.0, 0.0, 0.0), (-60.0, -10.0, 0.0), 0.8,
     ),
     Consumable("common.items.food.blue_cheese"): VoxTrans(
@@ -2661,8 +2661,9 @@
         "voxel.object.ice_shard",
         (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
     ),
-    Ingredient("FlayerBagDamaged"): Png(
-        "element.items.item_flayer_soul",
+    Ingredient("FlayerBagDamaged"): VoxTrans(
+        "voxel.object.glowing_remains",
+        (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
     ),
     Ingredient("RaptorFeather"): VoxTrans(
         "voxel.object.raptor_feather",
@@ -2880,8 +2881,9 @@
         "voxel.object.honey",
         (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
     ),
-    Ingredient("MortarPestle"): Png(
-        "element.items.item_mortarpestlecoco",
+    Ingredient("MortarPestle"): VoxTrans(
+        "voxel.object.mortar_pestle",
+        (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
     ),
     Ingredient("EmptyVial"): VoxTrans(
         "voxel.object.potion_empty",
