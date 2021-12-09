@@ -312,12 +312,26 @@ impl Block {
             .unwrap_or(1.0)
     }
 
-    // Used to calculate surface friction when walking. Currently has no units.
+    /// Get the friction constant used to calculate surface friction when
+    /// walking/climbing. Currently has no units.
     #[inline]
     pub fn get_friction(&self) -> f32 {
         match self.kind() {
             BlockKind::Ice => FRIC_GROUND * 0.1,
             _ => FRIC_GROUND,
+        }
+    }
+
+    /// Get the traction permitted by this block as a proportion of the friction
+    /// applied.
+    ///
+    /// 1.0 = default, 0.0 = completely inhibits movement, > 1.0 = potential for
+    /// infinite acceleration (in a vacuum).
+    #[inline]
+    pub fn get_traction(&self) -> f32 {
+        match self.kind() {
+            BlockKind::Snow => 0.8,
+            _ => 1.0,
         }
     }
 
