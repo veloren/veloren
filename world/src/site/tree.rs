@@ -26,7 +26,7 @@ impl Tree {
             alt: land.get_alt_approx(origin) as i32,
             seed: rng.gen(),
             tree: {
-                let config = TreeConfig::giant(rng, 4.0, false);
+                let config = TreeConfig::giant(rng, 4.0, true);
                 ProceduralTree::generate(config, rng)
             },
         }
@@ -60,7 +60,7 @@ impl Tree {
                 let wpos = wpos2d.with_z(self.alt + z);
                 let rposf = (wpos - self.origin.with_z(self.alt)).map(|e| e as f32 + 0.5);
 
-                let (branch, leaves, _, _) = self.tree.is_branch_or_leaves_at(rposf);
+                let (branch, leaves, platform, air) = self.tree.is_branch_or_leaves_at(rposf);
 
                 if (branch || leaves) && above && col.snow_cover {
                     canvas.set(
@@ -69,7 +69,9 @@ impl Tree {
                     );
                 }
 
-                let block = if leaves {
+                let block = if air {
+                    Some(Block::empty())
+                } else if leaves {
                     if above && dynamic_rng.gen_bool(0.0005) {
                         canvas.spawn(
                             EntityInfo::at(wpos.map(|e| e as f32) + Vec3::unit_z())
@@ -96,6 +98,8 @@ impl Tree {
                     Some(Block::new(BlockKind::Leaves, leaf_col.map(|e| e as u8)))
                 } else if branch {
                     Some(Block::new(BlockKind::Wood, Rgb::new(80, 32, 0)))
+                } else if platform {
+                    Some(Block::new(BlockKind::Wood, Rgb::new(180, 130, 50)))
                 } else {
                     None
                 };

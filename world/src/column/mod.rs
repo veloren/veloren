@@ -91,7 +91,13 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 wpos,
                 |chunk| if chunk.river.near_water() { 1.0 } else { 0.0 },
             )?;
-        let water_vel = sim.get_interpolated(wpos, |chunk| chunk.river.velocity)?;
+        let water_vel = sim.get_interpolated(wpos, |chunk| {
+            if chunk.river.river_kind.is_some() {
+                chunk.river.velocity
+            } else {
+                Vec3::zero()
+            }
+        })?;
         let alt = sim.get_interpolated_monotone(wpos, |chunk| chunk.alt)?;
         let surface_veg = sim.get_interpolated_monotone(wpos, |chunk| chunk.surface_veg)?;
         let sim_chunk = sim.get(chunk_pos)?;

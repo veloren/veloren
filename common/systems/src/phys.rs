@@ -1692,8 +1692,18 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     physics_state.on_wall = on_wall;
     let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
 
-    if physics_state.on_ground.is_some() || (physics_state.on_wall.is_some() && climbing) {
-        vel.0 *= (1.0 - FRIC_GROUND.min(1.0) * fric_mod).powf(dt.0 * 60.0);
+    let ground_fric = physics_state
+        .on_ground
+        .map(|b| b.get_friction())
+        .unwrap_or(0.0);
+    let wall_fric = if physics_state.on_wall.is_some() && climbing {
+        FRIC_GROUND
+    } else {
+        0.0
+    };
+    let fric = ground_fric.max(wall_fric);
+    if fric > 0.0 {
+        vel.0 *= (1.0 - fric.min(1.0) * fric_mod).powf(dt.0 * 60.0);
         physics_state.ground_vel = ground_vel;
     }
 

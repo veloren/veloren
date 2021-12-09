@@ -588,7 +588,7 @@ impl<'a> MapConfig<'a> {
             let b_water = 64.0 * water_color_factor;
             if has_river {
                 // Rudimentary ice check
-                if !rgb.map(|e| e > 0.6).reduce_and() {
+                if !rgb.map(|e| e > 0.35).reduce_and() {
                     let water_rgb = Rgb::new(0, ((g_water) * 1.0) as u8, ((b_water) * 1.0) as u8)
                         .map(|e| e as f64 / 255.0);
                     rgb = water_rgb;

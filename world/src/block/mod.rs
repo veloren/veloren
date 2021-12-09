@@ -210,8 +210,7 @@ impl<'a> BlockGen<'a> {
             let over_water = height < water_height;
             // Water
             if over_water && (wposf.z as f32 - water_height).abs() < ice_depth {
-                // TODO: Ice block
-                Some(Block::new(BlockKind::WeakRock, CONFIG.ice_color))
+                Some(Block::new(BlockKind::Ice, CONFIG.ice_color))
             } else if (wposf.z as f32) < water_height {
                 // Ocean
                 Some(water)

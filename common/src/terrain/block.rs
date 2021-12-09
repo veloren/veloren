@@ -1,6 +1,7 @@
 use super::SpriteKind;
 use crate::{
     comp::{fluid_dynamics::LiquidKind, tool::ToolKind},
+    consts::FRIC_GROUND,
     make_case_elim,
 };
 use num_derive::FromPrimitive;
@@ -49,6 +50,7 @@ make_case_elim!(
         Wood = 0x40,
         Leaves = 0x41,
         GlowingMushroom = 0x42,
+        Ice = 0x43,
         // 0x43 <= x < 0x50 is reserved for future tree parts
         // Covers all other cases (we sometimes have bizarrely coloured misc blocks, and also we
         // often want to experiment with new kinds of block without allocating them a
@@ -226,6 +228,7 @@ impl Block {
             BlockKind::Leaves => (9, 255),
             BlockKind::Wood => (6, 2),
             BlockKind::Snow => (6, 2),
+            BlockKind::Ice => (4, 2),
             _ if self.is_opaque() => (0, 255),
             _ => (0, 0),
         }
@@ -251,6 +254,7 @@ impl Block {
             BlockKind::Grass => Some(0.5),
             BlockKind::WeakRock => Some(0.75),
             BlockKind::Snow => Some(0.1),
+            BlockKind::Ice => Some(0.5),
             BlockKind::Lava => None,
             _ => self.get_sprite().and_then(|sprite| match sprite {
                 sprite if sprite.is_container() => None,
@@ -291,7 +295,9 @@ impl Block {
     #[inline]
     pub fn mine_tool(&self) -> Option<ToolKind> {
         match self.kind() {
-            BlockKind::WeakRock | BlockKind::GlowingWeakRock => Some(ToolKind::Pick),
+            BlockKind::WeakRock | BlockKind::Ice | BlockKind::GlowingWeakRock => {
+                Some(ToolKind::Pick)
+            },
             _ => self.get_sprite().and_then(|s| s.mine_tool()),
         }
     }
@@ -304,6 +310,15 @@ impl Block {
         self.get_sprite()
             .map(|s| s.solid_height().unwrap_or(0.0))
             .unwrap_or(1.0)
+    }
+
+    // Used to calculate surface friction when walking. Currently has no units.
+    #[inline]
+    pub fn get_friction(&self) -> f32 {
+        match self.kind() {
+            BlockKind::Ice => FRIC_GROUND * 0.1,
+            _ => FRIC_GROUND,
+        }
     }
 
     #[inline]

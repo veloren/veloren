@@ -305,8 +305,9 @@ pub fn handle_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f3
 fn basic_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) {
     let efficiency = efficiency * data.stats.move_speed_modifier * data.stats.friction_modifier;
 
-    let accel = if data.physics.on_ground.is_some() {
-        data.body.base_accel()
+    let accel = if let Some(block) = data.physics.on_ground {
+        // FRIC_GROUND temporarily used to normalize things around expected values
+        data.body.base_accel() * block.get_friction() / FRIC_GROUND
     } else {
         data.body.air_accel()
     } * efficiency;
@@ -351,7 +352,10 @@ pub fn handle_forced_movement(
     match movement {
         ForcedMovement::Forward { strength } => {
             let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
-            if let Some(accel) = data.physics.on_ground.map(|_| data.body.base_accel()) {
+            if let Some(accel) = data.physics.on_ground.map(|block| {
+                // FRIC_GROUND temporarily used to normalize things around expected values
+                data.body.base_accel() * block.get_friction() / FRIC_GROUND
+            }) {
                 update.vel.0 += Vec2::broadcast(data.dt.0)
                     * accel
                     * (data.inputs.move_dir + Vec2::from(update.ori))
