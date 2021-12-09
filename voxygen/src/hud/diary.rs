@@ -215,6 +215,7 @@ widget_ids! {
         main_weap_select,
         off_weap_select,
         abilities[],
+        abilities_dual[],
         ability_titles[],
         ability_descs[],
         dragged_ability,
@@ -921,8 +922,6 @@ impl<'a> Widget for Diary<'a> {
                         }
                     });
 
-                // TODO: Maybe try to keep this as an iterator. Not sure how to get length
-                // though since size_hint didn't work
                 let main_weap_abilities = ActiveAbilities::iter_unlocked_abilities(
                     Some(self.inventory),
                     Some(self.skill_set),
@@ -939,11 +938,8 @@ impl<'a> Widget for Diary<'a> {
                 .map(|a| (Ability::from(a).ability_id(Some(self.inventory)), a));
 
                 let abilities: Vec<_> = if same_weap_kinds {
-                    // When the weapons have the same ability kind, interweave the abilities
-                    main_weap_abilities
-                        .zip(off_weap_abilities)
-                        .flat_map(|(a, b)| [a, b])
-                        .collect()
+                    // When the weapons have the same ability kind take only the main weapons,
+                    main_weap_abilities.collect()
                 } else {
                     main_weap_abilities.chain(off_weap_abilities).collect()
                 };
@@ -956,10 +952,15 @@ impl<'a> Widget for Diary<'a> {
                     state.update(|s| s.ability_page = 0);
                 }
 
-                let update_length = abilities.len().min(12);
+                let update_length = 12;
                 state.update(|s| {
                     s.ids
                         .abilities
+                        .resize(update_length, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.ids
+                        .abilities_dual
                         .resize(update_length, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
@@ -1040,18 +1041,56 @@ impl<'a> Widget for Diary<'a> {
                             events.push(Event::SelectAbility(None));
                         }
                     }
+                    if same_weap_kinds {
+                        if let AuxiliaryAbility::MainWeapon(slot) = ability {
+                            let ability = AuxiliaryAbility::OffWeapon(*slot);
+                            let map_id = state.ids.abilities_dual[id_index];
+                            state.update(|s| {
+                                s.id_ability_map.insert(map_id, ability);
+                            });
+                            if Button::image(ability_image)
+                                .w_h(100.0, 100.0)
+                                .top_right_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
+                                .set(state.ids.abilities_dual[id_index], ui)
+                                .was_clicked()
+                            {
+                                if Some(ability) != self.show.diary_fields.selected_ability {
+                                    events.push(Event::SelectAbility(Some(ability)));
+                                } else {
+                                    events.push(Event::SelectAbility(None));
+                                }
+                            }
+                        }
+                    }
+                    // The page width...
+                    let text_width = 299.0 * 2.0
+                        - if same_weap_kinds && matches!(ability, AuxiliaryAbility::MainWeapon(_)) {
+                            // with double the width of an ability image and some padding subtracted
+                            // if dual wielding two of the same weapon kind
+                            (20.0 + 100.0 + 10.0) * 2.0
+                        } else {
+                            // or the width of an ability image and some padding subtracted
+                            // otherwise
+                            20.0 * 2.0 + 100.0
+                        };
                     Text::new(ability_title)
-                        .top_left_with_margins_on(state.ids.abilities[id_index], 5.0, 125.0)
+                        .top_left_with_margins_on(state.ids.abilities[id_index], 5.0, 110.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(tweak!(28)))
                         .color(ability_color)
+                        .w(text_width)
                         .graphics_for(state.ids.abilities[id_index])
                         .set(state.ids.ability_titles[id_index], ui);
                     Text::new(ability_desc)
-                        .top_left_with_margins_on(state.ids.abilities[id_index], 30.0, 125.0)
+                        .top_left_with_margins_on(
+                            state.ids.abilities[id_index],
+                            tweak!(40.0),
+                            110.0,
+                        )
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(tweak!(18)))
                         .color(ability_color)
+                        .w(text_width)
                         .graphics_for(state.ids.abilities[id_index])
                         .set(state.ids.ability_descs[id_index], ui);
                 }
