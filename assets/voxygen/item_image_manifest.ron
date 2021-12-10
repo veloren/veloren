@@ -2481,7 +2481,7 @@
     ),
     Consumable("common.items.food.cheese"): VoxTrans(
         "voxel.object.cheese",
-        (0.0, 0.0, 0.0), (-60.0, -10.0, 0.0), 0.8,
+        (0.0, 0.0, 0.0), (-50.0, 40.0, 27.0), 0.7,
     ),
     Consumable("common.items.food.blue_cheese"): VoxTrans(
         "voxel.object.blue_cheese",
@@ -2501,7 +2501,7 @@
     ),
     Consumable("common.items.food.apple_mushroom_curry"): VoxTrans(
         "voxel.object.mushroom_curry",
-        (-0.3, 2.0, 0.0), (-50.0, 20.0, 17.0), 1.0,
+        (0.0, 0.0, 0.0), (-50.0, 20.0, 17.0), 0.9,
     ),
     Consumable("common.items.food.spore_corruption"): VoxTrans(
         "voxel.sprite.spore.corruption_spore",
@@ -2663,7 +2663,7 @@
     ),
     Ingredient("FlayerBagDamaged"): VoxTrans(
         "voxel.object.glowing_remains",
-        (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
+        (0.0, 0.0, 0.0), (-20.0, 20.0, .0), 0.9,
     ),
     Ingredient("RaptorFeather"): VoxTrans(
         "voxel.object.raptor_feather",
@@ -2883,7 +2883,7 @@
     ),
     Ingredient("MortarPestle"): VoxTrans(
         "voxel.object.mortar_pestle",
-        (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
+        (0.0, 0.0, 0.0), (-40.0, 15.0, 17.0), 0.8,
     ),
     Ingredient("EmptyVial"): VoxTrans(
         "voxel.object.potion_empty",
