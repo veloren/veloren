@@ -137,6 +137,7 @@ pub struct CompSyncPackage<P: CompPacket> {
 }
 
 impl<P: CompPacket> CompSyncPackage<P> {
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
             comp_updates: Vec::new(),

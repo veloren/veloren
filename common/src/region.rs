@@ -13,6 +13,7 @@ pub enum Event {
 }
 
 /// Region consisting of a bitset of entities within it
+#[derive(Default)]
 pub struct Region {
     // Use specs bitset for simplicity (and joinability)
     bitset: BitSet,
@@ -23,14 +24,6 @@ pub struct Region {
     events: Vec<Event>,
 }
 impl Region {
-    fn new() -> Self {
-        Self {
-            bitset: BitSet::new(),
-            neighbors: [None; 8],
-            events: Vec::new(),
-        }
-    }
-
     /// Checks if the region contains no entities and no events
     fn removable(&self) -> bool { self.bitset.is_empty() && self.events.is_empty() }
 
@@ -70,6 +63,7 @@ const NEIGHBOR_OFFSETS: [Vec2<i32>; 8] = [
     Vec2::new(1, 1),
 ];
 
+#[derive(Default)]
 // TODO generic region size (16x16 for now)
 // TODO compare to sweep and prune approach
 /// A region system that tracks where entities are
@@ -87,19 +81,11 @@ pub struct RegionMap {
     // (region, entity)
     entities_to_remove: Vec<(usize, u32)>,
     // Track the current tick, used to enable not checking everything every tick
+    // rate is dependent on the rate the caller calls region_manager.tick()
     tick: u64,
 }
 impl RegionMap {
-    pub fn new() -> Self {
-        Self {
-            regions: IndexMap::default(),
-            tracked_entities: BitSet::new(),
-            entities_to_move: Vec::new(),
-            entities_to_remove: Vec::new(),
-            // rate is dependent on the rate the caller calls region_manager.tick()
-            tick: 0,
-        }
-    }
+    pub fn new() -> Self { Self::default() }
 
     // TODO maintain within a system?
     // TODO special case large entities
@@ -268,7 +254,7 @@ impl RegionMap {
     /// Adds a new region
     /// Returns the index of the region in the index map
     fn insert(&mut self, key: Vec2<i32>) -> usize {
-        let (index, old_region) = self.regions.insert_full(key, Region::new());
+        let (index, old_region) = self.regions.insert_full(key, Region::default());
         if old_region.is_some() {
             panic!("Inserted a region that already exists!!!(this should never need to occur");
         }

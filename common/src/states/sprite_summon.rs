@@ -85,7 +85,7 @@ impl CharacterBehavior for Data {
                         // 1 added to make range correct, too lazy to add 1 to both variables above
                         let radius = radius + 1;
                         // Creates a spiral iterator for the newly achieved radius
-                        let spiral = Spiral2d::new().edge_radius(radius);
+                        let spiral = Spiral2d::with_edge_radius(radius);
                         for point in spiral {
                             // If square is not sparse, generate sprite
                             if !thread_rng().gen_bool(self.static_data.sparseness) {

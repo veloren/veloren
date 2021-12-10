@@ -15,6 +15,7 @@ impl<V: Vertex> Clone for Mesh<V> {
 }
 
 impl<V: Vertex> Mesh<V> {
+    #[allow(clippy::new_without_default)]
     /// Create a new `Mesh`.
     pub fn new() -> Self { Self { verts: Vec::new() } }
 

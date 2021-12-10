@@ -747,8 +747,7 @@ fn main() {
         let mut total_timings: BTreeMap<&str, f32> = BTreeMap::new();
         let mut count = 0;
         let mut volgrid = VolGrid2d::new().unwrap();
-        for (i, spiralpos) in Spiral2d::new()
-            .radius(RADIUS)
+        for (i, spiralpos) in Spiral2d::with_radius(RADIUS)
             .map(|v| v + sitepos.as_())
             .enumerate()
         {
