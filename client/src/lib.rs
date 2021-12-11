@@ -1081,7 +1081,7 @@ impl Client {
         &mut self,
         slot_a: InvSlotId,
         slot_b: InvSlotId,
-        sprite_pos: Vec3<i32>,
+        sprite_pos: Option<Vec3<i32>>,
     ) -> bool {
         let inventories = self.inventories();
         let inventory = inventories.get(self.entity());
@@ -1122,7 +1122,7 @@ impl Client {
                         primary_component,
                         secondary_component,
                     },
-                    craft_sprite: Some(sprite_pos),
+                    craft_sprite: sprite_pos,
                 },
             )));
             true

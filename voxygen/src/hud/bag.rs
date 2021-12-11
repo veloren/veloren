@@ -760,7 +760,7 @@ impl<'a> Widget for Bag<'a> {
             true,
             inventory,
             &state.bg_ids,
-            self.show.salvage,
+            self.show.crafting_fields.salvage,
         )
         .set(state.ids.inventory_scroller, ui);
 

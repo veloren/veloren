@@ -1420,6 +1420,17 @@ impl PlayState for SessionState {
                                 .craft_recipe(&recipe, slots, craft_sprite);
                         }
                     },
+                    HudEvent::CraftModularWeapon {
+                        primary_slot,
+                        secondary_slot,
+                        craft_sprite,
+                    } => {
+                        self.client.borrow_mut().craft_modular_weapon(
+                            primary_slot,
+                            secondary_slot,
+                            craft_sprite.map(|(pos, _sprite)| pos),
+                        );
+                    },
                     HudEvent::SalvageItem { slot, salvage_pos } => {
                         self.client.borrow_mut().salvage_item(slot, salvage_pos);
                     },
