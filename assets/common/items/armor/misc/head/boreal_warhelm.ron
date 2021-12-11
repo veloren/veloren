@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Boreal Warhelmet",
+    description: "I wonder where it's pointing...",
+    kind: Armor((
+        kind: Head("BorealWarhelm"),
+        stats: (
+            protection: Normal(9.0),
+            poise_resilience: Normal(3.0),
+            energy_max: 4.0,
+            energy_reward: 0.01,
+            crit_power: 0.0,
+            stealth: 0.0,
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

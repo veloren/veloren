@@ -1897,6 +1897,15 @@
         ],
         craft_sprite: Some(CraftingBench),        
     ),
+    "winged coronet": (
+        output: ("common.items.armor.misc.head.winged_coronet", 1),
+        inputs: [
+            (Item("common.items.mineral.gem.emerald"), 1),
+            (Item("common.items.mineral.ingot.gold"), 4),
+            (Item("common.items.crafting_ing.animal_misc.raptor_feather"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
     //"metal_blade": (
     //    output: ("common.items.crafting_ing.modular.damage.sword.metal_blade", 1),
     //    inputs: [

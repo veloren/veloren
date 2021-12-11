@@ -5,6 +5,7 @@
     Armor(Hands): Item("common.items.armor.leather_plate.hand"),
     Armor(Legs): Item("common.items.armor.leather_plate.pants"),
     Armor(Feet): Item("common.items.armor.leather_plate.foot"),
+    Armor(Head): Item("common.items.armor.misc.head.boreal_warhelm"),
     //Armor(Head): Item("common.items.armor.leather_plate.helmet"),
 
     Lantern: Choice([
