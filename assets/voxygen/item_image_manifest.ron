@@ -1041,6 +1041,10 @@
         "voxel.lantern.green-0",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
+    Lantern("Magic"): VoxTrans(
+        "voxel.lantern.magic_lantern",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
+    ),
     Lantern("Blue0"): VoxTrans(
         "voxel.lantern.blue-0",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,

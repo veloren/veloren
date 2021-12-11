@@ -8,6 +8,10 @@
           vox_spec: ("lantern.green-0", (-2.0, -2.0, -7.0)),
           color: None
       ),
+      "Magic": (
+          vox_spec: ("lantern.magic_lantern", (-2.0, -2.0, -7.0)),
+          color: None
+      ),
       "Black0": (
           vox_spec: ("lantern.black-0", (-2.0, -2.0, -8.5)),
           color: None
