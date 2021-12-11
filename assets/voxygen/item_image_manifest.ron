@@ -1053,6 +1053,10 @@
         "voxel.lantern.pumpkin",
         (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
     ),
+    Lantern("PolarisLantern"): VoxTrans(
+        "voxel.lantern.polaris",
+    (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+    ),
     // Farming Equipment
     Tool("common.items.weapons.tool.broom"): VoxTrans(
         "voxel.weapon.tool.broom-0",
