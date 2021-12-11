@@ -911,37 +911,37 @@
             vox_spec: ("armor.merchant.turban_orc", (-1.0, -4.0, 2.0)),
             color: None
         ),
-        //Winged Coronet
+        //Winged Coronet -1, 5
         (Human, Male, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-4.0, -2.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-5.0, -3.0, -1.0)),
             color: None
         ),
         (Human, Female, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-4.0, -2.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-4.0, -2.0, -1.0)),
             color: None
         ),
         (Elf, Male, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -2.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -2.0, -1.0)),
             color: None
         ),
-        (Human, Female, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -2.0, -10.0)),
+        (Elf, Female, "WingedCoronet"): (
+            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -2.0, -1.0)),
             color: None
         ),
         (Dwarf, Male, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-5.0, -1.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-5.0, -1.0, -14.0)),
             color: None
         ),
         (Dwarf, Female, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-5.0, -1.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-5.0, -1.0, -4.0)),
             color: None
         ),
         (Danari, Male, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -2.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -2.0, 0.0)),
             color: None
         ),
         (Danari, Female, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -2.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-2.0, -2.0, 0.0)),
             color: None
         ),
         (Undead, Male, "WingedCoronet"): (
@@ -953,11 +953,11 @@
             color: None
         ),
         (Orc, Male, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, 0.0, -8.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -4.0, 1.0)),
             color: None
         ),
         (Orc, Female, "WingedCoronet"): (
-            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -3.0, -10.0)),
+            vox_spec: ("armor.misc.head.winged_coronet", (-3.0, -6.0, -1.0)),
             color: None
         ),
         // Boreal Warhelmet
@@ -1011,51 +1011,51 @@
         ),
         // Woolly Wintercap (Christmas hat+event)
         (Human, Male, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -5.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -7.0, -3.0)),
             color: None
         ),
         (Human, Female, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -5.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-4.0, -7.0, -3.0)),
             color: None
         ),
         (Elf, Male, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -5.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -7.0, -4.0)),
             color: None
         ),
         (Elf, Female, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -6.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -4.0)),
             color: None
         ),
         (Dwarf, Male, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -4.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -6.0, -3.0)),
             color: None
         ),
         (Dwarf, Female, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -4.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-5.0, -6.0, -3.0)),
             color: None
         ),
         (Danari, Male, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -2.0)),
             color: None
         ),
         (Danari, Female, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-2.0, -7.0, -2.0)),
             color: None
         ),
         (Undead, Male, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -5.0, 7.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -3.0)),
             color: None
         ),
         (Undead, Female, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -5.0, 6.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-6.0, -7.0, -4.0)),
             color: None
         ),
         (Orc, Male, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -3.0, 8.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -5.0, -2.0)),
             color: None
         ),
         (Orc, Female, "WoollyWintercap"): (
-            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -6.0, 5.0)),
+            vox_spec: ("armor.misc.head.woolly_wintercap", (-3.0, -8.0, -4.0)),
             color: None
         ),
 
