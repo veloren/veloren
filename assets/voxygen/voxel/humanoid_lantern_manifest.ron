@@ -29,7 +29,7 @@
           color: None
       ),
       "PolarisLantern": (
-          vox_spec: ("lantern.polaris", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.polaris", (-3.0, -4.0, -9.5)),
           color: None
       ),
     },
