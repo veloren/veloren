@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Chest("Scale"),
         stats: (
-            protection: Normal(21.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.3,
-            stealth: 0.3,
+            protection: Some(Normal(21.0)),
+            crit_power: Some(0.3),
+            stealth: Some(0.3),
         ),
     )),
     quality: Moderate,

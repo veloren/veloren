@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Neck("Honeycomb"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 10,
-            energy_reward: 0.05,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Some(Normal(1.0)),
+            energy_max: Some(10),
+            energy_reward: Some(0.05),
         ),
     )),
     quality: High,

@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Shoulder("Druid"),
         stats: (
-            protection: Normal(12.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 13.2,
-            energy_reward: 0.134,
-            crit_power: 0.0,
-            stealth: 0.134,
+            protection: Some(Normal(12.0)),
+            energy_max: Some(13.2),
+            energy_reward: Some(0.134),
+            stealth: Some(0.134),
         ),
     )),
     quality: High,

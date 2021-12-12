@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Hand("Woolen"),
         stats: (
-            protection: Normal(3.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 3.3,
-            energy_reward: 0.033,
-            crit_power: 0.0,
-            stealth: 0.033,
+            protection: Some(Normal(3.0)),
+            energy_max: Some(3.3),
+            energy_reward: Some(0.033),
+            stealth: Some(0.033),
         ),
     )),
     quality: Common,

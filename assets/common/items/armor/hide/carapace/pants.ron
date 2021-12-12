@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Pants("Carapace"),
         stats: (
-            protection: Normal(19.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.266,
-            stealth: 0.266,
+            protection: Some(Normal(19.0)),
+            crit_power: Some(0.266),
+            stealth: Some(0.266),
         ),
     )),
     quality: High,

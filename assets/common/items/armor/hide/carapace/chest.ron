@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Chest("Carapace"),
         stats: (
-            protection: Normal(29.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.399,
-            stealth: 0.399,
+            protection: Some(Normal(29.0)),
+            crit_power: Some(0.399),
+            stealth: Some(0.399),
         ),
     )),
     quality: High,

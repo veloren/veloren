@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Hand("AdletSpear"),
         stats: (
-            protection: Normal(6.0),
-            poise_resilience: Normal(3.0),
-            energy_max: 0.0,
-            energy_reward: 0.0,
-            crit_power: 0.016,
-            stealth: 0.0,
+            protection: Some(Normal(6.0)),
+            poise_resilience: Some(Normal(3.0)),
+            crit_power: Some(0.016),
         ),
     )),
     quality: Low,

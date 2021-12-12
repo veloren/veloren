@@ -4,12 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Neck("Fang"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0.0,
-            energy_reward: 0.0,
-            crit_power: 0.07,
-            stealth: 0.0,
+            protection: Some(Normal(1.0)),
+            crit_power: Some(0.07),
         ),
     )),
     quality: High,

@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Back("Silken"),
         stats: (
-            protection: Normal(2.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 2.5,
-            energy_reward: 0.025,
-            crit_power: 0.0,
-            stealth: 0.025,
+            protection: Some(Normal(2.0)),
+            energy_max: Some(2.5),
+            energy_reward: Some(0.025),
+            stealth: Some(0.025),
         ),
     )),
     quality: Moderate,

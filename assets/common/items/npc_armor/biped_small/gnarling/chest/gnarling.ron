@@ -4,12 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Chest("Gnarling"),
         stats: (
-            protection: Normal(2.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 2.7,
-            energy_reward: 0.027,
-            crit_power: 0.025,
-            stealth: 0.0,
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(2.7),
+            energy_reward: Some(0.027),
+            crit_power: Some(0.025),
         ),
     )),
     quality: Low,

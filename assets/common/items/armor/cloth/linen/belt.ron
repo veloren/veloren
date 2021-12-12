@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Belt("Linen"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0.8,
-            energy_reward: 0.009,
-            crit_power: 0.0,
-            stealth: 0.009,
+            protection: Some(Normal(1.0)),
+            energy_max: Some(0.8),
+            energy_reward: Some(0.009),
+            stealth: Some(0.009),
         ),
     )),
     quality: Low,

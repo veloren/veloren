@@ -186,8 +186,9 @@ impl Poise {
                 }
             })
             .map(|protection| match protection {
-                Protection::Normal(protection) => Some(protection),
-                Protection::Invincible => None,
+                Some(Protection::Normal(protection)) => Some(protection),
+                Some(Protection::Invincible) => None,
+                None => Some(0.0),
             })
             .sum::<Option<f32>>();
         match protection {

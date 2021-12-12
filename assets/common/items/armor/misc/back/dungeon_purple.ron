@@ -4,12 +4,12 @@ ItemDef(
     kind: Armor((
         kind: Back("DungeonPurple"),
         stats: (
-            protection: Normal(8.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 2.0,
-            energy_reward: 0.025,
-            crit_power: 0.02,
-            stealth: 0.02,
+            protection: Some(Normal(8.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(2.0),
+            energy_reward: Some(0.025),
+            crit_power: Some(0.02),
+            stealth: Some(0.02),
         ),
     )),
     quality: Epic,

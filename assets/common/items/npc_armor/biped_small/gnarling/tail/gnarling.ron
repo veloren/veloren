@@ -4,12 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Belt("Gnarling"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0.4,
-            energy_reward: 0.005,
-            crit_power: 0.004,
-            stealth: 0.0,
+            protection: Some(Normal(1.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(0.4),
+            energy_reward: Some(0.005),
+            crit_power: Some(0.004),
         ),
     )),
     quality: Low,

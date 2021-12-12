@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Pants("Woolen"),
         stats: (
-            protection: Normal(6.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 6.6,
-            energy_reward: 0.066,
-            crit_power: 0.0,
-            stealth: 0.066,
+            protection: Some(Normal(6.0)),
+            energy_max: Some(6.6),
+            energy_reward: Some(0.066),
+            stealth: Some(0.066),
         ),
     )),
     quality: Common,

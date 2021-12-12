@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Chest("Primal"),
         stats: (
-            protection: Normal(36.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.501,
-            stealth: 0.501,
+            protection: Some(Normal(36.0)),
+            crit_power: Some(0.501),
+            stealth: Some(0.501),
         ),
     )),
     quality: Epic,

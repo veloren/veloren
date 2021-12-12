@@ -55,17 +55,19 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 }
 
                 let protection = match armor.protection() {
-                    Protection::Invincible => "Invincible".to_string(),
-                    Protection::Normal(value) => value.to_string(),
+                    Some(Protection::Invincible) => "Invincible".to_string(),
+                    Some(Protection::Normal(value)) => value.to_string(),
+                    None => "0.0".to_string(),
                 };
                 let poise_resilience = match armor.poise_resilience() {
-                    Protection::Invincible => "Invincible".to_string(),
-                    Protection::Normal(value) => value.to_string(),
+                    Some(Protection::Invincible) => "Invincible".to_string(),
+                    Some(Protection::Normal(value)) => value.to_string(),
+                    None => "0.0".to_string(),
                 };
-                let max_energy = armor.energy_max().to_string();
-                let energy_reward = armor.energy_reward().to_string();
-                let crit_power = armor.crit_power().to_string();
-                let stealth = armor.stealth().to_string();
+                let max_energy = armor.energy_max().unwrap_or(0.0).to_string();
+                let energy_reward = armor.energy_reward().unwrap_or(0.0).to_string();
+                let crit_power = armor.crit_power().unwrap_or(0.0).to_string();
+                let stealth = armor.stealth().unwrap_or(0.0).to_string();
 
                 wtr.write_record(&[
                     item.item_definition_id(),

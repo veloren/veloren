@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Chest("Rawhide"),
         stats: (
-            protection: Normal(7.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.099,
-            stealth: 0.099,
+            protection: Some(Normal(7.0)),
+            crit_power: Some(0.099),
+            stealth: Some(0.099),
         ),
     )),
     quality: Low,

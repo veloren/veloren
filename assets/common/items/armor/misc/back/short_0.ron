@@ -4,12 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Back("Short0"),
         stats: (
-            protection: Normal(0.3),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Some(Normal(0.3)),
         ),
     )),
     quality: Moderate,

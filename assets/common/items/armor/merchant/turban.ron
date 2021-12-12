@@ -4,12 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Head("Merchant"),
         stats: (
-            protection: Normal(6.0),
-            poise_resilience: Normal(4.0),
-            energy_max: 12.0,
-            energy_reward: 0.25,
-            crit_power: 0.015,
-            stealth: 0.0,
+            protection: Some(Normal(6.0)),
+            poise_resilience: Some(Normal(4.0)),
+            energy_max: Some(12.0),
+            energy_reward: Some(0.25),
+            crit_power: Some(0.015),
         ),
     )),
     quality: Epic,

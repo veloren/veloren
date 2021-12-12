@@ -4,12 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Ring("Sapphire"),
         stats: (
-            protection: Normal(0.5),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.025,
-            stealth: 0.0,
+            protection: Some(Normal(0.5)),
+            crit_power: Some(0.025),
         ),
     )),
     quality: Moderate,

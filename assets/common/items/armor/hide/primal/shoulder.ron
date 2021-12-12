@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Shoulder("Primal"),
         stats: (
-            protection: Normal(24.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.334,
-            stealth: 0.334,
+            protection: Some(Normal(24.0)),
+            crit_power: Some(0.334),
+            stealth: Some(0.334),
         ),
     )),
     quality: Epic,
