@@ -532,8 +532,9 @@ impl TradePricing {
         printvec("Armor", &self.armor.entries, |i, p| {
             if let ItemKind::Armor(a) = &i.kind {
                 match a.protection() {
-                    armor::Protection::Invincible => "Invincible".into(),
-                    armor::Protection::Normal(x) => format!("{:.4} prot/val", x * p),
+                    Some(armor::Protection::Invincible) => "Invincible".into(),
+                    Some(armor::Protection::Normal(x)) => format!("{:.4} prot/val", x * p),
+                    None => "0.0 prot/val".into(),
                 }
             } else {
                 format!("{:?}", i.kind)

@@ -4,12 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Head("Haniwa"),
         stats: (
-            protection: Normal(19.0),
-            poise_resilience: Normal(5.0),
-            energy_max: 5.0,
-            energy_reward: 0.08,
-            crit_power: 0.064,
-            stealth: 0.0,
+            protection: Some(Normal(19.0)),
+            poise_resilience: Some(Normal(5.0)),
+            energy_max: Some(5.0),
+            energy_reward: Some(0.08),
+            crit_power: Some(0.064),
         ),
     )),
     quality: Low,

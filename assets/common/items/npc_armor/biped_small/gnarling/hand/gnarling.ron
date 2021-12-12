@@ -4,12 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Hand("Gnarling"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0.9,
-            energy_reward: 0.009,
-            crit_power: 0.008,
-            stealth: 0.0,
+            protection: Some(Normal(1.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(0.9),
+            energy_reward: Some(0.009),
+            crit_power: Some(0.008),
         ),
     )),
     quality: Low,

@@ -5,12 +5,12 @@ ItemDef(
         (
             kind: Tabard("Admin"),
             stats: (
-                protection: Invincible,
-                poise_resilience: Invincible,
-                energy_max: 900.0,
-                energy_reward: 9.0,
-                crit_power: 0.0,
-                stealth: 1000.0,
+                protection: Some(Invincible),
+                poise_resilience: Some(Invincible),
+                energy_max: Some(900.0),
+                energy_reward: Some(9.0),
+                crit_power: Some(1.0),
+                stealth: Some(1000.0),
             ),
         )
     ),

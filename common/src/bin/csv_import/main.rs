@@ -84,79 +84,91 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             let protection =
                                 if let Some(protection_raw) = record.get(headers["Protection"]) {
                                     if protection_raw == "Invincible" {
-                                        Protection::Invincible
+                                        Some(Protection::Invincible)
                                     } else {
                                         let value: f32 = protection_raw.parse().unwrap();
-                                        Protection::Normal(value)
+                                        if value == 0.0 {
+                                            None
+                                        } else {
+                                            Some(Protection::Normal(value))
+                                        }
                                     }
                                 } else {
                                     eprintln!(
                                         "Could not unwrap protection value for {:?}",
                                         item.item_definition_id()
                                     );
-                                    Protection::Normal(0.0)
+                                    None
                                 };
 
                             let poise_resilience = if let Some(poise_resilience_raw) =
                                 record.get(headers["Poise Resilience"])
                             {
                                 if poise_resilience_raw == "Invincible" {
-                                    Protection::Invincible
+                                    Some(Protection::Invincible)
                                 } else {
                                     let value: f32 = poise_resilience_raw.parse().unwrap();
-                                    Protection::Normal(value)
+                                    if value == 0.0 {
+                                        None
+                                    } else {
+                                        Some(Protection::Normal(value))
+                                    }
                                 }
                             } else {
                                 eprintln!(
                                     "Could not unwrap poise protection value for {:?}",
                                     item.item_definition_id()
                                 );
-                                Protection::Normal(0.0)
+                                None
                             };
 
                             let max_energy =
                                 if let Some(max_energy_raw) = record.get(headers["Max Energy"]) {
-                                    max_energy_raw.parse().unwrap()
+                                    let value = max_energy_raw.parse().unwrap();
+                                    if value == 0.0 { None } else { Some(value) }
                                 } else {
                                     eprintln!(
                                         "Could not unwrap max energy value for {:?}",
                                         item.item_definition_id()
                                     );
-                                    0.0
+                                    None
                                 };
 
                             let energy_reward = if let Some(energy_reward_raw) =
                                 record.get(headers["Energy Reward"])
                             {
-                                energy_reward_raw.parse().unwrap()
+                                let value = energy_reward_raw.parse().unwrap();
+                                if value == 0.0 { None } else { Some(value) }
                             } else {
                                 eprintln!(
                                     "Could not unwrap energy recovery value for {:?}",
                                     item.item_definition_id()
                                 );
-                                0.0
+                                None
                             };
 
                             let crit_power =
                                 if let Some(crit_power_raw) = record.get(headers["Crit Power"]) {
-                                    crit_power_raw.parse().unwrap()
+                                    let value = crit_power_raw.parse().unwrap();
+                                    if value == 0.0 { None } else { Some(value) }
                                 } else {
                                     eprintln!(
                                         "Could not unwrap crit power value for {:?}",
                                         item.item_definition_id()
                                     );
-                                    0.0
+                                    None
                                 };
 
                             let stealth = if let Some(stealth_raw) = record.get(headers["Stealth"])
                             {
-                                stealth_raw.parse().unwrap()
+                                let value = stealth_raw.parse().unwrap();
+                                if value == 0.0 { None } else { Some(value) }
                             } else {
                                 eprintln!(
                                     "Could not unwrap stealth value for {:?}",
                                     item.item_definition_id()
                                 );
-                                0.0
+                                None
                             };
 
                             let kind = armor.kind.clone();

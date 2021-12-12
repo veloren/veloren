@@ -755,12 +755,12 @@ impl<'a> Widget for ItemTooltip<'a> {
                     },
                     _ => {
                         // Armour
-                        let protection = armor.protection();
-                        let poise_res = armor.poise_resilience();
-                        let energy_max = armor.energy_max();
-                        let energy_reward = armor.energy_reward() * 100.0;
-                        let crit_power = armor.crit_power();
-                        let stealth = armor.stealth();
+                        let protection = armor.protection().unwrap_or(Protection::Normal(0.0));
+                        let poise_res = armor.poise_resilience().unwrap_or(Protection::Normal(0.0));
+                        let energy_max = armor.energy_max().unwrap_or(0.0);
+                        let energy_reward = armor.energy_reward().map(|x| x * 100.0).unwrap_or(0.0);
+                        let crit_power = armor.crit_power().unwrap_or(0.0);
+                        let stealth = armor.stealth().unwrap_or(0.0);
 
                         widget::Text::new(&util::protec2string(protection))
                             .graphics_for(id)
@@ -867,30 +867,39 @@ impl<'a> Widget for ItemTooltip<'a> {
                 if let Some(equipped_item) = equip_slot.cloned().next() {
                     if let ItemKind::Armor(equipped_armor) = equipped_item.kind() {
                         let diff = armor.stats - equipped_armor.stats;
-                        let protection_diff =
-                            util::comparison(&armor.protection(), &equipped_armor.protection());
-                        let poise_res_diff = util::comparison(
+                        let protection_diff = util::option_comparison(
+                            &armor.protection(),
+                            &equipped_armor.protection(),
+                        );
+                        let poise_res_diff = util::option_comparison(
                             &armor.poise_resilience(),
                             &equipped_armor.poise_resilience(),
                         );
-                        let energy_max_diff =
-                            util::comparison(&armor.energy_max(), &equipped_armor.energy_max());
-                        let energy_reward_diff = util::comparison(
+                        let energy_max_diff = util::option_comparison(
+                            &armor.energy_max(),
+                            &equipped_armor.energy_max(),
+                        );
+                        let energy_reward_diff = util::option_comparison(
                             &armor.energy_reward(),
                             &equipped_armor.energy_reward(),
                         );
-                        let crit_power_diff =
-                            util::comparison(&armor.crit_power(), &equipped_armor.crit_power());
+                        let crit_power_diff = util::option_comparison(
+                            &armor.crit_power(),
+                            &equipped_armor.crit_power(),
+                        );
                         let stealth_diff =
-                            util::comparison(&armor.stealth(), &equipped_armor.stealth());
-                        if diff.protection() != Protection::Normal(0.0) {
-                            widget::Text::new(protection_diff.0)
-                                .right_from(state.ids.main_stat_text, H_PAD)
-                                .graphics_for(id)
-                                .parent(id)
-                                .with_style(self.style.desc)
-                                .color(protection_diff.1)
-                                .set(state.ids.diff_main_stat, ui);
+                            util::option_comparison(&armor.stealth(), &equipped_armor.stealth());
+
+                        if let Some(p_diff) = diff.protection() {
+                            if p_diff != Protection::Normal(0.0) {
+                                widget::Text::new(protection_diff.0)
+                                    .right_from(state.ids.main_stat_text, H_PAD)
+                                    .graphics_for(id)
+                                    .parent(id)
+                                    .with_style(self.style.desc)
+                                    .color(protection_diff.1)
+                                    .set(state.ids.diff_main_stat, ui);
+                            }
                         }
 
                         let mut diff_text = |text: String, color, id_index| {
@@ -904,37 +913,44 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 .set(state.ids.diffs[id_index], ui)
                         };
 
-                        if diff.poise_resilience() != Protection::Normal(0.0) {
-                            let text = format!(
-                                "{} {}",
-                                &poise_res_diff.0,
-                                util::protec2string(diff.poise_resilience())
-                            );
-                            diff_text(text, poise_res_diff.1, 0)
+                        if let Some(p_r_diff) = diff.poise_resilience() {
+                            if p_r_diff != Protection::Normal(0.0) {
+                                let text = format!(
+                                    "{} {}",
+                                    &poise_res_diff.0,
+                                    util::protec2string(p_r_diff)
+                                );
+                                diff_text(text, poise_res_diff.1, 0)
+                            }
                         }
 
-                        if diff.energy_max() > Energy::ENERGY_EPSILON {
-                            let text = format!("{} {:.1}", &energy_max_diff.0, diff.energy_max());
-                            diff_text(text, energy_max_diff.1, 1)
+                        if let Some(e_m_diff) = diff.energy_max() {
+                            if e_m_diff > Energy::ENERGY_EPSILON {
+                                let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
+                                diff_text(text, energy_max_diff.1, 1)
+                            }
                         }
 
-                        if diff.energy_reward() != 0.0_f32 {
-                            let text = format!(
-                                "{} {:.1}",
-                                &energy_reward_diff.0,
-                                diff.energy_reward() * 100.0
-                            );
-                            diff_text(text, energy_reward_diff.1, 2)
+                        if let Some(e_r_diff) = diff.energy_reward() {
+                            if e_r_diff > Energy::ENERGY_EPSILON {
+                                let text =
+                                    format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
+                                diff_text(text, energy_reward_diff.1, 2)
+                            }
                         }
 
-                        if diff.crit_power() != 0.0_f32 {
-                            let text = format!("{} {}", &crit_power_diff.0, diff.crit_power());
-                            diff_text(text, crit_power_diff.1, 3)
+                        if let Some(c_p_diff) = diff.crit_power() {
+                            if c_p_diff != 0.0_f32 {
+                                let text = format!("{} {}", &crit_power_diff.0, c_p_diff);
+                                diff_text(text, crit_power_diff.1, 3)
+                            }
                         }
 
-                        if diff.stealth() != 0.0_f32 {
-                            let text = format!("{} {}", &stealth_diff.0, diff.stealth());
-                            diff_text(text, stealth_diff.1, 4)
+                        if let Some(s_diff) = diff.stealth() {
+                            if s_diff != 0.0_f32 {
+                                let text = format!("{} {}", &stealth_diff.0, s_diff);
+                                diff_text(text, stealth_diff.1, 4)
+                            }
                         }
                     }
                 }

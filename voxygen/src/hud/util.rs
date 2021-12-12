@@ -280,6 +280,30 @@ pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_co
     }
 }
 
+/// Compare two Option type, output a colored character to show comparison
+pub fn option_comparison<T: PartialOrd>(
+    first: &Option<T>,
+    other: &Option<T>,
+) -> (&'static str, conrod_core::Color) {
+    if let Some(first) = first {
+        if let Some(other) = other {
+            if first == other {
+                ("•", conrod_core::color::GREY)
+            } else if other < first {
+                ("▲", conrod_core::color::GREEN)
+            } else {
+                ("▼", conrod_core::color::RED)
+            }
+        } else {
+            ("▲", conrod_core::color::GREEN)
+        }
+    } else if other.is_some() {
+        ("▼", conrod_core::color::RED)
+    } else {
+        ("•", conrod_core::color::GREY)
+    }
+}
+
 /// Output protection as a string
 pub fn protec2string(stat: Protection) -> String {
     match stat {

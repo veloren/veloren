@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Ring("Ruby"),
         stats: (
-            protection: Normal(0.5),
-            poise_resilience: Normal(0.0),
-            energy_max: 0.0,
-            energy_reward: 0.1,
-            crit_power: -0.03,
-            stealth: 0.0,
+            protection: Some(Normal(0.5)),
+            energy_reward: Some(0.1),
+            crit_power: Some(-0.03),
         ),
     )),
     quality: Epic,

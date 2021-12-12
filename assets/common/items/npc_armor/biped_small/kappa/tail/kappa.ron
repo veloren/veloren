@@ -4,12 +4,8 @@ ItemDef(
     kind: Armor((
         kind: Belt("Kappa"),
         stats: (
-            protection: Normal(2.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(1.0)),
         ),
     )),
     quality: Low,

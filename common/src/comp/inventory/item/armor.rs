@@ -30,34 +30,34 @@ impl Armor {
 pub struct Stats {
     /// Protection is non-linearly transformed (following summation) to a damage
     /// reduction using (prot / (60 + prot))
-    protection: Protection,
+    protection: Option<Protection>,
     /// Poise protection is non-linearly transformed (following summation) to a
     /// poise damage reduction using (prot / (60 + prot))
-    poise_resilience: Protection,
+    poise_resilience: Option<Protection>,
     /// Energy max is summed, and then applied directly to the max energy stat
-    energy_max: f32,
+    energy_max: Option<f32>,
     /// Energy recovery is summed, and then added to 1.0. When attacks reward
     /// energy, it is then multiplied by this value before the energy is
     /// rewarded.
-    energy_reward: f32,
+    energy_reward: Option<f32>,
     /// Crit power is summed, and then added to the default crit multiplier of
     /// 1.25. Damage is multiplied by this value when an attack crits.
-    crit_power: f32,
+    crit_power: Option<f32>,
     /// Stealth is summed along with the base stealth bonus (2.0), and then
     /// the agent's perception distance is divided by this value
-    stealth: f32,
+    stealth: Option<f32>,
 }
 
 impl Stats {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for csv import of stats
     pub fn new(
-        protection: Protection,
-        poise_resilience: Protection,
-        energy_max: f32,
-        energy_reward: f32,
-        crit_power: f32,
-        stealth: f32,
+        protection: Option<Protection>,
+        poise_resilience: Option<Protection>,
+        energy_max: Option<f32>,
+        energy_reward: Option<f32>,
+        crit_power: Option<f32>,
+        stealth: Option<f32>,
     ) -> Self {
         Self {
             protection,
@@ -69,17 +69,17 @@ impl Stats {
         }
     }
 
-    pub fn protection(&self) -> Protection { self.protection }
+    pub fn protection(&self) -> Option<Protection> { self.protection }
 
-    pub fn poise_resilience(&self) -> Protection { self.poise_resilience }
+    pub fn poise_resilience(&self) -> Option<Protection> { self.poise_resilience }
 
-    pub fn energy_max(&self) -> f32 { self.energy_max }
+    pub fn energy_max(&self) -> Option<f32> { self.energy_max }
 
-    pub fn energy_reward(&self) -> f32 { self.energy_reward }
+    pub fn energy_reward(&self) -> Option<f32> { self.energy_reward }
 
-    pub fn crit_power(&self) -> f32 { self.crit_power }
+    pub fn crit_power(&self) -> Option<f32> { self.crit_power }
 
-    pub fn stealth(&self) -> f32 { self.stealth }
+    pub fn stealth(&self) -> Option<f32> { self.stealth }
 }
 
 impl Sub<Stats> for Stats {
@@ -87,12 +87,18 @@ impl Sub<Stats> for Stats {
 
     fn sub(self, other: Self) -> Self::Output {
         Self {
-            protection: self.protection - other.protection,
-            poise_resilience: self.poise_resilience - other.poise_resilience,
-            energy_max: self.energy_max - other.energy_max,
-            energy_reward: self.energy_reward - other.energy_reward,
-            crit_power: self.crit_power - other.crit_power,
-            stealth: self.stealth - other.stealth,
+            protection: self.protection.zip(other.protection).map(|(a, b)| a - b),
+            poise_resilience: self
+                .poise_resilience
+                .zip(other.poise_resilience)
+                .map(|(a, b)| a - b),
+            energy_max: self.energy_max.zip(other.energy_max).map(|(a, b)| a - b),
+            energy_reward: self
+                .energy_reward
+                .zip(other.energy_reward)
+                .map(|(a, b)| a - b),
+            crit_power: self.crit_power.zip(other.crit_power).map(|(a, b)| a - b),
+            stealth: self.stealth.zip(other.stealth).map(|(a, b)| a - b),
         }
     }
 }
@@ -141,17 +147,17 @@ pub struct Armor {
 impl Armor {
     pub fn new(kind: ArmorKind, stats: Stats) -> Self { Self { kind, stats } }
 
-    pub fn protection(&self) -> Protection { self.stats.protection }
+    pub fn protection(&self) -> Option<Protection> { self.stats.protection }
 
-    pub fn poise_resilience(&self) -> Protection { self.stats.poise_resilience }
+    pub fn poise_resilience(&self) -> Option<Protection> { self.stats.poise_resilience }
 
-    pub fn energy_max(&self) -> f32 { self.stats.energy_max }
+    pub fn energy_max(&self) -> Option<f32> { self.stats.energy_max }
 
-    pub fn energy_reward(&self) -> f32 { self.stats.energy_reward }
+    pub fn energy_reward(&self) -> Option<f32> { self.stats.energy_reward }
 
-    pub fn crit_power(&self) -> f32 { self.stats.crit_power }
+    pub fn crit_power(&self) -> Option<f32> { self.stats.crit_power }
 
-    pub fn stealth(&self) -> f32 { self.stats.stealth }
+    pub fn stealth(&self) -> Option<f32> { self.stats.stealth }
 
     #[cfg(test)]
     pub fn test_armor(
@@ -162,12 +168,12 @@ impl Armor {
         Armor {
             kind,
             stats: Stats {
-                protection,
-                poise_resilience,
-                energy_max: 0.0,
-                energy_reward: 0.0,
-                crit_power: 0.0,
-                stealth: 0.0,
+                protection: Some(protection),
+                poise_resilience: Some(poise_resilience),
+                energy_max: None,
+                energy_reward: None,
+                crit_power: None,
+                stealth: None,
             },
         }
     }

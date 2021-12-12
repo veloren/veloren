@@ -684,8 +684,9 @@ impl Damage {
                     }
                 })
                 .map(|protection| match protection {
-                    Protection::Normal(protection) => Some(protection),
-                    Protection::Invincible => None,
+                    Some(Protection::Normal(protection)) => Some(protection),
+                    Some(Protection::Invincible) => None,
+                    None => Some(0.0),
                 })
                 .sum::<Option<f32>>();
 
@@ -1012,7 +1013,7 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.crit_power())
+                    armor.crit_power()
                 } else {
                     None
                 }
@@ -1030,7 +1031,7 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.energy_reward())
+                    armor.energy_reward()
                 } else {
                     None
                 }
@@ -1048,7 +1049,7 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.energy_max())
+                    armor.energy_max()
                 } else {
                     None
                 }
@@ -1067,7 +1068,7 @@ pub fn compute_stealth_coefficient(inventory: Option<&Inventory>) -> f32 {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.stealth())
+                    armor.stealth()
                 } else {
                     None
                 }

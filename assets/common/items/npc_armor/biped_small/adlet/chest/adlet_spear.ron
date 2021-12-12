@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Chest("AdletSpear"),
         stats: (
-            protection: Normal(16.0),
-            poise_resilience: Normal(3.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.06,
-            stealth: 0.0,
+            protection: Some(Normal(16.0)),
+            poise_resilience: Some(Normal(3.0)),
+            crit_power: Some(0.06),
         ),
     )),
     quality: Low,

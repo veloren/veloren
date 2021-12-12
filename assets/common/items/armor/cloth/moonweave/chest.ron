@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Chest("Moonweave"),
         stats: (
-            protection: Normal(23.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 24.8,
-            energy_reward: 0.252,
-            crit_power: 0.0,
-            stealth: 0.252,
+            protection: Some(Normal(23.0)),
+            energy_max: Some(24.8),
+            energy_reward: Some(0.252),
+            stealth: Some(0.252),
         ),
     )),
     quality: Epic,

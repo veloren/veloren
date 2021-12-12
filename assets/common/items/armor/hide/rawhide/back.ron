@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Back("Rawhide"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.017,
-            stealth: 0.017,
+            protection: Some(Normal(1.0)),
+            crit_power: Some(0.017),
+            stealth: Some(0.017),
         ),
     )),
     quality: Low,

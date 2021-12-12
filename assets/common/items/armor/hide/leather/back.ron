@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Back("Leather"),
         stats: (
-            protection: Normal(2.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.034,
-            stealth: 0.034,
+            protection: Some(Normal(2.0)),
+            crit_power: Some(0.034),
+            stealth: Some(0.034),
         ),
     )),
     quality: Common,

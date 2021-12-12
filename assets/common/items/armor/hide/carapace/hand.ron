@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Hand("Carapace"),
         stats: (
-            protection: Normal(10.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.133,
-            stealth: 0.133,
+            protection: Some(Normal(10.0)),
+            crit_power: Some(0.133),
+            stealth: Some(0.133),
         ),
     )),
     quality: High,

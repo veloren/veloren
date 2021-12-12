@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Neck("Gold"),
         stats: (
-            protection: Normal(1.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 10,
-            energy_reward: 0.0,
-            crit_power: 0.02,
-            stealth: 0.0,
+            protection: Some(Normal(1.0)),
+            energy_max: Some(10),
+            crit_power: Some(0.02),
         ),
     )),
     quality: Moderate,

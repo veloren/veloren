@@ -4,12 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Chest("Dragonscale"),
         stats: (
-            protection: Normal(42.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.6,
-            stealth: 0.6,
+            protection: Some(Normal(42.0)),
+            crit_power: Some(0.6),
+            stealth: Some(0.6),
         ),
     )),
     quality: Legendary,

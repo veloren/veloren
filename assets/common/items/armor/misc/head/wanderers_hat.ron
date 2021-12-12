@@ -4,12 +4,12 @@ ItemDef(
     kind: Armor((
         kind: Head("WanderersHat"),
         stats: (
-            protection: Normal(3.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 1.0,
-            energy_reward: 0.025,
-            crit_power: 0.02,
-            stealth: 0.025,
+            protection: Some(Normal(3.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(1.0),
+            energy_reward: Some(0.025),
+            crit_power: Some(0.02),
+            stealth: Some(0.025),
         ),
     )),
     quality: High,

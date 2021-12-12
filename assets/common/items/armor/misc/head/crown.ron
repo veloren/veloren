@@ -4,12 +4,11 @@ ItemDef(
     kind: Armor((
         kind: Head("Crown"),
         stats: (
-            protection: Normal(12.0),
-            poise_resilience: Normal(2.0),
-            energy_max: 5.0,
-            energy_reward: 0.05,
-            crit_power: 0.01,
-            stealth: 0.0,
+            protection: Some(Normal(12.0)),
+            poise_resilience: Some(Normal(2.0)),
+            energy_max: Some(5.0),
+            energy_reward: Some(0.05),
+            crit_power: Some(0.01),
         ),
     )),
     quality: Epic,

@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Back("Moonweave"),
         stats: (
-            protection: Normal(4.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 4.1,
-            energy_reward: 0.042,
-            crit_power: 0.0,
-            stealth: 0.042,
+            protection: Some(Normal(4.0)),
+            energy_max: Some(4.1),
+            energy_reward: Some(0.042),
+            stealth: Some(0.042),
         ),
     )),
     quality: Epic,

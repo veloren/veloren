@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Belt("Woolen"),
         stats: (
-            protection: Normal(2.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 1.7,
-            energy_reward: 0.017,
-            crit_power: 0.0,
-            stealth: 0.017,
+            protection: Some(Normal(2.0)),
+            energy_max: Some(1.7),
+            energy_reward: Some(0.017),
+            stealth: Some(0.017),
         ),
     )),
     quality: Common,

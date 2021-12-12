@@ -1879,7 +1879,7 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-     "merchant turban": (
+    "merchant turban": (
         output: ("common.items.armor.merchant.turban", 1),
         inputs: [
             (Item("common.items.crafting_ing.cloth.linen_red"), 20),

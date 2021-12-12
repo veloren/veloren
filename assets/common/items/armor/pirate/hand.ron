@@ -4,16 +4,14 @@ ItemDef(
     kind: Armor((
         kind: Hand("Pirate"),
         stats: (
-            protection: Normal(16.0),
-            poise_resilience: Normal(2.0),
-            energy_max: 4.5,
-            energy_reward: 0.045,
-            crit_power: 0.04,
-            stealth: 0.0,
+            protection: Some(Normal(16.0)),
+            poise_resilience: Some(Normal(2.0)),
+            energy_max: Some(4.5),
+            energy_reward: Some(0.045),
+            crit_power: Some(0.04),
         ),
     )),
     quality: Epic,
     tags: [
-
     ],
 )

@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Head("Hood"),
         stats: (
-            protection: Normal(6.0),
-            poise_resilience: Normal(1.0),
-            energy_max: 0,
-            energy_reward: 0.0,
-            crit_power: 0.04,
-            stealth: 0.12,
+            protection: Some(Normal(6.0)),
+            poise_resilience: Some(Normal(1.0)),
+            crit_power: Some(0.04),
+            stealth: Some(0.12),
         ),
     )),
     quality: Moderate,
