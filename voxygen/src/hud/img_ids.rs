@@ -68,6 +68,14 @@ image_ids! {
         diary_exp_bg: "voxygen.element.ui.diary.diary_exp_bg",
         diary_exp_frame: "voxygen.element.ui.diary.diary_exp_frame",
         pixel: "voxygen.element.ui.diary.pixel",
+        arrow_l: "voxygen.element.ui.diary.buttons.arrow_l",
+        arrow_l_click: "voxygen.element.ui.diary.buttons.arrow_l_click",
+        arrow_l_inactive: "voxygen.element.ui.diary.buttons.arrow_l_inactive",
+        arrow_r: "voxygen.element.ui.diary.buttons.arrow_r",
+        arrow_r_click: "voxygen.element.ui.diary.buttons.arrow_r_click",
+        arrow_r_inactive: "voxygen.element.ui.diary.buttons.arrow_r_inactive",
+        ability_frame: "voxygen.element.ui.diary.abilitiy_desc_frame",
+        ability_frame_dual: "voxygen.element.ui.diary.abilitiy_desc_frame_dual",
 
         // Skill Trees
         book_bg: "voxygen.element.ui.diary.spellbook_bg",

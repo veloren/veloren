@@ -3117,6 +3117,7 @@ impl Hud {
                 for event in Diary::new(
                     &self.show,
                     client,
+                    global_state,
                     skill_set,
                     active_abilities,
                     inventory,

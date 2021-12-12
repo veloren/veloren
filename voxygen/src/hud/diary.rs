@@ -5,8 +5,10 @@ use super::{
     UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
 use crate::{
+    game_input::GameInput,
     hud::{self, util},
     ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    GlobalState,
 };
 use conrod_core::{
     color, image,
@@ -212,9 +214,11 @@ widget_ids! {
         ability_page_right,
         active_abilities[],
         active_abilities_bg[],
+        active_abilities_keys[],
         main_weap_select,
         off_weap_select,
         abilities[],
+        ability_frames[],
         abilities_dual[],
         ability_titles[],
         ability_descs[],
@@ -229,6 +233,7 @@ widget_ids! {
 pub struct Diary<'a> {
     show: &'a Show,
     _client: &'a Client,
+    global_state: &'a GlobalState,
     skill_set: &'a SkillSet,
     active_abilities: &'a ActiveAbilities,
     inventory: &'a Inventory,
@@ -274,6 +279,7 @@ impl<'a> Diary<'a> {
     pub fn new(
         show: &'a Show,
         _client: &'a Client,
+        global_state: &'a GlobalState,
         skill_set: &'a SkillSet,
         active_abilities: &'a ActiveAbilities,
         inventory: &'a Inventory,
@@ -293,6 +299,7 @@ impl<'a> Diary<'a> {
         Self {
             show,
             _client,
+            global_state,
             skill_set,
             active_abilities,
             inventory,
@@ -333,7 +340,7 @@ const TREES: [&str; 8] = [
 
 // Possible future sections: Bestiary ("Pokedex" of fought enemies), Weapon and
 // armour catalogue, Achievements...
-const SECTIONS: [&str; 3] = ["Abilities", "Skill-Trees", "Stats"];
+const SECTIONS: [&str; 3] = ["Skill-Trees", "Abilities", "Stats"];
 
 pub enum Event {
     Close,
@@ -856,6 +863,11 @@ impl<'a> Widget for Diary<'a> {
                         .active_abilities_bg
                         .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
                 });
+                state.update(|s| {
+                    s.ids
+                        .active_abilities_keys
+                        .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
+                });
                 for i in 0..MAX_ABILITIES {
                     let ability_id = self
                         .active_abilities
@@ -907,6 +919,58 @@ impl<'a> Widget for Diary<'a> {
                         ));
                         events.push(Event::SelectAbility(None));
                     }
+                    // Display Slot Keybinding
+                    let keys = &self.global_state.settings.controls;
+                    let key_layout = &self.global_state.window.key_layout;
+                    let ability_key: String = match i {
+                        0 => {
+                            if let Some(key) = keys.get_binding(GameInput::Slot1) {
+                                key.display_string(key_layout)
+                            } else {
+                                String::new()
+                            }
+                        },
+                        1 => {
+                            if let Some(key) = keys.get_binding(GameInput::Slot2) {
+                                key.display_string(key_layout)
+                            } else {
+                                String::new()
+                            }
+                        },
+                        2 => {
+                            if let Some(key) = keys.get_binding(GameInput::Slot3) {
+                                key.display_string(key_layout)
+                            } else {
+                                String::new()
+                            }
+                        },
+                        3 => {
+                            if let Some(key) = keys.get_binding(GameInput::Slot4) {
+                                key.display_string(key_layout)
+                            } else {
+                                String::new()
+                            }
+                        },
+                        4 => {
+                            if let Some(key) = keys.get_binding(GameInput::Slot5) {
+                                key.display_string(key_layout)
+                            } else {
+                                String::new()
+                            }
+                        },
+                        _ => String::new(),
+                    };
+                    Text::new(&ability_key)
+                        .top_left_with_margins_on(
+                            state.ids.active_abilities[i],
+                            tweak!(0.0),
+                            tweak!(4.0),
+                        )
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .font_size(self.fonts.cyri.scale(tweak!(20)))
+                        .color(TEXT_COLOR)
+                        .graphics_for(state.ids.active_abilities[i])
+                        .set(state.ids.active_abilities_keys[i], ui);
                 }
 
                 let same_weap_kinds = self
@@ -970,32 +1034,57 @@ impl<'a> Widget for Diary<'a> {
                 });
                 state.update(|s| {
                     s.ids
+                        .ability_frames
+                        .resize(update_length, &mut ui.widget_id_generator())
+                });
+                state.update(|s| {
+                    s.ids
                         .ability_descs
                         .resize(update_length, &mut ui.widget_id_generator())
                 });
 
-                // Page buttons
+                // Page button
+                // Left Arrow
+                let left_arrow = Button::image(if state.ability_page > 0 {
+                    self.imgs.arrow_l
+                } else {
+                    self.imgs.arrow_l_inactive
+                })
+                .bottom_left_with_margins_on(state.ids.spellbook_art, tweak!(-83.0), tweak!(10.0))
+                .w_h(48.0, 55.0);
+                // Grey out arrows when inactive
                 if state.ability_page > 0 {
-                    // Only show left button if not on first page
-                    if Button::image(self.imgs.spellbook_ico)
-                        .bottom_left_with_margins_on(state.ids.sb_page_left_align, -5.0, 0.0)
-                        .w_h(40.0, 40.0)
+                    if left_arrow
+                        .hover_image(self.imgs.arrow_l_click)
+                        .press_image(self.imgs.arrow_l)
                         .set(state.ids.ability_page_left, ui)
                         .was_clicked()
                     {
                         state.update(|s| s.ability_page -= 1);
                     }
+                } else {
+                    left_arrow.set(state.ids.ability_page_left, ui);
                 }
+                // Right Arrow
+                let right_arrow = Button::image(if state.ability_page < page_indices {
+                    self.imgs.arrow_r
+                } else {
+                    self.imgs.arrow_r_inactive
+                })
+                .bottom_right_with_margins_on(state.ids.spellbook_art, tweak!(-83.0), tweak!(10.0))
+                .w_h(48.0, 55.0);
                 if state.ability_page < page_indices {
                     // Only show right button if not on last page
-                    if Button::image(self.imgs.spellbook_ico)
-                        .bottom_right_with_margins_on(state.ids.sb_page_right_align, -5.0, 0.0)
-                        .w_h(40.0, 40.0)
+                    if right_arrow
+                        .hover_image(self.imgs.arrow_r_click)
+                        .press_image(self.imgs.arrow_r)
                         .set(state.ids.ability_page_right, ui)
                         .was_clicked()
                     {
                         state.update(|s| s.ability_page += 1);
-                    }
+                    };
+                } else {
+                    right_arrow.set(state.ids.ability_page_right, ui);
                 }
 
                 let ability_start = state.ability_page * ABILITIES_PER_PAGE;
@@ -1018,7 +1107,7 @@ impl<'a> Widget for Diary<'a> {
                         .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
                     let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
                     {
-                        BLACK
+                        TEXT_COLOR
                     } else {
                         XP_COLOR
                     };
@@ -1029,6 +1118,20 @@ impl<'a> Widget for Diary<'a> {
                     } else {
                         (state.ids.sb_page_right_align, 120.0 * (id_index - 6) as f64)
                     };
+                    Image::new(if same_weap_kinds {
+                        self.imgs.ability_frame_dual
+                    } else {
+                        self.imgs.ability_frame
+                    })
+                    .w_h(566.0, 108.0)
+                    .top_left_with_margins_on(
+                        align_state,
+                        tweak!(16.0) + image_offsets,
+                        tweak!(16.0),
+                    )
+                    .color(Some(UI_HIGHLIGHT_0))
+                    //.parent(state.ids.abilities[id_index])
+                    .set(state.ids.ability_frames[id_index], ui);
                     if Button::image(ability_image)
                         .w_h(100.0, 100.0)
                         .top_left_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
@@ -1227,7 +1330,7 @@ impl<'a> Widget for Diary<'a> {
                                 *self.body,
                                 self.msm,
                             );
-                            format!("{:.2}", cr)
+                            format!("{:.2}", cr * 10.0)
                         },
                         "Protection" => {
                             let protection = combat::compute_protection(Some(self.inventory));
@@ -1238,7 +1341,7 @@ impl<'a> Widget for Diary<'a> {
                         },
                         "Stun-Resistance" => {
                             let stun_res = Poise::compute_poise_damage_reduction(self.inventory);
-                            format!("{}%", stun_res * 100.0)
+                            format!("{:.2}%", stun_res * 100.0)
                         },
                         "Crit-Power" => {
                             let critpwr = combat::compute_crit_mult(Some(self.inventory));
@@ -1251,7 +1354,7 @@ impl<'a> Widget for Diary<'a> {
                         },
                         "Stealth" => {
                             let stealth = combat::compute_stealth_coefficient(Some(self.inventory));
-                            format!("{}", stealth)
+                            format!("{:.2}", stealth)
                         },
                         "Weapon Power" => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
@@ -1306,7 +1409,7 @@ impl<'a> Widget for Diary<'a> {
                         .color(BLACK);
 
                     if i == 0 {
-                        number = number.right_from(state.ids.stat_names[i], tweak!(300.0));
+                        number = number.right_from(state.ids.stat_names[i], tweak!(265.0));
                     } else {
                         number = number.down_from(state.ids.stat_values[i - 1], tweak!(10.0));
                     };
