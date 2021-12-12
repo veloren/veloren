@@ -234,10 +234,10 @@ impl assets::Asset for RawRecipeBook {
 }
 
 impl assets::Compound for RecipeBook {
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::source::Source + ?Sized>(
         cache: &assets::AssetCache<S>,
         specifier: &str,
-    ) -> Result<Self, assets::Error> {
+    ) -> Result<Self, assets::BoxedError> {
         #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
@@ -255,7 +255,7 @@ impl assets::Compound for RecipeBook {
             Ok((def, spec.1))
         }
 
-        let mut raw = cache.load::<RawRecipeBook>(specifier)?.read().clone();
+        let mut raw = cache.load::<RawRecipeBook>(specifier)?.cloned();
 
         // Avoid showing purple-question-box recipes until the assets are added
         // (the `if false` is needed because commenting out the call will add a warning

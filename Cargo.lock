@@ -214,10 +214,11 @@ dependencies = [
 
 [[package]]
 name = "assets_manager"
-version = "0.6.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35c55040a3eee1353bfa4bee2c03a695395d64176e8063223aa62d11b4ef669c"
+checksum = "912acc83cc5bf31b0d9685e8d11a9d7c36b949e850ca2db1a3203b3b656a5e4a"
 dependencies = [
+ "ab_glyph",
  "ahash 0.7.6",
  "bincode",
  "crossbeam-channel",
@@ -6081,7 +6082,7 @@ dependencies = [
  "petgraph 0.5.1",
  "rand 0.8.4",
  "rayon",
- "ron 0.6.6",
+ "ron 0.7.0",
  "roots",
  "serde",
  "serde_repr",
@@ -6358,6 +6359,7 @@ dependencies = [
 name = "veloren-voxygen"
 version = "0.11.0"
 dependencies = [
+ "assets_manager",
  "backtrace",
  "bincode",
  "bytemuck",

@@ -5,10 +5,7 @@ use crate::{
 };
 use common::assets::{self, AssetExt};
 use glyph_brush::GlyphBrushBuilder;
-use std::{
-    borrow::Cow,
-    cell::{RefCell, RefMut},
-};
+use std::cell::{RefCell, RefMut};
 use vek::*;
 
 // Multiplied by current window size
@@ -24,22 +21,7 @@ type GlyphBrush = glyph_brush::GlyphBrush<(Aabr<f32>, Aabr<f32>), ()>;
 // TODO: might not need pub
 pub type Font = glyph_brush::ab_glyph::FontArc;
 
-struct FontAsset(Font);
-struct FontLoader;
-impl assets::Loader<FontAsset> for FontLoader {
-    fn load(data: Cow<[u8]>, _: &str) -> Result<FontAsset, assets::BoxedError> {
-        let font = Font::try_from_vec(data.into_owned())?;
-        Ok(FontAsset(font))
-    }
-}
-
-impl assets::Asset for FontAsset {
-    type Loader = FontLoader;
-
-    const EXTENSION: &'static str = "ttf";
-}
-
-pub fn load_font(specifier: &str) -> Font { FontAsset::load_expect(specifier).read().0.clone() }
+pub fn load_font(specifier: &str) -> Font { Font::load_expect(specifier).cloned() }
 
 #[derive(Clone, Copy, Default)]
 pub struct FontId(pub(super) glyph_brush::FontId);

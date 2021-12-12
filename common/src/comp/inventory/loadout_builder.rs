@@ -502,7 +502,7 @@ impl LoadoutBuilder {
     /// 3) Will panic while runs in tests and asset doesn't have "correct" form
     #[must_use = "Method consumes builder and returns updated builder."]
     pub fn with_asset_expect(mut self, asset_specifier: &str, rng: &mut impl Rng) -> Self {
-        let spec = LoadoutSpec::load_expect(asset_specifier).read().0.clone();
+        let spec = LoadoutSpec::load_expect_cloned(asset_specifier).0;
         for (key, entry) in spec {
             let item = match entry.try_to_item(asset_specifier, rng) {
                 Some(item) => item,

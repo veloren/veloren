@@ -202,7 +202,7 @@ impl EntityInfo {
 
     /// Helper function for applying config from asset
     pub fn with_asset_expect(self, asset_specifier: &str) -> Self {
-        let config = EntityConfig::load_expect(asset_specifier).read().clone();
+        let config = EntityConfig::load_expect_cloned(asset_specifier);
 
         self.with_entity_config(config, Some(asset_specifier))
     }

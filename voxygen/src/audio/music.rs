@@ -420,10 +420,10 @@ impl assets::Asset for SoundtrackCollection<RawSoundtrackItem> {
 }
 
 impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::source::Source + ?Sized>(
         _: &assets::AssetCache<S>,
         id: &str,
-    ) -> Result<Self, assets::Error> {
+    ) -> Result<Self, assets::BoxedError> {
         let inner = || -> Result<_, assets::Error> {
             let manifest: AssetHandle<SoundtrackCollection<RawSoundtrackItem>> =
                 AssetExt::load(id)?;

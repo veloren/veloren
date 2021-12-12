@@ -31,16 +31,11 @@ pub(crate) struct RawLanguage<T> {
     pub(crate) fragments: HashMap</* relative to i18n_path */ PathBuf, RawFragment<T>>,
 }
 
-#[derive(Debug)]
-pub(crate) enum RawError {
-    RonError(ron::Error),
-}
-
-pub(crate) fn load_manifest(path: &LangPath) -> Result<RawManifest, common_assets::Error> {
+pub(crate) fn load_manifest(path: &LangPath) -> Result<RawManifest, common_assets::BoxedError> {
     let manifest_file = path.file(LANG_MANIFEST_FILE);
     tracing::debug!(?manifest_file, "manifest loading");
     let f = fs::File::open(&manifest_file)?;
-    let manifest: RawManifest = from_reader(f).map_err(RawError::RonError)?;
+    let manifest: RawManifest = from_reader(f)?;
     // verify that the folder name `de_DE` matches the value inside the metadata!
     assert_eq!(
         manifest.metadata.language_identifier,
@@ -52,7 +47,7 @@ pub(crate) fn load_manifest(path: &LangPath) -> Result<RawManifest, common_asset
 pub(crate) fn load_raw_language(
     path: &LangPath,
     manifest: RawManifest,
-) -> Result<RawLanguage<String>, common_assets::Error> {
+) -> Result<RawLanguage<String>, common_assets::BoxedError> {
     //get List of files
     let files = path.fragments()?;
 
@@ -60,7 +55,7 @@ pub(crate) fn load_raw_language(
     let mut fragments = HashMap::new();
     for sub_path in files {
         let f = fs::File::open(path.sub_path(&sub_path))?;
-        let fragment = from_reader(f).map_err(RawError::RonError)?;
+        let fragment = from_reader(f)?;
         fragments.insert(sub_path, fragment);
     }
 
@@ -103,20 +98,6 @@ impl From<RawLanguage<String>> for Language {
             metadata,
         }
     }
-}
-
-impl core::fmt::Display for RawError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            RawError::RonError(e) => write!(f, "{}", e),
-        }
-    }
-}
-
-impl std::error::Error for RawError {}
-
-impl From<RawError> for common_assets::Error {
-    fn from(e: RawError) -> Self { Self::Conversion(Box::new(e)) }
 }
 
 impl common_assets::Asset for RawManifest {

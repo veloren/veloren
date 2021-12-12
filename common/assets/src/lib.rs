@@ -4,7 +4,7 @@
 use dot_vox::DotVoxData;
 use image::DynamicImage;
 use lazy_static::lazy_static;
-use std::{borrow::Cow, fmt, path::PathBuf, sync::Arc};
+use std::{borrow::Cow, path::PathBuf, sync::Arc};
 
 pub use assets_manager::{
     asset::{DirLoadable, Ron},
@@ -15,29 +15,21 @@ pub use assets_manager::{
     Asset, AssetCache, BoxedError, Compound, Error, SharedString,
 };
 
+mod fs;
+
 lazy_static! {
     /// The HashMap where all loaded assets are stored in.
-    static ref ASSETS: AssetCache =
-        AssetCache::new(&*ASSETS_PATH).unwrap();
-    /// Asset cache for overrides
-    static ref ASSETS_OVERRIDE: Option<AssetCache> = {
-        std::env::var("VELOREN_ASSETS_OVERRIDE").ok().map(|path| {
-            AssetCache::new(path).unwrap()
-        })
-    };
+    static ref ASSETS: AssetCache<fs::FileSystem> =
+        AssetCache::with_source(fs::FileSystem::new().unwrap());
 }
 
 #[cfg(feature = "hot-reloading")]
-pub fn start_hot_reloading() {
-    ASSETS.enhance_hot_reloading();
-    if let Some(cache) = &*ASSETS_OVERRIDE {
-        cache.enhance_hot_reloading();
-    }
-}
+pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
 pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;
-pub type AssetDirHandle<T> = assets_manager::DirHandle<'static, T, source::FileSystem>;
+pub type AssetDirHandle<T> = assets_manager::DirHandle<'static, T, fs::FileSystem>;
+pub type ReloadWatcher = assets_manager::ReloadWatcher<'static>;
 
 /// The Asset trait, which is implemented by all structures that have their data
 /// stored in the filesystem.
@@ -76,12 +68,21 @@ pub trait AssetExt: Sized + Send + Sync + 'static {
     /// ```
     #[track_caller]
     fn load_expect(specifier: &str) -> AssetHandle<Self> {
-        Self::load(specifier).unwrap_or_else(|err| {
+        #[track_caller]
+        #[cold]
+        fn expect_failed(err: Error) -> ! {
             panic!(
                 "Failed loading essential asset: {} (error={:?})",
-                specifier, err
+                err.id(),
+                err.reason()
             )
-        })
+        }
+
+        // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
+        match Self::load(specifier) {
+            Ok(handle) => handle,
+            Err(err) => expect_failed(err),
+        }
     }
 
     /// Function used to load essential assets from the filesystem or the cache
@@ -111,21 +112,8 @@ pub fn load_dir<T: DirLoadable>(
     specifier: &str,
     recursive: bool,
 ) -> Result<AssetDirHandle<T>, Error> {
-    use std::io;
-
     let specifier = specifier.strip_suffix(".*").unwrap_or(specifier);
-    // Try override path first
-    let from_override = match &*ASSETS_OVERRIDE {
-        Some(cache) => cache.load_dir(specifier, recursive),
-        None => return ASSETS.load_dir(specifier, recursive),
-    };
-    // If not found in override path, try load from main asset path
-    match from_override {
-        Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
-            ASSETS.load_dir(specifier, recursive)
-        },
-        _ => from_override,
-    }
+    ASSETS.load_dir(specifier, recursive)
 }
 
 /// Loads directory and all files in it
@@ -138,88 +126,30 @@ pub fn read_expect_dir<T: DirLoadable>(
     specifier: &str,
     recursive: bool,
 ) -> impl Iterator<Item = AssetGuard<T>> {
-    load_dir::<T>(specifier, recursive)
-        .unwrap_or_else(|e| panic!("Failed loading directory {}. error={:?}", e, specifier))
-        .ids()
-        .map(|entry| T::load_expect(entry).read())
-}
+    #[track_caller]
+    #[cold]
+    fn expect_failed(err: Error) -> ! {
+        panic!(
+            "Failed loading directory: {} (error={:?})",
+            err.id(),
+            err.reason()
+        )
+    }
 
-#[derive(Debug)]
-pub struct AssetError(String, Error);
-
-impl std::error::Error for AssetError {}
-impl fmt::Display for AssetError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Failed to load '{}': {}", self.0, self.1)
+    // Avoid using `unwrap_or_else` to avoid breaking `#[track_caller]`
+    match load_dir::<T>(specifier, recursive) {
+        Ok(dir) => dir.ids().map(|entry| T::load_expect(entry).read()),
+        Err(err) => expect_failed(err),
     }
 }
 
 impl<T: Compound> AssetExt for T {
-    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> {
-        use std::io;
-        // Try override path first
-        let from_override = match &*ASSETS_OVERRIDE {
-            Some(cache) => cache.load(specifier),
-            None => return ASSETS.load(specifier),
-        };
-        // If not found in override path, try load from main asset path
-        //
-        // NOTE: this won't work if asset catches error with
-        // Asset::default_value during Asset::load.
-        //
-        // We don't use it, and hopefully won't because there is
-        // `AssetExt::get_or_insert` or `AssetExt::load_or_insert_with`
-        // that allows you to do the same.
-        //
-        // If accidentaly we end up using Asset::default_value,
-        // there is possibility of this code trying to load
-        // from override cache and end there returning default value
-        // for `cache.load(specifier)` above.
-        match from_override {
-            Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => ASSETS.load(specifier),
-            Err(e) => Err(Error::Conversion(Box::new(AssetError(
-                specifier.to_string(),
-                e,
-            )))),
-            _ => from_override,
-        }
-    }
+    fn load(specifier: &str) -> Result<AssetHandle<Self>, Error> { ASSETS.load(specifier) }
 
-    fn load_owned(specifier: &str) -> Result<Self, Error> {
-        use std::io;
-        // Try override path first
-        let from_override = match &*ASSETS_OVERRIDE {
-            Some(cache) => cache.load_owned(specifier),
-            None => return ASSETS.load_owned(specifier),
-        };
-        // If not found in override path, try load from main asset path
-        match from_override {
-            Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
-                ASSETS.load_owned(specifier)
-            },
-            _ => from_override,
-        }
-    }
+    fn load_owned(specifier: &str) -> Result<Self, Error> { ASSETS.load_owned(specifier) }
 
     fn get_or_insert(specifier: &str, default: Self) -> AssetHandle<Self> {
-        // 1) Check if we have ASSETS_OVERRIDE, if not - use main ASSETS
-        // 2) Check if we have this asset in ASSETS_OVERRIDE, if not -
-        // use main ASSETS
-        // 3) If we have this asset in ASSETS_OVERRIDE, use ASSETS_OVERRIDE.
-        use std::io;
-
-        let override_cache = match &*ASSETS_OVERRIDE {
-            Some(cache) => cache,
-            None => return ASSETS.get_or_insert(specifier, default),
-        };
-        let from_override = override_cache.load::<T>(specifier);
-        // If not found in override path, try load from main asset path
-        match from_override {
-            Err(Error::Io(e)) if e.kind() == io::ErrorKind::NotFound => {
-                ASSETS.get_or_insert(specifier, default)
-            },
-            _ => override_cache.get_or_insert(specifier, default),
-        }
+        ASSETS.get_or_insert(specifier, default)
     }
 }
 
@@ -355,11 +285,7 @@ lazy_static! {
 /// Returns the actual path of the specifier with the extension.
 ///
 /// For directories, give `""` as extension.
-pub fn path_of(specifier: &str, ext: &str) -> PathBuf {
-    ASSETS
-        .source()
-        .path_of(source::DirEntry::File(specifier, ext))
-}
+pub fn path_of(specifier: &str, ext: &str) -> PathBuf { ASSETS.source().path_of(specifier, ext) }
 
 #[cfg(test)]
 mod tests {
@@ -481,7 +407,7 @@ pub mod asset_tweak {
             Specifier::Asset(path) => path.join("."),
         };
         let handle = <AssetTweakWrapper<T> as AssetExt>::load_expect(&asset_specifier);
-        let AssetTweakWrapper(value) = handle.read().clone();
+        let AssetTweakWrapper(value) = handle.cloned();
 
         value
     }

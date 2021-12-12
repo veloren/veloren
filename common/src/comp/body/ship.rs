@@ -197,10 +197,10 @@ pub mod figuredata {
     }
 
     impl assets::Compound for ShipSpec {
-        fn load<S: assets::source::Source>(
+        fn load<S: assets::source::Source + ?Sized>(
             cache: &assets::AssetCache<S>,
             _: &str,
-        ) -> Result<Self, assets::Error> {
+        ) -> Result<Self, assets::BoxedError> {
             let manifest: AssetHandle<Ron<ShipCentralSpec>> =
                 AssetExt::load("common.manifests.ship_manifest")?;
             let mut colliders = HashMap::new();

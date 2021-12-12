@@ -28,7 +28,7 @@ use super::{
     AaMode, AddressMode, FilterMode, OtherModes, PipelineModes, RenderError, RenderMode,
     ShadowMapMode, ShadowMode, Vertex,
 };
-use common::assets::{self, AssetExt, AssetHandle};
+use common::assets::{self, AssetExt, AssetHandle, ReloadWatcher};
 use common_base::span;
 use core::convert::TryFrom;
 #[cfg(feature = "egui-ui")]
@@ -157,6 +157,7 @@ pub struct Renderer {
     quad_index_buffer_u32: Buffer<u32>,
 
     shaders: AssetHandle<Shaders>,
+    shaders_watcher: ReloadWatcher,
 
     pipeline_modes: PipelineModes,
     other_modes: OtherModes,
@@ -360,6 +361,7 @@ impl Renderer {
         .ok();
 
         let shaders = Shaders::load_expect("");
+        let shaders_watcher = shaders.reload_watcher();
 
         let layouts = {
             let global = GlobalsLayouts::new(&device);
@@ -407,7 +409,7 @@ impl Renderer {
                 immutable: Arc::clone(&layouts.immutable),
                 postprocess: Arc::clone(&layouts.postprocess),
             },
-            shaders.read().clone(),
+            shaders.cloned(),
             pipeline_modes.clone(),
             sc_desc.clone(), // Note: cheap clone
             shadow_views.is_some(),
@@ -510,6 +512,7 @@ impl Renderer {
             quad_index_buffer_u32,
 
             shaders,
+            shaders_watcher,
 
             pipeline_modes,
             other_modes,
@@ -1053,7 +1056,7 @@ impl Renderer {
         }
 
         // If the shaders files were changed attempt to recreate the shaders
-        if self.shaders.reloaded() {
+        if self.shaders_watcher.reloaded() {
             self.recreate_pipelines(self.pipeline_modes.clone());
         }
 
@@ -1113,7 +1116,7 @@ impl Renderer {
                     pipeline_creation::recreate_pipelines(
                         Arc::clone(&self.device),
                         Arc::clone(&self.layouts.immutable),
-                        self.shaders.read().clone(),
+                        self.shaders.cloned(),
                         pipeline_modes,
                         // NOTE: if present_mode starts to be used to configure pipelines then it
                         // needs to become a part of the pipeline modes

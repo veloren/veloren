@@ -6,6 +6,7 @@ use crate::{
 };
 use anim::Skeleton;
 use common::{
+    assets::ReloadWatcher,
     comp::{
         inventory::{
             slot::{ArmorSlot, EquipSlot},
@@ -287,6 +288,7 @@ where
 {
     models: HashMap<FigureKey<Skel::Body>, ((FigureModelEntryFuture<LOD_COUNT>, Skel::Attr), u64)>,
     manifests: <Skel::Body as BodySpec>::Manifests,
+    watcher: ReloadWatcher,
 }
 
 impl<Skel: Skeleton> FigureModelCache<Skel>
@@ -295,10 +297,14 @@ where
 {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self {
+        // NOTE: It might be better to bubble this error up rather than panicking.
+        let manifests = <Skel::Body as BodySpec>::load_spec().unwrap();
+        let watcher = <Skel::Body as BodySpec>::reload_watcher(&manifests);
+
         Self {
             models: HashMap::new(),
-            // NOTE: It might be better to bubble this error up rather than panicking.
-            manifests: <Skel::Body as BodySpec>::load_spec().unwrap(),
+            manifests,
+            watcher,
         }
     }
 
@@ -561,7 +567,7 @@ where
     {
         // Check for reloaded manifests
         // TODO: maybe do this in a different function, maintain?
-        if <Skel::Body as BodySpec>::is_reloaded(&mut self.manifests) {
+        if self.watcher.reloaded() {
             col_lights.atlas.clear();
             self.models.clear();
         }
