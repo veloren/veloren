@@ -32,7 +32,7 @@ pub struct Dungeon {
     #[allow(dead_code)]
     noise: RandomField,
     floors: Vec<Floor>,
-    difficulty: u32,
+    pub difficulty: u32,
 }
 
 pub struct GenCtx<'a, R: Rng> {

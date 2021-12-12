@@ -156,6 +156,8 @@ impl World {
                                 civ::SiteKind::Castle => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Refactor => world_msg::SiteKind::Town,
                                 civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
+                                // TODO: Maybe change?
+                                civ::SiteKind::Gnarling => world_msg::SiteKind::Dungeon { difficulty: 0 },
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }

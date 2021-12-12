@@ -376,37 +376,59 @@ impl Site {
         site
     }
 
-    pub fn generate_giant_tree(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_gnarling(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
-
         let mut site = Site {
             origin,
             ..Site::default()
         };
+        site.demarcate_obstacles(land);
+        let gnarling_fortification = plot::GnarlingFortification::generate(origin, land, &mut rng);
+        site.name = gnarling_fortification.name().to_string();
+        let size = gnarling_fortification.radius() / tile::TILE_SIZE as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Gnarling(gnarling_fortification),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::GnarlingFortification,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+        site
+    }
 
+    pub fn generate_giant_tree(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
         site.demarcate_obstacles(land);
         let giant_tree = plot::GiantTree::generate(&site, Vec2::zero(), land, &mut rng);
         site.name = giant_tree.name().to_string();
         let size = (giant_tree.radius() / tile::TILE_SIZE as f32).ceil() as i32;
-
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
             max: Vec2::broadcast(size) + 1,
         };
-
         let plot = site.create_plot(Plot {
             kind: PlotKind::GiantTree(giant_tree),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
             seed: rng.gen(),
         });
-
         site.blit_aabr(aabr, Tile {
             kind: TileKind::Building,
             plot: Some(plot),
             hard_alt: None,
         });
-
         site
     }
 
