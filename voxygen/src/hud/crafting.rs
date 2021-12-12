@@ -16,8 +16,9 @@ use common::{
     assets::AssetExt,
     comp::inventory::{
         item::{
-            item_key::ItemKey, modular::ModularComponent, ItemDef, ItemDesc, ItemKind, ItemTag,
-            MaterialStatManifest, Quality, TagExampleInfo,
+            item_key::ItemKey, modular, modular::ModularComponent, tool::AbilityMap, Item,
+            ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
+            TagExampleInfo,
         },
         slot::InvSlotId,
         Inventory,
@@ -860,6 +861,74 @@ impl<'a> Widget for Crafting<'a> {
                                 secondary_slot,
                             });
                         }
+                    }
+
+                    // Output Image
+                    Image::new(self.imgs.inv_slot)
+                        .w_h(60.0, 60.0)
+                        .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
+                        .parent(state.ids.align_ing)
+                        .set(state.ids.output_img_frame, ui);
+
+                    if let (Some(primary_comp), Some(secondary_comp)) = (
+                        primary_slot
+                            .invslot
+                            .and_then(|slot| self.inventory.get(slot))
+                            .filter(|item| {
+                                matches!(
+                                    &*item.kind(),
+                                    ItemKind::ModularComponent(
+                                        ModularComponent::ToolPrimaryComponent { .. }
+                                    )
+                                )
+                            }),
+                        secondary_slot
+                            .invslot
+                            .and_then(|slot| self.inventory.get(slot))
+                            .filter(|item| {
+                                matches!(
+                                    &*item.kind(),
+                                    ItemKind::ModularComponent(
+                                        ModularComponent::ToolSecondaryComponent { .. }
+                                    )
+                                )
+                            }),
+                    ) {
+                        let ability_map = &AbilityMap::load().read();
+                        let msm = &MaterialStatManifest::load().read();
+                        let output_item = Item::new_from_item_base(
+                            ItemBase::Modular(modular::ModularBase::Tool),
+                            vec![
+                                primary_comp.duplicate(ability_map, msm),
+                                secondary_comp.duplicate(ability_map, msm),
+                            ],
+                            ability_map,
+                            msm,
+                        );
+
+                        Button::image(animate_by_pulse(
+                            &self
+                                .item_imgs
+                                .img_ids_or_not_found_img(ItemKey::ModularWeapon(
+                                    modular::weapon_to_key(&output_item),
+                                )),
+                            self.pulse,
+                        ))
+                        .w_h(55.0, 55.0)
+                        .label(&output_item.name())
+                        .label_color(TEXT_COLOR)
+                        .label_font_size(self.fonts.cyri.scale(14))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .label_y(conrod_core::position::Relative::Scalar(-24.0))
+                        .label_x(conrod_core::position::Relative::Scalar(24.0))
+                        .middle_of(state.ids.output_img_frame)
+                        .with_item_tooltip(
+                            self.item_tooltip_manager,
+                            core::iter::once(&output_item as &dyn ItemDesc),
+                            &None,
+                            &item_tooltip,
+                        )
+                        .set(state.ids.output_img, ui);
                     }
                 },
                 _ => {
