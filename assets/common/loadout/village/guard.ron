@@ -5,11 +5,20 @@
     Armor(Hands): Item("common.items.armor.leather_plate.hand"),
     Armor(Legs): Item("common.items.armor.leather_plate.pants"),
     Armor(Feet): Item("common.items.armor.leather_plate.foot"),
-    Armor(Head): Item("common.items.armor.misc.head.boreal_warhelm"),
-    //Armor(Head): Item("common.items.armor.leather_plate.helmet"),
+    Armor(Head): Choice([
+        // Christmas event
+        (2.0, Some(Item("common.items.armor.misc.head.boreal_warhelm"))),
+        (1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
+        //(4.0, Some(Item("common.items.armor.leather_plate.helmet"))),
+    ]),
 
     Lantern: Choice([
-        (1.0, Some(Item("common.items.lantern.black_0"))),
-        (2.0, None),
+        //(1.0, Some(Item("common.items.lantern.black_0"))),
+        //(2.0, None),
+        // Christmas event
+        (1.0, Some(Item("common.items.lantern.blue_0"))),
+        (1.0, Some(Item("common.items.lantern.polaris"))),
+        (2.0, Some(Item("common.items.lantern.red_0"))),
+        (2.0, Some(Item("common.items.lantern.green_0"))),
     ]),
 })

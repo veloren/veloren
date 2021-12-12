@@ -2255,12 +2255,12 @@
         "voxel.armor.misc.head.winged_coronet",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("BorealWarhelmet")): VoxTrans(
+    Armor(Head("BorealWarhelm")): VoxTrans(
         "voxel.armor.misc.head.boreal_warhelm",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     Armor(Head("WoollyWintercap")): VoxTrans(
-        "voxel.calendar.christmas.armor.misc.head.woolly_wintercap",
+        "voxel.armor.misc.head.woolly_wintercap",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     // Rings

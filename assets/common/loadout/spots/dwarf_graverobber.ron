@@ -8,6 +8,8 @@
     Armor(Head): Choice([
         (1.0, Some(Item("common.items.armor.misc.head.bandana.thief"))),
         (1.0, Some(Item("common.items.armor.misc.head.bandana.red"))),
+        (1.0, Some(Item("common.items.armor.misc.head.hood"))),
+        (1.0, Some(Item("common.items.armor.misc.head.hood_dark"))),
 
     ]),
     Lantern: Choice([

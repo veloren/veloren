@@ -33,7 +33,7 @@ impl Calendar {
             None => Local::now().naive_local(),
         };
 
-        if now.month() == 12 && (10..=30).contains(&now.day()) {
+        if now.month() == 12 && (20..=30).contains(&now.day()) {
             this.events.push(CalendarEvent::Christmas);
         }
 
