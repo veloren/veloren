@@ -38,7 +38,11 @@ impl Source for FileSystem {
                 Err(err) => {
                     if err.kind() != io::ErrorKind::NotFound {
                         let path = dir.path_of(DirEntry::File(id, ext));
-                        tracing::warn!("Error reading \"{}\": {}", path.display(), err);
+                        tracing::warn!(
+                            "Error reading \"{}\": {}. Falling back to default",
+                            path.display(),
+                            err
+                        );
                     }
                 },
             }
@@ -55,7 +59,11 @@ impl Source for FileSystem {
                 Err(err) => {
                     if err.kind() != io::ErrorKind::NotFound {
                         let path = dir.path_of(DirEntry::Directory(id));
-                        tracing::warn!("Error reading \"{}\": {}", path.display(), err);
+                        tracing::warn!(
+                            "Error reading \"{}\": {}. Falling back to default",
+                            path.display(),
+                            err
+                        );
                     }
                 },
             }
