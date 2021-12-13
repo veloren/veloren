@@ -225,6 +225,7 @@ impl Mode {
     }
 
     pub fn edit(name: String, character_id: CharacterId, body: humanoid::Body) -> Self {
+        println!("Begin edit");
         // TODO: Load these from the server (presumably from a .ron) to allow for easier
         // modification of custom starting weapons
         let mainhand = Some(STARTER_SWORD);
@@ -264,6 +265,7 @@ enum InfoContent {
     Deletion(usize),
     LoadingCharacters,
     CreatingCharacter,
+    EditingCharacter,
     DeletingCharacter,
     CharacterError(String),
 }
@@ -441,6 +443,7 @@ impl Controls {
                     info_content,
                     Some(InfoContent::LoadingCharacters)
                         | Some(InfoContent::CreatingCharacter)
+                        | Some(InfoContent::EditingCharacter)
                         | Some(InfoContent::DeletingCharacter)
                 ) && !client.character_list().loading
                 {
@@ -737,6 +740,11 @@ impl Controls {
                         },
                         InfoContent::CreatingCharacter => {
                             Text::new(i18n.get("char_selection.creating_character"))
+                                .size(fonts.cyri.scale(24))
+                                .into()
+                        },
+                        InfoContent::EditingCharacter => {
+                            Text::new(i18n.get("char_selection.editing_character"))
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
@@ -1247,6 +1255,12 @@ impl Controls {
                     tooltip::text(i18n.get("common.rand_name"), tooltip_style)
                 });
 
+                let confirm_msg = if let Some(character_id) = character_id {
+                    Message::ConfirmEdit(*character_id)
+                } else {
+                    Message::CreateCharacter
+                };
+
                 let name_input = BackgroundContainer::new(
                     Image::new(imgs.name_input)
                         .height(Length::Units(40))
@@ -1258,11 +1272,7 @@ impl Controls {
                         Message::Name,
                     )
                     .size(25)
-                    .on_submit(if let Some(character_id) = character_id {
-                        Message::ConfirmEdit(*character_id)
-                    } else {
-                        Message::CreateCharacter
-                    }),
+                    .on_submit(confirm_msg.clone()),
                 )
                 .padding(Padding::new().horizontal(7).top(5));
 
@@ -1284,7 +1294,7 @@ impl Controls {
                     i18n.get("common.create"),
                     FILL_FRAC_ONE,
                     button_style,
-                    (!name.is_empty()).then_some(Message::CreateCharacter),
+                    (!name.is_empty()).then_some(confirm_msg),
                 );
 
                 let create: Element<Message> = if name.is_empty() {
@@ -1435,7 +1445,7 @@ impl Controls {
                         character_id,
                         body: comp::Body::Humanoid(*body),
                     });
-                    self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
+                    self.mode = Mode::select(Some(InfoContent::EditingCharacter));
                     println!("Message::ConfirmEdit");
                 }
             },

@@ -277,8 +277,8 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
     let mut stmt = connection.prepare_cached(
         "
             SELECT  character_id,
-                    alias 
-            FROM    character 
+                    alias
+            FROM    character
             WHERE   player_uuid = ?1
             ORDER BY character_id",
     )?;
@@ -507,7 +507,7 @@ pub fn edit_character(
     let (body,) = editable_components;
 
     let mut stmt = transaction
-        .prepare_cached("UPDATE body SET variant = ?1, body_data = ?2 WHERE character_id = ?3")?;
+        .prepare_cached("UPDATE body SET variant = ?1, body_data = ?2 WHERE body_id = ?3")?;
 
     let (body_variant, body_data) = convert_body_to_database_json(&body)?;
     stmt.execute(&[
@@ -875,7 +875,7 @@ fn delete_pets(
 
     #[rustfmt::skip]
     let mut stmt = transaction.prepare_cached("
-            DELETE 
+            DELETE
             FROM    body
             WHERE   body_id IN rarray(?1)"
     )?;
@@ -1038,7 +1038,7 @@ pub fn update(
 
     let mut stmt = transaction.prepare_cached(
         "
-        REPLACE 
+        REPLACE
         INTO    skill (entity_id,
                        skill,
                        level)

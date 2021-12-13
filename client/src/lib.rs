@@ -108,6 +108,7 @@ pub enum Event {
     SetViewDistance(u32),
     Outcome(Outcome),
     CharacterCreated(CharacterId),
+    CharacterEdited(CharacterId),
     CharacterError(String),
 }
 
@@ -844,6 +845,7 @@ impl Client {
     }
 
     pub fn edit_character(&mut self, alias: String, id: CharacterId, body: comp::Body) {
+        println!("Edit character");
         self.character_list.loading = true;
         self.send_msg(ClientGeneral::EditCharacter { alias, id, body });
     }
@@ -2042,6 +2044,9 @@ impl Client {
             },
             ServerGeneral::CharacterCreated(character_id) => {
                 events.push(Event::CharacterCreated(character_id));
+            },
+            ServerGeneral::CharacterEdited(character_id) => {
+                events.push(Event::CharacterEdited(character_id));
             },
             ServerGeneral::CharacterSuccess => {
                 debug!("client is now in ingame state on server");
