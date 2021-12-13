@@ -261,6 +261,7 @@ impl Archetype for House {
         let roof_color = *self.colors.roof.elim_case_pure(&colors.roof);
         let wall_color = *self.colors.wall.elim_case_pure(&colors.wall);
         let support_color = *self.colors.support.elim_case_pure(&colors.support);
+        let christmas_theme = true; // calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
 
         let profile = Vec2::new(bound_offset.x, z);
 
@@ -613,7 +614,9 @@ impl Archetype for House {
                         .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
                     && attr.storey_fill.has_lower()
                 {
-                    let ornament =
+                    let ornament = if christmas_theme {
+                        SpriteKind::ChristmasOrnament
+                    } else {
                         match self
                             .noise
                             .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
@@ -624,7 +627,8 @@ impl Archetype for House {
                             4 => SpriteKind::WallSconce,
                             5 => SpriteKind::WallLampSmall,
                             _ => SpriteKind::DungeonWallDecor,
-                        };
+                        }
+                    };
 
                     BlockMask::new(
                         Block::air(ornament).with_ori((edge_ori + 4) % 8).unwrap(),
