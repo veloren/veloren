@@ -282,11 +282,6 @@ lazy_static! {
     };
 }
 
-/// Returns the actual path of the specifier with the extension.
-///
-/// For directories, give `""` as extension.
-pub fn path_of(specifier: &str, ext: &str) -> PathBuf { ASSETS.source().path_of(specifier, ext) }
-
 #[cfg(test)]
 mod tests {
     use std::{ffi::OsStr, fs::File};

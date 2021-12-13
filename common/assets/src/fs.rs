@@ -1,4 +1,4 @@
-use std::{borrow::Cow, io, path::PathBuf};
+use std::{borrow::Cow, io};
 
 use assets_manager::{
     hot_reloading::{DynUpdateSender, EventSender, FsWatcherBuilder},
@@ -27,10 +27,6 @@ impl FileSystem {
             default,
             override_dir,
         })
-    }
-
-    pub fn path_of(&self, specifier: &str, ext: &str) -> PathBuf {
-        self.default.path_of(DirEntry::File(specifier, ext))
     }
 }
 
