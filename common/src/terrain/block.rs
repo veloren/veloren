@@ -189,6 +189,7 @@ impl Block {
                 | SpriteKind::WallLampSmall
                 | SpriteKind::WallSconce
                 | SpriteKind::FireBowlGround
+                | SpriteKind::ChristmasOrnament
                 | SpriteKind::Orb => Some(16),
                 SpriteKind::Velorite
                 | SpriteKind::VeloriteFrag
