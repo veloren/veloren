@@ -738,6 +738,7 @@ impl Client {
                 let stream = match msg {
                     ClientGeneral::RequestCharacterList
                     | ClientGeneral::CreateCharacter { .. }
+                    | ClientGeneral::EditCharacter { .. }
                     | ClientGeneral::DeleteCharacter(_)
                     | ClientGeneral::Character(_)
                     | ClientGeneral::Spectate => &mut self.character_screen_stream,
@@ -840,6 +841,11 @@ impl Client {
             offhand,
             body,
         });
+    }
+
+    pub fn edit_character(&mut self, alias: String, id: CharacterId, body: comp::Body) {
+        self.character_list.loading = true;
+        self.send_msg(ClientGeneral::EditCharacter { alias, id, body });
     }
 
     /// Character deletion

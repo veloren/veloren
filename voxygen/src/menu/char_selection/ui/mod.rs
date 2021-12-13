@@ -76,6 +76,10 @@ image_ids_ice! {
         delete_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
         delete_button_press: "voxygen.element.ui.char_select.icons.bin_press",
 
+        edit_button: "voxygen.element.ui.char_select.icons.bin",
+        edit_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
+        edit_button_press: "voxygen.element.ui.char_select.icons.bin_press",
+
         name_input: "voxygen.element.ui.generic.textbox",
 
         // Tool Icons
@@ -129,6 +133,11 @@ pub enum Event {
         offhand: Option<String>,
         body: comp::Body,
     },
+    EditCharacter {
+        alias: String,
+        character_id: CharacterId,
+        body: comp::Body,
+    },
     DeleteCharacter(CharacterId),
     ClearCharacterListError,
     SelectCharacter(Option<CharacterId>),
@@ -146,7 +155,7 @@ enum Mode {
         yes_button: button::State,
         no_button: button::State,
     },
-    Create {
+    CreateOrEdit {
         name: String,
         body: humanoid::Body,
         inventory: Box<comp::inventory::Inventory>,
@@ -163,6 +172,7 @@ enum Mode {
         create_button: button::State,
         rand_character_button: button::State,
         rand_name_button: button::State,
+        character_id: Option<CharacterId>,
     },
 }
 
@@ -194,7 +204,7 @@ impl Mode {
 
         let inventory = Box::new(Inventory::new_with_loadout(loadout));
 
-        Self::Create {
+        Self::CreateOrEdit {
             name,
             body: humanoid::Body::random(),
             inventory,
@@ -210,6 +220,41 @@ impl Mode {
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
+            character_id: None,
+        }
+    }
+
+    pub fn edit(name: String, character_id: CharacterId, body: humanoid::Body) -> Self {
+        // TODO: Load these from the server (presumably from a .ron) to allow for easier
+        // modification of custom starting weapons
+        let mainhand = Some(STARTER_SWORD);
+        let offhand = None;
+
+        let loadout = LoadoutBuilder::empty()
+            .defaults()
+            .active_mainhand(mainhand.map(Item::new_from_asset_expect))
+            .active_offhand(offhand.map(Item::new_from_asset_expect))
+            .build();
+
+        let inventory = Box::new(Inventory::new_with_loadout(loadout));
+
+        Self::CreateOrEdit {
+            name,
+            body,
+            inventory,
+            mainhand,
+            offhand,
+            body_type_buttons: Default::default(),
+            species_buttons: Default::default(),
+            tool_buttons: Default::default(),
+            sliders: Default::default(),
+            scroll: Default::default(),
+            name_input: Default::default(),
+            back_button: Default::default(),
+            create_button: Default::default(),
+            rand_character_button: Default::default(),
+            rand_name_button: Default::default(),
+            character_id: Some(character_id),
         }
     }
 }
@@ -247,6 +292,8 @@ enum Message {
     EnterWorld,
     Select(CharacterId),
     Delete(usize),
+    Edit(usize),
+    ConfirmEdit(CharacterId),
     NewCharacter,
     CreateCharacter,
     Name(String),
@@ -421,12 +468,13 @@ impl Controls {
                     let characters = &client.character_list().characters;
                     let num = characters.len();
                     // Ensure we have enough button states
-                    character_buttons.resize_with(num * 2, Default::default);
+                    const CHAR_BUTTONS: usize = 3;
+                    character_buttons.resize_with(num * CHAR_BUTTONS, Default::default);
 
                     // Character Selection List
                     let mut characters = characters
                         .iter()
-                        .zip(character_buttons.chunks_exact_mut(2))
+                        .zip(character_buttons.chunks_exact_mut(CHAR_BUTTONS))
                         .filter_map(|(character, buttons)| {
                             let mut buttons = buttons.iter_mut();
                             // TODO: eliminate option in character id?
@@ -434,20 +482,43 @@ impl Controls {
                                 (
                                     id,
                                     character,
-                                    (buttons.next().unwrap(), buttons.next().unwrap()),
+                                    (
+                                        buttons.next().unwrap(),
+                                        buttons.next().unwrap(),
+                                        buttons.next().unwrap(),
+                                    ),
                                 )
                             })
                         })
                         .enumerate()
                         .map(
-                            |(i, (character_id, character, (select_button, delete_button)))| {
+                            |(
+                                i,
+                                (
+                                    character_id,
+                                    character,
+                                    (select_button, edit_button, delete_button),
+                                ),
+                            )| {
                                 let select_col = if Some(i) == selected {
                                     (255, 208, 69)
                                 } else {
                                     (255, 255, 255)
                                 };
                                 Overlay::new(
-                                    Container::new(
+                                    Container::new(Row::with_children(vec![
+                                        // Edit button
+                                        Button::new(
+                                            edit_button,
+                                            Space::new(Length::Units(16), Length::Units(16)),
+                                        )
+                                        .style(
+                                            style::button::Style::new(imgs.edit_button)
+                                                .hover_image(imgs.edit_button_hover)
+                                                .press_image(imgs.edit_button_press),
+                                        )
+                                        .on_press(Message::Edit(i))
+                                        .into(),
                                         // Delete button
                                         Button::new(
                                             delete_button,
@@ -458,8 +529,9 @@ impl Controls {
                                                 .hover_image(imgs.delete_button_hover)
                                                 .press_image(imgs.delete_button_press),
                                         )
-                                        .on_press(Message::Delete(i)),
-                                    )
+                                        .on_press(Message::Delete(i))
+                                        .into(),
+                                    ]))
                                     .padding(4),
                                     // Select Button
                                     AspectRatioContainer::new(
@@ -716,7 +788,7 @@ impl Controls {
                     content.into()
                 }
             },
-            Mode::Create {
+            Mode::CreateOrEdit {
                 name,
                 body,
                 inventory: _,
@@ -732,6 +804,7 @@ impl Controls {
                 ref mut create_button,
                 ref mut rand_character_button,
                 ref mut rand_name_button,
+                character_id,
             } => {
                 let unselected_style = style::button::Style::new(imgs.icon_border)
                     .hover_image(imgs.icon_border_mo)
@@ -1185,7 +1258,11 @@ impl Controls {
                         Message::Name,
                     )
                     .size(25)
-                    .on_submit(Message::CreateCharacter),
+                    .on_submit(if let Some(character_id) = character_id {
+                        Message::ConfirmEdit(*character_id)
+                    } else {
+                        Message::CreateCharacter
+                    }),
                 )
                 .padding(Padding::new().horizontal(7).top(5));
 
@@ -1293,7 +1370,7 @@ impl Controls {
     fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
         match message {
             Message::Back => {
-                if matches!(&self.mode, Mode::Create { .. }) {
+                if matches!(&self.mode, Mode::CreateOrEdit { .. }) {
                     self.mode = Mode::select(None);
                 }
             },
@@ -1316,13 +1393,25 @@ impl Controls {
                     *info_content = Some(InfoContent::Deletion(idx));
                 }
             },
+            Message::Edit(idx) => {
+                if matches!(&self.mode, Mode::Select { .. }) {
+                    if let Some(character) = characters.get(idx) {
+                        if let comp::Body::Humanoid(body) = character.body {
+                            if let Some(id) = character.character.id {
+                                self.mode = Mode::edit(character.character.alias.clone(), id, body);
+                                println!("Message::Edit");
+                            }
+                        }
+                    }
+                }
+            },
             Message::NewCharacter => {
                 if matches!(&self.mode, Mode::Select { .. }) {
                     self.mode = Mode::create(self.default_name.clone());
                 }
             },
             Message::CreateCharacter => {
-                if let Mode::Create {
+                if let Mode::CreateOrEdit {
                     name,
                     body,
                     mainhand,
@@ -1339,25 +1428,36 @@ impl Controls {
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }
             },
+            Message::ConfirmEdit(character_id) => {
+                if let Mode::CreateOrEdit { name, body, .. } = &self.mode {
+                    events.push(Event::EditCharacter {
+                        alias: name.clone(),
+                        character_id,
+                        body: comp::Body::Humanoid(*body),
+                    });
+                    self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
+                    println!("Message::ConfirmEdit");
+                }
+            },
             Message::Name(value) => {
-                if let Mode::Create { name, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { name, .. } = &mut self.mode {
                     *name = value.chars().take(MAX_NAME_LENGTH).collect();
                 }
             },
             Message::BodyType(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.body_type = value;
                     body.validate();
                 }
             },
             Message::Species(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.species = value;
                     body.validate();
                 }
             },
             Message::Tool(value) => {
-                if let Mode::Create {
+                if let Mode::CreateOrEdit {
                     mainhand,
                     offhand,
                     inventory,
@@ -1378,7 +1478,7 @@ impl Controls {
             },
             //Todo: Add species and body type to randomization.
             Message::RandomizeCharacter => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     use rand::Rng;
                     let body_type = body.body_type;
                     let species = body.species;
@@ -1394,7 +1494,7 @@ impl Controls {
             },
 
             Message::RandomizeName => {
-                if let Mode::Create { name, body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { name, body, .. } = &mut self.mode {
                     use common::npc;
                     *name = npc::get_npc_name(
                         npc::NpcKind::Humanoid,
@@ -1429,43 +1529,43 @@ impl Controls {
                 events.push(Event::ClearCharacterListError);
             },
             Message::HairStyle(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.hair_style = value;
                     body.validate();
                 }
             },
             Message::HairColor(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.hair_color = value;
                     body.validate();
                 }
             },
             Message::Skin(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.skin = value;
                     body.validate();
                 }
             },
             Message::Eyes(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.eyes = value;
                     body.validate();
                 }
             },
             Message::EyeColor(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.eye_color = value;
                     body.validate();
                 }
             },
             Message::Accessory(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.accessory = value;
                     body.validate();
                 }
             },
             Message::Beard(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.beard = value;
                     body.validate();
                 }
@@ -1484,7 +1584,7 @@ impl Controls {
                 .selected
                 .and_then(|id| characters.iter().find(|i| i.character.id == Some(id)))
                 .map(|i| (i.body, &i.inventory)),
-            Mode::Create {
+            Mode::CreateOrEdit {
                 inventory, body, ..
             } => Some((comp::Body::Humanoid(*body), inventory)),
         }

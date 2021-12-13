@@ -145,6 +145,28 @@ impl Sys {
                     }
                 }
             },
+            ClientGeneral::EditCharacter { id, alias, body } => {
+                if let Err(error) = alias_validator.validate(&alias) {
+                    debug!(?error, ?alias, "denied alias as it contained a banned word");
+                    client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
+                } else if let Some(player) = players.get(entity) {
+                    if let Err(error) = character_creator::edit_character(
+                        entity,
+                        player.uuid().to_string(),
+                        id,
+                        alias,
+                        body,
+                        character_updater,
+                    ) {
+                        debug!(
+                            ?error,
+                            ?body,
+                            "Denied creating character because of invalid input."
+                        );
+                        client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
+                    }
+                }
+            },
             ClientGeneral::DeleteCharacter(character_id) => {
                 if let Some(player) = players.get(entity) {
                     character_updater.delete_character(

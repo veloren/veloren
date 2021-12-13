@@ -94,6 +94,7 @@ impl Client {
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
+                    | ServerGeneral::CharacterEdited(_)
                     | ServerGeneral::CharacterSuccess => {
                         self.character_screen_stream.lock().unwrap().send(g)
                     },
@@ -165,6 +166,7 @@ impl Client {
                     | ServerGeneral::CharacterListUpdate(_)
                     | ServerGeneral::CharacterActionError(_)
                     | ServerGeneral::CharacterCreated(_)
+                    | ServerGeneral::CharacterEdited(_)
                     | ServerGeneral::CharacterSuccess => {
                         PreparedMsg::new(1, &g, &self.character_screen_stream_params)
                     },

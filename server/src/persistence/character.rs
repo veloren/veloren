@@ -22,7 +22,7 @@ use crate::{
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
         error::PersistenceError::DatabaseError,
-        PersistedComponents,
+        EditableComponents, PersistedComponents,
     },
 };
 use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
@@ -495,6 +495,35 @@ pub fn create_character(
     drop(stmt);
 
     load_character_list(uuid, transactionn).map(|list| (character_id, list))
+}
+
+pub fn edit_character(
+    editable_components: EditableComponents,
+    transaction: &mut Transaction,
+    character_id: CharacterId,
+    uuid: &str,
+    character_alias: &str,
+) -> CharacterCreationResult {
+    let (body,) = editable_components;
+
+    let mut stmt = transaction
+        .prepare_cached("UPDATE body SET variant = ?1, body_data = ?2 WHERE character_id = ?3")?;
+
+    let (body_variant, body_data) = convert_body_to_database_json(&body)?;
+    stmt.execute(&[
+        &body_variant.to_string(),
+        &body_data,
+        &character_id as &dyn ToSql,
+    ])?;
+    drop(stmt);
+
+    let mut stmt =
+        transaction.prepare_cached("UPDATE character SET alias = ?1 WHERE character_id = ?2")?;
+
+    stmt.execute(&[&character_alias, &character_id as &dyn ToSql])?;
+    drop(stmt);
+
+    load_character_list(uuid, transaction).map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.

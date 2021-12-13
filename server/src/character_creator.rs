@@ -1,6 +1,7 @@
 use crate::persistence::character_updater::CharacterUpdater;
-use common::comp::{
-    inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats,
+use common::{
+    character::CharacterId,
+    comp::{inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats},
 };
 use specs::{Entity, WriteExpect};
 
@@ -70,6 +71,26 @@ pub fn create_character(
         character_alias,
         (body, stats, skill_set, inventory, waypoint, Vec::new()),
     );
+    Ok(())
+}
+
+pub fn edit_character(
+    entity: Entity,
+    player_uuid: String,
+    id: CharacterId,
+    character_alias: String,
+    body: Body,
+    character_updater: &mut WriteExpect<'_, CharacterUpdater>,
+) -> Result<(), CreationError> {
+    // quick fix whitelist validation for now; eventually replace the
+    // `Option<String>` with an index into a server-provided list of starter
+    // items, and replace `comp::body::Body` with `comp::body::humanoid::Body`
+    // throughout the messages involved
+    if !matches!(body, Body::Humanoid(_)) {
+        return Err(CreationError::InvalidBody);
+    }
+
+    character_updater.edit_character(entity, player_uuid, id, character_alias, (body,));
     Ok(())
 }
 

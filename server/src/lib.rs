@@ -813,6 +813,22 @@ impl Server {
                         ServerGeneral::CharacterActionError(error.to_string()),
                     ),
                 },
+                CharacterLoaderResponseKind::CharacterEdit(result) => match result {
+                    Ok((character_id, list)) => {
+                        self.notify_client(
+                            query_result.entity,
+                            ServerGeneral::CharacterListUpdate(list),
+                        );
+                        self.notify_client(
+                            query_result.entity,
+                            ServerGeneral::CharacterEdited(character_id),
+                        );
+                    },
+                    Err(error) => self.notify_client(
+                        query_result.entity,
+                        ServerGeneral::CharacterActionError(error.to_string()),
+                    ),
+                },
                 CharacterLoaderResponseKind::CharacterData(result) => {
                     let message = match *result {
                         Ok(character_data) => ServerEvent::UpdateCharacterData {
