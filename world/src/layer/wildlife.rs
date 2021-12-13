@@ -145,34 +145,45 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
             close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5
         }),
         // Core animals events
-        ("world.wildlife.spawn.calendar.christmas.tundra.core", |c, _col| {
-            close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5
-        }),
+        (
+            "world.wildlife.spawn.calendar.christmas.tundra.core",
+            |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
+        ),
         // Snowy animals
         ("world.wildlife.spawn.tundra.snow", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * col.snow_cover as i32 as f32 * 1.0
         }),
         // Snowy animals event
-        ("world.wildlife.spawn.calendar.christmas.tundra.snow", |c, col| {
-            close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * col.snow_cover as i32 as f32 * 1.0
-        }),
+        (
+            "world.wildlife.spawn.calendar.christmas.tundra.snow",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp, 0.3)
+                    * BASE_DENSITY
+                    * col.snow_cover as i32 as f32
+                    * 1.0
+            },
+        ),
         // Forest animals
         ("world.wildlife.spawn.tundra.forest", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
         }),
         // Forest animals event
-        ("world.wildlife.spawn.calendar.christmas.tundra.forest", |c, col| {
-            close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
-        }),
+        (
+            "world.wildlife.spawn.calendar.christmas.tundra.forest",
+            |c, col| close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4,
+        ),
         // **Taiga**
         // Forest core animals
         ("world.wildlife.spawn.taiga.core_forest", |c, col| {
             close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
         }),
         // Forest core animals event
-        ("world.wildlife.spawn.calendar.christmas.taiga.core_forest", |c, col| {
-            close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
-        }),
+        (
+            "world.wildlife.spawn.calendar.christmas.taiga.core_forest",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
+            },
+        ),
         // Core animals
         ("world.wildlife.spawn.taiga.core", |c, _col| {
             close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * BASE_DENSITY * 1.0

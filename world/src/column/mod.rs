@@ -1137,10 +1137,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .mul(32.0)
                 .clamped(0.0, 1.0);
 
-            ((1.0 - Lerp::lerp(marble, Lerp::lerp(marble_mid, marble_small, 0.25), 0.5)) * 5.0
+            (((1.0 - Lerp::lerp(marble, Lerp::lerp(marble_mid, marble_small, 0.25), 0.5)) * 5.0
                 - 1.5)
                 .max(0.0)
-                + cliff * cliff_ctrl
+                + cliff * cliff_ctrl)
+                .min((water_level - alt).max(0.0))
         } else {
             0.0
         };

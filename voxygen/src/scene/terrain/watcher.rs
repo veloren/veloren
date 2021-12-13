@@ -80,7 +80,7 @@ impl BlocksOfInterest {
                 },
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
-                BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
+                BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
                         fires.push(pos);
