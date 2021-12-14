@@ -7,7 +7,7 @@ use crate::{
     IndexRef,
 };
 use common::{
-    calendar::Calendar,
+    calendar::{Calendar, CalendarEvent},
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
 };
@@ -241,7 +241,9 @@ impl Archetype for House {
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),
-            christmas_decorations: calendar.map(|c| c.is_event(CalendarEvent::Christmas)),
+            christmas_decorations: calendar
+                .map(|c| c.is_event(CalendarEvent::Christmas))
+                .unwrap_or_default(),
         };
 
         (this, skel)
@@ -612,13 +614,21 @@ impl Archetype for House {
                 if dist == width + 1
                     && center_offset.map(|e| e.abs()).reduce_min() == 0
                     && profile.y == floor_height + 3
-                    && self
-                        .noise
-                        .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
+                    && self.noise.chance(
+                        Vec3::new(center_offset.x, center_offset.y, z),
+                        if christmas_theme { 0.70 } else { 0.35 },
+                    )
                     && attr.storey_fill.has_lower()
                 {
                     let ornament = if christmas_theme {
-                        SpriteKind::ChristmasOrnament
+                        match self
+                            .noise
+                            .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
+                            % 4
+                        {
+                            0 => SpriteKind::ChristmasWreath,
+                            _ => SpriteKind::ChristmasOrnament,
+                        }
                     } else {
                         match self
                             .noise

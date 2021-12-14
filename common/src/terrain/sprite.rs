@@ -189,6 +189,7 @@ make_case_elim!(
         JungleRedGrass = 0xA2,
         Bomb = 0xA3,
         ChristmasOrnament = 0xA4,
+        ChristmasWreath = 0xA5,
     }
 );
 
@@ -453,6 +454,7 @@ impl SpriteKind {
                 | SpriteKind::Loom
                 | SpriteKind::DismantlingBench
                 | SpriteKind::ChristmasOrnament
+                | SpriteKind::ChristmasWreath
         )
     }
 }

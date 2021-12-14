@@ -2030,6 +2030,16 @@ ChristmasOrnament: Some((
     ],
     wind_sway: 0.2,
 )),
+ChristmasWreath: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.furniture.wreath-0",
+            offset: (-6.5, -4.5, 0.0),
+            lod_axes: (1.0, 1.0, 1.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // WallSconce
 WallSconce: Some((
     variations: [
