@@ -123,7 +123,6 @@ impl World {
     pub fn get_map_data(
         &self,
         index: IndexRef,
-        calendar: Option<&Calendar>,
         threadpool: &rayon::ThreadPool,
     ) -> WorldMapMsg {
         threadpool.install(|| {
@@ -184,7 +183,7 @@ impl World {
                             }),
                     )
                     .collect(),
-                ..self.sim.get_map(index, calendar)
+                ..self.sim.get_map(index, self.sim().calendar.as_ref())
             }
         })
     }

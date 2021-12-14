@@ -184,6 +184,7 @@ pub struct WorldOpts {
     /// Set to false to disable seeding elements during worldgen.
     pub seed_elements: bool,
     pub world_file: FileOpts,
+    pub calendar: Option<Calendar>,
 }
 
 impl Default for WorldOpts {
@@ -191,6 +192,7 @@ impl Default for WorldOpts {
         Self {
             seed_elements: true,
             world_file: Default::default(),
+            calendar: None,
         }
     }
 }
@@ -386,13 +388,17 @@ pub struct WorldSim {
 
     pub(crate) gen_ctx: GenCtx,
     pub rng: ChaChaRng,
+
+    pub(crate) calendar: Option<Calendar>,
 }
 
 impl WorldSim {
     pub fn generate(seed: u32, opts: WorldOpts, threadpool: &rayon::ThreadPool) -> Self {
+        let calendar = opts.calendar; // separate lifetime of elements
+        let world_file = opts.world_file; 
         // Parse out the contents of various map formats into the values we need.
         let parsed_world_file = (|| {
-            let map = match opts.world_file {
+            let map = match world_file {
                 FileOpts::LoadLegacy(ref path) => {
                     let file = match File::open(path) {
                         Ok(file) => file,
@@ -492,7 +498,7 @@ impl WorldSim {
                 },
             })
             .unwrap_or_else(|| {
-                let size_lg = match opts.world_file {
+                let size_lg = match world_file {
                     FileOpts::Generate(SizeOpts { x_lg, y_lg, .. })
                     | FileOpts::Save(SizeOpts { x_lg, y_lg, .. }) => {
                         MapSizeLg::new(Vec2 { x: x_lg, y: y_lg }).unwrap_or_else(|e| {
@@ -507,7 +513,7 @@ impl WorldSim {
         let continent_scale_hack = if let Some(map) = &parsed_world_file {
             map.continent_scale_hack
         } else if let FileOpts::Generate(SizeOpts { scale, .. })
-        | FileOpts::Save(SizeOpts { scale, .. }) = opts.world_file
+        | FileOpts::Save(SizeOpts { scale, .. }) = world_file
         {
             scale
         } else {
@@ -1140,7 +1146,7 @@ impl WorldSim {
             basement,
         });
         (|| {
-            if let FileOpts::Save { .. } = opts.world_file {
+            if let FileOpts::Save { .. } = world_file {
                 use std::time::SystemTime;
                 // Check if folder exists and create it if it does not
                 let mut path = PathBuf::from("./maps");
@@ -1443,6 +1449,7 @@ impl WorldSim {
             _locations: Vec::new(),
             gen_ctx,
             rng,
+            calendar,
         };
 
         this.generate_cliffs();

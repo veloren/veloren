@@ -356,6 +356,7 @@ impl Server {
                     // Load default map from assets.
                     FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
                 },
+                calendar: Some(settings.calendar_mode.calendar_now()),
             },
             state.thread_pool(),
         );
@@ -363,7 +364,6 @@ impl Server {
         #[cfg(feature = "worldgen")]
         let map = world.get_map_data(
             index.as_index_ref(),
-            Some(&settings.calendar_mode.calendar_now()),
             state.thread_pool(),
         );
 
