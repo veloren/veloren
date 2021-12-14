@@ -120,11 +120,7 @@ impl World {
         // TODO
     }
 
-    pub fn get_map_data(
-        &self,
-        index: IndexRef,
-        threadpool: &rayon::ThreadPool,
-    ) -> WorldMapMsg {
+    pub fn get_map_data(&self, index: IndexRef, threadpool: &rayon::ThreadPool) -> WorldMapMsg {
         threadpool.install(|| {
             // we need these numbers to create unique ids for cave ends
             let num_sites = self.civs().sites().count() as u64;

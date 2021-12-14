@@ -440,11 +440,13 @@ impl Settlement {
                             StructureKind::Keep(Building::<Keep>::generate(
                                 ctx.rng,
                                 Vec3::new(house_pos.x, house_pos.y, alt),
+                                None,
                             ))
                         } else {
                             StructureKind::House(Building::<House>::generate(
                                 ctx.rng,
                                 Vec3::new(house_pos.x, house_pos.y, alt),
+                                ctx.sim.map(|sim| sim.calendar.as_ref()).flatten(),
                             ))
                         },
                     };

@@ -395,7 +395,7 @@ pub struct WorldSim {
 impl WorldSim {
     pub fn generate(seed: u32, opts: WorldOpts, threadpool: &rayon::ThreadPool) -> Self {
         let calendar = opts.calendar; // separate lifetime of elements
-        let world_file = opts.world_file; 
+        let world_file = opts.world_file;
         // Parse out the contents of various map formats into the values we need.
         let parsed_world_file = (|| {
             let map = match world_file {

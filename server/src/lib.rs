@@ -362,10 +362,7 @@ impl Server {
         );
 
         #[cfg(feature = "worldgen")]
-        let map = world.get_map_data(
-            index.as_index_ref(),
-            state.thread_pool(),
-        );
+        let map = world.get_map_data(index.as_index_ref(), state.thread_pool());
 
         #[cfg(not(feature = "worldgen"))]
         let (world, index) = World::generate(settings.world_seed);
