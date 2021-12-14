@@ -3,6 +3,7 @@ pub mod keep;
 
 use super::skeleton::*;
 use crate::{site::BlockMask, IndexRef};
+use common::calendar::Calendar;
 use rand::prelude::*;
 use serde::Deserialize;
 use vek::*;
@@ -16,7 +17,7 @@ pub struct Colors {
 pub trait Archetype {
     type Attr;
 
-    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>)
+    fn generate<R: Rng>(rng: &mut R, calendar: Option<&Calendar>) -> (Self, Skeleton<Self::Attr>)
     where
         Self: Sized;
 

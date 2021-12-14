@@ -7,6 +7,7 @@ use crate::{
     IndexRef,
 };
 use common::{
+    calendar::Calendar,
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
 };
@@ -107,6 +108,7 @@ pub struct House {
     pub noise: RandomField,
     pub roof_ribbing: bool,
     pub roof_ribbing_diagonal: bool,
+    pub christmas_decorations: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -180,7 +182,7 @@ impl Attr {
 impl Archetype for House {
     type Attr = Attr;
 
-    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) {
+    fn generate<R: Rng>(rng: &mut R, calendar: Option<&Calendar>) -> (Self, Skeleton<Self::Attr>) {
         let len = rng.gen_range(-8..24).clamped(0, 20);
         let locus = 6 + rng.gen_range(0..5);
         let branches_per_side = 1 + len as usize / 20;
@@ -239,6 +241,7 @@ impl Archetype for House {
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),
+            christmas_decorations: calendar.map(|c| c.is_event(CalendarEvent::Christmas)),
         };
 
         (this, skel)
@@ -261,7 +264,7 @@ impl Archetype for House {
         let roof_color = *self.colors.roof.elim_case_pure(&colors.roof);
         let wall_color = *self.colors.wall.elim_case_pure(&colors.wall);
         let support_color = *self.colors.support.elim_case_pure(&colors.support);
-        let christmas_theme = true; // calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas));
+        let christmas_theme = self.christmas_decorations;
 
         let profile = Vec2::new(bound_offset.x, z);
 

@@ -29,7 +29,7 @@ impl<A: Archetype> Building<A> {
     where
         A: Sized,
     {
-        let (archetype, skel) = A::generate(rng);
+        let (archetype, skel) = A::generate(rng, calendar);
         Self {
             skel,
             archetype,
