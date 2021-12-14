@@ -6655,6 +6655,7 @@ dependencies = [
  "fxhash",
  "hashbrown 0.11.2",
  "image",
+ "inline_tweak",
  "itertools",
  "kiddo 0.2.1",
  "lazy_static",

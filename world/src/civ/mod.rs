@@ -110,7 +110,7 @@ impl Civs {
                             (SiteKind::Tree, 4)
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, 3),
+                    32..=37 => (SiteKind::Gnarling, 5),
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size, kind)?;

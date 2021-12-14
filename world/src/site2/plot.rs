@@ -1,11 +1,13 @@
 mod castle;
 pub mod dungeon;
 mod giant_tree;
+mod gnarling;
 mod house;
 mod workshop;
 
 pub use self::{
-    castle::Castle, dungeon::Dungeon, giant_tree::GiantTree, house::House, workshop::Workshop,
+    castle::Castle, dungeon::Dungeon, giant_tree::GiantTree, gnarling::GnarlingFortification,
+    house::House, workshop::Workshop,
 };
 
 use super::*;
@@ -48,5 +50,6 @@ pub enum PlotKind {
     Castle(Castle),
     Road(Path<Vec2<i32>>),
     Dungeon(Dungeon),
+    Gnarling(GnarlingFortification),
     GiantTree(GiantTree),
 }
