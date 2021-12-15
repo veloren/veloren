@@ -505,6 +505,24 @@ pub fn edit_character(
     character_alias: &str,
 ) -> CharacterCreationResult {
     let (body,) = editable_components;
+    let mut char_list = load_character_list(uuid, transaction);
+
+    if let Ok(char_list) = &mut char_list {
+        if let Some(char) = char_list
+            .iter_mut()
+            .find(|c| c.character.id == Some(character_id))
+        {
+            if let (crate::comp::Body::Humanoid(new), crate::comp::Body::Humanoid(old)) =
+                (body, char.body)
+            {
+                if new.species != old.species || new.body_type != old.body_type {
+                    return Err(PersistenceError::CharacterDataError);
+                } else {
+                    char.body = body;
+                }
+            }
+        }
+    }
 
     let mut stmt = transaction
         .prepare_cached("UPDATE body SET variant = ?1, body_data = ?2 WHERE body_id = ?3")?;
@@ -523,7 +541,7 @@ pub fn edit_character(
     stmt.execute(&[&character_alias, &character_id as &dyn ToSql])?;
     drop(stmt);
 
-    load_character_list(uuid, transaction).map(|list| (character_id, list))
+    char_list.map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.

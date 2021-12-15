@@ -844,190 +844,192 @@ impl Controls {
                         })
                 };
 
-                let (body_m_ico, body_f_ico) = match body.species {
-                    humanoid::Species::Human => (imgs.human_m, imgs.human_f),
-                    humanoid::Species::Orc => (imgs.orc_m, imgs.orc_f),
-                    humanoid::Species::Dwarf => (imgs.dwarf_m, imgs.dwarf_f),
-                    humanoid::Species::Elf => (imgs.elf_m, imgs.elf_f),
-                    humanoid::Species::Undead => (imgs.undead_m, imgs.undead_f),
-                    humanoid::Species::Danari => (imgs.danari_m, imgs.danari_f),
-                };
-
-                let [ref mut body_m_button, ref mut body_f_button] = body_type_buttons;
-                let body_type = Row::with_children(vec![
-                    icon_button(
-                        body_m_button,
-                        matches!(body.body_type, humanoid::BodyType::Male),
-                        Message::BodyType(humanoid::BodyType::Male),
-                        body_m_ico,
-                    )
-                    .into(),
-                    icon_button(
-                        body_f_button,
-                        matches!(body.body_type, humanoid::BodyType::Female),
-                        Message::BodyType(humanoid::BodyType::Female),
-                        body_f_ico,
-                    )
-                    .into(),
-                ])
-                .spacing(1);
-
-                let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
-                    match body.body_type {
-                        humanoid::BodyType::Male => (
-                            self.imgs.human_m,
-                            self.imgs.orc_m,
-                            self.imgs.dwarf_m,
-                            self.imgs.elf_m,
-                            self.imgs.undead_m,
-                            self.imgs.danari_m,
-                        ),
-                        humanoid::BodyType::Female => (
-                            self.imgs.human_f,
-                            self.imgs.orc_f,
-                            self.imgs.dwarf_f,
-                            self.imgs.elf_f,
-                            self.imgs.undead_f,
-                            self.imgs.danari_f,
-                        ),
-                    };
-
                 // TODO: tooltips
-                let [
-                    ref mut human_button,
-                    ref mut orc_button,
-                    ref mut dwarf_button,
-                    ref mut elf_button,
-                    ref mut undead_button,
-                    ref mut danari_button,
-                ] = species_buttons;
-                let species = Column::with_children(vec![
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            human_button,
-                            matches!(body.species, humanoid::Species::Human),
-                            Message::Species(humanoid::Species::Human),
-                            human_icon,
-                            "common.species.human",
+                let (tool, species, body_type) = if let Some(_) = character_id {
+                    (Column::new(), Column::new(), Row::new())
+                } else {
+                    let (body_m_ico, body_f_ico) = match body.species {
+                        humanoid::Species::Human => (imgs.human_m, imgs.human_f),
+                        humanoid::Species::Orc => (imgs.orc_m, imgs.orc_f),
+                        humanoid::Species::Dwarf => (imgs.dwarf_m, imgs.dwarf_f),
+                        humanoid::Species::Elf => (imgs.elf_m, imgs.elf_f),
+                        humanoid::Species::Undead => (imgs.undead_m, imgs.undead_f),
+                        humanoid::Species::Danari => (imgs.danari_m, imgs.danari_f),
+                    };
+                    let [ref mut body_m_button, ref mut body_f_button] = body_type_buttons;
+                    let body_type = Row::with_children(vec![
+                        icon_button(
+                            body_m_button,
+                            matches!(body.body_type, humanoid::BodyType::Male),
+                            Message::BodyType(humanoid::BodyType::Male),
+                            body_m_ico,
                         )
                         .into(),
-                        icon_button_tooltip(
-                            orc_button,
-                            matches!(body.species, humanoid::Species::Orc),
-                            Message::Species(humanoid::Species::Orc),
-                            orc_icon,
-                            "common.species.orc",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            dwarf_button,
-                            matches!(body.species, humanoid::Species::Dwarf),
-                            Message::Species(humanoid::Species::Dwarf),
-                            dwarf_icon,
-                            "common.species.dwarf",
+                        icon_button(
+                            body_f_button,
+                            matches!(body.body_type, humanoid::BodyType::Female),
+                            Message::BodyType(humanoid::BodyType::Female),
+                            body_f_ico,
                         )
                         .into(),
                     ])
-                    .spacing(1)
-                    .into(),
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            elf_button,
-                            matches!(body.species, humanoid::Species::Elf),
-                            Message::Species(humanoid::Species::Elf),
-                            elf_icon,
-                            "common.species.elf",
-                        )
+                    .spacing(1);
+                    let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
+                        match body.body_type {
+                            humanoid::BodyType::Male => (
+                                self.imgs.human_m,
+                                self.imgs.orc_m,
+                                self.imgs.dwarf_m,
+                                self.imgs.elf_m,
+                                self.imgs.undead_m,
+                                self.imgs.danari_m,
+                            ),
+                            humanoid::BodyType::Female => (
+                                self.imgs.human_f,
+                                self.imgs.orc_f,
+                                self.imgs.dwarf_f,
+                                self.imgs.elf_f,
+                                self.imgs.undead_f,
+                                self.imgs.danari_f,
+                            ),
+                        };
+                    let [
+                        ref mut human_button,
+                        ref mut orc_button,
+                        ref mut dwarf_button,
+                        ref mut elf_button,
+                        ref mut undead_button,
+                        ref mut danari_button,
+                    ] = species_buttons;
+                    let species = Column::with_children(vec![
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                human_button,
+                                matches!(body.species, humanoid::Species::Human),
+                                Message::Species(humanoid::Species::Human),
+                                human_icon,
+                                "common.species.human",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                orc_button,
+                                matches!(body.species, humanoid::Species::Orc),
+                                Message::Species(humanoid::Species::Orc),
+                                orc_icon,
+                                "common.species.orc",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                dwarf_button,
+                                matches!(body.species, humanoid::Species::Dwarf),
+                                Message::Species(humanoid::Species::Dwarf),
+                                dwarf_icon,
+                                "common.species.dwarf",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
                         .into(),
-                        icon_button_tooltip(
-                            undead_button,
-                            matches!(body.species, humanoid::Species::Undead),
-                            Message::Species(humanoid::Species::Undead),
-                            undead_icon,
-                            "common.species.undead",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            danari_button,
-                            matches!(body.species, humanoid::Species::Danari),
-                            Message::Species(humanoid::Species::Danari),
-                            danari_icon,
-                            "common.species.danari",
-                        )
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                elf_button,
+                                matches!(body.species, humanoid::Species::Elf),
+                                Message::Species(humanoid::Species::Elf),
+                                elf_icon,
+                                "common.species.elf",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                undead_button,
+                                matches!(body.species, humanoid::Species::Undead),
+                                Message::Species(humanoid::Species::Undead),
+                                undead_icon,
+                                "common.species.undead",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                danari_button,
+                                matches!(body.species, humanoid::Species::Danari),
+                                Message::Species(humanoid::Species::Danari),
+                                danari_icon,
+                                "common.species.danari",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
                         .into(),
                     ])
-                    .spacing(1)
-                    .into(),
-                ])
-                .spacing(1);
+                    .spacing(1);
+                    let [
+                        ref mut sword_button,
+                        ref mut swords_button,
+                        ref mut axe_button,
+                        ref mut hammer_button,
+                        ref mut bow_button,
+                        ref mut staff_button,
+                    ] = tool_buttons;
+                    let tool = Column::with_children(vec![
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                sword_button,
+                                *mainhand == Some(STARTER_SWORD),
+                                Message::Tool((Some(STARTER_SWORD), None)),
+                                imgs.sword,
+                                "common.weapons.greatsword",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                hammer_button,
+                                *mainhand == Some(STARTER_HAMMER),
+                                Message::Tool((Some(STARTER_HAMMER), None)),
+                                imgs.hammer,
+                                "common.weapons.hammer",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                axe_button,
+                                *mainhand == Some(STARTER_AXE),
+                                Message::Tool((Some(STARTER_AXE), None)),
+                                imgs.axe,
+                                "common.weapons.axe",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
+                        .into(),
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                swords_button,
+                                *mainhand == Some(STARTER_SWORDS),
+                                Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
+                                imgs.swords,
+                                "common.weapons.shortswords",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                bow_button,
+                                *mainhand == Some(STARTER_BOW),
+                                Message::Tool((Some(STARTER_BOW), None)),
+                                imgs.bow,
+                                "common.weapons.bow",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                staff_button,
+                                *mainhand == Some(STARTER_STAFF),
+                                Message::Tool((Some(STARTER_STAFF), None)),
+                                imgs.staff,
+                                "common.weapons.staff",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
+                        .into(),
+                    ])
+                    .spacing(1);
 
-                let [
-                    ref mut sword_button,
-                    ref mut swords_button,
-                    ref mut axe_button,
-                    ref mut hammer_button,
-                    ref mut bow_button,
-                    ref mut staff_button,
-                ] = tool_buttons;
-                let tool = Column::with_children(vec![
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            sword_button,
-                            *mainhand == Some(STARTER_SWORD),
-                            Message::Tool((Some(STARTER_SWORD), None)),
-                            imgs.sword,
-                            "common.weapons.greatsword",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            hammer_button,
-                            *mainhand == Some(STARTER_HAMMER),
-                            Message::Tool((Some(STARTER_HAMMER), None)),
-                            imgs.hammer,
-                            "common.weapons.hammer",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            axe_button,
-                            *mainhand == Some(STARTER_AXE),
-                            Message::Tool((Some(STARTER_AXE), None)),
-                            imgs.axe,
-                            "common.weapons.axe",
-                        )
-                        .into(),
-                    ])
-                    .spacing(1)
-                    .into(),
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            swords_button,
-                            *mainhand == Some(STARTER_SWORDS),
-                            Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
-                            imgs.swords,
-                            "common.weapons.shortswords",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            bow_button,
-                            *mainhand == Some(STARTER_BOW),
-                            Message::Tool((Some(STARTER_BOW), None)),
-                            imgs.bow,
-                            "common.weapons.bow",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            staff_button,
-                            *mainhand == Some(STARTER_STAFF),
-                            Message::Tool((Some(STARTER_STAFF), None)),
-                            imgs.staff,
-                            "common.weapons.staff",
-                        )
-                        .into(),
-                    ])
-                    .spacing(1)
-                    .into(),
-                ])
-                .spacing(1);
+                    (tool, species, body_type)
+                };
 
                 const SLIDER_TEXT_SIZE: u16 = 20;
                 const SLIDER_CURSOR_SIZE: (u16, u16) = (9, 21);
