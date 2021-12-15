@@ -844,7 +844,7 @@ impl Controls {
                 };
 
                 // TODO: tooltips
-                let (tool, species, body_type) = if let Some(_) = character_id {
+                let (tool, species, body_type) = if character_id.is_some() {
                     (Column::new(), Column::new(), Row::new())
                 } else {
                     let (body_m_ico, body_f_ico) = match body.species {
