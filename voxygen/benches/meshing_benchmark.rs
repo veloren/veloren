@@ -23,6 +23,7 @@ pub fn criterion_benchmark(c: &mut Criterion) {
             // directly with a closure.
             seed_elements: true,
             world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
+            calendar: None,
         },
         &pool,
     );

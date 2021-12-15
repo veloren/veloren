@@ -677,6 +677,7 @@ fn main() {
         WorldOpts {
             seed_elements: true,
             world_file: FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into()),
+            calendar: None,
         },
         &pool,
     );
