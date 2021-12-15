@@ -127,7 +127,6 @@ impl PlayState for CharSelectionState {
                         self.client
                             .borrow_mut()
                             .edit_character(alias, character_id, body);
-                        println!("Event::EditCharacter");
                     },
                     ui::Event::DeleteCharacter(character_id) => {
                         self.client.borrow_mut().delete_character(character_id);

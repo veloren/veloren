@@ -225,7 +225,6 @@ impl Mode {
     }
 
     pub fn edit(name: String, character_id: CharacterId, body: humanoid::Body) -> Self {
-        println!("Begin edit");
         // TODO: Load these from the server (presumably from a .ron) to allow for easier
         // modification of custom starting weapons
         let mainhand = Some(STARTER_SWORD);
@@ -1411,7 +1410,6 @@ impl Controls {
                         if let comp::Body::Humanoid(body) = character.body {
                             if let Some(id) = character.character.id {
                                 self.mode = Mode::edit(character.character.alias.clone(), id, body);
-                                println!("Message::Edit");
                             }
                         }
                     }
@@ -1448,7 +1446,6 @@ impl Controls {
                         body: comp::Body::Humanoid(*body),
                     });
                     self.mode = Mode::select(Some(InfoContent::EditingCharacter));
-                    println!("Message::ConfirmEdit");
                 }
             },
             Message::Name(value) => {
