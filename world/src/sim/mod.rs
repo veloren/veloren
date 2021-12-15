@@ -442,18 +442,17 @@ impl WorldSim {
                 FileOpts::LoadAsset(ref specifier) => match WorldFile::load_owned(specifier) {
                     Ok(map) => map.into_modern(),
                     Err(err) => {
-                        match err {
-                            assets::Error::Io(e) => {
+                        match err.reason().downcast_ref::<std::io::Error>() {
+                            Some(e) => {
                                 warn!(?e, ?specifier, "Couldn't read asset specifier for maps");
                             },
-                            assets::Error::Conversion(e) => {
+                            None => {
                                 warn!(
-                                    ?e,
+                                    ?err,
                                     "Couldn't parse modern map.  Maybe you meant to try a legacy \
                                      load?"
                                 );
                             },
-                            assets::Error::NoDefaultValue => unreachable!(),
                         }
                         return None;
                     },

@@ -24,10 +24,10 @@ pub struct Shaders {
 impl assets::Compound for Shaders {
     // TODO: Taking the specifier argument as a base for shaders specifiers
     // would allow to use several shaders groups easily
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::source::Source + ?Sized>(
         _: &assets::AssetCache<S>,
         _: &str,
-    ) -> Result<Shaders, assets::Error> {
+    ) -> Result<Shaders, assets::BoxedError> {
         let shaders = [
             "include.constants",
             "include.globals",

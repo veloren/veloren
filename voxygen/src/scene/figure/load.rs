@@ -1,6 +1,6 @@
 use super::cache::{FigureKey, ToolKey};
 use common::{
-    assets::{self, AssetExt, AssetHandle, DotVoxAsset, Ron},
+    assets::{self, AssetExt, AssetHandle, DotVoxAsset, ReloadWatcher, Ron},
     comp::{
         biped_large::{self, BodyType as BLBodyType, Species as BLSpecies},
         biped_small,
@@ -96,7 +96,7 @@ pub trait BodySpec: Sized {
     fn load_spec() -> Result<Self::Manifests, assets::Error>;
 
     /// Determine whether the cache's manifest was reloaded
-    fn is_reloaded(manifests: &mut Self::Manifests) -> bool;
+    fn reload_watcher(manifests: &Self::Manifests) -> ReloadWatcher;
 
     /// Mesh bones using the given spec, character state, and mesh generation
     /// function.
@@ -124,7 +124,7 @@ macro_rules! make_vox_spec {
         }
 
         impl assets::Compound for $Spec {
-            fn load<S: assets::source::Source>(_: &assets::AssetCache<S>, _: &str) -> Result<Self, assets::Error> {
+            fn load<S: assets::source::Source + ?Sized>(_: &assets::AssetCache<S>, _: &str) -> Result<Self, assets::BoxedError> {
                 Ok($Spec {
                     $( $field: AssetExt::load($asset_path)?, )*
                 })
@@ -141,7 +141,7 @@ macro_rules! make_vox_spec {
                 Self::Spec::load("")
             }
 
-            fn is_reloaded(manifests: &mut Self::Manifests) -> bool { manifests.reloaded() }
+            fn reload_watcher(manifests: &Self::Manifests) -> ReloadWatcher { manifests.reload_watcher() }
 
             fn bone_meshes(
                 $self_pat: &FigureKey<Self>,
@@ -4549,7 +4549,7 @@ impl BodySpec for ship::Body {
     #[allow(unused_variables)]
     fn load_spec() -> Result<Self::Manifests, assets::Error> { Self::Spec::load("") }
 
-    fn is_reloaded(manifests: &mut Self::Manifests) -> bool { manifests.reloaded() }
+    fn reload_watcher(manifests: &Self::Manifests) -> ReloadWatcher { manifests.reload_watcher() }
 
     fn bone_meshes(
         FigureKey { body, .. }: &FigureKey<Self>,

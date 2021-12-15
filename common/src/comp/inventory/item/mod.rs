@@ -7,7 +7,7 @@ pub use modular::{ModularComponent, ModularComponentKind, ModularComponentTag};
 pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
 
 use crate::{
-    assets::{self, AssetExt, Error},
+    assets::{self, AssetExt, BoxedError, Error},
     comp::inventory::{item::tool::AbilityMap, InvSlot},
     effect::Effect,
     recipe::RecipeInput,
@@ -550,10 +550,10 @@ impl Deref for Item {
 }
 
 impl assets::Compound for ItemDef {
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::source::Source + ?Sized>(
         cache: &assets::AssetCache<S>,
         specifier: &str,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, BoxedError> {
         // load from the filesystem first, but if the file doesn't exist, see if it's a
         // programmaticly-generated asset
         let raw = match cache.load::<RawItemDef>(specifier) {

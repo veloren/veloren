@@ -1,6 +1,6 @@
 use super::{BlockKind, SpriteKind};
 use crate::{
-    assets::{self, AssetExt, AssetHandle, DotVoxAsset, Error},
+    assets::{self, AssetExt, AssetHandle, BoxedError, DotVoxAsset},
     make_case_elim,
     vol::{BaseVol, ReadVol, SizedVol, WriteVol},
     volumes::dyna::{Dyna, DynaError},
@@ -67,10 +67,10 @@ impl std::ops::Deref for StructuresGroup {
 }
 
 impl assets::Compound for StructuresGroup {
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::source::Source + ?Sized>(
         cache: &assets::AssetCache<S>,
         specifier: &str,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, BoxedError> {
         let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
 
         Ok(StructuresGroup(
@@ -94,7 +94,7 @@ impl assets::Compound for StructuresGroup {
                         },
                     })
                 })
-                .collect::<Result<_, Error>>()?,
+                .collect::<Result<_, BoxedError>>()?,
         ))
     }
 }
@@ -137,10 +137,10 @@ impl ReadVol for Structure {
 }
 
 impl assets::Compound for BaseStructure {
-    fn load<S: assets::source::Source>(
+    fn load<S: assets::source::Source + ?Sized>(
         cache: &assets::AssetCache<S>,
         specifier: &str,
-    ) -> Result<Self, Error> {
+    ) -> Result<Self, BoxedError> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 

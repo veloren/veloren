@@ -11,7 +11,7 @@ pub mod verification;
 pub use path::BasePath;
 
 use crate::path::{LANG_EXTENSION, LANG_MANIFEST_FILE};
-use common_assets::{self, source::DirEntry, AssetExt, AssetGuard, AssetHandle};
+use common_assets::{self, source::DirEntry, AssetExt, AssetGuard, AssetHandle, ReloadWatcher};
 use hashbrown::{HashMap, HashSet};
 use raw::{RawFragment, RawLanguage, RawManifest};
 use serde::{Deserialize, Serialize};
@@ -102,10 +102,10 @@ impl Language {
 }
 
 impl common_assets::Compound for Language {
-    fn load<S: common_assets::source::Source>(
+    fn load<S: common_assets::source::Source + ?Sized>(
         cache: &common_assets::AssetCache<S>,
         asset_key: &str,
-    ) -> Result<Self, common_assets::Error> {
+    ) -> Result<Self, common_assets::BoxedError> {
         let manifest = cache
             .load::<RawManifest>(&[asset_key, ".", LANG_MANIFEST_FILE].concat())?
             .cloned();
@@ -145,9 +145,10 @@ impl common_assets::Compound for Language {
 
 /// the central data structure to handle localization in veloren
 // inherit Copy+Clone from AssetHandle
-#[derive(Debug, PartialEq, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct LocalizationHandle {
     active: AssetHandle<Language>,
+    watcher: ReloadWatcher,
     fallback: Option<AssetHandle<Language>>,
     pub use_english_fallback: bool,
 }
@@ -259,8 +260,10 @@ impl LocalizationHandle {
         let default_key = ["voxygen.i18n.", REFERENCE_LANG].concat();
         let language_key = ["voxygen.i18n.", specifier].concat();
         let is_default = language_key == default_key;
+        let active = Language::load(&language_key)?;
         Ok(Self {
-            active: Language::load(&language_key)?,
+            active,
+            watcher: active.reload_watcher(),
             fallback: if is_default {
                 None
             } else {
@@ -274,16 +277,16 @@ impl LocalizationHandle {
         Self::load(specifier).expect("Can't load language files")
     }
 
-    pub fn reloaded(&mut self) -> bool { self.active.reloaded() }
+    pub fn reloaded(&mut self) -> bool { self.watcher.reloaded() }
 }
 
 struct FindManifests;
 
 impl common_assets::Compound for FindManifests {
-    fn load<S: common_assets::Source>(
+    fn load<S: common_assets::Source + ?Sized>(
         _: &common_assets::AssetCache<S>,
         _: &str,
-    ) -> Result<Self, common_assets::Error> {
+    ) -> Result<Self, common_assets::BoxedError> {
         Ok(Self)
     }
 }
@@ -312,10 +315,10 @@ impl common_assets::DirLoadable for FindManifests {
 struct LocalizationList(Vec<LanguageMetadata>);
 
 impl common_assets::Compound for LocalizationList {
-    fn load<S: common_assets::Source>(
+    fn load<S: common_assets::Source + ?Sized>(
         cache: &common_assets::AssetCache<S>,
         specifier: &str,
-    ) -> Result<Self, common_assets::Error> {
+    ) -> Result<Self, common_assets::BoxedError> {
         // List language directories
         let languages = common_assets::load_dir::<FindManifests>(specifier, false)
             .unwrap_or_else(|e| panic!("Failed to get manifests from {}: {:?}", specifier, e))

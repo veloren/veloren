@@ -38,7 +38,7 @@ impl assets::Asset for SpawnEntry {
 }
 
 impl SpawnEntry {
-    pub fn from(asset_specifier: &str) -> Self { Self::load_expect(asset_specifier).read().clone() }
+    pub fn from(asset_specifier: &str) -> Self { Self::load_expect_cloned(asset_specifier) }
 
     pub fn request(&self, requested_period: DayPeriod, underwater: bool) -> Option<Pack> {
         self.rules

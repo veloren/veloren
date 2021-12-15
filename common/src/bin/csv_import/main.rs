@@ -226,10 +226,10 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             );
 
                             let pretty_config = PrettyConfig::new()
-                                .with_depth_limit(4)
-                                .with_separate_tuple_members(true)
-                                .with_decimal_floats(true)
-                                .with_enumerate_arrays(true);
+                                .depth_limit(4)
+                                .separate_tuple_members(true)
+                                .decimal_floats(true)
+                                .enumerate_arrays(true);
 
                             let mut path = ASSETS_PATH.clone();
                             for part in item.item_definition_id().split('.') {
@@ -418,10 +418,10 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         );
 
                         let pretty_config = PrettyConfig::new()
-                            .with_depth_limit(4)
-                            .with_separate_tuple_members(true)
-                            .with_decimal_floats(true)
-                            .with_enumerate_arrays(true);
+                            .depth_limit(4)
+                            .separate_tuple_members(true)
+                            .decimal_floats(true)
+                            .enumerate_arrays(true);
 
                         let mut path = ASSETS_PATH.clone();
                         for part in item.item_definition_id().split('.') {
@@ -494,9 +494,7 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         items.push((chance, item));
     }
 
-    let pretty_config = PrettyConfig::new()
-        .with_depth_limit(4)
-        .with_decimal_floats(true);
+    let pretty_config = PrettyConfig::new().depth_limit(4).decimal_floats(true);
 
     let mut path = ASSETS_PATH.clone();
     path.push("common");
