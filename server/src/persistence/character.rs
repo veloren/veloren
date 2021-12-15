@@ -516,6 +516,7 @@ pub fn edit_character(
                 (body, char.body)
             {
                 if new.species != old.species || new.body_type != old.body_type {
+                    warn!("Should never happen due to client validation");
                     return Err(PersistenceError::CharacterDataError);
                 } else {
                     char.body = body;

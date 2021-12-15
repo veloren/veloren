@@ -152,7 +152,7 @@ impl CharacterUpdater {
                                         error!(?e, "Could not send character edit response");
                                     } else {
                                         debug!(
-                                            "Processed character create for player {}",
+                                            "Processed character edit for player {}",
                                             player_uuid
                                         );
                                     }

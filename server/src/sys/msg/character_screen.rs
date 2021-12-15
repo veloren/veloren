@@ -161,7 +161,7 @@ impl Sys {
                         debug!(
                             ?error,
                             ?body,
-                            "Denied creating character because of invalid input."
+                            "Denied editing character because of invalid input."
                         );
                         client.send(ServerGeneral::CharacterActionError(error.to_string()))?;
                     }

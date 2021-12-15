@@ -82,10 +82,6 @@ pub fn edit_character(
     body: Body,
     character_updater: &mut WriteExpect<'_, CharacterUpdater>,
 ) -> Result<(), CreationError> {
-    // quick fix whitelist validation for now; eventually replace the
-    // `Option<String>` with an index into a server-provided list of starter
-    // items, and replace `comp::body::Body` with `comp::body::humanoid::Body`
-    // throughout the messages involved
     if !matches!(body, Body::Humanoid(_)) {
         return Err(CreationError::InvalidBody);
     }

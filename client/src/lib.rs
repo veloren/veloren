@@ -845,7 +845,6 @@ impl Client {
     }
 
     pub fn edit_character(&mut self, alias: String, id: CharacterId, body: comp::Body) {
-        println!("Edit character");
         self.character_list.loading = true;
         self.send_msg(ClientGeneral::EditCharacter { alias, id, body });
     }
