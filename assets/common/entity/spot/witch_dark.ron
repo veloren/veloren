@@ -8,7 +8,7 @@ EntityConfig (
     hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
 
     meta: [
-        SkillSetAsset("common.skillset.dungeon.tier-3.sceptre"),
         LoadoutAsset("common.loadout.spots.witch"),
+        SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],
 )

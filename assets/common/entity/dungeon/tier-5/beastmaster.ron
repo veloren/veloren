@@ -13,7 +13,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-5.beastmaster"),
-        // TODO: make own skillset for him?
-        SkillSetAsset("common.skillset.dungeon.tier-5.enemy"),
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],
 )

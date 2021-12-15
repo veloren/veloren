@@ -1,0 +1,17 @@
+([
+    Group(Weapon(Bow)),
+
+    // Projectile Speed
+    Skill((Bow(ProjSpeed), Some(1))),
+
+    // Charged
+    Skill((Bow(CDamage), Some(1))),
+    Skill((Bow(CKnockback), Some(1))),
+    Skill((Bow(CSpeed), Some(1))),
+    Skill((Bow(CRegen), Some(1))),
+
+    // Repeater
+    Skill((Bow(RDamage), Some(1))),
+    Skill((Bow(RCost), Some(1))),
+
+])

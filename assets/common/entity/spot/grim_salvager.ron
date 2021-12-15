@@ -8,7 +8,7 @@ EntityConfig (
     hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-0")),
 
     meta: [
-        SkillSetAsset("common.skillset.village.guard"),
         LoadoutAsset("common.loadout.spots.dwarf_graverobber"),
+        SkillSetAsset("common.skillset.preset.rank1.fullskill"),
     ],
 )

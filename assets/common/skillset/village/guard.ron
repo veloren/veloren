@@ -1,5 +1,0 @@
-([
-    Tree("common.skillset.preset.max.sword"),
-    Tree("common.skillset.preset.max.bow"),
-    Tree("common.skillset.preset.max.axe"),
-])

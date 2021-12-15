@@ -9,6 +9,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-4.myrmidon"),
-        SkillSetAsset("common.skillset.dungeon.tier-4.enemy"),
+        SkillSetAsset("common.skillset.preset.rank4.fullskill"),
     ],
 )

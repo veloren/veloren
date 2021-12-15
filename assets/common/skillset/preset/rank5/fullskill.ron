@@ -1,0 +1,9 @@
+([
+    Tree("common.skillset.preset.rank5.axe"),
+    Tree("common.skillset.preset.rank5.bow"),
+    Tree("common.skillset.preset.rank5.general"),
+    Tree("common.skillset.preset.rank5.hammer"),
+    Tree("common.skillset.preset.rank5.sceptre"),
+    Tree("common.skillset.preset.rank5.staff"),
+    Tree("common.skillset.preset.rank5.sword"),
+])
