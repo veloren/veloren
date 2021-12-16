@@ -3,6 +3,7 @@
 /// Localization for Traditional Chinese
 (
     string_map: {
+        "gameinput.greet": "打招呼",
     },
 
 
