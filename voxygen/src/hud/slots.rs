@@ -130,11 +130,15 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         &self,
         (hotbar, inventory, energy, skillset, active_abilities, body): &HotbarSource<'a>,
     ) -> Option<(Self::ImageKey, Option<Color>)> {
+        const GREYED_OUT: Color = Color::Rgba(0.3, 0.3, 0.3, 0.8);
         hotbar.get(*self).and_then(|contents| match contents {
-            hotbar::SlotContents::Inventory(idx) => inventory
-                .get(idx)
-                .map(|item| HotbarImage::Item(item.into()))
-                .map(|i| (i, None)),
+            hotbar::SlotContents::Inventory(item_hash, item_key) => {
+                let item = inventory.get_by_hash(item_hash);
+                match item {
+                    Some(item) => Some((HotbarImage::Item(item.into()), None)),
+                    None => Some((HotbarImage::Item(item_key), Some(GREYED_OUT))),
+                }
+            },
             hotbar::SlotContents::Ability(i) => {
                 let ability_id = active_abilities
                     .abilities
@@ -157,7 +161,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                                     if energy.current() > ability.get_energy_cost() {
                                         Some(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                                     } else {
-                                        Some(Color::Rgba(0.3, 0.3, 0.3, 0.8))
+                                        Some(GREYED_OUT)
                                     },
                                 )
                             })
@@ -170,7 +174,7 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
         hotbar
             .get(*self)
             .and_then(|content| match content {
-                hotbar::SlotContents::Inventory(idx) => inventory.get(idx),
+                hotbar::SlotContents::Inventory(item_hash, _) => inventory.get_by_hash(item_hash),
                 hotbar::SlotContents::Ability(_) => None,
             })
             .map(|item| item.amount())

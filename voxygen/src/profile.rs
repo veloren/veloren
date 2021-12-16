@@ -1,5 +1,5 @@
 use crate::hud;
-use common::{character::CharacterId, comp::slot::InvSlotId};
+use common::character::CharacterId;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -18,18 +18,7 @@ pub struct CharacterProfile {
 }
 
 const fn default_slots() -> [Option<hud::HotbarSlotContents>; 10] {
-    [
-        None,
-        None,
-        None,
-        None,
-        None,
-        Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 0))),
-        Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 1))),
-        None,
-        None,
-        None,
-    ]
+    [None, None, None, None, None, None, None, None, None, None]
 }
 
 impl Default for CharacterProfile {
@@ -132,7 +121,7 @@ impl Profile {
         self.servers
             .get(server)
             .and_then(|s| s.characters.get(&character_id))
-            .map(|c| c.hotbar_slots)
+            .map(|c| c.hotbar_slots.clone())
             .unwrap_or_else(default_slots)
     }
 
@@ -216,41 +205,18 @@ impl Profile {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use common::comp::inventory::slot::InvSlotId;
 
     #[test]
     fn test_get_slots_with_empty_profile() {
         let profile = Profile::default();
         let slots = profile.get_hotbar_slots("TestServer", 12345);
-        assert_eq!(slots, [
-            None,
-            None,
-            None,
-            None,
-            None,
-            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 0))),
-            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 1))),
-            None,
-            None,
-            None,
-        ])
+        assert_eq!(slots, [(); 10].map(|()| None))
     }
 
     #[test]
     fn test_set_slots_with_empty_profile() {
         let mut profile = Profile::default();
-        let slots = [
-            None,
-            None,
-            None,
-            None,
-            None,
-            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 0))),
-            Some(hud::HotbarSlotContents::Inventory(InvSlotId::new(0, 1))),
-            None,
-            None,
-            None,
-        ];
+        let slots = [(); 10].map(|()| None);
         profile.set_hotbar_slots("TestServer", 12345, slots);
     }
 }

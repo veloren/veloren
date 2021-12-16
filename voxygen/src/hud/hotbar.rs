@@ -1,4 +1,5 @@
-use common::comp::slot::InvSlotId;
+use crate::hud::item_imgs::ItemKey;
+use common::comp::inventory::item::Item;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -15,13 +16,13 @@ pub enum Slot {
     Ten = 9,
 }
 
-#[derive(Clone, Copy, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
 pub enum SlotContents {
-    Inventory(InvSlotId),
+    Inventory(u64, ItemKey),
     Ability(usize),
 }
 
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Default)]
 pub struct State {
     pub slots: [Option<SlotContents>; 10],
     inputs: [bool; 10],
@@ -43,14 +44,17 @@ impl State {
         just_pressed
     }
 
-    pub fn get(&self, slot: Slot) -> Option<SlotContents> { self.slots[slot as usize] }
+    pub fn get(&self, slot: Slot) -> Option<SlotContents> { self.slots[slot as usize].clone() }
 
     pub fn swap(&mut self, a: Slot, b: Slot) { self.slots.swap(a as usize, b as usize); }
 
     pub fn clear_slot(&mut self, slot: Slot) { self.slots[slot as usize] = None; }
 
-    pub fn add_inventory_link(&mut self, slot: Slot, inventory_pos: InvSlotId) {
-        self.slots[slot as usize] = Some(SlotContents::Inventory(inventory_pos));
+    pub fn add_inventory_link(&mut self, slot: Slot, item: &Item) {
+        self.slots[slot as usize] = Some(SlotContents::Inventory(
+            item.item_hash(),
+            ItemKey::from(item),
+        ));
     }
 
     // TODO: remove pending UI

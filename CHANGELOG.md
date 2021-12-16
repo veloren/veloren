@@ -60,6 +60,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Poise damage dealt to a target that is in a stunned state is now converted to health damage at an efficiency dependent on the severity of the stunned state
 - You are now immune to poise damage for 1 second after leaving a stunned state
 - Removed or reduced poise damage from most abilities
+- Made the hotbar link to items by item definition id and component composition instead of specific inventory slots.
 
 ### Removed
 
@@ -75,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merchant cost percentages displayed as floored, whole numbers
 - Bodies of water no longer contain black chunks on the voxel minimap.
 - Agents can flee once again, and more appropriately
+- Items in hotbar no longer change when sorting inventory
 
 ## [0.11.0] - 2021-09-11
 

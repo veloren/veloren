@@ -347,6 +347,20 @@ impl Inventory {
         self.slot(inv_slot_id).and_then(Option::as_ref)
     }
 
+    /// Get item from inventory
+    pub fn get_by_hash(&self, item_hash: u64) -> Option<&Item> {
+        self.slots().flatten().find(|i| i.item_hash() == item_hash)
+    }
+
+    /// Get slot from hash
+    pub fn get_slot_from_hash(&self, item_hash: u64) -> Option<InvSlotId> {
+        let slot_with_id = self.slots_with_id().find(|slot| match slot.1 {
+            None => false,
+            Some(item) => item.item_hash() == item_hash,
+        });
+        slot_with_id.map(|s| s.0)
+    }
+
     /// Mutably get content of a slot
     fn get_mut(&mut self, inv_slot_id: InvSlotId) -> Option<&mut Item> {
         self.slot_mut(inv_slot_id).and_then(Option::as_mut)
