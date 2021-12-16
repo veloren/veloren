@@ -6,9 +6,9 @@
 
     // Charged
     Skill((Bow(CDamage), Some(2))),
-    Skill((Bow(CKnockback), Some(1))),
-    Skill((Bow(CSpeed), Some(1))),
-    Skill((Bow(CRegen), Some(2))),
+    Skill((Bow(CKnockback), Some(2))),
+    Skill((Bow(CSpeed), Some(2))),
+    Skill((Bow(CRegen), Some(1))),
     Skill((Bow(CMove), Some(1))),
 
     // Repeater

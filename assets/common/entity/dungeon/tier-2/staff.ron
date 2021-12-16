@@ -9,6 +9,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-2.sahagin"),
-        SkillSetAsset("common.skillset.dungeon.tier-2.staff"),
+        SkillSetAsset("common.skillset.preset.rank2.fullskill"),
     ],
 )

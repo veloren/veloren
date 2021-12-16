@@ -6,16 +6,15 @@
     // TripleStrike
     Skill((Sword(TsCombo), None)),
     Skill((Sword(TsDamage), Some(2))),
-    Skill((Sword(TsRegen), Some(1))),
-    Skill((Sword(TsSpeed), Some(2))),
+    Skill((Sword(TsRegen), Some(2))),
+    Skill((Sword(TsSpeed), Some(1))),
 
     // Dash
-    Skill((Sword(DCost), Some(1))),
+    Skill((Sword(DCost), Some(2))),
     Skill((Sword(DDrain), Some(2))),
     Skill((Sword(DDamage), Some(1))),
-    Skill((Sword(DScaling), Some(2))),
+    Skill((Sword(DScaling), Some(1))),
     Skill((Sword(DSpeed), None)),
-    Skill((Sword(DInfinite), None)),
 
     // Spin of death
     Skill((Sword(UnlockSpin), None)),
