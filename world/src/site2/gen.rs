@@ -114,6 +114,18 @@ impl Primitive {
     pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: i32) -> Self {
         Self::Repeat(a.into(), offset, count)
     }
+
+    pub fn cylinder(origin: Vec3<i32>, radius: f32, height: f32) -> Self {
+        let min = origin - Vec2::broadcast(radius.round() as i32);
+        let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
+        Primitive::Cylinder(Aabb { min, max })
+    }
+
+    pub fn sphere(origin: Vec3<i32>, radius: f32) -> Self {
+        let min = origin - Vec3::broadcast(radius.round() as i32);
+        let max = origin + Vec3::broadcast(radius.round() as i32);
+        Primitive::Sphere(Aabb { min, max })
+    }
 }
 
 #[derive(Clone)]
