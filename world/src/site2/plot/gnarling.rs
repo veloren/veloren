@@ -13,7 +13,10 @@ pub struct GnarlingFortification {
     // Vec2 is relative position of wall relative to site origin, bool indicates whether it is a
     // corner, and thus whether a tower gets constructed
     ordered_wall_points: Vec<(Vec2<i32>, bool)>,
+    gate_index: usize,
 }
+
+const SECTIONS_PER_WALL_SEGMENT: usize = 3;
 
 impl GnarlingFortification {
     pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
@@ -44,6 +47,9 @@ impl GnarlingFortification {
                 })
             })
             .collect::<Vec<_>>();
+
+        let gate_index = rng.gen_range(0..ordered_wall_points.len()) * SECTIONS_PER_WALL_SEGMENT;
+
         // This adds additional points for the wall on the line between two points,
         // allowing the wall to better handle slopes
         let ordered_wall_points = ordered_wall_points
@@ -55,9 +61,15 @@ impl GnarlingFortification {
                 } else {
                     ordered_wall_points[0]
                 };
-                let mid_point_1 = point + (next_point - point) / 3;
-                let mid_point_2 = point + (next_point - point) * 2 / 3;
-                [(*point, true), (mid_point_1, false), (mid_point_2, false)]
+                (0..(SECTIONS_PER_WALL_SEGMENT as i32))
+                    .into_iter()
+                    .map(move |a| {
+                        let is_start_segment = a == 0;
+                        (
+                            point + (next_point - point) * a / (SECTIONS_PER_WALL_SEGMENT as i32),
+                            is_start_segment,
+                        )
+                    })
             })
             .collect::<Vec<_>>();
 
@@ -68,6 +80,7 @@ impl GnarlingFortification {
             radius,
             wall_radius,
             ordered_wall_points,
+            gate_index,
         }
     }
 
@@ -80,6 +93,11 @@ impl Structure for GnarlingFortification {
     fn render(&self, _site: &Site, land: &Land, painter: &Painter) {
         // Create outer wall
         for (i, (point, _is_tower)) in self.ordered_wall_points.iter().enumerate() {
+            // If wall section is a gate, skip rendering the wall
+            if (self.gate_index..(self.gate_index + SECTIONS_PER_WALL_SEGMENT)).contains(&i) {
+                continue;
+            }
+
             // Other point of wall segment
             let (next_point, _is_tower) = if let Some(point) = self.ordered_wall_points.get(i + 1) {
                 *point
@@ -275,14 +293,6 @@ impl Structure for GnarlingFortification {
                         BlockKind::Wood,
                         Rgb::new(55, 25, 8),
                     )));
-                // TODO: There is probably a better way of getting intersection
-                // of 2 primitives than this? let roof_sphere =
-                // painter.prim(Primitive::sphere(wpos.with_z(top_floor_z +
-                // roof_pole_height + roof_height - roof_sphere_radius),
-                // roof_sphere_radius as f32)); painter
-                //     .prim(roof_sphere.intersect(roof_cyl))
-                //     .fill(Fill::Block(Block::new(BlockKind::Wood,
-                // Rgb::new(55, 25, 8))));
             })
     }
 }
