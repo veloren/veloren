@@ -76,11 +76,6 @@ impl Alignment {
             _ => false,
         }
     }
-
-    // TODO: Remove this hack
-    pub fn is_friendly_to_players(&self) -> bool {
-        matches!(self, Alignment::Npc | Alignment::Tame | Alignment::Owned(_))
-    }
 }
 
 impl Component for Alignment {
