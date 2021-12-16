@@ -12,6 +12,6 @@ EntityConfig (
 
     ])),
     meta: [
-        SkillSetAsset("common.skillset.village.guard"),
+        SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],
 )

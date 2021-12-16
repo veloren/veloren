@@ -9,6 +9,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-3.haniwa"),
-        SkillSetAsset("common.skillset.dungeon.tier-3.bow"),
+        SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],
 )

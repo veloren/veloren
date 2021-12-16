@@ -17,6 +17,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-5.cultist"),
-        SkillSetAsset("common.skillset.dungeon.tier-5.enemy"),
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],
 )

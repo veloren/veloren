@@ -1,8 +1,0 @@
-([
-    // Just gather everything
-    Tree("common.skillset.preset.max.sword"),
-    Tree("common.skillset.preset.max.axe"),
-    Tree("common.skillset.preset.max.hammer"),
-    Tree("common.skillset.preset.max.bow"),
-    Tree("common.skillset.preset.max.sceptre"),
-])
