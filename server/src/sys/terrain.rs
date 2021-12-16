@@ -471,10 +471,10 @@ impl NpcData {
         let health = Some(comp::Health::new(body, health_scaling.unwrap_or(0)));
         let poise = comp::Poise::new(body);
 
+        // Allow Humanoid, BirdMedium, and Parrot to speak
         let can_speak = match body {
             comp::Body::Humanoid(_) => true,
             comp::Body::BirdMedium(bird_medium) => match bird_medium.species {
-                // Parrots like to have a word in this, too...
                 bird_medium::Species::Parrot => alignment == comp::Alignment::Npc,
                 _ => false,
             },
@@ -495,13 +495,13 @@ impl NpcData {
                         .with_trade_site(trade_for_site),
                 )
                 .with_patrol_origin(pos)
-                .with_no_flee(!matches!(agent_mark, Some(agent::Mark::Guard)))
+                .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)))
         });
 
         let agent = if matches!(alignment, comp::Alignment::Enemy)
             && matches!(body, comp::Body::Humanoid(_))
         {
-            agent.map(|a| a.with_aggro_no_warn())
+            agent.map(|a| a.with_aggro_no_warn().with_no_flee_if(true))
         } else {
             agent
         };

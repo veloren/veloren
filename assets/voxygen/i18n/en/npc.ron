@@ -186,5 +186,13 @@
             "Turn around if you want to live!",
             "You're not welcome here!",
         ],
+        "npc.speech.cultist_low_health_fleeing": [
+            "Retreat for the cause!",
+            "Retreat!",
+            "Curse you!",
+            "I will curse you in the afterlife!",
+            "I must rest!",
+            "They're too strong!",
+        ]
     }
 )
