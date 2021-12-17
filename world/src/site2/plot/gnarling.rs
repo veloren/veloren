@@ -12,10 +12,8 @@ pub struct GnarlingFortification {
     origin: Vec2<i32>,
     radius: i32,
     wall_radius: i32,
-    // Vec2 is relative position of wall relative to site origin, bool indicates whether it is a
-    // corner, and thus whether a tower gets constructed
-    ordered_wall_points: Vec<(Vec2<i32>, bool)>,
-    gate_index: usize,
+    wall_segments: Vec<(Vec2<i32>, Vec2<i32>)>,
+    wall_towers: Vec<Vec2<i32>>,
     // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
     // to origin, ori tells which way structure should face
     structure_locations: Vec<(GnarlingStructure, Vec2<i32>, Ori)>,
@@ -35,8 +33,6 @@ impl GnarlingStructure {
         }
     }
 }
-
-const SECTIONS_PER_WALL_SEGMENT: usize = 3;
 
 impl GnarlingFortification {
     pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
@@ -70,26 +66,20 @@ impl GnarlingFortification {
 
         let gate_index = rng.gen_range(0..wall_corners.len());
 
-        // This adds additional points for the wall on the line between two points,
-        // allowing the wall to better handle slopes
-        let ordered_wall_points = wall_corners
+        let wall_segments = wall_corners
             .iter()
             .enumerate()
-            .flat_map(|(i, point)| {
-                let next_point = if let Some(point) = wall_corners.get(i + 1) {
-                    *point
+            .filter_map(|(i, point)| {
+                if i == gate_index {
+                    None
                 } else {
-                    wall_corners[0]
-                };
-                (0..(SECTIONS_PER_WALL_SEGMENT as i32))
-                    .into_iter()
-                    .map(move |a| {
-                        let is_start_segment = a == 0;
-                        (
-                            point + (next_point - point) * a / (SECTIONS_PER_WALL_SEGMENT as i32),
-                            is_start_segment,
-                        )
-                    })
+                    let next_point = if let Some(point) = wall_corners.get(i + 1) {
+                        *point
+                    } else {
+                        wall_corners[0]
+                    };
+                    Some((*point, next_point))
+                }
             })
             .collect::<Vec<_>>();
 
@@ -161,8 +151,8 @@ impl GnarlingFortification {
             origin,
             radius,
             wall_radius,
-            ordered_wall_points,
-            gate_index,
+            wall_towers: wall_corners,
+            wall_segments,
             structure_locations,
         }
     }
@@ -175,211 +165,209 @@ impl GnarlingFortification {
 impl Structure for GnarlingFortification {
     fn render(&self, _site: &Site, land: &Land, painter: &Painter) {
         // Create outer wall
-        for (i, (point, _is_tower)) in self.ordered_wall_points.iter().enumerate() {
-            // If wall section is a gate, skip rendering the wall
-            if ((self.gate_index * SECTIONS_PER_WALL_SEGMENT)
-                ..((self.gate_index + 1) * SECTIONS_PER_WALL_SEGMENT))
-                .contains(&i)
-            {
-                continue;
-            }
+        for (point, next_point) in self.wall_segments.iter() {
+            // This adds additional points for the wall on the line between two points,
+            // allowing the wall to better handle slopes
+            const SECTIONS_PER_WALL_SEGMENT: usize = 3;
 
-            // Other point of wall segment
-            let (next_point, _is_tower) = if let Some(point) = self.ordered_wall_points.get(i + 1) {
-                *point
-            } else {
-                self.ordered_wall_points[0]
-            };
-            // 2d world positions of each point in wall segment
-            let start_wpos = point + self.origin;
-            let end_wpos = next_point + self.origin;
+            (0..(SECTIONS_PER_WALL_SEGMENT as i32))
+                .into_iter()
+                .map(move |a| {
+                    let get_point =
+                        |a| point + (next_point - point) * a / (SECTIONS_PER_WALL_SEGMENT as i32);
+                    (get_point(a), get_point(a + 1))
+                })
+                .for_each(|(point, next_point)| {
+                    // 2d world positions of each point in wall segment
+                    let start_wpos = point + self.origin;
+                    let end_wpos = next_point + self.origin;
 
-            // Wall base
-            let wall_depth = 3.0;
-            let start = start_wpos
-                .as_()
-                .with_z(land.get_alt_approx(start_wpos) - wall_depth);
-            let end = end_wpos
-                .as_()
-                .with_z(land.get_alt_approx(end_wpos) - wall_depth);
+                    // Wall base
+                    let wall_depth = 3.0;
+                    let start = start_wpos
+                        .as_()
+                        .with_z(land.get_alt_approx(start_wpos) - wall_depth);
+                    let end = end_wpos
+                        .as_()
+                        .with_z(land.get_alt_approx(end_wpos) - wall_depth);
 
-            let wall_base_thickness = 3.0;
-            let wall_base_height = 3.0;
+                    let wall_base_thickness = 3.0;
+                    let wall_base_height = 3.0;
 
-            painter
-                .segment_prism(
-                    start,
-                    end,
-                    wall_base_thickness,
-                    wall_base_height + wall_depth as f32,
-                )
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
-                )));
+                    painter
+                        .segment_prism(
+                            start,
+                            end,
+                            wall_base_thickness,
+                            wall_base_height + wall_depth as f32,
+                        )
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
 
-            // Middle of wall
-            let start = start_wpos.as_().with_z(land.get_alt_approx(start_wpos));
-            let end = end_wpos.as_().with_z(land.get_alt_approx(end_wpos));
+                    // Middle of wall
+                    let start = start_wpos.as_().with_z(land.get_alt_approx(start_wpos));
+                    let end = end_wpos.as_().with_z(land.get_alt_approx(end_wpos));
 
-            let wall_mid_thickness = 1.0;
-            let wall_mid_height = 5.0 + wall_base_height;
+                    let wall_mid_thickness = 1.0;
+                    let wall_mid_height = 5.0 + wall_base_height;
 
-            painter
-                .segment_prism(start, end, wall_mid_thickness, wall_mid_height)
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
-                )));
+                    painter
+                        .segment_prism(start, end, wall_mid_thickness, wall_mid_height)
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
 
-            // Top of wall
-            let start = start_wpos
-                .as_()
-                .with_z(land.get_alt_approx(start_wpos) + wall_mid_height);
-            let end = end_wpos
-                .as_()
-                .with_z(land.get_alt_approx(end_wpos) + wall_mid_height);
+                    // Top of wall
+                    let start = start_wpos
+                        .as_()
+                        .with_z(land.get_alt_approx(start_wpos) + wall_mid_height);
+                    let end = end_wpos
+                        .as_()
+                        .with_z(land.get_alt_approx(end_wpos) + wall_mid_height);
 
-            let wall_top_thickness = 2.0;
-            let wall_top_height = 1.0;
+                    let wall_top_thickness = 2.0;
+                    let wall_top_height = 1.0;
 
-            painter
-                .segment_prism(start, end, wall_top_thickness, wall_top_height)
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
-                )));
+                    painter
+                        .segment_prism(start, end, wall_top_thickness, wall_top_height)
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
 
-            // Wall parapets
-            let parapet_z_offset = 1.0;
+                    // Wall parapets
+                    let parapet_z_offset = 1.0;
 
-            let start = Vec3::new(
-                point.x as f32 * (self.wall_radius as f32 + 1.0) / (self.wall_radius as f32)
-                    + self.origin.x as f32,
-                point.y as f32 * (self.wall_radius as f32 + 1.0) / (self.wall_radius as f32)
-                    + self.origin.y as f32,
-                land.get_alt_approx(start_wpos) + wall_mid_height + wall_top_height
-                    - parapet_z_offset,
-            );
-            let end = Vec3::new(
-                next_point.x as f32 * (self.wall_radius as f32 + 1.0) / (self.wall_radius as f32)
-                    + self.origin.x as f32,
-                next_point.y as f32 * (self.wall_radius as f32 + 1.0) / (self.wall_radius as f32)
-                    + self.origin.y as f32,
-                land.get_alt_approx(end_wpos) + wall_mid_height + wall_top_height
-                    - parapet_z_offset,
-            );
+                    let start = Vec3::new(
+                        point.x as f32 * (self.wall_radius as f32 + 1.0)
+                            / (self.wall_radius as f32)
+                            + self.origin.x as f32,
+                        point.y as f32 * (self.wall_radius as f32 + 1.0)
+                            / (self.wall_radius as f32)
+                            + self.origin.y as f32,
+                        land.get_alt_approx(start_wpos) + wall_mid_height + wall_top_height
+                            - parapet_z_offset,
+                    );
+                    let end = Vec3::new(
+                        next_point.x as f32 * (self.wall_radius as f32 + 1.0)
+                            / (self.wall_radius as f32)
+                            + self.origin.x as f32,
+                        next_point.y as f32 * (self.wall_radius as f32 + 1.0)
+                            / (self.wall_radius as f32)
+                            + self.origin.y as f32,
+                        land.get_alt_approx(end_wpos) + wall_mid_height + wall_top_height
+                            - parapet_z_offset,
+                    );
 
-            let wall_par_thickness = tweak!(0.8);
-            let wall_par_height = 1.0;
+                    let wall_par_thickness = tweak!(0.8);
+                    let wall_par_height = 1.0;
 
-            painter
-                .segment_prism(
-                    start,
-                    end,
-                    wall_par_thickness,
-                    wall_par_height + parapet_z_offset as f32,
-                )
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
-                )));
+                    painter
+                        .segment_prism(
+                            start,
+                            end,
+                            wall_par_thickness,
+                            wall_par_height + parapet_z_offset as f32,
+                        )
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
+                })
         }
 
         // Create towers
-        self.ordered_wall_points
-            .iter()
-            .filter_map(|(point, is_tower)| is_tower.then_some(point))
-            .for_each(|point| {
-                let wpos = point + self.origin;
+        self.wall_towers.iter().for_each(|point| {
+            let wpos = point + self.origin;
 
-                // Tower base
-                let tower_depth = 3;
-                let tower_base_pos = wpos.with_z(land.get_alt_approx(wpos) as i32 - tower_depth);
-                let tower_radius = 5.;
-                let tower_height = 20.0;
+            // Tower base
+            let tower_depth = 3;
+            let tower_base_pos = wpos.with_z(land.get_alt_approx(wpos) as i32 - tower_depth);
+            let tower_radius = 5.;
+            let tower_height = 20.0;
 
-                painter
-                    .prim(Primitive::cylinder(
-                        tower_base_pos,
-                        tower_radius,
-                        tower_depth as f32 + tower_height,
-                    ))
-                    .fill(Fill::Block(Block::new(
-                        BlockKind::Wood,
-                        Rgb::new(55, 25, 8),
-                    )));
+            painter
+                .prim(Primitive::cylinder(
+                    tower_base_pos,
+                    tower_radius,
+                    tower_depth as f32 + tower_height,
+                ))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(55, 25, 8),
+                )));
 
-                // Tower cylinder
-                let tower_floor_pos = wpos.with_z(land.get_alt_approx(wpos) as i32);
+            // Tower cylinder
+            let tower_floor_pos = wpos.with_z(land.get_alt_approx(wpos) as i32);
 
-                painter
-                    .prim(Primitive::cylinder(
-                        tower_floor_pos,
-                        tower_radius - 1.0,
-                        tower_height,
-                    ))
-                    .fill(Fill::Block(Block::empty()));
+            painter
+                .prim(Primitive::cylinder(
+                    tower_floor_pos,
+                    tower_radius - 1.0,
+                    tower_height,
+                ))
+                .fill(Fill::Block(Block::empty()));
 
-                // Tower top floor
-                let top_floor_z = (land.get_alt_approx(wpos) + tower_height - 2.0) as i32;
-                let tower_top_floor_pos = wpos.with_z(top_floor_z);
+            // Tower top floor
+            let top_floor_z = (land.get_alt_approx(wpos) + tower_height - 2.0) as i32;
+            let tower_top_floor_pos = wpos.with_z(top_floor_z);
 
-                painter
-                    .prim(Primitive::cylinder(tower_top_floor_pos, tower_radius, 1.0))
-                    .fill(Fill::Block(Block::new(
-                        BlockKind::Wood,
-                        Rgb::new(55, 25, 8),
-                    )));
+            painter
+                .prim(Primitive::cylinder(tower_top_floor_pos, tower_radius, 1.0))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(55, 25, 8),
+                )));
 
-                // Tower roof poles
-                let roof_pole_height = 5;
-                let relative_pole_positions = [
-                    Vec2::new(-4, -4),
-                    Vec2::new(-4, 3),
-                    Vec2::new(3, -4),
-                    Vec2::new(3, 3),
-                ];
-                relative_pole_positions
-                    .iter()
-                    .map(|rpos| wpos + rpos)
-                    .for_each(|pole_pos| {
-                        painter
-                            .line(
-                                pole_pos.with_z(top_floor_z),
-                                pole_pos.with_z(top_floor_z + roof_pole_height),
-                                1.,
-                            )
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Wood,
-                                Rgb::new(55, 25, 8),
-                            )));
-                    });
+            // Tower roof poles
+            let roof_pole_height = 5;
+            let relative_pole_positions = [
+                Vec2::new(-4, -4),
+                Vec2::new(-4, 3),
+                Vec2::new(3, -4),
+                Vec2::new(3, 3),
+            ];
+            relative_pole_positions
+                .iter()
+                .map(|rpos| wpos + rpos)
+                .for_each(|pole_pos| {
+                    painter
+                        .line(
+                            pole_pos.with_z(top_floor_z),
+                            pole_pos.with_z(top_floor_z + roof_pole_height),
+                            1.,
+                        )
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
+                });
 
-                // Tower roof
-                let roof_sphere_radius = 10;
-                let roof_radius = tower_radius + 1.0;
-                let roof_height = 3;
+            // Tower roof
+            let roof_sphere_radius = 10;
+            let roof_radius = tower_radius + 1.0;
+            let roof_height = 3;
 
-                let roof_cyl = painter.prim(Primitive::cylinder(
-                    wpos.with_z(top_floor_z + roof_pole_height),
-                    roof_radius,
-                    roof_height as f32,
-                ));
+            let roof_cyl = painter.prim(Primitive::cylinder(
+                wpos.with_z(top_floor_z + roof_pole_height),
+                roof_radius,
+                roof_height as f32,
+            ));
 
-                painter
-                    .prim(Primitive::sphere(
-                        wpos.with_z(
-                            top_floor_z + roof_pole_height + roof_height - roof_sphere_radius,
-                        ),
-                        roof_sphere_radius as f32,
-                    ))
-                    .intersect(roof_cyl)
-                    .fill(Fill::Block(Block::new(
-                        BlockKind::Wood,
-                        Rgb::new(55, 25, 8),
-                    )));
-            });
+            painter
+                .prim(Primitive::sphere(
+                    wpos.with_z(top_floor_z + roof_pole_height + roof_height - roof_sphere_radius),
+                    roof_sphere_radius as f32,
+                ))
+                .intersect(roof_cyl)
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(55, 25, 8),
+                )));
+        });
 
         self.structure_locations
             .iter()
