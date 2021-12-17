@@ -263,4 +263,31 @@ pub enum Ori {
 
 impl Ori {
     pub fn dir(self) -> Vec2<i32> { CARDINALS[self as u8 as usize] }
+
+    pub fn cw(self) -> Self {
+        match self {
+            Ori::North => Ori::East,
+            Ori::East => Ori::South,
+            Ori::South => Ori::West,
+            Ori::West => Ori::North,
+        }
+    }
+
+    pub fn ccw(self) -> Self {
+        match self {
+            Ori::North => Ori::West,
+            Ori::East => Ori::North,
+            Ori::South => Ori::East,
+            Ori::West => Ori::South,
+        }
+    }
+
+    pub fn opposite(self) -> Self {
+        match self {
+            Ori::North => Ori::South,
+            Ori::East => Ori::West,
+            Ori::South => Ori::North,
+            Ori::West => Ori::East,
+        }
+    }
 }

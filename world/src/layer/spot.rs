@@ -475,7 +475,7 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 ],
             },
             Spot::GnarlingTotem => SpotConfig {
-                base_structures: Some("spots_grasslands.gnarling_totem"),
+                base_structures: Some("site_structures.gnarling.totem"),
                 entity_radius: 30.0,
                 entities: &[
                     (3..5, "common.entity.dungeon.tier-0.mugger"),
