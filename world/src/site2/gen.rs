@@ -126,6 +126,12 @@ impl Primitive {
         let max = origin + Vec3::broadcast(radius.round() as i32);
         Primitive::Sphere(Aabb { min, max })
     }
+
+    pub fn cone(origin: Vec3<i32>, radius: f32, height: f32) -> Self {
+        let min = origin - Vec2::broadcast(radius.round() as i32);
+        let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
+        Primitive::Cone(Aabb { min, max })
+    }
 }
 
 #[derive(Clone)]

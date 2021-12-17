@@ -1,5 +1,5 @@
 use super::*;
-use crate::Land;
+use crate::{util::attempt, Land};
 use inline_tweak::tweak;
 use rand::prelude::*;
 use vek::*;
@@ -14,6 +14,7 @@ pub struct GnarlingFortification {
     // corner, and thus whether a tower gets constructed
     ordered_wall_points: Vec<(Vec2<i32>, bool)>,
     gate_index: usize,
+    hut_locations: Vec<Vec2<i32>>,
 }
 
 const SECTIONS_PER_WALL_SEGMENT: usize = 3;
@@ -31,10 +32,10 @@ impl GnarlingFortification {
             unit_size * num_units + variation
         };
 
-        let radius = wall_radius + 25;
+        let radius = wall_radius + 50;
 
         let num_points = (wall_radius / 15).max(4);
-        let ordered_wall_points = (0..num_points)
+        let wall_corners = (0..num_points)
             .into_iter()
             .map(|a| {
                 let angle = a as f32 / num_points as f32 * core::f32::consts::TAU;
@@ -48,18 +49,18 @@ impl GnarlingFortification {
             })
             .collect::<Vec<_>>();
 
-        let gate_index = rng.gen_range(0..ordered_wall_points.len()) * SECTIONS_PER_WALL_SEGMENT;
+        let gate_index = rng.gen_range(0..wall_corners.len()) * SECTIONS_PER_WALL_SEGMENT;
 
         // This adds additional points for the wall on the line between two points,
         // allowing the wall to better handle slopes
-        let ordered_wall_points = ordered_wall_points
+        let ordered_wall_points = wall_corners
             .iter()
             .enumerate()
             .flat_map(|(i, point)| {
-                let next_point = if let Some(point) = ordered_wall_points.get(i + 1) {
+                let next_point = if let Some(point) = wall_corners.get(i + 1) {
                     *point
                 } else {
-                    ordered_wall_points[0]
+                    wall_corners[0]
                 };
                 (0..(SECTIONS_PER_WALL_SEGMENT as i32))
                     .into_iter()
@@ -73,6 +74,48 @@ impl GnarlingFortification {
             })
             .collect::<Vec<_>>();
 
+        let desired_huts = wall_radius.pow(2) / 100;
+        let mut hut_locations = Vec::new();
+        for _ in 0..desired_huts {
+            if let Some(hut_loc) = attempt(16, || {
+                // Choose triangle
+                let section = rng.gen_range(0..wall_corners.len());
+
+                if section == gate_index {
+                    return None;
+                }
+
+                let center = Vec2::zero();
+                let corner_1 = wall_corners[section];
+                let corner_2 = if let Some(corner) = wall_corners.get(section + 1) {
+                    *corner
+                } else {
+                    wall_corners[0]
+                };
+
+                let center_weight: f32 = rng.gen_range(0.2..0.6);
+                let corner_1_weight = rng.gen_range(0.0..(1.0 - center_weight));
+                let corner_2_weight = 1.0 - center_weight - corner_1_weight;
+
+                let hut_center: Vec2<i32> = (center * center_weight
+                    + corner_1.as_() * corner_1_weight
+                    + corner_2.as_() * corner_2_weight)
+                    .as_();
+
+                // Check that hut center not too close to another hut
+                if hut_locations
+                    .iter()
+                    .any(|loc| hut_center.distance_squared(*loc) < 15_i32.pow(2))
+                {
+                    None
+                } else {
+                    Some(hut_center)
+                }
+            }) {
+                hut_locations.push(hut_loc);
+            }
+        }
+
         Self {
             name,
             seed,
@@ -81,6 +124,7 @@ impl GnarlingFortification {
             wall_radius,
             ordered_wall_points,
             gate_index,
+            hut_locations,
         }
     }
 
@@ -293,6 +337,53 @@ impl Structure for GnarlingFortification {
                         BlockKind::Wood,
                         Rgb::new(55, 25, 8),
                     )));
-            })
+            });
+
+        self.hut_locations.iter().for_each(|loc| {
+            let wpos = self.origin + loc;
+            let alt = land.get_alt_approx(wpos) as i32;
+
+            let hut_radius = 5.0;
+            let hut_wall_height = 4.0;
+
+            // Floor
+            let base = wpos.with_z(alt);
+            painter
+                .prim(Primitive::cylinder(base, hut_radius + 1.0, 2.0))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(55, 25, 8),
+                )));
+
+            // Wall
+            let floor_pos = wpos.with_z(alt + 1);
+            painter
+                .prim(Primitive::cylinder(floor_pos, hut_radius, hut_wall_height))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(55, 25, 8),
+                )));
+            painter
+                .prim(Primitive::cylinder(
+                    floor_pos,
+                    hut_radius - 1.0,
+                    hut_wall_height,
+                ))
+                .fill(Fill::Block(Block::empty()));
+
+            // Roof
+            let roof_height = 3.0;
+            let roof_radius = hut_radius + 1.0;
+            painter
+                .prim(Primitive::cone(
+                    wpos.with_z(alt + 1 + hut_wall_height as i32),
+                    roof_radius,
+                    roof_height,
+                ))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(55, 25, 8),
+                )));
+        });
     }
 }
