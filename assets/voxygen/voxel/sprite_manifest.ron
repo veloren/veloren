@@ -2034,7 +2034,7 @@ ChristmasWreath: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.furniture.wreath-0",
-            offset: (-6.5, -4.5, 0.0),
+            offset: (-6.5, 0.5, 0.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
