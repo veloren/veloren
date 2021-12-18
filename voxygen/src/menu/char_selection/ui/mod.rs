@@ -76,9 +76,9 @@ image_ids_ice! {
         delete_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
         delete_button_press: "voxygen.element.ui.char_select.icons.bin_press",
 
-        edit_button: "voxygen.element.ui.char_select.icons.bin",
-        edit_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
-        edit_button_press: "voxygen.element.ui.char_select.icons.bin_press",
+        edit_button: "voxygen.element.ui.char_select.icons.pen",
+        edit_button_hover: "voxygen.element.ui.char_select.icons.pen_hover",
+        edit_button_press: "voxygen.element.ui.char_select.icons.pen_press",
 
         name_input: "voxygen.element.ui.generic.textbox",
 
