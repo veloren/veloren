@@ -112,6 +112,38 @@ pub trait Skeleton: Send + Sync + 'static {
     #[cfg(feature = "use-dyn-lib")]
     const COMPUTE_FN: &'static [u8];
 
+    fn compute_matrices(
+        &self,
+        base_mat: Mat4<f32>,
+        buf: &mut [FigureBoneData; MAX_BONE_COUNT],
+        body: Self::Body,
+    ) -> Offsets {
+        #[cfg(not(feature = "use-dyn-lib"))]
+        {
+            self.compute_matrices_inner(base_mat, buf, body)
+        }
+        #[cfg(feature = "use-dyn-lib")]
+        {
+            let lock = LIB.lock().unwrap();
+            let lib = &lock.as_ref().unwrap().lib;
+
+            let compute_fn: voxygen_dynlib::Symbol<
+                fn(&Self, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT], Self::Body) -> Offsets,
+            > = unsafe { lib.get(Self::COMPUTE_FN) }.unwrap_or_else(|e| {
+                panic!(
+                    "Trying to use: {} but had error: {:?}",
+                    CStr::from_bytes_with_nul(Self::COMPUTE_FN)
+                        .map(CStr::to_str)
+                        .unwrap()
+                        .unwrap(),
+                    e
+                )
+            });
+
+            compute_fn(self, base_mat, buf, body)
+        }
+    }
+
     fn compute_matrices_inner(
         &self,
         base_mat: Mat4<f32>,
@@ -126,30 +158,7 @@ pub fn compute_matrices<S: Skeleton>(
     buf: &mut [FigureBoneData; MAX_BONE_COUNT],
     body: S::Body,
 ) -> Offsets {
-    #[cfg(not(feature = "use-dyn-lib"))]
-    {
-        S::compute_matrices_inner(skeleton, base_mat, buf, body)
-    }
-    #[cfg(feature = "use-dyn-lib")]
-    {
-        let lock = LIB.lock().unwrap();
-        let lib = &lock.as_ref().unwrap().lib;
-
-        let compute_fn: voxygen_dynlib::Symbol<
-            fn(&S, Mat4<f32>, &mut [FigureBoneData; MAX_BONE_COUNT], S::Body) -> Offsets,
-        > = unsafe { lib.get(S::COMPUTE_FN) }.unwrap_or_else(|e| {
-            panic!(
-                "Trying to use: {} but had error: {:?}",
-                CStr::from_bytes_with_nul(S::COMPUTE_FN)
-                    .map(CStr::to_str)
-                    .unwrap()
-                    .unwrap(),
-                e
-            )
-        });
-
-        compute_fn(skeleton, base_mat, buf, body)
-    }
+    S::compute_matrices(skeleton, base_mat, buf, body)
 }
 
 pub trait Animation {
