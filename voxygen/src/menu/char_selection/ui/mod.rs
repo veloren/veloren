@@ -1292,7 +1292,11 @@ impl Controls {
 
                 let create = neat_button(
                     create_button,
-                    i18n.get("common.create"),
+                    i18n.get(if character_id.is_some() {
+                        "common.confirm"
+                    } else {
+                        "common.create"
+                    }),
                     FILL_FRAC_ONE,
                     button_style,
                     (!name.is_empty()).then_some(confirm_msg),

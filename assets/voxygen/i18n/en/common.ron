@@ -37,6 +37,7 @@
         "common.automatic": "Auto",
         "common.random": "Random",
         "common.empty": "Empty",
+        "common.confirm": "Confirm",
 
         // Settings Window title
         "common.interface_settings": "Interface Settings",
