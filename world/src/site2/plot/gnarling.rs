@@ -49,8 +49,8 @@ impl GnarlingFortification {
 
         let radius = wall_radius + 50;
 
-        let num_points = (wall_radius / 15).max(4);
-        let wall_corners = (0..num_points)
+        let num_points = (wall_radius / 15).max(5);
+        let outer_wall_corners = (0..num_points)
             .into_iter()
             .map(|a| {
                 let angle = a as f32 / num_points as f32 * core::f32::consts::TAU;
@@ -64,24 +64,50 @@ impl GnarlingFortification {
             })
             .collect::<Vec<_>>();
 
-        let gate_index = rng.gen_range(0..wall_corners.len());
+        let gate_index = rng.gen_range(0..outer_wall_corners.len());
 
-        let wall_segments = wall_corners
+        let chieftain_indices = {
+            // Will not be adjacent to gate and needs two sections, so subtract 4 (3 to get
+            // rid of gate and adjacent, 1 to account for taking 2 sections)
+            let chosen = rng.gen_range(0..(outer_wall_corners.len() - 4));
+            let index = if gate_index < 2 {
+                chosen + gate_index + 2
+            } else if chosen < (gate_index - 2) {
+                chosen
+            } else {
+                (chosen + 3) % gate_index
+            };
+            [index, index + 1]
+        };
+
+        // TODO: Figure out how to resolve the allow
+        #[allow(clippy::needless_collect)]
+        let outer_wall_segments = outer_wall_corners
             .iter()
             .enumerate()
             .filter_map(|(i, point)| {
                 if i == gate_index {
                     None
                 } else {
-                    let next_point = if let Some(point) = wall_corners.get(i + 1) {
+                    let next_point = if let Some(point) = outer_wall_corners.get(i + 1) {
                         *point
                     } else {
-                        wall_corners[0]
+                        outer_wall_corners[0]
                     };
                     Some((*point, next_point))
                 }
             })
             .collect::<Vec<_>>();
+
+        // Structures will not spawn in wall corner triangles corresponding to these
+        // indices
+        let forbidden_indices = [gate_index, chieftain_indices[0], chieftain_indices[1]];
+        // Structures will be weighted to spawn further from these indices when
+        // selecting a point in the triangle
+        let restricted_indices = [
+            (chieftain_indices[0] + outer_wall_corners.len() - 1) % outer_wall_corners.len(),
+            (chieftain_indices[1] + 1) % outer_wall_corners.len(),
+        ];
 
         let desired_structures = wall_radius.pow(2) / 100;
         let mut structure_locations = Vec::<(GnarlingStructure, Vec2<i32>, Ori)>::new();
@@ -94,22 +120,37 @@ impl GnarlingFortification {
                 };
 
                 // Choose triangle
-                let section = rng.gen_range(0..wall_corners.len());
+                let corner_1_index = rng.gen_range(0..outer_wall_corners.len());
 
-                if section == gate_index {
+                if forbidden_indices.contains(&corner_1_index) {
                     return None;
                 }
 
                 let center = Vec2::zero();
-                let corner_1 = wall_corners[section];
-                let corner_2 = if let Some(corner) = wall_corners.get(section + 1) {
-                    *corner
-                } else {
-                    wall_corners[0]
-                };
+                let corner_1 = outer_wall_corners[corner_1_index];
+                let (corner_2, corner_2_index) =
+                    if let Some(corner) = outer_wall_corners.get(corner_1_index + 1) {
+                        (*corner, corner_1_index + 1)
+                    } else {
+                        (outer_wall_corners[0], 0)
+                    };
 
                 let center_weight: f32 = rng.gen_range(0.2..0.6);
-                let corner_1_weight = rng.gen_range(0.0..(1.0 - center_weight));
+
+                // Forbidden and restricted indices are near walls, so don't spawn structures
+                // too close to avoid overlap with wall
+                let corner_1_weight_range = if restricted_indices.contains(&corner_1_index) {
+                    let limit = 0.75;
+                    if chieftain_indices.contains(&corner_2_index) {
+                        ((1.0 - center_weight) * (1.0 - limit))..(1.0 - center_weight)
+                    } else {
+                        0.0..((1.0 - center_weight) * limit)
+                    }
+                } else {
+                    0.0..(1.0 - center_weight)
+                };
+
+                let corner_1_weight = rng.gen_range(corner_1_weight_range);
                 let corner_2_weight = 1.0 - center_weight - corner_1_weight;
 
                 let structure_center: Vec2<i32> = (center * center_weight
@@ -145,13 +186,36 @@ impl GnarlingFortification {
             }
         }
 
+        let wall_connections = [
+            outer_wall_corners[chieftain_indices[0]],
+            outer_wall_corners[(chieftain_indices[1] + 1) % outer_wall_corners.len()],
+        ];
+        let inner_tower_locs = wall_connections
+            .iter()
+            .map(|corner_pos| *corner_pos / 3)
+            .collect::<Vec<_>>();
+
+        let wall_towers = outer_wall_corners
+            .into_iter()
+            .chain(inner_tower_locs.iter().copied())
+            .collect::<Vec<_>>();
+        let wall_segments = outer_wall_segments
+            .into_iter()
+            .chain(
+                wall_connections
+                    .iter()
+                    .copied()
+                    .zip(inner_tower_locs.into_iter()),
+            )
+            .collect::<Vec<_>>();
+
         Self {
             name,
             seed,
             origin,
             radius,
             wall_radius,
-            wall_towers: wall_corners,
+            wall_towers,
             wall_segments,
             structure_locations,
         }
