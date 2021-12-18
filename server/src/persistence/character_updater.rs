@@ -8,7 +8,7 @@ use crate::persistence::{
     PersistedComponents, VelorenConnection,
 };
 use crossbeam_channel::TryIter;
-use rusqlite::DropBehavior;
+use rusqlite::{DropBehavior, Transaction};
 use specs::Entity;
 use std::{
     collections::HashMap,
@@ -408,22 +408,14 @@ fn execute_character_create(
     connection: &mut VelorenConnection,
 ) -> Result<CharacterLoaderResponse, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
-
-    let response = CharacterLoaderResponse {
-        entity,
-        result: CharacterLoaderResponseKind::CharacterCreation(super::character::create_character(
+    let result =
+        CharacterLoaderResponseKind::CharacterCreation(super::character::create_character(
             requesting_player_uuid,
             &alias,
             persisted_components,
             &mut transaction,
-        )),
-    };
-
-    if !response.is_err() {
-        transaction.commit()?;
-    };
-
-    Ok(response)
+        ));
+    check_response(entity, transaction, result)
 }
 
 fn execute_character_edit(
@@ -435,23 +427,14 @@ fn execute_character_edit(
     connection: &mut VelorenConnection,
 ) -> Result<CharacterLoaderResponse, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
-
-    let response = CharacterLoaderResponse {
-        entity,
-        result: CharacterLoaderResponseKind::CharacterEdit(super::character::edit_character(
-            editable_components,
-            &mut transaction,
-            character_id,
-            requesting_player_uuid,
-            &alias,
-        )),
-    };
-
-    if !response.is_err() {
-        transaction.commit()?;
-    };
-
-    Ok(response)
+    let result = CharacterLoaderResponseKind::CharacterEdit(super::character::edit_character(
+        editable_components,
+        &mut transaction,
+        character_id,
+        requesting_player_uuid,
+        &alias,
+    ));
+    check_response(entity, transaction, result)
 }
 
 fn execute_character_delete(
@@ -461,15 +444,20 @@ fn execute_character_delete(
     connection: &mut VelorenConnection,
 ) -> Result<CharacterLoaderResponse, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
+    let result = CharacterLoaderResponseKind::CharacterList(super::character::delete_character(
+        requesting_player_uuid,
+        character_id,
+        &mut transaction,
+    ));
+    check_response(entity, transaction, result)
+}
 
-    let response = CharacterLoaderResponse {
-        entity,
-        result: CharacterLoaderResponseKind::CharacterList(super::character::delete_character(
-            requesting_player_uuid,
-            character_id,
-            &mut transaction,
-        )),
-    };
+fn check_response(
+    entity: Entity,
+    transaction: Transaction,
+    result: CharacterLoaderResponseKind,
+) -> Result<CharacterLoaderResponse, PersistenceError> {
+    let response = CharacterLoaderResponse { entity, result };
 
     if !response.is_err() {
         transaction.commit()?;
