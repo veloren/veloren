@@ -525,7 +525,7 @@ impl Controls {
                                         )
                                         .on_press(Message::Delete(i))
                                         .into(),
-                                    ]))
+                                    ]).spacing(5))
                                     .padding(4),
                                     // Select Button
                                     AspectRatioContainer::new(
