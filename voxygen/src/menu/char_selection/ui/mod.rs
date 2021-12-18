@@ -500,32 +500,35 @@ impl Controls {
                                     (255, 255, 255)
                                 };
                                 Overlay::new(
-                                    Container::new(Row::with_children(vec![
-                                        // Edit button
-                                        Button::new(
-                                            edit_button,
-                                            Space::new(Length::Units(16), Length::Units(16)),
-                                        )
-                                        .style(
-                                            style::button::Style::new(imgs.edit_button)
-                                                .hover_image(imgs.edit_button_hover)
-                                                .press_image(imgs.edit_button_press),
-                                        )
-                                        .on_press(Message::Edit(i))
-                                        .into(),
-                                        // Delete button
-                                        Button::new(
-                                            delete_button,
-                                            Space::new(Length::Units(16), Length::Units(16)),
-                                        )
-                                        .style(
-                                            style::button::Style::new(imgs.delete_button)
-                                                .hover_image(imgs.delete_button_hover)
-                                                .press_image(imgs.delete_button_press),
-                                        )
-                                        .on_press(Message::Delete(i))
-                                        .into(),
-                                    ]).spacing(5))
+                                    Container::new(
+                                        Row::with_children(vec![
+                                            // Edit button
+                                            Button::new(
+                                                edit_button,
+                                                Space::new(Length::Units(16), Length::Units(16)),
+                                            )
+                                            .style(
+                                                style::button::Style::new(imgs.edit_button)
+                                                    .hover_image(imgs.edit_button_hover)
+                                                    .press_image(imgs.edit_button_press),
+                                            )
+                                            .on_press(Message::Edit(i))
+                                            .into(),
+                                            // Delete button
+                                            Button::new(
+                                                delete_button,
+                                                Space::new(Length::Units(16), Length::Units(16)),
+                                            )
+                                            .style(
+                                                style::button::Style::new(imgs.delete_button)
+                                                    .hover_image(imgs.delete_button_hover)
+                                                    .press_image(imgs.delete_button_press),
+                                            )
+                                            .on_press(Message::Delete(i))
+                                            .into(),
+                                        ])
+                                        .spacing(5),
+                                    )
                                     .padding(4),
                                     // Select Button
                                     AspectRatioContainer::new(
