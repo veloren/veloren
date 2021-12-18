@@ -224,26 +224,18 @@ impl Mode {
         }
     }
 
-    pub fn edit(name: String, character_id: CharacterId, body: humanoid::Body) -> Self {
-        // TODO: Load these from the server (presumably from a .ron) to allow for easier
-        // modification of custom starting weapons
-        let mainhand = Some(STARTER_SWORD);
-        let offhand = None;
-
-        let loadout = LoadoutBuilder::empty()
-            .defaults()
-            .active_mainhand(mainhand.map(Item::new_from_asset_expect))
-            .active_offhand(offhand.map(Item::new_from_asset_expect))
-            .build();
-
-        let inventory = Box::new(Inventory::new_with_loadout(loadout));
-
+    pub fn edit(
+        name: String,
+        character_id: CharacterId,
+        body: humanoid::Body,
+        inventory: &Inventory,
+    ) -> Self {
         Self::CreateOrEdit {
             name,
             body,
-            inventory,
-            mainhand,
-            offhand,
+            inventory: Box::new(inventory.clone()),
+            mainhand: None,
+            offhand: None,
             body_type_buttons: Default::default(),
             species_buttons: Default::default(),
             tool_buttons: Default::default(),
@@ -1413,7 +1405,12 @@ impl Controls {
                     if let Some(character) = characters.get(idx) {
                         if let comp::Body::Humanoid(body) = character.body {
                             if let Some(id) = character.character.id {
-                                self.mode = Mode::edit(character.character.alias.clone(), id, body);
+                                self.mode = Mode::edit(
+                                    character.character.alias.clone(),
+                                    id,
+                                    body,
+                                    &character.inventory,
+                                );
                             }
                         }
                     }
