@@ -26,9 +26,8 @@ impl anim::Skeleton for VolumeKey {
     type Body = Self;
 
     const BONE_COUNT: usize = 4;
-
-    //#[cfg(feature = "use-dyn-lib")]
-    // TODO
+    #[cfg(feature = "hot-anim")]
+    const COMPUTE_FN: &'static [u8] = b"I AM NOT USED\0";
 
     fn compute_matrices_inner(
         &self,
@@ -51,6 +50,17 @@ impl anim::Skeleton for VolumeKey {
             lantern: None,
             mount_bone: anim::vek::Transform::default(),
         }
+    }
+
+    // Override compute_matrices so that hotloading is not done for this (since it
+    // will fail as this isn't part of the hotloaded anim crate)
+    fn compute_matrices(
+        &self,
+        base_mat: anim::vek::Mat4<f32>,
+        buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
+        body: Self::Body,
+    ) -> anim::Offsets {
+        self.compute_matrices_inner(base_mat, buf, body)
     }
 }
 
