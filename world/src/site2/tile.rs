@@ -290,4 +290,13 @@ impl Ori {
             Ori::West => Ori::East,
         }
     }
+
+    pub fn from_vec2(vec: Vec2<i32>) -> Self {
+        match vec {
+            vec if vec.x.abs() > vec.y.abs() && vec.x > 0 => Ori::East,
+            vec if vec.x.abs() > vec.y.abs() => Ori::West,
+            vec if vec.y > 0 => Ori::North,
+            _ => Ori::South,
+        }
+    }
 }

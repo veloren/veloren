@@ -22,6 +22,7 @@ pub struct GnarlingFortification {
 enum GnarlingStructure {
     Hut,
     Totem,
+    ChieftainHut,
 }
 
 impl GnarlingStructure {
@@ -30,6 +31,8 @@ impl GnarlingStructure {
             (Self::Hut, Self::Hut) => 15,
             (Self::Hut, Self::Totem) | (Self::Totem, Self::Hut) => 20,
             (Self::Totem, Self::Totem) => 50,
+            // Chieftain hut generated in separate pass without distance check
+            (Self::ChieftainHut, _) | (_, Self::ChieftainHut) => 0,
         }
     }
 }
@@ -168,12 +171,7 @@ impl GnarlingFortification {
                     Some((structure_center, structure_kind))
                 }
             }) {
-                let dir_to_center = match hut_loc {
-                    pos if pos.x.abs() > pos.y.abs() && pos.x > 0 => Ori::West,
-                    pos if pos.x.abs() > pos.y.abs() => Ori::East,
-                    pos if pos.y < 0 => Ori::North,
-                    _ => Ori::South,
-                };
+                let dir_to_center = Ori::from_vec2(hut_loc).opposite();
                 let door_rng: u32 = rng.gen_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_center,
@@ -194,6 +192,16 @@ impl GnarlingFortification {
             .iter()
             .map(|corner_pos| *corner_pos / 3)
             .collect::<Vec<_>>();
+
+        let chieftain_hut_loc = ((inner_tower_locs[0] + inner_tower_locs[1])
+            + 2 * outer_wall_corners[chieftain_indices[1]])
+            / 4;
+        let chieftain_hut_ori = Ori::from_vec2(chieftain_hut_loc).opposite();
+        structure_locations.push((
+            GnarlingStructure::ChieftainHut,
+            chieftain_hut_loc,
+            chieftain_hut_ori,
+        ));
 
         let wall_towers = outer_wall_corners
             .into_iter()
@@ -439,77 +447,101 @@ impl Structure for GnarlingFortification {
                 let wpos = self.origin + loc;
                 let alt = land.get_alt_approx(wpos) as i32;
 
+                fn generate_hut(
+                    painter: &Painter,
+                    wpos: Vec2<i32>,
+                    alt: i32,
+                    door_dir: Ori,
+                    hut_radius: f32,
+                    hut_wall_height: f32,
+                    door_height: i32,
+                    roof_height: f32,
+                    roof_overhang: f32,
+                ) {
+                    // Floor
+                    let base = wpos.with_z(alt);
+                    painter
+                        .prim(Primitive::cylinder(base, hut_radius + 1.0, 2.0))
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
+
+                    // Wall
+                    let floor_pos = wpos.with_z(alt + 1);
+                    painter
+                        .prim(Primitive::cylinder(floor_pos, hut_radius, hut_wall_height))
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
+                    painter
+                        .prim(Primitive::cylinder(
+                            floor_pos,
+                            hut_radius - 1.0,
+                            hut_wall_height,
+                        ))
+                        .fill(Fill::Block(Block::empty()));
+
+                    // Door
+                    let aabb_min = |dir| {
+                        match dir {
+                            Ori::North | Ori::East => wpos - Vec2::one(),
+                            Ori::South | Ori::West => wpos + Vec2::one(),
+                        }
+                        .with_z(alt + 1)
+                    };
+                    let aabb_max = |dir| {
+                        (match dir {
+                            Ori::North | Ori::East => wpos + Vec2::one(),
+                            Ori::South | Ori::West => wpos - Vec2::one(),
+                        } + dir.dir() * hut_radius as i32)
+                            .with_z(alt + 1 + door_height)
+                    };
+
+                    painter
+                        .prim(Primitive::Aabb(
+                            Aabb {
+                                min: aabb_min(door_dir),
+                                max: aabb_max(door_dir),
+                            }
+                            .made_valid(),
+                        ))
+                        .fill(Fill::Block(Block::empty()));
+
+                    // Roof
+                    let roof_radius = hut_radius + roof_overhang;
+                    painter
+                        .prim(Primitive::cone(
+                            wpos.with_z(alt + 1 + hut_wall_height as i32),
+                            roof_radius,
+                            roof_height,
+                        ))
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
+                }
+
                 match kind {
                     GnarlingStructure::Hut => {
                         let hut_radius = 5.0;
                         let hut_wall_height = 4.0;
-
-                        // Floor
-                        let base = wpos.with_z(alt);
-                        painter
-                            .prim(Primitive::cylinder(base, hut_radius + 1.0, 2.0))
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Wood,
-                                Rgb::new(55, 25, 8),
-                            )));
-
-                        // Wall
-                        let floor_pos = wpos.with_z(alt + 1);
-                        painter
-                            .prim(Primitive::cylinder(floor_pos, hut_radius, hut_wall_height))
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Wood,
-                                Rgb::new(55, 25, 8),
-                            )));
-                        painter
-                            .prim(Primitive::cylinder(
-                                floor_pos,
-                                hut_radius - 1.0,
-                                hut_wall_height,
-                            ))
-                            .fill(Fill::Block(Block::empty()));
-
-                        // Door
                         let door_height = 3;
-
-                        let aabb_min = |dir| {
-                            match dir {
-                                Ori::North | Ori::East => wpos - Vec2::one(),
-                                Ori::South | Ori::West => wpos + Vec2::one(),
-                            }
-                            .with_z(alt + 1)
-                        };
-                        let aabb_max = |dir| {
-                            (match dir {
-                                Ori::North | Ori::East => wpos + Vec2::one(),
-                                Ori::South | Ori::West => wpos - Vec2::one(),
-                            } + dir.dir() * hut_radius as i32)
-                                .with_z(alt + 1 + door_height)
-                        };
-
-                        painter
-                            .prim(Primitive::Aabb(
-                                Aabb {
-                                    min: aabb_min(*door_dir),
-                                    max: aabb_max(*door_dir),
-                                }
-                                .made_valid(),
-                            ))
-                            .fill(Fill::Block(Block::empty()));
-
-                        // Roof
                         let roof_height = 3.0;
-                        let roof_radius = hut_radius + 1.0;
-                        painter
-                            .prim(Primitive::cone(
-                                wpos.with_z(alt + 1 + hut_wall_height as i32),
-                                roof_radius,
-                                roof_height,
-                            ))
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Wood,
-                                Rgb::new(55, 25, 8),
-                            )));
+                        let roof_overhang = 1.0;
+
+                        generate_hut(
+                            painter,
+                            wpos,
+                            alt,
+                            *door_dir,
+                            hut_radius,
+                            hut_wall_height,
+                            door_height,
+                            roof_height,
+                            roof_overhang,
+                        );
                     },
                     GnarlingStructure::Totem => {
                         let totem_pos = wpos.with_z(alt);
@@ -526,6 +558,44 @@ impl Structure for GnarlingFortification {
                             .prim(Primitive::Prefab(Box::new(totem.clone())))
                             .translate(totem_pos)
                             .fill(Fill::Prefab(Box::new(totem), totem_pos, self.seed));
+                    },
+                    GnarlingStructure::ChieftainHut => {
+                        let alt = alt + 3;
+                        let hut_radius = 12.0;
+                        let hut_wall_height = 6.0;
+                        let door_height = 3;
+                        let roof_height = 7.0;
+                        let roof_overhang = 2.0;
+
+                        generate_hut(
+                            painter,
+                            wpos,
+                            alt,
+                            *door_dir,
+                            hut_radius,
+                            hut_wall_height,
+                            door_height,
+                            roof_height,
+                            roof_overhang,
+                        );
+
+                        let hut_radius = 5.0;
+                        let hut_wall_height = 14.0;
+                        let door_height = 3;
+                        let roof_height = 6.0;
+                        let roof_overhang = 1.0;
+
+                        generate_hut(
+                            painter,
+                            wpos,
+                            alt,
+                            *door_dir,
+                            hut_radius,
+                            hut_wall_height,
+                            door_height,
+                            roof_height,
+                            roof_overhang,
+                        );
                     },
                 }
             });
