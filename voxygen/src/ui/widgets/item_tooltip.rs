@@ -500,7 +500,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             _ => self.imgs.inv_slot_red,
         };
 
-        // Update windget array size
+        // Update widget array size
         state.update(|s| {
             s.ids
                 .stats
@@ -782,70 +782,147 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .set(state.ids.main_stat_text, ui);
 
                         // Poise res
-                        widget::Text::new(&format!(
-                            "{} : {}",
-                            i18n.get("common.stats.poise_res"),
-                            util::protec2string(poise_res)
-                        ))
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                        .down_from(state.ids.item_frame, V_PAD)
-                        .set(state.ids.stats[0], ui);
+                        if armor.stats.poise_resilience().is_some() {
+                            widget::Text::new(&format!(
+                                "{} : {}",
+                                i18n.get("common.stats.poise_res"),
+                                util::protec2string(poise_res)
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                            .down_from(state.ids.item_frame, V_PAD)
+                            .set(state.ids.stats[0], ui);
+                        }
 
                         // Max Energy
-                        widget::Text::new(&format!(
-                            "{} : {:.1}",
-                            i18n.get("common.stats.energy_max"),
-                            energy_max
-                        ))
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .down_from(state.ids.stats[0], V_PAD_STATS)
-                        .set(state.ids.stats[1], ui);
+                        if armor.stats.energy_max().is_some() {
+                            widget::Text::new(&format!(
+                                "{} : {:.1}",
+                                i18n.get("common.stats.energy_max"),
+                                energy_max
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .and(|t| {
+                                if armor.stats.poise_resilience().is_some() {
+                                    t.down_from(state.ids.stats[0], V_PAD_STATS)
+                                } else {
+                                    t.x_align_to(
+                                        state.ids.item_frame,
+                                        conrod_core::position::Align::Start,
+                                    )
+                                    .down_from(state.ids.item_frame, V_PAD)
+                                }
+                            })
+                            .set(
+                                state.ids.stats[armor.stats.poise_resilience().is_some() as usize],
+                                ui,
+                            );
+                        }
 
                         // Energy Recovery
-                        widget::Text::new(&format!(
-                            "{} : {:.1}%",
-                            i18n.get("common.stats.energy_reward"),
-                            energy_reward
-                        ))
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .down_from(state.ids.stats[1], V_PAD_STATS)
-                        .set(state.ids.stats[2], ui);
+                        if armor.stats.energy_reward().is_some() {
+                            widget::Text::new(&format!(
+                                "{} : {:.1}%",
+                                i18n.get("common.stats.energy_reward"),
+                                energy_reward
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .and(|t| {
+                                match armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                {
+                                    0 => t
+                                        .x_align_to(
+                                            state.ids.item_frame,
+                                            conrod_core::position::Align::Start,
+                                        )
+                                        .down_from(state.ids.item_frame, V_PAD),
+                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
+                                }
+                            })
+                            .set(
+                                state.ids.stats[armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize],
+                                ui,
+                            );
+                        }
 
                         // Crit Power
-                        widget::Text::new(&format!(
-                            "{} : {}",
-                            i18n.get("common.stats.crit_power"),
-                            crit_power
-                        ))
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .down_from(state.ids.stats[2], V_PAD_STATS)
-                        .set(state.ids.stats[3], ui);
+                        if armor.stats.crit_power().is_some() {
+                            widget::Text::new(&format!(
+                                "{} : {:.3}",
+                                i18n.get("common.stats.crit_power"),
+                                crit_power
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .and(|t| {
+                                match armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                    + armor.stats.energy_reward().is_some() as usize
+                                {
+                                    0 => t
+                                        .x_align_to(
+                                            state.ids.item_frame,
+                                            conrod_core::position::Align::Start,
+                                        )
+                                        .down_from(state.ids.item_frame, V_PAD),
+                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
+                                }
+                            })
+                            .set(
+                                state.ids.stats[armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                    + armor.stats.energy_reward().is_some() as usize],
+                                ui,
+                            );
+                        }
 
                         // Stealth
-                        widget::Text::new(&format!(
-                            "{} : {}",
-                            i18n.get("common.stats.stealth"),
-                            stealth
-                        ))
-                        .graphics_for(id)
-                        .parent(id)
-                        .with_style(self.style.desc)
-                        .color(text_color)
-                        .down_from(state.ids.stats[3], V_PAD_STATS)
-                        .set(state.ids.stats[4], ui);
+                        if armor.stats.stealth().is_some() {
+                            widget::Text::new(&format!(
+                                "{} : {:.3}",
+                                i18n.get("common.stats.stealth"),
+                                stealth
+                            ))
+                            .graphics_for(id)
+                            .parent(id)
+                            .with_style(self.style.desc)
+                            .color(text_color)
+                            .and(|t| {
+                                match armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                    + armor.stats.energy_reward().is_some() as usize
+                                    + armor.stats.crit_power().is_some() as usize
+                                {
+                                    0 => t
+                                        .x_align_to(
+                                            state.ids.item_frame,
+                                            conrod_core::position::Align::Start,
+                                        )
+                                        .down_from(state.ids.item_frame, V_PAD),
+                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
+                                }
+                            })
+                            .set(
+                                state.ids.stats[armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                    + armor.stats.energy_reward().is_some() as usize
+                                    + armor.stats.crit_power().is_some() as usize],
+                                ui,
+                            );
+                        }
 
                         // Slots
                         if item.num_slots() > 0 {
@@ -858,8 +935,30 @@ impl<'a> Widget for ItemTooltip<'a> {
                             .parent(id)
                             .with_style(self.style.desc)
                             .color(text_color)
-                            .down_from(state.ids.stats[4], V_PAD_STATS)
-                            .set(state.ids.stats[5], ui);
+                            .and(|t| {
+                                match armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                    + armor.stats.energy_reward().is_some() as usize
+                                    + armor.stats.crit_power().is_some() as usize
+                                    + armor.stats.stealth().is_some() as usize
+                                {
+                                    0 => t
+                                        .x_align_to(
+                                            state.ids.item_frame,
+                                            conrod_core::position::Align::Start,
+                                        )
+                                        .down_from(state.ids.item_frame, V_PAD),
+                                    x => t.down_from(state.ids.stats[x - 1], V_PAD_STATS),
+                                }
+                            })
+                            .set(
+                                state.ids.stats[armor.stats.poise_resilience().is_some() as usize
+                                    + armor.stats.energy_max().is_some() as usize
+                                    + armor.stats.energy_reward().is_some() as usize
+                                    + armor.stats.crit_power().is_some() as usize
+                                    + armor.stats.stealth().is_some() as usize],
+                                ui,
+                            );
                         }
                     },
                 }
@@ -927,7 +1026,11 @@ impl<'a> Widget for ItemTooltip<'a> {
                         if let Some(e_m_diff) = diff.energy_max() {
                             if e_m_diff > Energy::ENERGY_EPSILON {
                                 let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
-                                diff_text(text, energy_max_diff.1, 1)
+                                diff_text(
+                                    text,
+                                    energy_max_diff.1,
+                                    armor.stats.poise_resilience().is_some() as usize,
+                                )
                             }
                         }
 
@@ -935,21 +1038,39 @@ impl<'a> Widget for ItemTooltip<'a> {
                             if e_r_diff > Energy::ENERGY_EPSILON {
                                 let text =
                                     format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
-                                diff_text(text, energy_reward_diff.1, 2)
+                                diff_text(
+                                    text,
+                                    energy_reward_diff.1,
+                                    armor.stats.poise_resilience().is_some() as usize
+                                        + armor.stats.energy_max().is_some() as usize,
+                                )
                             }
                         }
 
                         if let Some(c_p_diff) = diff.crit_power() {
                             if c_p_diff != 0.0_f32 {
-                                let text = format!("{} {}", &crit_power_diff.0, c_p_diff);
-                                diff_text(text, crit_power_diff.1, 3)
+                                let text = format!("{} {:.3}", &crit_power_diff.0, c_p_diff);
+                                diff_text(
+                                    text,
+                                    crit_power_diff.1,
+                                    armor.stats.poise_resilience().is_some() as usize
+                                        + armor.stats.energy_max().is_some() as usize
+                                        + armor.stats.energy_reward().is_some() as usize,
+                                )
                             }
                         }
 
                         if let Some(s_diff) = diff.stealth() {
                             if s_diff != 0.0_f32 {
-                                let text = format!("{} {}", &stealth_diff.0, s_diff);
-                                diff_text(text, stealth_diff.1, 4)
+                                let text = format!("{} {:.3}", &stealth_diff.0, s_diff);
+                                diff_text(
+                                    text,
+                                    stealth_diff.1,
+                                    armor.stats.poise_resilience().is_some() as usize
+                                        + armor.stats.energy_max().is_some() as usize
+                                        + armor.stats.energy_reward().is_some() as usize
+                                        + armor.stats.crit_power().is_some() as usize,
+                                )
                             }
                         }
                     }

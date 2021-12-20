@@ -87,43 +87,18 @@ impl Sub<Stats> for Stats {
 
     fn sub(self, other: Self) -> Self::Output {
         Self {
-            protection: if self.protection.is_none() && other.protection.is_none() {
-                None
-            } else {
-                Some(
-                    self.protection.unwrap_or(Protection::Normal(0.0))
-                        - other.protection.unwrap_or(Protection::Normal(0.0)),
-                )
-            },
-            poise_resilience: if self.poise_resilience.is_none() && other.poise_resilience.is_none()
-            {
-                None
-            } else {
-                Some(
-                    self.poise_resilience.unwrap_or(Protection::Normal(0.0))
-                        - other.poise_resilience.unwrap_or(Protection::Normal(0.0)),
-                )
-            },
-            energy_max: if self.energy_max.is_none() && other.energy_max.is_none() {
-                None
-            } else {
-                Some(self.energy_max.unwrap_or(0.0) - other.energy_max.unwrap_or(0.0))
-            },
-            energy_reward: if self.energy_reward.is_none() && other.energy_reward.is_none() {
-                None
-            } else {
-                Some(self.energy_reward.unwrap_or(0.0) - other.energy_reward.unwrap_or(0.0))
-            },
-            crit_power: if self.crit_power.is_none() && other.crit_power.is_none() {
-                None
-            } else {
-                Some(self.crit_power.unwrap_or(0.0) - other.crit_power.unwrap_or(0.0))
-            },
-            stealth: if self.stealth.is_none() && other.stealth.is_none() {
-                None
-            } else {
-                Some(self.stealth.unwrap_or(0.0) - other.stealth.unwrap_or(0.0))
-            },
+            protection: self.protection.zip(other.protection).map(|(a, b)| a - b),
+            poise_resilience: self
+                .poise_resilience
+                .zip(other.poise_resilience)
+                .map(|(a, b)| a - b),
+            energy_max: self.energy_max.zip(other.energy_max).map(|(a, b)| a - b),
+            energy_reward: self
+                .energy_reward
+                .zip(other.energy_reward)
+                .map(|(a, b)| a - b),
+            crit_power: self.crit_power.zip(other.crit_power).map(|(a, b)| a - b),
+            stealth: self.stealth.zip(other.stealth).map(|(a, b)| a - b),
         }
     }
 }
