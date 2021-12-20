@@ -111,7 +111,11 @@ pub fn stats_count(item: &dyn ItemDesc) -> usize {
             if matches!(armor.kind, ArmorKind::Bag(_)) {
                 0
             } else {
-                5
+                armor.stats.energy_reward().is_some() as usize
+                    + armor.stats.energy_max().is_some() as usize
+                    + armor.stats.stealth().is_some() as usize
+                    + armor.stats.crit_power().is_some() as usize
+                    + armor.stats.poise_resilience().is_some() as usize
             }
         },
         ItemKind::Tool(_) => 4,
