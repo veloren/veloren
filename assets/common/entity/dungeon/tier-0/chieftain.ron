@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Name("Gnarling Chieftain"),
+    body: RandomWith("gnarling"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.chieftain_staff")),
+
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-0.gnarling_chieftain"),
+    ],
+)

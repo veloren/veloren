@@ -15,8 +15,17 @@
         "AdletBow": (
             vox_spec: ("npc.adlet.male.bow.head", (-7.0, -4.5, -6.0)),
         ),
-        "Gnarling": (
-            vox_spec: ("npc.gnarling.male.head", (-6.5, -5.5, -4.5)),
+        "GnarlingMugger": (
+            vox_spec: ("npc.gnarling.mugger.head", (-6.5, -5.5, -4.5)),
+        ),
+        "GnarlingStalker": (
+            vox_spec: ("npc.gnarling.stalker.head", (-6.5, -5.5, -4.5)),
+        ),
+        "GnarlingLogger": (
+            vox_spec: ("npc.gnarling.logger.head", (-6.5, -5.5, -4.5)),
+        ),
+        "GnarlingChieftain": (
+            vox_spec: ("npc.gnarling.chieftain.head", (-6.5, -5.5, -4.5)),
         ),
         "Mandragora": (
             vox_spec: ("npc.mandragora.male.head", (0.0, 0.0, 0.0)),

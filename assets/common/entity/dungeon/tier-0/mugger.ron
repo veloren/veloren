@@ -8,6 +8,6 @@ EntityConfig (
     hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.wooden_spear")),
 
     meta: [
-        LoadoutAsset("common.loadout.dungeon.tier-0.gnarling"),
+        LoadoutAsset("common.loadout.dungeon.tier-0.mugger"),
     ],
 )

@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Gnarling Chieftain",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Chest("GnarlingChieftain"),
+        stats: (
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(2.7),
+            energy_reward: Some(0.027),
+            crit_power: Some(0.025),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

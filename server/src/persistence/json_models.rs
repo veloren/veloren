@@ -77,6 +77,7 @@ pub fn skill_group_to_db_string(skill_group: comp::skillset::SkillGroupKind) -> 
         Weapon(ToolKind::Dagger)
         | Weapon(ToolKind::Shield)
         | Weapon(ToolKind::Spear)
+        | Weapon(ToolKind::Blowgun)
         | Weapon(ToolKind::Debug)
         | Weapon(ToolKind::Farming)
         | Weapon(ToolKind::Empty)

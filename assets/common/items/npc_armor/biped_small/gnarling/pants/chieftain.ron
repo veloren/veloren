@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Gnarling",
-    description: "Ceremonial attire used by members.",
+    name: "Gnarling Chieftain",
+    description: "Ceremonial attire used by members..",
     kind: Armor((
-        kind: Head("Gnarling"),
+        kind: Pants("GnarlingChieftain"),
         stats: (
             protection: Some(Normal(1.0)),
             poise_resilience: Some(Normal(1.0)),

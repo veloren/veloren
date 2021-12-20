@@ -107,4 +107,40 @@
             central: ("npc.claygolem.male.chest_lower"),
         ),
     ),
+    (WoodGolem, Male): (
+        head: (
+            offset: (-6.5, -4.5, -3.0),
+            central: ("npc.woodgolem.male.head"),
+        ),
+        jaw: (
+            offset: (-9.5, 0.0, -3.0),
+            central: ("armor.empty"),
+        ),
+        torso_upper: (
+            offset: (-6.5, -7.0, -4.5),
+            central: ("npc.woodgolem.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-2.5, -3.5, -7.0),
+            central: ("npc.woodgolem.male.chest_lower"),
+        ),
+    ),
+    (WoodGolem, Female): (
+        head: (
+            offset: (-6.5, -4.5, -3.0),
+            central: ("npc.woodgolem.male.head"),
+        ),
+        jaw: (
+            offset: (-9.5, 0.0, -3.0),
+            central: ("armor.empty"),
+        ),
+        torso_upper: (
+            offset: (-6.5, -7.0, -4.5),
+            central: ("npc.woodgolem.male.chest_upper"),
+        ),
+        torso_lower: (
+            offset: (-2.5, -3.5, -7.0),
+            central: ("npc.woodgolem.male.chest_lower"),
+        ),
+    ),
 })

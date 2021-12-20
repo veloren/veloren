@@ -2131,6 +2131,7 @@ fn unlock_skill_strings(group: SkillGroupKind, i18n: &Localization) -> (&str, Co
             ToolKind::Dagger
             | ToolKind::Shield
             | ToolKind::Spear
+            | ToolKind::Blowgun
             | ToolKind::Debug
             | ToolKind::Farming
             | ToolKind::Pick

@@ -45,6 +45,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Sceptre => "sceptre head",
                 // TODO: naming
                 ToolKind::Spear => "spear damage component",
+                ToolKind::Blowgun => "blowgun damage component",
                 ToolKind::Shield => "shield damage component",
                 ToolKind::Debug => "debug damage component",
                 ToolKind::Farming => "farming damage component",
@@ -62,6 +63,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Sceptre => "sceptre shaft",
                 // TODO: naming
                 ToolKind::Spear => "spear held component",
+                ToolKind::Blowgun => "blowgun held component",
                 ToolKind::Shield => "shield held component",
                 ToolKind::Natural => "natural held component",
                 ToolKind::Debug => "debug held component",
@@ -84,6 +86,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Sceptre => "common.items.tag_examples.modular.damage.sceptre",
                 ToolKind::Shield => "common.items.tag_examples.modular.damage.shield",
                 ToolKind::Spear => "common.items.tag_examples.modular.damage.spear",
+                ToolKind::Blowgun => "common.items.tag_examples.modular.damage.blowgun",
                 ToolKind::Natural => "common.items.tag_examples.modular.damage.natural",
                 ToolKind::Debug => "common.items.tag_examples.modular.damage.debug",
                 ToolKind::Farming => "common.items.tag_examples.modular.damage.farming",
@@ -100,6 +103,7 @@ impl TagExampleInfo for ModularComponentTag {
                 ToolKind::Sceptre => "common.items.tag_examples.modular.held.sceptre",
                 ToolKind::Shield => "common.items.tag_examples.modular.held.shield",
                 ToolKind::Spear => "common.items.tag_examples.modular.held.spear",
+                ToolKind::Blowgun => "common.items.tag_examples.modular.held.blowgun",
                 ToolKind::Natural => "common.items.tag_examples.modular.held.natural",
                 ToolKind::Debug => "common.items.tag_examples.modular.held.debug",
                 ToolKind::Farming => "common.items.tag_examples.modular.held.farming",

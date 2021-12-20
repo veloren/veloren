@@ -1730,7 +1730,7 @@ impl<'a> AgentData<'a> {
             ToolKind::Staff => Tactic::Staff,
             ToolKind::Sceptre => Tactic::Sceptre,
             ToolKind::Hammer => Tactic::Hammer,
-            ToolKind::Sword | ToolKind::Spear => Tactic::Sword,
+            ToolKind::Sword | ToolKind::Spear | ToolKind::Blowgun => Tactic::Sword,
             ToolKind::Axe => Tactic::Axe,
             _ => Tactic::Melee,
         };

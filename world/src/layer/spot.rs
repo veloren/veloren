@@ -170,7 +170,7 @@ impl Spot {
         Self::generate_spots(
             Spot::GnarlingTotem,
             world,
-            1.0,
+            1000.0,
             |g, c| {
                 g < 0.25
                     && !c.near_cliffs()
@@ -474,18 +474,19 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots_grasslands.gnarling_totem"),
                 entity_radius: 30.0,
                 entities: &[
-                    (1..4, "common.entity.dungeon.tier-0.spear"),
-                    (2..5, "common.entity.dungeon.tier-0.bow"),
-                    (1..3, "common.entity.dungeon.tier-0.staff"),
+                    (15..20, "common.entity.dungeon.tier-0.mugger"),
+                    (15..20, "common.entity.dungeon.tier-0.stalker"),
+                    (15..20, "common.entity.dungeon.tier-0.logger"),
+                    (15..20, "common.entity.dungeon.tier-0.chieftain"),
                 ],
             },
             Spot::GnarlingTree => SpotConfig {
                 base_structures: Some("spots_grasslands.gnarling_tree"),
                 entity_radius: 64.0,
                 entities: &[
-                    (1..5, "common.entity.dungeon.tier-0.spear"),
-                    (2..4, "common.entity.dungeon.tier-0.bow"),
-                    (1..2, "common.entity.dungeon.tier-0.staff"),
+                    (1..5, "common.entity.dungeon.tier-0.mugger"),
+                    (2..4, "common.entity.dungeon.tier-0.stalker"),
+                    (1..2, "common.entity.dungeon.tier-0.logger"),
                     (1..4, "common.entity.wild.aggressive.deadwood"),
                 ],
             },

@@ -164,6 +164,7 @@ fn get_tool_kind(kind: &ToolKind) -> String {
         ToolKind::Sceptre => "Sceptre".to_string(),
         ToolKind::Shield => "Shield".to_string(),
         ToolKind::Spear => "Spear".to_string(),
+        ToolKind::Blowgun => "Blowgun".to_string(),
         ToolKind::Debug => "Debug".to_string(),
         ToolKind::Farming => "Farming".to_string(),
         ToolKind::Pick => "Pick".to_string(),

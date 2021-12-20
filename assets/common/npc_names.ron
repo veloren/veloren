@@ -932,6 +932,10 @@
                 keyword: "treant",
                 generic: "Treant"
             ),
+            woodgolem: (
+                keyword: "woodgolem",
+                generic: "Wooden Golem"
+            ),
             claygolem: (
                 keyword: "claygolem",
                 generic: "ClayGolem"
@@ -1181,6 +1185,10 @@
             lavadrake: (
                 keyword: "lavadrake",
                 generic: "Lava Drake"
+            ),
+            icedrake: (
+                keyword: "icedrake",
+                generic: "Ice Drake"
             ),
             basilisk: (
                 keyword: "basilisk",

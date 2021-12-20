@@ -1,5 +1,5 @@
 EntityConfig (
-    name: Name("Gnarling Stalker"),
+    name: Name("Gnarling Logger"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
 
@@ -8,6 +8,6 @@ EntityConfig (
     hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.adlet_bow")),
 
     meta: [
-        LoadoutAsset("common.loadout.dungeon.tier-0.gnarling"),
+        LoadoutAsset("common.loadout.dungeon.tier-0.logger"),
     ],
 )
