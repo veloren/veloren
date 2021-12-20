@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Head("WoollyWintercap"),
         stats: (
-            protection: Normal(0.0),
-            poise_resilience: Normal(0.0),
-            energy_max: 4.0,
-            energy_reward: 0.04,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Some(Normal(0.0)),
+            poise_resilience: Some(Normal(0.0)),
+            energy_max: Some(4.0),
+            energy_reward: Some(0.04),
         ),
     )),
     quality: Common,

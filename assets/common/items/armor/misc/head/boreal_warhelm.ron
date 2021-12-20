@@ -4,12 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Head("BorealWarhelm"),
         stats: (
-            protection: Normal(9.0),
-            poise_resilience: Normal(3.0),
-            energy_max: 4.0,
-            energy_reward: 0.01,
-            crit_power: 0.0,
-            stealth: 0.0,
+            protection: Some(Normal(9.0)),
+            poise_resilience: Some(Normal(3.0)),
+            energy_max: Some(4.0),
+            energy_reward: Some(0.01),
         ),
     )),
     quality: High,
