@@ -5,7 +5,7 @@ use crate::persistence::{
 
 use crate::persistence::{
     error::PersistenceError,
-    json_models::{self, CharacterPosition, GenericBody, HumanoidBody},
+    json_models::{self, CharacterPosition, DatabaseAbilitySet, GenericBody, HumanoidBody},
 };
 use common::{
     character::CharacterId,
@@ -607,11 +607,7 @@ pub fn convert_active_abilities_to_database(
     entity_id: CharacterId,
     active_abilities: &ability::ActiveAbilities,
 ) -> AbilitySets {
-    let ability_sets = active_abilities
-        .auxiliary_sets
-        .iter()
-        .filter_map(|set| serde_json::to_string(&set).ok())
-        .collect::<Vec<String>>();
+    let ability_sets = json_models::active_abilities_to_db_model(active_abilities);
     AbilitySets {
         entity_id,
         ability_sets: serde_json::to_string(&ability_sets).unwrap_or_default(),
@@ -621,10 +617,7 @@ pub fn convert_active_abilities_to_database(
 pub fn convert_active_abilities_from_database(
     ability_sets: &AbilitySets,
 ) -> ability::ActiveAbilities {
-    let ability_sets = core::iter::once(ability_sets)
-        .flat_map(|sets| serde_json::from_str::<Vec<String>>(&sets.ability_sets))
-        .flatten()
-        .filter_map(|set| serde_json::from_str::<(ability::AuxiliaryKey, [ability::AuxiliaryAbility; ability::MAX_ABILITIES])>(&set).ok())
-        .collect::<HashMap<ability::AuxiliaryKey, [ability::AuxiliaryAbility; ability::MAX_ABILITIES]>>();
-    ability::ActiveAbilities::new(ability_sets)
+    let ability_sets = serde_json::from_str::<Vec<DatabaseAbilitySet>>(&ability_sets.ability_sets)
+        .unwrap_or_default();
+    json_models::active_abilities_from_db_model(ability_sets)
 }

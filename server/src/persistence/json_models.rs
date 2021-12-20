@@ -1,4 +1,5 @@
 use common::comp;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::string::ToString;
 use vek::Vec3;
@@ -105,4 +106,48 @@ pub fn db_string_to_skill_group(skill_group_string: &str) -> comp::skillset::Ski
             skill_group_string
         ),
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseAbilitySet {
+    mainhand: Option<comp::item::tool::ToolKind>,
+    offhand: Option<comp::item::tool::ToolKind>,
+    abilities: Vec<comp::ability::AuxiliaryAbility>,
+}
+
+pub fn active_abilities_to_db_model(
+    active_abilities: &comp::ability::ActiveAbilities,
+) -> Vec<DatabaseAbilitySet> {
+    active_abilities
+        .auxiliary_sets
+        .iter()
+        .map(|((mainhand, offhand), abilities)| DatabaseAbilitySet {
+            mainhand: *mainhand,
+            offhand: *offhand,
+            abilities: abilities.to_vec(),
+        })
+        .collect::<Vec<_>>()
+}
+
+pub fn active_abilities_from_db_model(
+    ability_sets: Vec<DatabaseAbilitySet>,
+) -> comp::ability::ActiveAbilities {
+    let ability_sets = ability_sets
+        .iter()
+        .map(
+            |DatabaseAbilitySet {
+                 mainhand,
+                 offhand,
+                 abilities,
+             }| {
+                let mut auxiliary_abilities =
+                    [comp::ability::AuxiliaryAbility::Empty; comp::ability::MAX_ABILITIES];
+                for (empty, ability) in auxiliary_abilities.iter_mut().zip(abilities.iter()) {
+                    *empty = *ability;
+                }
+                ((*mainhand, *offhand), auxiliary_abilities)
+            },
+        )
+        .collect::<HashMap<_, _>>();
+    comp::ability::ActiveAbilities::new(ability_sets)
 }
