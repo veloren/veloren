@@ -1,5 +1,5 @@
 SpawnEntry (
-    name: "Tundra animals.",
+    name: "Tundra animals for christmas.",
     note: "Usually you can find them in snowy areas.",
     rules: [
         Pack(
