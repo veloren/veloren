@@ -80,9 +80,9 @@ impl GnarlingFortification {
             } else if chosen < (gate_index - 2) {
                 chosen
             } else {
-                (chosen + 3) % gate_index
+                chosen + 4
             };
-            [index, index + 1]
+            [index, (index + 1) % outer_wall_corners.len()]
         };
 
         // TODO: Figure out how to resolve the allow
