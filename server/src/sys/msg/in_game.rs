@@ -283,6 +283,7 @@ impl Sys {
             },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }
+            | ClientGeneral::EditCharacter { .. }
             | ClientGeneral::DeleteCharacter(_)
             | ClientGeneral::Character(_)
             | ClientGeneral::Spectate

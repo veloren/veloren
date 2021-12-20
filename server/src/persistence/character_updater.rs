@@ -4,10 +4,11 @@ use common::character::CharacterId;
 use crate::persistence::{
     character_loader::{CharacterLoaderResponse, CharacterLoaderResponseKind},
     error::PersistenceError,
-    establish_connection, ConnectionMode, DatabaseSettings, PersistedComponents, VelorenConnection,
+    establish_connection, ConnectionMode, DatabaseSettings, EditableComponents,
+    PersistedComponents, VelorenConnection,
 };
 use crossbeam_channel::TryIter;
-use rusqlite::DropBehavior;
+use rusqlite::{DropBehavior, Transaction};
 use specs::Entity;
 use std::{
     collections::HashMap,
@@ -35,6 +36,13 @@ pub enum CharacterUpdaterEvent {
         player_uuid: String,
         character_alias: String,
         persisted_components: PersistedComponents,
+    },
+    EditCharacter {
+        entity: Entity,
+        player_uuid: String,
+        character_id: CharacterId,
+        character_alias: String,
+        editable_components: EditableComponents,
     },
     DeleteCharacter {
         entity: Entity,
@@ -120,6 +128,37 @@ impl CharacterUpdater {
                                 },
                                 Err(e) => error!(
                                     "Error creating character for player {}, error: {:?}",
+                                    player_uuid, e
+                                ),
+                            }
+                        },
+                        CharacterUpdaterEvent::EditCharacter {
+                            entity,
+                            character_id,
+                            character_alias,
+                            player_uuid,
+                            editable_components,
+                        } => {
+                            match execute_character_edit(
+                                entity,
+                                character_id,
+                                character_alias,
+                                &player_uuid,
+                                editable_components,
+                                &mut conn,
+                            ) {
+                                Ok(response) => {
+                                    if let Err(e) = response_tx.send(response) {
+                                        error!(?e, "Could not send character edit response");
+                                    } else {
+                                        debug!(
+                                            "Processed character edit for player {}",
+                                            player_uuid
+                                        );
+                                    }
+                                },
+                                Err(e) => error!(
+                                    "Error editing character for player {}, error: {:?}",
                                     player_uuid, e
                                 ),
                             }
@@ -228,6 +267,30 @@ impl CharacterUpdater {
                 })
         {
             error!(?e, "Could not send character creation request");
+        }
+    }
+
+    pub fn edit_character(
+        &mut self,
+        entity: Entity,
+        requesting_player_uuid: String,
+        character_id: CharacterId,
+        alias: String,
+        editable_components: EditableComponents,
+    ) {
+        if let Err(e) =
+            self.update_tx
+                .as_ref()
+                .unwrap()
+                .send(CharacterUpdaterEvent::EditCharacter {
+                    entity,
+                    player_uuid: requesting_player_uuid,
+                    character_id,
+                    character_alias: alias,
+                    editable_components,
+                })
+        {
+            error!(?e, "Could not send character edit request");
         }
     }
 
@@ -345,22 +408,33 @@ fn execute_character_create(
     connection: &mut VelorenConnection,
 ) -> Result<CharacterLoaderResponse, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
-
-    let response = CharacterLoaderResponse {
-        entity,
-        result: CharacterLoaderResponseKind::CharacterCreation(super::character::create_character(
+    let result =
+        CharacterLoaderResponseKind::CharacterCreation(super::character::create_character(
             requesting_player_uuid,
             &alias,
             persisted_components,
             &mut transaction,
-        )),
-    };
+        ));
+    check_response(entity, transaction, result)
+}
 
-    if !response.is_err() {
-        transaction.commit()?;
-    };
-
-    Ok(response)
+fn execute_character_edit(
+    entity: Entity,
+    character_id: CharacterId,
+    alias: String,
+    requesting_player_uuid: &str,
+    editable_components: EditableComponents,
+    connection: &mut VelorenConnection,
+) -> Result<CharacterLoaderResponse, PersistenceError> {
+    let mut transaction = connection.connection.transaction()?;
+    let result = CharacterLoaderResponseKind::CharacterEdit(super::character::edit_character(
+        editable_components,
+        &mut transaction,
+        character_id,
+        requesting_player_uuid,
+        &alias,
+    ));
+    check_response(entity, transaction, result)
 }
 
 fn execute_character_delete(
@@ -370,15 +444,20 @@ fn execute_character_delete(
     connection: &mut VelorenConnection,
 ) -> Result<CharacterLoaderResponse, PersistenceError> {
     let mut transaction = connection.connection.transaction()?;
+    let result = CharacterLoaderResponseKind::CharacterList(super::character::delete_character(
+        requesting_player_uuid,
+        character_id,
+        &mut transaction,
+    ));
+    check_response(entity, transaction, result)
+}
 
-    let response = CharacterLoaderResponse {
-        entity,
-        result: CharacterLoaderResponseKind::CharacterList(super::character::delete_character(
-            requesting_player_uuid,
-            character_id,
-            &mut transaction,
-        )),
-    };
+fn check_response(
+    entity: Entity,
+    transaction: Transaction,
+    result: CharacterLoaderResponseKind,
+) -> Result<CharacterLoaderResponse, PersistenceError> {
+    let response = CharacterLoaderResponse { entity, result };
 
     if !response.is_err() {
         transaction.commit()?;

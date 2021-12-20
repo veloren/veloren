@@ -55,6 +55,11 @@ pub enum ClientGeneral {
         body: comp::Body,
     },
     DeleteCharacter(CharacterId),
+    EditCharacter {
+        id: CharacterId,
+        alias: String,
+        body: comp::Body,
+    },
     Character(CharacterId),
     Spectate,
     //Only in game
@@ -105,6 +110,7 @@ impl ClientMsg {
                     && match g {
                         ClientGeneral::RequestCharacterList
                         | ClientGeneral::CreateCharacter { .. }
+                        | ClientGeneral::EditCharacter { .. }
                         | ClientGeneral::DeleteCharacter(_) => {
                             c_type != ClientType::ChatOnly && presence.is_none()
                         },

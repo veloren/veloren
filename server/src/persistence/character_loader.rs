@@ -12,6 +12,7 @@ use tracing::error;
 pub(crate) type CharacterListResult = Result<Vec<CharacterItem>, PersistenceError>;
 pub(crate) type CharacterCreationResult =
     Result<(CharacterId, Vec<CharacterItem>), PersistenceError>;
+pub(crate) type CharacterEditResult = Result<(CharacterId, Vec<CharacterItem>), PersistenceError>;
 pub(crate) type CharacterDataResult = Result<PersistedComponents, PersistenceError>;
 type CharacterLoaderRequest = (specs::Entity, CharacterLoaderRequestKind);
 
@@ -33,6 +34,7 @@ pub enum CharacterLoaderResponseKind {
     CharacterList(CharacterListResult),
     CharacterData(Box<CharacterDataResult>),
     CharacterCreation(CharacterCreationResult),
+    CharacterEdit(CharacterEditResult),
 }
 
 /// Common message format dispatched in response to an update request

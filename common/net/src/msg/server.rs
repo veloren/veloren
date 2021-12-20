@@ -133,6 +133,7 @@ pub enum ServerGeneral {
     CharacterActionError(String),
     /// A new character was created
     CharacterCreated(character::CharacterId),
+    CharacterEdited(character::CharacterId),
     CharacterSuccess,
     //Ingame related
     GroupUpdate(comp::group::ChangeNotification<sync::Uid>),
@@ -275,6 +276,7 @@ impl ServerMsg {
                         ServerGeneral::CharacterDataLoadError(_)
                         | ServerGeneral::CharacterListUpdate(_)
                         | ServerGeneral::CharacterActionError(_)
+                        | ServerGeneral::CharacterEdited(_)
                         | ServerGeneral::CharacterCreated(_) => {
                             c_type != ClientType::ChatOnly && presence.is_none()
                         },

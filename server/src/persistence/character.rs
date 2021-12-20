@@ -22,7 +22,7 @@ use crate::{
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
         error::PersistenceError::DatabaseError,
-        PersistedComponents,
+        EditableComponents, PersistedComponents,
     },
 };
 use common::character::{CharacterId, CharacterItem, MAX_CHARACTERS_PER_PLAYER};
@@ -277,8 +277,8 @@ pub fn load_character_list(player_uuid_: &str, connection: &Connection) -> Chara
     let mut stmt = connection.prepare_cached(
         "
             SELECT  character_id,
-                    alias 
-            FROM    character 
+                    alias
+            FROM    character
             WHERE   player_uuid = ?1
             ORDER BY character_id",
     )?;
@@ -495,6 +495,58 @@ pub fn create_character(
     drop(stmt);
 
     load_character_list(uuid, transactionn).map(|list| (character_id, list))
+}
+
+pub fn edit_character(
+    editable_components: EditableComponents,
+    transaction: &mut Transaction,
+    character_id: CharacterId,
+    uuid: &str,
+    character_alias: &str,
+) -> CharacterCreationResult {
+    let (body,) = editable_components;
+    let mut char_list = load_character_list(uuid, transaction);
+
+    if let Ok(char_list) = &mut char_list {
+        if let Some(char) = char_list
+            .iter_mut()
+            .find(|c| c.character.id == Some(character_id))
+        {
+            if let (crate::comp::Body::Humanoid(new), crate::comp::Body::Humanoid(old)) =
+                (body, char.body)
+            {
+                if new.species != old.species || new.body_type != old.body_type {
+                    warn!(
+                        "Character edit rejected due to failed validation - Character ID: {} \
+                         Alias: {}",
+                        character_id, character_alias
+                    );
+                    return Err(PersistenceError::CharacterDataError);
+                } else {
+                    char.body = body;
+                }
+            }
+        }
+    }
+
+    let mut stmt = transaction
+        .prepare_cached("UPDATE body SET variant = ?1, body_data = ?2 WHERE body_id = ?3")?;
+
+    let (body_variant, body_data) = convert_body_to_database_json(&body)?;
+    stmt.execute(&[
+        &body_variant.to_string(),
+        &body_data,
+        &character_id as &dyn ToSql,
+    ])?;
+    drop(stmt);
+
+    let mut stmt =
+        transaction.prepare_cached("UPDATE character SET alias = ?1 WHERE character_id = ?2")?;
+
+    stmt.execute(&[&character_alias, &character_id as &dyn ToSql])?;
+    drop(stmt);
+
+    char_list.map(|list| (character_id, list))
 }
 
 /// Delete a character. Returns the updated character list.
@@ -846,7 +898,7 @@ fn delete_pets(
 
     #[rustfmt::skip]
     let mut stmt = transaction.prepare_cached("
-            DELETE 
+            DELETE
             FROM    body
             WHERE   body_id IN rarray(?1)"
     )?;
@@ -1009,7 +1061,7 @@ pub fn update(
 
     let mut stmt = transaction.prepare_cached(
         "
-        REPLACE 
+        REPLACE
         INTO    skill (entity_id,
                        skill,
                        level)

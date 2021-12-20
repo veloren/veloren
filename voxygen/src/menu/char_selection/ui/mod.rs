@@ -76,6 +76,10 @@ image_ids_ice! {
         delete_button_hover: "voxygen.element.ui.char_select.icons.bin_hover",
         delete_button_press: "voxygen.element.ui.char_select.icons.bin_press",
 
+        edit_button: "voxygen.element.ui.char_select.icons.pen",
+        edit_button_hover: "voxygen.element.ui.char_select.icons.pen_hover",
+        edit_button_press: "voxygen.element.ui.char_select.icons.pen_press",
+
         name_input: "voxygen.element.ui.generic.textbox",
 
         // Tool Icons
@@ -129,6 +133,11 @@ pub enum Event {
         offhand: Option<String>,
         body: comp::Body,
     },
+    EditCharacter {
+        alias: String,
+        character_id: CharacterId,
+        body: comp::Body,
+    },
     DeleteCharacter(CharacterId),
     ClearCharacterListError,
     SelectCharacter(Option<CharacterId>),
@@ -146,7 +155,7 @@ enum Mode {
         yes_button: button::State,
         no_button: button::State,
     },
-    Create {
+    CreateOrEdit {
         name: String,
         body: humanoid::Body,
         inventory: Box<comp::inventory::Inventory>,
@@ -163,6 +172,7 @@ enum Mode {
         create_button: button::State,
         rand_character_button: button::State,
         rand_name_button: button::State,
+        character_id: Option<CharacterId>,
     },
 }
 
@@ -194,7 +204,7 @@ impl Mode {
 
         let inventory = Box::new(Inventory::new_with_loadout(loadout));
 
-        Self::Create {
+        Self::CreateOrEdit {
             name,
             body: humanoid::Body::random(),
             inventory,
@@ -210,6 +220,33 @@ impl Mode {
             create_button: Default::default(),
             rand_character_button: Default::default(),
             rand_name_button: Default::default(),
+            character_id: None,
+        }
+    }
+
+    pub fn edit(
+        name: String,
+        character_id: CharacterId,
+        body: humanoid::Body,
+        inventory: &Inventory,
+    ) -> Self {
+        Self::CreateOrEdit {
+            name,
+            body,
+            inventory: Box::new(inventory.clone()),
+            mainhand: None,
+            offhand: None,
+            body_type_buttons: Default::default(),
+            species_buttons: Default::default(),
+            tool_buttons: Default::default(),
+            sliders: Default::default(),
+            scroll: Default::default(),
+            name_input: Default::default(),
+            back_button: Default::default(),
+            create_button: Default::default(),
+            rand_character_button: Default::default(),
+            rand_name_button: Default::default(),
+            character_id: Some(character_id),
         }
     }
 }
@@ -219,6 +256,7 @@ enum InfoContent {
     Deletion(usize),
     LoadingCharacters,
     CreatingCharacter,
+    EditingCharacter,
     DeletingCharacter,
     CharacterError(String),
 }
@@ -247,6 +285,8 @@ enum Message {
     EnterWorld,
     Select(CharacterId),
     Delete(usize),
+    Edit(usize),
+    ConfirmEdit(CharacterId),
     NewCharacter,
     CreateCharacter,
     Name(String),
@@ -394,6 +434,7 @@ impl Controls {
                     info_content,
                     Some(InfoContent::LoadingCharacters)
                         | Some(InfoContent::CreatingCharacter)
+                        | Some(InfoContent::EditingCharacter)
                         | Some(InfoContent::DeletingCharacter)
                 ) && !client.character_list().loading
                 {
@@ -421,12 +462,13 @@ impl Controls {
                     let characters = &client.character_list().characters;
                     let num = characters.len();
                     // Ensure we have enough button states
-                    character_buttons.resize_with(num * 2, Default::default);
+                    const CHAR_BUTTONS: usize = 3;
+                    character_buttons.resize_with(num * CHAR_BUTTONS, Default::default);
 
                     // Character Selection List
                     let mut characters = characters
                         .iter()
-                        .zip(character_buttons.chunks_exact_mut(2))
+                        .zip(character_buttons.chunks_exact_mut(CHAR_BUTTONS))
                         .filter_map(|(character, buttons)| {
                             let mut buttons = buttons.iter_mut();
                             // TODO: eliminate option in character id?
@@ -434,13 +476,24 @@ impl Controls {
                                 (
                                     id,
                                     character,
-                                    (buttons.next().unwrap(), buttons.next().unwrap()),
+                                    (
+                                        buttons.next().unwrap(),
+                                        buttons.next().unwrap(),
+                                        buttons.next().unwrap(),
+                                    ),
                                 )
                             })
                         })
                         .enumerate()
                         .map(
-                            |(i, (character_id, character, (select_button, delete_button)))| {
+                            |(
+                                i,
+                                (
+                                    character_id,
+                                    character,
+                                    (select_button, edit_button, delete_button),
+                                ),
+                            )| {
                                 let select_col = if Some(i) == selected {
                                     (255, 208, 69)
                                 } else {
@@ -448,17 +501,33 @@ impl Controls {
                                 };
                                 Overlay::new(
                                     Container::new(
-                                        // Delete button
-                                        Button::new(
-                                            delete_button,
-                                            Space::new(Length::Units(16), Length::Units(16)),
-                                        )
-                                        .style(
-                                            style::button::Style::new(imgs.delete_button)
-                                                .hover_image(imgs.delete_button_hover)
-                                                .press_image(imgs.delete_button_press),
-                                        )
-                                        .on_press(Message::Delete(i)),
+                                        Row::with_children(vec![
+                                            // Edit button
+                                            Button::new(
+                                                edit_button,
+                                                Space::new(Length::Units(16), Length::Units(16)),
+                                            )
+                                            .style(
+                                                style::button::Style::new(imgs.edit_button)
+                                                    .hover_image(imgs.edit_button_hover)
+                                                    .press_image(imgs.edit_button_press),
+                                            )
+                                            .on_press(Message::Edit(i))
+                                            .into(),
+                                            // Delete button
+                                            Button::new(
+                                                delete_button,
+                                                Space::new(Length::Units(16), Length::Units(16)),
+                                            )
+                                            .style(
+                                                style::button::Style::new(imgs.delete_button)
+                                                    .hover_image(imgs.delete_button_hover)
+                                                    .press_image(imgs.delete_button_press),
+                                            )
+                                            .on_press(Message::Delete(i))
+                                            .into(),
+                                        ])
+                                        .spacing(5),
                                     )
                                     .padding(4),
                                     // Select Button
@@ -668,6 +737,11 @@ impl Controls {
                                 .size(fonts.cyri.scale(24))
                                 .into()
                         },
+                        InfoContent::EditingCharacter => {
+                            Text::new(i18n.get("char_selection.editing_character"))
+                                .size(fonts.cyri.scale(24))
+                                .into()
+                        },
                         InfoContent::DeletingCharacter => {
                             Text::new(i18n.get("char_selection.deleting_character"))
                                 .size(fonts.cyri.scale(24))
@@ -716,7 +790,7 @@ impl Controls {
                     content.into()
                 }
             },
-            Mode::Create {
+            Mode::CreateOrEdit {
                 name,
                 body,
                 inventory: _,
@@ -732,6 +806,7 @@ impl Controls {
                 ref mut create_button,
                 ref mut rand_character_button,
                 ref mut rand_name_button,
+                character_id,
             } => {
                 let unselected_style = style::button::Style::new(imgs.icon_border)
                     .hover_image(imgs.icon_border_mo)
@@ -763,190 +838,192 @@ impl Controls {
                         })
                 };
 
-                let (body_m_ico, body_f_ico) = match body.species {
-                    humanoid::Species::Human => (imgs.human_m, imgs.human_f),
-                    humanoid::Species::Orc => (imgs.orc_m, imgs.orc_f),
-                    humanoid::Species::Dwarf => (imgs.dwarf_m, imgs.dwarf_f),
-                    humanoid::Species::Elf => (imgs.elf_m, imgs.elf_f),
-                    humanoid::Species::Undead => (imgs.undead_m, imgs.undead_f),
-                    humanoid::Species::Danari => (imgs.danari_m, imgs.danari_f),
-                };
-
-                let [ref mut body_m_button, ref mut body_f_button] = body_type_buttons;
-                let body_type = Row::with_children(vec![
-                    icon_button(
-                        body_m_button,
-                        matches!(body.body_type, humanoid::BodyType::Male),
-                        Message::BodyType(humanoid::BodyType::Male),
-                        body_m_ico,
-                    )
-                    .into(),
-                    icon_button(
-                        body_f_button,
-                        matches!(body.body_type, humanoid::BodyType::Female),
-                        Message::BodyType(humanoid::BodyType::Female),
-                        body_f_ico,
-                    )
-                    .into(),
-                ])
-                .spacing(1);
-
-                let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
-                    match body.body_type {
-                        humanoid::BodyType::Male => (
-                            self.imgs.human_m,
-                            self.imgs.orc_m,
-                            self.imgs.dwarf_m,
-                            self.imgs.elf_m,
-                            self.imgs.undead_m,
-                            self.imgs.danari_m,
-                        ),
-                        humanoid::BodyType::Female => (
-                            self.imgs.human_f,
-                            self.imgs.orc_f,
-                            self.imgs.dwarf_f,
-                            self.imgs.elf_f,
-                            self.imgs.undead_f,
-                            self.imgs.danari_f,
-                        ),
-                    };
-
                 // TODO: tooltips
-                let [
-                    ref mut human_button,
-                    ref mut orc_button,
-                    ref mut dwarf_button,
-                    ref mut elf_button,
-                    ref mut undead_button,
-                    ref mut danari_button,
-                ] = species_buttons;
-                let species = Column::with_children(vec![
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            human_button,
-                            matches!(body.species, humanoid::Species::Human),
-                            Message::Species(humanoid::Species::Human),
-                            human_icon,
-                            "common.species.human",
+                let (tool, species, body_type) = if character_id.is_some() {
+                    (Column::new(), Column::new(), Row::new())
+                } else {
+                    let (body_m_ico, body_f_ico) = match body.species {
+                        humanoid::Species::Human => (imgs.human_m, imgs.human_f),
+                        humanoid::Species::Orc => (imgs.orc_m, imgs.orc_f),
+                        humanoid::Species::Dwarf => (imgs.dwarf_m, imgs.dwarf_f),
+                        humanoid::Species::Elf => (imgs.elf_m, imgs.elf_f),
+                        humanoid::Species::Undead => (imgs.undead_m, imgs.undead_f),
+                        humanoid::Species::Danari => (imgs.danari_m, imgs.danari_f),
+                    };
+                    let [ref mut body_m_button, ref mut body_f_button] = body_type_buttons;
+                    let body_type = Row::with_children(vec![
+                        icon_button(
+                            body_m_button,
+                            matches!(body.body_type, humanoid::BodyType::Male),
+                            Message::BodyType(humanoid::BodyType::Male),
+                            body_m_ico,
                         )
                         .into(),
-                        icon_button_tooltip(
-                            orc_button,
-                            matches!(body.species, humanoid::Species::Orc),
-                            Message::Species(humanoid::Species::Orc),
-                            orc_icon,
-                            "common.species.orc",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            dwarf_button,
-                            matches!(body.species, humanoid::Species::Dwarf),
-                            Message::Species(humanoid::Species::Dwarf),
-                            dwarf_icon,
-                            "common.species.dwarf",
+                        icon_button(
+                            body_f_button,
+                            matches!(body.body_type, humanoid::BodyType::Female),
+                            Message::BodyType(humanoid::BodyType::Female),
+                            body_f_ico,
                         )
                         .into(),
                     ])
-                    .spacing(1)
-                    .into(),
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            elf_button,
-                            matches!(body.species, humanoid::Species::Elf),
-                            Message::Species(humanoid::Species::Elf),
-                            elf_icon,
-                            "common.species.elf",
-                        )
+                    .spacing(1);
+                    let (human_icon, orc_icon, dwarf_icon, elf_icon, undead_icon, danari_icon) =
+                        match body.body_type {
+                            humanoid::BodyType::Male => (
+                                self.imgs.human_m,
+                                self.imgs.orc_m,
+                                self.imgs.dwarf_m,
+                                self.imgs.elf_m,
+                                self.imgs.undead_m,
+                                self.imgs.danari_m,
+                            ),
+                            humanoid::BodyType::Female => (
+                                self.imgs.human_f,
+                                self.imgs.orc_f,
+                                self.imgs.dwarf_f,
+                                self.imgs.elf_f,
+                                self.imgs.undead_f,
+                                self.imgs.danari_f,
+                            ),
+                        };
+                    let [
+                        ref mut human_button,
+                        ref mut orc_button,
+                        ref mut dwarf_button,
+                        ref mut elf_button,
+                        ref mut undead_button,
+                        ref mut danari_button,
+                    ] = species_buttons;
+                    let species = Column::with_children(vec![
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                human_button,
+                                matches!(body.species, humanoid::Species::Human),
+                                Message::Species(humanoid::Species::Human),
+                                human_icon,
+                                "common.species.human",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                orc_button,
+                                matches!(body.species, humanoid::Species::Orc),
+                                Message::Species(humanoid::Species::Orc),
+                                orc_icon,
+                                "common.species.orc",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                dwarf_button,
+                                matches!(body.species, humanoid::Species::Dwarf),
+                                Message::Species(humanoid::Species::Dwarf),
+                                dwarf_icon,
+                                "common.species.dwarf",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
                         .into(),
-                        icon_button_tooltip(
-                            undead_button,
-                            matches!(body.species, humanoid::Species::Undead),
-                            Message::Species(humanoid::Species::Undead),
-                            undead_icon,
-                            "common.species.undead",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            danari_button,
-                            matches!(body.species, humanoid::Species::Danari),
-                            Message::Species(humanoid::Species::Danari),
-                            danari_icon,
-                            "common.species.danari",
-                        )
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                elf_button,
+                                matches!(body.species, humanoid::Species::Elf),
+                                Message::Species(humanoid::Species::Elf),
+                                elf_icon,
+                                "common.species.elf",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                undead_button,
+                                matches!(body.species, humanoid::Species::Undead),
+                                Message::Species(humanoid::Species::Undead),
+                                undead_icon,
+                                "common.species.undead",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                danari_button,
+                                matches!(body.species, humanoid::Species::Danari),
+                                Message::Species(humanoid::Species::Danari),
+                                danari_icon,
+                                "common.species.danari",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
                         .into(),
                     ])
-                    .spacing(1)
-                    .into(),
-                ])
-                .spacing(1);
+                    .spacing(1);
+                    let [
+                        ref mut sword_button,
+                        ref mut swords_button,
+                        ref mut axe_button,
+                        ref mut hammer_button,
+                        ref mut bow_button,
+                        ref mut staff_button,
+                    ] = tool_buttons;
+                    let tool = Column::with_children(vec![
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                sword_button,
+                                *mainhand == Some(STARTER_SWORD),
+                                Message::Tool((Some(STARTER_SWORD), None)),
+                                imgs.sword,
+                                "common.weapons.greatsword",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                hammer_button,
+                                *mainhand == Some(STARTER_HAMMER),
+                                Message::Tool((Some(STARTER_HAMMER), None)),
+                                imgs.hammer,
+                                "common.weapons.hammer",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                axe_button,
+                                *mainhand == Some(STARTER_AXE),
+                                Message::Tool((Some(STARTER_AXE), None)),
+                                imgs.axe,
+                                "common.weapons.axe",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
+                        .into(),
+                        Row::with_children(vec![
+                            icon_button_tooltip(
+                                swords_button,
+                                *mainhand == Some(STARTER_SWORDS),
+                                Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
+                                imgs.swords,
+                                "common.weapons.shortswords",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                bow_button,
+                                *mainhand == Some(STARTER_BOW),
+                                Message::Tool((Some(STARTER_BOW), None)),
+                                imgs.bow,
+                                "common.weapons.bow",
+                            )
+                            .into(),
+                            icon_button_tooltip(
+                                staff_button,
+                                *mainhand == Some(STARTER_STAFF),
+                                Message::Tool((Some(STARTER_STAFF), None)),
+                                imgs.staff,
+                                "common.weapons.staff",
+                            )
+                            .into(),
+                        ])
+                        .spacing(1)
+                        .into(),
+                    ])
+                    .spacing(1);
 
-                let [
-                    ref mut sword_button,
-                    ref mut swords_button,
-                    ref mut axe_button,
-                    ref mut hammer_button,
-                    ref mut bow_button,
-                    ref mut staff_button,
-                ] = tool_buttons;
-                let tool = Column::with_children(vec![
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            sword_button,
-                            *mainhand == Some(STARTER_SWORD),
-                            Message::Tool((Some(STARTER_SWORD), None)),
-                            imgs.sword,
-                            "common.weapons.greatsword",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            hammer_button,
-                            *mainhand == Some(STARTER_HAMMER),
-                            Message::Tool((Some(STARTER_HAMMER), None)),
-                            imgs.hammer,
-                            "common.weapons.hammer",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            axe_button,
-                            *mainhand == Some(STARTER_AXE),
-                            Message::Tool((Some(STARTER_AXE), None)),
-                            imgs.axe,
-                            "common.weapons.axe",
-                        )
-                        .into(),
-                    ])
-                    .spacing(1)
-                    .into(),
-                    Row::with_children(vec![
-                        icon_button_tooltip(
-                            swords_button,
-                            *mainhand == Some(STARTER_SWORDS),
-                            Message::Tool((Some(STARTER_SWORDS), Some(STARTER_SWORDS))),
-                            imgs.swords,
-                            "common.weapons.shortswords",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            bow_button,
-                            *mainhand == Some(STARTER_BOW),
-                            Message::Tool((Some(STARTER_BOW), None)),
-                            imgs.bow,
-                            "common.weapons.bow",
-                        )
-                        .into(),
-                        icon_button_tooltip(
-                            staff_button,
-                            *mainhand == Some(STARTER_STAFF),
-                            Message::Tool((Some(STARTER_STAFF), None)),
-                            imgs.staff,
-                            "common.weapons.staff",
-                        )
-                        .into(),
-                    ])
-                    .spacing(1)
-                    .into(),
-                ])
-                .spacing(1);
+                    (tool, species, body_type)
+                };
 
                 const SLIDER_TEXT_SIZE: u16 = 20;
                 const SLIDER_CURSOR_SIZE: (u16, u16) = (9, 21);
@@ -1174,6 +1251,12 @@ impl Controls {
                     tooltip::text(i18n.get("common.rand_name"), tooltip_style)
                 });
 
+                let confirm_msg = if let Some(character_id) = character_id {
+                    Message::ConfirmEdit(*character_id)
+                } else {
+                    Message::CreateCharacter
+                };
+
                 let name_input = BackgroundContainer::new(
                     Image::new(imgs.name_input)
                         .height(Length::Units(40))
@@ -1185,7 +1268,7 @@ impl Controls {
                         Message::Name,
                     )
                     .size(25)
-                    .on_submit(Message::CreateCharacter),
+                    .on_submit(confirm_msg.clone()),
                 )
                 .padding(Padding::new().horizontal(7).top(5));
 
@@ -1204,10 +1287,14 @@ impl Controls {
 
                 let create = neat_button(
                     create_button,
-                    i18n.get("common.create"),
+                    i18n.get(if character_id.is_some() {
+                        "common.confirm"
+                    } else {
+                        "common.create"
+                    }),
                     FILL_FRAC_ONE,
                     button_style,
-                    (!name.is_empty()).then_some(Message::CreateCharacter),
+                    (!name.is_empty()).then_some(confirm_msg),
                 );
 
                 let create: Element<Message> = if name.is_empty() {
@@ -1293,7 +1380,7 @@ impl Controls {
     fn update(&mut self, message: Message, events: &mut Vec<Event>, characters: &[CharacterItem]) {
         match message {
             Message::Back => {
-                if matches!(&self.mode, Mode::Create { .. }) {
+                if matches!(&self.mode, Mode::CreateOrEdit { .. }) {
                     self.mode = Mode::select(None);
                 }
             },
@@ -1316,13 +1403,29 @@ impl Controls {
                     *info_content = Some(InfoContent::Deletion(idx));
                 }
             },
+            Message::Edit(idx) => {
+                if matches!(&self.mode, Mode::Select { .. }) {
+                    if let Some(character) = characters.get(idx) {
+                        if let comp::Body::Humanoid(body) = character.body {
+                            if let Some(id) = character.character.id {
+                                self.mode = Mode::edit(
+                                    character.character.alias.clone(),
+                                    id,
+                                    body,
+                                    &character.inventory,
+                                );
+                            }
+                        }
+                    }
+                }
+            },
             Message::NewCharacter => {
                 if matches!(&self.mode, Mode::Select { .. }) {
                     self.mode = Mode::create(self.default_name.clone());
                 }
             },
             Message::CreateCharacter => {
-                if let Mode::Create {
+                if let Mode::CreateOrEdit {
                     name,
                     body,
                     mainhand,
@@ -1339,25 +1442,35 @@ impl Controls {
                     self.mode = Mode::select(Some(InfoContent::CreatingCharacter));
                 }
             },
+            Message::ConfirmEdit(character_id) => {
+                if let Mode::CreateOrEdit { name, body, .. } = &self.mode {
+                    events.push(Event::EditCharacter {
+                        alias: name.clone(),
+                        character_id,
+                        body: comp::Body::Humanoid(*body),
+                    });
+                    self.mode = Mode::select(Some(InfoContent::EditingCharacter));
+                }
+            },
             Message::Name(value) => {
-                if let Mode::Create { name, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { name, .. } = &mut self.mode {
                     *name = value.chars().take(MAX_NAME_LENGTH).collect();
                 }
             },
             Message::BodyType(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.body_type = value;
                     body.validate();
                 }
             },
             Message::Species(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.species = value;
                     body.validate();
                 }
             },
             Message::Tool(value) => {
-                if let Mode::Create {
+                if let Mode::CreateOrEdit {
                     mainhand,
                     offhand,
                     inventory,
@@ -1378,7 +1491,7 @@ impl Controls {
             },
             //Todo: Add species and body type to randomization.
             Message::RandomizeCharacter => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     use rand::Rng;
                     let body_type = body.body_type;
                     let species = body.species;
@@ -1394,7 +1507,7 @@ impl Controls {
             },
 
             Message::RandomizeName => {
-                if let Mode::Create { name, body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { name, body, .. } = &mut self.mode {
                     use common::npc;
                     *name = npc::get_npc_name(
                         npc::NpcKind::Humanoid,
@@ -1429,43 +1542,43 @@ impl Controls {
                 events.push(Event::ClearCharacterListError);
             },
             Message::HairStyle(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.hair_style = value;
                     body.validate();
                 }
             },
             Message::HairColor(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.hair_color = value;
                     body.validate();
                 }
             },
             Message::Skin(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.skin = value;
                     body.validate();
                 }
             },
             Message::Eyes(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.eyes = value;
                     body.validate();
                 }
             },
             Message::EyeColor(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.eye_color = value;
                     body.validate();
                 }
             },
             Message::Accessory(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.accessory = value;
                     body.validate();
                 }
             },
             Message::Beard(value) => {
-                if let Mode::Create { body, .. } = &mut self.mode {
+                if let Mode::CreateOrEdit { body, .. } = &mut self.mode {
                     body.beard = value;
                     body.validate();
                 }
@@ -1484,7 +1597,7 @@ impl Controls {
                 .selected
                 .and_then(|id| characters.iter().find(|i| i.character.id == Some(id)))
                 .map(|i| (i.body, &i.inventory)),
-            Mode::Create {
+            Mode::CreateOrEdit {
                 inventory, body, ..
             } => Some((comp::Body::Humanoid(*body), inventory)),
         }
