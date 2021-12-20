@@ -23,6 +23,7 @@ enum GnarlingStructure {
     Hut,
     Totem,
     ChieftainHut,
+    WatchTower,
 }
 
 impl GnarlingStructure {
@@ -31,8 +32,9 @@ impl GnarlingStructure {
             (Self::Hut, Self::Hut) => 15,
             (Self::Hut, Self::Totem) | (Self::Totem, Self::Hut) => 20,
             (Self::Totem, Self::Totem) => 50,
-            // Chieftain hut generated in separate pass without distance check
-            (Self::ChieftainHut, _) | (_, Self::ChieftainHut) => 0,
+            // Chieftain hut and watch tower generated in separate pass without distance check
+            (Self::ChieftainHut | Self::WatchTower, _)
+            | (_, Self::ChieftainHut | Self::WatchTower) => 0,
         }
     }
 }
@@ -202,6 +204,20 @@ impl GnarlingFortification {
             chieftain_hut_loc,
             chieftain_hut_ori,
         ));
+
+        let watchtower_locs = {
+            let (corner_1, corner_2) = (
+                outer_wall_corners[gate_index],
+                outer_wall_corners[(gate_index + 1) % outer_wall_corners.len()],
+            );
+            [
+                corner_1 / 5 + corner_2 * 4 / 5,
+                corner_1 * 4 / 5 + corner_2 / 5,
+            ]
+        };
+        watchtower_locs.iter().for_each(|loc| {
+            structure_locations.push((GnarlingStructure::WatchTower, *loc, Ori::North));
+        });
 
         let wall_towers = outer_wall_corners
             .into_iter()
@@ -595,6 +611,214 @@ impl Structure for GnarlingFortification {
                             door_height,
                             roof_height,
                             roof_overhang,
+                        );
+                    },
+                    GnarlingStructure::WatchTower => {
+                        let platform_1_height = 14;
+                        let platform_2_height = 20;
+                        let platform_3_height = 26;
+                        let roof_height = 30;
+
+                        let platform_1 = painter.aabb(Aabb {
+                            min: (wpos + 1).with_z(alt + platform_1_height),
+                            max: (wpos + 10).with_z(alt + platform_1_height + 1),
+                        });
+
+                        let platform_2 = painter.aabb(Aabb {
+                            min: (wpos + 1).with_z(alt + platform_2_height),
+                            max: (wpos + 10).with_z(alt + platform_2_height + 1),
+                        });
+
+                        let platform_3 = painter.aabb(Aabb {
+                            min: (wpos + 2).with_z(alt + platform_3_height),
+                            max: (wpos + 9).with_z(alt + platform_3_height + 1),
+                        });
+
+                        let support_1 = painter.line(
+                            wpos.with_z(alt),
+                            (wpos + 2).with_z(alt + platform_1_height),
+                            0.9,
+                        );
+                        let support_2 = support_1
+                            .rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .translate(Vec3::new(0, 11, 0));
+                        let support_3 = support_1
+                            .rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1))
+                            .translate(Vec3::new(11, 0, 0));
+                        let support_4 = support_1
+                            .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .translate(Vec3::new(11, 11, 0));
+
+                        let supports = support_1.union(support_2).union(support_3).union(support_4);
+
+                        let platform_1_supports = painter
+                            .plane(
+                                Aabr {
+                                    min: (wpos + 2),
+                                    max: (wpos + 9),
+                                },
+                                (wpos + 3).with_z(alt + platform_1_height + 1),
+                                Vec2::new(0.0, 1.0),
+                            )
+                            .union(painter.plane(
+                                Aabr {
+                                    min: (wpos + 2),
+                                    max: (wpos + 9),
+                                },
+                                (wpos + 3).with_z(alt + platform_2_height),
+                                Vec2::new(0.0, -1.0),
+                            ))
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 3, wpos.y + 2)
+                                        .with_z(alt + platform_1_height),
+                                    max: Vec2::new(wpos.x + 8, wpos.y + 9)
+                                        .with_z(alt + platform_2_height),
+                                }),
+                            )
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 2, wpos.y + 2)
+                                        .with_z(alt + platform_2_height),
+                                    max: Vec2::new(wpos.x + 9, wpos.y + 9)
+                                        .with_z(alt + platform_2_height + 2),
+                                }),
+                            )
+                            .union(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 2, wpos.y + 2)
+                                        .with_z(alt + platform_1_height),
+                                    max: Vec2::new(wpos.x + 9, wpos.y + 9)
+                                        .with_z(alt + platform_2_height),
+                                }),
+                            )
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 3, wpos.y + 2)
+                                        .with_z(alt + platform_1_height),
+                                    max: Vec2::new(wpos.x + 8, wpos.y + 9)
+                                        .with_z(alt + platform_2_height),
+                                }),
+                            )
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 2, wpos.y + 3)
+                                        .with_z(alt + platform_1_height),
+                                    max: Vec2::new(wpos.x + 9, wpos.y + 8)
+                                        .with_z(alt + platform_2_height),
+                                }),
+                            );
+
+                        let platform_2_supports = painter
+                            .plane(
+                                Aabr {
+                                    min: (wpos + 3),
+                                    max: (wpos + 8),
+                                },
+                                (wpos + 3).with_z(alt + platform_2_height + 1),
+                                Vec2::new(1.0, 0.0),
+                            )
+                            .union(painter.plane(
+                                Aabr {
+                                    min: (wpos + 3),
+                                    max: (wpos + 8),
+                                },
+                                (wpos + 3).with_z(alt + platform_3_height),
+                                Vec2::new(-1.0, 0.0),
+                            ))
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 3, wpos.y + 4)
+                                        .with_z(alt + platform_2_height),
+                                    max: Vec2::new(wpos.x + 8, wpos.y + 7)
+                                        .with_z(alt + platform_3_height),
+                                }),
+                            )
+                            .union(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 3, wpos.y + 3)
+                                        .with_z(alt + platform_2_height),
+                                    max: Vec2::new(wpos.x + 8, wpos.y + 8)
+                                        .with_z(alt + platform_3_height),
+                                }),
+                            )
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 4, wpos.y + 3)
+                                        .with_z(alt + platform_2_height),
+                                    max: Vec2::new(wpos.x + 7, wpos.y + 8)
+                                        .with_z(alt + platform_3_height),
+                                }),
+                            )
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 3, wpos.y + 4)
+                                        .with_z(alt + platform_2_height),
+                                    max: Vec2::new(wpos.x + 8, wpos.y + 7)
+                                        .with_z(alt + platform_3_height),
+                                }),
+                            );
+
+                        let roof = painter
+                            .gable(
+                                Aabb {
+                                    min: (wpos + 2).with_z(alt + roof_height),
+                                    max: (wpos + 9).with_z(alt + roof_height + 4),
+                                },
+                                1,
+                                true,
+                            )
+                            .without(
+                                painter.gable(
+                                    Aabb {
+                                        min: Vec2::new(wpos.x + 3, wpos.y + 2)
+                                            .with_z(alt + roof_height),
+                                        max: Vec2::new(wpos.x + 8, wpos.y + 9)
+                                            .with_z(alt + roof_height + 3),
+                                    },
+                                    1,
+                                    true,
+                                ),
+                            );
+
+                        let roof_pillars = painter
+                            .aabb(Aabb {
+                                min: Vec2::new(wpos.x + 3, wpos.y + 3)
+                                    .with_z(alt + platform_3_height),
+                                max: Vec2::new(wpos.x + 8, wpos.y + 8)
+                                    .with_z(alt + roof_height + 1),
+                            })
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 4, wpos.y + 3)
+                                        .with_z(alt + platform_3_height),
+                                    max: Vec2::new(wpos.x + 7, wpos.y + 8)
+                                        .with_z(alt + roof_height),
+                                }),
+                            )
+                            .without(
+                                painter.aabb(Aabb {
+                                    min: Vec2::new(wpos.x + 3, wpos.y + 4)
+                                        .with_z(alt + platform_3_height),
+                                    max: Vec2::new(wpos.x + 8, wpos.y + 7)
+                                        .with_z(alt + roof_height),
+                                }),
+                            );
+
+                        let tower = platform_1
+                            .union(platform_2)
+                            .union(platform_3)
+                            .union(supports)
+                            .union(platform_1_supports)
+                            // .union(platform_1_pillars)
+                            .union(platform_2_supports)
+                            // .union(platform_2_pillars)
+                            .union(roof)
+                            .union(roof_pillars);
+
+                        painter.fill(
+                            tower,
+                            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
                         );
                     },
                 }
