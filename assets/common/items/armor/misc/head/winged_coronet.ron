@@ -1,0 +1,17 @@
+ItemDef(
+    name: "Winged Coronet",
+    description: "You feel more connected with nature.",
+    kind: Armor((
+        kind: Head("WingedCoronet"),
+        stats: (
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(0.0)),
+            energy_max: Some(8.0),
+            energy_reward: Some(0.05),
+            crit_power: Some(0.015),
+            stealth: Some(0.5),
+        ),
+    )),
+    quality: High,
+    tags: [],
+)

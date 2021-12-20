@@ -5,6 +5,7 @@ use crate::{
     IndexRef,
 };
 use common::{
+    calendar::Calendar,
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
 };
@@ -56,7 +57,7 @@ make_case_elim!(
 impl Archetype for Keep {
     type Attr = Attr;
 
-    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) {
+    fn generate<R: Rng>(rng: &mut R, _calendar: Option<&Calendar>) -> (Self, Skeleton<Self::Attr>) {
         let len = rng.gen_range(-8..24).max(0);
         let storeys = rng.gen_range(1..3);
         let skel = Skeleton {

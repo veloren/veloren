@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Woolly Wintercap",
+    description: "Simple, stylish, and festive.",
+    kind: Armor((
+        kind: Head("WoollyWintercap"),
+        stats: (
+            protection: Some(Normal(0.0)),
+            poise_resilience: Some(Normal(0.0)),
+            energy_max: Some(4.0),
+            energy_reward: Some(0.04),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

@@ -1,5 +1,6 @@
 use common::assets;
 use serde::Deserialize;
+use vek::*;
 
 pub struct Config {
     pub sea_level: f32,
@@ -51,6 +52,8 @@ pub struct Config {
     /// Rough desired river width-to-depth ratio (in terms of horizontal chunk
     /// width / m, for some reason).  Not exact.
     pub river_width_to_depth: f32,
+    /// TODO: Move to colors.ron when blockgen can access it
+    pub ice_color: Rgb<u8>,
 }
 
 pub const CONFIG: Config = Config {
@@ -71,6 +74,7 @@ pub const CONFIG: Config = Config {
     river_max_width: 2.0,
     river_min_height: 0.25,
     river_width_to_depth: 8.0,
+    ice_color: Rgb::new(140, 175, 255),
 };
 
 #[derive(Deserialize)]

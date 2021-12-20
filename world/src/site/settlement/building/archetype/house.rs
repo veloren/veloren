@@ -7,6 +7,7 @@ use crate::{
     IndexRef,
 };
 use common::{
+    calendar::{Calendar, CalendarEvent},
     make_case_elim,
     terrain::{Block, BlockKind, SpriteKind},
 };
@@ -107,6 +108,7 @@ pub struct House {
     pub noise: RandomField,
     pub roof_ribbing: bool,
     pub roof_ribbing_diagonal: bool,
+    pub christmas_decorations: bool,
 }
 
 #[derive(Copy, Clone)]
@@ -180,7 +182,7 @@ impl Attr {
 impl Archetype for House {
     type Attr = Attr;
 
-    fn generate<R: Rng>(rng: &mut R) -> (Self, Skeleton<Self::Attr>) {
+    fn generate<R: Rng>(rng: &mut R, calendar: Option<&Calendar>) -> (Self, Skeleton<Self::Attr>) {
         let len = rng.gen_range(-8..24).clamped(0, 20);
         let locus = 6 + rng.gen_range(0..5);
         let branches_per_side = 1 + len as usize / 20;
@@ -239,6 +241,9 @@ impl Archetype for House {
             noise: RandomField::new(rng.gen()),
             roof_ribbing: rng.gen(),
             roof_ribbing_diagonal: rng.gen(),
+            christmas_decorations: calendar
+                .map(|c| c.is_event(CalendarEvent::Christmas))
+                .unwrap_or_default(),
         };
 
         (this, skel)
@@ -261,6 +266,7 @@ impl Archetype for House {
         let roof_color = *self.colors.roof.elim_case_pure(&colors.roof);
         let wall_color = *self.colors.wall.elim_case_pure(&colors.wall);
         let support_color = *self.colors.support.elim_case_pure(&colors.support);
+        let christmas_theme = self.christmas_decorations;
 
         let profile = Vec2::new(bound_offset.x, z);
 
@@ -608,12 +614,22 @@ impl Archetype for House {
                 if dist == width + 1
                     && center_offset.map(|e| e.abs()).reduce_min() == 0
                     && profile.y == floor_height + 3
-                    && self
-                        .noise
-                        .chance(Vec3::new(center_offset.x, center_offset.y, z), 0.35)
+                    && self.noise.chance(
+                        Vec3::new(center_offset.x, center_offset.y, z),
+                        if christmas_theme { 0.70 } else { 0.35 },
+                    )
                     && attr.storey_fill.has_lower()
                 {
-                    let ornament =
+                    let ornament = if christmas_theme {
+                        match self
+                            .noise
+                            .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
+                            % 4
+                        {
+                            0 => SpriteKind::ChristmasWreath,
+                            _ => SpriteKind::ChristmasOrnament,
+                        }
+                    } else {
                         match self
                             .noise
                             .get(Vec3::new(center_offset.x, center_offset.y, z + 100))
@@ -624,7 +640,8 @@ impl Archetype for House {
                             4 => SpriteKind::WallSconce,
                             5 => SpriteKind::WallLampSmall,
                             _ => SpriteKind::DungeonWallDecor,
-                        };
+                        }
+                    };
 
                     BlockMask::new(
                         Block::air(ornament).with_ori((edge_ori + 4) % 8).unwrap(),

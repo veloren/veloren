@@ -42,7 +42,7 @@ pub use crate::{
     error::Error,
     events::Event,
     input::Input,
-    settings::{EditableSettings, Settings},
+    settings::{CalendarMode, EditableSettings, Settings},
 };
 
 #[cfg(feature = "persistent_world")]
@@ -64,6 +64,7 @@ use crate::{
 use common::grid::Grid;
 use common::{
     assets::AssetExt,
+    calendar::Calendar,
     character::CharacterId,
     cmd::ChatCommand,
     comp::{self, item::MaterialStatManifest},
@@ -355,6 +356,7 @@ impl Server {
                     // Load default map from assets.
                     FileOpts::LoadAsset(DEFAULT_WORLD_MAP.into())
                 },
+                calendar: Some(settings.calendar_mode.calendar_now()),
             },
             state.thread_pool(),
         );
@@ -592,6 +594,17 @@ impl Server {
     pub fn tick(&mut self, _input: Input, dt: Duration) -> Result<Vec<Event>, Error> {
         self.state.ecs().write_resource::<Tick>().0 += 1;
         self.state.ecs().write_resource::<TickStart>().0 = Instant::now();
+
+        // Update calendar events as time changes
+        // TODO: If a lot of calendar events get added, this might become expensive.
+        // Maybe don't do this every tick?
+        let new_calendar = self
+            .state
+            .ecs()
+            .read_resource::<Settings>()
+            .calendar_mode
+            .calendar_now();
+        *self.state.ecs_mut().write_resource::<Calendar>() = new_calendar;
 
         // This tick function is the centre of the Veloren universe. Most server-side
         // things are managed from here, and as such it's important that it
@@ -891,7 +904,10 @@ impl Server {
                             &slow_jobs,
                             Arc::clone(world),
                             index.clone(),
-                            *ecs.read_resource::<TimeOfDay>(),
+                            (
+                                *ecs.read_resource::<TimeOfDay>(),
+                                (*ecs.read_resource::<Calendar>()).clone(),
+                            ),
                         );
                     });
                 }
@@ -1104,7 +1120,10 @@ impl Server {
             &slow_jobs,
             Arc::clone(&self.world),
             self.index.clone(),
-            *ecs.read_resource::<TimeOfDay>(),
+            (
+                *ecs.read_resource::<TimeOfDay>(),
+                (*ecs.read_resource::<Calendar>()).clone(),
+            ),
         );
     }
 

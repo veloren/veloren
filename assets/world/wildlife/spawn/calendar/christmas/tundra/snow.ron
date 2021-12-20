@@ -1,0 +1,17 @@
+SpawnEntry (
+    name: "Tundra animals for christmas.",
+    note: "Usually you can find them in snowy areas.",
+    rules: [
+        Pack(
+            groups: [
+                (6, (1, 3, "common.entity.wild.aggressive.frostfang")),
+                (6, (1, 3, "common.entity.wild.aggressive.snow_raptor")),
+                (6, (1, 3, "common.entity.wild.aggressive.roshwalr")),
+                (1, (1, 1, "common.entity.calendar.christmas.aggressive.yeti")),
+            ],
+            is_underwater: false,
+            calendar_events: Some([Christmas]),
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

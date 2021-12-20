@@ -35,7 +35,7 @@ fn main() {
                 let pos = focus + Vec2::new(i as i32, j as i32) * scale;
 
                 let (alt, place) = sampler
-                    .get((pos, index))
+                    .get((pos, index, None))
                     .map(|sample| {
                         (
                             sample.alt.sub(64.0).add(gain).mul(0.7).max(0.0).min(255.0) as u8,

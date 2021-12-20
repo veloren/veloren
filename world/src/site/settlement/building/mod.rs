@@ -8,7 +8,7 @@ pub use self::{
 };
 
 use crate::IndexRef;
-use common::terrain::Block;
+use common::{calendar::Calendar, terrain::Block};
 use rand::prelude::*;
 use serde::Deserialize;
 use vek::*;
@@ -25,11 +25,11 @@ pub struct Building<A: Archetype> {
 }
 
 impl<A: Archetype> Building<A> {
-    pub fn generate(rng: &mut impl Rng, origin: Vec3<i32>) -> Self
+    pub fn generate(rng: &mut impl Rng, origin: Vec3<i32>, calendar: Option<&Calendar>) -> Self
     where
         A: Sized,
     {
-        let (archetype, skel) = A::generate(rng);
+        let (archetype, skel) = A::generate(rng, calendar);
         Self {
             skel,
             archetype,

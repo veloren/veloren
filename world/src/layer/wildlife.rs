@@ -1,6 +1,7 @@
 use crate::{column::ColumnSample, sim::SimChunk, IndexRef, CONFIG};
 use common::{
     assets::{self, AssetExt},
+    calendar::{Calendar, CalendarEvent},
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
     terrain::Block,
@@ -40,7 +41,12 @@ impl assets::Asset for SpawnEntry {
 impl SpawnEntry {
     pub fn from(asset_specifier: &str) -> Self { Self::load_expect_cloned(asset_specifier) }
 
-    pub fn request(&self, requested_period: DayPeriod, underwater: bool) -> Option<Pack> {
+    pub fn request(
+        &self,
+        requested_period: DayPeriod,
+        calendar: Option<&Calendar>,
+        underwater: bool,
+    ) -> Option<Pack> {
         self.rules
             .iter()
             .find(|pack| {
@@ -48,8 +54,15 @@ impl SpawnEntry {
                     .day_period
                     .iter()
                     .any(|period| *period == requested_period);
+                let calendar_match = if let Some(calendar) = calendar {
+                    pack.calendar_events.as_ref().map_or(true, |events| {
+                        events.iter().any(|event| calendar.is_event(*event))
+                    })
+                } else {
+                    false
+                };
                 let water_match = pack.is_underwater == underwater;
-                time_match && water_match
+                time_match && calendar_match && water_match
             })
             .cloned()
     }
@@ -97,6 +110,9 @@ pub struct Pack {
     pub groups: Vec<(Weight, (Min, Max, String))>,
     pub is_underwater: bool,
     pub day_period: Vec<DayPeriod>,
+    #[serde(default)]
+    pub calendar_events: Option<Vec<CalendarEvent>>, /* None implies that the group isn't
+                                                      * limited by calendar events */
 }
 
 impl Pack {
@@ -128,19 +144,46 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         ("world.wildlife.spawn.tundra.core", |c, _col| {
             close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5
         }),
+        // Core animals events
+        (
+            "world.wildlife.spawn.calendar.christmas.tundra.core",
+            |c, _col| close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * 0.5,
+        ),
         // Snowy animals
         ("world.wildlife.spawn.tundra.snow", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * BASE_DENSITY * col.snow_cover as i32 as f32 * 1.0
         }),
+        // Snowy animals event
+        (
+            "world.wildlife.spawn.calendar.christmas.tundra.snow",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp, 0.3)
+                    * BASE_DENSITY
+                    * col.snow_cover as i32 as f32
+                    * 1.0
+            },
+        ),
         // Forest animals
         ("world.wildlife.spawn.tundra.forest", |c, col| {
             close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4
         }),
+        // Forest animals event
+        (
+            "world.wildlife.spawn.calendar.christmas.tundra.forest",
+            |c, col| close(c.temp, CONFIG.snow_temp, 0.3) * col.tree_density * BASE_DENSITY * 1.4,
+        ),
         // **Taiga**
         // Forest core animals
         ("world.wildlife.spawn.taiga.core_forest", |c, col| {
             close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
         }),
+        // Forest core animals event
+        (
+            "world.wildlife.spawn.calendar.christmas.taiga.core_forest",
+            |c, col| {
+                close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * col.tree_density * BASE_DENSITY * 0.4
+            },
+        ),
         // Core animals
         ("world.wildlife.spawn.taiga.core", |c, _col| {
             close(c.temp, CONFIG.snow_temp + 0.2, 0.2) * BASE_DENSITY * 1.0
@@ -271,7 +314,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     index: IndexRef,
     chunk: &SimChunk,
     supplement: &mut ChunkSupplement,
-    time: Option<TimeOfDay>,
+    time: Option<&(TimeOfDay, Calendar)>,
 ) {
     let scatter = &index.wildlife_spawns;
 
@@ -289,12 +332,11 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             };
 
             let underwater = col_sample.water_level > col_sample.alt;
-            let current_day_period;
-            if let Some(time) = time {
-                current_day_period = DayPeriod::from(time.0)
+            let (current_day_period, calendar) = if let Some((time, calendar)) = time {
+                (DayPeriod::from(time.0), Some(calendar))
             } else {
-                current_day_period = DayPeriod::Noon
-            }
+                (DayPeriod::Noon, None)
+            };
 
             let entity_group = scatter
                 .iter()
@@ -305,7 +347,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                         .then(|| {
                             entry
                                 .read()
-                                .request(current_day_period, underwater)
+                                .request(current_day_period, calendar, underwater)
                                 .and_then(|pack| {
                                     (dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
                                         && col_sample.gradient < Some(1.3))

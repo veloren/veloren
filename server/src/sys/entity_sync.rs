@@ -5,6 +5,7 @@ use crate::{
     Tick,
 };
 use common::{
+    calendar::Calendar,
     comp::{Collider, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
@@ -28,6 +29,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, Tick>,
         ReadExpect<'a, TimeOfDay>,
+        ReadExpect<'a, Calendar>,
         ReadExpect<'a, RegionMap>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Pos>,
@@ -61,6 +63,7 @@ impl<'a> System<'a> for Sys {
             entities,
             tick,
             time_of_day,
+            calendar,
             region_map,
             uids,
             positions,
@@ -360,8 +363,9 @@ impl<'a> System<'a> for Sys {
         if tick % TOD_SYNC_FREQ == 0 {
             let mut tod_lazymsg = None;
             for client in (&clients).join() {
-                let msg = tod_lazymsg
-                    .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(*time_of_day)));
+                let msg = tod_lazymsg.unwrap_or_else(|| {
+                    client.prepare(ServerGeneral::TimeOfDay(*time_of_day, (*calendar).clone()))
+                });
                 // We don't care much about stream errors here since they could just represent
                 // network disconnection, which is handled elsewhere.
                 let _ = client.send_prepared(&msg);

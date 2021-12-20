@@ -41,6 +41,7 @@ rustls = { version = "0.20", default-features = false }
 rustls-pemfile = { version = "0.2.1", default-features = false }
 atomicwrites = "0.3.0"
 chrono = { version = "0.4.19", features = ["serde"] }
+chrono-tz = { version = "0.6", features = ["serde"] }
 humantime = "2.1.0"
 itertools = "0.10"
 lazy_static = "1.4.0"

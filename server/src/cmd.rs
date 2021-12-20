@@ -18,6 +18,7 @@ use authc::Uuid;
 use chrono::{NaiveTime, Timelike, Utc};
 use common::{
     assets,
+    calendar::Calendar,
     cmd::{
         ChatCommand, BUFF_PACK, BUFF_PARSER, ITEM_SPECS, KIT_MANIFEST_PATH, PRESET_MANIFEST_PATH,
     },
@@ -986,9 +987,14 @@ fn handle_time(
     // wait for the next 100th tick to receive the update).
     let mut tod_lazymsg = None;
     let clients = server.state.ecs().read_storage::<Client>();
+    let calendar = server.state.ecs().read_resource::<Calendar>();
     for client in (&clients).join() {
-        let msg = tod_lazymsg
-            .unwrap_or_else(|| client.prepare(ServerGeneral::TimeOfDay(TimeOfDay(new_time))));
+        let msg = tod_lazymsg.unwrap_or_else(|| {
+            client.prepare(ServerGeneral::TimeOfDay(
+                TimeOfDay(new_time),
+                (*calendar).clone(),
+            ))
+        });
         let _ = client.send_prepared(&msg);
         tod_lazymsg = Some(msg);
     }
@@ -2707,6 +2713,7 @@ fn handle_debug_column(
     _action: &ChatCommand,
 ) -> CmdResult<()> {
     let sim = server.world.sim();
+    let calendar = (*server.state.ecs().read_resource::<Calendar>()).clone();
     let sampler = server.world.sample_columns();
     let wpos = if let (Some(x), Some(y)) = parse_args!(args, i32, i32) {
         Vec2::new(x, y)
@@ -2715,7 +2722,7 @@ fn handle_debug_column(
         // FIXME: Deal with overflow, if needed.
         pos.0.xy().map(|x| x as i32)
     };
-    let msg_generator = || {
+    let msg_generator = |calendar| {
         let alt = sim.get_interpolated(wpos, |chunk| chunk.alt)?;
         let basement = sim.get_interpolated(wpos, |chunk| chunk.basement)?;
         let water_alt = sim.get_interpolated(wpos, |chunk| chunk.water_alt)?;
@@ -2727,7 +2734,7 @@ fn handle_debug_column(
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
         let chunk_pos = wpos.map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / sz as i32);
         let chunk = sim.get(chunk_pos)?;
-        let col = sampler.get((wpos, server.index.as_index_ref()))?;
+        let col = sampler.get((wpos, server.index.as_index_ref(), Some(calendar)))?;
         let gradient = sim.get_gradient_approx(chunk_pos)?;
         let downhill = chunk.downhill;
         let river = &chunk.river;
@@ -2766,7 +2773,7 @@ spawn_rate {:?} "#,
             spawn_rate
         ))
     };
-    if let Some(s) = msg_generator() {
+    if let Some(s) = msg_generator(&calendar) {
         server.notify_client(client, ServerGeneral::server_msg(ChatType::CommandInfo, s));
         Ok(())
     } else {

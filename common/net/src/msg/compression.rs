@@ -621,6 +621,11 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageDecoding for TriPngEncoding<AVERAGE_
                             g: 255,
                             b: 255,
                         },
+                        Ice => Rgb {
+                            r: 150,
+                            g: 190,
+                            b: 255,
+                        },
                         Earth => Rgb {
                             r: 200,
                             g: 140,

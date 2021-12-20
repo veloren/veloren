@@ -49,6 +49,7 @@ fn main() {
             world_file: sim::FileOpts::LoadAsset(veloren_world::sim::DEFAULT_WORLD_MAP.into()),
             /* world_file: sim::FileOpts::Load(_map_file),
              * world_file: sim::FileOpts::Save(sim::SizeOpts::default()), */
+            calendar: None,
         },
         &threadpool,
     );
@@ -66,6 +67,7 @@ fn main() {
                     uniform_idx_as_vec2(map_size_lg, posi)
                         * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     index,
+                    None,
                 ))
             })
             .collect::<Vec<_>>()
@@ -177,6 +179,7 @@ fn main() {
 
             is_basement,
             is_water,
+            is_ice: true,
             is_shaded,
             is_temperature,
             is_humidity,

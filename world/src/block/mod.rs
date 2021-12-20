@@ -1,11 +1,14 @@
 use crate::{
     column::{ColumnGen, ColumnSample},
     util::{FastNoise, RandomField, RandomPerm, Sampler, SmallCache},
-    IndexRef,
+    IndexRef, CONFIG,
 };
-use common::terrain::{
-    structure::{self, StructureBlock},
-    Block, BlockKind, SpriteKind,
+use common::{
+    calendar::{Calendar, CalendarEvent},
+    terrain::{
+        structure::{self, StructureBlock},
+        Block, BlockKind, SpriteKind,
+    },
 };
 use core::ops::{Div, Mul, Range};
 use serde::Deserialize;
@@ -33,19 +36,25 @@ impl<'a> BlockGen<'a> {
         cache: &'b mut SmallCache<Option<ColumnSample<'a>>>,
         wpos: Vec2<i32>,
         index: IndexRef<'a>,
+        calendar: Option<&'a Calendar>,
     ) -> Option<&'b ColumnSample<'a>> {
         cache
-            .get(wpos, |wpos| column_gen.get((wpos, index)))
+            .get(wpos, |wpos| column_gen.get((wpos, index, calendar)))
             .as_ref()
     }
 
-    pub fn get_z_cache(&mut self, wpos: Vec2<i32>, index: IndexRef<'a>) -> Option<ZCache<'a>> {
+    pub fn get_z_cache(
+        &mut self,
+        wpos: Vec2<i32>,
+        index: IndexRef<'a>,
+        calendar: Option<&'a Calendar>,
+    ) -> Option<ZCache<'a>> {
         let BlockGen { column_gen } = self;
 
         // Main sample
-        let sample = column_gen.get((wpos, index))?;
+        let sample = column_gen.get((wpos, index, calendar))?;
 
-        Some(ZCache { sample })
+        Some(ZCache { sample, calendar })
     }
 
     pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
@@ -65,8 +74,9 @@ impl<'a> BlockGen<'a> {
             //tree_density,
             //forest_kind,
             //close_structures,
-            // marble,
-            // marble_small,
+            marble: _,
+            marble_mid: _,
+            marble_small: _,
             rock,
             // temp,
             // humidity,
@@ -74,6 +84,8 @@ impl<'a> BlockGen<'a> {
             snow_cover,
             cliff_offset,
             cliff_height,
+            // water_vel,
+            ice_depth,
             ..
         } = sample;
 
@@ -195,8 +207,11 @@ impl<'a> BlockGen<'a> {
             }
         })
         .or_else(|| {
+            let over_water = height < water_height;
             // Water
-            if (wposf.z as f32) < water_height {
+            if over_water && (wposf.z as f32 - water_height).abs() < ice_depth {
+                Some(Block::new(BlockKind::Ice, CONFIG.ice_color))
+            } else if (wposf.z as f32) < water_height {
                 // Ocean
                 Some(water)
             } else {
@@ -208,6 +223,7 @@ impl<'a> BlockGen<'a> {
 
 pub struct ZCache<'a> {
     pub sample: ColumnSample<'a>,
+    pub calendar: Option<&'a Calendar>,
 }
 
 impl<'a> ZCache<'a> {
@@ -223,7 +239,7 @@ impl<'a> ZCache<'a> {
 
         let ground_max = self.sample.alt + warp + rocks + 2.0;
 
-        let max = ground_max.max(self.sample.water_level + 2.0);
+        let max = ground_max.max(self.sample.water_level + 2.0 + self.sample.ice_depth);
 
         (min, max)
     }
@@ -237,6 +253,7 @@ pub fn block_from_structure(
     structure_seed: u32,
     sample: &ColumnSample,
     mut with_sprite: impl FnMut(SpriteKind) -> Block,
+    calendar: Option<&Calendar>,
 ) -> Option<Block> {
     let field = RandomField::new(structure_seed);
 
@@ -312,15 +329,21 @@ pub fn block_from_structure(
             };
 
             range.map(|range| {
-                Block::new(
-                    BlockKind::Leaves,
-                    Rgb::<f32>::lerp(
-                        Rgb::<u8>::from(range.start).map(f32::from),
-                        Rgb::<u8>::from(range.end).map(f32::from),
-                        lerp,
+                if calendar.map_or(false, |c| c.is_event(CalendarEvent::Christmas))
+                    && field.chance(pos + structure_pos, 0.025)
+                {
+                    Block::new(BlockKind::GlowingWeakRock, Rgb::new(255, 0, 0))
+                } else {
+                    Block::new(
+                        BlockKind::Leaves,
+                        Rgb::<f32>::lerp(
+                            Rgb::<u8>::from(range.start).map(f32::from),
+                            Rgb::<u8>::from(range.end).map(f32::from),
+                            lerp,
+                        )
+                        .map(|e| e as u8),
                     )
-                    .map(|e| e as u8),
-                )
+                }
             })
         },
         StructureBlock::BirchWood => {

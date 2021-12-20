@@ -1,11 +1,15 @@
 ItemDef(
     name: "Dark Hood",
-    description: "yep.",
+    description: "Tis a bit thicker.",
     kind: Armor((
         kind: Head("DarkHood"),
         stats: (
+            protection: Some(Normal(7.0)),
+            poise_resilience: Some(Normal(1.0)),
+            crit_power: Some(0.02),
+            stealth: Some(0.1),
         ),
     )),
-    quality: Common,
+    quality: Moderate,
     tags: [],
 )

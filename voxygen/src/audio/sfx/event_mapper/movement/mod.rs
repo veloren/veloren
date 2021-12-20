@@ -206,7 +206,9 @@ impl MovementEventMapper {
             } else {
                 match underfoot_block_kind {
                     BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
-                    BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
+                    BlockKind::Rock | BlockKind::WeakRock | BlockKind::Ice => {
+                        SfxEvent::Run(BlockKind::Rock)
+                    },
                     BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
                     BlockKind::Air => SfxEvent::Idle,
                     _ => SfxEvent::Run(BlockKind::Grass),

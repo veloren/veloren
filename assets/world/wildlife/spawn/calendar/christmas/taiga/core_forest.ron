@@ -1,0 +1,16 @@
+SpawnEntry (
+    name: "Taiga rare forest wildlife for christmas.",
+    note: "Search for them in the heart of the taiga, if you are feeling lucky.",
+    rules: [
+        Pack(
+            groups: [
+                (9, (1, 1, "common.entity.wild.aggressive.wendigo")),
+                (9, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
+                (1, (1, 1, "common.entity.calendar.christmas.aggressive.yeti")),
+            ],
+            is_underwater: false,
+            calendar_events: Some([Christmas]),
+            day_period: [Night, Morning, Noon, Evening],
+        ),
+    ],
+)

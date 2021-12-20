@@ -81,6 +81,7 @@ pub fn sample_pos(
 
         is_basement,
         is_water,
+        is_ice,
         is_shaded,
         is_temperature,
         is_humidity,
@@ -133,7 +134,7 @@ pub fn sample_pos(
     let humidity = humidity.min(1.0).max(0.0);
     let temperature = temperature.min(1.0).max(-1.0) * 0.5 + 0.5;
     let wpos = pos * TerrainChunkSize::RECT_SIZE.map(|e| e as i32);
-    let column_rgb_alt = samples
+    let column_data = samples
         .and_then(|samples| {
             chunk_idx
                 .and_then(|chunk_idx| samples.get(chunk_idx))
@@ -162,14 +163,14 @@ pub fn sample_pos(
                 .map(|e| e as f64)
             };
 
-            (rgb, alt)
+            (rgb, alt, sample.ice_depth)
         });
 
     let downhill_wpos = downhill.unwrap_or(wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32));
     let alt = if is_basement {
         basement
     } else {
-        column_rgb_alt.map_or(alt, |(_, alt)| alt)
+        column_data.map_or(alt, |(_, alt, _)| alt)
     };
 
     let true_water_alt = (alt.max(water_alt) as f64 - focus.z) / gain as f64;
@@ -189,7 +190,7 @@ pub fn sample_pos(
         if is_shaded { 1.0 } else { alt },
         if is_shaded || is_humidity { 1.0 } else { 0.0 },
     );
-    let column_rgb = column_rgb_alt.map(|(rgb, _)| rgb).unwrap_or(default_rgb);
+    let column_rgb = column_data.map(|(rgb, _, _)| rgb).unwrap_or(default_rgb);
     let mut connections = [None; 8];
     let mut has_connections = false;
     // TODO: Support non-river connections.
@@ -213,33 +214,38 @@ pub fn sample_pos(
                 });
             });
     };
-    let rgb = match (river_kind, (is_water, true_alt >= true_sea_level)) {
-        (_, (false, _)) | (None, (_, true)) | (Some(RiverKind::River { .. }), _) => {
-            let (r, g, b) = (
-                (column_rgb.r
-                    * if is_temperature {
-                        temperature as f64
-                    } else {
-                        column_rgb.r
-                    })
-                .sqrt(),
-                column_rgb.g,
-                (column_rgb.b
-                    * if is_humidity {
-                        humidity as f64
-                    } else {
-                        column_rgb.b
-                    })
-                .sqrt(),
-            );
-            Rgb::new((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
-        },
-        (None | Some(RiverKind::Lake { .. } | RiverKind::Ocean), _) => Rgb::new(
-            0,
-            ((g_water - water_depth * g_water) * 1.0) as u8,
-            ((b_water - water_depth * b_water) * 1.0) as u8,
-        ),
-    };
+    let rgb =
+        if is_water && is_ice && column_data.map_or(false, |(_, _, ice_depth)| ice_depth > 0.0) {
+            CONFIG.ice_color
+        } else {
+            match (river_kind, (is_water, true_alt >= true_sea_level)) {
+                (_, (false, _)) | (None, (_, true)) | (Some(RiverKind::River { .. }), _) => {
+                    let (r, g, b) = (
+                        (column_rgb.r
+                            * if is_temperature {
+                                temperature as f64
+                            } else {
+                                column_rgb.r
+                            })
+                        .sqrt(),
+                        column_rgb.g,
+                        (column_rgb.b
+                            * if is_humidity {
+                                humidity as f64
+                            } else {
+                                column_rgb.b
+                            })
+                        .sqrt(),
+                    );
+                    Rgb::new((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
+                },
+                (None | Some(RiverKind::Lake { .. } | RiverKind::Ocean), _) => Rgb::new(
+                    0,
+                    ((g_water - water_depth * g_water) * 1.0) as u8,
+                    ((b_water - water_depth * b_water) * 1.0) as u8,
+                ),
+            }
+        };
     // TODO: Make principled.
     let rgb = if is_path {
         Rgb::new(0x37, 0x29, 0x23)

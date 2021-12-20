@@ -28,5 +28,9 @@
           vox_spec: ("lantern.pumpkin", (-3.5, -4.0, -8.5)),
           color: None
       ),
+      "PolarisLantern": (
+          vox_spec: ("lantern.polaris", (-3.0, -4.0, -9.5)),
+          color: None
+      ),
     },
 ))

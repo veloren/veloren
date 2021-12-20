@@ -6,8 +6,8 @@ ItemDef(
         stats: (
             protection: Some(Normal(4.0)),
             energy_max: Some(8.0),
-            energy_reward: Some(0.12),
-            crit_power: Some(0.1),
+            energy_reward: Some(0.1),
+            crit_power: Some(0.01),
         ),
     )),
     quality: High,
