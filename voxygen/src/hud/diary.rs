@@ -6,17 +6,25 @@ use super::{
 };
 use crate::{
     game_input::GameInput,
-    hud::{self, util},
-    ui::{fonts::Fonts, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    hud::{
+        self,
+        slots::{AbilitySlot, SlotManager},
+        util,
+    },
+    ui::{
+        fonts::Fonts,
+        slot::{ContentSize, SlotMaker},
+        ImageFrame, Tooltip, TooltipManager, Tooltipable,
+    },
     GlobalState,
 };
 use conrod_core::{
     color, image,
-    input::state::mouse::ButtonPosition,
     widget::{self, Button, Image, Rectangle, State, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
+use vek::*;
 
 use client::{self, Client};
 use common::{
@@ -40,7 +48,6 @@ use common::{
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
-use hashbrown::HashMap;
 use inline_tweak::*;
 use std::borrow::Cow;
 
@@ -213,7 +220,6 @@ widget_ids! {
         ability_page_left,
         ability_page_right,
         active_abilities[],
-        active_abilities_bg[],
         active_abilities_keys[],
         main_weap_select,
         off_weap_select,
@@ -248,6 +254,7 @@ pub struct Diary<'a> {
     localized_strings: &'a Localization,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
+    slot_manager: &'a mut SlotManager,
     pulse: f32,
 
     #[conrod(common_builder)]
@@ -261,7 +268,6 @@ pub struct Diary<'a> {
 pub struct DiaryShow {
     pub skilltreetab: SelectedSkillTree,
     pub section: DiarySection,
-    pub selected_ability: Option<AuxiliaryAbility>,
 }
 
 impl Default for DiaryShow {
@@ -269,7 +275,6 @@ impl Default for DiaryShow {
         Self {
             skilltreetab: SelectedSkillTree::General,
             section: DiarySection::SkillTrees,
-            selected_ability: None,
         }
     }
 }
@@ -294,6 +299,7 @@ impl<'a> Diary<'a> {
         localized_strings: &'a Localization,
         rot_imgs: &'a ImgsRot,
         tooltip_manager: &'a mut TooltipManager,
+        slot_manager: &'a mut SlotManager,
         pulse: f32,
     ) -> Self {
         Self {
@@ -314,6 +320,7 @@ impl<'a> Diary<'a> {
             localized_strings,
             rot_imgs,
             tooltip_manager,
+            slot_manager,
             pulse,
             common: widget::CommonBuilder::default(),
             created_btns_top_l: 0,
@@ -347,8 +354,6 @@ pub enum Event {
     ChangeSkillTree(SelectedSkillTree),
     UnlockSkill(Skill),
     ChangeSection(DiarySection),
-    SelectAbility(Option<AuxiliaryAbility>),
-    ChangeAbility(usize, AuxiliaryAbility),
 }
 
 #[derive(PartialEq)]
@@ -360,8 +365,6 @@ pub enum DiarySection {
 
 pub struct DiaryState {
     ids: Ids,
-    dragged_ability: Option<AuxiliaryAbility>,
-    id_ability_map: HashMap<widget::Id, AuxiliaryAbility>,
     ability_page: usize,
 }
 
@@ -373,9 +376,6 @@ impl<'a> Widget for Diary<'a> {
     fn init_state(&self, id_gen: widget::id::Generator) -> Self::State {
         DiaryState {
             ids: Ids::new(id_gen),
-            dragged_ability: None,
-            // Constructed during update sequence
-            id_ability_map: HashMap::new(),
             ability_page: 0,
         }
     }
@@ -386,10 +386,6 @@ impl<'a> Widget for Diary<'a> {
         common_base::prof_span!("Diary::update");
         let widget::UpdateArgs { state, ui, .. } = args;
         let mut events = Vec::new();
-
-        state.update(|s| {
-            s.id_ability_map.clear();
-        });
 
         // Tooltips
         let diary_tooltip = Tooltip::new({
@@ -834,6 +830,7 @@ impl<'a> Widget for Diary<'a> {
             },
             DiarySection::AbilitySelection => {
                 use comp::ability::AbilityInput;
+
                 // Background Art
                 Image::new(self.imgs.book_bg)
                     .w_h(299.0 * 4.0, 184.0 * 4.0)
@@ -852,7 +849,7 @@ impl<'a> Widget for Diary<'a> {
                     .top_right_with_margins_on(state.ids.spellbook_art, 0.0, 0.0)
                     .set(state.ids.sb_page_right_align, ui);
 
-                // Display all active abilities on right of window
+                // Display all active abilities on bottom of window
                 state.update(|s| {
                     s.ids
                         .active_abilities
@@ -860,14 +857,30 @@ impl<'a> Widget for Diary<'a> {
                 });
                 state.update(|s| {
                     s.ids
-                        .active_abilities_bg
-                        .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
-                });
-                state.update(|s| {
-                    s.ids
                         .active_abilities_keys
                         .resize(MAX_ABILITIES, &mut ui.widget_id_generator())
                 });
+
+                let mut slot_maker = SlotMaker {
+                    empty_slot: self.imgs.inv_slot,
+                    filled_slot: self.imgs.inv_slot,
+                    selected_slot: self.imgs.inv_slot_sel,
+                    background_color: Some(UI_MAIN),
+                    content_size: ContentSize {
+                        width_height_ratio: 1.0,
+                        max_fraction: tweak!(0.9),
+                    },
+                    selected_content_scale: 1.067,
+                    amount_font: self.fonts.cyri.conrod_id,
+                    amount_margins: Vec2::new(-4.0, 0.0),
+                    amount_font_size: self.fonts.cyri.scale(12),
+                    amount_text_color: TEXT_COLOR,
+                    content_source: &(self.active_abilities, self.inventory, self.skill_set),
+                    image_source: self.imgs,
+                    slot_manager: Some(self.slot_manager),
+                    pulse: 0.0,
+                };
+
                 for i in 0..MAX_ABILITIES {
                     let ability_id = self
                         .active_abilities
@@ -877,11 +890,15 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.skill_set),
                         )
                         .ability_id(Some(self.inventory));
+                    let (ability_title, ability_desc) =
+                        util::ability_description(ability_id.unwrap_or(""));
 
                     let image_size = tweak!(80.0);
                     let image_offsets = tweak!(92.0) * i as f64;
-                    let mut ability_slot =
-                        Image::new(self.imgs.inv_slot).w_h(image_size, image_size);
+
+                    let slot = AbilitySlot::Slot(i);
+                    let mut ability_slot = slot_maker.fabricate(slot, [image_size; 2]);
+
                     if i == 0 {
                         ability_slot = ability_slot.top_left_with_margins_on(
                             state.ids.spellbook_skills_bg,
@@ -889,17 +906,10 @@ impl<'a> Widget for Diary<'a> {
                             tweak!(32.0) + image_offsets,
                         );
                     } else {
-                        ability_slot = ability_slot
-                            .right_from(state.ids.active_abilities_bg[i - 1], tweak!(4.0))
+                        ability_slot =
+                            ability_slot.right_from(state.ids.active_abilities[i - 1], 4.0)
                     }
-                    ability_slot.set(state.ids.active_abilities_bg[i], ui);
-                    let ability_image = ability_id
-                        .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
-                    let (ability_title, ability_desc) =
-                        util::ability_description(ability_id.unwrap_or(""));
-                    if Button::image(ability_image)
-                        .w_h(image_size * tweak!(0.9), image_size * tweak!(0.9))
-                        .middle_of(state.ids.active_abilities_bg[i])
+                    ability_slot
                         .with_tooltip(
                             self.tooltip_manager,
                             ability_title,
@@ -907,18 +917,8 @@ impl<'a> Widget for Diary<'a> {
                             &diary_tooltip,
                             TEXT_COLOR,
                         )
-                        .set(state.ids.active_abilities[i], ui)
-                        .was_clicked()
-                    {
-                        events.push(Event::ChangeAbility(
-                            i,
-                            self.show
-                                .diary_fields
-                                .selected_ability
-                                .unwrap_or(AuxiliaryAbility::Empty),
-                        ));
-                        events.push(Event::SelectAbility(None));
-                    }
+                        .set(state.ids.active_abilities[i], ui);
+
                     // Display Slot Keybinding
                     let keys = &self.global_state.settings.controls;
                     let key_layout = &self.global_state.window.key_layout;
@@ -1090,6 +1090,26 @@ impl<'a> Widget for Diary<'a> {
                 let ability_start = state.ability_page * ABILITIES_PER_PAGE;
                 let abilities_range = ability_start..(ability_start + ABILITIES_PER_PAGE);
 
+                let mut slot_maker = SlotMaker {
+                    empty_slot: self.imgs.inv_slot,
+                    filled_slot: self.imgs.inv_slot,
+                    selected_slot: self.imgs.inv_slot_sel,
+                    background_color: Some(UI_MAIN),
+                    content_size: ContentSize {
+                        width_height_ratio: 1.0,
+                        max_fraction: tweak!(1.0),
+                    },
+                    selected_content_scale: tweak!(1.067),
+                    amount_font: self.fonts.cyri.conrod_id,
+                    amount_margins: Vec2::new(-4.0, 0.0),
+                    amount_font_size: self.fonts.cyri.scale(12),
+                    amount_text_color: TEXT_COLOR,
+                    content_source: &(self.active_abilities, self.inventory, self.skill_set),
+                    image_source: self.imgs,
+                    slot_manager: Some(self.slot_manager),
+                    pulse: 0.0,
+                };
+
                 for (id_index, (ability_id, ability)) in abilities
                     .iter()
                     .enumerate()
@@ -1098,26 +1118,15 @@ impl<'a> Widget for Diary<'a> {
                     })
                     .enumerate()
                 {
-                    let map_id = state.ids.abilities[id_index];
-                    state.update(|s| {
-                        s.id_ability_map.insert(map_id, *ability);
-                    });
-
-                    let ability_image = ability_id
-                        .map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id));
-                    let ability_color = if self.show.diary_fields.selected_ability != Some(*ability)
-                    {
-                        TEXT_COLOR
-                    } else {
-                        XP_COLOR
-                    };
                     let (ability_title, ability_desc) =
                         util::ability_description(ability_id.unwrap_or(""));
+
                     let (align_state, image_offsets) = if id_index < 6 {
                         (state.ids.sb_page_left_align, 120.0 * id_index as f64)
                     } else {
                         (state.ids.sb_page_right_align, 120.0 * (id_index - 6) as f64)
                     };
+
                     Image::new(if same_weap_kinds {
                         self.imgs.ability_frame_dual
                     } else {
@@ -1132,37 +1141,22 @@ impl<'a> Widget for Diary<'a> {
                     .color(Some(UI_HIGHLIGHT_0))
                     //.parent(state.ids.abilities[id_index])
                     .set(state.ids.ability_frames[id_index], ui);
-                    if Button::image(ability_image)
-                        .w_h(100.0, 100.0)
+
+                    let slot = AbilitySlot::Ability(*ability);
+                    slot_maker
+                        .fabricate(slot, [100.0; 2])
                         .top_left_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
-                        .set(state.ids.abilities[id_index], ui)
-                        .was_clicked()
-                    {
-                        if Some(*ability) != self.show.diary_fields.selected_ability {
-                            events.push(Event::SelectAbility(Some(*ability)));
-                        } else {
-                            events.push(Event::SelectAbility(None));
-                        }
-                    }
+                        .set(state.ids.abilities[id_index], ui);
+
                     if same_weap_kinds {
                         if let AuxiliaryAbility::MainWeapon(slot) = ability {
                             let ability = AuxiliaryAbility::OffWeapon(*slot);
-                            let map_id = state.ids.abilities_dual[id_index];
-                            state.update(|s| {
-                                s.id_ability_map.insert(map_id, ability);
-                            });
-                            if Button::image(ability_image)
-                                .w_h(100.0, 100.0)
+
+                            let slot = AbilitySlot::Ability(ability);
+                            slot_maker
+                                .fabricate(slot, [100.0; 2])
                                 .top_right_with_margins_on(align_state, 20.0 + image_offsets, 20.0)
-                                .set(state.ids.abilities_dual[id_index], ui)
-                                .was_clicked()
-                            {
-                                if Some(ability) != self.show.diary_fields.selected_ability {
-                                    events.push(Event::SelectAbility(Some(ability)));
-                                } else {
-                                    events.push(Event::SelectAbility(None));
-                                }
-                            }
+                                .set(state.ids.abilities_dual[id_index], ui);
                         }
                     }
                     // The page width...
@@ -1180,7 +1174,7 @@ impl<'a> Widget for Diary<'a> {
                         .top_left_with_margins_on(state.ids.abilities[id_index], 5.0, 110.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(tweak!(28)))
-                        .color(ability_color)
+                        .color(TEXT_COLOR)
                         .w(text_width)
                         .graphics_for(state.ids.abilities[id_index])
                         .set(state.ids.ability_titles[id_index], ui);
@@ -1192,54 +1186,10 @@ impl<'a> Widget for Diary<'a> {
                         )
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(tweak!(18)))
-                        .color(ability_color)
+                        .color(TEXT_COLOR)
                         .w(text_width)
                         .graphics_for(state.ids.abilities[id_index])
                         .set(state.ids.ability_descs[id_index], ui);
-                }
-
-                let mouse_pos = ui.global_input().current.mouse.xy;
-                // Handle dragging
-                if let Some(ability) = state.dragged_ability {
-                    let ability_id = Ability::from(ability).ability_id(Some(self.inventory));
-                    if let Some(ability_id) = ability_id {
-                        Image::new(util::ability_image(self.imgs, ability_id))
-                            .w_h(80.0, 80.0)
-                            .xy(mouse_pos)
-                            .set(state.ids.dragged_ability, ui);
-                    }
-                }
-                let input = &ui.global_input().current;
-                match input.mouse.buttons.left() {
-                    // If mouse button was pushed down over some id
-                    ButtonPosition::Down(_, Some(id)) => {
-                        if state.dragged_ability.is_none() {
-                            if let Some(ability) = state.id_ability_map.get(id).copied() {
-                                state.update(|s| {
-                                    s.dragged_ability = Some(ability);
-                                });
-                            }
-                        }
-                    },
-                    ButtonPosition::Up => {
-                        if let (Some(ability), Some(id)) =
-                            (state.dragged_ability, input.widget_under_mouse)
-                        {
-                            if let Some(index) = state
-                                .ids
-                                .active_abilities
-                                .iter()
-                                .enumerate()
-                                .find_map(|(i, slot_id)| (id == *slot_id).then_some(i))
-                            {
-                                events.push(Event::ChangeAbility(index, ability));
-                            }
-                        }
-                        state.update(|s| {
-                            s.dragged_ability = None;
-                        });
-                    },
-                    _ => {},
                 }
 
                 events

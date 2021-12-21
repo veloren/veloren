@@ -74,7 +74,9 @@ use client::Client;
 use common::{
     combat,
     comp::{
-        self, fluid_dynamics,
+        self,
+        ability::AuxiliaryAbility,
+        fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skillset::{skills::Skill, SkillGroupKind},
@@ -535,7 +537,7 @@ pub enum Event {
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
-    ChangeAbility(usize, comp::ability::AuxiliaryAbility),
+    ChangeAbility(usize, AuxiliaryAbility),
 
     SettingsChange(SettingsChange),
     AcknowledgePersistenceLoadError,
@@ -3132,6 +3134,7 @@ impl Hud {
                     i18n,
                     &self.rot_imgs,
                     tooltip_manager,
+                    &mut self.slot_manager,
                     self.pulse,
                 )
                 .set(self.ids.diary, ui_widgets)
@@ -3148,12 +3151,6 @@ impl Hud {
                         diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
                         diary::Event::ChangeSection(section) => {
                             self.show.diary_fields.section = section;
-                        },
-                        diary::Event::SelectAbility(ability) => {
-                            self.show.diary_fields.selected_ability = ability;
-                        },
-                        diary::Event::ChangeAbility(slot, new_ability) => {
-                            events.push(Event::ChangeAbility(slot, new_ability))
                         },
                     }
                 }
@@ -3311,7 +3308,7 @@ impl Hud {
         // Maintain slot manager
         'slot_events: for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
-            use slots::{InventorySlot, SlotKind::*};
+            use slots::{AbilitySlot, InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
                 Inventory(InventorySlot {
                     slot, ours: true, ..
@@ -3320,6 +3317,7 @@ impl Hud {
                 Equip(e) => Some(Slot::Equip(e)),
                 Hotbar(_) => None,
                 Trade(_) => None,
+                Ability(_) => None,
             };
             match event {
                 slot::Event::Dragged(a, b) => {
@@ -3369,6 +3367,33 @@ impl Hud {
                                 }
                             }
                         }
+                    } else if let (Ability(a), Ability(b)) = (a, b) {
+                        match (a, b) {
+                            (AbilitySlot::Ability(ability), AbilitySlot::Slot(index)) => {
+                                events.push(Event::ChangeAbility(index, ability));
+                            },
+                            (AbilitySlot::Slot(a), AbilitySlot::Slot(b)) => {
+                                let me = client.entity();
+                                if let Some(active_abilities) = active_abilities.get(me) {
+                                    let ability_a = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(a)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    let ability_b = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(b)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    events.push(Event::ChangeAbility(a, ability_b));
+                                    events.push(Event::ChangeAbility(b, ability_a));
+                                }
+                            },
+                            (AbilitySlot::Slot(index), _) => {
+                                events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                            },
+                            (_, _) => {},
+                        }
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -3388,6 +3413,8 @@ impl Hud {
                                 }));
                             }
                         }
+                    } else if let Ability(AbilitySlot::Slot(index)) = from {
+                        events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                     }
                 },
                 slot::Event::SplitDropped(from) => {
@@ -3397,6 +3424,8 @@ impl Hud {
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let Ability(AbilitySlot::Slot(index)) = from {
+                        events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                     }
                 },
                 slot::Event::SplitDragged(a, b) => {
@@ -3440,6 +3469,33 @@ impl Hud {
                                 }
                             }
                         }
+                    } else if let (Ability(a), Ability(b)) = (a, b) {
+                        match (a, b) {
+                            (AbilitySlot::Ability(ability), AbilitySlot::Slot(index)) => {
+                                events.push(Event::ChangeAbility(index, ability));
+                            },
+                            (AbilitySlot::Slot(a), AbilitySlot::Slot(b)) => {
+                                let me = client.entity();
+                                if let Some(active_abilities) = active_abilities.get(me) {
+                                    let ability_a = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(a)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    let ability_b = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(b)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    events.push(Event::ChangeAbility(a, ability_b));
+                                    events.push(Event::ChangeAbility(b, ability_a));
+                                }
+                            },
+                            (AbilitySlot::Slot(index), _) => {
+                                events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                            },
+                            (_, _) => {},
+                        }
                     }
                 },
                 slot::Event::Used(from) => {
@@ -3475,6 +3531,8 @@ impl Hud {
                             },
                             hotbar::SlotContents::Ability(_) => {},
                         });
+                    } else if let Ability(AbilitySlot::Slot(index)) = from {
+                        events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                     }
                 },
                 slot::Event::Request {

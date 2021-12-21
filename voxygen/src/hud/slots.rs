@@ -6,8 +6,9 @@ use super::{
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
-    ability::AbilityInput, slot::InvSlotId, Ability, ActiveAbilities, Body, Energy, Inventory,
-    SkillSet,
+    ability::{Ability, AbilityInput, AuxiliaryAbility},
+    slot::InvSlotId,
+    ActiveAbilities, Body, Energy, Inventory, SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -20,6 +21,7 @@ pub enum SlotKind {
     Equip(EquipSlot),
     Hotbar(HotbarSlot),
     Trade(TradeSlot),
+    Ability(AbilitySlot),
     /* Spellbook(SpellbookSlot), TODO */
 }
 
@@ -192,6 +194,42 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum AbilitySlot {
+    Slot(usize),
+    Ability(AuxiliaryAbility),
+}
+
+type AbilitiesSource<'a> = (&'a ActiveAbilities, &'a Inventory, &'a SkillSet);
+
+impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
+    type ImageKey = String;
+
+    fn image_key(
+        &self,
+        (active_abilities, inventory, skillset): &AbilitiesSource<'a>,
+    ) -> Option<(Self::ImageKey, Option<Color>)> {
+        let ability_id = match self {
+            Self::Slot(index) => active_abilities
+                .get_ability(
+                    AbilityInput::Auxiliary(*index),
+                    Some(inventory),
+                    Some(skillset),
+                )
+                .ability_id(Some(inventory)),
+            Self::Ability(ability) => Ability::from(*ability).ability_id(Some(inventory)),
+        };
+
+        ability_id.map(|id| (String::from(id), None))
+    }
+
+    fn amount(&self, _source: &AbilitiesSource) -> Option<u32> { None }
+
+    fn image_ids(ability_id: &Self::ImageKey, imgs: &img_ids::Imgs) -> Vec<image::Id> {
+        vec![util::ability_image(imgs, ability_id)]
+    }
+}
+
 impl From<InventorySlot> for SlotKind {
     fn from(inventory: InventorySlot) -> Self { Self::Inventory(inventory) }
 }
@@ -207,4 +245,10 @@ impl From<TradeSlot> for SlotKind {
     fn from(trade: TradeSlot) -> Self { Self::Trade(trade) }
 }
 
-impl SumSlot for SlotKind {}
+impl From<AbilitySlot> for SlotKind {
+    fn from(ability: AbilitySlot) -> Self { Self::Ability(ability) }
+}
+
+impl SumSlot for SlotKind {
+    fn is_ability(&self) -> bool { matches!(self, Self::Ability(_)) }
+}
