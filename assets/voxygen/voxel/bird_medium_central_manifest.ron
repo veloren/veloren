@@ -191,8 +191,36 @@
             central: ("npc.parrot.male.torso"),
         ),
         tail: (
-            offset: (-1.5, -4.5, -1.5),
+            offset: (-2.5, -4.5, -1.5),
             central: ("npc.parrot.male.tail"),
+        )
+    ),
+    (Penguin, Male): (
+        head: (
+            offset: (-1.5, -2.0, -2.0),
+            central: ("npc.penguin.male.head"),
+        ),
+        torso: (
+            offset: (-3.5, -4.0, -5.5),
+            central: ("npc.penguin.male.torso"),
+        ),
+        tail: (
+            offset: (-2.5, -4.5, -1.5),
+            central: ("npc.penguin.male.tail"),
+        )
+    ),
+    (Penguin, Female): (
+        head: (
+            offset: (-1.5, -2.0, -2.0),
+            central: ("npc.penguin.male.head"),
+        ),
+        torso: (
+            offset: (-3.5, -4.0, -5.5),
+            central: ("npc.penguin.male.torso"),
+        ),
+        tail: (
+            offset: (-2.5, -4.5, -1.5),
+            central: ("npc.penguin.male.tail"),
         )
     ),
 })

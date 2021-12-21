@@ -5,7 +5,7 @@ EntityConfig (
 
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
 
-    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.adlet_bow")),
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.axe")),
 
     meta: [
         LoadoutAsset("common.loadout.dungeon.tier-0.logger"),

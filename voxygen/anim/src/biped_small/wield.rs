@@ -60,7 +60,7 @@ impl Animation for WieldAnimation {
             * Quaternion::rotation_z(fast * 0.15 * speednormcancel);
 
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
-        next.main.orientation = Quaternion::rotation_x(0.0);
+        next.main.orientation = Quaternion::rotation_z(0.0);
 
         next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
         next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
@@ -95,7 +95,28 @@ impl Animation for WieldAnimation {
 
                 next.control.orientation = Quaternion::rotation_x(-1.35 + 0.5 * speednorm);
             },
+            Some(ToolKind::Blowgun) => {
+                next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 3.0);
+                next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 0.0, 4.0);
 
+                next.control.position = Vec3::new(
+                    0.0,
+                    s_a.grip.2,
+                    4.0 - s_a.grip.2 / 2.5
+                        + s_a.grip.0 * -2.0
+                        + fastacc * 0.5
+                        + fastalt * 0.1 * speednormcancel
+                        + speednorm * 4.0,
+                );
+
+                next.control_l.orientation =
+                    Quaternion::rotation_x(3.8 + slow * 0.1) * Quaternion::rotation_y(-0.3);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(3.5 + slow * 0.1 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_y(0.5 + slow * 0.0 + s_a.grip.0 * 0.2);
+
+                next.control.orientation = Quaternion::rotation_x(-2.2 + 0.5 * speednorm);
+            },
             Some(ToolKind::Bow) => {
                 next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 0.0, 0.0);
                 next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 6.0, -2.0);
@@ -146,13 +167,51 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-0.2 * speednorm)
                     * Quaternion::rotation_z(0.5);
             },
-            Some(ToolKind::Natural) => {
-                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
-                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+            Some(ToolKind::Axe) => {
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.position =
+                    Vec3::new(9.0 + s_a.grip.0 * 2.0, -1.0, -2.0 + speednorm * -3.0);
 
-                next.hand_l.orientation =
-                    Quaternion::rotation_x(1.7) * Quaternion::rotation_y(-0.3);
-                next.hand_r.orientation = Quaternion::rotation_x(1.7) * Quaternion::rotation_y(0.3);
+                next.control.position = Vec3::new(
+                    -5.0,
+                    -1.0 + s_a.grip.2,
+                    -1.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + speednorm * 2.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)
+                    * Quaternion::rotation_y(-0.0)
+                    * Quaternion::rotation_z(-0.0);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(0.5 + slow * 0.1 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_y(0.2 + slow * 0.0 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_z(-0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
+                    * Quaternion::rotation_y(-0.2 * speednorm)
+                    * Quaternion::rotation_z(-0.3);
+            },
+            Some(ToolKind::Dagger) => {
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.position =
+                    Vec3::new(9.0 + s_a.grip.0 * 2.0, -1.0, -2.0 + speednorm * -3.0);
+
+                next.control.position = Vec3::new(
+                    -5.0,
+                    -1.0 + s_a.grip.2,
+                    -1.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0 + speednorm * 2.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + slow * 0.1)
+                    * Quaternion::rotation_y(-0.0)
+                    * Quaternion::rotation_z(-0.0);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(0.5 + slow * 0.1 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_y(0.2 + slow * 0.0 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_z(-0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-0.3 + 0.2 * speednorm)
+                    * Quaternion::rotation_y(-0.2 * speednorm)
+                    * Quaternion::rotation_z(-0.3);
             },
             _ => {},
         }

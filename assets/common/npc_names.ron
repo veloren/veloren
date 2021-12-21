@@ -820,6 +820,10 @@
                 keyword: "parrot",
                 generic: "Parrot"
             ),
+            penguin: (
+                keyword: "penguin",
+                generic: "Penguin"
+            ),
         )
     ),
     biped_large: (

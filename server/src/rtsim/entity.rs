@@ -34,6 +34,14 @@ pub enum RtSimEntityKind {
     Merchant,
 }
 
+const BIRD_MEDIUM_ROSTER: &[comp::bird_medium::Species] = &[
+    // Disallows flightless birds
+    comp::bird_medium::Species::Duck,
+    comp::bird_medium::Species::Goose,
+    comp::bird_medium::Species::Parrot,
+    comp::bird_medium::Species::Eagle,
+];
+
 const BIRD_LARGE_ROSTER: &[comp::bird_large::Species] = &[
     // Flame Wyvern not incuded until proper introduction
     comp::bird_large::Species::Phoenix,
@@ -60,7 +68,7 @@ impl Entity {
                     // we want 5% airships, 45% birds, 50% humans
                     x if x < 0.05 => comp::ship::Body::random_with(&mut self.rng(PERM_BODY)).into(),
                     x if x < 0.45 => {
-                        let species = *(&comp::bird_medium::ALL_SPECIES)
+                        let species = *BIRD_MEDIUM_ROSTER
                             .choose(&mut self.rng(PERM_SPECIES))
                             .unwrap();
                         comp::bird_medium::Body::random_with(&mut self.rng(PERM_BODY), &species)
@@ -782,6 +790,7 @@ fn bird_medium_config(body: comp::bird_medium::Body) -> &'static str {
         comp::bird_medium::Species::Eagle => "common.entity.wild.peaceful.eagle",
         comp::bird_medium::Species::Owl => "common.entity.wild.peaceful.owl",
         comp::bird_medium::Species::Parrot => "common.entity.wild.peaceful.parrot",
+        _ => unimplemented!(),
     }
 }
 
@@ -826,7 +835,7 @@ mod tests {
             std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(male_config));
         }
         // Bird Medium test
-        for bird_med_species in comp::bird_medium::ALL_SPECIES {
+        for bird_med_species in BIRD_MEDIUM_ROSTER {
             let female_body = comp::bird_medium::Body {
                 species: bird_med_species,
                 body_type: comp::bird_medium::BodyType::Female,

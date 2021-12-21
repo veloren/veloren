@@ -111,6 +111,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (2.5, 5.0),
                 (Owl, Female) => (2.5, 7.0),
                 (Parrot, _) => (0.5, 4.5),
+                (Penguin, _) => (1.5, 6.0),
             },
             chest: match (body.species, body.body_type) {
                 (Duck, _) => (0.0, 6.0),
@@ -122,6 +123,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (0.0, 4.5),
                 (Owl, Female) => (0.0, 4.5),
                 (Parrot, _) => (0.0, 5.0),
+                (Penguin, _) => (0.0, 8.0),
             },
             tail: match (body.species, body.body_type) {
                 (Duck, _) => (-5.0, 1.0),
@@ -133,6 +135,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (-6.0, -2.0),
                 (Owl, Female) => (-6.0, -2.5),
                 (Parrot, _) => (-8.0, -2.0),
+                (Penguin, _) => (-3.0, -4.0),
             },
             wing: match (body.species, body.body_type) {
                 (Duck, _) => (3.5, -0.5, 2.0),
@@ -144,6 +147,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (3.5, -5.5, 4.0),
                 (Owl, Female) => (3.5, -6.0, 3.5),
                 (Parrot, _) => (2.0, -4.5, 3.0),
+                (Penguin, _) => (4.0, 0.5, 1.0),
             },
             foot: match (body.species, body.body_type) {
                 (Duck, _) => (2.5, -2.0, 4.0),
@@ -155,6 +159,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Owl, Male) => (1.5, -2.5, 7.0),
                 (Owl, Female) => (1.5, -3.0, 6.5),
                 (Parrot, _) => (1.5, -3.0, 3.0),
+                (Penguin, _) => (2.5, -2.0, 6.0),
             },
             feed: match (body.species, body.body_type) {
                 (Chicken, _) => 1.2,
@@ -162,6 +167,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Peacock, _) => 1.6,
                 (Eagle, _) => 1.2,
                 (Parrot, _) => 1.2,
+                (Penguin, _) => 1.2,
                 _ => 1.0,
             },
         }

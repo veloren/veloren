@@ -474,10 +474,10 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots_grasslands.gnarling_totem"),
                 entity_radius: 30.0,
                 entities: &[
-                    (15..20, "common.entity.dungeon.tier-0.mugger"),
-                    (15..20, "common.entity.dungeon.tier-0.stalker"),
-                    (15..20, "common.entity.dungeon.tier-0.logger"),
-                    (15..20, "common.entity.dungeon.tier-0.chieftain"),
+                    (2..4, "common.entity.dungeon.tier-0.mugger"),
+                    (2..4, "common.entity.dungeon.tier-0.stalker"),
+                    (2..4, "common.entity.dungeon.tier-0.logger"),
+                    (1..2, "common.entity.dungeon.tier-0.chieftain"),
                 ],
             },
             Spot::GnarlingTree => SpotConfig {

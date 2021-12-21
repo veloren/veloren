@@ -65,7 +65,12 @@
     ),
     Custom("Axe Simple"): (
         primary: "common.abilities.axesimple.doublestrike",
-        secondary: "common.abilities.axesimple.dash",
+        secondary: "common.abilities.axesimple.doublestrike",
+        abilities: [],
+    ),
+    Custom("Dagger Simple"): (
+        primary: "common.abilities.daggersimple.singlestrike",
+        secondary: "common.abilities.daggersimple.singlestrike",
         abilities: [],
     ),
     Custom("Sword Simple"): (
@@ -81,6 +86,12 @@
     Custom("Bow Simple"): (
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
+        abilities: [
+        ],
+    ),
+    Tool(Blowgun): (
+        primary: "common.abilities.blowgun.basic",
+        secondary: "common.abilities.blowgun.basic",
         abilities: [
         ],
     ),
@@ -267,6 +278,11 @@
             (None, "common.abilities.custom.harvester.ensnaringvines"),
             (None, "common.abilities.custom.harvester.explodingpumpkin"),
         ],
+    ),
+    Custom("Oni"): (
+        primary: "common.abilities.custom.oni.dash",
+        secondary: "common.abilities.custom.oni.doublestrike",
+        abilities: [],
     ),
     Custom("Bird Large Breathe"): (
         primary: "common.abilities.custom.birdlargebreathe.firebomb",
