@@ -56,7 +56,7 @@ fn main() {
 
     println!("Server info: {:?}", client.server_info());
 
-    println!("Players online: {:?}", client.get_players());
+    println!("Players online: {:?}", client.players().collect::<Vec<_>>());
 
     runtime
         .block_on(client.register(username, password, |provider| {

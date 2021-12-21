@@ -1534,6 +1534,54 @@ impl Client {
             .recv_all();
 
         // 5) Terrain
+        self.tick_terrain()?; 
+
+        // Send a ping to the server once every second
+        if self.state.get_time() - self.last_server_ping > 1. {
+            self.send_msg_err(PingMsg::Ping)?;
+            self.last_server_ping = self.state.get_time();
+        }
+
+        // 6) Update the server about the player's physics attributes.
+        if self.presence.is_some() {
+            if let (Some(pos), Some(vel), Some(ori)) = (
+                self.state.read_storage().get(self.entity()).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
+            ) {
+                self.in_game_stream
+                    .send(ClientGeneral::PlayerPhysics { pos, vel, ori })?;
+            }
+        }
+
+        /*
+        // Output debug metrics
+        if log_enabled!(Level::Info) && self.tick % 600 == 0 {
+            let metrics = self
+                .state
+                .terrain()
+                .iter()
+                .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
+            info!("{:?}", metrics);
+        }
+        */
+
+        // 7) Finish the tick, pass control back to the frontend.
+        self.tick += 1;
+        Ok(frontend_events)
+    }
+
+    /// Clean up the client after a tick.
+    pub fn cleanup(&mut self) {
+        // Cleanup the local state
+        self.state.cleanup();
+    }
+
+    /// Handles terrain addition and removal.
+    ///
+    /// Removes old terrain chunks outside the view distance.
+    /// Sends requests for missing chunks within the view distance.
+    fn tick_terrain(&mut self) -> Result<(), Error> {
         let pos = self
             .state
             .read_storage::<comp::Pos>()
@@ -1628,45 +1676,7 @@ impl Client {
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(3));
         }
 
-        // Send a ping to the server once every second
-        if self.state.get_time() - self.last_server_ping > 1. {
-            self.send_msg_err(PingMsg::Ping)?;
-            self.last_server_ping = self.state.get_time();
-        }
-
-        // 6) Update the server about the player's physics attributes.
-        if self.presence.is_some() {
-            if let (Some(pos), Some(vel), Some(ori)) = (
-                self.state.read_storage().get(self.entity()).cloned(),
-                self.state.read_storage().get(self.entity()).cloned(),
-                self.state.read_storage().get(self.entity()).cloned(),
-            ) {
-                self.in_game_stream
-                    .send(ClientGeneral::PlayerPhysics { pos, vel, ori })?;
-            }
-        }
-
-        /*
-        // Output debug metrics
-        if log_enabled!(Level::Info) && self.tick % 600 == 0 {
-            let metrics = self
-                .state
-                .terrain()
-                .iter()
-                .fold(ChonkMetrics::default(), |a, (_, c)| a + c.get_metrics());
-            info!("{:?}", metrics);
-        }
-        */
-
-        // 7) Finish the tick, pass control back to the frontend.
-        self.tick += 1;
-        Ok(frontend_events)
-    }
-
-    /// Clean up the client after a tick.
-    pub fn cleanup(&mut self) {
-        // Cleanup the local state
-        self.state.cleanup();
+        Ok(())
     }
 
     fn handle_server_msg(
@@ -2211,15 +2221,12 @@ impl Client {
     /// Get a mutable reference to the client's game state.
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
-    /// Get a vector of all the players on the server
-    pub fn get_players(&mut self) -> Vec<comp::Player> {
-        // TODO: Don't clone players.
-        self.state
-            .ecs()
-            .read_storage::<comp::Player>()
-            .join()
-            .cloned()
-            .collect()
+    /// Returns an iterator over the aliases of all the online players on the server
+    pub fn players(&self) -> impl Iterator<Item = &str> {
+        self
+            .player_list()
+            .values()
+            .filter_map(|player_info| player_info.is_online.then(|| &*player_info.player_alias))
     }
 
     /// Return true if this client is a moderator on the server
@@ -2469,6 +2476,57 @@ impl Client {
             comp::ChatType::Meta => message.to_string(),
         }
     }
+
+    /// Execute a single client tick:
+    /// - handles messages from the server
+    /// - sends physics update
+    /// - requests chunks
+    /// 
+    /// The game state is purposefully not simulated to reduce the overhead of running the client.
+    /// This method is for use in testing a server with many clients connected.
+    pub fn tick_network(
+        &mut self,
+        _dt: Duration,
+    ) -> Result<(), Error> {
+        span!(_guard, "tick_network", "Client::tick_network");
+
+        // Handle new messages from the server.
+        self.handle_new_messages()?;
+
+        // 5) Terrain
+        self.tick_terrain()?;
+        let empty = Arc::new(TerrainChunk::new(0, Block::empty(), Block::empty(), common::terrain::TerrainChunkMeta::void()));
+        let mut terrain = self.state.terrain_mut();
+        // Replace chunks with empty chunks to save memory
+        let to_clear = terrain.iter().filter_map(|(key, chunk)| (chunk.sub_chunks_len() != 0).then(|| key)).collect::<Vec<_>>();
+        to_clear.into_iter().for_each(|key| { terrain.insert(key, Arc::clone(&empty)); });
+        drop(terrain);
+        
+        // Send a ping to the server once every second
+        // TODO: advance state time?
+        if self.state.get_time() - self.last_server_ping > 1. {
+            self.send_msg_err(PingMsg::Ping)?;
+            self.last_server_ping = self.state.get_time();
+        }
+
+        // 6) Update the server about the player's physics attributes.
+        if self.presence.is_some() {
+            if let (Some(pos), Some(vel), Some(ori)) = (
+                self.state.read_storage().get(self.entity()).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
+                self.state.read_storage().get(self.entity()).cloned(),
+            ) {
+                self.in_game_stream
+                    .send(ClientGeneral::PlayerPhysics { pos, vel, ori })?;
+            }
+        }
+
+        // 7) Finish the tick, pass control back to the frontend.
+        self.tick += 1;
+
+        Ok(())
+    } 
+
 }
 
 impl Drop for Client {

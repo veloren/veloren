@@ -85,6 +85,11 @@ fn main() -> io::Result<()> {
     let mut server_settings = server::Settings::load(&server_data_dir);
     let mut editable_settings = server::EditableSettings::load(&server_data_dir);
 
+    // Apply no_auth modifier to the settings
+    if no_auth {
+        server_settings.auth_server_address = None;
+    }
+
     // Relative to data_dir
     const PERSISTENCE_DB_DIR: &str = "saves";
 
@@ -148,10 +153,6 @@ fn main() -> io::Result<()> {
     let tui = (!noninteractive).then(|| Tui::run(basic));
 
     info!("Starting server...");
-
-    if no_auth {
-        server_settings.auth_server_address = None;
-    }
 
     let server_port = &server_settings.gameserver_address.port();
     let metrics_port = &server_settings.metrics_address.port();

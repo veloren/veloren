@@ -6124,6 +6124,7 @@ dependencies = [
  "rustyline",
  "serde",
  "specs",
+ "structopt",
  "termcolor",
  "tokio",
  "tracing",
