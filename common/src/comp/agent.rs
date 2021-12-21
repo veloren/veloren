@@ -126,6 +126,7 @@ impl From<BehaviorCapability> for Behavior {
 impl Behavior {
     /// Builder function
     /// Set capabilities if Option is Some
+    #[must_use]
     pub fn maybe_with_capabilities(
         mut self,
         maybe_capabilities: Option<BehaviorCapability>,
@@ -138,6 +139,7 @@ impl Behavior {
 
     /// Builder function
     /// Set trade_site if Option is Some
+    #[must_use]
     pub fn with_trade_site(mut self, trade_site: Option<SiteId>) -> Self {
         self.trade_site = trade_site;
         self
@@ -323,6 +325,7 @@ impl Sound {
         }
     }
 
+    #[must_use]
     pub fn with_new_vol(mut self, new_vol: f32) -> Self {
         self.vol = new_vol;
 
@@ -480,16 +483,19 @@ impl Agent {
         }
     }
 
+    #[must_use]
     pub fn with_patrol_origin(mut self, origin: Vec3<f32>) -> Self {
         self.patrol_origin = Some(origin);
         self
     }
 
+    #[must_use]
     pub fn with_behavior(mut self, behavior: Behavior) -> Self {
         self.behavior = behavior;
         self
     }
 
+    #[must_use]
     pub fn with_no_flee_if(mut self, condition: bool) -> Self {
         if condition {
             self.psyche.flee_health = 0.0;
@@ -498,6 +504,7 @@ impl Agent {
     }
 
     // FIXME: Only one of *three* things in this method sets a location.
+    #[must_use]
     pub fn with_destination(mut self, pos: Vec3<f32>) -> Self {
         self.psyche.flee_health = 0.0;
         self.rtsim_controller = RtSimController::with_destination(pos);
@@ -506,6 +513,7 @@ impl Agent {
     }
 
     #[allow(clippy::type_complexity)]
+    #[must_use]
     pub fn with_position_pid_controller(
         mut self,
         pid: PidController<fn(Vec3<f32>, Vec3<f32>) -> f32, 16>,
@@ -514,6 +522,7 @@ impl Agent {
         self
     }
 
+    #[must_use]
     pub fn with_aggro_no_warn(mut self) -> Self {
         self.psyche.aggro_dist = None;
         self

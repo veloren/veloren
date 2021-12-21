@@ -217,8 +217,7 @@ impl Settlement {
                 let wpos = self.origin + tile * AREA_SIZE as i32;
 
                 if (0..4)
-                    .map(|x| (0..4).map(move |y| Vec2::new(x, y)))
-                    .flatten()
+                    .flat_map(|x| (0..4).map(move |y| Vec2::new(x, y)))
                     .any(|offs| {
                         let wpos = wpos + offs * AREA_SIZE as i32 / 2;
                         let cpos = wpos.map(|e| e.div_euclid(TerrainChunkSize::RECT_SIZE.x as i32));
@@ -446,7 +445,7 @@ impl Settlement {
                             StructureKind::House(Building::<House>::generate(
                                 ctx.rng,
                                 Vec3::new(house_pos.x, house_pos.y, alt),
-                                ctx.sim.map(|sim| sim.calendar.as_ref()).flatten(),
+                                ctx.sim.and_then(|sim| sim.calendar.as_ref()),
                             ))
                         },
                     };

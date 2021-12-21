@@ -426,15 +426,13 @@ mod tests {
         mockworld.insert(AbilityMap::default());
         mockworld.register::<Inventory>();
         mockworld.register::<Uid>();
-        let player: EcsEntity;
-        let merchant: EcsEntity;
 
-        player = mockworld
+        let player: EcsEntity = mockworld
             .create_entity()
             .with(Inventory::new_empty())
             .build();
 
-        merchant = mockworld
+        let merchant: EcsEntity = mockworld
             .create_entity()
             .with(Inventory::new_empty())
             .build();

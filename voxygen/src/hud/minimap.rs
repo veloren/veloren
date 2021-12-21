@@ -243,6 +243,8 @@ impl VoxelMinimap {
                 .map2(TerrainChunkSize::RECT_SIZE, |i, j| (i as u32).rem_euclid(j))
                 .as_();
             let column = self.chunk_minimaps.get(&(cpos + coff));
+            // TODO: evaluate clippy, toolchain upgrade 2021-12-19
+            #[allow(clippy::unnecessary_lazy_evaluations)]
             column
                 .map(
                     |MinimapColumn {
@@ -255,7 +257,7 @@ impl VoxelMinimap {
                                     .and_then(|grid| grid.get(cmod))
                                     .map_or(false, |(_, b)| *b)
                             })
-                            .unwrap_or_else(|| {
+                            .unwrap_or_else(||
                                 // if the `find` returned None, there's no solid blocks above the
                                 // player within the chunk
                                 if above.1 {
@@ -269,7 +271,7 @@ impl VoxelMinimap {
                                     // (subsequent arithmetic on ceiling_offset must be saturating)
                                     i32::MAX
                                 }
-                            })
+                            )
                     },
                 )
                 .unwrap_or(0)
@@ -309,6 +311,8 @@ impl VoxelMinimap {
                                 // the ceiling's height (using the top slice of the chunk if the
                                 // ceiling is above the chunk, (e.g. so that forests with
                                 // differently-tall trees are handled properly)
+                                // TODO: evaluate clippy, toolchain upgrade 2021-12-19
+                                #[allow(clippy::unnecessary_lazy_evaluations)]
                                 layers
                                     .get(
                                         (((pos.z as i32 - zlo).saturating_add(ceiling_offset))

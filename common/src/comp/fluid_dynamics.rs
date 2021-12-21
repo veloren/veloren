@@ -20,7 +20,8 @@ impl LiquidKind {
     /// precedence? (should be a rare edge case, since checkerboard patterns of
     /// water and lava shouldn't show up in worldgen)
     #[inline]
-    pub fn merge(self, other: LiquidKind) -> LiquidKind {
+    #[must_use]
+    pub fn merge(self, other: Self) -> Self {
         use LiquidKind::{Lava, Water};
         match (self, other) {
             (Water, Water) => Water,

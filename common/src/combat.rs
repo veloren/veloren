@@ -102,22 +102,26 @@ impl Default for Attack {
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Attack {
+    #[must_use]
     pub fn with_damage(mut self, damage: AttackDamage) -> Self {
         self.damages.push(damage);
         self
     }
 
+    #[must_use]
     pub fn with_effect(mut self, effect: AttackEffect) -> Self {
         self.effects.push(effect);
         self
     }
 
+    #[must_use]
     pub fn with_crit(mut self, crit_chance: f32, crit_multiplier: f32) -> Self {
         self.crit_chance = crit_chance;
         self.crit_multiplier = crit_multiplier;
         self
     }
 
+    #[must_use]
     pub fn with_combo_increment(self) -> Self {
         self.with_effect(
             AttackEffect::new(None, CombatEffect::Combo(1))
@@ -544,6 +548,7 @@ impl AttackDamage {
         }
     }
 
+    #[must_use]
     pub fn with_effect(mut self, effect: CombatEffect) -> Self {
         self.effects.push(effect);
         self
@@ -568,6 +573,7 @@ impl AttackEffect {
         }
     }
 
+    #[must_use]
     pub fn with_requirement(mut self, requirement: CombatRequirement) -> Self {
         self.requirements.push(requirement);
         self
@@ -806,6 +812,7 @@ impl Knockback {
         }
     }
 
+    #[must_use]
     pub fn modify_strength(mut self, power: f32) -> Self {
         self.strength *= power;
         self

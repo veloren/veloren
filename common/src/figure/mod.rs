@@ -81,6 +81,7 @@ impl Segment {
     }
 
     /// Transform cells
+    #[must_use]
     pub fn map(mut self, transform: impl Fn(Cell) -> Option<Cell>) -> Self {
         for pos in self.full_pos_iter() {
             if let Some(new) = transform(*self.get(pos).unwrap()) {
@@ -92,6 +93,7 @@ impl Segment {
     }
 
     /// Transform cell colors
+    #[must_use]
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| {
             cell.get_color().map(|rgb| {
@@ -114,11 +116,13 @@ impl<V: Vox + Copy> DynaUnionizer<V> {
     #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { DynaUnionizer(Vec::new()) }
 
+    #[must_use]
     pub fn add(mut self, dyna: Dyna<V, ()>, offset: Vec3<i32>) -> Self {
         self.0.push((dyna, offset));
         self
     }
 
+    #[must_use]
     pub fn maybe_add(self, maybe: Option<(Dyna<V, ()>, Vec3<i32>)>) -> Self {
         match maybe {
             Some((dyna, offset)) => self.add(dyna, offset),
@@ -175,6 +179,7 @@ impl MatSegment {
     }
 
     /// Transform cells
+    #[must_use]
     pub fn map(mut self, transform: impl Fn(MatCell) -> Option<MatCell>) -> Self {
         for pos in self.full_pos_iter() {
             if let Some(new) = transform(*self.get(pos).unwrap()) {
@@ -186,6 +191,7 @@ impl MatSegment {
     }
 
     /// Transform cell colors
+    #[must_use]
     pub fn map_rgb(self, transform: impl Fn(Rgb<u8>) -> Rgb<u8>) -> Self {
         self.map(|cell| match cell {
             MatCell::Normal(data) => Some(MatCell::Normal(CellData {

@@ -52,6 +52,7 @@ pub trait InterpolatableComponent: Component {
 
     fn new_data(x: Self) -> Self::InterpData;
     fn update_component(&self, data: &mut Self::InterpData, time: f64, force_update: bool);
+    #[must_use]
     fn interpolate(self, data: &Self::InterpData, time: f64, read_data: &Self::ReadData) -> Self;
 }
 
@@ -167,6 +168,7 @@ impl<P: CompPacket> CompSyncPackage<P> {
             .push((uid.into(), CompUpdateKind::Removed(PhantomData::<C>.into())));
     }
 
+    #[must_use]
     pub fn with_component<'a, C: Component + Clone + Send + Sync>(
         mut self,
         uids: &ReadStorage<'a, Uid>,

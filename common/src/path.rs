@@ -248,8 +248,7 @@ impl Route {
                 })
                 .unwrap_or_else(|| {
                     (0..2)
-                        .map(|i| (0..2).map(move |j| Vec2::new(i, j)))
-                        .flatten()
+                        .flat_map(|i| (0..2).map(move |j| Vec2::new(i, j)))
                         .map(|rpos| block_pos + rpos)
                         .map(|block_pos| {
                             let block_posf = block_pos.xy().map(|e| e as f32);

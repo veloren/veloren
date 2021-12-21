@@ -21,11 +21,13 @@ impl BlockMask {
         }
     }
 
+    #[must_use]
     pub const fn with_priority(mut self, priority: i32) -> Self {
         self.priority = priority;
         self
     }
 
+    #[must_use]
     pub const fn resolve_with(self, other: Self) -> Self {
         if self.priority >= other.priority {
             self

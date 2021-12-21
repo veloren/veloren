@@ -88,9 +88,8 @@ impl InterpolatableComponent for Pos {
         }
         let (t0prime, m0) = vel.buf[(i + vel.buf.len() - 1) % vel.buf.len()];
         let (t1prime, m1) = vel.buf[i % vel.buf.len()];
-        let mut out;
         let t = (t2 - t0) / (t1 - t0);
-        if ENABLE_POSITION_HERMITE
+        let mut out = if ENABLE_POSITION_HERMITE
             && ((t0 - t0prime).abs() < f64::EPSILON && (t1 - t1prime).abs() < f64::EPSILON)
         {
             let h00 = |t: f64| (2.0 * t.powf(3.0) - 3.0 * t.powf(2.0) + 1.0) as f32;
@@ -98,7 +97,7 @@ impl InterpolatableComponent for Pos {
             let h01 = |t: f64| (-2.0 * t.powf(3.0) + 3.0 * t.powf(2.0)) as f32;
             let h11 = |t: f64| (t.powf(3.0) - t.powf(2.0)) as f32;
             let dt = (t1 - t0) as f32;
-            out = h00(t) * p0.0 + h10(t) * dt * m0.0 + h01(t) * p1.0 + h11(t) * dt * m1.0;
+            h00(t) * p0.0 + h10(t) * dt * m0.0 + h01(t) * p1.0 + h11(t) * dt * m1.0
         } else {
             if ENABLE_POSITION_HERMITE {
                 warn!(
@@ -106,8 +105,8 @@ impl InterpolatableComponent for Pos {
                     interp_data, vel
                 );
             }
-            out = Lerp::lerp_unclamped(p0.0, p1.0, t as f32);
-        }
+            Lerp::lerp_unclamped(p0.0, p1.0, t as f32)
+        };
 
         if out.map(|x| x.is_nan()).reduce_or() {
             warn!("interpolation output is nan: {}, {}, {:?}", t2, t, buf);

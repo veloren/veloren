@@ -388,6 +388,7 @@ pub enum PositionSpecifier {
 /// }
 /// ```
 pub trait Position {
+    #[must_use]
     fn position(self, request: PositionSpecifier) -> Self;
 }
 

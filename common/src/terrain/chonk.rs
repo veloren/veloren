@@ -79,12 +79,11 @@ impl<V, S: RectVolSize, M: Clone> Chonk<V, S, M> {
             .iter()
             .enumerate()
             .filter(|(_, sc)| sc.num_groups() > 0)
-            .map(move |(i, sc)| {
+            .flat_map(move |(i, sc)| {
                 let z_offset = self.z_offset + i as i32 * SubChunkSize::<S>::SIZE.z as i32;
                 sc.vol_iter(Vec3::zero(), SubChunkSize::<S>::SIZE.map(|e| e as i32))
                     .map(move |(pos, vox)| (pos + Vec3::unit_z() * z_offset, vox))
             })
-            .flatten()
     }
 
     // Returns the index (in self.sub_chunks) of the SubChunk that contains

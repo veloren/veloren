@@ -37,6 +37,7 @@ impl Style {
         }
     }
 
+    #[must_use]
     pub fn hover_image(mut self, image: image::Handle) -> Self {
         self.background = Some(match self.background {
             Some(mut background) => {
@@ -48,6 +49,7 @@ impl Style {
         self
     }
 
+    #[must_use]
     pub fn press_image(mut self, image: image::Handle) -> Self {
         self.background = Some(match self.background {
             Some(mut background) => {
@@ -61,6 +63,7 @@ impl Style {
 
     // TODO: this needs to be refactored since the color isn't used if there is no
     // background
+    #[must_use]
     pub fn image_color(mut self, color: Rgba<u8>) -> Self {
         if let Some(background) = &mut self.background {
             background.color = color;
@@ -68,11 +71,13 @@ impl Style {
         self
     }
 
+    #[must_use]
     pub fn text_color(mut self, color: Color) -> Self {
         self.enabled_text = color;
         self
     }
 
+    #[must_use]
     pub fn disabled_text_color(mut self, color: Color) -> Self {
         self.disabled_text = color;
         self

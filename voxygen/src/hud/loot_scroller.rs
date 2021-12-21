@@ -276,8 +276,7 @@ impl<'a> Widget for LootScroller<'a> {
                 && ui
                     .widget_graph()
                     .widget(state.ids.message_box)
-                    .map(|w| w.maybe_y_scroll_state)
-                    .flatten()
+                    .and_then(|w| w.maybe_y_scroll_state)
                     .map_or(false, |s| s.scrollable_range_len > BOX_HEIGHT)
             {
                 Scrollbar::y_axis(state.ids.message_box)

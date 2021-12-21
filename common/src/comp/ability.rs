@@ -673,6 +673,7 @@ impl CharacterAbility {
         }
     }
 
+    #[must_use]
     pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         use CharacterAbility::*;
         match self {

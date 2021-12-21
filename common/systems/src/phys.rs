@@ -1952,7 +1952,8 @@ fn closest_points(n: LineSegment2<f32>, m: LineSegment2<f32>) -> (Vec2<f32>, Vec
 
     // Check to see whether the lines are parallel
     if !t.is_finite() || !u.is_finite() {
-        core::array::IntoIter::new([
+        // TODO: can use postfix .into_iter() when switching to Rust 2021
+        IntoIterator::into_iter([
             (n.projected_point(m.start), m.start),
             (n.projected_point(m.end), m.end),
             (n.start, m.projected_point(n.start)),

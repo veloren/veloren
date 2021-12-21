@@ -71,6 +71,7 @@ impl Stage<f32> {
         }
     }
 
+    #[must_use]
     pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         if let Some(CombatEffect::Buff(CombatBuff {
             kind: _,
@@ -101,6 +102,7 @@ impl Stage<f32> {
     }
 
     // TODO: name it as using knockback
+    #[must_use]
     pub fn modify_strike(mut self, knockback_mult: f32) -> Self {
         self.knockback *= knockback_mult;
         self

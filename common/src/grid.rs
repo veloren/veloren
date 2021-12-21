@@ -18,8 +18,7 @@ impl<T> Grid<T> {
     pub fn populate_from(size: Vec2<i32>, mut f: impl FnMut(Vec2<i32>) -> T) -> Self {
         Self {
             cells: (0..size.y)
-                .map(|y| (0..size.x).map(move |x| Vec2::new(x, y)))
-                .flatten()
+                .flat_map(|y| (0..size.x).map(move |x| Vec2::new(x, y)))
                 .map(&mut f)
                 .collect(),
             size,
@@ -79,16 +78,14 @@ impl<T> Grid<T> {
         pos: Vec2<i32>,
         size: Vec2<i32>,
     ) -> impl Iterator<Item = Option<(Vec2<i32>, &T)>> + '_ {
-        (0..size.x)
-            .map(move |x| {
-                (0..size.y).map(move |y| {
-                    Some((
-                        pos + Vec2::new(x, y),
-                        &self.cells[self.idx(pos + Vec2::new(x, y))?],
-                    ))
-                })
+        (0..size.x).flat_map(move |x| {
+            (0..size.y).map(move |y| {
+                Some((
+                    pos + Vec2::new(x, y),
+                    &self.cells[self.idx(pos + Vec2::new(x, y))?],
+                ))
             })
-            .flatten()
+        })
     }
 
     pub fn raw(&self) -> &[T] { &self.cells }

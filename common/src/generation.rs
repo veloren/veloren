@@ -140,6 +140,7 @@ impl EntityConfig {
             .unwrap_or_else(|e| panic!("Failed to load {}. Error: {:?}", asset_specifier, e))
     }
 
+    #[must_use]
     pub fn with_body(mut self, body: BodyBuilder) -> Self {
         self.body = body;
 
@@ -201,6 +202,7 @@ impl EntityInfo {
     }
 
     /// Helper function for applying config from asset
+    #[must_use]
     pub fn with_asset_expect(self, asset_specifier: &str) -> Self {
         let config = EntityConfig::load_expect_cloned(asset_specifier);
 
@@ -208,6 +210,7 @@ impl EntityInfo {
     }
 
     /// Evaluate and apply EntityConfig
+    #[must_use]
     pub fn with_entity_config(mut self, config: EntityConfig, config_asset: Option<&str>) -> Self {
         let EntityConfig {
             name,
@@ -297,6 +300,7 @@ impl EntityInfo {
         self
     }
 
+    #[must_use]
     pub fn do_if(mut self, cond: bool, f: impl FnOnce(Self) -> Self) -> Self {
         if cond {
             self = f(self);
@@ -304,66 +308,79 @@ impl EntityInfo {
         self
     }
 
+    #[must_use]
     pub fn into_waypoint(mut self) -> Self {
         self.is_waypoint = true;
         self
     }
 
+    #[must_use]
     pub fn with_alignment(mut self, alignment: Alignment) -> Self {
         self.alignment = alignment;
         self
     }
 
+    #[must_use]
     pub fn with_body(mut self, body: Body) -> Self {
         self.body = body;
         self
     }
 
+    #[must_use]
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
         self.name = Some(name.into());
         self
     }
 
+    #[must_use]
     pub fn with_agency(mut self, agency: bool) -> Self {
         self.has_agency = agency;
         self
     }
 
+    #[must_use]
     pub fn with_agent_mark(mut self, agent_mark: agent::Mark) -> Self {
         self.agent_mark = Some(agent_mark);
         self
     }
 
+    #[must_use]
     pub fn with_main_tool(mut self, main_tool: Item) -> Self {
         self.main_tool = Some(main_tool);
         self
     }
 
+    #[must_use]
     pub fn with_second_tool(mut self, second_tool: Item) -> Self {
         self.second_tool = Some(second_tool);
         self
     }
 
+    #[must_use]
     pub fn with_loot_drop(mut self, loot_drop: LootSpec<String>) -> Self {
         self.loot = loot_drop;
         self
     }
 
+    #[must_use]
     pub fn with_scale(mut self, scale: f32) -> Self {
         self.scale = scale;
         self
     }
 
+    #[must_use]
     pub fn with_health_scaling(mut self, level: u16) -> Self {
         self.health_scaling = Some(level);
         self
     }
 
+    #[must_use]
     pub fn with_loadout_asset(mut self, asset: String) -> Self {
         self.loadout_asset = Some(asset);
         self
     }
 
+    #[must_use]
     pub fn with_lazy_loadout(
         mut self,
         creator: fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder,
@@ -372,11 +389,13 @@ impl EntityInfo {
         self
     }
 
+    #[must_use]
     pub fn with_skillset_asset(mut self, asset: String) -> Self {
         self.skillset_asset = Some(asset);
         self
     }
 
+    #[must_use]
     pub fn with_automatic_name(mut self) -> Self {
         let npc_names = NPC_NAMES.read();
         let name = match &self.body {
@@ -402,7 +421,8 @@ impl EntityInfo {
         self
     }
 
-    // map contains price+amount
+    /// map contains price+amount
+    #[must_use]
     pub fn with_economy(mut self, e: &SiteInformation) -> Self {
         self.trading_information = Some(e.clone());
         self

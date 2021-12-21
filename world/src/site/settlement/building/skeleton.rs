@@ -8,6 +8,7 @@ pub enum Ori {
 }
 
 impl Ori {
+    #[must_use]
     pub fn flip(self) -> Self {
         match self {
             Ori::East => Ori::North,

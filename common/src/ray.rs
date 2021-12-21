@@ -55,11 +55,13 @@ where
         }
     }
 
+    #[must_use]
     pub fn max_iter(mut self, max_iter: usize) -> Self {
         self.max_iter = max_iter;
         self
     }
 
+    #[must_use]
     pub fn ignore_error(mut self) -> Self {
         self.ignore_error = true;
         self

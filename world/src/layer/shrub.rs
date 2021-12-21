@@ -35,7 +35,7 @@ pub fn apply_shrubs_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
 
     let info = canvas.info();
     canvas.foreach_col(|_, wpos2d, _| {
-        for (wpos, seed) in std::array::IntoIter::new(shrub_gen.get(wpos2d)) {
+        for (wpos, seed) in shrub_gen.get(wpos2d) {
             shrub_cache.entry(wpos).or_insert_with(|| {
                 let col = info.col_or_gen(wpos)?;
 

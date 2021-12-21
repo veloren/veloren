@@ -138,8 +138,7 @@ pub fn sample_pos(
         .and_then(|samples| {
             chunk_idx
                 .and_then(|chunk_idx| samples.get(chunk_idx))
-                .map(Option::as_ref)
-                .flatten()
+                .and_then(Option::as_ref)
         })
         .map(|sample| {
             // TODO: Eliminate the redundancy between this and the block renderer.

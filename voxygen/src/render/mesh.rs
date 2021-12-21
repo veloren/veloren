@@ -158,6 +158,7 @@ pub struct Quad<V: Vertex> {
 impl<V: Vertex> Quad<V> {
     pub fn new(a: V, b: V, c: V, d: V) -> Self { Self { a, b, c, d } }
 
+    #[must_use]
     pub fn rotated_by(self, n: usize) -> Self {
         let verts = [self.a, self.b, self.c, self.d];
 

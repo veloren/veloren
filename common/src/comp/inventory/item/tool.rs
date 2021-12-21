@@ -105,7 +105,8 @@ impl Stats {
         }
     }
 
-    pub fn clamp_speed(mut self) -> Stats {
+    #[must_use]
+    pub fn clamp_speed(mut self) -> Self {
         // if a tool has 0.0 speed, that panics due to being infinite duration, so
         // enforce speed >= 0.1 on the final product (but not the intermediates)
         self.speed = self.speed.max(0.1);
@@ -345,6 +346,7 @@ pub struct AbilitySet<T> {
 }
 
 impl AbilitySet<AbilityItem> {
+    #[must_use]
     pub fn modified_by_tool(
         self,
         tool: &Tool,

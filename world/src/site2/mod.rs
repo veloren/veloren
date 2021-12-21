@@ -667,12 +667,10 @@ impl Site {
         let tile = self.tiles.get(tpos);
         let twpos = self.tile_wpos(tpos);
         let border = TILE_SIZE as i32;
-        let cols = (-border..TILE_SIZE as i32 + border)
-            .map(|y| {
-                (-border..TILE_SIZE as i32 + border)
-                    .map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))
-            })
-            .flatten();
+        let cols = (-border..TILE_SIZE as i32 + border).flat_map(|y| {
+            (-border..TILE_SIZE as i32 + border)
+                .map(move |x| (twpos + Vec2::new(x, y), Vec2::new(x, y)))
+        });
 
         #[allow(clippy::single_match)]
         match &tile.kind {
@@ -930,8 +928,7 @@ fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
 
 pub fn aabr_tiles(aabr: Aabr<i32>) -> impl Iterator<Item = Vec2<i32>> {
     (0..aabr.size().h)
-        .map(move |y| (0..aabr.size().w).map(move |x| aabr.min + Vec2::new(x, y)))
-        .flatten()
+        .flat_map(move |y| (0..aabr.size().w).map(move |x| aabr.min + Vec2::new(x, y)))
 }
 
 pub struct Plaza {}

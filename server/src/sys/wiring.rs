@@ -66,8 +66,7 @@ fn dispatch_circuit_transport<'a>(
 
     (circuits)
         .join()
-        .map(|circuit| circuit.wires.iter())
-        .flatten()
+        .flat_map(|circuit| circuit.wires.iter())
         .for_each(|wire| {
             let input_value = computed_outputs
                 .get(&wire.input_entity)

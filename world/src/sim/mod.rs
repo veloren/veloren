@@ -1731,12 +1731,11 @@ impl WorldSim {
         let this = &self;
         let waypoints = (0..this.map_size_lg().chunks().x)
             .step_by(WAYPOINT_EVERY)
-            .map(|i| {
+            .flat_map(|i| {
                 (0..this.map_size_lg().chunks().y)
                     .step_by(WAYPOINT_EVERY)
                     .map(move |j| (i, j))
             })
-            .flatten()
             .collect::<Vec<_>>()
             .into_par_iter()
             .filter_map(|(i, j)| {
@@ -2130,7 +2129,8 @@ impl WorldSim {
     /// them spawning).
     pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = TreeAttr> + '_ {
         // Deterministic based on wpos
-        let normal_trees = std::array::IntoIter::new(self.gen_ctx.structure_gen.get(wpos))
+        // TODO: can use postfix .into_iter() when switching to Rust 2021
+        let normal_trees = IntoIterator::into_iter(self.gen_ctx.structure_gen.get(wpos))
             .filter_map(move |(wpos, seed)| {
                 let lottery = self.make_forest_lottery(wpos);
                 Some(TreeAttr {

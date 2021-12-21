@@ -341,6 +341,7 @@ impl Block {
 
     /// If this block is a fluid, replace its sprite.
     #[inline]
+    #[must_use]
     pub fn with_sprite(mut self, sprite: SpriteKind) -> Self {
         if !self.is_filled() {
             self.attr[0] = sprite as u8;
@@ -350,6 +351,7 @@ impl Block {
 
     /// If this block can have orientation, give it a new orientation.
     #[inline]
+    #[must_use]
     pub fn with_ori(mut self, ori: u8) -> Option<Self> {
         if self.get_sprite().map(|s| s.has_ori()).unwrap_or(false) {
             self.attr[1] = (self.attr[1] & !0b111) | (ori & 0b111);
@@ -361,6 +363,7 @@ impl Block {
 
     /// Remove the terrain sprite or solid aspects of a block
     #[inline]
+    #[must_use]
     pub fn into_vacant(self) -> Self {
         if self.is_fluid() {
             Block::new(self.kind(), Rgb::zero())
@@ -373,6 +376,7 @@ impl Block {
 
     /// Attempt to convert a [`u32`] to a block
     #[inline]
+    #[must_use]
     pub fn from_u32(x: u32) -> Option<Self> {
         let [bk, r, g, b] = x.to_le_bytes();
         Some(Self {

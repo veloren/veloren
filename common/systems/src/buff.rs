@@ -215,19 +215,16 @@ impl<'a> System<'a> for Sys {
                                         ModifierKind::Additive => *accumulated,
                                         ModifierKind::Fractional => health.maximum() * *accumulated,
                                     };
-                                    let damage_contributor = by
-                                        .map(|uid| {
-                                            read_data
-                                                .uid_allocator
-                                                .retrieve_entity_internal(uid.0)
-                                                .map(|entity| {
-                                                    DamageContributor::new(
-                                                        uid,
-                                                        read_data.groups.get(entity).cloned(),
-                                                    )
-                                                })
-                                        })
-                                        .flatten();
+                                    let damage_contributor = by.and_then(|uid| {
+                                        read_data.uid_allocator.retrieve_entity_internal(uid.0).map(
+                                            |entity| {
+                                                DamageContributor::new(
+                                                    uid,
+                                                    read_data.groups.get(entity).cloned(),
+                                                )
+                                            },
+                                        )
+                                    });
                                     server_emitter.emit(ServerEvent::HealthChange {
                                         entity,
                                         change: HealthChange {

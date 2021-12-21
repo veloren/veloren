@@ -45,30 +45,35 @@ impl ToggleButton {
         }
     }
 
+    #[must_use]
     pub fn source_rectangle(mut self, rect: Rect) -> Self {
         self.f_image.src_rect = Some(rect);
         self.t_image.src_rect = Some(rect);
         self
     }
 
+    #[must_use]
     pub fn image_colors(mut self, f_color: Color, t_color: Color) -> Self {
         self.f_image.color = button::ImageColor::Normal(f_color);
         self.t_image.color = button::ImageColor::Normal(t_color);
         self
     }
 
+    #[must_use]
     pub fn image_color_with_feedback(mut self, f_color: Color, t_color: Color) -> Self {
         self.f_image.color = button::ImageColor::WithFeedback(f_color);
         self.t_image.color = button::ImageColor::WithFeedback(t_color);
         self
     }
 
+    #[must_use]
     pub fn hover_images(mut self, f_id: image::Id, t_id: image::Id) -> Self {
         self.f_image.hover_image_id = Some(f_id);
         self.t_image.hover_image_id = Some(t_id);
         self
     }
 
+    #[must_use]
     pub fn press_images(mut self, f_id: image::Id, t_id: image::Id) -> Self {
         self.f_image.press_image_id = Some(f_id);
         self.t_image.press_image_id = Some(t_id);

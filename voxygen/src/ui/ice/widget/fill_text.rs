@@ -36,21 +36,25 @@ where
         }
     }
 
+    #[must_use]
     pub fn fill_fraction(mut self, fraction: f32) -> Self {
         self.fill_fraction = fraction;
         self
     }
 
+    #[must_use]
     pub fn vertical_adjustment(mut self, adjustment: f32) -> Self {
         self.vertical_adjustment = adjustment;
         self
     }
 
+    #[must_use]
     pub fn color(mut self, color: impl Into<iced::Color>) -> Self {
         self.text = self.text.color(color);
         self
     }
 
+    #[must_use]
     pub fn font(mut self, font: impl Into<R::Font>) -> Self {
         self.text = self.text.font(font);
         self

@@ -471,7 +471,7 @@ fn handle_give_item(
 ) -> CmdResult<()> {
     if let (Some(item_name), give_amount_opt) = parse_args!(args, String, u32) {
         let give_amount = give_amount_opt.unwrap_or(1);
-        if let Ok(item) = Item::new_from_asset(&item_name.replace('/', ".").replace("\\", ".")) {
+        if let Ok(item) = Item::new_from_asset(&item_name.replace('/', ".").replace('\\', ".")) {
             let mut item: Item = item;
             let mut res = Ok(());
 
@@ -2805,16 +2805,16 @@ fn handle_disconnect_all_players(
 
     // TODO: This logging and verification of admin commands would be better moved
     // to a more generic method used for auditing -all- admin commands.
-    let player_name;
-    if let Some(player) = players.get(client) {
-        player_name = &*player.alias;
+
+    let player_name = if let Some(player) = players.get(client) {
+        &*player.alias
     } else {
         warn!(
             "Failed to get player name for admin who used /disconnect_all_players - ignoring \
              command."
         );
         return Err("You do not exist, so you cannot use this command".to_string());
-    }
+    };
 
     info!(
         "Disconnecting all clients due to admin command from {}",

@@ -363,7 +363,7 @@ impl SitePrices {
             .map(|(slot, amount)| {
                 inventories[who]
                     .as_ref()
-                    .map(|ri| {
+                    .and_then(|ri| {
                         ri.inventory.get(slot).map(|item| {
                             let (material, factor) = TradePricing::get_material(&item.name);
                             self.values.get(&material).cloned().unwrap_or_default()
@@ -372,7 +372,6 @@ impl SitePrices {
                                 * if reduce { material.trade_margin() } else { 1.0 }
                         })
                     })
-                    .flatten()
                     .unwrap_or_default()
             })
             .sum()

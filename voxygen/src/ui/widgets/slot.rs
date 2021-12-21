@@ -499,16 +499,19 @@ where
         pub with_background_color { background_color = Some(Color) }
     }
 
+    #[must_use]
     pub fn with_manager(mut self, slot_manager: &'a mut SlotManager<S>) -> Self {
         self.slot_manager = Some(slot_manager);
         self
     }
 
+    #[must_use]
     pub fn filled_slot(mut self, img: image::Id) -> Self {
         self.filled_slot = img;
         self
     }
 
+    #[must_use]
     pub fn with_icon(mut self, img: image::Id, size: Vec2<f32>, color: Option<Color>) -> Self {
         self.icon = Some((img, size, color));
         self

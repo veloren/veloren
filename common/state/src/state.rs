@@ -268,6 +268,7 @@ impl State {
     }
 
     /// Register a component with the state's ECS.
+    #[must_use]
     pub fn with_component<T: Component>(mut self) -> Self
     where
         <T as Component>::Storage: Default,
