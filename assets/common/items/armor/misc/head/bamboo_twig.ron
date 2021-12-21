@@ -4,10 +4,9 @@ ItemDef(
 	kind: Armor((
         kind: Head("BambooTwig"),
         stats: (
-            protection: Some(Normal(4.0)),
-            poise_resilience: Some(Normal(3.0)),
-            energy_reward: Some(0.08),
-            crit_power: Some(0.01),
+            poise_resilience: Some(Normal(2.0)),
+            energy_reward: Some(0.06),
+            crit_power: Some(0.005),
         ),
     )),
     quality: Common,
