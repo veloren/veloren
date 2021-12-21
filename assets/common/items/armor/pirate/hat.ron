@@ -7,11 +7,11 @@ ItemDef(
             protection: Some(Normal(4.0)),
             poise_resilience: Some(Normal(1.0)),
             energy_max: Some(1.0),
-            energy_reward: Some(0.025),
+            energy_reward: Some(0.015),
             crit_power: Some(0.02),
         ),
     )),
-    quality: Epic,
+    quality: High,
     tags: [
     ],
 )

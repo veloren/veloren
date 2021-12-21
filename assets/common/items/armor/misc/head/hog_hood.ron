@@ -4,10 +4,10 @@ ItemDef(
     kind: Armor((
         kind: Head("HogHood"),
         stats: (
-            protection: Some(Normal(6.5)),
-            poise_resilience: Some(Normal(1.0)),
-            crit_power: Some(0.0355),
-            stealth: Some(0.0335),
+            protection: Some(Normal(5.0)),
+            poise_resilience: Some(Normal(-1.0)),
+            crit_power: Some(0.007),
+            stealth: Some(0.35),
         ),
     )),
     quality: Moderate,

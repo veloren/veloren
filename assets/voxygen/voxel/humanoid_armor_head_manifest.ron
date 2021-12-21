@@ -813,53 +813,53 @@
             vox_spec: ("armor.misc.head.spikeguard", (-3.0, -5.0, -2.0)),
             color: None
         ),
-        // Village Guard
-        (Human, Male, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-3.0, -3.0, -0.0)),
+        // Village Guard Helmet
+        (Human, Male, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-4.0, -6.0, -1.0)),
             color: None
         ),
-        (Human, Female, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-3.0, -1.0, -0.0)),
+        (Human, Female, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-4.0, -5.0, -1.0)),
             color: None
         ),
-        (Elf, Male, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_orc_m", (-5.0, -2.0, 0.0)),
+        (Elf, Male, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -6.0, -1.0)),
             color: None
         ),
-        (Elf, Female, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Elf, Female, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -6.0, -1.0)),
             color: None
         ),
-        (Dwarf, Male, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Dwarf, Male, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-5.0, -5.0, -1.0)),
             color: None
         ),
-        (Dwarf, Female, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Dwarf, Female, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-5.0, -5.0, -1.0)),
             color: None
         ),
-        (Danari, Male, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Danari, Male, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-2.0, -6.0, 1.0)),
             color: None
         ),
-        (Danari, Female, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Danari, Female, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-2.0, -6.0, 1.0)),
             color: None
         ),
-        (Undead, Male, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Undead, Male, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-6.0, -6.0, 0.0)),
             color: None
         ),
-        (Undead, Female, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Undead, Female, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-6.0, -6.0, 0.0)),
             color: None
         ),
-        (Orc, Male, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_orc_m", (-2.0, -1.0, 1.0)),
+        (Orc, Male, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -4.0, 1.0)),
             color: None
         ),
-        (Orc, Female, "LeatherPlate"): (
-            vox_spec: ("armor.leather_plate.helmet_undead_m", (-5.0, -2.0, 0.0)),
+        (Orc, Female, "Helmet"): (
+            vox_spec: ("armor.misc.head.helmet", (-3.0, -7.0, -1.0)),
             color: None
         ),
         // Merchant Turban

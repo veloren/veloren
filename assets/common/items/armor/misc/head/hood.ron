@@ -6,8 +6,8 @@ ItemDef(
         stats: (
             protection: Some(Normal(6.0)),
             poise_resilience: Some(Normal(1.0)),
-            crit_power: Some(0.04),
-            stealth: Some(0.12),
+            crit_power: Some(0.01),
+            stealth: Some(0.22),
         ),
     )),
     quality: Moderate,
