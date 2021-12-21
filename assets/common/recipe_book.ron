@@ -296,6 +296,14 @@
         ],
         craft_sprite: Some(Forge),
     ),
+    // Only for Christmas event so remove once done
+    "diamonds": (
+        output: ("common.items.mineral.gem.diamond", 1),
+        inputs: [
+            (Item("common.items.mineral.ore.coal"), 20, false),
+        ],
+        craft_sprite: Some(Forge),
+    ),
     "cotton": (
         output: ("common.items.crafting_ing.cloth.cotton", 1),
         inputs: [
