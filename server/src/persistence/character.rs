@@ -463,7 +463,7 @@ pub fn create_character(
 
     let mut stmt = transaction.prepare_cached(
         "
-        INSERT INTO skill_group (entity_id,
+        INSERT INTO ability_set (entity_id,
                                  ability_sets)
         VALUES (?1, ?2)",
     )?;
