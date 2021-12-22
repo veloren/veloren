@@ -279,6 +279,8 @@ impl MusicMgr {
             MusicState::Transition(_, next) => MusicState::Activity(next),
         };
 
+        // TODO: Instead of a constant tick, make this a timer that starts only when
+        // combat might end, providing a proper "buffer".
         let interrupt = matches!(music_state, MusicState::Transition(_, _))
             && self.last_interrupt.elapsed().as_secs_f32() > mtm.interrupt_delay;
 
@@ -309,10 +311,17 @@ impl MusicMgr {
     ) -> Result<MusicState, ()> {
         let mut rng = thread_rng();
 
-        // Adds a bit of randomness between plays
+        // Adds a bit of randomness between plays, depending on whether the player is in
+        // a town, or exploring.
+        // TODO: make this something that is decided when a song ends, instead of when
+        // it begins
         let silence_between_tracks_seconds: f32 =
-            if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
+            if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
+                && matches!(client.current_site(), SitesKind::Settlement)
+            {
                 rng.gen_range(90.0..180.0)
+            } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
+                rng.gen_range(60.0..120.0)
             } else {
                 0.0
             };
@@ -349,15 +358,32 @@ impl MusicMgr {
         if maybe_tracks.is_empty() {
             return Err(());
         }
-        // Second, prevent playing the last track if possible (though don't return Err
-        // here, since the combat music is intended to loop)
-        let filtered_tracks: Vec<_> = maybe_tracks
-            .iter()
-            .filter(|track| !track.title.eq(&self.last_track))
-            .copied()
-            .collect();
-        if !filtered_tracks.is_empty() {
-            maybe_tracks = filtered_tracks;
+        // Second, prevent playing the last track (when not in combat, because then it
+        // needs to loop)
+        if music_state == &MusicState::Activity(MusicActivity::Combat(CombatIntensity::High))
+            || music_state
+                == &MusicState::Transition(
+                    MusicActivity::Combat(CombatIntensity::High),
+                    MusicActivity::Explore,
+                )
+        {
+            let filtered_tracks: Vec<_> = maybe_tracks
+                .iter()
+                .filter(|track| track.title.eq(&self.last_track))
+                .copied()
+                .collect();
+            if !filtered_tracks.is_empty() {
+                maybe_tracks = filtered_tracks;
+            }
+        } else {
+            let filtered_tracks: Vec<_> = maybe_tracks
+                .iter()
+                .filter(|track| !track.title.eq(&self.last_track))
+                .copied()
+                .collect();
+            if !filtered_tracks.is_empty() {
+                maybe_tracks = filtered_tracks;
+            }
         }
 
         // Randomly selects a track from the remaining tracks weighted based
@@ -378,7 +404,7 @@ impl MusicMgr {
         );
 
         if let Ok(track) = new_maybe_track {
-            //println!("Now playing {:?}", track.title);
+            // println!("Now playing {:?}", track.title);
             self.last_track = String::from(&track.title);
             self.began_playing = Instant::now();
             self.next_track_change = track.length + silence_between_tracks_seconds;

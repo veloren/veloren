@@ -1,6 +1,6 @@
 (
-    combat_nearby_radius: 40.0,
-    combat_health_factor: 75.0,
+    combat_nearby_radius: 25.0,
+    combat_health_factor: 50.0,
     combat_nearby_high_thresh: 4,
     combat_nearby_low_thresh: 4,
     fade_timings: {
@@ -8,8 +8,8 @@
         (TitleMusic, Exploration): (4.0, 4.0),
         (TitleMusic, Combat): (4.0, 4.0),
         (Exploration, TitleMusic): (2.0, 2.0),
-        (Exploration, Combat): (2.0, 2.0),
-        (Combat, Exploration): (3.0, 6.0),
+        (Exploration, Combat): (0.5, 0.5),
+        (Combat, Exploration): (2.0, 6.0),
         (Combat, TitleMusic): (2.0, 2.0),
     },
     interrupt_delay: 5.0,

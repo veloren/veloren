@@ -2,11 +2,55 @@
 // Times: Some(Day), Some(Night), None [both]
 // Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle
 //          planned biomes: Savannah, Swamp
-// Sites: Cave, Dungeon, Void [none]
-// Music states: Explore, Combat
+// Number after biome indicates weighting
+// Sites: Some(Settlement), Some(Cave), Some(Dungeon), Some(Void) [none]
+// Music states: Activity(Explore), Activity(Combat)
+// Combat music is looped. Needs three files: start, loop, and end. Start also contains one run of the loop.
 
 (
     tracks: [
+        Individual((
+            title: "Raising Below Like Thunder",
+            path: "voxygen.audio.soundtrack.town.raising_below_like_thunder",
+            length: 120.0,
+            timing: Some(Night),
+            biomes: [
+                (Desert, 1)
+            ],
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "Rarnage",
+        )),
+        Individual((
+            title: "A Tale Worth Telling",
+            path: "voxygen.audio.soundtrack.town.a_tale_worth_telling",
+            length: 279.0,
+            timing: Some(Night),
+            biomes: [],
+            site: Some(Settlement),
+            music_state: Activity(Explore),
+            artist: "Oolnokk; mixed by cereal7",
+        )),
+        Individual((
+            title: "Bustle and Bloom",
+            path: "voxygen.audio.soundtrack.town.bustle_and_bloom",
+            length: 155.0,
+            timing: Some(Day),
+            biomes: [],
+            site: Some(Settlement),
+            music_state: Activity(Explore),
+            artist: "DaforLynx",
+        )),
+        Individual((
+            title: "Starlit Pathways",
+            path: "voxygen.audio.soundtrack.town.starlit_pathways",
+            length: 132.0,
+            timing: Some(Night),
+            biomes: [],
+            site: Some(Settlement),
+            music_state: Activity(Explore),
+            artist: "DaforLynx",
+        )),
         Individual((
             title: "Rest Assured",
             path: "voxygen.audio.soundtrack.town.rest_assured",
@@ -16,16 +60,6 @@
             site: Some(Settlement),
             music_state: Activity(Explore),
             artist: "badbbad",
-        )),
-        Individual((
-            title: "Onwards!",
-            path: "voxygen.audio.soundtrack.town.onwards",
-            length: 151.0,
-            timing: Some(Night),
-            biomes: [],
-            site: Some(Settlement),
-            music_state: Activity(Explore),
-            artist: "lorenzo_rozzi",
         )),
         Individual((
             title: "I'm Home",
@@ -167,7 +201,6 @@
             timing: Some(Day),
             biomes: [
                 (Desert, 1),
-                (Mountain, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -255,7 +288,6 @@
             timing: Some(Night),
             biomes: [
                 (Forest, 1),
-                (Mountain, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -340,7 +372,6 @@
             timing: Some(Night),
             biomes: [
                 (Grassland, 1),
-                (Desert, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -388,7 +419,7 @@
             length: 244.0,
             timing: None,
             biomes: [],
-            site: Some(Dungeon),
+            site: Some(Cave),
             music_state: Activity(Explore),
             artist: "badbbad",
         )),
@@ -404,6 +435,9 @@
             music_state: Activity(Explore),
             artist: "badbbad",
         )),
+
+        // Combat Music
+
         Segmented(
             title: "Barred Paths",
             author: "DaforLynx",
@@ -411,9 +445,21 @@
             biomes: [],
             site: Some(Dungeon),
             segments: [
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
-                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
                 ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-start", 56.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-loop", 54.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.barred_paths.barred_paths-end", 6.0, Transition(Combat(High), Explore), None),
+            ],
+        ),
+        Segmented(
+            title: "Reversal",
+            author: "DaforLynx",
+            timing: None,
+            biomes: [],
+            site: Some(Dungeon),
+            segments: [
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-start", 60.0, Transition(Explore, Combat(High)), Some(Combat(High))),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-loop", 60.0, Activity(Combat(High)), None),
+                ("voxygen.audio.soundtrack.combat.reversal.reversal-end", 4.0, Transition(Combat(High), Explore), None),
             ],
         ),
     ]
