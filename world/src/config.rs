@@ -87,6 +87,8 @@ pub struct Features {
     pub paths: bool,
     pub spots: bool,
     pub site2: bool,
+    // 1.0 is the default wildlife density
+    pub wildlife_density: f32,
 }
 
 impl assets::Asset for Features {

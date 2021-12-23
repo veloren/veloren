@@ -21,8 +21,6 @@ fn close(x: f32, tgt: f32, falloff: f32) -> f32 {
     (1.0 - (x - tgt).abs() / falloff).max(0.0).powf(0.125)
 }
 
-const BASE_DENSITY: f32 = 1.0e-5; // Base wildlife density
-
 #[derive(Clone, Debug, Deserialize)]
 pub struct SpawnEntry {
     /// User-facing info for wiki, statistical tools, etc.
@@ -131,6 +129,7 @@ impl Pack {
 pub type DensityFn = fn(&SimChunk, &ColumnSample) -> f32;
 
 pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
+    const BASE_DENSITY: f32 = 1.0e-5; // Base wildlife density
     // NOTE: Order matters.
     // Entries with more specific requirements
     // and overall scarcity should come first, where possible.
@@ -317,6 +316,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
     time: Option<&(TimeOfDay, Calendar)>,
 ) {
     let scatter = &index.wildlife_spawns;
+    // Configurable density multiplier
+    let wildlife_density_modifier = index.features.wildlife_density;
 
     for y in 0..vol.size_xy().y as i32 {
         for x in 0..vol.size_xy().x as i32 {
@@ -342,7 +343,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 .iter()
                 .enumerate()
                 .find_map(|(_i, (entry, get_density))| {
-                    let density = get_density(chunk, col_sample);
+                    let density = get_density(chunk, col_sample) * wildlife_density_modifier;
                     (density > 0.0)
                         .then(|| {
                             entry

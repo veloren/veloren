@@ -119,6 +119,7 @@ impl IndexOwned {
             // Reload the fields from the asset handle, which is updated automatically
             self.colors = self.index.colors.cloned();
             self.features = self.index.features.cloned();
+            // Update wildlife spawns which is based on base_density in features
             reload(self)
         })
     }
