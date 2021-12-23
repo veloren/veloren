@@ -44,8 +44,7 @@ impl<'a> CanvasInfo<'a> {
     pub fn col(&self, wpos: Vec2<i32>) -> Option<&'a ColumnSample> {
         self.column_grid
             .get(self.column_grid_border + wpos - self.wpos())
-            .map(Option::as_ref)
-            .flatten()
+            .and_then(Option::as_ref)
             .map(|zc| &zc.sample)
     }
 
@@ -67,8 +66,7 @@ impl<'a> CanvasInfo<'a> {
     /// spot, seed)`.
     pub fn nearby_spots(&self) -> impl Iterator<Item = (Vec2<i32>, Spot, u32)> + '_ {
         (-1..2)
-            .map(|x| (-1..2).map(move |y| Vec2::new(x, y)))
-            .flatten()
+            .flat_map(|x| (-1..2).map(move |y| Vec2::new(x, y)))
             .filter_map(move |pos| {
                 let pos = self.chunk_pos + pos;
                 self.chunks.get(pos).and_then(|c| c.spot).map(|spot| {

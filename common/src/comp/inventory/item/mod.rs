@@ -675,6 +675,7 @@ impl Item {
     }
 
     /// Duplicates an item, creating an exact copy but with a new item ID
+    #[must_use]
     pub fn duplicate(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Self {
         let mut new_item = Item::new_from_item_def(
             Arc::clone(&self.item_def),

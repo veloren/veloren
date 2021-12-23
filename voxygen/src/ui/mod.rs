@@ -809,10 +809,10 @@ impl Ui {
                                             let (l, r, b, t) = src_rect.l_r_b_t();
                                             Some((
                                                 (
-                                                    l / image_w as f64, /* * ratio_x*/
-                                                    r / image_w as f64, /* * ratio_x*/
-                                                    b / image_h as f64, /* * ratio_y*/
-                                                    t / image_h as f64, /* * ratio_y*/
+                                                    l / image_w as f64, /* * ratio_x */
+                                                    r / image_w as f64, /* * ratio_x */
+                                                    b / image_h as f64, /* * ratio_y */
+                                                    t / image_h as f64, /* * ratio_y */
                                                 ),
                                                 Extent2::new(
                                                     (gl_size.w as f64 * ratio_x) as f32,

@@ -62,6 +62,7 @@ impl Ori {
         Self(Quaternion::slerp(ori1.0, ori2.0, s).normalized())
     }
 
+    #[must_use]
     pub fn slerped_towards(self, ori: Ori, s: f32) -> Self { Self::slerp(self, ori, s) }
 
     /// Multiply rotation quaternion by `q`
@@ -80,6 +81,7 @@ impl Ori {
     ///
     /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= std::f32::EPSILON);
     /// ```
+    #[must_use]
     pub fn rotated(self, q: Quaternion<f32>) -> Self {
         Self((self.to_quat() * q.normalized()).normalized())
     }
@@ -100,6 +102,7 @@ impl Ori {
     ///
     /// assert!((ori1.look_dir().dot(*ori2.look_dir()) - 1.0).abs() <= std::f32::EPSILON);
     /// ```
+    #[must_use]
     pub fn prerotated(self, q: Quaternion<f32>) -> Self {
         Self((q.normalized() * self.to_quat()).normalized())
     }
@@ -148,6 +151,7 @@ impl Ori {
         self.to_quat() * local
     }
 
+    #[must_use]
     pub fn to_horizontal(self) -> Self {
         // We don't use Self::look_dir to avoid the extra normalization step within
         // Dir's Quaternion Mul impl
@@ -210,32 +214,39 @@ impl Ori {
 
     pub fn dot(self, other: Self) -> f32 { self.look_vec().dot(other.look_vec()) }
 
+    #[must_use]
     pub fn pitched_up(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_x(angle_radians))
     }
 
+    #[must_use]
     pub fn pitched_down(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_x(-angle_radians))
     }
 
+    #[must_use]
     pub fn yawed_left(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_z(angle_radians))
     }
 
+    #[must_use]
     pub fn yawed_right(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_z(-angle_radians))
     }
 
+    #[must_use]
     pub fn rolled_left(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_y(-angle_radians))
     }
 
+    #[must_use]
     pub fn rolled_right(self, angle_radians: f32) -> Self {
         self.rotated(Quaternion::rotation_y(angle_radians))
     }
 
     /// Returns a version which is rolled such that its up points towards `dir`
     /// as much as possible without pitching or yawing
+    #[must_use]
     pub fn rolled_towards(self, dir: Dir) -> Self {
         dir.projected(&Plane::from(self.look_dir()))
             .map_or(self, |dir| self.prerotated(self.up().rotation_between(dir)))
@@ -243,6 +254,7 @@ impl Ori {
 
     /// Returns a version which has been pitched towards `dir` as much as
     /// possible without yawing or rolling
+    #[must_use]
     pub fn pitched_towards(self, dir: Dir) -> Self {
         dir.projected(&Plane::from(self.right()))
             .map_or(self, |dir_| {
@@ -252,6 +264,7 @@ impl Ori {
 
     /// Returns a version which has been yawed towards `dir` as much as possible
     /// without pitching or rolling
+    #[must_use]
     pub fn yawed_towards(self, dir: Dir) -> Self {
         dir.projected(&Plane::from(self.up())).map_or(self, |dir_| {
             self.prerotated(self.look_dir().rotation_between(dir_))
@@ -279,6 +292,7 @@ impl Ori {
     /// let ang2 = pd_rr.up().angle_between(zenith);
     /// assert!((ang1 - ang2).abs() <= std::f32::EPSILON);
     /// ```
+    #[must_use]
     pub fn uprighted(self) -> Self { self.look_dir().into() }
 
     fn is_normalized(&self) -> bool { self.0.into_vec4().is_normalized() }

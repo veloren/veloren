@@ -83,6 +83,7 @@ impl Dir {
         Self(slerp_normalized(from.0, to.0, factor))
     }
 
+    #[must_use]
     pub fn slerped_to(self, to: Self, factor: f32) -> Self {
         Self(slerp_normalized(self.0, to.0, factor))
     }

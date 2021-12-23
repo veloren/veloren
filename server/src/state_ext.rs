@@ -131,13 +131,11 @@ impl StateExt for State {
                 let stats = self.ecs().read_storage::<comp::Stats>();
                 let groups = self.ecs().read_storage::<comp::Group>();
 
-                let damage_contributor = source
-                    .map(|uid| {
-                        self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
-                            DamageContributor::new(uid, groups.get(attacker_entity).cloned())
-                        })
+                let damage_contributor = source.and_then(|uid| {
+                    self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
+                        DamageContributor::new(uid, groups.get(attacker_entity).cloned())
                     })
-                    .flatten();
+                });
                 let time = self.ecs().read_resource::<Time>();
                 let change = damage.calculate_health_change(
                     combat::Damage::compute_damage_reduction(
@@ -612,10 +610,7 @@ impl StateExt for State {
 
         let group_manager = ecs.read_resource::<comp::group::GroupManager>();
 
-        let group_info = msg
-            .get_group()
-            .map(|g| group_manager.group_info(*g))
-            .flatten();
+        let group_info = msg.get_group().and_then(|g| group_manager.group_info(*g));
 
         let resolved_msg = msg
             .clone()

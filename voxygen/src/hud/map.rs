@@ -1033,7 +1033,7 @@ impl<'a> Widget for Map<'a> {
                         } else {
                             size as f64 / 2.5
                         };
-                        Text::new(&title.to_string())
+                        Text::new(title)
                             .x_y_position_relative_to(
                                 state.ids.map_layers[0],
                                 position::Relative::Scalar(rpos.x as f64),

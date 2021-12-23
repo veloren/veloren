@@ -104,6 +104,7 @@ impl Structure {
         StructuresGroup::load_expect(&["world.manifests.", specifier].concat())
     }
 
+    #[must_use]
     pub fn with_center(mut self, center: Vec3<i32>) -> Self {
         self.center = center;
         self

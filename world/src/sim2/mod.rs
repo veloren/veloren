@@ -1278,8 +1278,7 @@ mod tests {
                     let mut neighbors: Vec<crate::site::economy::NeighborInformation> = e
                         .neighbors
                         .iter()
-                        .map(|(nid, dist)| index.sites.recreate_id(*nid).map(|i| (i, dist)))
-                        .flatten()
+                        .flat_map(|(nid, dist)| index.sites.recreate_id(*nid).map(|i| (i, dist)))
                         .map(|(nid, dist)| crate::site::economy::NeighborInformation {
                             id: nid,
                             travel_distance: *dist,

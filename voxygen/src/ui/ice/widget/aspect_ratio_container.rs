@@ -46,22 +46,26 @@ where
     }
 
     /// Set the ratio (width/height)
+    #[must_use]
     pub fn ratio(mut self, ratio: f32) -> Self {
         self.aspect_ratio = AspectRatio::Ratio(ratio);
         self
     }
 
     /// Use the ratio of the provided image
+    #[must_use]
     pub fn ratio_of_image(mut self, handle: R::ImageHandle) -> Self {
         self.aspect_ratio = AspectRatio::Image(handle);
         self
     }
 
+    #[must_use]
     pub fn max_width(mut self, max_width: u32) -> Self {
         self.max_width = max_width;
         self
     }
 
+    #[must_use]
     pub fn max_height(mut self, max_height: u32) -> Self {
         self.max_height = max_height;
         self

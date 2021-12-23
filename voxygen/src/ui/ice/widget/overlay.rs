@@ -44,46 +44,55 @@ where
         }
     }
 
+    #[must_use]
     pub fn padding<P: Into<Padding>>(mut self, pad: P) -> Self {
         self.padding = pad.into();
         self
     }
 
+    #[must_use]
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
     }
 
+    #[must_use]
     pub fn max_width(mut self, max_width: u32) -> Self {
         self.max_width = max_width;
         self
     }
 
+    #[must_use]
     pub fn max_height(mut self, max_height: u32) -> Self {
         self.max_height = max_height;
         self
     }
 
+    #[must_use]
     pub fn align_x(mut self, align_x: Align) -> Self {
         self.horizontal_alignment = align_x;
         self
     }
 
+    #[must_use]
     pub fn align_y(mut self, align_y: Align) -> Self {
         self.vertical_alignment = align_y;
         self
     }
 
+    #[must_use]
     pub fn center_x(mut self) -> Self {
         self.horizontal_alignment = Align::Center;
         self
     }
 
+    #[must_use]
     pub fn center_y(mut self) -> Self {
         self.vertical_alignment = Align::Center;
         self

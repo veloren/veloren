@@ -348,6 +348,7 @@ impl<'a> Tooltip<'a> {
     }
 
     /// Specify the font used for displaying the text.
+    #[must_use]
     pub fn font_id(mut self, font_id: text::font::Id) -> Self {
         self.style.title.font_id = Some(Some(font_id));
         self.style.desc.font_id = Some(Some(font_id));

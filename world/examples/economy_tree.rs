@@ -5,13 +5,13 @@ use veloren_world::site::economy::{self, good_list, Economy};
 
 fn good_name(g: Good) -> String {
     let res = format!("{:?}", g);
-    let res = res.replace("(", "_");
-    res.replace(")", "_")
+    let res = res.replace('(', "_");
+    res.replace(')', "_")
 }
 
 fn labor_name(l: economy::Labor) -> String {
     let res = format!("{:?}", l);
-    res.replace(" ", "_")
+    res.replace(' ', "_")
 }
 
 fn main() -> Result<(), std::io::Error> {

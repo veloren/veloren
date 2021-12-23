@@ -419,6 +419,7 @@ impl<'a> ItemTooltip<'a> {
     }
 
     /// Specify the font used for displaying the text.
+    #[must_use]
     pub fn font_id(mut self, font_id: text::font::Id) -> Self {
         self.style.title.font_id = Some(Some(font_id));
         self.style.desc.font_id = Some(Some(font_id));
@@ -1211,7 +1212,7 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         // Stats
         let stat_h = if util::stats_count(self.item) > 0 {
-            widget::Text::new(&"placeholder".to_string())
+            widget::Text::new("placeholder")
                 .with_style(self.style.desc)
                 .get_h(ui)
                 .unwrap_or(0.0)

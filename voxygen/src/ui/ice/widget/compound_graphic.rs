@@ -45,6 +45,7 @@ impl Graphic {
         )
     }
 
+    #[must_use]
     pub fn color(mut self, color: Rgba<u8>) -> Self {
         match &mut self.kind {
             GraphicKind::Image(_, c) => *c = color,
@@ -108,16 +109,19 @@ impl CompoundGraphic {
         this
     }
 
+    #[must_use]
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
     }
 
+    #[must_use]
     pub fn fix_aspect_ratio(mut self) -> Self {
         self.fix_aspect_ratio = true;
         self

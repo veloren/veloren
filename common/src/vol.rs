@@ -17,6 +17,7 @@ pub trait Vox: Sized + Clone + PartialEq {
     fn empty() -> Self;
     fn is_empty(&self) -> bool;
 
+    #[must_use]
     fn or(self, other: Self) -> Self { if self.is_empty() { other } else { self } }
 }
 

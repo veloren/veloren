@@ -38,8 +38,9 @@ where
                 })
         };
         range_iter(0)
-            .map(|i| range_iter(1).map(move |j| range_iter(2).map(move |k| Vec3::new(i, j, k))))
-            .flatten()
+            .flat_map(|i| {
+                range_iter(1).map(move |j| range_iter(2).map(move |k| Vec3::new(i, j, k)))
+            })
             .flatten()
             .map(|offs| self.inner.get(pos + offs))
             .find(|vox| vox.as_ref().map(|v| !v.is_empty()).unwrap_or(false))

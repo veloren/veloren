@@ -49,6 +49,7 @@ impl<'a> OutlinedText<'a> {
         }
     }
 
+    #[must_use]
     pub fn font_id(mut self, font_id: text::font::Id) -> Self {
         self.text_style.font_id = Some(Some(font_id));
         self

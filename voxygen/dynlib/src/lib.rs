@@ -183,7 +183,7 @@ fn dyn_lib_file(dyn_package: &str, active: bool) -> String {
     format!(
         "{}{}{}{}",
         DLL_PREFIX,
-        dyn_package.replace("-", "_"),
+        dyn_package.replace('-', "_"),
         if active { "_active" } else { "" },
         DLL_SUFFIX
     )

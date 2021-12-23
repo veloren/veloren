@@ -708,7 +708,7 @@ impl<V: RectRasterableVol> Terrain<V> {
 
         let (bias, total) = Spiral2d::new()
             .take(9)
-            .map(|rpos| {
+            .flat_map(|rpos| {
                 let chunk_pos = wpos_chunk + rpos;
                 self.chunks
                     .get(&chunk_pos)
@@ -724,7 +724,6 @@ impl<V: RectRasterableVol> Terrain<V> {
                         )
                     })
             })
-            .flatten()
             .fold(
                 (Vec3::broadcast(0.001), 0.0),
                 |(bias, total), (lpos, level)| {

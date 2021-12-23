@@ -494,11 +494,11 @@ impl IcedRenderer {
                                     let (r, t) = src_rect.max.into_tuple();
                                     Some((
                                         (
-                                                l / image_w as f32, /* * ratio_x*/
-                                                r / image_w as f32, /* * ratio_x*/
-                                                b / image_h as f32, /* * ratio_y*/
-                                                t / image_h as f32, /* * ratio_y*/
-                                            ),
+                                            l / image_w as f32, /* * ratio_x */
+                                            r / image_w as f32, /* * ratio_x */
+                                            b / image_h as f32, /* * ratio_y */
+                                            t / image_h as f32, /* * ratio_y */
+                                        ),
                                         Extent2::new(
                                             gl_size.w as f32 * ratio_x,
                                             gl_size.h as f32 * ratio_y,

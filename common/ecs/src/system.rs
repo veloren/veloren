@@ -170,13 +170,12 @@ pub fn gen_stats(
     let mut result = HashMap::new();
     let mut all = timelines
         .iter()
-        .map(|(s, t)| {
+        .flat_map(|(s, t)| {
             let mut stat = CpuTimeStats::default();
             stat.measures.push((0, 0.0));
             result.insert(s.clone(), stat);
             t.measures.iter().map(|e| &e.0)
         })
-        .flatten()
         .collect::<Vec<_>>();
 
     all.sort();

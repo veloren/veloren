@@ -30,21 +30,25 @@ impl Image {
         }
     }
 
+    #[must_use]
     pub fn width(mut self, width: Length) -> Self {
         self.width = width;
         self
     }
 
+    #[must_use]
     pub fn height(mut self, height: Length) -> Self {
         self.height = height;
         self
     }
 
+    #[must_use]
     pub fn fix_aspect_ratio(mut self) -> Self {
         self.fix_aspect_ratio = true;
         self
     }
 
+    #[must_use]
     pub fn color(mut self, color: Rgba<u8>) -> Self {
         self.color = color;
         self

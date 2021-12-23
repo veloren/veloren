@@ -33,6 +33,7 @@ impl Style {
         }
     }
 
+    #[must_use]
     pub fn bg_hover_image(mut self, image: image::Handle) -> Self {
         self.background = Some(match self.background {
             Some(mut background) => {
@@ -44,6 +45,7 @@ impl Style {
         self
     }
 
+    #[must_use]
     pub fn bg_checked_image(mut self, image: image::Handle) -> Self {
         self.background = Some(match self.background {
             Some(mut background) => {
@@ -55,6 +57,7 @@ impl Style {
         self
     }
 
+    #[must_use]
     pub fn bg_hover_checked_image(mut self, image: image::Handle) -> Self {
         self.background = Some(match self.background {
             Some(mut background) => {

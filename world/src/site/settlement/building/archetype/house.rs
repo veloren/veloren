@@ -207,8 +207,7 @@ impl Archetype for House {
                 border: 4,
                 children: [1, -1]
                     .iter()
-                    .map(|flip| (0..branches_per_side).map(move |i| (i, *flip)))
-                    .flatten()
+                    .flat_map(|flip| (0..branches_per_side).map(move |i| (i, *flip)))
                     .filter_map(|(i, flip)| {
                         if rng.gen() {
                             Some((

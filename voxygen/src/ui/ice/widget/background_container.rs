@@ -30,32 +30,38 @@ impl Padding {
         }
     }
 
+    #[must_use]
     pub fn top(mut self, pad: u16) -> Self {
         self.top = pad;
         self
     }
 
+    #[must_use]
     pub fn bottom(mut self, pad: u16) -> Self {
         self.bottom = pad;
         self
     }
 
+    #[must_use]
     pub fn right(mut self, pad: u16) -> Self {
         self.right = pad;
         self
     }
 
+    #[must_use]
     pub fn left(mut self, pad: u16) -> Self {
         self.left = pad;
         self
     }
 
+    #[must_use]
     pub fn vertical(mut self, pad: u16) -> Self {
         self.top = pad;
         self.bottom = pad;
         self
     }
 
+    #[must_use]
     pub fn horizontal(mut self, pad: u16) -> Self {
         self.left = pad;
         self.right = pad;
@@ -110,16 +116,19 @@ where
         }
     }
 
+    #[must_use]
     pub fn padding(mut self, padding: Padding) -> Self {
         self.padding = padding;
         self
     }
 
+    #[must_use]
     pub fn max_width(mut self, max_width: u32) -> Self {
         self.max_width = max_width;
         self
     }
 
+    #[must_use]
     pub fn max_height(mut self, max_height: u32) -> Self {
         self.max_height = max_height;
         self

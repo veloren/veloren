@@ -164,13 +164,12 @@ impl World {
                         self.civs()
                             .caves
                             .iter()
-                            .map(|(id, info)| {
+                            .flat_map(|(id, info)| {
                                 // separate the two locations, combine with name
                                 std::iter::once((id.id() + num_sites, info.name.clone(), info.location.0))
                                     // unfortunately we have to introduce a fake id (as it gets stored in a map in the client)
                                     .chain(std::iter::once((id.id() + num_sites + num_caves, info.name.clone(), info.location.1)))
-                            })
-                            .flatten() // unwrap inner iteration
+                            }) // unwrap inner iteration
                             .map(|(id, name, pos)| world_msg::SiteInfo {
                                 id,
                                 name: Some(name),
@@ -335,8 +334,7 @@ impl World {
         let sample_get = |offs| {
             zcache_grid
                 .get(grid_border + offs)
-                .map(Option::as_ref)
-                .flatten()
+                .and_then(Option::as_ref)
                 .map(|zc| &zc.sample)
         };
 
