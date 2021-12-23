@@ -236,7 +236,7 @@ impl ProjectileConstructor {
                 let buff = AttackEffect::new(
                     Some(GroupTarget::OutOfGroup),
                     CombatEffect::Buff(CombatBuff {
-                        kind: BuffKind::Burning,
+                        kind: BuffKind::Poisoned,
                         dur_secs: 5.0,
                         strength: CombatBuffStrength::DamageFraction(0.2 * buff_strength),
                         chance: 1.0,

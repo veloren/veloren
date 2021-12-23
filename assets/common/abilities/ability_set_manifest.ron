@@ -231,6 +231,11 @@
     Custom("Arthropod Basic"): (
         primary: "common.abilities.custom.arthropodbasic.singlestrike",
         secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
+        abilities: [],
+    ),
+    Custom("Arthropod Leap"): (
+        primary: "common.abilities.custom.arthropodbasic.singlestrike",
+        secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
         abilities: [
             (None, "common.abilities.custom.arthropodbasic.leap"),
         ],

@@ -9,6 +9,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.wood_raptor")),
                 (1, (1, 1, "common.entity.wild.aggressive.deadwood")),
                 (1, (1, 1, "common.entity.wild.aggressive.saber")),
+                (1, (1, 1, "common.entity.wild.aggressive.weevil")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],

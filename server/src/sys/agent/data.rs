@@ -95,6 +95,8 @@ pub enum Tactic {
     BirdLargeBasic,
     ArthropodCharge,
     ArthropodBasic,
+    ArthropodRanged,
+    ArthropodLeap,
     Minotaur,
     ClayGolem,
     TidalWarrior,

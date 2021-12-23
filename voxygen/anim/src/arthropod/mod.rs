@@ -96,9 +96,7 @@ impl Skeleton for ArthropodSkeleton {
 
         // TODO: mount points
         //use comp::arthropod::Species::*;
-        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
-            _ => (chest_mat, self.chest.orientation),
-        };
+        let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
         // Offset from the mounted bone's origin.
         // Note: This could be its own bone if we need to animate it independently.
         let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
@@ -239,7 +237,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Antlion, _) => (4.0, 11.5, -4.0),
                 (Hornbeetle, _) => (5.0, 6.0, -3.0),
                 (Leafbeetle, _) => (5.0, 6.0, -1.0),
-                (Stagbeetle, _) => (5.0, 6.0, -2.0),
+                (Stagbeetle, _) => (4.5, 6.0, -2.0),
                 (Weevil, _) => (5.0, 9.0, -2.0),
                 (Cavespider, _) => (4.0, 13.0, -3.0),
                 (Moltencrawler, _) => (2.5, 14.0, -3.0),
@@ -263,9 +261,9 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tarantula, _) => (1.5, 10.5, -1.5),
                 (Blackwidow, _) => (2.5, 10.0, -5.5),
                 (Antlion, _) => (6.0, 7.5, -4.0),
-                (Hornbeetle, _) => (6.0, 6.0, -3.0),
-                (Leafbeetle, _) => (6.0, 5.0, -2.5),
-                (Stagbeetle, _) => (6.0, 6.0, -2.0),
+                (Hornbeetle, _) => (5.0, 6.0, -3.0),
+                (Leafbeetle, _) => (4.5, 5.0, -2.5),
+                (Stagbeetle, _) => (5.0, 6.0, -2.0),
                 (Weevil, _) => (6.0, 5.0, -2.5),
                 (Cavespider, _) => (2.5, 9.5, -2.5),
                 (Moltencrawler, _) => (2.5, 8.0, -3.0),
@@ -289,14 +287,14 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Tarantula, _) => (1.0),
                 (Blackwidow, _) => (1.0),
                 (Antlion, _) => (1.0),
-                (Hornbeetle, _) => (1.0),
-                (Leafbeetle, _) => (1.0),
-                (Stagbeetle, _) => (1.0),
-                (Weevil, _) => (1.0),
+                (Hornbeetle, _) => (0.8),
+                (Leafbeetle, _) => (0.8),
+                (Stagbeetle, _) => (0.8),
+                (Weevil, _) => (0.8),
                 (Cavespider, _) => (1.0),
-                (Moltencrawler, _) => (1.0),
-                (Mosscrawler, _) => (1.0),
-                (Sandcrawler, _) => (1.0),
+                (Moltencrawler, _) => (0.8),
+                (Mosscrawler, _) => (0.8),
+                (Sandcrawler, _) => (0.8),
             },
             // Z ori (front, front center, back center, center)
             leg_ori: match (body.species, body.body_type) {
@@ -313,11 +311,8 @@ impl<'a> From<&'a Body> for SkeletonAttr {
     }
 }
 
-fn mount_point(body: &Body) -> Vec3<f32> {
+fn mount_point(_body: &Body) -> Vec3<f32> {
     // TODO: mount points
     //use comp::arthropod::{BodyType::*, Species::*};
-    match (body.species, body.body_type) {
-        (_, _) => (0.0, -6.0, 6.0),
-    }
-    .into()
+    (0.0, -6.0, 6.0).into()
 }

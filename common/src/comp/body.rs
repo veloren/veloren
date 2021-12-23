@@ -406,14 +406,14 @@ impl Body {
                 arthropod::Species::Tarantula => Vec3::new(4.0, 4.0, 1.8),
                 arthropod::Species::Blackwidow => Vec3::new(4.0, 4.0, 2.0),
                 arthropod::Species::Antlion => Vec3::new(4.0, 4.0, 2.2),
-                arthropod::Species::Hornbeetle => Vec3::new(4.0, 4.0, 1.6),
-                arthropod::Species::Leafbeetle => Vec3::new(4.0, 4.0, 1.6),
-                arthropod::Species::Stagbeetle => Vec3::new(4.0, 4.0, 1.6),
-                arthropod::Species::Weevil => Vec3::new(4.0, 4.0, 1.6),
-                arthropod::Species::Cavespider => Vec3::new(4.0, 4.0, 1.8),
-                arthropod::Species::Moltencrawler => Vec3::new(4.0, 5.0, 1.9),
-                arthropod::Species::Mosscrawler => Vec3::new(4.0, 5.0, 1.8),
-                arthropod::Species::Sandcrawler => Vec3::new(4.0, 5.0, 1.8),
+                arthropod::Species::Hornbeetle => Vec3::new(3.2, 3.2, 1.3),
+                arthropod::Species::Leafbeetle => Vec3::new(3.2, 3.2, 1.3),
+                arthropod::Species::Stagbeetle => Vec3::new(3.2, 3.2, 1.3),
+                arthropod::Species::Weevil => Vec3::new(3.2, 3.2, 1.6),
+                arthropod::Species::Cavespider => Vec3::new(4.0, 4.0, 1.4),
+                arthropod::Species::Moltencrawler => Vec3::new(3.2, 4.0, 1.5),
+                arthropod::Species::Mosscrawler => Vec3::new(3.2, 4.0, 1.4),
+                arthropod::Species::Sandcrawler => Vec3::new(3.2, 4.0, 1.4),
             },
         }
     }
@@ -659,7 +659,20 @@ impl Body {
                 quadruped_low::Species::Deadwood => 120,
                 _ => 70,
             },
-            Body::Arthropod(_) => 10000,
+            Body::Arthropod(arthropod) => match arthropod.species {
+                arthropod::Species::Tarantula => 120,
+                arthropod::Species::Blackwidow => 120,
+                arthropod::Species::Antlion => 80,
+                arthropod::Species::Hornbeetle => 90,
+                arthropod::Species::Leafbeetle => 90,
+                arthropod::Species::Stagbeetle => 90,
+                arthropod::Species::Weevil => 80,
+                arthropod::Species::Cavespider => 60,
+                arthropod::Species::Moltencrawler => 80,
+                arthropod::Species::Mosscrawler => 80,
+                arthropod::Species::Sandcrawler => 80,
+                _ => 70,
+            },
             Body::Ship(_) => 1000,
         }
     }
@@ -688,6 +701,7 @@ impl Body {
                         | bird_large::Species::Cockatrice
                         | bird_large::Species::FlameWyvern
                 ),
+                Body::Arthropod(b) => matches!(b.species, arthropod::Species::Moltencrawler),
                 _ => false,
             },
             BuffKind::Ensnared => match self {

@@ -35,8 +35,6 @@ impl Animation for SummonAnimation {
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
         let mirror = (check - 0.5).signum();
-        //let movement1 = mirror * movement1base * pullback;
-        //let movement2 = mirror * movement2base * pullback;
         let movement1abs = movement1 * pullback;
         let movement2abs = movement2 * pullback;
         let movement3abs = movement3 * pullback;

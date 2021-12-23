@@ -74,8 +74,8 @@ pub enum BuffKind {
     /// Strength scales the movement speed debuff non-linearly. 0.5 is 50%
     /// speed, 1.0 is 33% speed.
     Ensnared,
-    /// Does damage to a creature over time
-    /// Strength should be 10x the DPS of the debuff
+    /// Drain stamina to a creature over time
+    /// Strength should be the energy per second of the debuff
     Poisoned,
 }
 

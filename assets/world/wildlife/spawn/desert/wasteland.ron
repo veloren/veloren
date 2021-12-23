@@ -8,12 +8,13 @@ SpawnEntry (
                 (110, (1, 1, "common.entity.wild.aggressive.bonerattler")),
                 (100, (1, 1, "common.entity.wild.aggressive.sand_raptor")),
                 (100, (1, 1, "common.entity.wild.aggressive.sandshark")),
-                (100, (1, 1, "common.entity.wild.aggressive.stag_beetle")),
+                (100, (1, 1, "common.entity.wild.aggressive.antlion")),
                 // Rare
                 (20, (1, 1, "common.entity.wild.aggressive.lavadrake")),
                 (20, (1, 1, "common.entity.wild.aggressive.ntouka")),
                 (20, (1, 1, "common.entity.wild.aggressive.archaeos")),
                 (20, (1, 1, "common.entity.wild.aggressive.ngoubou")),
+                (20, (1, 1, "common.entity.wild.aggressive.tarantula")),
                 // Ultra_rare
                 (1, (1, 1, "common.entity.wild.aggressive.roshwalr_boss")),
             ],

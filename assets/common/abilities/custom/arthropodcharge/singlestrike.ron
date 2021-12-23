@@ -2,12 +2,12 @@ ComboMelee(
     stage_data: [
         (
             stage: 1,
-            base_damage: 100,
+            base_damage: 70,
             damage_increase: 0,
             base_poise_damage: 28,
             poise_damage_increase: 0,
             knockback: 3.0,
-            range: 2.7,
+            range: 3.0,
             angle: 60.0,
             base_buildup_duration: 0.4,
             base_swing_duration: 0.1,

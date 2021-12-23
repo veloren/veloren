@@ -1,6 +1,7 @@
-use super::{super::Animation, ArthropodSkeleton, SkeletonAttr};
-//use std::{f32::consts::PI, ops::Mul};
-use super::super::vek::*;
+use super::{
+    super::{vek::*, Animation},
+    ArthropodSkeleton, SkeletonAttr,
+};
 use std::f32::consts::PI;
 
 pub struct RunAnimation;

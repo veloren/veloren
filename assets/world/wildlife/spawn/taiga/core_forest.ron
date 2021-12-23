@@ -6,7 +6,6 @@ SpawnEntry (
             groups: [
                 (1, (1, 1, "common.entity.wild.aggressive.wendigo")),
                 (1, (1, 1, "common.entity.wild.aggressive.dreadhorn")),
-                (1, (1, 1, "common.entity.wild.aggressive.horn_beetle")),
             ],
             is_underwater: false,
             day_period: [Night, Morning, Noon, Evening],

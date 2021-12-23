@@ -1,13 +1,21 @@
 DashMelee(
     energy_cost: 0,
-    base_damage: 150,
-    scaled_damage: 600,
-    base_poise_damage: 25,
-    scaled_poise_damage: 100,
-    base_knockback: 10.0,
-    scaled_knockback: 30.0,
-    range: 5.0,
-    angle: 90.0,
+    melee_constructor: (
+        kind: Stab(
+            damage: 12.0,
+            poise: 25.0,
+            knockback: 10.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some(Stab(
+            damage: 50.0,
+            poise: 100.0,
+            knockback: 30.0,
+            energy_regen: 0.0,
+        )),
+        range: 5.0,
+        angle: 90.0,
+    ),
     energy_drain: 0,
     forward_speed: 5.0,
     buildup_duration: 0.3,
@@ -17,11 +25,4 @@ DashMelee(
     ori_modifier: 0.3,
     charge_through: false,
     is_interruptible: false,
-    damage_kind: Piercing,
-    damage_effect: Some(Buff((
-        kind: Bleeding,
-        dur_secs: 10.0,
-        strength: DamageFraction(0.1),
-        chance: 0.1,
-    ))),
 )

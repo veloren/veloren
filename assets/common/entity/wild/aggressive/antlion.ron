@@ -3,7 +3,7 @@ EntityConfig (
     body: RandomWith("antlion"),
     alignment: Alignment(Enemy),
 
-    loot: LootTable("common.loot_tables.creature.arthropod.web"),
+    loot: LootTable("common.loot_tables.creature.arthropod.carapace"),
 
     hands: Uninit,
 
