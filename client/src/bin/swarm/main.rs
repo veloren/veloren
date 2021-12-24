@@ -123,7 +123,6 @@ fn run_client(
 
     let mut tick = |client: &mut Client| -> Result<(), veloren_client::Error> {
         clock.tick();
-        // TODO make sure this includes terrain loading requests
         client.tick_network(clock.dt())?;
         Ok(())
     };
@@ -199,6 +198,11 @@ fn run_client(
         tick(&mut client)?;
     }
 
+    // Use this check so this is only printed once
+    if !to_adminify.is_empty() {
+        println!("Initialization of all clients finished!");
+    }
+
     // Main loop
     let chunk_size = 32.0; // TODO: replace with the actual constant
     let world_center = client
@@ -207,6 +211,8 @@ fn run_client(
         .map(|e| e as f32 * chunk_size)
         / 2.0;
     loop {
+        // TODO: doesn't seem to produce an error when server is shutdown (process keeps
+        // running)
         tick(&mut client)?;
         let entity = client.entity();
         // Move or stay still depending on specified options
@@ -232,7 +238,9 @@ fn position(index: u32, opt: Opt) -> Vec3<f32> {
     let spacing = if opt.clustered {
         5.0
     } else {
-        opt.vd as f32 * 3.0 * chunk_size
+        use common::region::REGION_SIZE;
+        // Attempt to make regions subscribed to by each client not overlapping
+        opt.vd as f32 * 2.0 * chunk_size + 2.0 * REGION_SIZE as f32
     };
 
     // Offset to center the grid of clients

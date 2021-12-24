@@ -2486,9 +2486,11 @@ impl Client {
     /// This method is for use in testing a server with many clients connected.
     pub fn tick_network(
         &mut self,
-        _dt: Duration,
+        dt: Duration,
     ) -> Result<(), Error> {
         span!(_guard, "tick_network", "Client::tick_network");
+        // Advance state time manually since we aren't calling `State::tick`
+        self.state.ecs().write_resource::<common::resources::Time>().0 += dt.as_secs_f64();
 
         // Handle new messages from the server.
         self.handle_new_messages()?;
@@ -2503,7 +2505,6 @@ impl Client {
         drop(terrain);
         
         // Send a ping to the server once every second
-        // TODO: advance state time?
         if self.state.get_time() - self.last_server_ping > 1. {
             self.send_msg_err(PingMsg::Ping)?;
             self.last_server_ping = self.state.get_time();
