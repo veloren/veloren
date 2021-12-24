@@ -256,7 +256,7 @@ fn position(index: u32, opt: Opt) -> Vec3<f32> {
 
     let movement_offset: Vec2<_> = if opt.movement {
         // blocks per second
-        const SPEED: f32 = 32.0; // a decent amount faster than walking but not super fast
+        const SPEED: f32 = 9.0; // typical super fast veloren walking speed
 
         // move in a square route
         // in blocks
