@@ -434,9 +434,7 @@ impl DeletedEntities {
         self.map.remove(&key)
     }
 
-    pub fn get_deleted_in_region(&mut self, key: Vec2<i32>) -> Option<&Vec<u64>> {
-        self.map.get(&key)
-    }
+    pub fn get_deleted_in_region(&self, key: Vec2<i32>) -> Option<&Vec<u64>> { self.map.get(&key) }
 
     pub fn take_remaining_deleted(&mut self) -> Vec<(Vec2<i32>, Vec<u64>)> {
         // TODO: don't allocate

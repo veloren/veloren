@@ -342,16 +342,24 @@ impl RegionMap {
         }
     }
 
-    // Returns a region given a key
+    /// Returns a region given a key
     pub fn get(&self, key: Vec2<i32>) -> Option<&Region> { self.regions.get(&key) }
 
-    // Returns an iterator of (Position, Region)
+    /// Returns an iterator of (Position, Region)
     pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &Region)> {
         self.regions.iter().map(|(key, r)| (*key, r))
     }
+
+    /// Returns a parallel iterator of (Position, Regions)
+    pub fn par_iter(
+        &self,
+    ) -> impl rayon::iter::IndexedParallelIterator<Item = (Vec2<i32>, &Region)> {
+        use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+        self.regions.par_iter().map(|(key, r)| (*key, r))
+    }
 }
 
-// Note vd is in blocks in this case
+/// Note vd is in blocks in this case
 pub fn region_in_vd(key: Vec2<i32>, pos: Vec3<f32>, vd: f32) -> bool {
     let vd_extended = vd + TETHER_LENGTH as f32 * 2.0f32.sqrt();
 
