@@ -563,6 +563,10 @@
                 keyword: "alpaca",
                 generic: "Alpaca"
             ),
+            akhlut: (
+                keyword: "akhlut",
+                generic: "Akhlut"
+            ),
         )
     ),
     quadruped_small: (

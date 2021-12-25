@@ -876,6 +876,7 @@ impl Body {
                     (quadruped_medium::Species::Ngoubou, _) => [0.0, 0.3, 2.0],
                     (quadruped_medium::Species::Llama, _) => [0.0, 0.1, 1.5],
                     (quadruped_medium::Species::Alpaca, _) => [0.0, -0.1, 1.0],
+                    (quadruped_medium::Species::Akhlut, _) => [0.6, 0.6, 2.0],
                 }
             },
             Body::Ship(ship) => match ship {

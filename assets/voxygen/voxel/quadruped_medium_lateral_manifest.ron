@@ -2311,4 +2311,72 @@
             lateral: ("npc.alpaca.male.foot_br"),
         ),
     ),
+    (Akhlut, Male): (
+        leg_fl: (
+            offset: (-3.5, -4.5, -8.0),
+            lateral: ("npc.akhlut.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-3.5, -4.5, -8.0),
+            lateral: ("npc.akhlut.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-3.0, -6.0, -7.0),
+            lateral: ("npc.akhlut.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.0, -6.0, -7.0),
+            lateral: ("npc.akhlut.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-4.0, -4.0, -10.0),
+            lateral: ("npc.akhlut.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-4.0, -4.0, -10.0),
+            lateral: ("npc.akhlut.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-3.5, -5.0, -9.0),
+            lateral: ("npc.akhlut.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-3.5, -5.0, -9.0),
+            lateral: ("npc.akhlut.male.foot_br"),
+        ),
+    ),
+    (Akhlut, Female): (
+        leg_fl: (
+            offset: (-3.5, -4.5, -8.0),
+            lateral: ("npc.akhlut.male.leg_fr"),
+        ),
+        leg_fr: (
+            offset: (-3.5, -4.5, -8.0),
+            lateral: ("npc.akhlut.male.leg_fr"),
+        ),
+        leg_bl: (
+            offset: (-3.0, -6.0, -7.0),
+            lateral: ("npc.akhlut.male.leg_br"),
+        ),
+        leg_br: (
+            offset: (-3.0, -6.0, -7.0),
+            lateral: ("npc.akhlut.male.leg_br"),
+        ),
+        foot_fl: (
+            offset: (-4.0, -4.0, -10.0),
+            lateral: ("npc.akhlut.male.foot_fr"),
+        ),
+        foot_fr: (
+            offset: (-4.0, -4.0, -10.0),
+            lateral: ("npc.akhlut.male.foot_fr"),
+        ),
+        foot_bl: (
+            offset: (-3.5, -5.0, -9.0),
+            lateral: ("npc.akhlut.male.foot_br"),
+        ),
+        foot_br: (
+            offset: (-3.5, -5.0, -9.0),
+            lateral: ("npc.akhlut.male.foot_br"),
+        ),
+    ),
 })

@@ -2039,4 +2039,64 @@
             central: ("npc.alpaca.male.tail"),
         ),
     ),
+    (Akhlut, Male): (
+        head: (
+            offset: (-5.0, 0.0, -4.5),
+            central: ("npc.akhlut.male.head"),
+        ),
+        neck: (
+            offset: (-6.0, -3.5, -10.5),
+            central: ("npc.akhlut.male.neck"),
+        ),
+        jaw: (
+            offset: (-5.0, 0.0, -8.0),
+            central: ("npc.akhlut.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-7.0, -7.0, -10.0),
+            central: ("npc.akhlut.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-6.0, -17.0, -7.5),
+            central: ("npc.akhlut.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-8.0, -27.0, -8.0),
+            central: ("npc.akhlut.male.tail"),
+        ),
+    ),
+    (Akhlut, Female): (
+        head: (
+            offset: (-5.0, 0.0, -4.5),
+            central: ("npc.akhlut.male.head"),
+        ),
+        neck: (
+            offset: (-6.0, -3.5, -10.5),
+            central: ("npc.akhlut.male.neck"),
+        ),
+        jaw: (
+            offset: (-5.0, 0.0, -8.0),
+            central: ("npc.akhlut.male.jaw"),
+        ),
+        torso_front: (
+            offset: (-7.0, -7.0, -10.0),
+            central: ("npc.akhlut.male.torso_front"),
+        ),
+        torso_back: (
+            offset: (-6.0, -17.0, -7.5),
+            central: ("npc.akhlut.male.torso_back"),
+        ),
+        ears: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        ),
+        tail: (
+            offset: (-8.0, -27.0, -8.0),
+            central: ("npc.akhlut.male.tail"),
+        ),
+    ),
 })
