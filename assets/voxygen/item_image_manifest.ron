@@ -1266,7 +1266,7 @@
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),    
     Armor(Head("Merchant")): VoxTrans(
-        "voxel.armor.merchant.turban_human",
+        "voxel.armor.merchant.turban",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     Armor(Back("Merchant")): VoxTrans(
