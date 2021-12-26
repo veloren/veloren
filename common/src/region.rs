@@ -349,14 +349,6 @@ impl RegionMap {
     pub fn iter(&self) -> impl Iterator<Item = (Vec2<i32>, &Region)> {
         self.regions.iter().map(|(key, r)| (*key, r))
     }
-
-    /// Returns a parallel iterator of (Position, Regions)
-    pub fn par_iter(
-        &self,
-    ) -> impl rayon::iter::IndexedParallelIterator<Item = (Vec2<i32>, &Region)> {
-        use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
-        self.regions.par_iter().map(|(key, r)| (*key, r))
-    }
 }
 
 /// Note vd is in blocks in this case

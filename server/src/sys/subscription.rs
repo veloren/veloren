@@ -161,11 +161,7 @@ impl<'a> System<'a> for Sys {
                     }
                     // Send deleted entities since they won't be processed for this client in entity
                     // sync
-                    for uid in deleted_entities
-                        .get_deleted_in_region(key)
-                        .iter()
-                        .flat_map(|v| v.iter())
-                    {
+                    for uid in deleted_entities.get_deleted_in_region(key).iter() {
                         client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                     }
                 }

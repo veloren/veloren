@@ -83,7 +83,11 @@ impl Client {
     }
 
     pub(crate) fn send<M: Into<ServerMsg>>(&self, msg: M) -> Result<(), StreamError> {
-        match msg.into() {
+        // TODO: hack to avoid locking stream mutex while serializing the message,
+        // remove this when the mutexes on the Streams are removed
+        let prepared = self.prepare(msg);
+        self.send_prepared(&prepared)
+        /*match msg.into() {
             ServerMsg::Info(m) => self.register_stream.lock().unwrap().send(m),
             ServerMsg::Init(m) => self.register_stream.lock().unwrap().send(m),
             ServerMsg::RegisterAnswer(m) => self.register_stream.lock().unwrap().send(m),
@@ -133,15 +137,10 @@ impl Client {
                 }
             },
             ServerMsg::Ping(m) => self.ping_stream.lock().unwrap().send(m),
-        }
+        }*/
     }
 
-    pub(crate) fn send_fallible<M: Into<ServerMsg>>(&self, msg: M) {
-        // TODO: hack to avoid locking stream mutex while serializing the message,
-        // remove this when the mutexes on the Streams are removed
-        let prepared = self.prepare(msg);
-        let _ = self.send_prepared(&prepared);
-    }
+    pub(crate) fn send_fallible<M: Into<ServerMsg>>(&self, msg: M) { let _ = self.send(msg); }
 
     pub(crate) fn send_prepared(&self, msg: &PreparedMsg) -> Result<(), StreamError> {
         match msg.stream_id {

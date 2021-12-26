@@ -59,7 +59,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut Job<Self>,
+        job: &mut Job<Self>,
         (
             entities,
             tick,
@@ -108,14 +108,23 @@ impl<'a> System<'a> for Sys {
 
         // Sync physics and other components
         // via iterating through regions (in parallel)
-        use rayon::iter::ParallelIterator;
+
+        // Pre-collect regions paired with deleted entity list so we can iterate over
+        // them in parallel below
+        let regions_and_deleted_entities = region_map
+            .iter()
+            .map(|(key, region)| (key, region, deleted_entities.take_deleted_in_region(key)))
+            .collect::<Vec<_>>();
+
+        use rayon::iter::{IntoParallelIterator, ParallelIterator};
+        job.cpu_stats.measure(common_ecs::ParMode::Rayon);
         common_base::prof_span!(guard, "regions");
-        region_map.par_iter().for_each_init(
+        regions_and_deleted_entities.into_par_iter().for_each_init(
             || {
                 common_base::prof_span!(guard, "entity sync rayon job");
                 guard
             },
-            |_guard, (key, region)| {
+            |_guard, (key, region, deleted_entities_in_region)| {
                 // Assemble subscriber list for this region by iterating through clients and
                 // checking if they are subscribed to this region
                 let mut subscribers = (
@@ -192,10 +201,7 @@ impl<'a> System<'a> for Sys {
                 let (entity_sync_package, comp_sync_package) = trackers.create_sync_packages(
                     &tracked_comps,
                     region.entities(),
-                    deleted_entities
-                    .get_deleted_in_region(key)
-                    .cloned() // TODO: quick hack to make this parallel, we can avoid this 
-                    .unwrap_or_default(),
+                    deleted_entities_in_region,
                 );
                 // We lazily initialize the the synchronization messages in case there are no
                 // clients.
@@ -300,14 +306,7 @@ impl<'a> System<'a> for Sys {
             },
         );
         drop(guard);
-
-        // TODO: this is a quick hack to make the loop over regions above parallel,
-        // there might is probably a way to make it cleaner
-        //
-        // Remove delete entities for each region that we alread handled above
-        region_map
-            .iter()
-            .for_each(|(key, _)| drop(deleted_entities.take_deleted_in_region(key)));
+        job.cpu_stats.measure(common_ecs::ParMode::Single);
 
         // Update the last physics components for each entity
         for (_, &pos, vel, ori, last_pos, last_vel, last_ori) in (

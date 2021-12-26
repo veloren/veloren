@@ -15,7 +15,7 @@ test-voxygen = "run --bin veloren-voxygen --no-default-features --features simd,
 tracy-voxygen = "-Zunstable-options run --bin veloren-voxygen --no-default-features --features tracy,simd,egui-ui --profile no_overflow"
 server = "run --bin veloren-server-cli"
 dbg-voxygen = "run --bin veloren-voxygen -Zunstable-options --profile debuginfo"
-swarm = "run --bin swarm --features client/bin_bot --"
+swarm = "run --bin swarm --features client/bin_bot,client/tick_network --"
 
 
 [env]

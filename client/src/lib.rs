@@ -2484,6 +2484,7 @@ impl Client {
     /// 
     /// The game state is purposefully not simulated to reduce the overhead of running the client.
     /// This method is for use in testing a server with many clients connected.
+    #[cfg(feature = "tick_network")]
     pub fn tick_network(
         &mut self,
         dt: Duration,

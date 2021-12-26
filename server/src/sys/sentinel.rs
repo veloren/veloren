@@ -430,14 +430,15 @@ impl DeletedEntities {
             .push(uid.into());
     }
 
-    pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Option<Vec<u64>> {
-        self.map.remove(&key)
+    pub fn take_deleted_in_region(&mut self, key: Vec2<i32>) -> Vec<u64> {
+        self.map.remove(&key).unwrap_or_default()
     }
 
-    pub fn get_deleted_in_region(&self, key: Vec2<i32>) -> Option<&Vec<u64>> { self.map.get(&key) }
+    pub fn get_deleted_in_region(&self, key: Vec2<i32>) -> &[u64] {
+        self.map.get(&key).map_or(&[], |v| v.as_slice())
+    }
 
-    pub fn take_remaining_deleted(&mut self) -> Vec<(Vec2<i32>, Vec<u64>)> {
-        // TODO: don't allocate
-        self.map.drain().collect()
+    pub fn take_remaining_deleted(&mut self) -> impl Iterator<Item = (Vec2<i32>, Vec<u64>)> + '_ {
+        self.map.drain()
     }
 }
