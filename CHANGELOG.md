@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Arbitrary volume entities
 - New outfit for merchants
 - Nightly linux Aarch64 builds are now produced (distribution via airshipper will follow soon)
+- Worldgen wildlife density modifier in features.ron
 
 ### Changed
 
@@ -44,6 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Explosions can now have a nonzero minimum falloff
 - EXP on kill is now shared based on damage contribution
 - Dungeons have somewhat proper scaling. The higher the dungeon the harder it gets, Cultist staying unchanged while Mino is now at its level.
+- Parallelized entity sync system on the server
 
 ### Removed
 
