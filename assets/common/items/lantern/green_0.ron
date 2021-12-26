@@ -4,7 +4,7 @@ ItemDef(
     kind: Lantern(
         (
             kind: "Green0",
-            color: (r: 50, g: 205, b: 50),
+            color: (r: 145, g: 255, b: 145),
             strength_thousandths: 6000,
             flicker_thousandths: 250,
         ),

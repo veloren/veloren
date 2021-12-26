@@ -46,6 +46,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - EXP on kill is now shared based on damage contribution
 - Dungeons have somewhat proper scaling. The higher the dungeon the harder it gets, Cultist staying unchanged while Mino is now at its level.
 - Parallelized entity sync system on the server
+- Item color backgrounds are now lighter
+- All items that used the PNG file format now have a VOX file instead
+- Yeti loot table modified
+- Phoenix feathers are now Legendary quality
+- Green/Red lantern now shine their respective color instead of the default lantern color
 
 ### Removed
 
