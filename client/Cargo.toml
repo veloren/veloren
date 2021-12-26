@@ -7,8 +7,9 @@ edition = "2018"
 [features]
 simd = ["vek/platform_intrinsics"]
 plugins = ["common-state/plugins"]
-bin_bot = ["common-ecs", "serde", "ron", "clap", "rustyline", "common-frontend", "async-channel"]
+bin_bot = ["common-ecs", "serde", "ron", "clap", "structopt", "rustyline", "common-frontend", "async-channel"]
 tracy = ["common-base/tracy"]
+tick_network = []
 
 default = ["simd"]
 
@@ -39,6 +40,7 @@ common-ecs = { package = "veloren-common-ecs", path = "../common/ecs", optional 
 serde = { version = "1.0", features = [ "rc", "derive" ], optional = true }
 ron = { version = "0.7", default-features = false, optional = true }
 clap = { version = "2.33", optional = true }
+structopt = { version = "0.3.13", optional = true }
 rustyline = { version = "9.0.0", optional = true }
 ## logging
 termcolor = { version = "1.1", optional = true }
@@ -54,3 +56,7 @@ required-features = ["bin_bot"]
 name = "bot"
 #authors = ["Avi Weinstock <aweinstock314@gmail.com>"]
 required-features = ["bin_bot"]
+
+[[bin]]
+name = "swarm"
+required-features = ["bin_bot", "tick_network"]

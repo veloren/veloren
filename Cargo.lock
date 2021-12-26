@@ -2620,6 +2620,7 @@ checksum = "bc633605454125dec4b66843673f01c7df2b89479b32e0ed634e43a91cff62a5"
 dependencies = [
  "autocfg",
  "hashbrown 0.11.2",
+ "rayon",
  "serde",
 ]
 
@@ -6124,6 +6125,7 @@ dependencies = [
  "rustyline",
  "serde",
  "specs",
+ "structopt",
  "termcolor",
  "tokio",
  "tracing",

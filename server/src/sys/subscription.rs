@@ -13,7 +13,7 @@ use common::{
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::ServerGeneral;
 use specs::{
-    Entities, Join, ReadExpect, ReadStorage, SystemData, World, WorldExt, Write, WriteStorage,
+    Entities, Join, Read, ReadExpect, ReadStorage, SystemData, World, WorldExt, WriteStorage,
 };
 use tracing::{debug, error};
 use vek::*;
@@ -33,7 +33,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
-        Write<'a, DeletedEntities>,
+        Read<'a, DeletedEntities>,
         TrackedComps<'a>,
     );
 
@@ -54,7 +54,7 @@ impl<'a> System<'a> for Sys {
             presences,
             clients,
             mut subscriptions,
-            mut deleted_entities,
+            deleted_entities,
             tracked_comps,
         ): Self::SystemData,
     ) {
@@ -161,11 +161,7 @@ impl<'a> System<'a> for Sys {
                     }
                     // Send deleted entities since they won't be processed for this client in entity
                     // sync
-                    for uid in deleted_entities
-                        .get_deleted_in_region(key)
-                        .iter()
-                        .flat_map(|v| v.iter())
-                    {
+                    for uid in deleted_entities.get_deleted_in_region(key).iter() {
                         client.send_fallible(ServerGeneral::DeleteEntity(Uid(*uid)));
                     }
                 }

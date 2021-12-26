@@ -23,6 +23,7 @@ use vek::*;
 /// This system will send physics updates to the client
 #[derive(Default)]
 pub struct Sys;
+
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
@@ -58,7 +59,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut Job<Self>,
+        job: &mut Job<Self>,
         (
             entities,
             tick,
@@ -105,201 +106,223 @@ impl<'a> System<'a> for Sys {
         // 5. Inform clients of the component changes for that entity
         //     - Throttle update rate base on distance to each client
 
-        // Sync physics
-        // via iterating through regions
-        for (key, region) in region_map.iter() {
-            // Assemble subscriber list for this region by iterating through clients and
-            // checking if they are subscribed to this region
-            let mut subscribers = (
-                &clients,
-                &entities,
-                presences.maybe(),
-                &subscriptions,
-                &positions,
-            )
-                .join()
-                .filter_map(|(client, entity, presence, subscription, pos)| {
-                    if presence.is_some() && subscription.regions.contains(&key) {
-                        Some((client, &subscription.regions, entity, *pos))
-                    } else {
-                        None
-                    }
-                })
-                .collect::<Vec<_>>();
+        // Sync physics and other components
+        // via iterating through regions (in parallel)
 
-            for event in region.events() {
-                match event {
-                    RegionEvent::Entered(id, maybe_key) => {
-                        // Don't process newly created entities here (redundant network messages)
-                        if trackers.uid.inserted().contains(*id) {
-                            continue;
+        // Pre-collect regions paired with deleted entity list so we can iterate over
+        // them in parallel below
+        let regions_and_deleted_entities = region_map
+            .iter()
+            .map(|(key, region)| (key, region, deleted_entities.take_deleted_in_region(key)))
+            .collect::<Vec<_>>();
+
+        use rayon::iter::{IntoParallelIterator, ParallelIterator};
+        job.cpu_stats.measure(common_ecs::ParMode::Rayon);
+        common_base::prof_span!(guard, "regions");
+        regions_and_deleted_entities.into_par_iter().for_each_init(
+            || {
+                common_base::prof_span!(guard, "entity sync rayon job");
+                guard
+            },
+            |_guard, (key, region, deleted_entities_in_region)| {
+                // Assemble subscriber list for this region by iterating through clients and
+                // checking if they are subscribed to this region
+                let mut subscribers = (
+                    &clients,
+                    &entities,
+                    presences.maybe(),
+                    &subscriptions,
+                    &positions,
+                )
+                    .join()
+                    .filter_map(|(client, entity, presence, subscription, pos)| {
+                        if presence.is_some() && subscription.regions.contains(&key) {
+                            Some((client, &subscription.regions, entity, *pos))
+                        } else {
+                            None
                         }
-                        let entity = entities.entity(*id);
-                        if let Some(pkg) = positions
-                            .get(entity)
-                            .map(|pos| (pos, velocities.get(entity), orientations.get(entity)))
-                            .and_then(|(pos, vel, ori)| {
-                                tracked_comps.create_entity_package(
-                                    entity,
-                                    Some(*pos),
-                                    vel.copied(),
-                                    ori.copied(),
-                                )
-                            })
-                        {
-                            let create_msg = ServerGeneral::CreateEntity(pkg);
-                            for (client, regions, client_entity, _) in &mut subscribers {
-                                if maybe_key
+                    })
+                    .collect::<Vec<_>>();
+
+                for event in region.events() {
+                    match event {
+                        RegionEvent::Entered(id, maybe_key) => {
+                            // Don't process newly created entities here (redundant network
+                            // messages)
+                            if trackers.uid.inserted().contains(*id) {
+                                continue;
+                            }
+                            let entity = entities.entity(*id);
+                            if let Some(pkg) = positions
+                                .get(entity)
+                                .map(|pos| (pos, velocities.get(entity), orientations.get(entity)))
+                                .and_then(|(pos, vel, ori)| {
+                                    tracked_comps.create_entity_package(
+                                        entity,
+                                        Some(*pos),
+                                        vel.copied(),
+                                        ori.copied(),
+                                    )
+                                })
+                            {
+                                let create_msg = ServerGeneral::CreateEntity(pkg);
+                                for (client, regions, client_entity, _) in &mut subscribers {
+                                    if maybe_key
                                     .as_ref()
                                     .map(|key| !regions.contains(key))
                                     .unwrap_or(true)
                                     // Client doesn't need to know about itself
                                     && *client_entity != entity
-                                {
-                                    client.send_fallible(create_msg.clone());
+                                    {
+                                        client.send_fallible(create_msg.clone());
+                                    }
                                 }
                             }
-                        }
-                    },
-                    RegionEvent::Left(id, maybe_key) => {
-                        // Lookup UID for entity
-                        if let Some(&uid) = uids.get(entities.entity(*id)) {
-                            for (client, regions, _, _) in &mut subscribers {
-                                if maybe_key
-                                    .as_ref()
-                                    .map(|key| !regions.contains(key))
-                                    .unwrap_or(true)
-                                {
-                                    client.send_fallible(ServerGeneral::DeleteEntity(uid));
+                        },
+                        RegionEvent::Left(id, maybe_key) => {
+                            // Lookup UID for entity
+                            if let Some(&uid) = uids.get(entities.entity(*id)) {
+                                for (client, regions, _, _) in &mut subscribers {
+                                    if maybe_key
+                                        .as_ref()
+                                        .map(|key| !regions.contains(key))
+                                        .unwrap_or(true)
+                                    {
+                                        client.send_fallible(ServerGeneral::DeleteEntity(uid));
+                                    }
                                 }
                             }
-                        }
-                    },
+                        },
+                    }
                 }
-            }
 
-            // Sync tracked components
-            // Get deleted entities in this region from DeletedEntities
-            let (entity_sync_package, comp_sync_package) = trackers.create_sync_packages(
-                &tracked_comps,
-                region.entities(),
-                deleted_entities
-                    .take_deleted_in_region(key)
-                    .unwrap_or_default(),
-            );
-            // We lazily initializethe the synchronization messages in case there are no
-            // clients.
-            let mut entity_comp_sync = Either::Left((entity_sync_package, comp_sync_package));
-            for (client, _, _, _) in &mut subscribers {
-                let msg =
-                    entity_comp_sync.right_or_else(|(entity_sync_package, comp_sync_package)| {
-                        (
-                            client.prepare(ServerGeneral::EntitySync(entity_sync_package)),
-                            client.prepare(ServerGeneral::CompSync(comp_sync_package)),
-                        )
-                    });
-                // We don't care much about stream errors here since they could just represent
-                // network disconnection, which is handled elsewhere.
-                let _ = client.send_prepared(&msg.0);
-                let _ = client.send_prepared(&msg.1);
-                entity_comp_sync = Either::Right(msg);
-            }
-
-            for (client, _, client_entity, client_pos) in &mut subscribers {
-                let mut comp_sync_package = CompSyncPackage::new();
-
-                for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
+                // Sync tracked components
+                // Get deleted entities in this region from DeletedEntities
+                let (entity_sync_package, comp_sync_package) = trackers.create_sync_packages(
+                    &tracked_comps,
                     region.entities(),
-                    &entities,
-                    &uids,
-                    (&positions, last_pos.mask().maybe()),
-                    (&velocities, last_vel.mask().maybe()).maybe(),
-                    (&orientations, last_vel.mask().maybe()).maybe(),
-                    force_updates.mask().maybe(),
-                    colliders.maybe(),
-                )
-                    .join()
-                {
-                    // Decide how regularly to send physics updates.
-                    let send_now = if client_entity == &entity {
-                        let player_physics_setting = players
-                            .get(entity)
-                            .and_then(|p| player_physics_settings.settings.get(&p.uuid()).copied())
-                            .unwrap_or_default();
-                        // Don't send client physics updates about itself unless force update is set
-                        // or the client is subject to server-authoritative physics
-                        force_update.is_some() || player_physics_setting.server_authoritative()
-                    } else if matches!(collider, Some(Collider::Voxel { .. })) {
-                        // Things with a voxel collider (airships, etc.) need to have very stable
-                        // physics so we always send updated for these where
-                        // we can.
-                        true
-                    } else {
-                        // Throttle update rates for all other entities based on distance to client
-                        let distance_sq = client_pos.0.distance_squared(pos.0);
-                        let id_staggered_tick = tick + entity.id() as u64;
-
-                        // More entities farther away so checks start there
-                        if distance_sq > 500.0f32.powi(2) {
-                            id_staggered_tick % 32 == 0
-                        } else if distance_sq > 300.0f32.powi(2) {
-                            id_staggered_tick % 16 == 0
-                        } else if distance_sq > 200.0f32.powi(2) {
-                            id_staggered_tick % 8 == 0
-                        } else if distance_sq > 120.0f32.powi(2) {
-                            id_staggered_tick % 6 == 0
-                        } else if distance_sq > 64.0f32.powi(2) {
-                            id_staggered_tick % 3 == 0
-                        } else if distance_sq > 24.0f32.powi(2) {
-                            id_staggered_tick % 2 == 0
-                        } else {
-                            true
-                        }
-                    };
-
-                    if last_pos.is_none() {
-                        comp_sync_package.comp_inserted(uid, pos);
-                    } else if send_now {
-                        comp_sync_package.comp_modified(uid, pos);
-                    }
-
-                    if let Some((v, last_vel)) = vel {
-                        if last_vel.is_none() {
-                            comp_sync_package.comp_inserted(uid, *v);
-                        } else if send_now {
-                            comp_sync_package.comp_modified(uid, *v);
-                        }
-                    }
-
-                    if let Some((o, last_ori)) = ori {
-                        if last_ori.is_none() {
-                            comp_sync_package.comp_inserted(uid, *o);
-                        } else if send_now {
-                            comp_sync_package.comp_modified(uid, *o);
-                        }
-                    }
+                    deleted_entities_in_region,
+                );
+                // We lazily initialize the the synchronization messages in case there are no
+                // clients.
+                let mut entity_comp_sync = Either::Left((entity_sync_package, comp_sync_package));
+                for (client, _, _, _) in &mut subscribers {
+                    let msg = entity_comp_sync.right_or_else(
+                        |(entity_sync_package, comp_sync_package)| {
+                            (
+                                client.prepare(ServerGeneral::EntitySync(entity_sync_package)),
+                                client.prepare(ServerGeneral::CompSync(comp_sync_package)),
+                            )
+                        },
+                    );
+                    // We don't care much about stream errors here since they could just represent
+                    // network disconnection, which is handled elsewhere.
+                    let _ = client.send_prepared(&msg.0);
+                    let _ = client.send_prepared(&msg.1);
+                    entity_comp_sync = Either::Right(msg);
                 }
 
-                client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
-            }
+                for (client, _, client_entity, client_pos) in &mut subscribers {
+                    let mut comp_sync_package = CompSyncPackage::new();
 
-            // Update the last physics components for each entity
-            for (_, _, &pos, vel, ori, last_pos, last_vel, last_ori) in (
-                region.entities(),
-                &entities,
-                &positions,
-                velocities.maybe(),
-                orientations.maybe(),
-                last_pos.entries(),
-                last_vel.entries(),
-                last_ori.entries(),
-            )
-                .join()
-            {
-                last_pos.replace(Last(pos));
-                vel.and_then(|&v| last_vel.replace(Last(v)));
-                ori.and_then(|&o| last_ori.replace(Last(o)));
-            }
+                    for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
+                        region.entities(),
+                        &entities,
+                        &uids,
+                        (&positions, last_pos.mask().maybe()),
+                        (&velocities, last_vel.mask().maybe()).maybe(),
+                        (&orientations, last_vel.mask().maybe()).maybe(),
+                        force_updates.mask().maybe(),
+                        colliders.maybe(),
+                    )
+                        .join()
+                    {
+                        // Decide how regularly to send physics updates.
+                        let send_now = if client_entity == &entity {
+                            let player_physics_setting = players
+                                .get(entity)
+                                .and_then(|p| {
+                                    player_physics_settings.settings.get(&p.uuid()).copied()
+                                })
+                                .unwrap_or_default();
+                            // Don't send client physics updates about itself unless force update is
+                            // set or the client is subject to
+                            // server-authoritative physics
+                            force_update.is_some() || player_physics_setting.server_authoritative()
+                        } else if matches!(collider, Some(Collider::Voxel { .. })) {
+                            // Things with a voxel collider (airships, etc.) need to have very
+                            // stable physics so we always send updated
+                            // for these where we can.
+                            true
+                        } else {
+                            // Throttle update rates for all other entities based on distance to
+                            // client
+                            let distance_sq = client_pos.0.distance_squared(pos.0);
+                            let id_staggered_tick = tick + entity.id() as u64;
+
+                            // More entities farther away so checks start there
+                            if distance_sq > 500.0f32.powi(2) {
+                                id_staggered_tick % 32 == 0
+                            } else if distance_sq > 300.0f32.powi(2) {
+                                id_staggered_tick % 16 == 0
+                            } else if distance_sq > 200.0f32.powi(2) {
+                                id_staggered_tick % 8 == 0
+                            } else if distance_sq > 120.0f32.powi(2) {
+                                id_staggered_tick % 6 == 0
+                            } else if distance_sq > 64.0f32.powi(2) {
+                                id_staggered_tick % 3 == 0
+                            } else if distance_sq > 24.0f32.powi(2) {
+                                id_staggered_tick % 2 == 0
+                            } else {
+                                true
+                            }
+                        };
+
+                        if last_pos.is_none() {
+                            comp_sync_package.comp_inserted(uid, pos);
+                        } else if send_now {
+                            comp_sync_package.comp_modified(uid, pos);
+                        }
+
+                        if let Some((v, last_vel)) = vel {
+                            if last_vel.is_none() {
+                                comp_sync_package.comp_inserted(uid, *v);
+                            } else if send_now {
+                                comp_sync_package.comp_modified(uid, *v);
+                            }
+                        }
+
+                        if let Some((o, last_ori)) = ori {
+                            if last_ori.is_none() {
+                                comp_sync_package.comp_inserted(uid, *o);
+                            } else if send_now {
+                                comp_sync_package.comp_modified(uid, *o);
+                            }
+                        }
+                    }
+
+                    client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+                }
+            },
+        );
+        drop(guard);
+        job.cpu_stats.measure(common_ecs::ParMode::Single);
+
+        // Update the last physics components for each entity
+        for (_, &pos, vel, ori, last_pos, last_vel, last_ori) in (
+            &entities,
+            &positions,
+            velocities.maybe(),
+            orientations.maybe(),
+            last_pos.entries(),
+            last_vel.entries(),
+            last_ori.entries(),
+        )
+            .join()
+        {
+            last_pos.replace(Last(pos));
+            vel.and_then(|&v| last_vel.replace(Last(v)));
+            ori.and_then(|&o| last_ori.replace(Last(o)));
         }
 
         // Handle entity deletion in regions that don't exist in RegionMap
