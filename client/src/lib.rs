@@ -1534,7 +1534,7 @@ impl Client {
             .recv_all();
 
         // 5) Terrain
-        self.tick_terrain()?; 
+        self.tick_terrain()?;
 
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {
@@ -2221,10 +2221,10 @@ impl Client {
     /// Get a mutable reference to the client's game state.
     pub fn state_mut(&mut self) -> &mut State { &mut self.state }
 
-    /// Returns an iterator over the aliases of all the online players on the server
+    /// Returns an iterator over the aliases of all the online players on the
+    /// server
     pub fn players(&self) -> impl Iterator<Item = &str> {
-        self
-            .player_list()
+        self.player_list()
             .values()
             .filter_map(|player_info| player_info.is_online.then(|| &*player_info.player_alias))
     }
@@ -2481,30 +2481,42 @@ impl Client {
     /// - handles messages from the server
     /// - sends physics update
     /// - requests chunks
-    /// 
-    /// The game state is purposefully not simulated to reduce the overhead of running the client.
-    /// This method is for use in testing a server with many clients connected.
+    ///
+    /// The game state is purposefully not simulated to reduce the overhead of
+    /// running the client. This method is for use in testing a server with
+    /// many clients connected.
     #[cfg(feature = "tick_network")]
-    pub fn tick_network(
-        &mut self,
-        dt: Duration,
-    ) -> Result<(), Error> {
+    #[allow(clippy::needless_collect)] // False positive
+    pub fn tick_network(&mut self, dt: Duration) -> Result<(), Error> {
         span!(_guard, "tick_network", "Client::tick_network");
         // Advance state time manually since we aren't calling `State::tick`
-        self.state.ecs().write_resource::<common::resources::Time>().0 += dt.as_secs_f64();
+        self.state
+            .ecs()
+            .write_resource::<common::resources::Time>()
+            .0 += dt.as_secs_f64();
 
         // Handle new messages from the server.
         self.handle_new_messages()?;
 
         // 5) Terrain
         self.tick_terrain()?;
-        let empty = Arc::new(TerrainChunk::new(0, Block::empty(), Block::empty(), common::terrain::TerrainChunkMeta::void()));
+        let empty = Arc::new(TerrainChunk::new(
+            0,
+            Block::empty(),
+            Block::empty(),
+            common::terrain::TerrainChunkMeta::void(),
+        ));
         let mut terrain = self.state.terrain_mut();
         // Replace chunks with empty chunks to save memory
-        let to_clear = terrain.iter().filter_map(|(key, chunk)| (chunk.sub_chunks_len() != 0).then(|| key)).collect::<Vec<_>>();
-        to_clear.into_iter().for_each(|key| { terrain.insert(key, Arc::clone(&empty)); });
+        let to_clear = terrain
+            .iter()
+            .filter_map(|(key, chunk)| (chunk.sub_chunks_len() != 0).then(|| key))
+            .collect::<Vec<_>>();
+        to_clear.into_iter().for_each(|key| {
+            terrain.insert(key, Arc::clone(&empty));
+        });
         drop(terrain);
-        
+
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {
             self.send_msg_err(PingMsg::Ping)?;
@@ -2527,8 +2539,7 @@ impl Client {
         self.tick += 1;
 
         Ok(())
-    } 
-
+    }
 }
 
 impl Drop for Client {
