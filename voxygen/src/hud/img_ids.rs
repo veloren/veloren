@@ -449,6 +449,7 @@ image_ids! {
         char_art: "voxygen.element.ui.bag.icons.character",
         inv_slot: "voxygen.element.ui.bag.buttons.inv_slot",
         inv_slot_grey: "voxygen.element.ui.bag.buttons.inv_slot_grey",
+        inv_slot_common: "voxygen.element.ui.bag.buttons.inv_slot_common",
         inv_slot_green: "voxygen.element.ui.bag.buttons.inv_slot_green",
         inv_slot_blue: "voxygen.element.ui.bag.buttons.inv_slot_blue",
         inv_slot_purple: "voxygen.element.ui.bag.buttons.inv_slot_purple",

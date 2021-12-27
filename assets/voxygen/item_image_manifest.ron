@@ -1033,25 +1033,33 @@
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
     // Lanterns
-    Lantern("Black0"): Png(
-        "element.items.lantern_black-0",
+    Lantern("Black0"): VoxTrans(
+        "voxel.lantern.black-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Green0"): Png(
-        "element.items.lantern_green-0",
+    Lantern("Green0"): VoxTrans(
+        "voxel.lantern.green-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Blue0"): Png(
-        "element.items.lantern_blue-0",
+    Lantern("Magic"): VoxTrans(
+        "voxel.lantern.magic_lantern",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Red0"): Png(
-        "element.items.lantern_red-0",
+    Lantern("Blue0"): VoxTrans(
+        "voxel.lantern.blue-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
+    ),
+    Lantern("Red0"): VoxTrans(
+        "voxel.lantern.red-0",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Lantern("GeodePurp"): VoxTrans(
         "voxel.lantern.geode_purp",
-        (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     Lantern("PumpkinLantern"): VoxTrans(
         "voxel.lantern.pumpkin",
-        (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
+        (0.0, 0.0, 0.0), (-100.0, 205.0, 7.0), 0.9,
     ),
     Lantern("PolarisLantern"): VoxTrans(
         "voxel.lantern.polaris",
@@ -1104,8 +1112,9 @@
         "voxel.object.v-coin",
         (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
     ),
-    Utility(Collar): Png(
-        "element.items.collar",
+    Utility(Collar): VoxTrans(
+        "voxel.object.collar",
+        (0.1, 0.0, 0.0), (-60.0, 20.0, 10.0), 0.9,
     ),
     // Armor
     // Starter Parts
@@ -1257,7 +1266,7 @@
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),    
     Armor(Head("Merchant")): VoxTrans(
-        "voxel.armor.merchant.turban_human",
+        "voxel.armor.merchant.turban",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     Armor(Back("Merchant")): VoxTrans(
@@ -2375,8 +2384,9 @@
     ),
 
     // Tabards
-    Armor(Tabard("Admin")): Png(
-        "element.items.tabard_admin",
+    Armor(Tabard("Admin")): VoxTrans(
+        "voxel.armor.tabard_admin",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
     // Heads
     Armor(Head("Leather")): VoxTrans(
@@ -2392,51 +2402,66 @@
         (0.0, 15.0, 0.0), (-75.0, 135.0, 0.0), 3.0,
     ),
     // Bags
-    Armor(Bag("RedFace")): Png (
-        "element.items.item_bag_red_face",
+    Armor(Bag("RedFace")): VoxTrans(
+        "voxel.armor.misc.bag.soulkeeper_cursed",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BlackHole")): Png (
-        "element.items.item_bag_brown_face",
+    Armor(Bag("BlackHole")): VoxTrans(
+        "voxel.armor.misc.bag.admin_black_hole",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BlueFace")): Png (
-        "element.items.item_bag_blue_face",
+    Armor(Bag("BlueFace")): VoxTrans(
+        "voxel.armor.misc.bag.soulkeeper_pure",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("PurpleSkull")): Png (
-        "element.items.item_bag_skull",
+    Armor(Bag("PurpleSkull")): VoxTrans(
+        "voxel.armor.misc.bag.mindflayer_spellbag",
+        (0.0, 0.1, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("GreenLarge")): Png (
-        "element.items.item_bag_green_large",
+    Armor(Bag("GreenLarge")): VoxTrans(
+        "voxel.armor.misc.bag.troll_hide_pack",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("LeatherLarge")): Png (
-        "element.items.item_bag_leather_large",
+    Armor(Bag("LeatherLarge")): VoxTrans(
+        "voxel.armor.misc.bag.reliable_backpack",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("GreenMid")): Png (
-        "element.items.item_bag_green_mid",
+    Armor(Bag("GreenMid")): VoxTrans(
+        "voxel.armor.misc.bag.liana_kit",
+        (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("LeatherSmall")): Png (
-        "element.items.item_bag_leather_small",
+    Armor(Bag("LeatherSmall")): VoxTrans(
+        "voxel.armor.misc.bag.tiny_leather_pouch",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("RedLarge")): Png (
-        "element.items.item_bag_large",
+    Armor(Bag("RedLarge")): VoxTrans(
+        "voxel.armor.misc.bag.sturdy_red_backpack",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("RedMed")): Png (
-        "element.items.item_bag_med",
+    Armor(Bag("RedMed")): VoxTrans(
+        "voxel.armor.misc.bag.woven_red_bag",
+        (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("RedSmall")): Png (
-        "element.items.item_bag_small",
+    Armor(Bag("RedSmall")): VoxTrans(
+        "voxel.armor.misc.bag.knitted_red_pouch",
+        (0.3, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("RedTiny")): Png (
-        "element.items.item_bag_tiny",
+    Armor(Bag("RedTiny")): VoxTrans(
+        "voxel.armor.misc.bag.tiny_red_pouch",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BluePouch")): Png (
-        "element.items.item_bag_blue",
+    Armor(Bag("BluePouch")): VoxTrans(
+        "voxel.armor.misc.bag.heavy_seabag",
+        (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     // Consumables
-    Consumable("common.items.food.apple"): Png(
-        "element.items.item_apple",
+    Consumable("common.items.food.apple"): VoxTrans(
+        "voxel.object.apple_half",
+        (-0.5, 0.5, 0.0), (-60.0, -45.0, -15.0), 0.9,
     ),
-    Consumable("common.items.food.coconut"): Png(
-        "element.items.item_coconut",
+    Consumable("common.items.food.coconut"): VoxTrans(
+        "voxel.object.coconut_half",
+        (0.1, -0.5, 0.0), (-55.0, 30.0, 20.0), 0.8,
     ),
     Consumable("common.items.food.cactus_colada"): VoxTrans(
         "voxel.object.cactus_drink",
@@ -2458,8 +2483,9 @@
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.cheese"): Png(
-        "element.items.item_cheese",
+    Consumable("common.items.food.cheese"): VoxTrans(
+        "voxel.object.cheese",
+        (0.0, 0.0, 0.0), (-60.0, 27.0, 17.0), 0.7,
     ),
     Consumable("common.items.food.blue_cheese"): VoxTrans(
         "voxel.object.blue_cheese",
@@ -2477,21 +2503,25 @@
         "voxel.sprite.velorite.velorite_1",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.apple_mushroom_curry"): Png(
-        "element.items.item_apple_curry",
+    Consumable("common.items.food.apple_mushroom_curry"): VoxTrans(
+        "voxel.object.mushroom_curry",
+        (0.0, 0.0, 0.0), (-50.0, 20.0, 17.0), 0.9,
     ),
     Consumable("common.items.food.spore_corruption"): VoxTrans(
         "voxel.sprite.spore.corruption_spore",
         (0.0, 0.0, 0.0), (-30.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.apple_stick"): Png(
-        "element.items.item_apple_stick",
+    Consumable("common.items.food.apple_stick"): VoxTrans(
+        "voxel.object.apple_stick",
+        (-0.5, -0.3, 0.0), (-55.0, 60.0, 5.0), 1.0,
     ),
-    Consumable("common.items.food.mushroom_stick"): Png(
-        "element.items.item_shroom_stick",
+    Consumable("common.items.food.mushroom_stick"): VoxTrans(
+        "voxel.object.mushroom_stick",
+        (0.3, 0.0, 0.0), (-55.0, 60.0, 5.0), 1.0,
     ),
-    Consumable("common.items.food.sunflower_icetea"): Png(
-        "element.items.item_sunflower_tea",
+    Consumable("common.items.food.sunflower_icetea"): VoxTrans(
+        "voxel.object.sunflower_ice_tea",
+        (0.0, 0.0, 0.0), (-50.0, -60.0, -35.0), 0.9,
     ),
     Consumable("common.items.food.carrot"): VoxTrans(
         "voxel.sprite.carrot.carrot",
@@ -2507,11 +2537,11 @@
     ),
     Consumable("common.items.food.meat.fish_raw"): VoxTrans(
         "voxel.sprite.food.meat.fish_raw",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (0.1, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Consumable("common.items.food.meat.fish_cooked"): VoxTrans(
         "voxel.sprite.food.meat.fish_cooked",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (0.1, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Consumable("common.items.food.meat.bird_raw"): VoxTrans(
         "voxel.sprite.food.meat.bird_raw",
@@ -2531,27 +2561,27 @@
     ),
     Consumable("common.items.food.meat.beast_small_raw"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_raw",
-        (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
+        (1.1, 0.0, 0.0), (-50.0, 30.0, 0.0), 1.0,
     ),
     Consumable("common.items.food.meat.beast_small_cooked"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_cooked",
-        (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
+        (1.1, 0.0, 0.0), (-50.0, 30.0, 0.0), 1.0,
     ),
     Consumable("common.items.food.meat.tough_raw"): VoxTrans(
         "voxel.sprite.food.meat.tough_raw",
-        (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 0.9,
     ),
     Consumable("common.items.food.meat.tough_cooked"): VoxTrans(
         "voxel.sprite.food.meat.tough_cooked",
-        (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 0.9,
     ),
     Consumable("common.items.food.meat.beast_large_raw"): VoxTrans(
         "voxel.sprite.food.meat.beast_large_raw",
-        (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
+        (0.4, 0.0, 0.0), (-60.0, 35.0, 0.0), 0.9,
     ),
     Consumable("common.items.food.meat.beast_large_cooked"): VoxTrans(
         "voxel.sprite.food.meat.beast_large_cooked",
-        (-1.0, 0.0, 0.0), (-80.0, 40.0, 0.0), 0.8,
+        (0.4, 0.0, 0.0), (-60.0, 35.0, 0.0), 0.9,
     ),
     Consumable("common.items.food.plainsalad"): VoxTrans(
         "voxel.sprite.food.salad_plain",
@@ -2599,8 +2629,9 @@
         "voxel.weapon.hammer.craftsman",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
     ),
-    Ingredient("SewingSet"): Png(
-        "element.items.sewing_set",
+    Ingredient("SewingSet"): VoxTrans(
+        "voxel.object.sewing_set",
+        (0.0, -0.1, 0.0), (-45.0, 15.0, 15.0), 1.0,
     ),
     Ingredient("Flower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
@@ -2630,14 +2661,17 @@
         "voxel.sprite.seashells.shell-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient("IcyShard"): Png(
-        "element.items.item_ice_shard",
+    Ingredient("IcyShard"): VoxTrans(
+        "voxel.object.ice_shard",
+        (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
     ),
-    Ingredient("FlayerBagDamaged"): Png(
-        "element.items.item_flayer_soul",
+    Ingredient("FlayerBagDamaged"): VoxTrans(
+        "voxel.object.glowing_remains",
+        (0.0, 0.0, 0.0), (-20.0, 20.0, .0), 0.9,
     ),
-    Ingredient("RaptorFeather"): Png(
-        "element.items.item_raptor_feather",
+    Ingredient("RaptorFeather"): VoxTrans(
+        "voxel.object.raptor_feather",
+        (-0.2, 0.0, 0.0), (10.0, 30.0, -2.0), 1.0,
     ),
     Ingredient("Twigs"): VoxTrans(
         "voxel.sprite.twigs.twigs-0",
@@ -2661,7 +2695,7 @@
     ),
     Ingredient("ThickLeather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.thick_leather",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (-0.3, 0.0, 0.0), (-20.0, 15.0, 20.0), 0.9,
     ),
     Ingredient("RigidLeather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.rigid_leather",
@@ -2673,7 +2707,7 @@
     ),
     Ingredient("LeatherStrips"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.leather_strips",
-        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+        (0.5, 0.0, 0.0), (-20.0, 10.0, 60.0), 1.0,
     ),
     Ingredient("Plate"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.plate",
@@ -2847,11 +2881,13 @@
         "voxel.sprite.mineral.ore.coal",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("Honey"): Png(
-        "element.items.item_honey",
+    Ingredient("Honey"): VoxTrans(
+        "voxel.object.honey",
+        (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
     ),
-    Ingredient("MortarPestle"): Png(
-        "element.items.item_mortarpestlecoco",
+    Ingredient("MortarPestle"): VoxTrans(
+        "voxel.object.mortar_pestle",
+        (0.0, 0.0, 0.0), (-40.0, 15.0, 17.0), 0.8,
     ),
     Ingredient("EmptyVial"): VoxTrans(
         "voxel.object.potion_empty",

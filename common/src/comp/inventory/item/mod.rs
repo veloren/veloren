@@ -72,7 +72,7 @@ pub struct Glider {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy, PartialOrd, Ord)]
 pub enum Quality {
     Low,       // Grey
-    Common,    // UI Main Color
+    Common,    // Light blue
     Moderate,  // Green
     High,      // Blue
     Epic,      // Purple

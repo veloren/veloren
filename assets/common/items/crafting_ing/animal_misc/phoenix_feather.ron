@@ -4,6 +4,6 @@ ItemDef(
     kind: Ingredient(
         kind: "PhoenixFeather",
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [],
 )

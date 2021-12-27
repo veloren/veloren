@@ -864,51 +864,51 @@
         ),
         // Merchant Turban
         (Human, Male, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_human", (-2.0, -3.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-4.0, -7.0, -6.0)),
             color: None
         ),
         (Human, Female, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_human", (-2.0, -2.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-4.0, -6.0, -6.0)),
             color: None
         ),
         (Elf, Male, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_human", (-1.0, -3.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-3.0, -7.0, -6.0)),
             color: None
         ),
         (Elf, Female, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_human", (-1.0, -3.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-3.0, -7.0, -6.0)),
             color: None
         ),
         (Dwarf, Male, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_dwarf", (-3.0, -2.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-5.0, -6.0, -6.0)),
             color: None
         ),
         (Dwarf, Female, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_dwarf", (-3.0, -2.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-5.0, -6.0, -6.0)),
             color: None
         ),
         (Danari, Male, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_human", (0.0, -4.0, 4.0)),
+            vox_spec: ("armor.merchant.turban", (-2.0, -7.0, -4.0)),
             color: None
         ),
         (Danari, Female, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_human", (0.0, -4.0, 4.0)),
+            vox_spec: ("armor.merchant.turban", (-2.0, -7.0, -4.0)),
             color: None
         ),
         (Undead, Male, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_undead", (-4.0, -3.0, 4.0)),
+            vox_spec: ("armor.merchant.turban", (-6.0, -7.0, -4.0)),
             color: None
         ),
         (Undead, Female, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_undead", (-4.0, -3.0, 3.0)),
+            vox_spec: ("armor.merchant.turban", (-6.0, -7.0, -5.0)),
             color: None
         ),
         (Orc, Male, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_orc", (-1.0, -2.0, 4.0)),
+            vox_spec: ("armor.merchant.turban", (-3.0, -5.0, -4.0)),
             color: None
         ),
         (Orc, Female, "Merchant"): (
-            vox_spec: ("armor.merchant.turban_orc", (-1.0, -4.0, 2.0)),
+            vox_spec: ("armor.merchant.turban", (-3.0, -8.0, -6.0)),
             color: None
         ),
         //Winged Coronet -1, 5

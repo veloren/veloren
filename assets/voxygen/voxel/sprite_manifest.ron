@@ -494,7 +494,7 @@ Apple: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.fruit.apple",
-            offset: (-6.0, -6.0, 0.0),
+            offset: (-4.0, -4.0, 2.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
@@ -1702,7 +1702,7 @@ Coconut: Some((
     variations: [
         (
             model: "voxygen.voxel.sprite.fruit.coconut",
-            offset: (-6.0, -6.0, 2.0),
+            offset: (-3.5, -3.5, 2.0),
             lod_axes: (1.0, 1.0, 1.0),
         ),
     ],
