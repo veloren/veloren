@@ -54,6 +54,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
+- Removed unused PNG files
+
 ### Fixed
 
 - The menu map now properly handles dragging the map, zooming, and setting the waypoint when hovering icons
