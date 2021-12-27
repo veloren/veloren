@@ -7,7 +7,7 @@ ItemDef(
             protection: Some(Normal(9.0)),
         ),
     )),
-    quality: Common,
+    quality: Moderate,
     tags: [
     ],
 )

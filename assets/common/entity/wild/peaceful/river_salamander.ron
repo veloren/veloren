@@ -1,5 +1,5 @@
 (
-    name: Name("River Salamander"),
+    name: Name("Elbst"),
     body: Exact(QuadrupedLow((
         species: Salamander,
         body_type: Female,

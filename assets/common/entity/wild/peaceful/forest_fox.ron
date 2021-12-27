@@ -1,5 +1,5 @@
 (
-    name: Name("Forest Fox"),
+    name: Name("Red Fox"),
     body: Exact(QuadrupedSmall((
         species: Fox,
         body_type: Male,
