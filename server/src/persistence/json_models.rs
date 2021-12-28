@@ -179,6 +179,7 @@ fn tool_kind_to_string(tool: Option<common::comp::item::tool::ToolKind>) -> Stri
         Some(Dagger) => "Dagger",
         Some(Shield) => "Shield",
         Some(Spear) => "Spear",
+        Some(Blowgun) => "Blowgun",
         Some(Pick) => "Pick",
 
         Some(Farming) => "Farming",
@@ -201,6 +202,7 @@ fn tool_kind_from_string(tool: String) -> Option<common::comp::item::tool::ToolK
         "Dagger" => Some(Dagger),
         "Shield" => Some(Shield),
         "Spear" => Some(Spear),
+        "Blowgun" => Some(Blowgun),
         "Pick" => Some(Pick),
 
         "Farming" => Some(Farming),

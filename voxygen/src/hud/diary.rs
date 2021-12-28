@@ -660,58 +660,6 @@ impl<'a> Widget for Diary<'a> {
                     }
                 }
 
-                // Spellbook Icon BG and icon
-                let spellbook_btn = Button::image(
-                    if self.show.diary_fields.section == DiarySection::AbilitySelection {
-                        self.imgs.wpn_icon_border_pressed
-                    } else {
-                        self.imgs.wpn_icon_border
-                    },
-                )
-                .w_h(50.0, 50.0)
-                .hover_image(
-                    if self.show.diary_fields.section == DiarySection::AbilitySelection {
-                        self.imgs.wpn_icon_border_pressed
-                    } else {
-                        self.imgs.wpn_icon_border_mo
-                    },
-                )
-                .press_image(
-                    if self.show.diary_fields.section == DiarySection::AbilitySelection {
-                        self.imgs.wpn_icon_border_pressed
-                    } else {
-                        self.imgs.wpn_icon_border_press
-                    },
-                )
-                .top_left_with_margins_on(state.ids.content_align, 10.0, 5.0)
-                .with_tooltip(
-                    self.tooltip_manager,
-                    "Spellbook",
-                    "",
-                    &diary_tooltip,
-                    TEXT_COLOR,
-                )
-                .set(state.ids.spellbook_btn_bg, ui);
-                if spellbook_btn.was_clicked() {
-                    match self.show.diary_fields.section {
-                        DiarySection::SkillTrees => {
-                            events.push(Event::ChangeSection(DiarySection::AbilitySelection))
-                        },
-                        DiarySection::AbilitySelection => {
-                            events.push(Event::ChangeSection(DiarySection::SkillTrees))
-                        },
-                        DiarySection::Stats => {
-                            events.push(Event::ChangeSection(DiarySection::Stats))
-                        },
-                    }
-                }
-
-                Image::new(self.imgs.spellbook_button)
-                    .w_h(40.0, 36.0)
-                    .middle_of(state.ids.spellbook_btn_bg)
-                    .graphics_for(state.ids.spellbook_btn_bg)
-                    .set(state.ids.spellbook_btn, ui);
-
                 // Exp Bars and Rank Display
                 let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
                 let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
