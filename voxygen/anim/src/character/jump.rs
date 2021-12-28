@@ -144,9 +144,9 @@ impl Animation for JumpAnimation {
 
         match main_tool {
             Some(ToolKind::Dagger) => {
-                next.main.position = Vec3::new(-4.0, -5.0, 7.0);
+                next.main.position = Vec3::new(5.0, 1.0, 2.0);
                 next.main.orientation =
-                    Quaternion::rotation_y(0.25 * PI) * Quaternion::rotation_z(1.5 * PI);
+                    Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
             },
             Some(ToolKind::Shield) => {
                 next.main.position = Vec3::new(-0.0, -5.0, 3.0);
@@ -172,9 +172,9 @@ impl Animation for JumpAnimation {
 
         match second_tool_kind {
             Some(ToolKind::Dagger) => {
-                next.second.position = Vec3::new(4.0, -6.0, 7.0);
+                next.second.position = Vec3::new(-5.0, 1.0, 2.0);
                 next.second.orientation =
-                    Quaternion::rotation_y(-0.25 * PI) * Quaternion::rotation_z(-1.5 * PI);
+                    Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
             },
             Some(ToolKind::Shield) => {
                 next.second.position = Vec3::new(0.0, -4.0, 3.0);
