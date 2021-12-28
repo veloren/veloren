@@ -1010,7 +1010,7 @@ impl<'a> Widget for Diary<'a> {
 
                 const ABILITIES_PER_PAGE: usize = 12;
 
-                let page_indices = (abilities.len() - 1) / ABILITIES_PER_PAGE;
+                let page_indices = (abilities.len().saturating_sub(1)) / ABILITIES_PER_PAGE;
 
                 if state.ability_page > page_indices {
                     state.update(|s| s.ability_page = 0);

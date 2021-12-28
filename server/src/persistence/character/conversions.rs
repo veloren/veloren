@@ -618,6 +618,12 @@ pub fn convert_active_abilities_from_database(
     ability_sets: &AbilitySets,
 ) -> ability::ActiveAbilities {
     let ability_sets = serde_json::from_str::<Vec<DatabaseAbilitySet>>(&ability_sets.ability_sets)
-        .unwrap_or_default();
+        .unwrap_or_else(|err| {
+            common_base::dev_panic!(format!(
+                "Failed to parse ability sets. Error: {:#?}\nAbility sets:\n{:#?}",
+                err, ability_sets.ability_sets
+            ));
+            Vec::new()
+        });
     json_models::active_abilities_from_db_model(ability_sets)
 }
