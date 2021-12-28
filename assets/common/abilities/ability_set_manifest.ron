@@ -6,32 +6,13 @@
         secondary: "common.abilities.sword.dash",
         abilities: [
             (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
-            // TODO: Remove these
-            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
-            (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
-            (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
-            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
-            (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
-            (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
-            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
-            (Some(Hammer(UnlockLeap)), "common.abilities.hammer.leap"),
         ],
     ),
     Tool(Axe): (
         primary: "common.abilities.axe.doublestrike",
         secondary: "common.abilities.axe.spin",
         abilities: [
-            // (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
-            // TODO: Remove these
-            (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
-            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
-            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
-            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
-            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
-            (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
-            (Some(Bow(UnlockShotgun)), "common.abilities.bow.shotgun"),
-            (Some(Staff(UnlockShockwave)), "common.abilities.staff.fireshockwave"),
-            (Some(Sceptre(UnlockAura)), "common.abilities.sceptre.wardingaura"),
+            (Some(Axe(UnlockLeap)), "common.abilities.axe.leap"),
         ],
     ),
     Tool(Hammer): (

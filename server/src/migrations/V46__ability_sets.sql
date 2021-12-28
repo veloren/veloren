@@ -8,5 +8,5 @@ CREATE TABLE "ability_set" (
 
 -- Inserts starting ability sets for everyone
 INSERT INTO ability_set
-SELECT c.character_id, 'Empty'
+SELECT c.character_id, '[]'
 FROM character c
