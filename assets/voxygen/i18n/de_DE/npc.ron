@@ -3,7 +3,6 @@
 /// Localization for Germany German
 (
     string_map: {
-
     },
 
     vector_map: {
@@ -178,6 +177,22 @@
             "Ich habe den Feind vernichtet!",
             "Endlich Frieden!",
             "... also, wo war ich stehengeblieben?",
+        ],
+         "npc.speech.menacing": [
+            "Ich warne dich!",
+            "Komm nicht näher oder ich greife an!",
+            "Du jagst mir keine Angst ein!",
+            "Verschwinde von hier!",
+            "Hau bloß ab wenn du überleben willst!",
+            "Deine Art ist hier nicht willkommen!",
+        ],
+        "npc.speech.cultist_low_health_fleeing": [
+            "Rückzug für die gute Sache!",
+            "Rückzug!",
+            "Verflucht seist du!",
+            "Mein Geist wird dich verfolgen!",
+            "Ich muss ruhen.",
+            "Sie sind zu stark!",
         ]
     }
 )

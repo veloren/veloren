@@ -13,6 +13,8 @@
         "hud.map.dungeons": "Katakomben",
         "hud.map.caves": "Höhlen",
         "hud.map.cave": "Höhle",
+        "hud.map.peaks": "Berge",
+        "hud.map.voxel_map": "Voxelkarte",
         "hud.map.trees": "Mammutbäume",
         "hud.map.tree": "Mammutbaum",
         "hud.map.town": "Stadt",
@@ -21,7 +23,13 @@
         "hud.map.difficulty_dungeon": "Verlies\n\nSchwierigkeitsgrad: {difficulty}",
         "hud.map.drag": "Ziehen",
         "hud.map.zoom": "Zoom",
+        "hud.map.mid_click": "Wegpunkt setzen",
         "hud.map.recenter": "Zentrieren",
+        "hud.map.marked_location": "Markierter Standort",
+        "hud.map.marked_location_remove": "Zum Entfernen klicken",
+        "hud.map.change_map_mode": "Kartenmodus ändern",
+        "hud.map.toggle_minimap_voxel": "Voxel-Ansicht der Minikarte an-/ausschalten",
+        "hud.map.zoom_minimap_explanation": "Du kannst in der minimap heranzoomen,\n um die Welt um dich herum im Detail zu sehen.",
     },
 
 

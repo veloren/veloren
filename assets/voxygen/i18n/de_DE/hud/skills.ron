@@ -60,6 +60,8 @@
         "hud.skill.sc_heal_heal": "Erhöht die Menge, um die du Verbündete heilst um {boost}%{SP}",
         "hud.skill.sc_heal_cost_title": "Ausdauerkosten",
         "hud.skill.sc_heal_cost": "Heilen benötig {boost}% weniger Ausdauer{SP}",
+        "hud.skill.sc_heal_duration_title": "Dauer",
+        "hud.skill.sc_heal_duration": "Die Effekte deiner heilenden Aura dauern {boost}% länger{SP}",
         "hud.skill.sc_heal_range_title": "Reichweite",
         "hud.skill.sc_heal_range": "Dein Heilstrahl reicht {boost}% weiter{SP}",
         "hud.skill.sc_wardaura_unlock_title": "Schutzaura entsperren",
@@ -240,6 +242,16 @@
         "hud.skill.axe_leap_cost": "Verringerst die Ausdauerkosten des Sprungangriffs um {boost}%{SP}",
         "hud.skill.axe_leap_distance_title": "Reichweite: Sprungangriff",
         "hud.skill.axe_leap_distance": "Du springst auf {boost}% weiter entfernte Gegner{SP}",
+        // Mining
+        "hud.skill.mining_title": "Bergbau",
+        "hud.skill.pick_strike_title": "Spitzhackenschlag",
+        "hud.skill.pick_strike": "Baue Steine mit deiner Spitzhacke ab, um Erze, seltene Edelsteine und EP zu erhalten",
+        "hud.skill.pick_strike_speed_title": "Geschwindigkeit des Spitzhackenhiebs",
+        "hud.skill.pick_strike_speed": "Baue schneller ab{SP}",
+        "hud.skill.pick_strike_oregain_title": "Ausbeute von Erzen",
+        "hud.skill.pick_strike_oregain": "Erhöht die Chance auf mehr Erze beim Abbauen ({boost}% höher pro Level){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Ausbeute von Edelsteinen",
+        "hud.skill.pick_strike_gemgain": "Erhöht die Chance auf mehr Edelsteine beim Abbauen ({boost}% höher pro Level){SP}",
     },
 
 

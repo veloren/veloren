@@ -29,7 +29,7 @@ Wenn dir die Idee gefällt, dann schließe dich doch einfach unserem Dev- oder A
 
 Danke, dass du dir die Zeit genommen hast diese Zeilen zu lesen und wir hoffen, dass dir Veloren gefällt!
 
-~ Die Entwickler"#,
+~ Die Entwickler*innen"#,
 
         // Login process description
         "main.login_process": r#"Informationen zum Login:
@@ -43,8 +43,8 @@ https://veloren.net/account/."#,
         "main.login.server_not_found": "Server nicht gefunden",
         "main.login.authentication_error": "Authentifizierung fehlgeschlagen",
         "main.login.internal_error": "Interner Fehler beim Client (wahrscheinlich wurde der Charakter gelöscht)",
-        "main.login.failed_auth_server_url_invalid": "Verbindung zum Auth. Server fehlgeschlagen",
-        "main.login.insecure_auth_scheme": "Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost' und debug builds genutzt werden",
+        "main.login.failed_auth_server_url_invalid": "Verbindung zum Authentifikationsserver fehlgeschlagen",
+        "main.login.insecure_auth_scheme": "Das HTTP Protokoll wird nicht unterstützt. Es ist unsicher! Für Entwicklungszwecke kann HTTP für 'localhost'- und debug-builds genutzt werden",
         "main.login.server_full": "Server ist voll",
         "main.login.untrusted_auth_server": "Auth. Server wird nicht vertraut",
         "main.login.outdated_client_or_server": "Client- oder Serverversion ist veraltet ",
@@ -55,10 +55,22 @@ https://veloren.net/account/."#,
         "main.login.failed_sending_request": "Authentifizierung fehlgeschlagen",
         "main.login.invalid_character": "Ungültiger Charakter",
         "main.login.client_crashed": "Client abgestürzt",
-        "main.login.not_on_whitelist": "Du benötigst einen Whitelist Eintrag durch den Server Admin",
+        "main.login.not_on_whitelist": "Du benötigst einen Whitelist Eintrag durch den Server-Administrator",
         "main.login.banned": "Du wurdest aus folgendem Grund gebannt:",
         "main.login.kicked": "Du wurdest aus folgendem Grund gekickt:",
-        "main.login.select_language": "Wähle eine Sprache",
+        "main.login.select_language": "Wähle eine Sprache.",
+        "main.login.client_version": "Client-Version.",
+        "main.login.server_version": "Server-Version.",
+        "main.login.client_init_failed": "Client konnte nicht initialisiert werden: {init_fail_reason}.",
+        "main.login.username_bad_characters": "Benutzername enthält nicht erlaubte Zeichen! (Erlaubt sind: alphanumerische Zeichen, '_' und '-').",
+        "main.login.username_too_long": "Benutzername zu lang! Beschränke dich auf {max_len} Zeichen!",
+        "main.servers.singleplayer_error": "Verbindung zum internen Server fehlgeschlagen: {sp_error}",
+        "main.servers.network_error": "Server-netzwerk/-socket Fehler: {raw_error}",
+        "main.servers.participant_error": "Verbindungsabbruch bzw. Protokollfehler eines Teilnehmers: {raw_error}",
+        "main.servers.stream_error": "Client-Verbindungs-/-Komprimierungs-/-(De-)Serialisierungsfehler: {raw_error}",
+        "main.servers.database_error": "Serverdatenbankfehler: {raw_error}",
+        "main.servers.persistence_error": "Server-Persistenzfehler (vermutlich im Zusammenhang mit Asset-/Charakterdaten): {raw_error}",
+        "main.servers.other_error": "Genereller Serverfehler: {raw_error}",
 
         "main.servers.select_server": "Wähle einen Server",
         /// End Main screen section
@@ -73,7 +85,7 @@ https://veloren.net/account/."#,
             "Mit /region oder /r kannst du mit Spielern chatten, die sich ein paar hundert Meter um dich herum befinden.",
             "Als Admin kannst du mit /build den Baumodus nutzen.",
             "Mit /group oder /g können deine Nachrichten nur von Mitgliedern deiner Gruppe gelesen werden.",
-            "Um private Nachrichten zu verschicken, kannst du /tell, gefolgt vom Namen des Spielers, der die Nachricht erhalten soll, nutzen.",
+            "Um private Nachrichten zu verschicken, nutze /tell gefolgt von Spielername und deiner Nachricht",
             "Halte Ausschau nach Essen, Kisten oder anderen Schätzen überall auf der Welt!",
             "Deine Taschen sind voll mit Essen? Versuche besseres Essen damit herzustellen!",
             "Du weißt nicht was du tun sollst? Versuche dich doch mal an den Katakomben, die auf der Karte eingezeichnet sind!",
@@ -86,6 +98,9 @@ https://veloren.net/account/."#,
             "Die Art, wie dir deine Lebensenergie angezeigt wird, kannst du in den Einstellungen ändern.",
             "Setze dich neben ein Lagerfeuer (drücke dafür '{gameinput.sit}') um dich langsam von deinen Verletzungen zu erholen.",
             "Du brauchst einen größeren Beutel oder bessere Rüstung? Dann drücke '{gameinput.crafting}', um das Crafting-Menü zu öffnen!",
+            "Du weißt nicht, was du mit einem gewissen Gegenstand anfangen sollst? Suche 'input:<Name des Gegenstandes>' im Crafting-Menü!",
+            "Unterstütze doch die Spielentwicklung und helfe mit! Egal ob Übersetzen, Programmieren oder das Entwickeln neuer Ideen - alles hilft!",
+            "Du siehst etwas Besonderes? Mach doch einen Screenshot! ({gameinput.screenshot})"
         ],
     }
 )

@@ -8,7 +8,17 @@
         "hud.crafting.ingredients": "Zutaten:",
         "hud.crafting.craft": "Handwerk",
         "hud.crafting.tool_cata": "Benötigt:",
-
+		// Crafting Stations
+        "hud.crafting.req_crafting_station": "Benötigt:",
+        "hud.crafting.anvil": "Amboss",
+        "hud.crafting.cauldron": "Kessel",
+        "hud.crafting.cooking_pot": "Kochtopf",
+        "hud.crafting.crafting_bench": "Werkbank",
+        "hud.crafting.forge": "Schmiedeofen",
+        "hud.crafting.loom": "Webstuhl",
+        "hud.crafting.spinning_wheel": "Spinnrad",
+        "hud.crafting.tanning_rack": "Spannrahmen",
+        "hud.crafting.salvaging_station": "Recyclingtisch",
         // Tabs
         "hud.crafting.tabs.all": "Alle",
         "hud.crafting.tabs.armor": "Rüstung",
@@ -20,6 +30,9 @@
         "hud.crafting.tabs.utility": "Hilfsmittel",
         "hud.crafting.tabs.weapon": "Waffen",
         "hud.crafting.tabs.bag": "Taschen",
+		"hud.crafting.tabs.processed_material": "Materialien",
+        "hud.crafting.dismantle_title": "Zerlegung",
+        "hud.crafting.dismantle_explanation" : "Bewege den Mauszeiger über deine \n\nGegenstände, um zu sehen,\n\nwelche zerlegbar sind.\n\nDoppelklicke, um Zerlegung zu starten.",
     },
 
 
