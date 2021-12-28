@@ -1295,7 +1295,7 @@ impl<'a> Widget for Diary<'a> {
                         },
                         "Crit-Power" => {
                             let critpwr = combat::compute_crit_mult(Some(self.inventory));
-                            format!("x{}", critpwr)
+                            format!("x{:.2}", critpwr)
                         },
                         "Energy Reward" => {
                             let energy_rew =
@@ -1308,9 +1308,11 @@ impl<'a> Widget for Diary<'a> {
                         },
                         "Weapon Power" => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
-                                format!("{}   {}", m_stats.power, o_stats.power)
+                                format!("{}   {}", m_stats.power * 10.0, o_stats.power * 10.0)
                             },
-                            (Some(stats), None) | (None, Some(stats)) => format!("{}", stats.power),
+                            (Some(stats), None) | (None, Some(stats)) => {
+                                format!("{}", stats.power * 10.0)
+                            },
                             _ => String::new(),
                         },
                         "Weapon Speed" => {
@@ -1329,10 +1331,14 @@ impl<'a> Widget for Diary<'a> {
                         },
                         "Weapon Poise" => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
-                                format!("{}   {}", m_stats.effect_power, o_stats.effect_power)
+                                format!(
+                                    "{}   {}",
+                                    m_stats.effect_power * 10.0,
+                                    o_stats.effect_power * 10.0
+                                )
                             },
                             (Some(stats), None) | (None, Some(stats)) => {
-                                format!("{}", stats.effect_power)
+                                format!("{}", stats.effect_power * 10.0)
                             },
                             _ => String::new(),
                         },
