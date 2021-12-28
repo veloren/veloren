@@ -3,6 +3,16 @@
 /// Localization for germany German
 (
     string_map: {
+    	"hud.chat.all": "Alle",
+        "hud.chat.chat_tab_hover_tooltip": "Rechtsklick für Einstellungen",
+
+        // Debuff outcomes
+        "hud.outcome.burning": "An Verbrennung gestorben",
+        "hud.outcome.curse": "An Verfluchung gestorben",
+        "hud.outcome.bleeding": "Verblutet",
+        "hud.outcome.crippled": "An Verkrüpplung gestorben",
+        "hud.outcome.frozen": "Erfroren",
+        
         // Chat outputs
         "hud.chat.online_msg": "[{name}] ist nun online",
         "hud.chat.offline_msg": "[{name}] ging offline",

@@ -23,6 +23,7 @@
         "gameinput.toggledebug": "FPS und Debug-Hilfe ein-/ausschalten",
         "gameinput.screenshot": "Bildschirmfoto aufnehmen",
         "gameinput.toggleingameui": "Namensschilder ein-/ausschalten",
+        "gameinput.toggle_egui_debug": "EGUI Debug-Informationen zeigen/verbergen",
         "gameinput.fullscreen": "Namen zeigen/verbergen",
         "gameinput.moveforward": "Vorwärts bewegen",
         "gameinput.moveleft": "Nach links bewegen",

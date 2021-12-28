@@ -6,7 +6,7 @@
         // SCT outputs
         "hud.sct.experience": "{amount} Exp",
         "hud.sct.block": "BLOCKIERT",       
-        },
+    },
 
 
     vector_map: {

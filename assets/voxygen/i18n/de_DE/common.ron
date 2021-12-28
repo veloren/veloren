@@ -1,6 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Localization for germany German
+/// Localization for Germany German
 (
     string_map: {
         // Texts used in multiple locations with the same formatting
@@ -31,11 +31,12 @@
         "common.cancel": "Abbrechen",
         "common.none": "Kein",
         "common.error": "Fehler",
-        "common.fatal_error": "Schwerer Fehler",
+        "common.fatal_error": "Kritischer Fehler",
         "common.you": "Ihr",
         "common.automatic": "Auto",
         "common.random": "Zufällig",
         "common.empty": "Leer",
+	"common.confirm": "Akzeptieren",
         
         // Settings Window title
         "common.interface_settings": "Interfaceeinstellungen",
@@ -44,6 +45,7 @@
         "common.video_settings": "Grafikeinstellungen",
         "common.sound_settings": "Audioeinstellungen",
         "common.language_settings": "Spracheinstellungen",
+	"common.chat_settings": "Chateinstellungen",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Verbindungsabbruch!
@@ -62,7 +64,7 @@ Ist das Spiel auf dem neusten Stand?"#,
         "common.weapons.sword": "Schwert",
         "common.weapons.greatsword": "Zweihänder",
         "common.weapons.shortswords": "Kurzschwerter",
-        "common.weapons.staff": "Stab",
+        "common.weapons.staff": "Zauberstab",
         "common.weapons.bow": "Bogen",
         "common.weapons.hammer": "Hammer",
         "common.weapons.general": "Kampf",
@@ -78,6 +80,7 @@ Ist das Spiel auf dem neusten Stand?"#,
         "common.tool.debug": "Debug",
         "common.tool.faming": "Erntewerkzeug",
         "common.tool.pick": "Spitzhacke",
+	"common.tool.mining": "Bergbau",
         "common.kind.modular_component": "Modulares Bauteil",
         "common.kind.glider": "Gleiter",
         "common.kind.consumable": "Verbrauchsgegenstand",
@@ -91,7 +94,7 @@ Ist das Spiel auf dem neusten Stand?"#,
         "common.rand_appearance": "Zufälliges Aussehen",
         "common.rand_name": "Zufälliger Name",
 
-        "common.stats.combat_rating": "CR",
+        "common.stats.combat_rating": "Kampfrating",
         "common.stats.power": "Stärke",
         "common.stats.speed": "Schnelligkeit",
         "common.stats.poise": "Haltung",
@@ -99,7 +102,17 @@ Ist das Spiel auf dem neusten Stand?"#,
         "common.stats.crit_mult": "Krit. Multiplikator",
         "common.stats.armor": "Rüstung",
         "common.stats.poise_res":"Betäubungsresistenz",
-        "common.stats.slots": "Plätze",
+        "common.stats.energy_max": "Maximale Ausdauer",
+        "common.stats.energy_reward": "Ausdauerbonus",
+        "common.stats.crit_power": "Krit. Multiplikator",
+        "common.stats.stealth": "Tarnung",
+        "common.stats.slots": "Inventarplätze",
+
+        "common.material.metal": "Metall",
+        "common.material.wood": "Holz",
+        "common.material.stone": "Stein",
+        "common.material.cloth": "Stoff",
+        "common.material.hide": "Leder",
     },
 
 

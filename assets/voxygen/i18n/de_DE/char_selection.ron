@@ -24,6 +24,7 @@
         "char_selection.eyeshape": "Augendetails",
         "char_selection.accessories": "Accessoires",
         "char_selection.create_info_name": "Dein Charakter benötigt einen Namen!",
+	"char_selection.version_mismatch": "WARNUNG! Die Spielversion des Servers unterscheidet sich von deiner und ist möglicherweise inkompatibel. Bitte stelle sicher, dass du die neueste Version installiert hast.",
     },
 
     vector_map: {
