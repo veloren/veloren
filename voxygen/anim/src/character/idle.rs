@@ -110,6 +110,11 @@ impl Animation for IdleAnimation {
 
         match hands {
             (Some(Hands::One), _) => match active_tool_kind {
+                Some(ToolKind::Dagger) => {
+                    next.main.position = Vec3::new(5.0, 1.0, 2.0);
+                    next.main.orientation =
+                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(2.0 * PI);
+                },
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.main.position = Vec3::new(-4.0, -5.0, 10.0);
                     next.main.orientation =
@@ -122,6 +127,11 @@ impl Animation for IdleAnimation {
         };
         match hands {
             (None | Some(Hands::One), Some(Hands::One)) => match second_tool_kind {
+                Some(ToolKind::Dagger) => {
+                    next.second.position = Vec3::new(-5.0, 1.0, 2.0);
+                    next.second.orientation =
+                        Quaternion::rotation_x(-1.35 * PI) * Quaternion::rotation_z(-2.0 * PI);
+                },
                 Some(ToolKind::Axe) | Some(ToolKind::Hammer) | Some(ToolKind::Sword) => {
                     next.second.position = Vec3::new(4.0, -6.0, 10.0);
                     next.second.orientation =
