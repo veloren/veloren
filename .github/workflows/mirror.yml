@@ -10,14 +10,23 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+      - name: Install git-lfs 2.0
+        run: wget https://github.com/git-lfs/git-lfs/releases/download/v2.13.3/git-lfs-linux-amd64-v2.13.3.tar.gz;
+          tar xzf git-lfs-linux-amd64-v2.13.3.tar.gz;
+
+      - name: Install LFS
+        run: ./git-lfs install;
+
       - name: Clone Gitlab repo
-        run: git lfs install;
-          git clone https://gitlab.com/veloren/veloren.git;
+        run: git clone https://gitlab.com/veloren/veloren.git;
 
       - name: Uninstall LFS
         run: cd veloren;
-          git lfs uninstall;
-          git lfs migrate export --include="*" --everything;
+          ../git-lfs uninstall;
+
+      - name: Migrate LFS
+        run: cd veloren;
+          ../git-lfs migrate export --verbose --include="*" --everything --skip-fetch --yes 2>&1;
 
       - name: Push changes
         uses: ad-m/github-push-action@master
