@@ -21,8 +21,8 @@
     ]),
     Armor(Head): Choice([
         // Christmas event
-        (1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
-        //(1.0, Some(Item("common.items.armor.misc.head.straw"))),
-        //(2.0, None),
+        //(1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
+        (1.0, Some(Item("common.items.armor.misc.head.straw"))),
+        (2.0, None),
     ]),
 })
