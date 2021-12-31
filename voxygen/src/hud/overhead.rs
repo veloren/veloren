@@ -458,8 +458,8 @@ impl<'a> Widget for Overhead<'a> {
             }
         }
         // Speech bubble
-        // Only render if setting
-        if  !self.is_me || (self.is_me && self.settings.speech_bubble_self) {
+        // Only render if setting or other players
+        if  !self.is_me || self.settings.speech_bubble_self {
             if let Some(bubble) = self.bubble {
                 let dark_mode = self.settings.speech_bubble_dark_mode;
                 let localizer = |s: &str, i| -> String { self.i18n.get_variation(s, i).to_string() };
