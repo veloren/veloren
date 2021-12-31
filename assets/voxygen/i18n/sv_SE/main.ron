@@ -61,6 +61,15 @@ https://veloren.net/account/."#,
         "main.login.client_version": "Klientversion",
         "main.login.server_version": "Serverversion",
         "main.servers.select_server": "Välj en server",
+
+        // Credits screen
+        "main.credits": "Lista över medverkande",
+        "main.credits.created_by": "skapat av",
+        "main.credits.music": "Musik",
+        "main.credits.fonts": "Typsnitt",
+        "main.credits.other_art": "Annan konst",
+        "main.credits.contributors": "Bidragsgivare",
+
         /// End Main screen section
     },
 

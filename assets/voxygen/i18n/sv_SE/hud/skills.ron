@@ -169,7 +169,6 @@
         "hud.skill.hmr_single_strike_damage" : "Ökar skadan för varje successiv träff{SP}",
         "hud.skill.hmr_single_strike_knockback_title" : "Enkelslagsknuffning",
         "hud.skill.hmr_single_strike_knockback" : "Ökar slagens kastningspotential med {boost}%{SP}",
-        "hud.skill." : "",
         // Sword
         "hud.skill.sw_trip_str_title": "Trippelslag",
         "hud.skill.sw_trip_str": "Gör upp till tre slag",
