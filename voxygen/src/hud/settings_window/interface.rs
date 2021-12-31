@@ -88,6 +88,8 @@ widget_ids! {
         sct_batch_inc_radio,
         //
         speech_bubble_text,
+        speech_bubble_self_text,
+        speech_bubble_self_button,
         speech_bubble_dark_mode_text,
         speech_bubble_dark_mode_button,
         speech_bubble_icon_text,
@@ -846,7 +848,7 @@ impl<'a> Widget for Interface<'a> {
             .set(state.ids.sct_batch_inc_text, ui);
         }
 
-        // Speech bubble dark mode
+        // Speech bubbles
         Text::new(self.localized_strings.get("hud.settings.speech_bubble"))
             .down_from(
                 if self.global_state.settings.interface.sct {
@@ -862,12 +864,38 @@ impl<'a> Widget for Interface<'a> {
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
             .set(state.ids.speech_bubble_text, ui);
+
+        // Show own speech bubbles
+        let speech_bubble_self = ToggleButton::new(
+            self.global_state.settings.interface.speech_bubble_self,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .down_from(state.ids.speech_bubble_text, 10.0)
+        .w_h(18.0, 18.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.speech_bubble_self_button, ui);
+        if self.global_state.settings.interface.speech_bubble_self != speech_bubble_self {
+            events.push(SpeechBubbleSelf(speech_bubble_self));
+        }
+        Text::new(
+            self.localized_strings
+                .get("hud.settings.speech_bubble_self"),
+        )
+        .right_from(state.ids.speech_bubble_self_button, 10.0)
+        .font_size(self.fonts.cyri.scale(15))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.speech_bubble_self_text, ui);
+
+        // Speech bubble dark mode
         let speech_bubble_dark_mode = ToggleButton::new(
             self.global_state.settings.interface.speech_bubble_dark_mode,
             self.imgs.checkbox,
             self.imgs.checkbox_checked,
         )
-        .down_from(state.ids.speech_bubble_text, 10.0)
+        .down_from(state.ids.speech_bubble_self_button, 10.0)
         .w_h(18.0, 18.0)
         .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)

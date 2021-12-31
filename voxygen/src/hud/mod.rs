@@ -1777,7 +1777,7 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group) in (
+            for (pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group, is_me) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1797,8 +1797,7 @@ impl Hud {
                 .join()
                 .filter(|t| {
                     let health = t.5;
-                    let entity = t.0;
-                    entity != me && !health.map_or(false, |h| h.is_dead)
+                    !health.map_or(false, |h| h.is_dead)
                 })
                 .filter_map(
                     |(
@@ -1821,6 +1820,7 @@ impl Hud {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
+                        let is_me = entity == me;
                         // TODO: once the site2 rework lands and merchants have dedicated stalls or
                         // buildings, they no longer need to be emphasized via the higher overhead
                         // text radius relative to other NPCs
@@ -1884,6 +1884,7 @@ impl Hud {
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                                 hpfl,
                                 in_group,
+                                is_me,
                             )
                         })
                     },
@@ -1903,6 +1904,7 @@ impl Hud {
                     info,
                     bubble,
                     in_group,
+                    is_me,
                     &global_state.settings.interface,
                     self.pulse,
                     i18n,
