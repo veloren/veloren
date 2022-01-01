@@ -12,7 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added a setting to always show health and energy bars
 - Added a crafting station icon to the crafting menu sidebar for items that could be crafted at a crafting station
 - Added a setting to disable the hotkey hints
-- Added a setting to see own speech bubbles
 - Added a credits screen in the main menu which shows attributions for assets
 - Shrubs, a system for spawning smaller tree-like plants into the world.
 - Waterfalls
@@ -30,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Nightly linux Aarch64 builds are now produced (distribution via airshipper will follow soon)
 - Worldgen wildlife density modifier in features.ron
 - Rivers now make ambient sounds (again)
+- Added a setting to see own speech bubbles
 
 ### Changed
 
