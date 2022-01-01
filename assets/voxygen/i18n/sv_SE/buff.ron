@@ -38,8 +38,8 @@
         "buff.desc.ensnared": "Rankor greppar tag i dina ben vilket begränsar dina rörelser.",
         // Buffs stats
         "buff.stat.health": "Återger {str_total} hälsa",
-        "buff.stat.increase_max_energy": "Ökar max-uthålligheten med {strength}",
-        "buff.stat.increase_max_health": "Ökar maxhälsan med {strength}",
+        "buff.stat.increase_max_energy": "Ökar den maximala uthålligheten med {strength}",
+        "buff.stat.increase_max_health": "Ökar den maximala hälsan med {strength}",
         "buff.stat.invulnerability": "Ger osårbarhet",
         // Text
         "buff.text.over_seconds": "under {dur_secs} sekunder",

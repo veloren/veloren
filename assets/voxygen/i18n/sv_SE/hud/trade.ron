@@ -21,6 +21,8 @@
         "hud.trade.coin": "mynt",
         "hud.trade.tooltip_hint_1": "<Shift-klick> för att lägga till eller ta bort från köp.",
         "hud.trade.tooltip_hint_2": "<Ctrl-klick> för att automatiskt balansera med detta.",
+        "hud.trade.your_offer": "Ditt erbjudande",
+        "hud.trade.their_offer": "Deras erbjudande",
     },
 
 

@@ -36,7 +36,7 @@ Tack för att du tog dig tid att läsa det här meddelandet, vi hoppas du kommer
 Observera att du behöver ett konto
 för att spela på vissa servrar.
 
-Du kan skaffa ett konto på
+Du kan skapa ett konto på
 
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Servern hittades inte",
@@ -53,14 +53,33 @@ https://veloren.net/account/."#,
         "main.login.network_wrong_version": "Olika version hos server och klient, vänligen uppdatera din spelklient.",
         "main.login.failed_sending_request": "Förfrågan till inloggningsservern misslyckades",
         "main.login.invalid_character": "Den valda rollpersonen är ogiltig",
-        "main.login.client_crashed": "Klienten kapsejsade",
+        "main.login.client_crashed": "Klienten kraschade",
         "main.login.not_on_whitelist": "Du måste finnas på administratörens vitlista för att få gå med",
         "main.login.banned": "Du har blockerats med följande motivering",
         "main.login.kicked": "Du har sparkats ut med följande motivering",
         "main.login.select_language": "Välj ett språk",
         "main.login.client_version": "Klientversion",
         "main.login.server_version": "Serverversion",
+        "main.login.client_init_failed": "Klienten misslyckades att initiera: {init_fail_reason}",
+        "main.login.username_bad_characters": "Användarnamnet innehåller otillåtna tecken! (Endast alfanumeriska tecken, '_' och '-' är tillåtna)",
+        "main.login.username_too_long": "Användarnamnet är för långt! Den maximala längden är: {max_len}",
         "main.servers.select_server": "Välj en server",
+        "main.servers.singleplayer_error": "Misslyckades att ansluta till den interna servern: {sp_error}",
+        "main.servers.network_error": "Serverns nätverks/uttagsfel: {raw_error}",
+        "main.servers.participant_error": "Deltagarfrånkoppling/protokollfel : {raw_error}",
+        "main.servers.stream_error": "Klientanslutnings-/komprimerings-/(av)serialiseringsfel: {raw_error}",
+        "main.servers.database_error": "Serverdatabasfel: {raw_error}",
+        "main.servers.persistence_error": "Serverpersistensfel (Troligtvis Tillgångs/Karaktärsdatarelaterat): {raw_error}",
+        "main.servers.other_error": "Generellt serverfel: {raw_error}",
+
+        // Credits screen
+        "main.credits": "Lista över medverkande",
+        "main.credits.created_by": "skapat av",
+        "main.credits.music": "Musik",
+        "main.credits.fonts": "Typsnitt",
+        "main.credits.other_art": "Annan konst",
+        "main.credits.contributors": "Bidragare",
+
         /// End Main screen section
     },
 

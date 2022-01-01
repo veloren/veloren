@@ -18,6 +18,7 @@
         "hud.crafting.loom": "Vävstol",
         "hud.crafting.spinning_wheel": "Spinnrock",
         "hud.crafting.tanning_rack": "Garvningsställning",
+        "hud.crafting.salvaging_station": "Återvinningsbord",
         // Tabs
         "hud.crafting.tabs.all": "Allt",
         "hud.crafting.tabs.armor": "Rustning",
@@ -30,6 +31,8 @@
         "hud.crafting.tabs.weapon": "Vapen",
         "hud.crafting.tabs.bag": "Säckar",
         "hud.crafting.tabs.processed_material": "Material",
+        "hud.crafting.dismantle_title": "Demontering",
+        "hud.crafting.dismantle_explanation" : "Håll pekaren över föremål i din väska för att se vad\ndu kan återvinna.\n\nDubbelklicka dem för att börja demontera.",
     },
 
 
