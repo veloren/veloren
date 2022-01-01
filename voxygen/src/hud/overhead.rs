@@ -459,10 +459,11 @@ impl<'a> Widget for Overhead<'a> {
         }
         // Speech bubble
         // Only render if setting or other players
-        if  !self.is_me || self.settings.speech_bubble_self {
+        if !self.is_me || self.settings.speech_bubble_self {
             if let Some(bubble) = self.bubble {
                 let dark_mode = self.settings.speech_bubble_dark_mode;
-                let localizer = |s: &str, i| -> String { self.i18n.get_variation(s, i).to_string() };
+                let localizer =
+                    |s: &str, i| -> String { self.i18n.get_variation(s, i).to_string() };
                 let bubble_contents: String = bubble.message(localizer);
                 let (text_color, shadow_color) = bubble_color(bubble, dark_mode);
                 let mut text = Text::new(&bubble_contents)
@@ -472,7 +473,7 @@ impl<'a> Widget for Overhead<'a> {
                     .up_from(state.ids.name, 26.0)
                     .x_align_to(state.ids.name, Align::Middle)
                     .parent(id);
-    
+
                 if let Some(w) = text.get_w(ui) {
                     if w > MAX_BUBBLE_WIDTH {
                         text = text.w(MAX_BUBBLE_WIDTH);
@@ -570,14 +571,14 @@ impl<'a> Widget for Overhead<'a> {
                 })
                 .parent(id)
                 .mid_bottom_with_margin_on(state.ids.speech_bubble_text, -32.0);
-    
+
                 if dark_mode {
                     tail.w_h(22.0, 13.0)
                 } else {
                     tail.w_h(22.0, 28.0)
                 }
                 .set(state.ids.speech_bubble_tail, ui);
-    
+
                 let mut text_shadow = Text::new(&bubble_contents)
                     .color(shadow_color)
                     .font_id(self.fonts.cyri.conrod_id)
@@ -607,7 +608,6 @@ impl<'a> Widget for Overhead<'a> {
                     .set(state.ids.speech_bubble_icon, ui);
             }
         }
-
     }
 }
 
