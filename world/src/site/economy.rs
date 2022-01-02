@@ -16,7 +16,7 @@ use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::{
     convert::{TryFrom, TryInto},
-    fmt::{self, Write},
+    fmt,
     marker::PhantomData,
     ops::{Index, IndexMut},
 };
@@ -98,16 +98,13 @@ impl<V: Default + Copy> Default for GoodMap<V> {
 
 impl<V: Default + Copy + PartialEq + fmt::Debug> fmt::Debug for GoodMap<V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("{ ")?;
-        for i in self.iter() {
-            if *i.1 != V::default() {
-                Good::from(i.0).fmt(f)?;
-                f.write_char(':')?;
-                i.1.fmt(f)?;
-                f.write_char(' ')?;
-            }
-        }
-        f.write_char('}')
+        f.debug_map()
+            .entries(
+                self.iter()
+                    .filter(|i| *i.1 != V::default())
+                    .map(|i| (Good::from(i.0), i.1)),
+            )
+            .finish()
     }
 }
 
@@ -216,16 +213,13 @@ impl<V: Default + Copy> Default for LaborMap<V> {
 
 impl<V: Default + Copy + PartialEq + fmt::Debug> fmt::Debug for LaborMap<V> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str("{ ")?;
-        for i in self.iter() {
-            if *i.1 != V::default() {
-                i.0.fmt(f)?;
-                f.write_char(':')?;
-                (*i.1).fmt(f)?;
-                f.write_char(' ')?;
-            }
-        }
-        f.write_char('}')
+        f.debug_map()
+            .entries(
+                self.iter()
+                    .filter(|i| *i.1 != V::default())
+                    .map(|i| (i.0, &*i.1)),
+            )
+            .finish()
     }
 }
 
