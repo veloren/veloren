@@ -85,6 +85,11 @@ widget_ids! {
         dismantle_txt,
         dismantle_highlight_txt,
         modular_inputs[],
+        modular_art,
+        modular_desc_txt,
+        modular_wep_empty_bg,
+        modular_wep_ing_1_bg,
+        modular_wep_ing_2_bg,
     }
 }
 
@@ -783,7 +788,11 @@ impl<'a> Widget for Crafting<'a> {
                                 .resize(2, &mut ui.widget_id_generator());
                         });
                     }
-
+                    // Modular Weapon Crafting BG-Art
+                    Image::new(self.imgs.crafting_modular_art)
+                        .mid_top_with_margin_on(state.ids.align_ing, 55.0)
+                        .w_h(168.0, 250.0)
+                        .set(state.ids.modular_art, ui);
                     let primary_slot = CraftSlot {
                         index: 0,
                         invslot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
@@ -802,7 +811,8 @@ impl<'a> Widget for Crafting<'a> {
 
                     slot_maker
                         .fabricate(primary_slot, [40.0; 2])
-                        .top_left_with_margins_on(state.ids.align_ing, 20.0, 20.0)
+                        .top_left_with_margins_on(state.ids.modular_art, 4.0, 4.0)
+                        .parent(state.ids.align_ing)
                         .set(state.ids.modular_inputs[0], ui);
 
                     let secondary_slot = CraftSlot {
@@ -823,11 +833,15 @@ impl<'a> Widget for Crafting<'a> {
 
                     slot_maker
                         .fabricate(secondary_slot, [40.0; 2])
-                        .top_left_with_margins_on(state.ids.align_ing, 80.0, 20.0)
+                        .top_right_with_margins_on(state.ids.modular_art, 4.0, 4.0)
+                        .parent(state.ids.align_ing)
                         .set(state.ids.modular_inputs[1], ui);
 
                     let can_perform =
                         primary_slot.invslot.is_some() && secondary_slot.invslot.is_some();
+
+                    let prim_item_placed = primary_slot.invslot.is_some();
+                    let sec_item_placed = secondary_slot.invslot.is_some();
 
                     // Craft button
                     if Button::image(self.imgs.button)
@@ -865,10 +879,27 @@ impl<'a> Widget for Crafting<'a> {
 
                     // Output Image
                     Image::new(self.imgs.inv_slot)
-                        .w_h(60.0, 60.0)
-                        .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
+                        .w_h(80.0, 80.0)
+                        .mid_bottom_with_margin_on(state.ids.align_ing, 50.0)
                         .parent(state.ids.align_ing)
                         .set(state.ids.output_img_frame, ui);
+                    let bg_col = Color::Rgba(1.0, 1.0, 1.0, 0.4);
+                    if !prim_item_placed {
+                        Image::new(self.imgs.ing_ico_prim)
+                            .middle_of(state.ids.modular_inputs[0])
+                            .color(Some(bg_col))
+                            .w_h(34.0, 34.0)
+                            .graphics_for(state.ids.modular_inputs[0])
+                            .set(state.ids.modular_wep_ing_1_bg, ui);
+                    }
+                    if !sec_item_placed {
+                        Image::new(self.imgs.ing_ico_sec)
+                            .middle_of(state.ids.modular_inputs[1])
+                            .color(Some(bg_col))
+                            .w_h(50.0, 50.0)
+                            .graphics_for(state.ids.modular_inputs[1])
+                            .set(state.ids.modular_wep_ing_2_bg, ui);
+                    }
 
                     if let (Some(primary_comp), Some(secondary_comp)) = (
                         primary_slot
@@ -919,8 +950,8 @@ impl<'a> Widget for Crafting<'a> {
                         .label_color(TEXT_COLOR)
                         .label_font_size(self.fonts.cyri.scale(14))
                         .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_y(conrod_core::position::Relative::Scalar(-24.0))
-                        .label_x(conrod_core::position::Relative::Scalar(24.0))
+                        .label_y(conrod_core::position::Relative::Scalar(-64.0))
+                        .label_x(conrod_core::position::Relative::Scalar(0.0))
                         .middle_of(state.ids.output_img_frame)
                         .with_item_tooltip(
                             self.item_tooltip_manager,
@@ -929,6 +960,19 @@ impl<'a> Widget for Crafting<'a> {
                             &item_tooltip,
                         )
                         .set(state.ids.output_img, ui);
+                    } else {
+                        Text::new(self.localized_strings.get("hud.crafting.modular_desc"))
+                            .mid_top_with_margin_on(state.ids.modular_art, -25.0)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(self.fonts.cyri.scale(13))
+                            .color(TEXT_COLOR)
+                            .set(state.ids.title_main, ui);
+                        Image::new(self.imgs.wep_ico)
+                            .middle_of(state.ids.output_img_frame)
+                            .color(Some(bg_col))
+                            .w_h(70.0, 70.0)
+                            .graphics_for(state.ids.output_img)
+                            .set(state.ids.modular_wep_empty_bg, ui);
                     }
                 },
                 _ => {

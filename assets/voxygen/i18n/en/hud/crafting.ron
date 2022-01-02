@@ -34,6 +34,7 @@
         "hud.crafting.tabs.processed_material": "Materials",
         "hud.crafting.dismantle_title": "Dismantling",
         "hud.crafting.dismantle_explanation" : "Hover items in your bag to see what\nyou can salvage.\n\nDouble-Click them to start dismantling.",
+        "hud.crafting.modular_desc": "Drag Item-Parts here to craft a weapon",
     },
 
 
