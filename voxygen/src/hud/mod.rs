@@ -1867,6 +1867,7 @@ impl Hud {
                                 0.0
                             },
                         });
+                        // Only render bubble if nearby or if its me and setting is on
                         let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
                             || (is_me && global_state.settings.interface.speech_bubble_self)
                         {

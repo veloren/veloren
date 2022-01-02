@@ -179,7 +179,6 @@ impl<'a> Widget for Overhead<'a> {
         const BARSIZE: f64 = 2.0; // Scaling
         const MANA_BAR_HEIGHT: f64 = BARSIZE * 1.5;
         const MANA_BAR_Y: f64 = MANA_BAR_HEIGHT / 2.0;
-        // Only render info if not me
         if let Some(Info {
             name,
             health,
@@ -451,7 +450,6 @@ impl<'a> Widget for Overhead<'a> {
             }
         }
         // Speech bubble
-        // Only render if setting or other players
         if let Some(bubble) = self.bubble {
             let dark_mode = self.settings.speech_bubble_dark_mode;
             let localizer = |s: &str, i| -> String { self.i18n.get_variation(s, i).to_string() };

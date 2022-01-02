@@ -55,7 +55,7 @@ impl Default for InterfaceSettings {
             sct: true,
             sct_player_batch: false,
             sct_damage_batch: false,
-            speech_bubble_self: false,
+            speech_bubble_self: true,
             speech_bubble_dark_mode: false,
             speech_bubble_icon: true,
             crosshair_opacity: 0.6,
