@@ -1777,7 +1777,7 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group, is_me) in (
+            for (pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1835,7 +1835,8 @@ impl Hud {
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)
                                 || in_group
-                                || is_merchant)
+                                || is_merchant
+                                || !is_me)
                                 && dist_sqr
                                     < (if in_group {
                                         NAMETAG_GROUP_RANGE
@@ -1866,7 +1867,9 @@ impl Hud {
                                 0.0
                             },
                         });
-                        let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
+                        let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
+                            || (is_me && global_state.settings.interface.speech_bubble_self)
+                        {
                             speech_bubbles.get(uid)
                         } else {
                             None
@@ -1884,7 +1887,6 @@ impl Hud {
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                                 hpfl,
                                 in_group,
-                                is_me,
                             )
                         })
                     },
@@ -1904,7 +1906,6 @@ impl Hud {
                     info,
                     bubble,
                     in_group,
-                    is_me,
                     &global_state.settings.interface,
                     self.pulse,
                     i18n,
