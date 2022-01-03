@@ -783,6 +783,18 @@ impl Inventory {
     }
 
     pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }
+
+    pub fn persistence_update_all_item_configs(
+        &mut self,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::tool::MaterialStatManifest,
+    ) {
+        self.slots_mut().for_each(|mut slot| {
+            if let Some(item) = &mut slot {
+                item.update_item_config(ability_map, msm);
+            }
+        });
+    }
 }
 
 impl Component for Inventory {

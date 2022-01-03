@@ -402,11 +402,7 @@ pub fn convert_inventory_from_database_items(
                 &mut inventory,
                 &|inv, s| inv.slot_mut(slot(s).ok()?).and_then(|a| a.as_mut()),
             ) {
-                parent.persistence_access_add_component(
-                    item,
-                    &ABILITY_MAP,
-                    &MATERIAL_STATS_MANIFEST,
-                );
+                parent.persistence_access_add_component(item);
             } else {
                 return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
@@ -421,6 +417,10 @@ pub fn convert_inventory_from_database_items(
             )));
         }
     }
+
+    // Some items may have had components added, so update the item config of each
+    // item to ensure that it correctly accounts for components that were added
+    inventory.persistence_update_all_item_configs(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
 
     Ok(inventory)
 }
@@ -465,11 +465,7 @@ pub fn convert_loadout_from_database_items(
                     l.get_mut_item_at_slot_using_persistence_key(s).ok()
                 })
             {
-                parent.persistence_access_add_component(
-                    item,
-                    &ABILITY_MAP,
-                    &MATERIAL_STATS_MANIFEST,
-                );
+                parent.persistence_access_add_component(item);
             } else {
                 return Err(PersistenceError::ConversionError(format!(
                     "Parent slot {} for component {} was empty even though it occurred earlier in \
@@ -484,6 +480,10 @@ pub fn convert_loadout_from_database_items(
             )));
         }
     }
+
+    // Some items may have had components added, so update the item config of each
+    // item to ensure that it correctly accounts for components that were added
+    loadout.persistence_update_all_item_configs(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
 
     Ok(loadout)
 }

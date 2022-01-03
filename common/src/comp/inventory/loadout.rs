@@ -1,6 +1,6 @@
 use crate::comp::{
     inventory::{
-        item::{tool::Tool, Hands, ItemKind},
+        item::{self, tool::Tool, Hands, ItemKind},
         slot::{ArmorSlot, EquipSlot},
         InvSlot,
     },
@@ -401,6 +401,18 @@ impl Loadout {
                     .is_none()
             );
         }
+    }
+
+    pub fn persistence_update_all_item_configs(
+        &mut self,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::tool::MaterialStatManifest,
+    ) {
+        self.slots.iter_mut().for_each(|slot| {
+            if let Some(item) = &mut slot.slot {
+                item.update_item_config(ability_map, msm);
+            }
+        });
     }
 }
 

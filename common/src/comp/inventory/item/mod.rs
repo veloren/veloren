@@ -820,22 +820,15 @@ impl Item {
         }
     }
 
-    pub fn persistence_access_add_component(
-        &mut self,
-        component: Item,
-        ability_map: &AbilityMap,
-        msm: &MaterialStatManifest,
-    ) {
+    pub fn persistence_access_add_component(&mut self, component: Item) {
         self.components.push(component);
-        // adding a component changes the stats, so recalculate the ItemConfig
-        self.update_item_config(ability_map, msm);
     }
 
     pub fn persistence_access_mutable_component(&mut self, index: usize) -> Option<&mut Self> {
         self.components.get_mut(index)
     }
 
-    fn update_item_config(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+    pub fn update_item_config(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
         if let Ok(item_config) = ItemConfig::try_from((&*self, ability_map, msm)) {
             self.item_config = Some(Box::new(item_config));
         }
