@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New outfit for merchants
 - Nightly linux Aarch64 builds are now produced (distribution via airshipper will follow soon)
 - Worldgen wildlife density modifier in features.ron
+- Rivers now make ambient sounds (again)
 
 ### Changed
 

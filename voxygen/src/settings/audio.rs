@@ -25,7 +25,7 @@ pub struct AudioSettings {
     pub inactive_master_volume_perc: f32,
     pub music_volume: f32,
     pub sfx_volume: f32,
-    pub max_sfx_channels: usize,
+    pub num_sfx_channels: usize,
 
     /// Audio Device that Voxygen will use to play audio.
     pub output: AudioOutput,
@@ -38,7 +38,7 @@ impl Default for AudioSettings {
             inactive_master_volume_perc: 0.5,
             music_volume: 0.4,
             sfx_volume: 0.6,
-            max_sfx_channels: 30,
+            num_sfx_channels: 60,
             output: AudioOutput::Automatic,
         }
     }

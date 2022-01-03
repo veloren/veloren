@@ -53,7 +53,7 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(/* dev: String, */ max_sfx_channels: usize) -> Self {
+    pub fn new(/* dev: String, */ num_sfx_channels: usize) -> Self {
         // Commented out until audio device switcher works
         //let audio_device = get_device_raw(&dev);
 
@@ -76,9 +76,9 @@ impl AudioFrontend {
             },
         };
 
-        let mut sfx_channels = Vec::with_capacity(max_sfx_channels);
+        let mut sfx_channels = Vec::with_capacity(num_sfx_channels);
         if let Some(audio_stream) = &audio_stream {
-            sfx_channels.resize_with(max_sfx_channels, || SfxChannel::new(audio_stream));
+            sfx_channels.resize_with(num_sfx_channels, || SfxChannel::new(audio_stream));
         };
 
         Self {
