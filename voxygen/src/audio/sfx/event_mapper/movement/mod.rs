@@ -192,7 +192,7 @@ impl MovementEventMapper {
         underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
         // Match run / roll / swim state
-        if physics_state.in_liquid().is_some() && vel.magnitude() > 0.1
+        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0
             || !previous_state.in_water && physics_state.in_liquid().is_some()
         {
             return SfxEvent::Swim;
@@ -209,6 +209,7 @@ impl MovementEventMapper {
                     BlockKind::Rock | BlockKind::WeakRock | BlockKind::Ice => {
                         SfxEvent::Run(BlockKind::Rock)
                     },
+                    BlockKind::Earth => SfxEvent::Run(BlockKind::Earth),
                     BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
                     BlockKind::Air => SfxEvent::Idle,
                     _ => SfxEvent::Run(BlockKind::Grass),
@@ -237,13 +238,14 @@ impl MovementEventMapper {
         vel: Vec3<f32>,
         underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        if physics_state.in_liquid().is_some() && vel.magnitude() > 0.1 {
+        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0 {
             SfxEvent::Swim
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::Run(BlockKind::Snow),
                 BlockKind::Rock | BlockKind::WeakRock => SfxEvent::Run(BlockKind::Rock),
                 BlockKind::Sand => SfxEvent::Run(BlockKind::Sand),
+                BlockKind::Earth => SfxEvent::Run(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,
                 _ => SfxEvent::Run(BlockKind::Grass),
             }
@@ -258,13 +260,14 @@ impl MovementEventMapper {
         vel: Vec3<f32>,
         underfoot_block_kind: BlockKind,
     ) -> SfxEvent {
-        if physics_state.in_liquid().is_some() && vel.magnitude() > 0.1 {
+        if physics_state.in_liquid().is_some() && vel.magnitude() > 2.0 {
             SfxEvent::Swim
         } else if physics_state.on_ground.is_some() && vel.magnitude() > 0.1 {
             match underfoot_block_kind {
                 BlockKind::Snow => SfxEvent::QuadRun(BlockKind::Snow),
                 BlockKind::Rock | BlockKind::WeakRock => SfxEvent::QuadRun(BlockKind::Rock),
                 BlockKind::Sand => SfxEvent::QuadRun(BlockKind::Sand),
+                BlockKind::Earth => SfxEvent::QuadRun(BlockKind::Earth),
                 BlockKind::Air => SfxEvent::Idle,
                 _ => SfxEvent::QuadRun(BlockKind::Grass),
             }

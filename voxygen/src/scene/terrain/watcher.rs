@@ -75,9 +75,7 @@ impl BlocksOfInterest {
                         _ => {},
                     }
                 },
-                BlockKind::Water if chunk.meta().contains_river() && rng.gen_range(0..16) == 0 => {
-                    river.push(pos)
-                },
+                BlockKind::Water if chunk.meta().contains_river() => river.push(pos),
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),

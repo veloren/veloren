@@ -10,6 +10,26 @@
 (
     tracks: [
         Individual((
+            title: "The Quiet After the Battle",
+            path: "voxygen.audio.soundtrack.town.the_quiet_after_the_battle",
+            length: 240.0,
+            timing: Some(Night),
+            biomes: [],
+            site: Some(Settlement),
+            music_state: Activity(Explore),
+            artist: "Tobias Thy - (Thy SFX)",
+        )),
+        Individual((
+            title: "A Rest Under the Sunset",
+            path: "voxygen.audio.soundtrack.town.a_rest_under_the_sunset",
+            length: 83.0,
+            timing: Some(Day),
+            biomes: [],
+            site: Some(Settlement),
+            music_state: Activity(Explore),
+            artist: "phoenix13032005",
+        )),
+        Individual((
             title: "Raising Below Like Thunder",
             path: "voxygen.audio.soundtrack.town.raising_below_like_thunder",
             length: 120.0,
@@ -101,7 +121,7 @@
             biomes: [
                 (Desert, 1)
             ],
-            site: Some(Void),
+            site: Some(Settlement),
             music_state: Activity(Explore),
             artist: "Aeronic; mixed by Robotnik",
         )),

@@ -16,7 +16,7 @@ use common::{
 };
 use common_state::State;
 use hashbrown::HashMap;
-use rand::{thread_rng, Rng};
+use rand::{seq::SliceRandom, thread_rng, Rng};
 use std::time::{Duration, Instant};
 use vek::*;
 
@@ -97,13 +97,13 @@ impl EventMapper for BlockEventMapper {
                 volume: 1.0,
                 cond: |st| st.get_day_period().is_dark(),
             },
-            // BlockSounds {
-            //     blocks: |boi| &boi.river,
-            //     range: 1,
-            //     sfx: SfxEvent::RunningWater,
-            //     volume: 1.0,
-            //     cond: |_| true,
-            // },
+            BlockSounds {
+                blocks: |boi| &boi.river,
+                range: 1,
+                sfx: SfxEvent::RunningWater,
+                volume: 1.5,
+                cond: |_| true,
+            },
             //BlockSounds {
             //    blocks: |boi| &boi.embers,
             //    range: 1,
@@ -187,14 +187,25 @@ impl EventMapper for BlockEventMapper {
                     let absolute_pos: Vec3<i32> =
                         Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
 
+                    // Replace all RunningWater blocks with just one random one per tick
+                    let blocks = if sounds.sfx == SfxEvent::RunningWater {
+                        blocks
+                            .choose(&mut thread_rng())
+                            .map(std::slice::from_ref)
+                            .unwrap_or(&[])
+                    } else {
+                        blocks
+                    };
+
                     // Iterate through each individual block
                     for block in blocks {
                         // TODO Address this hack properly, potentially by making a new
                         // block of interest type which picks fewer leaf blocks
-                        // Hack to reduce the number of bird sounds (too many leaf blocks)
+                        // Hack to reduce the number of bird, frog, and water sounds
                         if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                             && thread_rng().gen_bool(0.999))
                             || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
+                            || (sounds.sfx == SfxEvent::RunningWater && thread_rng().gen_bool(0.5))
                         {
                             continue;
                         }

@@ -6,7 +6,7 @@
 //!
 //! When constructing a new [`AudioFrontend`](../struct.AudioFrontend.html), two
 //! music channels are created internally (to achieve crossover fades) while the
-//! number of sfx channels are determined by the `max_sfx_channels` value
+//! number of sfx channels are determined by the `num_sfx_channels` value
 //! defined in the client
 //! [`AudioSettings`](../../settings/struct.AudioSettings.html)
 //!

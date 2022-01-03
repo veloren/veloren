@@ -55,7 +55,33 @@
         ),
         RunningWater: (
             files: [
-                "voxygen.audio.sfx.ambient.running_water_1",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-001",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-002",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-003",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-004",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-005",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-006",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-007",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-008",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-009",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-010",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-011",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-012",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-013",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-014",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-015",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-016",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-017",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-018",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-019",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-020",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-021",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-022",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-023",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-024",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-025",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-026",
+                "voxygen.audio.sfx.ambient.river_sounds.running_water-027",
             ],
             threshold: 7.0,
         ),
@@ -69,7 +95,7 @@
                 "voxygen.audio.sfx.footsteps.water_splash_3",
                 "voxygen.audio.sfx.footsteps.water_splash_4",
             ],
-            threshold: 0.25,
+            threshold: 0.5,
         ),
         Run(Earth): (
             files: [
@@ -113,6 +139,27 @@
             ],
             threshold: 0.8,
         ),
+        // For when sand 1) exists and 2) has unique sounds
+        // Run(Sand): (
+        //     files: [
+        //         "voxygen.audio.sfx.footsteps.stepdirt_1",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_2",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_3",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_4",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_5",
+        //     ],
+        //     threshold: 1.6,
+        // ),
+        // QuadRun(Sand): (
+        //     files: [
+        //         "voxygen.audio.sfx.footsteps.stepdirt_1",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_2",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_3",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_4",
+        //         "voxygen.audio.sfx.footsteps.stepdirt_5",
+        //     ],
+        //     threshold: 0.8,
+        // ),
         Run(Snow): (
             files: [
                 "voxygen.audio.sfx.footsteps.snow_step_1",
