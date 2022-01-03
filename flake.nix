@@ -1,31 +1,17 @@
 {
   description = "Flake providing Veloren, a multiplayer voxel RPG written in Rust.";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixCargoIntegration = {
-      url = "github:yusdacra/nix-cargo-integration";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
+  inputs.nci.url = "github:yusdacra/nix-cargo-integration";
 
   outputs = inputs:
-    inputs.nixCargoIntegration.lib.makeOutputs {
+    inputs.nci.lib.makeOutputs {
       root = ./.;
-      buildPlatform = "crate2nix";
       defaultOutputs = {
         package = "veloren-voxygen";
         app = "veloren-voxygen";
       };
       overrides = {
-        build = common: prev: {
-          runTests = !prev.release && prev.runTests;
-          rootFeatures =
-            if prev.release && common.cargoPkg.name == "veloren-voxygen"
-            then [ "default-publish" ]
-            else prev.rootFeatures;
-        };
-        crateOverrides = common: prev:
+        crates = common: prev:
           let
             pkgs = common.pkgs;
             lib = common.lib;
@@ -64,15 +50,6 @@
             '';
           in
           {
-            # veloren-world = oldAttrs: {
-            #   crateBin = lib.filter (bin: bin.name != "chunk_compression_benchmarks") oldAttrs.crateBin;
-            # };
-            veloren-client = oldAttrs: {
-              crateBin = lib.filter (bin: bin.name != "bot") oldAttrs.crateBin;
-            };
-            veloren-voxygen-i18n = oldAttrs: {
-              crateBin = lib.filter (bin: bin.name != "i18n-check") oldAttrs.crateBin;
-            };
             veloren-common = oldAttrs: {
               # Disable `git-lfs` check here since we check it ourselves
               # We have to include the command output here, otherwise Nix won't run it
@@ -80,9 +57,9 @@
               # Declare env values here so that `common/build.rs` sees them
               NIX_GIT_HASH = prettyRev;
               NIX_GIT_TAG = tag;
-              crateBin = lib.filter (bin: bin.name != "csv_export" && bin.name != "csv_import" && bin.name != "recipe_graphviz") oldAttrs.crateBin;
             };
             veloren-voxygen = oldAttrs: {
+              nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.makeWrapper ];
               VELOREN_USERDATA_STRATEGY = "system";
               preConfigure = ''
                 substituteInPlace src/audio/soundcache.rs \
@@ -99,10 +76,12 @@
               '';
             };
             veloren-server-cli = oldAttrs: {
+              nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [ pkgs.makeWrapper ];
               VELOREN_USERDATA_STRATEGY = "system";
               postInstall = ''
                 if [ -f $out/bin/veloren-server-cli ]; then
-                  wrapProgram $out/bin/veloren-server-cli --set VELOREN_ASSETS ${veloren-assets}
+                  wrapProgram $out/bin/veloren-server-cli \
+                    --set VELOREN_ASSETS ${veloren-assets}
                 fi
               '';
             };
