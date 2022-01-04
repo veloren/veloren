@@ -809,11 +809,42 @@ impl<'a> Widget for Crafting<'a> {
                         required_amount: 1,
                     };
 
-                    slot_maker
+                    let primary_slot_widget = slot_maker
                         .fabricate(primary_slot, [40.0; 2])
                         .top_left_with_margins_on(state.ids.modular_art, 4.0, 4.0)
-                        .parent(state.ids.align_ing)
-                        .set(state.ids.modular_inputs[0], ui);
+                        .parent(state.ids.align_ing);
+
+                    if let Some(slot) = primary_slot.invslot {
+                        if let Some(item) = self.inventory.get(slot) {
+                            primary_slot_widget
+                                .with_item_tooltip(
+                                    self.item_tooltip_manager,
+                                    core::iter::once(item as &dyn ItemDesc),
+                                    &None,
+                                    &item_tooltip,
+                                )
+                                .set(state.ids.modular_inputs[0], ui);
+                        } else {
+                            primary_slot_widget.set(state.ids.modular_inputs[0], ui);
+                        }
+                    } else {
+                        primary_slot_widget.set(state.ids.modular_inputs[0], ui);
+                    }
+
+                    // Not sure why it doesn't work, maybe revisit later?
+                    // if let Some(item) = primary_slot.invslot.and_then(|slot|
+                    // self.inventory.get(slot)) {     primary_slot_widget
+                    //     .with_item_tooltip(
+                    //         self.item_tooltip_manager,
+                    //         core::iter::once(item as &dyn ItemDesc),
+                    //         &None,
+                    //         &item_tooltip,
+                    //     )
+                    //     .set(state.ids.modular_inputs[0], ui);
+                    // } else {
+                    //     primary_slot_widget
+                    //         .set(state.ids.modular_inputs[0], ui);
+                    // }
 
                     let secondary_slot = CraftSlot {
                         index: 1,
@@ -831,11 +862,41 @@ impl<'a> Widget for Crafting<'a> {
                         required_amount: 1,
                     };
 
-                    slot_maker
+                    let secondary_slot_widget = slot_maker
                         .fabricate(secondary_slot, [40.0; 2])
                         .top_right_with_margins_on(state.ids.modular_art, 4.0, 4.0)
-                        .parent(state.ids.align_ing)
-                        .set(state.ids.modular_inputs[1], ui);
+                        .parent(state.ids.align_ing);
+
+                    if let Some(slot) = secondary_slot.invslot {
+                        if let Some(item) = self.inventory.get(slot) {
+                            secondary_slot_widget
+                                .with_item_tooltip(
+                                    self.item_tooltip_manager,
+                                    core::iter::once(item as &dyn ItemDesc),
+                                    &None,
+                                    &item_tooltip,
+                                )
+                                .set(state.ids.modular_inputs[1], ui);
+                        } else {
+                            secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
+                        }
+                    } else {
+                        secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
+                    }
+
+                    // if let Some(item) = secondary_slot.invslot.and_then(|slot|
+                    // self.inventory.get(slot)) {     secondary_slot_widget
+                    //     .with_item_tooltip(
+                    //         self.item_tooltip_manager,
+                    //         core::iter::once(item as &dyn ItemDesc),
+                    //         &None,
+                    //         &item_tooltip,
+                    //     )
+                    //     .set(state.ids.modular_inputs[1], ui);
+                    // } else {
+                    //     secondary_slot_widget
+                    //         .set(state.ids.modular_inputs[1], ui);
+                    // }
 
                     let can_perform =
                         primary_slot.invslot.is_some() && secondary_slot.invslot.is_some();
