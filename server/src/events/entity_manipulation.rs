@@ -2,7 +2,7 @@ use crate::{
     client::Client,
     comp::{
         agent::{Agent, AgentEvent, Sound, SoundKind},
-        skills::SkillGroupKind,
+        skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
     rtsim::RtSim,
@@ -303,7 +303,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             let contributor_exp = exp_reward * damage_percent;
             match damage_contributor {
                 DamageContrib::Solo(attacker) => {
-                    // No exp for self kills or PvP 
+                    // No exp for self kills or PvP
                     if *attacker == entity || is_pvp_kill(*attacker) { return None; }
 
                     // Only give EXP to the attacker if they are within EXP range of the killed entity
@@ -353,16 +353,18 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             }
         }).flatten().for_each(|(attacker, exp_reward)| {
             // Process the calculated EXP rewards
-            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory)) = (
+            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory), Some(pos)) = (
                 skill_sets.get_mut(attacker),
                 uids.get(attacker),
                 inventories.get(attacker),
+                positions.get(attacker),
             ) {
                 handle_exp_gain(
                     exp_reward,
                     attacker_inventory,
                     &mut attacker_skill_set,
                     attacker_uid,
+                    pos,
                     &mut outcomes,
                 );
             }
@@ -1087,6 +1089,7 @@ fn handle_exp_gain(
     inventory: &Inventory,
     skill_set: &mut SkillSet,
     uid: &Uid,
+    pos: &Pos,
     outcomes: &mut Vec<Outcome>,
 ) {
     use comp::inventory::{item::ItemKind, slot::EquipSlot};
@@ -1105,7 +1108,7 @@ fn handle_exp_gain(
             });
         if let Some(weapon) = tool_kind {
             // Only adds to xp pools if entity has that skill group available
-            if skill_set.contains_skill_group(SkillGroupKind::Weapon(weapon)) {
+            if skill_set.skill_group_accessible(SkillGroupKind::Weapon(weapon)) {
                 xp_pools.insert(SkillGroupKind::Weapon(weapon));
             }
         }
@@ -1117,11 +1120,20 @@ fn handle_exp_gain(
     add_tool_from_slot(EquipSlot::InactiveOffhand);
     let num_pools = xp_pools.len() as f32;
     for pool in xp_pools.iter() {
-        skill_set.change_experience(*pool, (exp_reward / num_pools).ceil() as i32);
+        if let Some(level_outcome) =
+            skill_set.add_experience(*pool, (exp_reward / num_pools).ceil() as u32)
+        {
+            outcomes.push(Outcome::SkillPointGain {
+                uid: *uid,
+                skill_tree: *pool,
+                total_points: level_outcome,
+                pos: pos.0,
+            });
+        }
     }
     outcomes.push(Outcome::ExpChange {
         uid: *uid,
-        exp: exp_reward as i32,
+        exp: exp_reward as u32,
         xp_pools,
     });
 }

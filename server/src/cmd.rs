@@ -2854,8 +2854,8 @@ fn handle_skill_point(
     }
 }
 
-fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skills::SkillGroupKind> {
-    use comp::{item::tool::ToolKind, skills::SkillGroupKind};
+fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skillset::SkillGroupKind> {
+    use comp::{item::tool::ToolKind, skillset::SkillGroupKind};
     match skill_tree {
         "general" => Ok(SkillGroupKind::General),
         "sword" => Ok(SkillGroupKind::Weapon(ToolKind::Sword)),
@@ -3477,7 +3477,10 @@ fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
             for _ in 0..*level {
                 let cost = skill_set.skill_cost(*skill);
                 skill_set.add_skill_points(group, cost);
-                skill_set.unlock_skill(*skill);
+                match skill_set.unlock_skill(*skill) {
+                    Ok(_) | Err(comp::skillset::SkillUnlockError::SkillAlreadyUnlocked) => Ok(()),
+                    Err(err) => Err(format!("{:?}", err)),
+                }?;
             }
         }
         Ok(())

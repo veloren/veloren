@@ -1,6 +1,6 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Character, Item, Skill, SkillGroup},
+    models::{Character, Item, SkillGroup},
 };
 
 use crate::persistence::{
@@ -16,7 +16,7 @@ use common::{
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
         },
-        skills, Body as CompBody, Waypoint, *,
+        skillset, Body as CompBody, Waypoint, *,
     },
     resources::Time,
 };
@@ -24,7 +24,7 @@ use core::{convert::TryFrom, num::NonZeroU64};
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use std::{collections::VecDeque, str::FromStr, sync::Arc};
-use tracing::trace;
+use tracing::{trace, warn};
 
 #[derive(Debug)]
 pub struct ItemModelPair {
@@ -408,6 +408,15 @@ pub fn convert_loadout_from_database_items(
     Ok(loadout)
 }
 
+fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, PersistenceError> {
+    common::comp::Item::new_from_asset(item_definition_id).map_err(|err| {
+        PersistenceError::AssetError(format!(
+            "Error loading item asset: {} - {}",
+            item_definition_id, err
+        ))
+    })
+}
+
 /// Generates the code to deserialize a specific body variant from JSON
 macro_rules! deserialize_body {
     ($body_data:expr, $body_variant:tt, $body_type:tt) => {{
@@ -500,77 +509,96 @@ pub fn convert_stats_from_database(alias: String) -> common::comp::Stats {
     new_stats
 }
 
-pub fn convert_skill_set_from_database(
-    skills: &[Skill],
+pub fn convert_skill_set_from_database(skill_groups: &[SkillGroup]) -> common::comp::SkillSet {
+    let (skillless_skill_groups, deserialized_skills) =
+        convert_skill_groups_from_database(skill_groups);
+    common::comp::SkillSet::load_from_database(skillless_skill_groups, deserialized_skills)
+}
+
+#[allow(clippy::type_complexity)]
+fn convert_skill_groups_from_database(
     skill_groups: &[SkillGroup],
-) -> common::comp::SkillSet {
-    skills::SkillSet {
-        skill_groups: convert_skill_groups_from_database(skill_groups),
-        skills: convert_skills_from_database(skills),
-        modify_health: true,
-        modify_energy: true,
-    }
-}
-
-fn get_item_from_asset(item_definition_id: &str) -> Result<common::comp::Item, PersistenceError> {
-    common::comp::Item::new_from_asset(item_definition_id).map_err(|err| {
-        PersistenceError::AssetError(format!(
-            "Error loading item asset: {} - {}",
-            item_definition_id, err
-        ))
-    })
-}
-
-fn convert_skill_groups_from_database(skill_groups: &[SkillGroup]) -> Vec<skills::SkillGroup> {
-    let mut new_skill_groups = Vec::new();
+) -> (
+    // Skill groups in the vec do not contain skills, those are added later. The skill group only
+    // contains fields related to experience and skill points
+    HashMap<skillset::SkillGroupKind, skillset::SkillGroup>,
+    //
+    HashMap<skillset::SkillGroupKind, Result<Vec<skills::Skill>, skillset::SkillsPersistenceError>>,
+) {
+    let mut new_skill_groups = HashMap::new();
+    let mut deserialized_skills = HashMap::new();
     for skill_group in skill_groups.iter() {
         let skill_group_kind = json_models::db_string_to_skill_group(&skill_group.skill_group_kind);
-        let new_skill_group = skills::SkillGroup {
+        let mut new_skill_group = skillset::SkillGroup {
             skill_group_kind,
-            exp: skill_group.exp as u16,
-            available_sp: skill_group.available_sp as u16,
-            earned_sp: skill_group.earned_sp as u16,
+            // Available and earned exp and sp are reconstructed below
+            earned_exp: 0,
+            available_exp: 0,
+            available_sp: 0,
+            earned_sp: 0,
+            // Ordered skills empty here as skills get inserted later as they are unlocked, so long
+            // as there is not a respec.
+            ordered_skills: Vec::new(),
         };
-        new_skill_groups.push(new_skill_group);
+
+        // Add experience to skill group through method to ensure invariant of
+        // (earned_exp >= available_exp) are maintained
+        // Adding experience will automatically earn all possible skill points
+        let skill_group_exp = skill_group.earned_exp.clamp(0, i64::from(u32::MAX)) as u32;
+        new_skill_group.add_experience(skill_group_exp);
+
+        use skillset::SkillsPersistenceError;
+
+        let skills_result = if skill_group.spent_exp != i64::from(new_skill_group.spent_exp()) {
+            // If persisted spent exp does not equal the spent exp after reacquiring skill
+            // points, force a respec
+            Err(SkillsPersistenceError::SpentExpMismatch)
+        } else if Some(&skill_group.hash_val) != skillset::SKILL_GROUP_HASHES.get(&skill_group_kind)
+        {
+            // Else if persisted hash for skill group does not match current hash for skill
+            // group, force a respec
+            Err(SkillsPersistenceError::HashMismatch)
+        } else {
+            // Else attempt to deserialize skills from a json string
+            match serde_json::from_str::<Vec<skills::Skill>>(&skill_group.skills) {
+                // If it correctly deserializes, return the persisted skills
+                Ok(skills) => Ok(skills),
+                // Else if doesn't deserialize correctly, force a respec
+                Err(err) => {
+                    warn!(
+                        "Skills failed to correctly deserialized\nError: {:#?}\nRaw JSON: {:#?}",
+                        err, &skill_group.skills
+                    );
+                    Err(SkillsPersistenceError::DeserializationFailure)
+                },
+            }
+        };
+
+        deserialized_skills.insert(skill_group_kind, skills_result);
+
+        new_skill_groups.insert(skill_group_kind, new_skill_group);
     }
-    new_skill_groups
+    (new_skill_groups, deserialized_skills)
 }
 
-fn convert_skills_from_database(skills: &[Skill]) -> HashMap<skills::Skill, Option<u16>> {
-    let mut new_skills = HashMap::new();
-    for skill in skills.iter() {
-        let new_skill = json_models::db_string_to_skill(&skill.skill);
-        new_skills.insert(new_skill, skill.level.map(|l| l as u16));
-    }
-    new_skills
-}
-
-pub fn convert_skill_groups_to_database(
+pub fn convert_skill_groups_to_database<'a, I: Iterator<Item = &'a skillset::SkillGroup>>(
     entity_id: CharacterId,
-    skill_groups: Vec<skills::SkillGroup>,
+    skill_groups: I,
 ) -> Vec<SkillGroup> {
+    let skill_group_hashes = &skillset::SKILL_GROUP_HASHES;
     skill_groups
         .into_iter()
         .map(|sg| SkillGroup {
             entity_id,
             skill_group_kind: json_models::skill_group_to_db_string(sg.skill_group_kind),
-            exp: sg.exp as i32,
-            available_sp: sg.available_sp as i32,
-            earned_sp: sg.earned_sp as i32,
-        })
-        .collect()
-}
-
-pub fn convert_skills_to_database(
-    entity_id: CharacterId,
-    skills: HashMap<skills::Skill, Option<u16>>,
-) -> Vec<Skill> {
-    skills
-        .iter()
-        .map(|(s, l)| Skill {
-            entity_id,
-            skill: json_models::skill_to_db_string(*s),
-            level: l.map(|l| l as i32),
+            earned_exp: i64::from(sg.earned_exp),
+            spent_exp: i64::from(sg.spent_exp()),
+            // If fails to convert, just forces a respec on next login
+            skills: serde_json::to_string(&sg.ordered_skills).unwrap_or_else(|_| "".to_string()),
+            hash_val: skill_group_hashes
+                .get(&sg.skill_group_kind)
+                .cloned()
+                .unwrap_or_default(),
         })
         .collect()
 }

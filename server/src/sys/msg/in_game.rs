@@ -250,11 +250,6 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut skill_set| skill_set.unlock_skill(skill));
             },
-            ClientGeneral::RefundSkill(skill) => {
-                skill_sets
-                    .get_mut(entity)
-                    .map(|mut skill_set| skill_set.refund_skill(skill));
-            },
             ClientGeneral::UnlockSkillGroup(skill_group_kind) => {
                 skill_sets
                     .get_mut(entity)
@@ -280,6 +275,11 @@ impl Sys {
                 lossy_terrain_compression,
             } => {
                 presence.lossy_terrain_compression = lossy_terrain_compression;
+            },
+            ClientGeneral::AcknowledgePersistenceLoadError => {
+                skill_sets
+                    .get_mut(entity)
+                    .map(|mut skill_set| skill_set.persistence_load_error = None);
             },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }

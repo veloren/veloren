@@ -2,22 +2,22 @@
     Group(Weapon(Hammer)),
 
     // Single Strike, as single as you are
-    Skill((Hammer(SsKnockback), Some(2))),
-    Skill((Hammer(SsDamage), Some(2))),
-    Skill((Hammer(SsRegen), Some(2))),
-    Skill((Hammer(SsSpeed), Some(2))),
+    Skill((Hammer(SsKnockback), 2)),
+    Skill((Hammer(SsDamage), 2)),
+    Skill((Hammer(SsRegen), 2)),
+    Skill((Hammer(SsSpeed), 2)),
 
     // Charged
-    Skill((Hammer(CDamage), Some(2))),
-    Skill((Hammer(CKnockback), Some(2))),
-    Skill((Hammer(CDrain), Some(2))),
-    Skill((Hammer(CSpeed), Some(2))),
+    Skill((Hammer(CDamage), 2)),
+    Skill((Hammer(CKnockback), 2)),
+    Skill((Hammer(CDrain), 2)),
+    Skill((Hammer(CSpeed), 2)),
 
     // Leap
-    Skill((Hammer(UnlockLeap), None)),
-    Skill((Hammer(LDamage), Some(1))),
-    Skill((Hammer(LCost), Some(1))),
-    Skill((Hammer(LDistance), Some(1))),
-    Skill((Hammer(LKnockback), Some(1))),
-    Skill((Hammer(LRange), Some(1))),
+    Skill((Hammer(UnlockLeap), 1)),
+    Skill((Hammer(LDamage), 1)),
+    Skill((Hammer(LCost), 1)),
+    Skill((Hammer(LDistance), 1)),
+    Skill((Hammer(LKnockback), 1)),
+    Skill((Hammer(LRange), 1)),
 ])

@@ -12,7 +12,7 @@ use std::{
     time::Duration,
 };
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum ToolKind {
     // weapons
     Sword,

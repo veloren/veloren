@@ -301,7 +301,7 @@ fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&
 }
 
 #[derive(Deserialize)]
-struct ResourceExperienceManifest(HashMap<String, i32>);
+struct ResourceExperienceManifest(HashMap<String, u32>);
 
 impl assets::Asset for ResourceExperienceManifest {
     type Loader = assets::RonLoader;
@@ -339,15 +339,25 @@ pub fn handle_mine_block(
                             .0
                             .get(item.item_definition_id()),
                     ) {
-                        skillset.change_experience(SkillGroupKind::Weapon(tool), *exp_reward);
-                        state
-                            .ecs()
-                            .write_resource::<Vec<Outcome>>()
-                            .push(Outcome::ExpChange {
+                        let skill_group = SkillGroupKind::Weapon(tool);
+                        let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
+                        let positions = state.ecs().read_component::<comp::Pos>();
+                        if let (Some(level_outcome), Some(pos)) = (
+                            skillset.add_experience(skill_group, *exp_reward),
+                            positions.get(entity),
+                        ) {
+                            outcomes.push(Outcome::SkillPointGain {
                                 uid,
-                                exp: *exp_reward,
-                                xp_pools: HashSet::from_iter(vec![SkillGroupKind::Weapon(tool)]),
+                                skill_tree: skill_group,
+                                total_points: level_outcome,
+                                pos: pos.0,
                             });
+                        }
+                        outcomes.push(Outcome::ExpChange {
+                            uid,
+                            exp: *exp_reward,
+                            xp_pools: HashSet::from_iter(vec![skill_group]),
+                        });
                     }
                     use common::comp::skills::{MiningSkill, Skill, SKILL_MODIFIERS};
                     use rand::Rng;
@@ -355,15 +365,17 @@ pub fn handle_mine_block(
 
                     let need_double_ore = |rng: &mut rand::rngs::ThreadRng| {
                         let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.ore_gain);
-                        let skill_level =
-                            skillset.skill_level_or(Skill::Pick(MiningSkill::OreGain), 0);
+                        let skill_level = skillset
+                            .skill_level(Skill::Pick(MiningSkill::OreGain))
+                            .unwrap_or(0);
 
                         rng.gen_bool(chance_mod * f64::from(skill_level))
                     };
                     let need_double_gem = |rng: &mut rand::rngs::ThreadRng| {
                         let chance_mod = f64::from(SKILL_MODIFIERS.mining_tree.gem_gain);
-                        let skill_level =
-                            skillset.skill_level_or(Skill::Pick(MiningSkill::GemGain), 0);
+                        let skill_level = skillset
+                            .skill_level(Skill::Pick(MiningSkill::GemGain))
+                            .unwrap_or(0);
 
                         rng.gen_bool(chance_mod * f64::from(skill_level))
                     };

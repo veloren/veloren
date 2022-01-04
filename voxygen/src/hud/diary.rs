@@ -21,10 +21,9 @@ use common::{
         item::tool::ToolKind,
         skills::{
             self, AxeSkill, BowSkill, ClimbSkill, GeneralSkill, HammerSkill, MiningSkill,
-            RollSkill, SceptreSkill, Skill, SkillGroupKind, StaffSkill, SwimSkill, SwordSkill,
-            SKILL_MODIFIERS,
+            RollSkill, SceptreSkill, Skill, StaffSkill, SwimSkill, SwordSkill, SKILL_MODIFIERS,
         },
-        SkillSet,
+        skillset::{SkillGroupKind, SkillSet},
     },
     consts::{ENERGY_PER_LEVEL, HUMANOID_HP_PER_LEVEL},
 };
@@ -242,7 +241,7 @@ impl<'a> Diary<'a> {
     }
 }
 
-pub type SelectedSkillTree = skills::SkillGroupKind;
+pub type SelectedSkillTree = SkillGroupKind;
 
 // TODO: make it enum?
 const TREES: [&str; 8] = [
@@ -371,7 +370,7 @@ impl<'a> Widget for Diary<'a> {
             };
 
             // Check if we have this skill tree unlocked
-            let locked = !self.skill_set.contains_skill_group(skill_group);
+            let locked = !self.skill_set.skill_group_accessible(skill_group);
 
             // Weapon button image
             let btn_img = {
@@ -464,7 +463,7 @@ impl<'a> Widget for Diary<'a> {
         }
 
         // Exp Bars and Rank Display
-        let current_exp = self.skill_set.experience(*sel_tab) as f64;
+        let current_exp = self.skill_set.available_experience(*sel_tab) as f64;
         let max_exp = self.skill_set.skill_point_cost(*sel_tab) as f64;
         let exp_percentage = current_exp / max_exp;
         let rank = self.skill_set.earned_sp(*sel_tab);
@@ -642,7 +641,8 @@ impl<'a> Diary<'a> {
             skills_bot_l,
             skills_bot_r,
         );
-        use skills::{GeneralSkill::*, RollSkill::*, SkillGroupKind::*};
+        use skills::{GeneralSkill::*, RollSkill::*};
+        use SkillGroupKind::*;
         use ToolKind::*;
         // General Combat
         Image::new(animate_by_pulse(
@@ -903,7 +903,7 @@ impl<'a> Diary<'a> {
                 id: state.skill_sword_dash_4,
             },
             SkillIcon::Unlockable {
-                skill: Skill::Sword(DInfinite),
+                skill: Skill::Sword(DChargeThrough),
                 image: self.imgs.physical_distance_skill,
                 position: MidTopWithMarginOn(state.skills_top_r[5], 3.0),
                 id: state.skill_sword_dash_5,
@@ -1996,11 +1996,8 @@ impl<'a> Diary<'a> {
         diary_tooltip: &Tooltip,
     ) {
         let label = if self.skill_set.prerequisites_met(skill) {
-            let current = self
-                .skill_set
-                .skill_level(skill)
-                .map_or(0, |l| l.unwrap_or(1));
-            let max = skill.max_level().unwrap_or(1);
+            let current = self.skill_set.skill_level(skill).unwrap_or(0);
+            let max = skill.max_level();
             format!("{}/{}", current, max)
         } else {
             "".to_owned()
@@ -2195,7 +2192,7 @@ fn sword_skill_strings(skill: SwordSkill, i18n: &Localization) -> (&str, Cow<str
             "hud.skill.sw_dash_speed",
             modifiers.dash.forward_speed,
         ),
-        SwordSkill::DInfinite => localize(
+        SwordSkill::DChargeThrough => localize(
             i18n,
             "hud.skill.sw_dash_charge_through_title",
             "hud.skill.sw_dash_charge_through",

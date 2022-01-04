@@ -143,42 +143,49 @@ impl<'a> Widget for PromptDialog<'a> {
                 self.prompt_dialog_settings.affirmative_event.clone(),
             ));
         }
-        Text::new("Accept")
-            .bottom_right_with_margins_on(state.ids.accept_key, 5.0, -65.0)
+        let accept_txt = if self.prompt_dialog_settings.negative_option {
+            "Accept"
+        } else {
+            "Ok"
+        };
+        Text::new(accept_txt)
+            .bottom_left_with_margins_on(state.ids.accept_key, 4.0, 28.0)
             .font_id(self.fonts.cyri.conrod_id)
             .font_size(self.fonts.cyri.scale(18))
             .color(TEXT_COLOR)
             .set(state.ids.accept_txt, ui);
 
-        if Button::image(self.imgs.key_button)
-            .w_h(20.0, 20.0)
-            .hover_image(self.imgs.close_btn_hover)
-            .press_image(self.imgs.close_btn_press)
-            .label(&decline_key)
-            .image_color(UI_HIGHLIGHT_0)
-            .label_color(TEXT_COLOR)
-            .label_font_size(self.fonts.cyri.scale(16))
-            .label_font_id(self.fonts.cyri.conrod_id)
-            .label_y(conrod_core::position::Relative::Scalar(2.5))
-            .label_x(conrod_core::position::Relative::Scalar(0.5))
-            .bottom_right_with_margins_on(state.ids.bot, 4.0, 6.0)
-            .set(state.ids.decline_key, ui)
-            .was_clicked()
-            || self
-                .prompt_dialog_settings
-                .outcome_via_keypress
-                .map_or(false, |outcome| !outcome)
-        {
-            event = Some(DialogOutcomeEvent::Negative(
-                self.prompt_dialog_settings.negative_event.as_ref().cloned(),
-            ));
+        if self.prompt_dialog_settings.negative_option {
+            if Button::image(self.imgs.key_button)
+                .w_h(20.0, 20.0)
+                .hover_image(self.imgs.close_btn_hover)
+                .press_image(self.imgs.close_btn_press)
+                .label(&decline_key)
+                .image_color(UI_HIGHLIGHT_0)
+                .label_color(TEXT_COLOR)
+                .label_font_size(self.fonts.cyri.scale(16))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .label_y(conrod_core::position::Relative::Scalar(2.5))
+                .label_x(conrod_core::position::Relative::Scalar(0.5))
+                .bottom_right_with_margins_on(state.ids.bot, 4.0, 6.0)
+                .set(state.ids.decline_key, ui)
+                .was_clicked()
+                || self
+                    .prompt_dialog_settings
+                    .outcome_via_keypress
+                    .map_or(false, |outcome| !outcome)
+            {
+                event = Some(DialogOutcomeEvent::Negative(
+                    self.prompt_dialog_settings.negative_event.as_ref().cloned(),
+                ));
+            }
+            Text::new("Decline")
+                .bottom_left_with_margins_on(state.ids.decline_key, 4.0, -65.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(18))
+                .color(TEXT_COLOR)
+                .set(state.ids.decline_txt, ui);
         }
-        Text::new("Decline")
-            .bottom_left_with_margins_on(state.ids.decline_key, 4.0, -65.0)
-            .font_id(self.fonts.cyri.conrod_id)
-            .font_size(self.fonts.cyri.scale(18))
-            .color(TEXT_COLOR)
-            .set(state.ids.decline_txt, ui);
 
         // Prompt Description
         Text::new(&self.prompt_dialog_settings.message)

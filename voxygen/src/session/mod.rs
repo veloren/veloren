@@ -1428,6 +1428,11 @@ impl PlayState for SessionState {
                     HudEvent::SettingsChange(settings_change) => {
                         settings_change.process(global_state, self);
                     },
+                    HudEvent::AcknowledgePersistenceLoadError => {
+                        self.client
+                            .borrow_mut()
+                            .acknolwedge_persistence_load_error();
+                    },
                 }
             }
 

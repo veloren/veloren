@@ -1,5 +1,5 @@
 use crate::{comp, uid::Uid};
-use comp::{beam, item::Reagent, poise::PoiseState, skills::SkillGroupKind, UtteranceKind};
+use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use vek::*;
@@ -36,12 +36,12 @@ pub enum Outcome {
     },
     ExpChange {
         uid: Uid,
-        exp: i32,
+        exp: u32,
         xp_pools: HashSet<SkillGroupKind>,
     },
     SkillPointGain {
         uid: Uid,
-        skill_tree: comp::skills::SkillGroupKind,
+        skill_tree: comp::skillset::SkillGroupKind,
         total_points: u16,
         // TODO: Access ECS to get position from Uid to conserve bandwidth
         pos: Vec3<f32>,

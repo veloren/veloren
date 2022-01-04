@@ -20,18 +20,13 @@ pub struct Body {
     pub body_data: String,
 }
 
-pub struct Skill {
-    pub entity_id: i64,
-    pub skill: String,
-    pub level: Option<i32>,
-}
-
 pub struct SkillGroup {
     pub entity_id: i64,
     pub skill_group_kind: String,
-    pub exp: i32,
-    pub available_sp: i32,
-    pub earned_sp: i32,
+    pub earned_exp: i64,
+    pub spent_exp: i64,
+    pub skills: String,
+    pub hash_val: Vec<u8>,
 }
 
 pub struct Pet {

@@ -1,6 +1,6 @@
 #![warn(clippy::pedantic)]
 //#![warn(clippy::nursery)]
-use crate::comp::skills::{Skill, SkillGroupKind, SkillSet};
+use crate::comp::skillset::{skills::Skill, SkillGroupKind, SkillSet};
 
 use crate::assets::{self, AssetExt};
 use serde::{Deserialize, Serialize};
@@ -23,19 +23,19 @@ impl assets::Asset for SkillSetTree {
 #[derive(Debug, Deserialize, Clone)]
 enum SkillNode {
     Tree(String),
-    Skill((Skill, Option<u16>)),
+    Skill((Skill, u16)),
     Group(SkillGroupKind),
 }
 
 #[must_use]
-fn skills_from_asset_expect(asset_specifier: &str) -> Vec<(Skill, Option<u16>)> {
+fn skills_from_asset_expect(asset_specifier: &str) -> Vec<(Skill, u16)> {
     let nodes = SkillSetTree::load_expect(asset_specifier).read();
 
     skills_from_nodes(&nodes.0)
 }
 
 #[must_use]
-fn skills_from_nodes(nodes: &[SkillNode]) -> Vec<(Skill, Option<u16>)> {
+fn skills_from_nodes(nodes: &[SkillNode]) -> Vec<(Skill, u16)> {
     let mut skills = Vec::new();
     for node in nodes {
         match node {
@@ -46,7 +46,7 @@ fn skills_from_nodes(nodes: &[SkillNode]) -> Vec<(Skill, Option<u16>)> {
                 skills.push(*req);
             },
             SkillNode::Group(group) => {
-                skills.push((Skill::UnlockGroup(*group), None));
+                skills.push((Skill::UnlockGroup(*group), 1));
             },
         }
     }
@@ -95,7 +95,7 @@ impl SkillSetBuilder {
     /// 1) If added skill doesn't have any group
     /// 2) If added skill already applied
     /// 3) If added skill wasn't applied at the end
-    pub fn with_skill(mut self, skill: Skill, level: Option<u16>) -> Self {
+    pub fn with_skill(mut self, skill: Skill, level: u16) -> Self {
         let group = if let Some(skill_group) = skill.skill_group_kind() {
             skill_group
         } else {
@@ -114,9 +114,12 @@ impl SkillSetBuilder {
             );
             common_base::dev_panic!(err, or return self);
         }
-        for _ in 0..level.unwrap_or(1) {
+        for _ in 0..level {
             skill_set.add_skill_points(group, skill_set.skill_cost(skill));
-            skill_set.unlock_skill(skill);
+            if let Err(err) = skill_set.unlock_skill(skill) {
+                let err_msg = format!("Failed to add skill: {:?}. Error: {:?}", skill, err);
+                common_base::dev_panic!(err_msg);
+            }
         }
         if !skill_is_applied(skill_set, skill, level) {
             let err = format!(
@@ -134,7 +137,7 @@ impl SkillSetBuilder {
 }
 
 #[must_use]
-fn skill_is_applied(skill_set: &SkillSet, skill: Skill, level: Option<u16>) -> bool {
+fn skill_is_applied(skill_set: &SkillSet, skill: Skill, level: u16) -> bool {
     if let Ok(applied_level) = skill_set.skill_level(skill) {
         applied_level == level
     } else {

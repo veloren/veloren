@@ -16,8 +16,8 @@ use crate::{
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
             convert_skill_groups_to_database, convert_skill_set_from_database,
-            convert_skills_to_database, convert_stats_from_database,
-            convert_waypoint_from_database_json, convert_waypoint_to_database_json,
+            convert_stats_from_database, convert_waypoint_from_database_json,
+            convert_waypoint_to_database_json,
         },
         character_loader::{CharacterCreationResult, CharacterDataResult, CharacterListResult},
         character_updater::PetPersistenceData,
@@ -164,29 +164,11 @@ pub fn load_character_data(
 
     let mut stmt = connection.prepare_cached(
         "
-        SELECT  skill,
-                level
-        FROM    skill
-        WHERE   entity_id = ?1",
-    )?;
-
-    let skill_data = stmt
-        .query_map(&[char_id], |row| {
-            Ok(Skill {
-                entity_id: char_id,
-                skill: row.get(0)?,
-                level: row.get(1)?,
-            })
-        })?
-        .filter_map(Result::ok)
-        .collect::<Vec<Skill>>();
-
-    let mut stmt = connection.prepare_cached(
-        "
         SELECT  skill_group_kind,
-                exp,
-                available_sp,
-                earned_sp
+                earned_exp,
+                spent_exp,
+                skills,
+                hash_val
         FROM    skill_group
         WHERE   entity_id = ?1",
     )?;
@@ -196,9 +178,10 @@ pub fn load_character_data(
             Ok(SkillGroup {
                 entity_id: char_id,
                 skill_group_kind: row.get(0)?,
-                exp: row.get(1)?,
-                available_sp: row.get(2)?,
-                earned_sp: row.get(3)?,
+                earned_exp: row.get(1)?,
+                spent_exp: row.get(2)?,
+                skills: row.get(3)?,
+                hash_val: row.get(4)?,
             })
         })?
         .filter_map(Result::ok)
@@ -254,7 +237,7 @@ pub fn load_character_data(
     Ok((
         convert_body_from_database(&body_data.variant, &body_data.body_data)?,
         convert_stats_from_database(character_data.alias),
-        convert_skill_set_from_database(&skill_data, &skill_group_data),
+        convert_skill_set_from_database(&skill_group_data),
         convert_inventory_from_database_items(
             character_containers.inventory_container_id,
             &inventory_items,
@@ -436,25 +419,27 @@ pub fn create_character(
     ])?;
     drop(stmt);
 
-    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups);
+    let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups());
 
     let mut stmt = transactionn.prepare_cached(
         "
         INSERT INTO skill_group (entity_id,
                                  skill_group_kind,
-                                 exp,
-                                 available_sp,
-                                 earned_sp)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+                                 earned_exp,
+                                 spent_exp,
+                                 skills,
+                                 hash_val)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
     for skill_group in db_skill_groups {
         stmt.execute(&[
             &character_id as &dyn ToSql,
             &skill_group.skill_group_kind,
-            &skill_group.exp,
-            &skill_group.available_sp,
-            &skill_group.earned_sp,
+            &skill_group.earned_exp,
+            &skill_group.spent_exp,
+            &skill_group.skills,
+            &skill_group.hash_val,
         ])?;
     }
     drop(stmt);
@@ -574,16 +559,6 @@ pub fn delete_character(
             "Requested character to delete does not belong to the requesting player".to_string(),
         ));
     }
-    // Delete skills
-    let mut stmt = transaction.prepare_cached(
-        "
-        DELETE
-        FROM    skill
-        WHERE   entity_id = ?1",
-    )?;
-
-    stmt.execute(&[&char_id])?;
-    drop(stmt);
 
     // Delete skill groups
     let mut stmt = transaction.prepare_cached(
@@ -1016,60 +991,29 @@ pub fn update(
         }
     }
 
-    let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups);
+    let db_skill_groups = convert_skill_groups_to_database(char_id, char_skill_set.skill_groups());
 
     let mut stmt = transaction.prepare_cached(
         "
         REPLACE
         INTO    skill_group (entity_id,
                              skill_group_kind,
-                             exp,
-                             available_sp,
-                             earned_sp)
-        VALUES (?1, ?2, ?3, ?4, ?5)",
+                             earned_exp,
+                             spent_exp,
+                             skills,
+                             hash_val)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
     )?;
 
     for skill_group in db_skill_groups {
         stmt.execute(&[
             &skill_group.entity_id as &dyn ToSql,
             &skill_group.skill_group_kind,
-            &skill_group.exp,
-            &skill_group.available_sp,
-            &skill_group.earned_sp,
+            &skill_group.earned_exp,
+            &skill_group.spent_exp,
+            &skill_group.skills,
+            &skill_group.hash_val,
         ])?;
-    }
-
-    let db_skills = convert_skills_to_database(char_id, char_skill_set.skills);
-
-    let known_skills = Rc::new(
-        db_skills
-            .iter()
-            .map(|x| Value::from(x.skill.clone()))
-            .collect::<Vec<Value>>(),
-    );
-
-    let mut stmt = transaction.prepare_cached(
-        "
-        DELETE
-        FROM    skill
-        WHERE   entity_id = ?1
-        AND     skill NOT IN rarray(?2)",
-    )?;
-
-    let delete_count = stmt.execute(&[&char_id as &dyn ToSql, &known_skills])?;
-    trace!("Deleted {} skills", delete_count);
-
-    let mut stmt = transaction.prepare_cached(
-        "
-        REPLACE
-        INTO    skill (entity_id,
-                       skill,
-                       level)
-        VALUES (?1, ?2, ?3)",
-    )?;
-
-    for skill in db_skills {
-        stmt.execute(&[&skill.entity_id as &dyn ToSql, &skill.skill, &skill.level])?;
     }
 
     let db_waypoint = convert_waypoint_to_database_json(char_waypoint);

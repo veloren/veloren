@@ -76,7 +76,6 @@ pub enum ClientGeneral {
         ori: comp::Ori,
     },
     UnlockSkill(Skill),
-    RefundSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),
     RequestSiteInfo(SiteId),
     //Only in Game, via terrain stream
@@ -93,6 +92,7 @@ pub enum ClientGeneral {
     RequestLossyTerrainCompression {
         lossy_terrain_compression: bool,
     },
+    AcknowledgePersistenceLoadError,
 }
 
 impl ClientMsg {
@@ -128,11 +128,11 @@ impl ClientMsg {
                         | ClientGeneral::PlayerPhysics { .. }
                         | ClientGeneral::TerrainChunkRequest { .. }
                         | ClientGeneral::UnlockSkill(_)
-                        | ClientGeneral::RefundSkill(_)
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
-                        | ClientGeneral::RequestLossyTerrainCompression { .. } => {
+                        | ClientGeneral::RequestLossyTerrainCompression { .. }
+                        | ClientGeneral::AcknowledgePersistenceLoadError => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

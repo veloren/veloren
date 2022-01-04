@@ -26,7 +26,7 @@
         Sword(DDamage),
         Sword(DScaling),
         Sword(DSpeed),
-        Sword(DInfinite),
+        Sword(DChargeThrough),
         Sword(UnlockSpin),
         Sword(SDamage),
         Sword(SSpeed),
