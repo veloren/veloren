@@ -33,7 +33,7 @@ use common::{
     depot,
     effect::Effect,
     event::{EventBus, ServerEvent},
-    generation::EntityInfo,
+    generation::{EntityConfig, EntityInfo},
     npc::{self, get_npc_name},
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
@@ -588,10 +588,16 @@ fn handle_make_npc(
         None => 1,
     };
 
+    let config = match EntityConfig::load(&entity_config) {
+        Ok(asset) => asset.read(),
+        Err(_err) => return Err(format!("Failed to load entity config: {}", entity_config)),
+    };
+
     let rng = &mut rand::thread_rng();
     for _ in 0..number {
         let comp::Pos(pos) = position(server, target, "target")?;
-        let entity_info = EntityInfo::at(pos).with_asset_expect(&entity_config);
+        let entity_info =
+            EntityInfo::at(pos).with_entity_config(config.clone(), Some(&entity_config));
         match NpcData::from_entity_info(entity_info, rng) {
             NpcData::Waypoint(_) => {
                 return Err("Waypoint spawning is not implemented".to_owned());
