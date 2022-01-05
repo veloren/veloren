@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: Some(Two),
-            weapon_name: "Crozier",
+            weapon_name: Universal("Crozier"),
         )
     ),
     quality: Low,

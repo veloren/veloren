@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: None,
-            weapon_name: "Ornate Hammer",
+            weapon_name: HandednessDependent(
+                one_handed: "Cudgel",
+                two_handed: "Ornate Hammer",
+            ),
         )
     ),
     quality: Low,

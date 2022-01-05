@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 2.0,
             ),
             hand_restriction: Some(Two),
-            weapon_name: "Crook",
+            weapon_name: Universal("Crook"),
         )
     ),
     quality: Low,

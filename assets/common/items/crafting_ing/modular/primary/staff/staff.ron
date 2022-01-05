@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 1.0,
             ),
             hand_restriction: Some(Two),
-            weapon_name: "Staff",
+            weapon_name: Universal("Staff"),
         )
     ),
     quality: Low,

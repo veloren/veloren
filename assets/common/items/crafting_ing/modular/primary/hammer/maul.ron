@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: Some(Two),
-            weapon_name: "Maul",
+            weapon_name: Universal("Maul"),
         )
     ),
     quality: Low,

@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 1.0,
             ),
             hand_restriction: None,
-            weapon_name: "Hammer",
+            weapon_name: HandednessDependent(
+                one_handed: "Club",
+                two_handed: "Hammer",
+            ),
         )
     ),
     quality: Low,

@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 2.0,
             ),
             hand_restriction: Some(Two),
-            weapon_name: "Composite Bow",
+            weapon_name: Universal("Composite Bow"),
         )
     ),
     quality: Low,

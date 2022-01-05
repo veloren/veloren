@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 2.0,
             ),
             hand_restriction: None,
-            weapon_name: "Jagged Axe",
+            weapon_name: HandednessDependent(
+                one_handed: "Tomahawk",
+                two_handed: "Jagged Axe",
+            ),
         )
     ),
     quality: Low,

@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: None,
-            weapon_name: "Sabre",
+            weapon_name: HandednessDependent(
+                one_handed: "Scimitar",
+                two_handed: "Sabre",
+            ),
         )
     ),
     quality: Low,

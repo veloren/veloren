@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 2.0,
             ),
             hand_restriction: None,
-            weapon_name: "Sawblade",
+            weapon_name: HandednessDependent(
+                one_handed: "Sawback",
+                two_handed: "Sawblade",
+            ),
         )
     ),
     quality: Low,

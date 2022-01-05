@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: Some(Two),
-            weapon_name: "Ornate Bow",
+            weapon_name: Universal("Ornate Bow"),
         )
     ),
     quality: Low,

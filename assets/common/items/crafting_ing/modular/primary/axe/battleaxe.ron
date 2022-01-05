@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: None,
-            weapon_name: "Battleaxe",
+            weapon_name: HandednessDependent(
+                one_handed: "Cleaver",
+                two_handed: "Battleaxe",
+            ),
         )
     ),
     quality: Low,

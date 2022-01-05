@@ -32,25 +32,25 @@ impl ModularBase {
         }
     }
 
-    pub fn kind(&self, components: &[Item], msm: &MaterialStatManifest) -> Cow<ItemKind> {
-        fn resolve_hands(components: &[Item]) -> Hands {
-            // Checks if weapon has components that restrict hands to two. Restrictions to
-            // one hand or no restrictions default to one-handed weapon.
-            let hand_restriction = components.iter().find_map(|comp| match &*comp.kind() {
-                ItemKind::ModularComponent(mc) => match mc {
-                    ModularComponent::ToolPrimaryComponent {
-                        hand_restriction, ..
-                    }
-                    | ModularComponent::ToolSecondaryComponent {
-                        hand_restriction, ..
-                    } => *hand_restriction,
-                },
-                _ => None,
-            });
-            // In the event of no hand restrictions on the components, default to one handed
-            hand_restriction.unwrap_or(Hands::One)
-        }
+    fn resolve_hands(components: &[Item]) -> Hands {
+        // Checks if weapon has components that restrict hands to two. Restrictions to
+        // one hand or no restrictions default to one-handed weapon.
+        let hand_restriction = components.iter().find_map(|comp| match &*comp.kind() {
+            ItemKind::ModularComponent(mc) => match mc {
+                ModularComponent::ToolPrimaryComponent {
+                    hand_restriction, ..
+                }
+                | ModularComponent::ToolSecondaryComponent {
+                    hand_restriction, ..
+                } => *hand_restriction,
+            },
+            _ => None,
+        });
+        // In the event of no hand restrictions on the components, default to one handed
+        hand_restriction.unwrap_or(Hands::One)
+    }
 
+    pub fn kind(&self, components: &[Item], msm: &MaterialStatManifest) -> Cow<ItemKind> {
         pub fn resolve_stats(components: &[Item], msm: &MaterialStatManifest) -> tool::Stats {
             components
                 .iter()
@@ -78,7 +78,7 @@ impl ModularBase {
         match self {
             ModularBase::Tool => Cow::Owned(ItemKind::Tool(tool::Tool {
                 kind: toolkind,
-                hands: resolve_hands(components),
+                hands: Self::resolve_hands(components),
                 stats: resolve_stats(components, msm),
             })),
         }
@@ -110,7 +110,11 @@ impl ModularBase {
                                     _ => None,
                                 })
                                 .unwrap_or_else(|| "Modular".into());
-                            Some(format!("{} {}", material_name, weapon_name))
+                            Some(format!(
+                                "{} {}",
+                                material_name,
+                                weapon_name.resolve_name(Self::resolve_hands(components))
+                            ))
                         },
                         _ => None,
                     })
@@ -145,13 +149,37 @@ pub enum ModularComponent {
         toolkind: ToolKind,
         stats: tool::Stats,
         hand_restriction: Option<Hands>,
-        weapon_name: String,
+        weapon_name: WeaponName,
     },
     ToolSecondaryComponent {
         toolkind: ToolKind,
         stats: tool::Stats,
         hand_restriction: Option<Hands>,
     },
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum WeaponName {
+    Universal(String),
+    HandednessDependent {
+        one_handed: String,
+        two_handed: String,
+    },
+}
+
+impl WeaponName {
+    fn resolve_name(&self, handedness: Hands) -> &str {
+        match self {
+            Self::Universal(name) => name,
+            Self::HandednessDependent {
+                one_handed: name1,
+                two_handed: name2,
+            } => match handedness {
+                Hands::One => name1,
+                Hands::Two => name2,
+            },
+        }
+    }
 }
 
 impl ModularComponent {

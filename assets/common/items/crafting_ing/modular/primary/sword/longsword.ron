@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 1.0,
             ),
             hand_restriction: None,
-            weapon_name: "Longsword",
+            weapon_name: HandednessDependent(
+                one_handed: "Arming Sword",
+                two_handed: "Longsword",
+            ),
         )
     ),
     quality: Low,

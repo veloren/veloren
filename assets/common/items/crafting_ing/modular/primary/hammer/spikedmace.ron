@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 2.0,
             ),
             hand_restriction: None,
-            weapon_name: "Spiked Mace",
+            weapon_name: HandednessDependent(
+                one_handed: "Mace",
+                two_handed: "Spiked Mace",
+            ),
         )
     ),
     quality: Low,

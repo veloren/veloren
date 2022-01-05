@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: None,
-            weapon_name: "Katana",
+            weapon_name: HandednessDependent(
+                one_handed: "Swiftblade",
+                two_handed: "Katana",
+            ),
         )
     ),
     quality: Low,

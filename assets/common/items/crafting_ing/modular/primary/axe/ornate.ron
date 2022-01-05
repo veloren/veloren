@@ -15,7 +15,10 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: None,
-            weapon_name: "Ornate Axe",
+            weapon_name: HandednessDependent(
+                one_handed: "Kilonda",
+                two_handed: "Ornate Axe",
+            ),
         )
     ),
     quality: Low,
