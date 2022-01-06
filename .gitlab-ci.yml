@@ -18,7 +18,7 @@ variables:
 default:
   # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines
   interruptible: true
-  # Retry automatically incase the runner times out or there's a runner failure
+  # Retry automatically in case the runner times out or there's a runner failure
   retry:
     max: 2
     when:
