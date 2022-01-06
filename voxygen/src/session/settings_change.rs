@@ -93,6 +93,7 @@ pub enum Interface {
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
+    SpeechBubbleSelf(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
     ToggleHelp(bool),
@@ -435,6 +436,9 @@ impl SettingsChange {
                     },
                     Interface::SctDamageBatch(sct_damage_batch) => {
                         settings.interface.sct_damage_batch = sct_damage_batch;
+                    },
+                    Interface::SpeechBubbleSelf(sbdm) => {
+                        settings.interface.speech_bubble_self = sbdm;
                     },
                     Interface::SpeechBubbleDarkMode(sbdm) => {
                         settings.interface.speech_bubble_dark_mode = sbdm;

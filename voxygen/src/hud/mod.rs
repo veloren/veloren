@@ -1797,8 +1797,7 @@ impl Hud {
                 .join()
                 .filter(|t| {
                     let health = t.5;
-                    let entity = t.0;
-                    entity != me && !health.map_or(false, |h| h.is_dead)
+                    !health.map_or(false, |h| h.is_dead)
                 })
                 .filter_map(
                     |(
@@ -1821,6 +1820,7 @@ impl Hud {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
                         let in_group = client.group_members().contains_key(uid);
+                        let is_me = entity == me;
                         // TODO: once the site2 rework lands and merchants have dedicated stalls or
                         // buildings, they no longer need to be emphasized via the higher overhead
                         // text radius relative to other NPCs
@@ -1835,7 +1835,8 @@ impl Hud {
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)
                                 || in_group
-                                || is_merchant)
+                                || is_merchant
+                                || !is_me)
                                 && dist_sqr
                                     < (if in_group {
                                         NAMETAG_GROUP_RANGE
@@ -1866,7 +1867,10 @@ impl Hud {
                                 0.0
                             },
                         });
-                        let bubble = if dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) {
+                        // Only render bubble if nearby or if its me and setting is on
+                        let bubble = if (dist_sqr < SPEECH_BUBBLE_RANGE.powi(2) && !is_me)
+                            || (is_me && global_state.settings.interface.speech_bubble_self)
+                        {
                             speech_bubbles.get(uid)
                         } else {
                             None

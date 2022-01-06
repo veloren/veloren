@@ -30,6 +30,7 @@
         "hud.settings.incoming_damage": "Incoming Damage",
         "hud.settings.cumulated_incoming_damage": "Cumulated Incoming Damage",
         "hud.settings.speech_bubble": "Speech Bubble",
+        "hud.settings.speech_bubble_self": "Show Own Speech Bubbles",
         "hud.settings.speech_bubble_dark_mode": "Speech Bubble Dark Mode",
         "hud.settings.speech_bubble_icon": "Speech Bubble Icon",
         "hud.settings.energybar_numbers": "Energybar Numbers",
@@ -38,7 +39,7 @@
         "hud.settings.percentages": "Percentages",
         "hud.settings.chat": "Chat",
         "hud.settings.background_opacity": "Background Opacity",
-        "hud.settings.chat_character_name": "Character Names in chat",
+        "hud.settings.chat_character_name": "Character Names in Chat",
         "hud.settings.loading_tips": "Loading Screen Tips",
         "hud.settings.reset_interface": "Reset to Defaults",
 

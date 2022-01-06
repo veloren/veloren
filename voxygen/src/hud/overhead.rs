@@ -590,11 +590,11 @@ impl<'a> Widget for Overhead<'a> {
                 self.imgs.nothing
             };
             Image::new(icon)
-                .w_h(16.0, 16.0)
-                .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
-                // TODO: Figure out whether this should be parented.
-                // .parent(id)
-                .set(state.ids.speech_bubble_icon, ui);
+                    .w_h(16.0, 16.0)
+                    .top_left_with_margin_on(state.ids.speech_bubble_text, -16.0)
+                    // TODO: Figure out whether this should be parented.
+                    // .parent(id)
+                    .set(state.ids.speech_bubble_icon, ui);
         }
     }
 }
