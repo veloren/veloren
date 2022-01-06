@@ -1,6 +1,6 @@
 use super::{
     tool::{self, AbilityMap, AbilitySpec, Hands, MaterialStatManifest},
-    Item, ItemBase, ItemDef, ItemDesc, ItemKind, Material, Quality, ToolKind,
+    Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality, ToolKind,
 };
 use crate::{assets::AssetExt, recipe};
 use hashbrown::HashMap;
@@ -139,6 +139,39 @@ impl ModularBase {
                 }) => Some(Cow::Owned(AbilitySpec::Tool(*toolkind))),
                 _ => None,
             }),
+        }
+    }
+
+    pub fn generate_tags(&self, components: &[Item]) -> Vec<ItemTag> {
+        match self {
+            ModularBase::Tool => {
+                if let Some(comp) = components.iter().find(|comp| {
+                    matches!(
+                        &*comp.kind(),
+                        ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { .. })
+                    )
+                }) {
+                    if let Some(material) =
+                        comp.components()
+                            .iter()
+                            .find_map(|comp| match &*comp.kind() {
+                                ItemKind::Ingredient { .. } => {
+                                    comp.tags().into_iter().find_map(|tag| match tag {
+                                        ItemTag::Material(material) => Some(material),
+                                        _ => None,
+                                    })
+                                },
+                                _ => None,
+                            })
+                    {
+                        vec![ItemTag::Material(material), ItemTag::SalvageInto(material)]
+                    } else {
+                        Vec::new()
+                    }
+                } else {
+                    Vec::new()
+                }
+            },
         }
     }
 }

@@ -874,7 +874,7 @@ impl Item {
     }
 
     pub fn salvage_output(&self) -> impl Iterator<Item = &str> {
-        self.tags().iter().filter_map(|tag| {
+        self.tags().into_iter().filter_map(|tag| {
             if let ItemTag::SalvageInto(material) = tag {
                 material.asset_identifier()
             } else {
@@ -910,7 +910,6 @@ impl Item {
             ItemBase::Modular(mod_base) => {
                 // TODO: Try to move further upward
                 let msm = MaterialStatManifest::load().read();
-
                 mod_base.kind(self.components(), &msm)
             },
         }
@@ -965,16 +964,24 @@ impl Item {
 
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => item_def.ability_spec.as_ref().map(Cow::Borrowed),
+            ItemBase::Raw(item_def) => item_def.ability_spec.as_ref().map(Cow::Borrowed).or({
+                // If no custom ability set is specified, fall back to abilityset of tool kind.
+                if let ItemKind::Tool(tool) = &item_def.kind {
+                    Some(Cow::Owned(AbilitySpec::Tool(tool.kind)))
+                } else {
+                    None
+                }
+            }),
             ItemBase::Modular(mod_base) => mod_base.ability_spec(self.components()),
         }
     }
 
-    pub fn tags(&self) -> &[ItemTag] {
+    // TODO: Maybe try to make slice again instead of vec?
+    pub fn tags(&self) -> Vec<ItemTag> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => &item_def.tags,
+            ItemBase::Raw(item_def) => item_def.tags.to_vec(),
             // TODO: Do this properly. It'll probably be important at some point.
-            ItemBase::Modular(_) => &[],
+            ItemBase::Modular(mod_base) => mod_base.generate_tags(self.components()),
         }
     }
 
@@ -1009,7 +1016,7 @@ pub trait ItemDesc {
     fn quality(&self) -> Quality;
     fn num_slots(&self) -> u16;
     fn item_definition_id(&self) -> &str;
-    fn tags(&self) -> &[ItemTag];
+    fn tags(&self) -> Vec<ItemTag>;
 
     fn is_modular(&self) -> bool;
 
@@ -1037,7 +1044,7 @@ impl ItemDesc for Item {
 
     fn item_definition_id(&self) -> &str { self.item_definition_id() }
 
-    fn tags(&self) -> &[ItemTag] { self.tags() }
+    fn tags(&self) -> Vec<ItemTag> { self.tags() }
 
     fn is_modular(&self) -> bool { self.is_modular() }
 
@@ -1057,7 +1064,7 @@ impl ItemDesc for ItemDef {
 
     fn item_definition_id(&self) -> &str { &self.item_definition_id }
 
-    fn tags(&self) -> &[ItemTag] { &self.tags }
+    fn tags(&self) -> Vec<ItemTag> { self.tags.to_vec() }
 
     fn is_modular(&self) -> bool { false }
 
@@ -1090,7 +1097,7 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
 
     fn components(&self) -> &[Item] { (*self).components() }
 
-    fn tags(&self) -> &[ItemTag] { (*self).tags() }
+    fn tags(&self) -> Vec<ItemTag> { (*self).tags() }
 
     fn is_modular(&self) -> bool { (*self).is_modular() }
 }
