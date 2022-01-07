@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Worldgen wildlife density modifier in features.ron
 - Rivers now make ambient sounds (again)
 - Added a setting to see own speech bubbles
+- Added an option to allow players to remove keybindings
 
 ### Changed
 

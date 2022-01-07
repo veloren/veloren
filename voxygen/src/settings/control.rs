@@ -8,16 +8,16 @@ use winit::event::{MouseButton, VirtualKeyCode};
 // post-deserializing the inverse_keybindings hashmap
 #[derive(Serialize, Deserialize)]
 struct ControlSettingsSerde {
-    keybindings: HashMap<GameInput, KeyMouse>,
+    keybindings: HashMap<GameInput, Option<KeyMouse>>,
 }
 
 impl From<ControlSettings> for ControlSettingsSerde {
     fn from(control_settings: ControlSettings) -> Self {
-        let mut user_bindings: HashMap<GameInput, KeyMouse> = HashMap::new();
+        let mut user_bindings: HashMap<GameInput, Option<KeyMouse>> = HashMap::new();
         // Do a delta between default() ControlSettings and the argument, and let
         // keybindings be only the custom keybindings chosen by the user.
         for (k, v) in control_settings.keybindings {
-            if ControlSettings::default_binding(k) != v {
+            if Some(ControlSettings::default_binding(k)) != v {
                 // Keybinding chosen by the user
                 user_bindings.insert(k, v);
             }
@@ -32,7 +32,7 @@ impl From<ControlSettings> for ControlSettingsSerde {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(from = "ControlSettingsSerde", into = "ControlSettingsSerde")]
 pub struct ControlSettings {
-    pub keybindings: HashMap<GameInput, KeyMouse>,
+    pub keybindings: HashMap<GameInput, Option<KeyMouse>>,
     pub inverse_keybindings: HashMap<KeyMouse, HashSet<GameInput>>, // used in event loop
 }
 
@@ -40,8 +40,11 @@ impl From<ControlSettingsSerde> for ControlSettings {
     fn from(control_serde: ControlSettingsSerde) -> Self {
         let user_keybindings = control_serde.keybindings;
         let mut control_settings = ControlSettings::default();
-        for (k, v) in user_keybindings {
-            control_settings.modify_binding(k, v);
+        for (k, maybe_v) in user_keybindings {
+            match maybe_v {
+                Some(v) => control_settings.modify_binding(k, v),
+                None => control_settings.remove_binding(k),
+            }
         }
         control_settings
     }
@@ -58,8 +61,19 @@ const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Key(VirtualKeyCode::Grave);
 const MIDDLE_CLICK_KEY: KeyMouse = KeyMouse::Mouse(MouseButton::Middle);
 
 impl ControlSettings {
+    pub fn remove_binding(&mut self, game_input: GameInput) {
+        if let Some(inverse) = self
+            .keybindings
+            .insert(game_input, None)
+            .flatten()
+            .and_then(|key_mouse| self.inverse_keybindings.get_mut(&key_mouse))
+        {
+            inverse.remove(&game_input);
+        }
+    }
+
     pub fn get_binding(&self, game_input: GameInput) -> Option<KeyMouse> {
-        self.keybindings.get(&game_input).copied()
+        self.keybindings.get(&game_input).copied().flatten()
     }
 
     pub fn get_associated_game_inputs(&self, key_mouse: &KeyMouse) -> Option<&HashSet<GameInput>> {
@@ -67,7 +81,7 @@ impl ControlSettings {
     }
 
     pub fn insert_binding(&mut self, game_input: GameInput, key_mouse: KeyMouse) {
-        self.keybindings.insert(game_input, key_mouse);
+        self.keybindings.insert(game_input, Some(key_mouse));
         self.inverse_keybindings
             .entry(key_mouse)
             .or_default()
@@ -89,7 +103,7 @@ impl ControlSettings {
             .or_default()
             .insert(game_input);
         // For the GameInput->KeyMouse hashmap, just overwrite the value
-        self.keybindings.insert(game_input, key_mouse);
+        self.keybindings.insert(game_input, Some(key_mouse));
     }
 
     /// Return true if this key is used for multiple GameInputs that aren't

@@ -10,6 +10,7 @@
         "main.connecting": "Connecting",
         "main.creating_world": "Creating world",
         "main.tip": "Tip:",
+        "main.unbound_key_tip": "unbound",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Welcome to the alpha version of Veloren!

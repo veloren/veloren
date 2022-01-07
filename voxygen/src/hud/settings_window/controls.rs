@@ -22,6 +22,7 @@ widget_ids! {
         window_r,
         window_scrollbar,
         reset_controls_button,
+        keybinding_mode_button,
         controls_alignment_rectangle,
         controls_texts[],
         controls_buttons[],
@@ -178,7 +179,11 @@ impl<'a> Widget for Controls<'a> {
                 .set(button_id, ui)
                 .was_clicked()
             {
-                events.push(ChangeBinding(game_input));
+                if self.global_state.window.keybinding_mode {
+                    events.push(ChangeBinding(game_input));
+                } else {
+                    events.push(RemoveBinding(game_input));
+                }
             }
             // Set the previous id to the current one for the next cycle
             previous_element_id = Some(text_id);
@@ -202,6 +207,27 @@ impl<'a> Widget for Controls<'a> {
                 events.push(ResetKeyBindings);
             }
             previous_element_id = Some(state.ids.reset_controls_button)
+        }
+
+        let toggle_widget = Button::new()
+            .label(if self.global_state.window.keybinding_mode {
+                "remap"
+            } else {
+                "clear"
+            })
+            .label_color(TEXT_COLOR)
+            .label_font_id(self.fonts.cyri.conrod_id)
+            .label_font_size(self.fonts.cyri.scale(15))
+            .w(100.0)
+            .rgba(0.0, 0.0, 0.0, 0.0)
+            .border_rgba(0.0, 0.0, 0.0, 255.0)
+            .label_y(Relative::Scalar(1.0));
+        if toggle_widget
+            .top_right_with_margins_on(state.ids.window, 10.0, 15.0)
+            .set(state.ids.keybinding_mode_button, ui)
+            .was_clicked()
+        {
+            events.push(ToggleKeybindingMode);
         }
 
         // Add an empty text widget to simulate some bottom margin, because conrod sucks

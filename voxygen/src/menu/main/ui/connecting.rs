@@ -114,9 +114,15 @@ impl Screen {
                             if let Ok(game_input) = GameInput::from_str(&tip[start + 1..end]) {
                                 new_tip.push_str(&tip[last_index..start]);
                                 new_tip.push_str(
-                                    controls.keybindings[&game_input]
-                                        .display_string(key_layout)
-                                        .as_str(),
+                                    match controls.keybindings.get(&game_input) {
+                                        Some(Some(key_mouse)) => {
+                                            key_mouse.display_string(key_layout)
+                                        },
+                                        Some(None) => i18n.get("main.unbound_key_tip").to_string(),
+                                        None => ControlSettings::default_binding(game_input)
+                                            .display_string(key_layout),
+                                    }
+                                    .as_str(),
                                 );
                                 last_index = end + 1;
                             }
