@@ -277,7 +277,7 @@ impl Attack {
                         let reduced_damage =
                             applied_damage * damage_reduction / (1.0 - damage_reduction);
                         let poise = reduced_damage * CRUSHING_POISE_FRACTION;
-                        let change = Poise::apply_poise_reduction(poise, target.inventory);
+                        let change = -Poise::apply_poise_reduction(poise, target.inventory);
                         let poise_change = PoiseChange {
                             amount: change,
                             impulse: *dir,
@@ -777,7 +777,9 @@ impl Damage {
 
             let penetration = if let Some(damage) = damage {
                 if let DamageKind::Piercing = damage.kind {
-                    damage.value * PIERCING_PENETRATION_FRACTION
+                    (damage.value * PIERCING_PENETRATION_FRACTION)
+                        .min(protection.unwrap_or(0.0))
+                        .max(0.0)
                 } else {
                     0.0
                 }
