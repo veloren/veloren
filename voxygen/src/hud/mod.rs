@@ -1830,27 +1830,26 @@ impl Hud {
                         // entity has been damaged, is targeted/selected, or is in your group
                         // Note: even if this passes the healthbar can be hidden in some cases if it
                         // is at maximum
-                        let display_overhead_info =
-                            (info.target_entity.map_or(false, |e| e == entity)
+                        let display_overhead_info = !is_me
+                            && (info.target_entity.map_or(false, |e| e == entity)
                                 || info.selected_entity.map_or(false, |s| s.0 == entity)
                                 || health.map_or(true, overhead::should_show_healthbar)
                                 || in_group
-                                || is_merchant
-                                || !is_me)
-                                && dist_sqr
-                                    < (if in_group {
-                                        NAMETAG_GROUP_RANGE
-                                    } else if is_merchant {
-                                        NAMETAG_MERCHANT_RANGE
-                                    } else if hpfl
-                                        .time_since_last_dmg_by_me
-                                        .map_or(false, |t| t < NAMETAG_DMG_TIME)
-                                    {
-                                        NAMETAG_DMG_RANGE
-                                    } else {
-                                        NAMETAG_RANGE
-                                    })
-                                    .powi(2);
+                                || is_merchant)
+                            && dist_sqr
+                                < (if in_group {
+                                    NAMETAG_GROUP_RANGE
+                                } else if is_merchant {
+                                    NAMETAG_MERCHANT_RANGE
+                                } else if hpfl
+                                    .time_since_last_dmg_by_me
+                                    .map_or(false, |t| t < NAMETAG_DMG_TIME)
+                                {
+                                    NAMETAG_DMG_RANGE
+                                } else {
+                                    NAMETAG_RANGE
+                                })
+                                .powi(2);
 
                         let info = display_overhead_info.then(|| overhead::Info {
                             name: &stats.name,
