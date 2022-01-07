@@ -279,6 +279,7 @@ fn dispatch_hit(
                 pos: target_pos,
                 ori: projectile_target_info.ori,
                 char_state: read_data.character_states.get(target),
+                energy: read_data.energies.get(target),
             };
 
             // TODO: Is it possible to have projectile without body??

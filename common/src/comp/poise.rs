@@ -1,4 +1,5 @@
 use crate::{
+    combat::{DamageContributor, DamageSource},
     comp::{
         self,
         inventory::item::{armor::Protection, ItemKind},
@@ -12,6 +13,20 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{ops::Mul, time::Duration};
 use vek::*;
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct PoiseChange {
+    /// The amount of the poise change
+    pub amount: f32,
+    /// The direction that the poise change came from, used for when the target
+    /// is knocked down
+    pub impulse: Vec3<f32>,
+    /// The the individual or group who caused the poise change (None if the
+    /// damage wasn't caused by an entity)
+    pub by: Option<DamageContributor>,
+    /// The category of action that resulted in the poise change
+    pub cause: Option<DamageSource>,
+}
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 /// Poise is represented by u32s within the module, but treated as a float by
@@ -149,11 +164,11 @@ impl Poise {
         }
     }
 
-    pub fn change_by(&mut self, change: f32, impulse: Vec3<f32>) {
-        self.current = (((self.current() + change).clamp(0.0, f32::from(Self::MAX_POISE))
+    pub fn change(&mut self, change: PoiseChange) {
+        self.current = (((self.current() + change.amount).clamp(0.0, f32::from(Self::MAX_POISE))
             * Self::SCALING_FACTOR_FLOAT) as u32)
             .min(self.maximum);
-        self.last_change = Dir::from_unnormalized(impulse).unwrap_or_default();
+        self.last_change = Dir::from_unnormalized(change.impulse).unwrap_or_default();
     }
 
     pub fn reset(&mut self) { self.current = self.maximum; }

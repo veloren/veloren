@@ -48,14 +48,29 @@ enum DamageContrib {
     NotFound,
 }
 
-pub fn handle_poise(server: &Server, entity: EcsEntity, change: f32, knockback_dir: Vec3<f32>) {
+pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChange) {
     let ecs = &server.state.ecs();
     if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
-        // Entity is invincible to poise change during stunned/staggered character state
+        // Entity is invincible to poise change during stunned/staggered character
+        // state, but the mitigated poise damage is converted to health damage instead
         if !character_state.is_stunned() {
             if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
-                poise.change_by(change, knockback_dir);
+                poise.change(change);
             }
+        } else {
+            // TODO: Look into multiplying health by some fraction dependent on poise state
+            let time = ecs.read_resource::<Time>();
+            let health_change = HealthChange {
+                amount: change.amount,
+                by: None,
+                cause: None,
+                time: *time,
+            };
+            let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+            server_eventbus.emit_now(ServerEvent::HealthChange {
+                entity,
+                change: health_change,
+            });
         }
     }
 }
@@ -521,9 +536,9 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 value: falldmg,
             };
             let damage_reduction = Damage::compute_damage_reduction(
+                Some(damage),
                 inventories.get(entity),
                 stats.get(entity),
-                Some(DamageKind::Crushing),
             );
             let time = server.state.ecs().read_resource::<Time>();
             let change =
@@ -534,7 +549,13 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
             let poise_change = Poise::apply_poise_reduction(poise_damage, inventories.get(entity));
-            poise.change_by(poise_change, Vec3::unit_z());
+            let poise_change = comp::PoiseChange {
+                amount: poise_change,
+                impulse: Vec3::unit_z(),
+                by: None,
+                cause: None,
+            };
+            poise.change(poise_change);
         }
     }
 }
@@ -857,6 +878,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             pos: pos_b.0,
                             ori: ori_b_maybe,
                             char_state: char_state_b_maybe,
+                            energy: energies.get(entity_b),
                         };
 
                         // PvP check

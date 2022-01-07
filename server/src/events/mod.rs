@@ -96,11 +96,7 @@ impl Server {
                 ServerEvent::HealthChange { entity, change } => {
                     handle_health_change(self, entity, change)
                 },
-                ServerEvent::PoiseChange {
-                    entity,
-                    change,
-                    kb_dir,
-                } => handle_poise(self, entity, change, kb_dir),
+                ServerEvent::PoiseChange { entity, change } => handle_poise(self, entity, change),
                 ServerEvent::Delete(entity) => handle_delete(self, entity),
                 ServerEvent::Destroy { entity, cause } => handle_destroy(self, entity, cause),
                 ServerEvent::InventoryManip(entity, manip) => handle_inventory(self, entity, manip),
