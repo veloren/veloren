@@ -79,19 +79,19 @@ impl PoiseState {
         let (charstate_parameters, impulse) = match self {
             PoiseState::Normal => (None, None),
             PoiseState::Interrupted => (
-                Some((Duration::from_millis(125), Duration::from_millis(125), 0.80)),
+                Some((Duration::from_millis(200), Duration::from_millis(200), 0.8)),
                 None,
             ),
             PoiseState::Stunned => (
-                Some((Duration::from_millis(300), Duration::from_millis(300), 0.65)),
-                Some(5.0),
+                Some((Duration::from_millis(400), Duration::from_millis(400), 0.5)),
+                None,
             ),
             PoiseState::Dazed => (
-                Some((Duration::from_millis(600), Duration::from_millis(250), 0.45)),
-                Some(10.0),
+                Some((Duration::from_millis(750), Duration::from_millis(450), 0.2)),
+                None,
             ),
             PoiseState::KnockedDown => (
-                Some((Duration::from_millis(750), Duration::from_millis(500), 0.4)),
+                Some((Duration::from_millis(900), Duration::from_millis(700), 0.0)),
                 Some(10.0),
             ),
         };
@@ -181,10 +181,10 @@ impl Poise {
     /// Defines the poise states based on current poise value
     pub fn poise_state(&self) -> PoiseState {
         match self.current() {
-            x if x > 70.0 => PoiseState::Normal,
-            x if x > 50.0 => PoiseState::Interrupted,
-            x if x > 40.0 => PoiseState::Stunned,
-            x if x > 20.0 => PoiseState::Dazed,
+            x if x > 50.0 => PoiseState::Normal,
+            x if x > 30.0 => PoiseState::Interrupted,
+            x if x > 15.0 => PoiseState::Stunned,
+            x if x > 5.0 => PoiseState::Dazed,
             _ => PoiseState::KnockedDown,
         }
     }
