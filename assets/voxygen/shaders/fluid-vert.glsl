@@ -49,7 +49,8 @@ layout(location = 1) flat out uint f_pos_norm;
 const float EXTRA_NEG_Z = 65536.0/*65536.1*/;
 
 void main() {
-    f_pos = vec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0x1FFFFu)) - vec3(0, 0, EXTRA_NEG_Z) + model_offs - focus_off.xyz;
+    f_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0x1FFFFu) - EXTRA_NEG_Z) + model_offs - focus_off.xyz;
+
     // f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
     // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
 

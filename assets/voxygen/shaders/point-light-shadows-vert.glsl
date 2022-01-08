@@ -41,14 +41,14 @@ uniform u_locals {
 
 // out vec4 shadowMapCoord;
 
-const int EXTRA_NEG_Z = 32768;
+const float EXTRA_NEG_Z = 32768.0;
 
 layout( push_constant ) uniform PointLightMatrix {
   mat4 lightShadowMatrix;
 };
 
 void main() {
-    vec3 f_chunk_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+    vec3 f_chunk_pos = vec3(v_pos_norm & 0x3Fu, (v_pos_norm >> 6) & 0x3Fu, float((v_pos_norm >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
     vec3 f_pos = f_chunk_pos + model_offs - focus_off.xyz;
     // f_pos = v_pos;
     // vec3 f_pos = f_chunk_pos + model_offs;
