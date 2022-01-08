@@ -214,7 +214,7 @@ lazy_static! {
     /// 1. Running through airshipper (`assets` next to binary)
     /// 2. Install with package manager and run (assets probably in `/usr/share/veloren/assets` while binary in `/usr/bin/`)
     /// 3. Download & hopefully extract zip (`assets` next to binary)
-    /// 4. Running through cargo (`assets` in workspace root but not always in cwd incase you `cd voxygen && cargo r`)
+    /// 4. Running through cargo (`assets` in workspace root but not always in cwd in case you `cd voxygen && cargo r`)
     /// 5. Running executable in the target dir (`assets` in workspace)
     /// 6. Running tests (`assets` in workspace root)
     pub static ref ASSETS_PATH: PathBuf = {

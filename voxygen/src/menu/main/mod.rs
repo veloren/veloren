@@ -174,7 +174,7 @@ impl PlayState for MainMenuState {
                 self.init = InitState::None;
                 error!(?e, "Client Init failed raw error");
                 let e = get_client_msg_error(e, &global_state.i18n);
-                // Log error for possible additional use later or incase that the error
+                // Log error for possible additional use later or in case that the error
                 // displayed is cut of.
                 error!(?e, "Client Init failed");
                 global_state.info_message = Some(

@@ -32,7 +32,7 @@ logs, and code as it's tough to read otherwise.)
 
 #### System details
 
-(Include important system details like OS and incase it's a graphical issue the gpu)
+(Include important system details like OS and in case it's a graphical issue the gpu)
 
 #### Veloren version
 
