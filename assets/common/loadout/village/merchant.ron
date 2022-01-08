@@ -6,7 +6,6 @@
     Armor(Feet): Item("common.items.armor.merchant.foot"),
     Armor(Belt): Item("common.items.armor.merchant.belt"),
     Armor(Head): Item("common.items.armor.merchant.turban"),
-
     Lantern: Item("common.items.lantern.black_0"),
     Armor(Neck): Item("common.items.armor.misc.neck.gem_of_resilience"),
     Armor(Ring1): Item("common.items.armor.misc.ring.gold"),

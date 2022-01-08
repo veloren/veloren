@@ -1108,7 +1108,7 @@ fn weapon_bag(economy: Option<&trade::SiteInformation>) -> Item {
 fn ingredient_backpack(economy: Option<&trade::SiteInformation>, rng: &mut impl Rng) -> Item {
     #![warn(clippy::pedantic)]
 
-    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+    let mut bag = Item::new_from_asset_expect("common.items.armor.merchant.back");
     let slots = bag.slots_mut();
 
     // It's safe to truncate here, because coins clamped to 3000 max

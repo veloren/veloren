@@ -351,6 +351,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
         "common.abilities.shield.block" => imgs.onehshield_m2,
         // Dagger
         "common.abilities.dagger.tempbasic" => imgs.onehdagger_m1,
+        // Pickaxe
+        "common.abilities.pick.swing" => imgs.mining,
 
         _ => imgs.not_found,
     }
