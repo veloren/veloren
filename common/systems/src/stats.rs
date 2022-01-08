@@ -178,6 +178,7 @@ impl<'a> System<'a> for Sys {
                             impulse: Vec3::zero(),
                             by: None,
                             cause: None,
+                            time: *read_data.time,
                         };
                         poise.change(poise_change);
                         poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);

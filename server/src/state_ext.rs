@@ -170,11 +170,13 @@ impl StateExt for State {
                                 DamageContributor::new(uid, groups.get(attacker_entity).cloned())
                             })
                         });
+                        let time = self.ecs().read_resource::<Time>();
                         let poise_change = comp::PoiseChange {
                             amount: change,
                             impulse: Vec3::zero(),
                             cause: None,
                             by: damage_contributor,
+                            time: *time,
                         };
                         self.ecs()
                             .write_storage::<comp::Poise>()

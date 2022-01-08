@@ -283,6 +283,7 @@ impl Attack {
                             impulse: *dir,
                             by: attacker.map(|x| x.into()),
                             cause: Some(damage.damage.source),
+                            time,
                         };
                         if change.abs() > Poise::POISE_EPSILON {
                             emit(ServerEvent::PoiseChange {
@@ -354,6 +355,7 @@ impl Attack {
                                     impulse: *dir,
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
+                                    time,
                                 };
                                 emit(ServerEvent::PoiseChange {
                                     entity: target.entity,
@@ -496,6 +498,7 @@ impl Attack {
                                 impulse: *dir,
                                 by: attacker.map(|x| x.into()),
                                 cause: Some(attack_source.into()),
+                                time,
                             };
                             emit(ServerEvent::PoiseChange {
                                 entity: target.entity,
