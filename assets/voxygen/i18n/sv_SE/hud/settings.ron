@@ -12,6 +12,7 @@
         "hud.settings.debug_info": "Felsökningsinformation",
         "hud.settings.show_hitboxes": "Visa kollisionsgränser",
         "hud.settings.show_chat": "Visa chatt",
+        "hud.settings.show_hotkey_hints": "Visa snabbtangentstips",
         "hud.settings.tips_on_startup": "Tips vid uppstart",
         "hud.settings.ui_scale": "Skalning av gränssnitt",
         "hud.settings.relative_scaling": "Relativ skalning",
@@ -35,9 +36,9 @@
         "hud.settings.always_show_bars": "Visa alltid Energimätare",
         "hud.settings.values": "Värden",
         "hud.settings.percentages": "Procent",
-        "hud.settings.chat": "Konversation",
+        "hud.settings.chat": "Chatt",
         "hud.settings.background_opacity": "Bakgrundstransparens",
-        "hud.settings.chat_character_name": "Karaktärers namn i konverationer",
+        "hud.settings.chat_character_name": "Karaktärsnamn i chatten",
         "hud.settings.loading_tips": "Tips på laddningsskärmen",
         "hud.settings.reset_interface": "Återställ till standard",
 
@@ -102,6 +103,7 @@
         "hud.settings.lod_detail": " Detailjrikedom",
         "hud.settings.save_window_size": "Kom ihåg fönsterstorlek",
         "hud.settings.reset_graphics": "Återställ till standard",
+        "hud.settings.bloom": "Bloom",
 
         "hud.settings.master_volume": "Huvudvolym",
         "hud.settings.inactive_master_volume_perc": "Huvudvolym (inaktivt fönster)",
