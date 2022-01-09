@@ -189,123 +189,123 @@
     ),
     // 1h Swords
     Modular(("common.items.crafting_ing.modular.primary.sword.katana", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.sword.katana.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.bronze-1h", (-2.0, -2.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.longsword", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.sword.longsword.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.bronze-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.ornate", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.sword.ornate.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.bronze-1h", (-0.5, -3.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.sword.sabre.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.bronze-1h", (-2.0, -2.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.sword.sawblade.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.bronze-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.katana", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.sword.katana.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.iron-1h", (-2.0, -3.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.longsword", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.sword.longsword.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.iron-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.ornate", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.sword.ornate.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.iron-1h", (-1.5, -3.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.sword.sabre.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.iron-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.sword.sawblade.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.iron-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.katana", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.sword.katana.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.steel-1h", (-2.0, -3.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.longsword", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.sword.longsword.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.steel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.ornate", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.sword.ornate.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.steel-1h", (-2.5, -4.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.sword.sabre.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.steel-1h", (-1.5, -3.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.sword.sawblade.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.steel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.katana", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.sword.katana.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.cobalt-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.longsword", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.sword.longsword.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.cobalt-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.ornate", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.sword.ornate.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.cobalt-1h", (-2.5, -4.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.sword.sabre.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.cobalt-1h", (-2.0, -4.0, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.sword.sawblade.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.cobalt-1h", (-2.0, -4.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.katana", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.sword.katana.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.bloodsteel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.longsword", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.sword.longsword.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.bloodsteel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.ornate", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.sword.ornate.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.bloodsteel-1h", (-3.0, -3.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.sword.sabre.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.bloodsteel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.sword.sawblade.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.bloodsteel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.katana", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.sword.katana.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.katana.orichalcum-1h", (-2.0, -3.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.longsword", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.sword.longsword.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.longsword.orichalcum-1h", (-2.0, -4.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.ornate", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.sword.ornate.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.ornate.orichalcum-1h", (-2.5, -4.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.sword.sabre.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sabre.orichalcum-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.sword.sawblade.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sword.sawblade.orichalcum-1h", (-2.0, -4.0, -3.5)),
         color: None
     ),
     Tool("common.items.weapons.sword_1h.starter"): (
@@ -495,99 +495,99 @@
     ),
     // 1h Axes
     Modular(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.axe.axe.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.axe.bronze-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.axe.battleaxe.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.battleaxe.bronze-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.jagged", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.axe.jagged.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.jagged.bronze-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.axe.ornate.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.ornate.bronze-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.axe.axe.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.axe.iron-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.axe.battleaxe.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.battleaxe.iron-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.jagged", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.axe.jagged.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.jagged.iron-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.axe.ornate.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.ornate.iron-1h", (-1.5, -2.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.axe.axe.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.axe.steel-1h", (-1.5, -5.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.axe.battleaxe.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.battleaxe.steel-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.jagged", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.axe.jagged.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.jagged.steel-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.axe.ornate.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.ornate.steel-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.axe.axe.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.axe.cobalt-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.axe.battleaxe.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.battleaxe.cobalt-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.jagged", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.axe.jagged.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.jagged.cobalt-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.axe.ornate.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.ornate.cobalt-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.axe.axe.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.axe.bloodsteel-1h", (-1.5, -6.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.axe.battleaxe.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.battleaxe.bloodsteel-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.jagged", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.axe.jagged.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.jagged.bloodsteel-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.axe.ornate.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.ornate.bloodsteel-1h", (-1.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.axe.axe.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.axe.orichalcum-1h", (-1.5, -5.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.axe.battleaxe.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.battleaxe.orichalcum-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.jagged", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.axe.jagged.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.jagged.orichalcum-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.axe.ornate.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.axe.ornate.orichalcum-1h", (-1.5, -3.0, -2.5)),
         color: None
     ),
     // Hammers
@@ -789,99 +789,123 @@
     ),
     // 1h Hammers
     Modular(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.hammer.hammer.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.hammer.bronze-1h", (-2.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.maul", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.hammer.maul.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.maul.bronze-1h", (-2.0, -3.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.hammer.ornate.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.ornate.bronze-1h", (-2.5, -3.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.bronze", One)): (
-        vox_spec: ("weapon.hammer.spikedmace.bronze-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.spikedmace.bronze-1h", (-2.5, -3.0, -2.5)),
+        color: None
+    ),
+    Modular(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.bronze", One)): (
+        vox_spec: ("weapon.hammer.warhammer.bronze-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.hammer.hammer.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.hammer.iron-1h", (-2.5, -2.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.maul", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.hammer.maul.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.maul.iron-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.hammer.ornate.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.ornate.iron-1h", (-2.5, -3.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.iron", One)): (
-        vox_spec: ("weapon.hammer.spikedmace.iron-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.spikedmace.iron-1h", (-2.5, -4.0, -2.5)),
+        color: None
+    ),
+    Modular(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.iron", One)): (
+        vox_spec: ("weapon.hammer.warhammer.bronze-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.hammer.hammer.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.hammer.steel-1h", (-2.5, -3.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.maul", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.hammer.maul.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.maul.steel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.hammer.ornate.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.ornate.steel-1h", (-2.5, -3.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.steel", One)): (
-        vox_spec: ("weapon.hammer.spikedmace.steel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.spikedmace.steel-1h", (-2.5, -3.0, -2.5)),
+        color: None
+    ),
+    Modular(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.steel", One)): (
+        vox_spec: ("weapon.hammer.warhammer.steel-1h", (-1.5, -4.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.hammer.hammer.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.hammer.cobalt-1h", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.maul", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.hammer.maul.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.maul.cobalt-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.hammer.ornate.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.ornate.cobalt-1h", (-2.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.cobalt", One)): (
-        vox_spec: ("weapon.hammer.spikedmace.cobalt-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.spikedmace.cobalt-1h", (-3.5, -4.0, -3.5)),
+        color: None
+    ),
+    Modular(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.cobalt", One)): (
+        vox_spec: ("weapon.hammer.warhammer.cobalt-1h", (-2.5, -4.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.hammer.hammer.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.hammer.bloodsteel-1h", (-2.5, -3.0, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.maul", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.hammer.maul.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.maul.bloodsteel-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.hammer.ornate.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.ornate.bloodsteel-1h", (-1.5, -4.0, -4.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.bloodsteel", One)): (
-        vox_spec: ("weapon.hammer.spikedmace.bloodsteel-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.spikedmace.bloodsteel-1h", (-2.5, -4.0, -4.5)),
+        color: None
+    ),
+    Modular(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.bloodsteel", One)): (
+        vox_spec: ("weapon.hammer.warhammer.bloodsteel-1h", (-2.5, -5.0, -3.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.hammer.hammer.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.hammer.orichalcum-1h", (-2.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.maul", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.hammer.maul.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.maul.orichalcum-1h", (-2.0, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.hammer.ornate.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.ornate.orichalcum-1h", (-1.5, -4.0, -2.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.orichalcum", One)): (
-        vox_spec: ("weapon.hammer.spikedmace.orichalcum-1h", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.hammer.spikedmace.orichalcum-1h", (-3.5, -5.0, -2.5)),
+        color: None
+    ),
+    Modular(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.orichalcum", One)): (
+        vox_spec: ("weapon.hammer.warhammer.orichalcum-1h", (-2.5, -5.0, -3.5)),
         color: None
     ),
     // Daggers

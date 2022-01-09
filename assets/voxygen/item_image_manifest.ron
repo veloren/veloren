@@ -1093,6 +1093,10 @@
         "voxel.weapon.hammer.spikedmace.bronze-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
+    ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.bronze", One)): VoxTrans(
+        "voxel.weapon.hammer.warhammer.bronze-1h",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.iron", One)): VoxTrans(
         "voxel.weapon.hammer.hammer.iron-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
@@ -1107,6 +1111,10 @@
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.iron", One)): VoxTrans(
         "voxel.weapon.hammer.spikedmace.iron-1h",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.iron", One)): VoxTrans(
+        "voxel.weapon.hammer.warhammer.iron-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.steel", One)): VoxTrans(
@@ -1125,6 +1133,10 @@
         "voxel.weapon.hammer.spikedmace.steel-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
+    ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.steel", One)): VoxTrans(
+        "voxel.weapon.hammer.warhammer.steel-1h",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.cobalt", One)): VoxTrans(
         "voxel.weapon.hammer.hammer.cobalt-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
@@ -1139,6 +1151,10 @@
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.cobalt", One)): VoxTrans(
         "voxel.weapon.hammer.spikedmace.cobalt-1h",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.cobalt", One)): VoxTrans(
+        "voxel.weapon.hammer.warhammer.cobalt-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.bloodsteel", One)): VoxTrans(
@@ -1157,6 +1173,10 @@
         "voxel.weapon.hammer.spikedmace.bloodsteel-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
+    ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.bloodsteel", One)): VoxTrans(
+        "voxel.weapon.hammer.warhammer.bloodsteel-1h",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.hammer", "common.items.mineral.ingot.orichalcum", One)): VoxTrans(
         "voxel.weapon.hammer.hammer.orichalcum-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
@@ -1171,6 +1191,10 @@
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.orichalcum", One)): VoxTrans(
         "voxel.weapon.hammer.spikedmace.orichalcum-1h",
+        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+    ),
+    ModularWeapon(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.orichalcum", One)): VoxTrans(
+        "voxel.weapon.hammer.warhammer.orichalcum-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     // Staffs
