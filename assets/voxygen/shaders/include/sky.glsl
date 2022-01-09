@@ -363,7 +363,7 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     //
     // H_t = H_b R_b + H_d R_d + (H_b + H_d) R_r
     float sin_beta = dot(vec3(0, 1, 0), norm);
-    float R_b = sqrt(1.0 - sin_beta * sin_beta);
+    float R_b = sqrt(max(0.0, 1.0 - sin_beta * sin_beta));
     // Rough estimate of diffuse reflectance of rest of ground.
     // NOTE: zeta should be close to 0.7 with snow cover, 0.2 normally?  Maybe?
     vec3 zeta = max(vec3(0.2), k_d * (1.0 - k_s));//vec3(0.2);// k_d * (1.0 - k_s);
