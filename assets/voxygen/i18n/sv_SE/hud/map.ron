@@ -26,7 +26,7 @@
         "hud.map.mid_click": "Markera landmärke",
         "hud.map.recenter": "Omcentrera",
         "hud.map.marked_location": "Markerad Plats",
-        "hud.map.marked_location_remove": "Klicka för att ta bort",
+        "hud.map.marked_location_remove": "Klicka för att ta bort", // Comment to disable "Outdated" marking. Remove next time this translation changes
         "hud.map.change_map_mode": "Ändra kartläge",
         "hud.map.toggle_minimap_voxel": "Växla Minikartans Voxelvy",
         "hud.map.zoom_minimap_explanation": "Zooma in Minikartan för att se\nområdet runtom dig i högre detalj",
