@@ -51,8 +51,8 @@ layout(location = 4) out vec2 f_inst_light;
 const float SCALE = 1.0 / 11.0;
 const float SCALE_FACTOR = pow(SCALE, 1.3) * 0.2;
 
-const int EXTRA_NEG_Z = 32768;
-const int VERT_EXTRA_NEG_Z = 128;
+const float EXTRA_NEG_Z = 32768.0;
+const float VERT_EXTRA_NEG_Z = 128.0;
 const uint VERT_PAGE_SIZE = 256;
 
 void main() {
@@ -75,7 +75,7 @@ void main() {
     uint v_atlas_pos = pos_atlas_pos_norm_ao.y;
 
     // Expand the model vertex position bits into float values
-    vec3 v_pos = vec3(ivec3((uvec3(v_pos_norm) >> uvec3(0, 8, 16)) & uvec3(0xFFu, 0xFFu, 0x0FFFu)) - ivec3(0, 0, VERT_EXTRA_NEG_Z));
+    vec3 v_pos = vec3(v_pos_norm & 0xFFu, (v_pos_norm >> 8) & 0xFFu, float((v_pos_norm >> 16) & 0x0FFFu) - VERT_EXTRA_NEG_Z);
 
     // Transform into chunk space and scale
     f_pos = (inst_mat * vec4(v_pos, 1.0)).xyz;
@@ -118,7 +118,7 @@ void main() {
 
     // Position of the sprite block in the chunk
     // Used solely for highlighting the selected sprite 
-    vec3 inst_chunk_pos = vec3(ivec3((uvec3(inst_pos_ori) >> uvec3(0, 6, 12)) & uvec3(0x3Fu, 0x3Fu, 0xFFFFu)) - ivec3(0, 0, EXTRA_NEG_Z));
+    vec3 inst_chunk_pos = vec3(inst_pos_ori & 0x3Fu, (inst_pos_ori >> 6) & 0x3Fu, float((inst_pos_ori >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
     // Select glowing
     vec3 sprite_pos = inst_chunk_pos + chunk_offs;
     f_select = (select_pos.w > 0 && select_pos.xyz == sprite_pos) ? 1.0 : 0.0;
