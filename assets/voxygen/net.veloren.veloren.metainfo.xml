@@ -60,6 +60,11 @@
     </screenshot>
   </screenshots>
 
+  <requires>
+    <control>pointing</control>
+    <control>keyboard</control>
+  </requires>
+
   <keywords>
     <keyword>multiplayer</keyword>
     <keyword>sandbox</keyword>
