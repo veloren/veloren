@@ -1,7 +1,10 @@
 use crate::{
     comp::{
         ability,
-        inventory::slot::{EquipSlot, InvSlotId, Slot},
+        inventory::{
+            item::tool::ToolKind,
+            slot::{EquipSlot, InvSlotId, Slot},
+        },
         invite::{InviteKind, InviteResponse},
         BuffKind,
     },
@@ -102,6 +105,13 @@ pub enum CraftEvent {
     ModularWeapon {
         primary_component: InvSlotId,
         secondary_component: InvSlotId,
+    },
+    // TODO: Maybe try to consolidate into another? Otherwise eventually make more general.
+    ModularWeaponPrimaryComponent {
+        toolkind: ToolKind,
+        material: InvSlotId,
+        modifier: Option<InvSlotId>,
+        slots: Vec<(u32, InvSlotId)>,
     },
 }
 

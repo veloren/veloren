@@ -25,7 +25,7 @@ use common::{
         chat::{KillSource, KillType},
         controller::CraftEvent,
         group,
-        inventory::item::{modular, ItemKind},
+        inventory::item::{modular, tool, ItemKind},
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
@@ -39,7 +39,7 @@ use common::{
     lod,
     mounting::Rider,
     outcome::Outcome,
-    recipe::RecipeBook,
+    recipe::{ComponentRecipeBook, RecipeBook},
     resources::{PlayerEntity, TimeOfDay},
     spiral::Spiral2d,
     terrain::{
@@ -173,6 +173,7 @@ pub struct Client {
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
+    component_recipe_book: ComponentRecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
@@ -291,6 +292,7 @@ impl Client {
             sites,
             pois,
             recipe_book,
+            component_recipe_book,
             max_group_size,
             client_timeout,
         ) = match loop {
@@ -306,6 +308,7 @@ impl Client {
                 client_timeout,
                 world_map,
                 recipe_book,
+                component_recipe_book,
                 material_stats,
                 ability_map,
             } => {
@@ -593,6 +596,7 @@ impl Client {
                     world_map.sites,
                     world_map.pois,
                     recipe_book,
+                    component_recipe_book,
                     max_group_size,
                     client_timeout,
                 ))
@@ -627,6 +631,7 @@ impl Client {
                 .collect(),
             pois,
             recipe_book,
+            component_recipe_book,
             available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
 
@@ -1006,6 +1011,8 @@ impl Client {
 
     pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
 
+    pub fn component_recipe_book(&self) -> &ComponentRecipeBook { &self.component_recipe_book }
+
     pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
         &self.available_recipes
     }
@@ -1129,6 +1136,27 @@ impl Client {
         } else {
             false
         }
+    }
+
+    pub fn craft_modular_weapon_component(
+        &mut self,
+        toolkind: tool::ToolKind,
+        material: InvSlotId,
+        modifier: Option<InvSlotId>,
+        slots: Vec<(u32, InvSlotId)>,
+        sprite_pos: Option<Vec3<i32>>,
+    ) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+            InventoryEvent::CraftRecipe {
+                craft_event: CraftEvent::ModularWeaponPrimaryComponent {
+                    toolkind,
+                    material,
+                    modifier,
+                    slots,
+                },
+                craft_sprite: sprite_pos,
+            },
+        )));
     }
 
     fn update_available_recipes(&mut self) {

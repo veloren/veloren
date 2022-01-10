@@ -11,7 +11,7 @@ use common::{
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
-    recipe::{self, default_recipe_book},
+    recipe::{self, default_component_recipe_book, default_recipe_book},
     terrain::SpriteKind,
     trade::Trades,
     uid::Uid,
@@ -593,7 +593,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             craft_sprite,
         } => {
             use comp::controller::CraftEvent;
+            use recipe::ComponentKey;
             let recipe_book = default_recipe_book().read();
+            let component_recipes = default_component_recipe_book().read();
             let ability_map = &state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
 
@@ -703,6 +705,64 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         )
                         .ok()
                         .map(|item| vec![item])
+                    } else {
+                        None
+                    }
+                },
+                CraftEvent::ModularWeaponPrimaryComponent {
+                    toolkind,
+                    material,
+                    modifier,
+                    slots,
+                } => {
+                    let item_id = |slot| inventory.get(slot).map(|item| item.item_definition_id());
+                    if let Some(material_item_id) = item_id(material) {
+                        component_recipes
+                            .get(&ComponentKey {
+                                toolkind,
+                                material: String::from(material_item_id),
+                                modifier: modifier.and_then(item_id).map(String::from),
+                            })
+                            .filter(|r| {
+                                if let Some(needed_sprite) = r.craft_sprite {
+                                    let sprite = craft_sprite
+                                        .filter(|pos| {
+                                            let entity_cylinder = get_cylinder(state, entity);
+                                            if !within_pickup_range(entity_cylinder, || {
+                                                Some(find_dist::Cube {
+                                                    min: pos.as_(),
+                                                    side_length: 1.0,
+                                                })
+                                            }) {
+                                                debug!(
+                                                    ?entity_cylinder,
+                                                    "Failed to craft recipe as not within range \
+                                                     of required sprite, sprite pos: {}",
+                                                    pos
+                                                );
+                                                false
+                                            } else {
+                                                true
+                                            }
+                                        })
+                                        .and_then(|pos| state.terrain().get(pos).ok().copied())
+                                        .and_then(|block| block.get_sprite());
+                                    Some(needed_sprite) == sprite
+                                } else {
+                                    true
+                                }
+                            })
+                            .and_then(|r| {
+                                r.craft_component(
+                                    &mut inventory,
+                                    material,
+                                    modifier,
+                                    slots,
+                                    &state.ecs().read_resource::<AbilityMap>(),
+                                    &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                                )
+                                .ok()
+                            })
                     } else {
                         None
                     }

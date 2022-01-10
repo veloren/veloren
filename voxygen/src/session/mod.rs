@@ -25,6 +25,7 @@ use common::{
     link::Is,
     mounting::Mount,
     outcome::Outcome,
+    recipe,
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{Dir, Plane},
@@ -1430,6 +1431,48 @@ impl PlayState for SessionState {
                             secondary_slot,
                             craft_sprite.map(|(pos, _sprite)| pos),
                         );
+                    },
+                    HudEvent::CraftModularWeaponComponent {
+                        toolkind,
+                        material,
+                        modifier,
+                        craft_sprite,
+                    } => {
+                        let additional_slots = {
+                            let client = self.client.borrow();
+                            let item_id = |slot| {
+                                client
+                                    .inventories()
+                                    .get(client.entity())
+                                    .and_then(|inv| inv.get(slot))
+                                    .map(|item| String::from(item.item_definition_id()))
+                            };
+                            if let Some(material_id) = item_id(material) {
+                                let key = recipe::ComponentKey {
+                                    toolkind,
+                                    material: material_id,
+                                    modifier: modifier.and_then(item_id),
+                                };
+                                if let Some(recipe) = client.component_recipe_book().get(&key) {
+                                    client.inventories().get(client.entity()).and_then(|inv| {
+                                        recipe.inventory_contains_additional_ingredients(inv).ok()
+                                    })
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        };
+                        if let Some(additional_slots) = additional_slots {
+                            self.client.borrow_mut().craft_modular_weapon_component(
+                                toolkind,
+                                material,
+                                modifier,
+                                additional_slots,
+                                craft_sprite.map(|(pos, _sprite)| pos),
+                            );
+                        }
                     },
                     HudEvent::SalvageItem { slot, salvage_pos } => {
                         self.client.borrow_mut().salvage_item(slot, salvage_pos);

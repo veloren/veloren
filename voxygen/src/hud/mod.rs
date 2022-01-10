@@ -538,6 +538,12 @@ pub enum Event {
         secondary_slot: InvSlotId,
         craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
     },
+    CraftModularWeaponComponent {
+        toolkind: ToolKind,
+        material: InvSlotId,
+        modifier: Option<InvSlotId>,
+        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -2959,6 +2965,18 @@ impl Hud {
                                 craft_sprite: self.show.crafting_fields.craft_sprite,
                             });
                         },
+                        crafting::Event::CraftModularWeaponComponent {
+                            toolkind,
+                            material,
+                            modifier,
+                        } => {
+                            events.push(Event::CraftModularWeaponComponent {
+                                toolkind,
+                                material,
+                                modifier,
+                                craft_sprite: self.show.crafting_fields.craft_sprite,
+                            });
+                        },
                         crafting::Event::Close => {
                             self.show.stats = false;
                             self.show.crafting(false);
@@ -2977,6 +2995,9 @@ impl Hud {
                         },
                         crafting::Event::SearchRecipe(search_key) => {
                             self.show.search_crafting_recipe(search_key);
+                        },
+                        crafting::Event::ClearRecipeInputs => {
+                            self.show.crafting_fields.recipe_inputs.clear();
                         },
                     }
                 }

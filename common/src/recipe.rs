@@ -3,7 +3,9 @@ use crate::{
     comp::{
         inventory::slot::InvSlotId,
         item::{
-            modular, tool::AbilityMap, ItemBase, ItemDef, ItemKind, ItemTag, MaterialStatManifest,
+            modular,
+            tool::{AbilityMap, ToolKind},
+            ItemBase, ItemDef, ItemKind, ItemTag, MaterialStatManifest,
         },
         Inventory, Item,
     },
@@ -154,53 +156,66 @@ impl Recipe {
             .map(|(item_def, amount, is_mod_comp)| (item_def, *amount, *is_mod_comp))
     }
 
-    /// Determine whether the inventory contains the ingredients for a recipe.
-    /// If it does, return a vec of  inventory slots that contain the
-    /// ingredients needed, whose positions correspond to particular recipe
-    /// inputs. If items are missing, return the missing items, and how many
-    /// are missing.
+    /// Determines if the inventory contains the ingredients for a given recipe
     pub fn inventory_contains_ingredients(
         &self,
         inv: &Inventory,
     ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
-        // Hashmap tracking the quantity that needs to be removed from each slot (so
-        // that it doesn't think a slot can provide more items than it contains)
-        let mut slot_claims = HashMap::<InvSlotId, u32>::new();
-        // Important to be a vec and to remain separate from slot_claims as it must
-        // remain ordered, unlike the hashmap
-        let mut slots = Vec::<(u32, InvSlotId)>::new();
-        // The inputs to a recipe that have missing items, and the amount missing
-        let mut missing = Vec::<(&RecipeInput, u32)>::new();
+        inventory_contains_ingredients(
+            self.inputs()
+                .map(|(input, amount, _is_modular)| (input, amount)),
+            inv,
+        )
+    }
+}
 
-        for (i, (input, amount, _)) in self.inputs().enumerate() {
-            let mut needed = amount;
-            let mut contains_any = false;
-            // Checks through every slot, filtering to only those that contain items that
-            // can satisfy the input
-            for (inv_slot_id, slot) in inv.slots_with_id() {
-                if let Some(item) = slot
-                    .as_ref()
-                    .filter(|item| item.matches_recipe_input(&*input, amount))
-                {
-                    let claim = slot_claims.entry(inv_slot_id).or_insert(0);
-                    slots.push((i as u32, inv_slot_id));
-                    let can_claim = (item.amount().saturating_sub(*claim)).min(needed);
-                    *claim += can_claim;
-                    needed -= can_claim;
-                    contains_any = true;
-                }
-            }
+/// Determine whether the inventory contains the ingredients for a recipe.
+/// If it does, return a vec of  inventory slots that contain the
+/// ingredients needed, whose positions correspond to particular recipe
+/// inputs. If items are missing, return the missing items, and how many
+/// are missing.
+#[allow(clippy::type_complexity)]
+fn inventory_contains_ingredients<'a, 'b, I: Iterator<Item = (&'a RecipeInput, u32)>>(
+    ingredients: I,
+    inv: &'b Inventory,
+) -> Result<Vec<(u32, InvSlotId)>, Vec<(&'a RecipeInput, u32)>> {
+    // Hashmap tracking the quantity that needs to be removed from each slot (so
+    // that it doesn't think a slot can provide more items than it contains)
+    let mut slot_claims = HashMap::<InvSlotId, u32>::new();
+    // Important to be a vec and to remain separate from slot_claims as it must
+    // remain ordered, unlike the hashmap
+    let mut slots = Vec::<(u32, InvSlotId)>::new();
+    // The inputs to a recipe that have missing items, and the amount missing
+    let mut missing = Vec::<(&RecipeInput, u32)>::new();
 
-            if needed > 0 || !contains_any {
-                missing.push((input, needed));
+    for (i, (input, amount)) in ingredients.enumerate() {
+        let mut needed = amount;
+        let mut contains_any = false;
+        // Checks through every slot, filtering to only those that contain items that
+        // can satisfy the input
+        for (inv_slot_id, slot) in inv.slots_with_id() {
+            if let Some(item) = slot
+                .as_ref()
+                .filter(|item| item.matches_recipe_input(&*input, amount))
+            {
+                let claim = slot_claims.entry(inv_slot_id).or_insert(0);
+                slots.push((i as u32, inv_slot_id));
+                let can_claim = (item.amount().saturating_sub(*claim)).min(needed);
+                *claim += can_claim;
+                needed -= can_claim;
+                contains_any = true;
             }
         }
 
-        if missing.is_empty() {
-            Ok(slots)
-        } else {
-            Err(missing)
+        if needed > 0 || !contains_any {
+            missing.push((input, needed));
         }
+    }
+
+    if missing.is_empty() {
+        Ok(slots)
+    } else {
+        Err(missing)
     }
 }
 
@@ -443,6 +458,331 @@ impl assets::Compound for RecipeBook {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComponentRecipeBook {
+    recipes: HashMap<ComponentKey, ComponentRecipe>,
+}
+
+impl ComponentRecipeBook {
+    pub fn get(&self, key: &ComponentKey) -> Option<&ComponentRecipe> { self.recipes.get(key) }
+
+    pub fn iter(&self) -> impl ExactSizeIterator<Item = (&ComponentKey, &ComponentRecipe)> {
+        self.recipes.iter()
+    }
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(transparent)]
+struct RawComponentRecipeBook(HashMap<ComponentKey, RawComponentRecipe>);
+
+impl assets::Asset for RawComponentRecipeBook {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, Hash, Eq, PartialEq)]
+pub struct ComponentKey {
+    // Can't use ItemDef here because hash needed, item definition id used instead
+    // TODO: Figure out how to get back to ItemDef maybe?
+    // Keeping under ComponentRecipe may be sufficient?
+    // TODO: Make more general for other things that have component inputs that should be tracked
+    // after item creation
+    pub toolkind: ToolKind,
+    pub material: String,
+    pub modifier: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct ComponentRecipe {
+    output: ComponentOutput,
+    material: (RecipeInput, u32),
+    modifier: Option<(RecipeInput, u32)>,
+    additional_inputs: Vec<(RecipeInput, u32)>,
+    pub craft_sprite: Option<SpriteKind>,
+}
+
+impl ComponentRecipe {
+    /// Craft an itme that has components, returning a list of missing items on
+    /// failure
+    pub fn craft_component(
+        &self,
+        inv: &mut Inventory,
+        material_slot: InvSlotId,
+        modifier_slot: Option<InvSlotId>,
+        // Vec tying an input to a slot
+        slots: Vec<(u32, InvSlotId)>,
+        ability_map: &AbilityMap,
+        msm: &MaterialStatManifest,
+    ) -> Result<Vec<Item>, Vec<(&RecipeInput, u32)>> {
+        let mut slot_claims = HashMap::new();
+        let mut unsatisfied_requirements = Vec::new();
+
+        fn handle_requirement<'a, 'b, I: Iterator<Item = InvSlotId>>(
+            slot_claims: &mut HashMap<InvSlotId, u32>,
+            unsatisfied_requirements: &mut Vec<(&'a RecipeInput, u32)>,
+            inv: &'b Inventory,
+            input: &'a RecipeInput,
+            amount: u32,
+            input_slots: I,
+        ) {
+            let mut required = amount;
+            // Check used for recipes that have an input that is not consumed, e.g.
+            // craftsman hammer
+            let mut contains_any = false;
+            // Goes through each slot and marks some amount from each slot as claimed
+            for slot in input_slots {
+                // Checks that the item in the slot can be used for the input
+                if let Some(item) = inv
+                    .get(slot)
+                    .filter(|item| item.matches_recipe_input(input, amount))
+                {
+                    // Gets the number of items claimed from the slot, or sets to 0 if slot has
+                    // not been claimed by another input yet
+                    let claimed = slot_claims.entry(slot).or_insert(0);
+                    let available = item.amount().saturating_sub(*claimed);
+                    let provided = available.min(required);
+                    required -= provided;
+                    *claimed += provided;
+                    contains_any = true;
+                }
+            }
+            // If there were not sufficient items to cover requirement between all provided
+            // slots, or if non-consumed item was not present, mark input as not satisfied
+            if required > 0 || !contains_any {
+                unsatisfied_requirements.push((input, required));
+            }
+        }
+
+        // Checks each input against slots in the inventory. If the slots contain an
+        // item that fulfills the need of the input, marks some of the item as claimed
+        // up to quantity needed for the crafting input. If the item either
+        // cannot be used, or there is insufficient quantity, adds input and
+        // number of materials needed to unsatisfied requirements.
+        handle_requirement(
+            &mut slot_claims,
+            &mut unsatisfied_requirements,
+            inv,
+            &self.material.0,
+            self.material.1,
+            core::iter::once(material_slot),
+        );
+        if let Some((modifier_input, modifier_amount)) = &self.modifier {
+            // TODO: Better way to get slot to use that ensures this requirement fails if no
+            // slot provided?
+            handle_requirement(
+                &mut slot_claims,
+                &mut unsatisfied_requirements,
+                inv,
+                modifier_input,
+                *modifier_amount,
+                core::iter::once(modifier_slot.unwrap_or(InvSlotId::new(0, 0))),
+            );
+        }
+        self.additional_inputs
+            .iter()
+            .enumerate()
+            .for_each(|(i, (input, amount))| {
+                // Gets all slots provided for this input by the frontend
+                let input_slots = slots
+                    .iter()
+                    .filter_map(|(j, slot)| if i as u32 == *j { Some(slot) } else { None })
+                    .copied();
+                // Checks if requirement is met, and if not marks it as unsatisfied
+                handle_requirement(
+                    &mut slot_claims,
+                    &mut unsatisfied_requirements,
+                    inv,
+                    input,
+                    *amount,
+                    input_slots,
+                );
+            });
+
+        // If there are no unsatisfied requirements, create the items produced by the
+        // recipe in the necessary quantity and remove the items that the recipe
+        // consumes
+        if unsatisfied_requirements.is_empty() {
+            for (slot, to_remove) in slot_claims.iter() {
+                for _ in 0..*to_remove {
+                    let _ = inv
+                        .take(*slot, ability_map, msm)
+                        .expect("Expected item to exist in the inventory");
+                }
+            }
+
+            let crafted_item = self.item_output(ability_map, msm);
+
+            Ok(vec![crafted_item])
+        } else {
+            Err(unsatisfied_requirements)
+        }
+    }
+
+    #[allow(clippy::type_complexity)]
+    /// Determines if the inventory contains the ignredients for a given recipe
+    pub fn inventory_contains_additional_ingredients<'a>(
+        &self,
+        inv: &'a Inventory,
+    ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
+        inventory_contains_ingredients(
+            self.additional_inputs
+                .iter()
+                .map(|(input, amount)| (input, *amount)),
+            inv,
+        )
+    }
+
+    pub fn item_output(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Item {
+        match &self.output {
+            ComponentOutput::Item(item_def) => Item::new_from_item_base(
+                ItemBase::Raw(Arc::clone(item_def)),
+                Vec::new(),
+                ability_map,
+                msm,
+            ),
+            ComponentOutput::ItemComponents {
+                item: item_def,
+                components,
+            } => {
+                let components = components
+                    .iter()
+                    .map(|item_def| {
+                        Item::new_from_item_base(
+                            ItemBase::Raw(Arc::clone(item_def)),
+                            Vec::new(),
+                            ability_map,
+                            msm,
+                        )
+                    })
+                    .collect::<Vec<_>>();
+                Item::new_from_item_base(
+                    ItemBase::Raw(Arc::clone(item_def)),
+                    components,
+                    ability_map,
+                    msm,
+                )
+            },
+        }
+    }
+}
+
+#[derive(Clone, Deserialize)]
+struct RawComponentRecipe {
+    output: RawComponentOutput,
+    material: (RawRecipeInput, u32),
+    modifier: Option<(RawRecipeInput, u32)>,
+    additional_inputs: Vec<(RawRecipeInput, u32)>,
+    craft_sprite: Option<SpriteKind>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum ComponentOutput {
+    Item(Arc<ItemDef>),
+    ItemComponents {
+        item: Arc<ItemDef>,
+        components: Vec<Arc<ItemDef>>,
+    },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+enum RawComponentOutput {
+    Item(String),
+    ItemComponents {
+        item: String,
+        components: Vec<String>,
+    },
+}
+
+impl assets::Compound for ComponentRecipeBook {
+    fn load<S: assets::source::Source + ?Sized>(
+        cache: &assets::AssetCache<S>,
+        specifier: &str,
+    ) -> Result<Self, assets::BoxedError> {
+        #[inline]
+        fn load_recipe_input(
+            (input, amount): &(RawRecipeInput, u32),
+        ) -> Result<(RecipeInput, u32), assets::Error> {
+            let def = match &input {
+                RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
+                RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
+                RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag),
+                RawRecipeInput::ListSameItem(list) => {
+                    let assets = &ItemList::load_expect(list).read().0;
+                    let items = assets
+                        .iter()
+                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
+                        .collect();
+                    RecipeInput::ListSameItem(items)
+                },
+            };
+            Ok((def, *amount))
+        }
+
+        #[inline]
+        fn load_recipe_output(
+            output: &RawComponentOutput,
+        ) -> Result<ComponentOutput, assets::Error> {
+            let def = match &output {
+                RawComponentOutput::Item(def) => {
+                    ComponentOutput::Item(Arc::<ItemDef>::load_cloned(def)?)
+                },
+                RawComponentOutput::ItemComponents {
+                    item: def,
+                    components: defs,
+                } => ComponentOutput::ItemComponents {
+                    item: Arc::<ItemDef>::load_cloned(def)?,
+                    components: defs
+                        .iter()
+                        .map(|def| Arc::<ItemDef>::load_cloned(def))
+                        .collect::<Result<Vec<_>, _>>()?,
+                },
+            };
+            Ok(def)
+        }
+
+        let raw = cache.load::<RawComponentRecipeBook>(specifier)?.cloned();
+
+        let recipes = raw
+            .0
+            .iter()
+            .map(
+                |(
+                    key,
+                    RawComponentRecipe {
+                        output,
+                        material,
+                        modifier,
+                        additional_inputs,
+                        craft_sprite,
+                    },
+                )| {
+                    let additional_inputs = additional_inputs
+                        .iter()
+                        .map(load_recipe_input)
+                        .collect::<Result<Vec<_>, _>>()?;
+                    let material = load_recipe_input(material)?;
+                    let modifier = modifier.as_ref().map(load_recipe_input).transpose()?;
+                    let output = load_recipe_output(output)?;
+                    Ok((key.clone(), ComponentRecipe {
+                        output,
+                        material,
+                        modifier,
+                        additional_inputs,
+                        craft_sprite: *craft_sprite,
+                    }))
+                },
+            )
+            .collect::<Result<_, assets::Error>>()?;
+
+        Ok(ComponentRecipeBook { recipes })
+    }
+}
+
 pub fn default_recipe_book() -> AssetHandle<RecipeBook> {
     RecipeBook::load_expect("common.recipe_book")
+}
+
+pub fn default_component_recipe_book() -> AssetHandle<ComponentRecipeBook> {
+    ComponentRecipeBook::load_expect("common.component_recipe_book")
 }

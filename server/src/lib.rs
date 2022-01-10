@@ -75,7 +75,7 @@ use common::{
     cmd::ChatCommand,
     comp,
     event::{EventBus, ServerEvent},
-    recipe::default_recipe_book,
+    recipe::{default_component_recipe_book, default_recipe_book},
     resources::{BattleMode, Time, TimeOfDay},
     rtsim::RtSimEntity,
     slowjob::SlowJobPool,
@@ -1087,6 +1087,7 @@ impl Server {
                 client_timeout: self.settings().client_timeout,
                 world_map: self.map.clone(),
                 recipe_book: default_recipe_book().cloned(),
+                component_recipe_book: default_component_recipe_book().cloned(),
                 material_stats: (&*self
                     .state
                     .ecs()

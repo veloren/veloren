@@ -240,13 +240,11 @@ pub struct CraftSlot {
     pub index: u32,
     pub invslot: Option<InvSlotId>,
     pub requirement: fn(Option<&Inventory>, InvSlotId) -> bool,
-    pub required_amount: u32,
 }
 
 impl PartialEq for CraftSlot {
     fn eq(&self, other: &Self) -> bool {
-        (self.index, self.invslot, self.required_amount)
-            == (other.index, other.invslot, other.required_amount)
+        (self.index, self.invslot) == (other.index, other.invslot)
     }
 }
 
@@ -266,7 +264,7 @@ impl SlotKey<Inventory, ItemImgs> for CraftSlot {
     fn amount(&self, source: &Inventory) -> Option<u32> {
         self.invslot
             .and_then(|invslot| source.get(invslot))
-            .map(|item| self.required_amount.min(item.amount()))
+            .map(|item| item.amount())
             .filter(|amount| *amount > 1)
     }
 
