@@ -981,8 +981,8 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
         // independent for now
         // let damage_rating = stats.power * stats.speed * (1.0 + stats.crit_chance * 0.5);
 
-        let damage_rating = (stats.power + stats.speed + stats.crit_chance + stats.range + stats.effect_power
-            + (stats.equip_time_secs * 0.5)) / (DAMAGE_WEIGHT + EFFECT_WEIGHT);
+        let damage_rating = (stats.power + stats.speed + stats.crit_chance + stats.range + (0.6 * stats.effect_power)
+            + ((1.0 - stats.equip_time_secs) * 0.5)) / (DAMAGE_WEIGHT + EFFECT_WEIGHT);
 
         // let effect_rating = stats.effect_power * stats.speed;
 
