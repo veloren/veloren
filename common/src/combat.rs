@@ -10,7 +10,7 @@ use crate::{
             },
             slot::EquipSlot,
         },
-        skillset::SkillGroupKind,
+        skills::SkillGroupKind,
         Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
         Player, Poise, PoiseChange, SkillSet, Stats,
     },
@@ -973,17 +973,22 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     const DAMAGE_WEIGHT: f32 = 2.0;
     const EFFECT_WEIGHT: f32 = 1.0;
 
-    if let ItemKind::Tool(tool) = item.kind() {
+    if let ItemKind::Tool(tool) = item.kind() { 
         let stats = tool::Stats::from((msm, item.components(), tool));
 
         // TODO: Look into changing the 0.5 to reflect armor later maybe?
         // Since it is only for weapon though, it probably makes sense to leave
         // independent for now
-        let damage_rating = stats.power * stats.speed * (1.0 + stats.crit_chance * 0.5);
-        let effect_rating = stats.effect_power * stats.speed;
+        // let damage_rating = stats.power * stats.speed * (1.0 + stats.crit_chance * 0.5);
 
-        (damage_rating * DAMAGE_WEIGHT + effect_rating * EFFECT_WEIGHT)
-            / (DAMAGE_WEIGHT + EFFECT_WEIGHT)
+        let damage_rating = (stats.power + stats.speed + stats.crit_chance + stats.range + stats.effect_power
+            + (stats.equip_time_secs * 0.5)) / (DAMAGE_WEIGHT + EFFECT_WEIGHT);
+
+        // let effect_rating = stats.effect_power * stats.speed;
+
+        /* (damage_rating * DAMAGE_WEIGHT + effect_rating * EFFECT_WEIGHT)
+            / (DAMAGE_WEIGHT + EFFECT_WEIGHT) */
+            damage_rating
     } else {
         0.0
     }
