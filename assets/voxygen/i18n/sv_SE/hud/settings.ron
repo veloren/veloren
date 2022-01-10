@@ -30,6 +30,7 @@
         "hud.settings.incoming_damage": "Inkommande skada",
         "hud.settings.cumulated_incoming_damage": "Sammanlagd inkommande skada",
         "hud.settings.speech_bubble": "Pratbubbla",
+        "hud.settings.speech_bubble_self": "Visa egna pratbubblor",
         "hud.settings.speech_bubble_dark_mode": "Pratbubbla mörkt läge",
         "hud.settings.speech_bubble_icon": "Pratbubbleikon",
         "hud.settings.energybar_numbers": "Energimätare med värden",
