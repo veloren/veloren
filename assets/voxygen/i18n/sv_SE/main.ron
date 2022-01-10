@@ -10,6 +10,7 @@
         "main.connecting": "Ansluter",
         "main.creating_world": "Skapar värld",
         "main.tip": "Tips:",
+        "main.unbound_key_tip": "obunden",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Välkommen till alfa-versionen av Veloren!

@@ -9,16 +9,16 @@
         /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
         "hud.trade.phase3_description": "Bytet behandlas.",
         "hud.trade.persons_offer": "Erbjudande från {playername}",
-        "hud.trade.has_accepted": "{playername}\nhar accepterat",
-        "hud.trade.accept": "Acceptera",
-        "hud.trade.decline": "Avböj",
+        "hud.trade.has_accepted": "{playername}\nhar accepterat", // Comment to disable "Outdated" marking. Remove next time this translation changes
+        "hud.trade.accept": "Acceptera", // Comment to disable "Outdated" marking. Remove next time this translation changes
+        "hud.trade.decline": "Avböj", // Comment to disable "Outdated" marking. Remove next time this translation changes
         "hud.trade.invite_sent": "Bytesförfrågan har skickats till {playername}.",
         "hud.trade.result.completed": "Bytet har genomförts.",
         "hud.trade.result.declined": "Bytet har avbrutits.",
         "hud.trade.result.nospace": "Inte tillräckligt mycket utrymme för att genomföra bytet.",
-        "hud.trade.buy_price": "Köpepris",
-        "hud.trade.sell_price": "Försäljningspris",
-        "hud.trade.coin": "mynt",
+        "hud.trade.buy_price": "Köpepris", // Comment to disable "Outdated" marking. Remove next time this translation changes
+        "hud.trade.sell_price": "Försäljningspris", // Comment to disable "Outdated" marking. Remove next time this translation changes
+        "hud.trade.coin": "mynt", // Comment to disable "Outdated" marking. Remove next time this translation changes
         "hud.trade.tooltip_hint_1": "<Shift-klicka för att lägga till/ta bort från byte.>",
         "hud.trade.tooltip_hint_2": "<Ctrl-klicka för att automatiskt balansera med detta.>",
         "hud.trade.your_offer": "Ditt erbjudande",
