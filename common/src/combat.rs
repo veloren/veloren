@@ -972,23 +972,26 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
 pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
     const DAMAGE_WEIGHT: f32 = 2.0;
     const EFFECT_WEIGHT: f32 = 1.0;
+    const EQUIP_TIME_WEIGHT: f32 = 0.5;
+    const EFFICIENCY_WEIGHT: f32 = 1.0;
+    const STRENGTH_WEIGHT: f32 = 1.0;
 
-    if let ItemKind::Tool(tool) = item.kind() { 
+    if let ItemKind::Tool(tool) = item.kind() {
         let stats = tool::Stats::from((msm, item.components(), tool));
 
         // TODO: Look into changing the 0.5 to reflect armor later maybe?
         // Since it is only for weapon though, it probably makes sense to leave
         // independent for now
-        // let damage_rating = stats.power * stats.speed * (1.0 + stats.crit_chance * 0.5);
 
-        let damage_rating = (stats.power + stats.speed + stats.crit_chance + stats.range + (0.6 * stats.effect_power)
-            + ((1.0 - stats.equip_time_secs) * 0.5)) / (DAMAGE_WEIGHT + EFFECT_WEIGHT);
+        let damage_rating = stats.power + stats.speed + stats.crit_chance + stats.range;
+        let effect_rating = stats.effect_power;
+        let equip_time_rating = 1.0 - stats.equip_time_secs;
+        let efficiency_rating = stats.energy_efficiency;
+        let strength_rating = stats.buff_strength;
 
-        // let effect_rating = stats.effect_power * stats.speed;
-
-        /* (damage_rating * DAMAGE_WEIGHT + effect_rating * EFFECT_WEIGHT)
-            / (DAMAGE_WEIGHT + EFFECT_WEIGHT) */
-            damage_rating
+        (((damage_rating * DAMAGE_WEIGHT) + (effect_rating * EFFECT_WEIGHT) + (equip_time_rating * EQUIP_TIME_WEIGHT)
+            + (efficiency_rating * EFFICIENCY_WEIGHT) + (strength_rating * STRENGTH_WEIGHT))
+            / (DAMAGE_WEIGHT + EFFECT_WEIGHT + EQUIP_TIME_WEIGHT + EFFICIENCY_WEIGHT + STRENGTH_WEIGHT))
     } else {
         0.0
     }
