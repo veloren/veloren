@@ -22,7 +22,7 @@ pub struct PoiseChange {
     /// The direction that the poise change came from, used for when the target
     /// is knocked down
     pub impulse: Vec3<f32>,
-    /// The the individual or group who caused the poise change (None if the
+    /// The individual or group who caused the poise change (None if the
     /// damage wasn't caused by an entity)
     pub by: Option<DamageContributor>,
     /// The category of action that resulted in the poise change
@@ -55,7 +55,7 @@ pub struct Poise {
     /// Rate of poise regeneration per tick. Starts at zero and accelerates.
     pub regen_rate: f32,
     /// Time that entity was last in a poise state
-    time_last_poise: Option<Time>,
+    last_stun_time: Option<Time>,
 }
 
 /// States to define effects of a poise change
@@ -187,12 +187,12 @@ impl Poise {
             maximum: poise,
             last_change: Dir::default(),
             regen_rate: 0.0,
-            time_last_poise: None,
+            last_stun_time: None,
         }
     }
 
     pub fn change(&mut self, change: PoiseChange) {
-        match self.time_last_poise {
+        match self.last_stun_time {
             Some(last_time) if last_time.0 + Poise::POISE_BUFFER_TIME > change.time.0 => {},
             _ => {
                 self.current = (((self.current() + change.amount)
@@ -206,7 +206,7 @@ impl Poise {
 
     pub fn reset(&mut self, time: Time, poise_state_time: f64) {
         self.current = self.maximum;
-        self.time_last_poise = Some(Time(time.0 + poise_state_time));
+        self.last_stun_time = Some(Time(time.0 + poise_state_time));
     }
 
     /// Returns knockback as a Dir
