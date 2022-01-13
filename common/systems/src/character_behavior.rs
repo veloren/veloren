@@ -12,7 +12,7 @@ use common::{
     },
     event::{EventBus, LocalEvent, ServerEvent},
     outcome::Outcome,
-    resources::DeltaTime,
+    resources::{DeltaTime, Time},
     states::{
         behavior::{JoinData, JoinStruct},
         idle,
@@ -28,6 +28,7 @@ pub struct ReadData<'a> {
     server_bus: Read<'a, EventBus<ServerEvent>>,
     local_bus: Read<'a, EventBus<LocalEvent>>,
     dt: Read<'a, DeltaTime>,
+    time: Read<'a, Time>,
     lazy_update: Read<'a, LazyUpdate>,
     healths: ReadStorage<'a, Health>,
     bodies: ReadStorage<'a, Body>,
@@ -146,11 +147,11 @@ impl<'a> System<'a> for Sys {
                 let was_wielded = char_state.is_wield();
                 let poise_state = poise.poise_state();
                 let pos = pos.0;
-                if let (Some(stunned_state), impulse_strength) =
+                if let (Some((stunned_state, stunned_duration)), impulse_strength) =
                     poise_state.poise_effect(was_wielded)
                 {
                     // Reset poise if there is some stunned state to apply
-                    poise.reset();
+                    poise.reset(*read_data.time, stunned_duration);
                     *char_state = stunned_state;
                     outcomes.push(Outcome::PoiseChange {
                         pos,

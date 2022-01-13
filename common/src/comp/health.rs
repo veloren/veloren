@@ -17,7 +17,7 @@ use std::ops::Mul;
 pub struct HealthChange {
     /// The amount of the health change, negative is damage, positive is healing
     pub amount: f32,
-    /// The the individual or group who caused the health change (None if the
+    /// The individual or group who caused the health change (None if the
     /// damage wasn't caused by an entity)
     pub by: Option<DamageContributor>,
     /// The category of action that resulted in the health change
