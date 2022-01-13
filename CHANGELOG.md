@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Rivers now make ambient sounds (again)
 - Added a setting to see own speech bubbles
 - Added an option to allow players to remove keybindings
+- Piercing damage now ignores an amount of protection equal to damage value
+- Slashing damage now reduces target's energy by an amount equal to damage dealt to target post-mitigation
+- Crushing damage now does poise damage to a target equal to the amount mitigated by armor
 
 ### Changed
 
@@ -54,6 +57,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Yeti loot table modified
 - Phoenix feathers are now Legendary quality
 - Green/Red lantern now shine their respective color instead of the default lantern color
+- Poise damage dealt to a target that is in a stunned state is now converted to health damage at an efficiency dependent on the severity of the stunned state
+- You are now immune to poise damage for 1 second after leaving a stunned state
+- Removed or reduced poise damage from most abilities
 
 ### Removed
 
