@@ -12,9 +12,7 @@ fn check_cyclic_skill_deps() {
     let mut graph = UnGraph::new_undirected();
     let mut nodes = HashMap::<Skill, _>::new();
     let mut add_node = |graph: &mut UnGraph<Skill, _>, node: Skill| {
-        *nodes
-            .entry(node.clone())
-            .or_insert_with(|| graph.add_node(node.clone()))
+        *nodes.entry(node).or_insert_with(|| graph.add_node(node))
     };
 
     for (skill, prereqs) in skill_prereqs.iter() {
