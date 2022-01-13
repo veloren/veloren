@@ -1012,8 +1012,10 @@ impl Site {
         supplement: &mut crate::ChunkSupplement,
     ) {
         for (_, plot) in self.plots.iter() {
-            if let PlotKind::Dungeon(d) = &plot.kind {
-                d.apply_supplement(dynamic_rng, wpos2d, supplement);
+            match &plot.kind {
+                PlotKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
+                PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+                _ => {},
             }
         }
     }

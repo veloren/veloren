@@ -1,6 +1,9 @@
 use super::*;
 use crate::{assets::AssetHandle, util::attempt, Land};
-use common::terrain::{Structure as PrefabStructure, StructuresGroup};
+use common::{
+    generation::{ChunkSupplement, EntityInfo},
+    terrain::{Structure as PrefabStructure, StructuresGroup},
+};
 use inline_tweak::tweak;
 use lazy_static::lazy_static;
 use rand::prelude::*;
@@ -16,7 +19,7 @@ pub struct GnarlingFortification {
     wall_towers: Vec<Vec2<i32>>,
     // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
     // to origin, ori tells which way structure should face
-    structure_locations: Vec<(GnarlingStructure, Vec2<i32>, Ori)>,
+    structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Ori)>,
 }
 
 enum GnarlingStructure {
@@ -41,6 +44,8 @@ impl GnarlingStructure {
 
 impl GnarlingFortification {
     pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
+        let rpos_height = |rpos| land.get_alt_approx(rpos + wpos) as i32;
+
         let name = String::from("Gnarling Fortification");
         let seed = rng.gen();
         let origin = wpos;
@@ -115,7 +120,7 @@ impl GnarlingFortification {
         ];
 
         let desired_structures = wall_radius.pow(2) / 100;
-        let mut structure_locations = Vec::<(GnarlingStructure, Vec2<i32>, Ori)>::new();
+        let mut structure_locations = Vec::<(GnarlingStructure, Vec3<i32>, Ori)>::new();
         for _ in 0..desired_structures {
             if let Some((hut_loc, kind)) = attempt(16, || {
                 // Choose structure kind
@@ -165,15 +170,18 @@ impl GnarlingFortification {
 
                 // Check that structure not too close to another structure
                 if structure_locations.iter().any(|(kind, loc, _door_dir)| {
-                    structure_center.distance_squared(*loc)
+                    structure_center.distance_squared(loc.xy())
                         < structure_kind.required_separation(kind).pow(2)
                 }) {
                     None
                 } else {
-                    Some((structure_center, structure_kind))
+                    Some((
+                        structure_center.with_z(rpos_height(structure_center)),
+                        structure_kind,
+                    ))
                 }
             }) {
-                let dir_to_center = Ori::from_vec2(hut_loc).opposite();
+                let dir_to_center = Ori::from_vec2(hut_loc.xy()).opposite();
                 let door_rng: u32 = rng.gen_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_center,
@@ -201,7 +209,7 @@ impl GnarlingFortification {
         let chieftain_hut_ori = Ori::from_vec2(chieftain_hut_loc).opposite();
         structure_locations.push((
             GnarlingStructure::ChieftainHut,
-            chieftain_hut_loc,
+            chieftain_hut_loc.with_z(rpos_height(chieftain_hut_loc)),
             chieftain_hut_ori,
         ));
 
@@ -216,7 +224,11 @@ impl GnarlingFortification {
             ]
         };
         watchtower_locs.iter().for_each(|loc| {
-            structure_locations.push((GnarlingStructure::WatchTower, *loc, Ori::North));
+            structure_locations.push((
+                GnarlingStructure::WatchTower,
+                loc.with_z(rpos_height(*loc)),
+                Ori::North,
+            ));
         });
 
         let wall_towers = outer_wall_corners
@@ -248,6 +260,45 @@ impl GnarlingFortification {
     pub fn name(&self) -> &str { &self.name }
 
     pub fn radius(&self) -> i32 { self.radius }
+
+    pub fn apply_supplement<'a>(
+        &'a self,
+        // NOTE: Used only for dynamic elements like chests and entities!
+        dynamic_rng: &mut impl Rng,
+        wpos2d: Vec2<i32>,
+        supplement: &mut ChunkSupplement,
+    ) {
+        let rpos = wpos2d - self.origin;
+        let area = Aabr {
+            min: rpos,
+            max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+        };
+
+        for (loc, pos, _ori) in &self.structure_locations {
+            if area.contains_point(pos.xy()) {
+                match loc {
+                    GnarlingStructure::Hut => {
+                        let wpos = *pos + self.origin;
+                        let mut entities = Vec::new();
+                        entities.resize_with(5, || {
+                            // TODO: give enemies health skills?
+                            let entity = EntityInfo::at(wpos.map(|e| e as f32))
+                                .with_health_scaling(dynamic_rng.gen_range(3..4));
+                            match dynamic_rng.gen_range(0..=4) {
+                                0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
+                                1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
+                                _ => entity.with_asset_expect("common.entity.dungeon.tier-0.spear"),
+                            }
+                        });
+                        for entity in entities {
+                            supplement.add_entity(entity);
+                        }
+                    },
+                    _ => {},
+                }
+            }
+        }
+    }
 }
 
 impl Structure for GnarlingFortification {
@@ -460,7 +511,7 @@ impl Structure for GnarlingFortification {
         self.structure_locations
             .iter()
             .for_each(|(kind, loc, door_dir)| {
-                let wpos = self.origin + loc;
+                let wpos = self.origin + loc.xy();
                 let alt = land.get_alt_approx(wpos) as i32;
 
                 fn generate_hut(
