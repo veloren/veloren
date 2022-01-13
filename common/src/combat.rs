@@ -970,11 +970,14 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
-    const DAMAGE_WEIGHT: f32 = 2.0;
+    const DAMAGE_WEIGHT: f32 = 1.5;
+    const SPEED_WEIGHT: f32 = 1.5;
+    const CRIT_CHANCE_WEIGHT: f32 = 1.5;
+    const RANGE_WEIGHT: f32 = 1.0;
     const EFFECT_WEIGHT: f32 = 1.0;
     const EQUIP_TIME_WEIGHT: f32 = 0.5;
-    const EFFICIENCY_WEIGHT: f32 = 1.0;
-    const STRENGTH_WEIGHT: f32 = 1.0;
+    const ENERGY_EFFICIENCY_WEIGHT: f32 = 1.0;
+    const BUFF_STRENGTH_WEIGHT: f32 = 1.0;
 
     if let ItemKind::Tool(tool) = item.kind() {
         let stats = tool::Stats::from((msm, item.components(), tool));
@@ -983,15 +986,20 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
         // Since it is only for weapon though, it probably makes sense to leave
         // independent for now
 
-        let damage_rating = stats.power + stats.speed + stats.crit_chance + stats.range;
+        let damage_rating = stats.power;
+        let speed_rating = stats.speed;
+        let crit_chance_rating = stats.crit_chance;
+        let range_rating = stats.range;
         let effect_rating = stats.effect_power;
-        let equip_time_rating = 1.0 - stats.equip_time_secs;
-        let efficiency_rating = stats.energy_efficiency;
-        let strength_rating = stats.buff_strength;
+        let equip_time_rating = stats.equip_time_secs;
+        let energy_efficiency_rating = stats.energy_efficiency;
+        let buff_strength_rating = stats.buff_strength;
 
-        (((damage_rating * DAMAGE_WEIGHT) + (effect_rating * EFFECT_WEIGHT) + (equip_time_rating * EQUIP_TIME_WEIGHT)
-            + (efficiency_rating * EFFICIENCY_WEIGHT) + (strength_rating * STRENGTH_WEIGHT))
-            / (DAMAGE_WEIGHT + EFFECT_WEIGHT + EQUIP_TIME_WEIGHT + EFFICIENCY_WEIGHT + STRENGTH_WEIGHT))
+        (((damage_rating * DAMAGE_WEIGHT) + (speed_rating * SPEED_WEIGHT) + (crit_chance_rating * CRIT_CHANCE_WEIGHT)
+            + (range_rating * RANGE_WEIGHT) + (effect_rating * EFFECT_WEIGHT)
+            + (energy_efficiency_rating * ENERGY_EFFICIENCY_WEIGHT) + (buff_strength_rating * BUFF_STRENGTH_WEIGHT))
+            / (DAMAGE_WEIGHT + SPEED_WEIGHT + CRIT_CHANCE_WEIGHT + RANGE_WEIGHT + EFFECT_WEIGHT + EQUIP_TIME_WEIGHT
+            + (equip_time_rating * EQUIP_TIME_WEIGHT) + ENERGY_EFFICIENCY_WEIGHT + BUFF_STRENGTH_WEIGHT))
     } else {
         0.0
     }
