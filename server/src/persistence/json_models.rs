@@ -125,36 +125,51 @@ fn aux_ability_to_string(ability: common::comp::ability::AuxiliaryAbility) -> St
     }
 }
 
-fn aux_ability_from_string(ability: String) -> common::comp::ability::AuxiliaryAbility {
+fn aux_ability_from_string(ability: &str) -> common::comp::ability::AuxiliaryAbility {
     use common::comp::ability::AuxiliaryAbility;
-    let parts = ability
-        .split(":index:")
-        .map(String::from)
-        .collect::<Vec<_>>();
-    match parts.get(0).map(|s| s.as_str()) {
-        Some("Main Weapon") => {
-            if let Some(index) = parts.get(1).and_then(|index| index.parse::<usize>().ok()) {
-                AuxiliaryAbility::MainWeapon(index)
-            } else {
+    let mut parts = ability.split(":index:");
+    match parts.next() {
+        Some("Main Weapon") => match parts
+            .next()
+            .map(|index| index.parse::<usize>().map_err(|_| index))
+        {
+            Some(Ok(index)) => AuxiliaryAbility::MainWeapon(index),
+            Some(Err(error)) => {
                 dev_panic!(format!(
-                    "Converstion from databse to ability set failed. Unable to parse index for \
-                     mainhand abilities: {:#?}",
-                    parts.get(1)
+                    "Conversion from database to ability set failed. Unable to parse index for \
+                     mainhand abilities: {}",
+                    error
                 ));
                 AuxiliaryAbility::Empty
-            }
+            },
+            None => {
+                dev_panic!(String::from(
+                    "Conversion from database to ability set failed. Unable to find an index for \
+                     mainhand abilities"
+                ));
+                AuxiliaryAbility::Empty
+            },
         },
-        Some("Off Weapon") => {
-            if let Some(index) = parts.get(1).and_then(|index| index.parse::<usize>().ok()) {
-                AuxiliaryAbility::OffWeapon(index)
-            } else {
+        Some("Off Weapon") => match parts
+            .next()
+            .map(|index| index.parse::<usize>().map_err(|_| index))
+        {
+            Some(Ok(index)) => AuxiliaryAbility::OffWeapon(index),
+            Some(Err(error)) => {
                 dev_panic!(format!(
-                    "Converstion from databse to ability set failed. Unable to parse index for \
-                     offhand abilities: {:#?}",
-                    parts.get(1)
+                    "Conversion from database to ability set failed. Unable to parse index for \
+                     offhand abilities: {}",
+                    error
                 ));
                 AuxiliaryAbility::Empty
-            }
+            },
+            None => {
+                dev_panic!(String::from(
+                    "Conversion from database to ability set failed. Unable to find an index for \
+                     offhand abilities"
+                ));
+                AuxiliaryAbility::Empty
+            },
         },
         Some("Empty") => AuxiliaryAbility::Empty,
         unknown => {
@@ -182,6 +197,7 @@ fn tool_kind_to_string(tool: Option<common::comp::item::tool::ToolKind>) -> Stri
         Some(Blowgun) => "Blowgun",
         Some(Pick) => "Pick",
 
+        // Toolkinds that are not anticipated to have many active aiblities (if any at all)
         Some(Farming) => "Farming",
         Some(Debug) => "Debug",
         Some(Natural) => "Natural",
@@ -251,7 +267,7 @@ pub fn active_abilities_from_db_model(
                 let mut auxiliary_abilities =
                     [comp::ability::AuxiliaryAbility::Empty; comp::ability::MAX_ABILITIES];
                 for (empty, ability) in auxiliary_abilities.iter_mut().zip(abilities.into_iter()) {
-                    *empty = aux_ability_from_string(ability);
+                    *empty = aux_ability_from_string(&ability);
                 }
                 (
                     (

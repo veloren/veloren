@@ -55,6 +55,7 @@ use crate::{
     connection_handler::ConnectionHandler,
     data_dir::DataDir,
     login_provider::LoginProvider,
+    persistence::PersistedComponents,
     presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
     rtsim::RtSim,
     state_ext::StateExt,
@@ -844,9 +845,29 @@ impl Server {
                 },
                 CharacterLoaderResponseKind::CharacterData(result) => {
                     let message = match *result {
-                        Ok(character_data) => ServerEvent::UpdateCharacterData {
-                            entity: query_result.entity,
-                            components: character_data,
+                        Ok(character_data) => {
+                            let PersistedComponents {
+                                body,
+                                stats,
+                                skill_set,
+                                inventory,
+                                waypoint,
+                                pets,
+                                active_abilities,
+                            } = character_data;
+                            let character_data = (
+                                body,
+                                stats,
+                                skill_set,
+                                inventory,
+                                waypoint,
+                                pets,
+                                active_abilities,
+                            );
+                            ServerEvent::UpdateCharacterData {
+                                entity: query_result.entity,
+                                components: character_data,
+                            }
                         },
                         Err(error) => {
                             // We failed to load data for the character from the DB. Notify the

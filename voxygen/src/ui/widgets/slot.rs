@@ -20,7 +20,7 @@ pub trait SlotKey<C, I>: Copy {
 }
 
 pub trait SumSlot: Sized + PartialEq + Copy + Send + 'static {
-    fn is_ability(&self) -> bool;
+    fn drag_size(&self) -> Option<[f64; 2]>;
 }
 
 pub struct ContentSize {
@@ -219,8 +219,8 @@ where
             let content_img = *content_img;
             let drag_amount = *drag_amount;
 
-            let dragged_size = if slot.is_ability() {
-                [inline_tweak::tweak!(80.0); 2]
+            let dragged_size = if let Some(dragged_size) = slot.drag_size() {
+                dragged_size
             } else {
                 self.drag_img_size.map(|e| e as f64).into_array()
             };

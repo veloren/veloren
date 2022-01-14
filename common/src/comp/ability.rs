@@ -209,7 +209,7 @@ impl ActiveAbilities {
             })
     }
 
-    pub fn default_ability_set<'a>(
+    fn default_ability_set<'a>(
         inv: Option<&'a Inventory>,
         skill_set: Option<&'a SkillSet>,
     ) -> [AuxiliaryAbility; MAX_ABILITIES] {
@@ -220,15 +220,7 @@ impl ActiveAbilities {
                     .map(AuxiliaryAbility::OffWeapon),
             );
 
-        let mut array = [AuxiliaryAbility::Empty; MAX_ABILITIES];
-
-        for ability in array.iter_mut() {
-            if let Some(available_ability) = iter.next() {
-                *ability = available_ability;
-            }
-        }
-
-        array
+        [(); MAX_ABILITIES].map(|()| iter.next().unwrap_or(AuxiliaryAbility::Empty))
     }
 }
 

@@ -3392,7 +3392,7 @@ impl Hud {
                             (AbilitySlot::Slot(index), _) => {
                                 events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                             },
-                            (_, _) => {},
+                            (AbilitySlot::Ability(_), AbilitySlot::Ability(_)) => {},
                         }
                     }
                 },
@@ -3494,7 +3494,7 @@ impl Hud {
                             (AbilitySlot::Slot(index), _) => {
                                 events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                             },
-                            (_, _) => {},
+                            (AbilitySlot::Ability(_), AbilitySlot::Ability(_)) => {},
                         }
                     }
                 },

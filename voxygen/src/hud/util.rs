@@ -398,8 +398,8 @@ pub fn ability_description(ability_id: &str) -> (&str, &str) {
             "Protects you and your group with thorns for a short amount of time.",
         ),
         _ => (
-            "Drag an ability here to use it.",
-            ""
+            "Ability has no title",
+            "Ability has no description."
         ),
     }
 }

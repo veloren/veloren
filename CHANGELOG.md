@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Slashing damage now reduces target's energy by an amount equal to damage dealt to target post-mitigation
 - Crushing damage now does poise damage to a target equal to the amount mitigated by armor
 - UI to select abilities and assign to hotbar
+- Position of abilities on hotbar is now persisted through the server
 
 ### Changed
 

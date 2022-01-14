@@ -1,4 +1,7 @@
-use crate::{events::interaction::handle_tame_pet, state_ext::StateExt, Server};
+use crate::{
+    events::interaction::handle_tame_pet, persistence::PersistedComponents, state_ext::StateExt,
+    Server,
+};
 use common::event::{EventBus, ServerEvent};
 use common_base::span;
 use entity_creation::{
@@ -129,6 +132,17 @@ impl Server {
                     character_id,
                 } => handle_initialize_character(self, entity, character_id),
                 ServerEvent::UpdateCharacterData { entity, components } => {
+                    let (body, stats, skill_set, inventory, waypoint, pets, active_abilities) =
+                        components;
+                    let components = PersistedComponents {
+                        body,
+                        stats,
+                        skill_set,
+                        inventory,
+                        waypoint,
+                        pets,
+                        active_abilities,
+                    };
                     handle_loaded_character_data(self, entity, components);
                 },
                 ServerEvent::ExitIngame { entity } => {

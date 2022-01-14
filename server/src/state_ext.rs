@@ -238,7 +238,6 @@ impl StateExt for State {
                     .unwrap_or(0),
             ))
             .with(stats)
-            // TODO: Figure out way to have this start with sane defaults
             .with(comp::ActiveAbilities::default())
             .with(skill_set)
             .maybe_with(health)
@@ -498,7 +497,15 @@ impl StateExt for State {
     }
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
-        let (body, stats, skill_set, inventory, waypoint, pets, active_abilities) = components;
+        let PersistedComponents {
+            body,
+            stats,
+            skill_set,
+            inventory,
+            waypoint,
+            pets,
+            active_abilities,
+        } = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update

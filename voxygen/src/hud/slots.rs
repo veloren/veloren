@@ -250,5 +250,10 @@ impl From<AbilitySlot> for SlotKind {
 }
 
 impl SumSlot for SlotKind {
-    fn is_ability(&self) -> bool { matches!(self, Self::Ability(_)) }
+    fn drag_size(&self) -> Option<[f64; 2]> {
+        Some(match self {
+            Self::Ability(_) => [80.0; 2],
+            _ => return None,
+        })
+    }
 }

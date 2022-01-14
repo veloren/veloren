@@ -1,4 +1,4 @@
-use crate::persistence::character_updater::CharacterUpdater;
+use crate::persistence::{character_updater::CharacterUpdater, PersistedComponents};
 use common::{
     character::CharacterId,
     comp::{inventory::loadout_builder::LoadoutBuilder, Body, Inventory, Item, SkillSet, Stats},
@@ -65,20 +65,15 @@ pub fn create_character(
 
     let waypoint = None;
 
-    character_updater.create_character(
-        entity,
-        player_uuid,
-        character_alias,
-        (
-            body,
-            stats,
-            skill_set,
-            inventory,
-            waypoint,
-            Vec::new(),
-            Default::default(),
-        ),
-    );
+    character_updater.create_character(entity, player_uuid, character_alias, PersistedComponents {
+        body,
+        stats,
+        skill_set,
+        inventory,
+        waypoint,
+        pets: Vec::new(),
+        active_abilities: Default::default(),
+    });
     Ok(())
 }
 

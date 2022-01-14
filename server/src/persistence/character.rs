@@ -248,20 +248,20 @@ pub fn load_character_data(
         })
     })?;
 
-    Ok((
-        convert_body_from_database(&body_data.variant, &body_data.body_data)?,
-        convert_stats_from_database(character_data.alias),
-        convert_skill_set_from_database(&skill_group_data),
-        convert_inventory_from_database_items(
+    Ok(PersistedComponents {
+        body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
+        stats: convert_stats_from_database(character_data.alias),
+        skill_set: convert_skill_set_from_database(&skill_group_data),
+        inventory: convert_inventory_from_database_items(
             character_containers.inventory_container_id,
             &inventory_items,
             character_containers.loadout_container_id,
             &loadout_items,
         )?,
-        char_waypoint,
+        waypoint: char_waypoint,
         pets,
-        convert_active_abilities_from_database(&ability_set_data),
-    ))
+        active_abilities: convert_active_abilities_from_database(&ability_set_data),
+    })
 }
 
 /// Loads a list of characters belonging to the player. This data is a small
@@ -346,7 +346,15 @@ pub fn create_character(
 ) -> CharacterCreationResult {
     check_character_limit(uuid, transaction)?;
 
-    let (body, _stats, skill_set, inventory, waypoint, _, active_abilities) = persisted_components;
+    let PersistedComponents {
+        body,
+        stats: _,
+        skill_set,
+        inventory,
+        waypoint,
+        pets: _,
+        active_abilities,
+    } = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
     let mut new_entity_ids = get_new_entity_ids(transaction, |next_id| next_id + 3)?;

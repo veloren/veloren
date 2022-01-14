@@ -48,7 +48,6 @@ use common::{
     },
     consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
-use inline_tweak::*;
 use std::borrow::Cow;
 
 const ART_SIZE: [f64; 2] = [320.0, 320.0];
@@ -782,12 +781,12 @@ impl<'a> Widget for Diary<'a> {
                 // Background Art
                 Image::new(self.imgs.book_bg)
                     .w_h(299.0 * 4.0, 184.0 * 4.0)
-                    .mid_top_with_margin_on(state.ids.content_align, tweak!(4.0))
+                    .mid_top_with_margin_on(state.ids.content_align, 4.0)
                     //.graphics_for(state.ids.content_align)
                     .set(state.ids.spellbook_art, ui);
                 Image::new(self.imgs.skills_bg)
                     .w_h(240.0 * 2.0, 40.0 * 2.0)
-                    .mid_bottom_with_margin_on(state.ids.content_align, tweak!(8.0))
+                    .mid_bottom_with_margin_on(state.ids.content_align, 8.0)
                     .set(state.ids.spellbook_skills_bg, ui);
 
                 Rectangle::fill_with([299.0 * 2.0, 184.0 * 4.0], color::TRANSPARENT)
@@ -816,7 +815,7 @@ impl<'a> Widget for Diary<'a> {
                     background_color: Some(UI_MAIN),
                     content_size: ContentSize {
                         width_height_ratio: 1.0,
-                        max_fraction: tweak!(0.9),
+                        max_fraction: 0.9,
                     },
                     selected_content_scale: 1.067,
                     amount_font: self.fonts.cyri.conrod_id,
@@ -838,11 +837,14 @@ impl<'a> Widget for Diary<'a> {
                             Some(self.skill_set),
                         )
                         .ability_id(Some(self.inventory));
-                    let (ability_title, ability_desc) =
-                        util::ability_description(ability_id.unwrap_or(""));
+                    let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
+                        util::ability_description(ability_id)
+                    } else {
+                        ("Drag an ability here to use it.", "")
+                    };
 
-                    let image_size = tweak!(80.0);
-                    let image_offsets = tweak!(92.0) * i as f64;
+                    let image_size = 80.0;
+                    let image_offsets = 92.0 * i as f64;
 
                     let slot = AbilitySlot::Slot(i);
                     let mut ability_slot = slot_maker.fabricate(slot, [image_size; 2]);
@@ -850,8 +852,8 @@ impl<'a> Widget for Diary<'a> {
                     if i == 0 {
                         ability_slot = ability_slot.top_left_with_margins_on(
                             state.ids.spellbook_skills_bg,
-                            tweak!(0.0),
-                            tweak!(32.0) + image_offsets,
+                            0.0,
+                            32.0 + image_offsets,
                         );
                     } else {
                         ability_slot =
@@ -870,52 +872,22 @@ impl<'a> Widget for Diary<'a> {
                     // Display Slot Keybinding
                     let keys = &self.global_state.settings.controls;
                     let key_layout = &self.global_state.window.key_layout;
-                    let ability_key: String = match i {
-                        0 => {
-                            if let Some(key) = keys.get_binding(GameInput::Slot1) {
-                                key.display_string(key_layout)
-                            } else {
-                                String::new()
-                            }
-                        },
-                        1 => {
-                            if let Some(key) = keys.get_binding(GameInput::Slot2) {
-                                key.display_string(key_layout)
-                            } else {
-                                String::new()
-                            }
-                        },
-                        2 => {
-                            if let Some(key) = keys.get_binding(GameInput::Slot3) {
-                                key.display_string(key_layout)
-                            } else {
-                                String::new()
-                            }
-                        },
-                        3 => {
-                            if let Some(key) = keys.get_binding(GameInput::Slot4) {
-                                key.display_string(key_layout)
-                            } else {
-                                String::new()
-                            }
-                        },
-                        4 => {
-                            if let Some(key) = keys.get_binding(GameInput::Slot5) {
-                                key.display_string(key_layout)
-                            } else {
-                                String::new()
-                            }
-                        },
-                        _ => String::new(),
-                    };
+                    let ability_key = [
+                        GameInput::Slot1,
+                        GameInput::Slot2,
+                        GameInput::Slot3,
+                        GameInput::Slot4,
+                        GameInput::Slot5,
+                    ]
+                    .get(i)
+                    .and_then(|input| keys.get_binding(*input))
+                    .map(|key| key.display_string(key_layout))
+                    .unwrap_or_default();
+
                     Text::new(&ability_key)
-                        .top_left_with_margins_on(
-                            state.ids.active_abilities[i],
-                            tweak!(0.0),
-                            tweak!(4.0),
-                        )
+                        .top_left_with_margins_on(state.ids.active_abilities[i], 0.0, 4.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(tweak!(20)))
+                        .font_size(self.fonts.cyri.scale(20))
                         .color(TEXT_COLOR)
                         .graphics_for(state.ids.active_abilities[i])
                         .set(state.ids.active_abilities_keys[i], ui);
@@ -964,31 +936,30 @@ impl<'a> Widget for Diary<'a> {
                     state.update(|s| s.ability_page = 0);
                 }
 
-                let update_length = 12;
                 state.update(|s| {
                     s.ids
                         .abilities
-                        .resize(update_length, &mut ui.widget_id_generator())
+                        .resize(ABILITIES_PER_PAGE, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .abilities_dual
-                        .resize(update_length, &mut ui.widget_id_generator())
+                        .resize(ABILITIES_PER_PAGE, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .ability_titles
-                        .resize(update_length, &mut ui.widget_id_generator())
+                        .resize(ABILITIES_PER_PAGE, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .ability_frames
-                        .resize(update_length, &mut ui.widget_id_generator())
+                        .resize(ABILITIES_PER_PAGE, &mut ui.widget_id_generator())
                 });
                 state.update(|s| {
                     s.ids
                         .ability_descs
-                        .resize(update_length, &mut ui.widget_id_generator())
+                        .resize(ABILITIES_PER_PAGE, &mut ui.widget_id_generator())
                 });
 
                 // Page button
@@ -998,7 +969,7 @@ impl<'a> Widget for Diary<'a> {
                 } else {
                     self.imgs.arrow_l_inactive
                 })
-                .bottom_left_with_margins_on(state.ids.spellbook_art, tweak!(-83.0), tweak!(10.0))
+                .bottom_left_with_margins_on(state.ids.spellbook_art, -83.0, 10.0)
                 .w_h(48.0, 55.0);
                 // Grey out arrows when inactive
                 if state.ability_page > 0 {
@@ -1019,7 +990,7 @@ impl<'a> Widget for Diary<'a> {
                 } else {
                     self.imgs.arrow_r_inactive
                 })
-                .bottom_right_with_margins_on(state.ids.spellbook_art, tweak!(-83.0), tweak!(10.0))
+                .bottom_right_with_margins_on(state.ids.spellbook_art, -83.0, 10.0)
                 .w_h(48.0, 55.0);
                 if state.ability_page < page_indices {
                     // Only show right button if not on last page
@@ -1036,7 +1007,6 @@ impl<'a> Widget for Diary<'a> {
                 }
 
                 let ability_start = state.ability_page * ABILITIES_PER_PAGE;
-                let abilities_range = ability_start..(ability_start + ABILITIES_PER_PAGE);
 
                 let mut slot_maker = SlotMaker {
                     empty_slot: self.imgs.inv_slot,
@@ -1045,9 +1015,9 @@ impl<'a> Widget for Diary<'a> {
                     background_color: Some(UI_MAIN),
                     content_size: ContentSize {
                         width_height_ratio: 1.0,
-                        max_fraction: tweak!(1.0),
+                        max_fraction: 1.0,
                     },
-                    selected_content_scale: tweak!(1.067),
+                    selected_content_scale: 1.067,
                     amount_font: self.fonts.cyri.conrod_id,
                     amount_margins: Vec2::new(-4.0, 0.0),
                     amount_font_size: self.fonts.cyri.scale(12),
@@ -1060,10 +1030,8 @@ impl<'a> Widget for Diary<'a> {
 
                 for (id_index, (ability_id, ability)) in abilities
                     .iter()
-                    .enumerate()
-                    .filter_map(|(i, ability_info)| {
-                        abilities_range.contains(&i).then_some(ability_info)
-                    })
+                    .skip(ability_start)
+                    .take(ABILITIES_PER_PAGE)
                     .enumerate()
                 {
                     let (ability_title, ability_desc) =
@@ -1081,13 +1049,8 @@ impl<'a> Widget for Diary<'a> {
                         self.imgs.ability_frame
                     })
                     .w_h(566.0, 108.0)
-                    .top_left_with_margins_on(
-                        align_state,
-                        tweak!(16.0) + image_offsets,
-                        tweak!(16.0),
-                    )
+                    .top_left_with_margins_on(align_state, 16.0 + image_offsets, 16.0)
                     .color(Some(UI_HIGHLIGHT_0))
-                    //.parent(state.ids.abilities[id_index])
                     .set(state.ids.ability_frames[id_index], ui);
 
                     let slot = AbilitySlot::Ability(*ability);
@@ -1121,19 +1084,15 @@ impl<'a> Widget for Diary<'a> {
                     Text::new(ability_title)
                         .top_left_with_margins_on(state.ids.abilities[id_index], 5.0, 110.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(tweak!(28)))
+                        .font_size(self.fonts.cyri.scale(28))
                         .color(TEXT_COLOR)
                         .w(text_width)
                         .graphics_for(state.ids.abilities[id_index])
                         .set(state.ids.ability_titles[id_index], ui);
                     Text::new(ability_desc)
-                        .top_left_with_margins_on(
-                            state.ids.abilities[id_index],
-                            tweak!(40.0),
-                            110.0,
-                        )
+                        .top_left_with_margins_on(state.ids.abilities[id_index], 40.0, 110.0)
                         .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(tweak!(18)))
+                        .font_size(self.fonts.cyri.scale(18))
                         .color(TEXT_COLOR)
                         .w(text_width)
                         .graphics_for(state.ids.abilities[id_index])
@@ -1162,7 +1121,7 @@ impl<'a> Widget for Diary<'a> {
                 // Background Art
                 Image::new(self.imgs.book_bg)
                     .w_h(299.0 * 4.0, 184.0 * 4.0)
-                    .mid_top_with_margin_on(state.ids.content_align, tweak!(4.0))
+                    .mid_top_with_margin_on(state.ids.content_align, 4.0)
                     .set(state.ids.spellbook_art, ui);
 
                 state.update(|s| {
@@ -1183,13 +1142,9 @@ impl<'a> Widget for Diary<'a> {
                         .color(BLACK);
 
                     if i == 0 {
-                        txt = txt.top_left_with_margins_on(
-                            state.ids.spellbook_art,
-                            tweak!(20.0),
-                            tweak!(20.0),
-                        );
+                        txt = txt.top_left_with_margins_on(state.ids.spellbook_art, 20.0, 20.0);
                     } else {
-                        txt = txt.down_from(state.ids.stat_names[i - 1], tweak!(10.0));
+                        txt = txt.down_from(state.ids.stat_names[i - 1], 10.0);
                     };
                     txt.set(state.ids.stat_names[i], ui);
 
@@ -1261,7 +1216,7 @@ impl<'a> Widget for Diary<'a> {
                             (Some(stats), None) | (None, Some(stats)) => {
                                 format!("{}", stats.power * 10.0)
                             },
-                            _ => String::new(),
+                            (None, None) => String::new(),
                         },
                         "Weapon Speed" => {
                             let spd_fmt = |sp| (sp - 1.0) * 100.0;
@@ -1288,7 +1243,7 @@ impl<'a> Widget for Diary<'a> {
                             (Some(stats), None) | (None, Some(stats)) => {
                                 format!("{}", stats.effect_power * 10.0)
                             },
-                            _ => String::new(),
+                            (None, None) => String::new(),
                         },
                         "Weapon Crit-Chance" => {
                             let crit_fmt = |cc| cc * 100.0;
@@ -1301,10 +1256,10 @@ impl<'a> Widget for Diary<'a> {
                                 (Some(stats), None) | (None, Some(stats)) => {
                                     format!("{:.1}%", crit_fmt(stats.crit_chance))
                                 },
-                                _ => String::new(),
+                                (None, None) => String::new(),
                             }
                         },
-                        _ => String::new(),
+                        unknown => unreachable!(unknown),
                     };
 
                     let mut number = Text::new(&value)
@@ -1313,9 +1268,9 @@ impl<'a> Widget for Diary<'a> {
                         .color(BLACK);
 
                     if i == 0 {
-                        number = number.right_from(state.ids.stat_names[i], tweak!(265.0));
+                        number = number.right_from(state.ids.stat_names[i], 265.0);
                     } else {
-                        number = number.down_from(state.ids.stat_values[i - 1], tweak!(10.0));
+                        number = number.down_from(state.ids.stat_values[i - 1], 10.0);
                     };
                     number.set(state.ids.stat_values[i], ui);
                 }
