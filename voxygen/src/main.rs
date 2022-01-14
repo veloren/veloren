@@ -103,7 +103,7 @@ fn main() {
             https://www.gitlab.com/veloren/veloren/issues/new\n\
             \n\
             If you're on the Veloren community Discord server, we'd be \
-            grateful if you could also post a message in the #bugs-and-support channel.
+            grateful if you could also post a message in the #support channel.
             \n\
             > What should I include?\n\
             \n\
