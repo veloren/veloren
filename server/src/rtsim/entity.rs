@@ -837,11 +837,11 @@ mod tests {
         // Bird Medium test
         for bird_med_species in BIRD_MEDIUM_ROSTER {
             let female_body = comp::bird_medium::Body {
-                species: bird_med_species,
+                species: *bird_med_species,
                 body_type: comp::bird_medium::BodyType::Female,
             };
             let male_body = comp::bird_medium::Body {
-                species: bird_med_species,
+                species: *bird_med_species,
                 body_type: comp::bird_medium::BodyType::Male,
             };
 
