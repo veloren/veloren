@@ -10,7 +10,7 @@ use crate::{
             },
             slot::EquipSlot,
         },
-        skills::SkillGroupKind,
+        skillset::SkillGroupKind,
         Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
         Player, Poise, PoiseChange, SkillSet, Stats,
     },
