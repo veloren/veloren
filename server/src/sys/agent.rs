@@ -1730,7 +1730,7 @@ impl<'a> AgentData<'a> {
             ToolKind::Staff => Tactic::Staff,
             ToolKind::Sceptre => Tactic::Sceptre,
             ToolKind::Hammer => Tactic::Hammer,
-            ToolKind::Sword | ToolKind::Spear => Tactic::Sword,
+            ToolKind::Sword | ToolKind::Spear | ToolKind::Blowgun => Tactic::Sword,
             ToolKind::Axe => Tactic::Axe,
             _ => Tactic::Melee,
         };
@@ -1743,7 +1743,7 @@ impl<'a> AgentData<'a> {
                 if let Some(ability_spec) = item.ability_spec() {
                     match ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
-                            "Axe Simple" | "Sword Simple" => Tactic::Sword,
+                            "Axe Simple" | "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
                             "Bow Simple" => Tactic::Bow,
                             "Stone Golem" => Tactic::StoneGolem,

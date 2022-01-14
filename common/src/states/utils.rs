@@ -86,6 +86,7 @@ impl Body {
                 quadruped_medium::Species::Ngoubou => 170.0,
                 quadruped_medium::Species::Llama => 120.0,
                 quadruped_medium::Species::Alpaca => 110.0,
+                quadruped_medium::Species::Akhlut => 90.0,
             },
             Body::BipedLarge(body) => match body.species {
                 biped_large::Species::Slysaurok => 100.0,
@@ -123,6 +124,7 @@ impl Body {
                 quadruped_low::Species::Sandshark => 160.0,
                 quadruped_low::Species::Hakulaq => 140.0,
                 quadruped_low::Species::Lavadrake => 100.0,
+                quadruped_low::Species::Icedrake => 100.0,
                 quadruped_low::Species::Basilisk => 90.0,
                 quadruped_low::Species::Deadwood => 140.0,
             },
@@ -179,6 +181,7 @@ impl Body {
                 quadruped_low::Species::Tortoise => 1.5,
                 quadruped_low::Species::Rocksnapper => 1.8,
                 quadruped_low::Species::Lavadrake => 1.7,
+                quadruped_low::Species::Icedrake => 1.7,
                 _ => 2.0,
             },
             Body::Ship(ship) if ship.has_water_thrust() => 0.1,

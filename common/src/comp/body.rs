@@ -198,6 +198,7 @@ impl Body {
                 bird_medium::Species::Goose => 3.5,  // ~✅ Swan geese are 2.8-3.5 kg
                 bird_medium::Species::Owl => 2.0,
                 bird_medium::Species::Parrot => 2.0,
+                bird_medium::Species::Penguin => 8.0,
                 bird_medium::Species::Peacock => 5.0,
             },
             Body::BirdLarge(_) => 100.0,
@@ -692,6 +693,7 @@ impl Body {
                 bird_medium::Species::Duck => 1,
                 bird_medium::Species::Goose => 1,
                 bird_medium::Species::Parrot => 1,
+                bird_medium::Species::Penguin => 1,
                 bird_medium::Species::Peacock => 1,
                 bird_medium::Species::Eagle => 1,
                 _ => 2,
@@ -874,6 +876,7 @@ impl Body {
                     (quadruped_medium::Species::Ngoubou, _) => [0.0, 0.3, 2.0],
                     (quadruped_medium::Species::Llama, _) => [0.0, 0.1, 1.5],
                     (quadruped_medium::Species::Alpaca, _) => [0.0, -0.1, 1.0],
+                    (quadruped_medium::Species::Akhlut, _) => [0.6, 0.6, 2.0],
                 }
             },
             Body::Ship(ship) => match ship {

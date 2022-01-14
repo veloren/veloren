@@ -677,9 +677,9 @@ fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_health_scaling(dynamic_rng.gen_range(3..4));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.spear"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.mugger"),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.stalker"),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.logger"),
         }
     });
 

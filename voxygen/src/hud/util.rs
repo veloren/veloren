@@ -244,6 +244,7 @@ fn tool_kind<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
         ToolKind::Sceptre => i18n.get("common.weapons.sceptre"),
         ToolKind::Shield => i18n.get("common.weapons.shield"),
         ToolKind::Spear => i18n.get("common.weapons.spear"),
+        ToolKind::Blowgun => i18n.get("common.weapons.blowgun"),
         ToolKind::Natural => i18n.get("common.weapons.natural"),
         ToolKind::Debug => i18n.get("common.tool.debug"),
         ToolKind::Farming => i18n.get("common.tool.farming"),

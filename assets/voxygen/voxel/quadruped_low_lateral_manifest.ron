@@ -431,6 +431,42 @@
             lateral: ("npc.lavadrake.male.foot_br", false),
         ),
     ),
+    (Icedrake, Male): (
+        front_left: (
+            offset: (-14.0, -4.0, -10.0),
+            lateral: ("npc.icedrake.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, -4.0, -10.0),
+            lateral: ("npc.icedrake.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-14.0, -7.5, -10.0),
+            lateral: ("npc.icedrake.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -7.5, -10.0),
+            lateral: ("npc.icedrake.male.foot_br", false),
+        ),
+    ),
+    (Icedrake, Female): (
+        front_left: (
+            offset: (-14.0, -4.0, -10.0),
+            lateral: ("npc.icedrake.male.foot_fr", false),
+        ),
+        front_right: (
+            offset: (0.0, -4.0, -10.0),
+            lateral: ("npc.icedrake.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-14.0, -7.5, -10.0),
+            lateral: ("npc.icedrake.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -7.5, -10.0),
+            lateral: ("npc.icedrake.male.foot_br", false),
+        ),
+    ),
     (Basilisk, Male): (
         front_left: (
             offset: (-13.0, 0.0, -13.0),

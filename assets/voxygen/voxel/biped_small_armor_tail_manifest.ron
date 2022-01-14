@@ -9,8 +9,17 @@
         "Adlet": (
             vox_spec: ("npc.adlet.male.tail", (-1.0, -5.0, -1.0)),
         ),
-        "Gnarling": (
-            vox_spec: ("npc.gnarling.male.tail", (-1.5, -13.0, -3.0)),
+        "GnarlingMugger": (
+            vox_spec: ("npc.gnarling.mugger.tail", (-1.5, -13.0, -3.0)),
+        ),
+        "GnarlingStalker": (
+            vox_spec: ("npc.gnarling.stalker.tail", (-1.5, -13.0, -3.0)),
+        ),
+        "GnarlingLogger": (
+            vox_spec: ("npc.gnarling.logger.tail", (-1.5, -13.0, -3.0)),
+        ),
+        "GnarlingChieftain": (
+            vox_spec: ("npc.gnarling.chieftain.tail", (-1.5, -14.0, -3.0)),
         ),
         "Kappa": (
             vox_spec: ("npc.kappa.male.tail", (-2.5, -10.0, -5.0)),

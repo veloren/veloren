@@ -41,6 +41,7 @@ make_case_elim!(
         Eagle = 4,
         Owl = 5,
         Parrot = 6,
+        Penguin = 7,
     }
 );
 
@@ -56,6 +57,7 @@ pub struct AllSpecies<SpeciesMeta> {
     pub eagle: SpeciesMeta,
     pub owl: SpeciesMeta,
     pub parrot: SpeciesMeta,
+    pub penguin: SpeciesMeta,
 }
 
 impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> {
@@ -71,11 +73,12 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
             Species::Eagle => &self.eagle,
             Species::Owl => &self.owl,
             Species::Parrot => &self.parrot,
+            Species::Penguin => &self.penguin,
         }
     }
 }
 
-pub const ALL_SPECIES: [Species; 7] = [
+pub const ALL_SPECIES: [Species; 8] = [
     Species::Duck,
     Species::Chicken,
     Species::Goose,
@@ -83,6 +86,7 @@ pub const ALL_SPECIES: [Species; 7] = [
     Species::Eagle,
     Species::Owl,
     Species::Parrot,
+    Species::Penguin,
 ];
 
 impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {

@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Gnarling",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Head("GnarlingMugger"),
+        stats: (
+            protection: Some(Normal(1.0)),
+            poise_resilience: Some(Normal(1.0)),
+            energy_max: Some(1.8),
+            energy_reward: Some(0.02),
+            crit_power: Some(0.016),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

@@ -563,6 +563,10 @@
                 keyword: "alpaca",
                 generic: "Alpaca"
             ),
+            akhlut: (
+                keyword: "akhlut",
+                generic: "Akhlut"
+            ),
         )
     ),
     quadruped_small: (
@@ -820,6 +824,10 @@
                 keyword: "parrot",
                 generic: "Parrot"
             ),
+            penguin: (
+                keyword: "penguin",
+                generic: "Penguin"
+            ),
         )
     ),
     biped_large: (
@@ -931,6 +939,10 @@
             treant: (
                 keyword: "treant",
                 generic: "Treant"
+            ),
+            woodgolem: (
+                keyword: "woodgolem",
+                generic: "Wooden Golem"
             ),
             claygolem: (
                 keyword: "claygolem",
@@ -1181,6 +1193,10 @@
             lavadrake: (
                 keyword: "lavadrake",
                 generic: "Lava Drake"
+            ),
+            icedrake: (
+                keyword: "icedrake",
+                generic: "Ice Drake"
             ),
             basilisk: (
                 keyword: "basilisk",

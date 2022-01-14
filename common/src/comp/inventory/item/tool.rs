@@ -25,6 +25,7 @@ pub enum ToolKind {
     Dagger,
     Shield,
     Spear,
+    Blowgun,
     // tools
     Debug,
     Farming,
@@ -47,6 +48,7 @@ impl ToolKind {
             ToolKind::Dagger => "dagger",
             ToolKind::Staff => "staff",
             ToolKind::Spear => "spear",
+            ToolKind::Blowgun => "blowgun",
             ToolKind::Sceptre => "sceptre",
             ToolKind::Shield => "shield",
             ToolKind::Natural => "natural",
@@ -67,6 +69,7 @@ impl ToolKind {
                 | ToolKind::Dagger
                 | ToolKind::Staff
                 | ToolKind::Spear
+                | ToolKind::Blowgun
                 | ToolKind::Sceptre
                 | ToolKind::Shield
         )

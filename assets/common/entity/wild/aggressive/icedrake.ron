@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("icedrake"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.quad_medium.ice"),
+
+    hands: Uninit,
+
+    meta: [],
+)

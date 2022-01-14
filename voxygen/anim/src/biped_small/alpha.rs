@@ -64,10 +64,15 @@ impl Animation for AlphaAnimation {
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
         let mirror = (check - 0.5).signum();
-        let move1 = move1base * pullback * mirror;
-        let move2 = move2base * pullback * mirror;
+        let _move1 = move1base * pullback * mirror;
         let move1abs = move1base * pullback;
         let move2abs = move2base * pullback;
+        next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+        next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
+        next.main.position = Vec3::new(0.0, 0.0, 0.0);
+        next.main.orientation = Quaternion::rotation_x(0.0);
+        next.hand_l.orientation = Quaternion::rotation_x(0.0);
+        next.hand_r.orientation = Quaternion::rotation_x(0.0);
         match active_tool_kind {
             Some(ToolKind::Spear) => {
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
@@ -81,15 +86,6 @@ impl Animation for AlphaAnimation {
                 next.pants.position = Vec3::new(0.0, s_a.pants.0, s_a.pants.1);
                 next.pants.orientation = Quaternion::rotation_x(move1abs * 0.2 + move2abs * -0.3)
                     * Quaternion::rotation_z(move1abs * -0.2 + move2abs * 0.2);
-
-                next.main.position = Vec3::new(0.0, 0.0, 0.0);
-                next.main.orientation = Quaternion::rotation_x(0.0);
-
-                next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
-                next.hand_r.position = Vec3::new(-s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
-
-                next.hand_l.orientation = Quaternion::rotation_x(0.0);
-                next.hand_r.orientation = Quaternion::rotation_x(0.0);
 
                 next.control_l.position = Vec3::new(1.0 - s_a.grip.0 * 2.0, 2.0, -2.0);
                 next.control_r.position = Vec3::new(-1.0 + s_a.grip.0 * 2.0, 2.0, 2.0);
@@ -116,24 +112,60 @@ impl Animation for AlphaAnimation {
                 next.tail.orientation = Quaternion::rotation_x(0.05 * fastalt * speednormcancel)
                     * Quaternion::rotation_z(fast * 0.15 * speednormcancel);
             },
-            Some(ToolKind::Natural) => {
-                next.hand_l.position = Vec3::new(
-                    -s_a.hand.0,
-                    s_a.hand.1 + move1abs * 3.0 + move2abs * 3.0,
-                    s_a.hand.2 + move1abs * 1.5,
-                );
-                next.hand_r.position = Vec3::new(
-                    s_a.hand.0,
-                    s_a.hand.1 + move1abs * 3.0 + move2abs * 3.0,
-                    s_a.hand.2 + move1abs * 1.5,
+            Some(ToolKind::Axe) => {
+                next.head.orientation = Quaternion::rotation_z(move1abs * 0.3 + move2abs * -0.6);
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.position = Vec3::new(
+                    9.0 + move1abs * -10.0 + s_a.grip.0 * 2.0,
+                    -1.0 + move1abs * 2.0,
+                    move1abs * 3.0 - 2.0,
                 );
 
-                next.hand_l.orientation = Quaternion::rotation_x(1.7 + move1 * 1.3 + move2 * -2.4)
-                    * Quaternion::rotation_y(-0.3 + move1abs * -0.35 + move2abs * 0.6);
-                next.hand_r.orientation = Quaternion::rotation_x(1.7 - move1 * 1.3 + move2 * 2.4)
-                    * Quaternion::rotation_y(0.3 + move1abs * -0.35 + move2abs * 0.6);
-                next.head.orientation = Quaternion::rotation_x(move1abs * 0.1 + move2abs * -0.2)
-                    * Quaternion::rotation_y(move1 * 0.3 + move2 * -0.4);
+                next.control.position = Vec3::new(
+                    -5.0 + move1abs * 5.0,
+                    -1.0 + s_a.grip.2,
+                    -1.0 + move1abs * 3.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0 + move2abs * 1.0)
+                    * Quaternion::rotation_y(-0.0)
+                    * Quaternion::rotation_z(-0.0);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(0.5 + move1abs * 1.5 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_y(0.2 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_z(-0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-0.3 + move2abs * -1.0)
+                    * Quaternion::rotation_y(move1abs * -0.9 + move2abs * 2.0)
+                    * Quaternion::rotation_z(-0.3);
+            },
+            Some(ToolKind::Dagger) => {
+                next.head.orientation = Quaternion::rotation_x(move1abs * 0.15 + move2abs * -0.15)
+                    * Quaternion::rotation_z(move1abs * 0.15 + move2abs * -0.3);
+                next.control_l.position = Vec3::new(2.0 - s_a.grip.0 * 2.0, 1.0, 3.0);
+                next.control_r.position = Vec3::new(
+                    9.0 + move1abs * -7.0 + s_a.grip.0 * 2.0,
+                    -1.0 + move1abs * 6.0,
+                    -2.0,
+                );
+
+                next.control.position = Vec3::new(
+                    -5.0 + move1abs * 5.0 + move2abs * 9.0,
+                    -1.0 + move2abs * -3.0 + s_a.grip.2,
+                    -1.0 + move1abs * 3.0 + -s_a.grip.2 / 2.5 + s_a.grip.0 * -2.0,
+                );
+
+                next.control_l.orientation = Quaternion::rotation_x(PI / 2.0)
+                    * Quaternion::rotation_y(-0.0)
+                    * Quaternion::rotation_z(-0.0);
+                next.control_r.orientation =
+                    Quaternion::rotation_x(0.5 + move1abs * 1.5 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_y(0.2 + s_a.grip.0 * 0.2)
+                        * Quaternion::rotation_z(-0.0);
+
+                next.control.orientation = Quaternion::rotation_x(-0.3 + move2abs * -1.0)
+                    * Quaternion::rotation_y(move1abs * -0.4 + move2abs * 1.0)
+                    * Quaternion::rotation_z(-0.3 + move2abs * -2.2);
             },
             _ => {},
         }

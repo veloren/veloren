@@ -1,0 +1,13 @@
+EntityConfig (
+    name: Name("Gnarling Stalker"),
+    body: RandomWith("gnarling"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.blowgun")),
+
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-0.stalker"),
+    ],
+)

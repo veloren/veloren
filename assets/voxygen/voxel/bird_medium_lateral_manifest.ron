@@ -251,4 +251,40 @@
             lateral: ("npc.parrot.male.leg_r"),
         )
     ),
+    (Penguin, Male): (
+        wing_l: (
+            offset: (-0.5, -1.5, -8.0),
+            lateral: ("npc.penguin.male.wing"),
+        ),
+        wing_r: (
+            offset: (-0.5, -1.5, -8.0),
+            lateral: ("npc.penguin.male.wing"),
+        ),
+        foot_l: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        ),
+        foot_r: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        )
+    ),
+    (Penguin, Female): (
+        wing_l: (
+            offset: (-0.5, -1.5, -8.0),
+            lateral: ("npc.penguin.male.wing"),
+        ),
+        wing_r: (
+            offset: (-0.5, -1.5, -8.0),
+            lateral: ("npc.penguin.male.wing"),
+        ),
+        foot_l: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        ),
+        foot_r: (
+            offset: (-2.5, 0.0, -6.0),
+            lateral: ("npc.penguin.male.leg_r"),
+        )
+    ),
 })

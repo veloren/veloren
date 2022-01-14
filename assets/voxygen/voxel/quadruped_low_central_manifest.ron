@@ -624,6 +624,58 @@
             central: ("npc.lavadrake.male.tail_front"),
         ),
     ),
+    (Icedrake, Male): (
+        upper: (
+            offset: (-3.5, -2.0, -6.0),
+            central: ("npc.icedrake.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -1.0, -5.0),
+            central: ("npc.icedrake.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 0.0, -5.0),
+            central: ("npc.icedrake.male.jaw"),
+        ),
+        chest: (
+            offset: (-7.5, -11.0, -14.0),
+            central: ("npc.icedrake.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-2.5, -20.0, -7.5),
+            central: ("npc.icedrake.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-3.5, -12.0, -6.5),
+            central: ("npc.icedrake.male.tail_front"),
+        ),
+    ),
+    (Icedrake, Female): (
+        upper: (
+            offset: (-3.5, -2.0, -6.0),
+            central: ("npc.icedrake.male.head_upper"),
+        ),
+        lower: (
+            offset: (-3.5, -1.0, -5.0),
+            central: ("npc.icedrake.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.5, 0.0, -5.0),
+            central: ("npc.icedrake.male.jaw"),
+        ),
+        chest: (
+            offset: (-7.5, -11.0, -14.0),
+            central: ("npc.icedrake.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-2.5, -20.0, -7.5),
+            central: ("npc.icedrake.male.tail_rear"),
+        ),
+		tail_front: (
+            offset: (-3.5, -12.0, -6.5),
+            central: ("npc.icedrake.male.tail_front"),
+        ),
+    ),
     (Basilisk, Male): (
         upper: (
             offset: (-5.5, 0.0, -5.0),

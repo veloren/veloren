@@ -40,12 +40,36 @@
                 vox_spec: ("npc.adlet.male.bow.hand_r", (0.0, -2.0, -7.0)),
             )
         ),
-        "Gnarling": (
+        "GnarlingMugger": (
             left: (
-                vox_spec: ("npc.gnarling.male.hand_r", (-3.0, -1.5, -7.0)),
+                vox_spec: ("npc.gnarling.mugger.hand_r", (-3.0, -1.5, -7.0)),
             ),
             right: (
-                vox_spec: ("npc.gnarling.male.hand_r", (0.0, -1.5, -7.0)),
+                vox_spec: ("npc.gnarling.mugger.hand_r", (0.0, -1.5, -7.0)),
+            )
+        ),
+        "GnarlingStalker": (
+            left: (
+                vox_spec: ("npc.gnarling.stalker.hand_r", (-3.0, -1.5, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnarling.stalker.hand_r", (0.0, -1.5, -7.0)),
+            )
+        ),
+        "GnarlingLogger": (
+            left: (
+                vox_spec: ("npc.gnarling.logger.hand_r", (-3.0, -1.5, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnarling.logger.hand_r", (0.0, -1.5, -7.0)),
+            )
+        ),
+        "GnarlingChieftain": (
+            left: (
+                vox_spec: ("npc.gnarling.chieftain.hand_r", (-3.5, -0.5, -8.0)),
+            ),
+            right: (
+                vox_spec: ("npc.gnarling.chieftain.hand_r", (-0.5, -0.5, -8.0)),
             )
         ),
         "Mandragora": (
