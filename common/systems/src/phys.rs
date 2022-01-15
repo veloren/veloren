@@ -171,10 +171,9 @@ impl<'a> PhysicsData<'a> {
             &self.write.velocities,
             &self.write.positions,
             !&self.write.previous_phys_cache,
-            !&self.read.is_ridings,
         )
             .join()
-            .map(|(e, _, _, _, _, _)| e)
+            .map(|(e, _, _, _, _)| e)
             .collect::<Vec<_>>()
         {
             let _ = self
@@ -194,7 +193,7 @@ impl<'a> PhysicsData<'a> {
         }
 
         // Update PreviousPhysCache
-        for (_, vel, position, ori, mut phys_cache, collider, scale, cs, _) in (
+        for (_, vel, position, ori, mut phys_cache, collider, scale, cs) in (
             &self.read.entities,
             &self.write.velocities,
             &self.write.positions,
@@ -203,7 +202,6 @@ impl<'a> PhysicsData<'a> {
             &self.read.colliders,
             self.read.scales.maybe(),
             self.read.char_states.maybe(),
-            !&self.read.is_ridings,
         )
             .join()
         {
@@ -294,13 +292,12 @@ impl<'a> PhysicsData<'a> {
         let lg2_large_cell_size = 6;
         let radius_cutoff = 8;
         let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
-        for (entity, pos, phys_cache, _, _, _) in (
+        for (entity, pos, phys_cache, _, _) in (
             &read.entities,
             &write.positions,
             &write.previous_phys_cache,
             write.velocities.mask(),
             !&read.projectiles, // Not needed because they are skipped in the inner loop below
-            !&read.is_ridings,
         )
             .join()
         {
@@ -329,7 +326,7 @@ impl<'a> PhysicsData<'a> {
             previous_phys_cache,
             &read.masses,
             &read.colliders,
-            !&read.is_ridings,
+            read.is_ridings.maybe(),
             read.stickies.maybe(),
             &mut write.physics_states,
             // TODO: if we need to avoid collisions for other things consider
@@ -339,9 +336,6 @@ impl<'a> PhysicsData<'a> {
             read.char_states.maybe(),
         )
             .par_join()
-            .map(|(e, p, v, vd, m, c, _, sticky, ph, pr, c_s)| {
-                (e, p, v, vd, m, c, sticky, ph, pr, c_s)
-            })
             .map_init(
                 || {
                     prof_span!(guard, "physics e<>e rayon job");
@@ -355,6 +349,7 @@ impl<'a> PhysicsData<'a> {
                     previous_cache,
                     mass,
                     collider,
+                    is_riding,
                     sticky,
                     physics,
                     projectile,
@@ -478,6 +473,7 @@ impl<'a> PhysicsData<'a> {
                                         *mass,
                                         *mass_other,
                                         vel,
+                                        is_riding.is_some(),
                                     );
                                 }
                             },
@@ -1795,6 +1791,7 @@ fn resolve_e2e_collision(
     mass: Mass,
     mass_other: Mass,
     vel: &Vel,
+    is_riding: bool,
 ) -> bool {
     // Find the distance betwen our collider and
     // collider we collide with and get vector of pushback.
@@ -1852,7 +1849,7 @@ fn resolve_e2e_collision(
     //
     // This allows using e2e pushback to gain speed by jumping out of a roll
     // while in the middle of a collider, this is an intentional combat mechanic.
-    let forced_movement = matches!(char_state_maybe, Some(cs) if cs.is_forced_movement());
+    let forced_movement = matches!(char_state_maybe, Some(cs) if cs.is_forced_movement()) || is_riding;
 
     // Don't apply repulsive force to projectiles,
     // or if we're colliding with a terrain-like entity,

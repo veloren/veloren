@@ -43,20 +43,9 @@ impl<'a> System<'a> for Sys {
             &mut interpolated,
             &bodies,
             &velocities,
-            is_rider.maybe(),
         )
             .join()
         {
-            // Riders get their pos/ori set to that of their mount
-            let (pos, vel, ori) = if let Some(((mount_pos, mount_vel), mount_ori)) = is_rider
-                .and_then(|is_rider| uid_allocator.retrieve_entity_internal(is_rider.mount.into()))
-                .and_then(|mount| positions.get(mount).zip(velocities.get(mount)).zip(orientations.get(mount)))
-            {
-                (mount_pos, mount_vel, mount_ori)
-            } else {
-                (pos, vel, ori)
-            };
-
             // Update interpolation values, but don't interpolate far things or objects
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 && !matches!(body, Body::Object(_)) {
                 // Note, these values are specifically tuned for smoother motion with high
