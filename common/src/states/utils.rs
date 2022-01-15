@@ -158,7 +158,7 @@ impl Body {
             Body::Humanoid(_) => 3.5,
             Body::QuadrupedSmall(_) => 3.0,
             Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
-                quadruped_medium::Species::Mammoth => 2.2,
+                quadruped_medium::Species::Mammoth => 1.0,
                 _ => 2.8,
             },
             Body::BirdMedium(_) => 6.0,

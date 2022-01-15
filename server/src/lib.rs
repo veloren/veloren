@@ -8,7 +8,8 @@
     drain_filter,
     never_type,
     option_zip,
-    unwrap_infallible
+    unwrap_infallible,
+    let_else
 )]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 

@@ -39,10 +39,13 @@ impl Link for Mounting {
         let entity = |uid: Uid| uid_allocator
             .retrieve_entity_internal(uid.into());
 
-
-        if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
+        if this.mount == this.rider {
+            // Forbid self-mounting
+            Err(())
+        } else if let Some((mount, rider)) = entity(this.mount).zip(entity(this.rider)) {
             let can_mount_with = |entity| is_mounts.get(entity).is_none() && is_riders.get(entity).is_none();
 
+            // Ensure that neither mount or rider are already part of a mounting relationship
             if can_mount_with(mount) && can_mount_with(rider) {
                 let _ = is_mounts.insert(mount, this.make_role());
                 let _ = is_riders.insert(rider, this.make_role());

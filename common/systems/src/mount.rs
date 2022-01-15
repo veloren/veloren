@@ -1,5 +1,5 @@
 use common::{
-    comp::{Body, Controller, Ori, Pos, Vel},
+    comp::{Body, Controller, Ori, Pos, Vel, ForceUpdate},
     uid::UidAllocator,
     mounting::{Mount, Rider},
     link::Is,
@@ -27,6 +27,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
+        ReadStorage<'a, ForceUpdate>,
         ReadStorage<'a, Body>,
     );
 
@@ -46,6 +47,7 @@ impl<'a> System<'a> for Sys {
             mut positions,
             mut velocities,
             mut orientations,
+            force_updates,
             bodies,
         ): Self::SystemData,
     ) {

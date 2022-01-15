@@ -460,9 +460,11 @@ impl FigureMgr {
         }
         let dt = ecs.fetch::<DeltaTime>().0;
         let updater = ecs.read_resource::<LazyUpdate>();
-        for (entity, light_emitter_opt, body, mut light_anim) in (
+        for (entity, light_emitter_opt, interpolated, pos, body, mut light_anim) in (
             &ecs.entities(),
             ecs.read_storage::<LightEmitter>().maybe(),
+            ecs.read_storage::<crate::ecs::comp::Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Body>().maybe(),
             &mut ecs.write_storage::<LightAnimation>(),
         )
@@ -485,7 +487,11 @@ impl FigureMgr {
                 };
             if let Some(lantern_offset) = body
                 .and_then(|body| self.states.get_mut(body, &entity))
-                .and_then(|state| state.lantern_offset)
+                .and_then(|state| {
+                    // Calculate the correct lantern position
+                    let pos = anim::vek::Vec3::from(interpolated.map(|i| i.pos).unwrap_or(pos.0).into_array());
+                    Some(state.mount_world_pos + state.mount_transform.orientation * anim::vek::Vec3::from(state.lantern_offset?.into_array()) - pos)
+                })
             {
                 light_anim.offset = vek::Vec3::from(lantern_offset);
             } else if let Some(body) = body {

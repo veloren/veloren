@@ -13,11 +13,14 @@ use common::{
     terrain::TerrainChunkSize,
     uid::Uid,
     vol::RectVolSize,
+    link::Is,
+    mounting::Rider,
+    uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::{msg::ServerGeneral, sync::CompSyncPackage};
 use itertools::Either;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
+use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage, saveload::MarkerAllocator};
 use vek::*;
 
 /// This system will send physics updates to the client
@@ -27,15 +30,15 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Entities<'a>,
+        (Read<'a, UidAllocator>, Entities<'a>),
         Read<'a, Tick>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, Calendar>,
         ReadExpect<'a, RegionMap>,
         ReadStorage<'a, Uid>,
-        ReadStorage<'a, Pos>,
-        ReadStorage<'a, Vel>,
-        ReadStorage<'a, Ori>,
+        WriteStorage<'a, Pos>,
+        WriteStorage<'a, Vel>,
+        WriteStorage<'a, Ori>,
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
         ReadStorage<'a, Presence>,
@@ -49,6 +52,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, DeletedEntities>,
         Write<'a, Vec<Outcome>>,
         Read<'a, PlayerPhysicsSettings>,
+        ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Player>,
         TrackedComps<'a>,
         ReadTrackers<'a>,
@@ -61,15 +65,15 @@ impl<'a> System<'a> for Sys {
     fn run(
         job: &mut Job<Self>,
         (
-            entities,
+            (uid_allocator, entities),
             tick,
             time_of_day,
             calendar,
             region_map,
             uids,
-            positions,
-            velocities,
-            orientations,
+            mut positions,
+            mut velocities,
+            mut orientations,
             inventories,
             subscriptions,
             presences,
@@ -83,6 +87,7 @@ impl<'a> System<'a> for Sys {
             mut deleted_entities,
             mut outcomes,
             player_physics_settings,
+            is_rider,
             players,
             tracked_comps,
             trackers,
@@ -105,6 +110,24 @@ impl<'a> System<'a> for Sys {
         // 4. Iterate through entities in that region
         // 5. Inform clients of the component changes for that entity
         //     - Throttle update rate base on distance to each client
+
+        // Propagate `ForceUpdate`s to mounts
+        let mut propagate_mounts = Vec::new();
+        for (entity, _, is_rider) in (
+            &entities,
+            &force_updates,
+            &is_rider,
+        ).join() {
+            propagate_mounts.push((is_rider.mount, entity));
+        }
+        for (mount_uid, rider) in propagate_mounts {
+            let Some(mount) = uid_allocator
+                .retrieve_entity_internal(mount_uid.into())
+            else { continue };
+            positions.get(rider).copied().map(|pos| positions.insert(mount, pos));
+            velocities.get(rider).copied().map(|vel| velocities.insert(mount, vel));
+            orientations.get(rider).copied().map(|ori| orientations.insert(mount, ori));
+        }
 
         // Sync physics and other components
         // via iterating through regions (in parallel)
