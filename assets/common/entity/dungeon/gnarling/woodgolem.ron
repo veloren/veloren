@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Name("Wooden Golem"),
+    body: RandomWith("woodgolem"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.dungeon.tier-0.miniboss"),
+
+    hands: Uninit,
+
+    meta: [],
+)

@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Name("Mandragora"),
+    body: RandomWith("mandragora"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.dungeon.tier-0.miniboss"),
+
+    hands: Uninit,
+
+    meta: [],
+)

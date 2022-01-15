@@ -16,7 +16,7 @@ pub struct GnarlingFortification {
     radius: i32,
     wall_radius: i32,
     wall_segments: Vec<(Vec2<i32>, Vec2<i32>)>,
-    wall_towers: Vec<Vec2<i32>>,
+    wall_towers: Vec<Vec3<i32>>,
     // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
     // to origin, ori tells which way structure should face
     structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Ori)>,
@@ -234,6 +234,7 @@ impl GnarlingFortification {
         let wall_towers = outer_wall_corners
             .into_iter()
             .chain(inner_tower_locs.iter().copied())
+            .map(|pos_2d| pos_2d.with_z(rpos_height(pos_2d)))
             .collect::<Vec<_>>();
         let wall_segments = outer_wall_segments
             .into_iter()
@@ -274,27 +275,44 @@ impl GnarlingFortification {
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
 
-        for (loc, pos, _ori) in &self.structure_locations {
+        for (loc, pos, ori) in &self.structure_locations {
+            let wpos = *pos + self.origin;
             if area.contains_point(pos.xy()) {
                 match loc {
                     GnarlingStructure::Hut => {
-                        let wpos = *pos + self.origin;
-                        let mut entities = Vec::new();
-                        entities.resize_with(5, || {
-                            // TODO: give enemies health skills?
-                            let entity = EntityInfo::at(wpos.map(|e| e as f32))
-                                .with_health_scaling(dynamic_rng.gen_range(3..4));
-                            match dynamic_rng.gen_range(0..=4) {
-                                0 => entity.with_asset_expect("common.entity.dungeon.tier-0.bow"),
-                                1 => entity.with_asset_expect("common.entity.dungeon.tier-0.staff"),
-                                _ => entity.with_asset_expect("common.entity.dungeon.tier-0.spear"),
-                            }
-                        });
-                        for entity in entities {
-                            supplement.add_entity(entity);
+                        supplement.add_entity(random_gnarling(wpos, dynamic_rng));
+                    },
+                    GnarlingStructure::ChieftainHut => {
+                        supplement.add_entity(gnarling_chieftain(wpos));
+                        let left_inner_guard_pos = wpos + ori.dir() * 8 + ori.cw().dir() * 2;
+                        supplement.add_entity(wood_golem(left_inner_guard_pos));
+                        let right_inner_guard_pos = wpos + ori.dir() * 8 + ori.ccw().dir() * 2;
+                        supplement.add_entity(wood_golem(right_inner_guard_pos));
+                        let left_outer_guard_pos = wpos + ori.dir() * 16 + ori.cw().dir() * 2;
+                        supplement.add_entity(random_gnarling(left_outer_guard_pos, dynamic_rng));
+                        let right_outer_guard_pos = wpos + ori.dir() * 16 + ori.ccw().dir() * 2;
+                        supplement.add_entity(random_gnarling(right_outer_guard_pos, dynamic_rng));
+                    },
+                    GnarlingStructure::WatchTower => {
+                        supplement.add_entity(wood_golem(wpos));
+                        let spawn_pos = wpos.xy().with_z(wpos.z + 27);
+                        for _ in 0..4 {
+                            supplement.add_entity(gnarling_stalker(spawn_pos + Vec2::broadcast(4)));
                         }
                     },
-                    _ => {},
+                    GnarlingStructure::Totem => {
+                        let spawn_pos = wpos + pos.xy().map(|x| x.signum() * -5);
+                        supplement.add_entity(wood_golem(spawn_pos));
+                    },
+                }
+            }
+        }
+
+        for pos in &self.wall_towers {
+            let wpos = *pos + self.origin;
+            if area.contains_point(pos.xy()) {
+                for _ in 0..4 {
+                    supplement.add_entity(gnarling_stalker(wpos.xy().with_z(wpos.z + 21)))
                 }
             }
         }
@@ -420,7 +438,7 @@ impl Structure for GnarlingFortification {
 
         // Create towers
         self.wall_towers.iter().for_each(|point| {
-            let wpos = point + self.origin;
+            let wpos = point.xy() + self.origin;
 
             // Tower base
             let tower_depth = 3;
@@ -627,7 +645,6 @@ impl Structure for GnarlingFortification {
                             .fill(Fill::Prefab(Box::new(totem), totem_pos, self.seed));
                     },
                     GnarlingStructure::ChieftainHut => {
-                        let alt = alt + 3;
                         let hut_radius = 12.0;
                         let hut_wall_height = 6.0;
                         let door_height = 3;
@@ -875,4 +892,50 @@ impl Structure for GnarlingFortification {
                 }
             });
     }
+}
+
+fn gnarling_mugger(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.dungeon.gnarling.mugger")
+}
+
+fn gnarling_stalker(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.gnarling.stalker")
+}
+
+fn gnarling_logger(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32)).with_asset_expect("common.entity.dungeon.gnarling.logger")
+}
+
+fn random_gnarling(pos: Vec3<i32>, dynamic_rng: &mut impl Rng) -> EntityInfo {
+    match dynamic_rng.gen_range(0..3) {
+        0 => gnarling_logger(pos),
+        1 => gnarling_mugger(pos),
+        _ => gnarling_stalker(pos),
+    }
+}
+
+fn gnarling_chieftain(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.gnarling.chieftain")
+}
+
+fn deadwood(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.gnarling.deadwood")
+}
+
+fn mandragora(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.gnarling.mandragora")
+}
+
+fn wood_golem(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.gnarling.woodgolem")
+}
+
+fn harvester_boss(pos: Vec3<i32>) -> EntityInfo {
+    EntityInfo::at(pos.map(|x| x as f32))
+        .with_asset_expect("common.entity.dungeon.gnarling.harvester")
 }
