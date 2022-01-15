@@ -1,5 +1,5 @@
 use super::*;
-use crate::Land;
+use crate::{site2::util::Dir, Land};
 use common::terrain::{Block, BlockKind, SpriteKind};
 use rand::prelude::*;
 use vek::*;
@@ -118,7 +118,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height),
                         },
                         inset: roof_height,
-                        dir: true,
+                        dir: Dir::Y,
                     }),
                     painter.prim(Primitive::Gable {
                         aabb: Aabb {
@@ -135,7 +135,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                         },
                         inset: roof_height - 1,
-                        dir: true,
+                        dir: Dir::Y,
                     }),
                 )
             },
@@ -154,7 +154,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height),
                         },
                         inset: roof_height,
-                        dir: false,
+                        dir: Dir::X,
                     }),
                     painter.prim(Primitive::Gable {
                         aabb: Aabb {
@@ -171,7 +171,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                         },
                         inset: roof_height - 1,
-                        dir: false,
+                        dir: Dir::X,
                     }),
                 )
             },
@@ -190,7 +190,7 @@ impl Structure for House {
                         .with_z(alt + roof + roof_height),
                     },
                     inset: roof_height,
-                    dir: true,
+                    dir: Dir::Y,
                 }),
                 painter.prim(Primitive::Gable {
                     aabb: Aabb {
@@ -203,7 +203,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                     },
                     inset: roof_height - 1,
-                    dir: true,
+                    dir: Dir::Y,
                 }),
             ),
             _ => (
@@ -221,7 +221,7 @@ impl Structure for House {
                         .with_z(alt + roof + roof_height),
                     },
                     inset: roof_height,
-                    dir: false,
+                    dir: Dir::X,
                 }),
                 painter.prim(Primitive::Gable {
                     aabb: Aabb {
@@ -237,7 +237,7 @@ impl Structure for House {
                             .with_z(alt + roof + roof_height - 1),
                     },
                     inset: roof_height - 1,
-                    dir: false,
+                    dir: Dir::X,
                 }),
             ),
         };
@@ -905,7 +905,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: 3,
+                        dir: Dir::NegY,
                     }),
                     1 => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -921,7 +921,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: 1,
+                        dir: Dir::NegX,
                     }),
                     2 => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -937,7 +937,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: 2,
+                        dir: Dir::Y,
                     }),
                     _ => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -953,7 +953,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey,
-                        dir: 0,
+                        dir: Dir::X,
                     }),
                 };
                 let shed_empty = match self.front {
@@ -971,7 +971,7 @@ impl Structure for House {
                             .with_z(alt + height - 1),
                         },
                         inset: storey - 1,
-                        dir: 3,
+                        dir: Dir::NegY,
                     }),
                     1 => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -987,7 +987,7 @@ impl Structure for House {
                             .with_z(alt + height - 1),
                         },
                         inset: storey - 1,
-                        dir: 1,
+                        dir: Dir::NegX,
                     }),
                     2 => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -1003,7 +1003,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey - 1,
-                        dir: 2,
+                        dir: Dir::Y,
                     }),
                     _ => painter.prim(Primitive::Ramp {
                         aabb: Aabb {
@@ -1019,7 +1019,7 @@ impl Structure for House {
                             .with_z(alt + height),
                         },
                         inset: storey - 1,
-                        dir: 0,
+                        dir: Dir::X,
                     }),
                 };
                 painter.fill(
@@ -1232,7 +1232,7 @@ impl Structure for House {
                                 .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: true,
+                            dir: Dir::Y,
                         }),
                         1 => painter.prim(Primitive::Gable {
                             aabb: Aabb {
@@ -1245,7 +1245,7 @@ impl Structure for House {
                                 .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: false,
+                            dir: Dir::X,
                         }),
                         2 => painter.prim(Primitive::Gable {
                             aabb: Aabb {
@@ -1258,7 +1258,7 @@ impl Structure for House {
                                     .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: true,
+                            dir: Dir::Y,
                         }),
                         _ => painter.prim(Primitive::Gable {
                             aabb: Aabb {
@@ -1271,7 +1271,7 @@ impl Structure for House {
                                     .with_z(alt + height + 1),
                             },
                             inset: 3,
-                            dir: false,
+                            dir: Dir::X,
                         }),
                     };
                     let window_min = match self.front {
@@ -1494,7 +1494,7 @@ impl Structure for House {
                                     max: Vec2::new(stair_origin.x + 10, stair_origin.y + stair_width).with_z(alt + previous_height + 1),
                                 },
                                 inset: storey,
-                                dir: 0,
+                                dir: Dir::X,
                             })
                         /*},
                         1 => {
@@ -1573,7 +1573,7 @@ impl Structure for House {
                                     max: Vec2::new(stair_origin.x + 8, stair_origin.y + 2 * stair_width).with_z(alt + previous_height + 1),
                                 },
                                 inset: storey,
-                                dir: 1,
+                                dir: Dir::NegX,
                             })
                         /*},
                         1 => {
