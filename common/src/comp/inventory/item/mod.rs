@@ -23,7 +23,7 @@ use crossbeam_utils::atomic::AtomicCell;
 use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use std::{fmt, sync::Arc};
+use std::{collections::hash_map::DefaultHasher, fmt, sync::Arc};
 use strum_macros::IntoStaticStr;
 use tracing::error;
 use vek::Rgb;
@@ -369,6 +369,17 @@ pub struct Item {
     /// The slots for items that this item has
     slots: Vec<InvSlot>,
     item_config: Option<Box<ItemConfig>>,
+    hash: u64,
+}
+
+use std::hash::{Hash, Hasher};
+
+// Used to find inventory item corresponding to hotbar slot
+impl Hash for Item {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.item_def.item_definition_id.hash(state);
+        self.components.hash(state);
+    }
 }
 
 // Custom serialization for ItemDef, we only want to send the item_definition_id
@@ -633,6 +644,12 @@ impl Item {
                     .map(|comp| comp.duplicate(ability_map, msm)),
             );
         }
+        let item_hash = {
+            let mut s = DefaultHasher::new();
+            inner_item.item_definition_id.hash(&mut s);
+            components.hash(&mut s);
+            s.finish()
+        };
 
         let mut item = Item {
             item_id: Arc::new(AtomicCell::new(None)),
@@ -641,6 +658,7 @@ impl Item {
             slots: vec![None; inner_item.slots as usize],
             item_def: inner_item,
             item_config: None,
+            hash: item_hash,
         };
         item.update_item_config(ability_map, msm);
         item
@@ -856,6 +874,8 @@ impl Item {
     }
 
     pub fn ability_spec(&self) -> Option<&AbilitySpec> { self.item_def.ability_spec.as_ref() }
+
+    pub fn item_hash(&self) -> u64 { self.hash }
 }
 
 /// Provides common methods providing details about an item definition

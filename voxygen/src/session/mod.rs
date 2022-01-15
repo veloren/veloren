@@ -462,8 +462,16 @@ impl PlayState for SessionState {
             // Handle window events.
             for event in events {
                 // Pass all events to the ui first.
-                if self.hud.handle_event(event.clone(), global_state) {
-                    continue;
+                {
+                    let client = self.client.borrow();
+                    let inventories = client.inventories();
+                    let inventory = inventories.get(client.entity());
+                    if self
+                        .hud
+                        .handle_event(event.clone(), global_state, inventory)
+                    {
+                        continue;
+                    }
                 }
 
                 match event {

@@ -3304,8 +3304,13 @@ impl Hud {
                         Hotbar(h),
                     ) = (a, b)
                     {
-                        self.hotbar.add_inventory_link(h, slot);
-                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                        if let Some(item) = inventories
+                            .get(client.entity())
+                            .and_then(|inv| inv.get(slot))
+                        {
+                            self.hotbar.add_inventory_link(h, item);
+                            events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                        }
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
@@ -3370,8 +3375,13 @@ impl Hud {
                             bypass_dialog: false,
                         });
                     } else if let (Inventory(i), Hotbar(h)) = (a, b) {
-                        self.hotbar.add_inventory_link(h, i.slot);
-                        events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                        if let Some(item) = inventories
+                            .get(client.entity())
+                            .and_then(|inv| inv.get(i.slot))
+                        {
+                            self.hotbar.add_inventory_link(h, item);
+                            events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                        }
                     } else if let (Hotbar(a), Hotbar(b)) = (a, b) {
                         self.hotbar.swap(a, b);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
@@ -3419,11 +3429,16 @@ impl Hud {
                     } else if let Hotbar(h) = from {
                         // Used from hotbar
                         self.hotbar.get(h).map(|s| match s {
-                            hotbar::SlotContents::Inventory(i) => {
-                                events.push(Event::UseSlot {
-                                    slot: comp::slot::Slot::Inventory(i),
-                                    bypass_dialog: false,
-                                });
+                            hotbar::SlotContents::Inventory(i, _) => {
+                                if let Some(slot) = inventories
+                                    .get(client.entity())
+                                    .and_then(|inv| inv.get_slot_from_hash(i))
+                                {
+                                    events.push(Event::UseSlot {
+                                        slot: comp::slot::Slot::Inventory(slot),
+                                        bypass_dialog: false,
+                                    });
+                                }
                             },
                             hotbar::SlotContents::Ability(_) => {},
                         });
@@ -3602,7 +3617,12 @@ impl Hud {
         }
     }
 
-    pub fn handle_event(&mut self, event: WinEvent, global_state: &mut GlobalState) -> bool {
+    pub fn handle_event(
+        &mut self,
+        event: WinEvent,
+        global_state: &mut GlobalState,
+        client_inventory: Option<&comp::Inventory>,
+    ) -> bool {
         // Helper
         fn handle_slot(
             slot: hotbar::Slot,
@@ -3610,6 +3630,7 @@ impl Hud {
             events: &mut Vec<Event>,
             slot_manager: &mut slots::SlotManager,
             hotbar: &mut hotbar::State,
+            client_inventory: Option<&comp::Inventory>,
         ) {
             use slots::InventorySlot;
             if let Some(slots::SlotKind::Inventory(InventorySlot {
@@ -3618,18 +3639,24 @@ impl Hud {
                 ..
             })) = slot_manager.selected()
             {
-                hotbar.add_inventory_link(slot, i);
-                events.push(Event::ChangeHotbarState(Box::new(hotbar.to_owned())));
-                slot_manager.idle();
+                if let Some(item) = client_inventory.and_then(|inv| inv.get(i)) {
+                    hotbar.add_inventory_link(slot, item);
+                    events.push(Event::ChangeHotbarState(Box::new(hotbar.to_owned())));
+                    slot_manager.idle();
+                }
             } else {
                 let just_pressed = hotbar.process_input(slot, state);
                 hotbar.get(slot).map(|s| match s {
-                    hotbar::SlotContents::Inventory(i) => {
+                    hotbar::SlotContents::Inventory(i, _) => {
                         if just_pressed {
-                            events.push(Event::UseSlot {
-                                slot: comp::slot::Slot::Inventory(i),
-                                bypass_dialog: false,
-                            });
+                            if let Some(slot) =
+                                client_inventory.and_then(|inv| inv.get_slot_from_hash(i))
+                            {
+                                events.push(Event::UseSlot {
+                                    slot: comp::slot::Slot::Inventory(slot),
+                                    bypass_dialog: false,
+                                });
+                            }
                         }
                     },
                     hotbar::SlotContents::Ability(i) => events.push(Event::Ability(i, state)),
@@ -3714,6 +3741,7 @@ impl Hud {
                         &mut self.events,
                         &mut self.slot_manager,
                         &mut self.hotbar,
+                        client_inventory,
                     );
                     true
                 } else {
@@ -3817,6 +3845,7 @@ impl Hud {
                                 &mut self.events,
                                 &mut self.slot_manager,
                                 &mut self.hotbar,
+                                client_inventory,
                             );
                             true
                         } else {
