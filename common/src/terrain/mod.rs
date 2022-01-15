@@ -162,19 +162,21 @@ impl TerrainGrid {
         self.try_find_space(pos).unwrap_or(pos)
     }
 
+    pub fn is_space(&self, pos: Vec3<i32>) -> bool {
+        (0..2).all(|z| {
+            self.get(pos + Vec3::unit_z() * z)
+                .map_or(true, |b| !b.is_solid())
+        })
+    }
+
     pub fn try_find_space(&self, pos: Vec3<i32>) -> Option<Vec3<i32>> {
         const SEARCH_DIST: i32 = 63;
         (0..SEARCH_DIST * 2 + 1)
             .map(|i| if i % 2 == 0 { i } else { -i } / 2)
             .map(|z_diff| pos + Vec3::unit_z() * z_diff)
-            .find(|test_pos| {
-                self.get(test_pos - Vec3::unit_z())
-                    .map_or(false, |b| b.is_filled())
-                    && (0..2).all(|z| {
-                        self.get(test_pos + Vec3::unit_z() * z)
-                            .map_or(true, |b| !b.is_solid())
-                    })
-            })
+            .find(|pos| self.get(pos - Vec3::unit_z())
+                .map_or(false, |b| b.is_filled())
+                && self.is_space(*pos))
     }
 }
 

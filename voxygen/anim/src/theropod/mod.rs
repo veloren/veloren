@@ -79,7 +79,7 @@ impl Skeleton for TheropodSkeleton {
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::Theropod(body)
-                    .mountee_offset()
+                    .mount_offset()
                     .into_tuple()
                     .into(),
                 ..Default::default()

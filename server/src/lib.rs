@@ -663,6 +663,9 @@ impl Server {
         // will be processed once handle_events() is called below
         let disconnect_type = self.disconnect_all_clients_if_requested();
 
+        // Handle entity links (such as mounting)
+        self.state.maintain_links();
+
         // Handle game events
         frontend_events.append(&mut self.handle_events());
 

@@ -12,7 +12,9 @@
     trait_alias,
     type_alias_impl_trait,
     extend_one,
-    arbitrary_enum_discriminant
+    arbitrary_enum_discriminant,
+    generic_associated_types,
+    arbitrary_self_types
 )]
 #![feature(hash_drain_filter)]
 
@@ -78,6 +80,10 @@ pub mod uid;
 #[cfg(not(target_arch = "wasm32"))] pub mod vol;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod volumes;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod link;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod mounting;
 
 #[cfg(not(target_arch = "wasm32"))]
 pub use cached_spatial_grid::CachedSpatialGrid;

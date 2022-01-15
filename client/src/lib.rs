@@ -44,6 +44,8 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
+    mounting::Rider,
+    link::Is,
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -1152,10 +1154,10 @@ impl Client {
         )));
     }
 
-    pub fn is_mounted(&self) -> bool {
+    pub fn is_riding(&self) -> bool {
         self.state
             .ecs()
-            .read_storage::<comp::Mounting>()
+            .read_storage::<Is<Rider>>()
             .get(self.entity())
             .is_some()
     }

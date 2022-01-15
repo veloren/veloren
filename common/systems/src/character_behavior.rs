@@ -7,7 +7,7 @@ use common::{
     comp::{
         self, character_state::OutputEvents, inventory::item::MaterialStatManifest,
         ActiveAbilities, Beam, Body, CharacterState, Combo, Controller, Density, Energy, Health,
-        Inventory, InventoryManip, Mass, Melee, Mounting, Ori, PhysicsState, Poise, Pos, SkillSet,
+        Inventory, InventoryManip, Mass, Melee, Ori, PhysicsState, Poise, Pos, SkillSet,
         StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
@@ -19,6 +19,8 @@ use common::{
     },
     terrain::TerrainGrid,
     uid::Uid,
+    mounting::Rider,
+    link::Is,
 };
 use common_ecs::{Job, Origin, Phase, System};
 
@@ -37,7 +39,7 @@ pub struct ReadData<'a> {
     melee_attacks: ReadStorage<'a, Melee>,
     beams: ReadStorage<'a, Beam>,
     uids: ReadStorage<'a, Uid>,
-    mountings: ReadStorage<'a, Mounting>,
+    is_riders: ReadStorage<'a, Is<Rider>>,
     stats: ReadStorage<'a, Stats>,
     skill_sets: ReadStorage<'a, SkillSet>,
     active_abilities: ReadStorage<'a, ActiveAbilities>,
@@ -110,7 +112,7 @@ impl<'a> System<'a> for Sys {
             health,
             body,
             physics,
-            (stat, skill_set, active_abilities),
+            (stat, skill_set, active_abilities, is_rider),
             combo,
         ) in (
             &read_data.entities,
@@ -131,6 +133,7 @@ impl<'a> System<'a> for Sys {
                 &read_data.stats,
                 &read_data.skill_sets,
                 &read_data.active_abilities,
+                read_data.is_riders.maybe(),
             ),
             &read_data.combos,
         )
@@ -207,7 +210,7 @@ impl<'a> System<'a> for Sys {
 
             // Mounted occurs after control actions have been handled
             // If mounted, character state is controlled by mount
-            if let Some(Mounting(_)) = read_data.mountings.get(entity) {
+            if is_rider.is_some() {
                 let idle_state = CharacterState::Idle(idle::Data { is_sneaking: false });
                 if *join_struct.char_state != idle_state {
                     *join_struct.char_state = idle_state;

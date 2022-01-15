@@ -284,20 +284,3 @@ impl Controller {
 impl Component for Controller {
     type Storage = IdvStorage<Self>;
 }
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum MountState {
-    Unmounted,
-    MountedBy(Uid),
-}
-
-impl Component for MountState {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Mounting(pub Uid);
-
-impl Component for Mounting {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
-}

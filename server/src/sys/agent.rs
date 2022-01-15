@@ -21,7 +21,7 @@ use common::{
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, ActiveAbilities, Agent, Alignment, BehaviorCapability, BehaviorState, Body,
         CharacterAbility, CharacterState, Combo, ControlAction, ControlEvent, Controller, Energy,
-        Health, HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori,
+        Health, HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, Ori,
         PhysicsState, Pos, Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
     },
     consts::GRAVITY,
@@ -37,6 +37,8 @@ use common::{
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
+    mounting::Mount,
+    link::Is,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
@@ -152,7 +154,7 @@ pub struct ReadData<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     alignments: ReadStorage<'a, Alignment>,
     bodies: ReadStorage<'a, Body>,
-    mount_states: ReadStorage<'a, MountState>,
+    is_mounts: ReadStorage<'a, Is<Mount>>,
     time_of_day: Read<'a, TimeOfDay>,
     light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]
@@ -224,15 +226,9 @@ impl<'a> System<'a> for Sys {
             &mut controllers,
             read_data.light_emitter.maybe(),
             read_data.groups.maybe(),
-            read_data.mount_states.maybe(),
+            !&read_data.is_mounts,
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state)| {
-                // Skip mounted entities
-                mount_state
-                    .map(|ms| *ms == MountState::Unmounted)
-                    .unwrap_or(true)
-            })
             .for_each_init(
                 || {
                     prof_span!(guard, "agent rayon job");

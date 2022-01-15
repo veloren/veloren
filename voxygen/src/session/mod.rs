@@ -27,6 +27,8 @@ use common::{
     trade::TradeResult,
     util::{Dir, Plane},
     vol::ReadVol,
+    link::Is,
+    mounting::{Mounting, Mount},
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -670,7 +672,7 @@ impl PlayState for SessionState {
                             },
                             GameInput::Mount if state => {
                                 let mut client = self.client.borrow_mut();
-                                if client.is_mounted() {
+                                if client.is_riding() {
                                     client.unmount();
                                 } else {
                                     let player_pos = client
@@ -683,16 +685,11 @@ impl PlayState for SessionState {
                                         let closest_mountable_entity = (
                                             &client.state().ecs().entities(),
                                             &client.state().ecs().read_storage::<comp::Pos>(),
-                                            &client
-                                                .state()
-                                                .ecs()
-                                                .read_storage::<comp::MountState>(),
+                                            // TODO: More cleverly filter by things that can actually be mounted
+                                            !&client.state().ecs().read_storage::<Is<Mount>>(),
                                         )
                                             .join()
-                                            .filter(|(entity, _, mount_state)| {
-                                                *entity != client.entity()
-                                                    && **mount_state == comp::MountState::Unmounted
-                                            })
+                                            .filter(|(entity, _, mount_state)| *entity != client.entity())
                                             .map(|(entity, pos, _)| {
                                                 (entity, player_pos.0.distance_squared(pos.0))
                                             })

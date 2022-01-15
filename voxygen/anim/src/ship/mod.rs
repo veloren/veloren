@@ -47,7 +47,7 @@ impl Skeleton for ShipSkeleton {
             mount_bone: Transform {
                 position: (base_mat * scale_mat).mul_point(
                     common::comp::Body::Ship(body)
-                        .mountee_offset()
+                        .mount_offset()
                         .into_tuple()
                         .into(),
                 ),

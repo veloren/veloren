@@ -19,6 +19,8 @@ use common::{
     time::DayPeriod,
     trade::Trades,
     vol::{ReadVol, WriteVol},
+    link::Is,
+    mounting::{Mount, Rider},
 };
 use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
@@ -32,7 +34,10 @@ use specs::{
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
-use std::sync::Arc;
+use std::{
+    ops::{Deref, DerefMut},
+    sync::Arc,
+};
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?
@@ -141,8 +146,8 @@ impl State {
         ecs.register::<comp::LightEmitter>();
         ecs.register::<comp::Item>();
         ecs.register::<comp::Scale>();
-        ecs.register::<comp::Mounting>();
-        ecs.register::<comp::MountState>();
+        ecs.register::<Is<Mount>>();
+        ecs.register::<Is<Rider>>();
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();

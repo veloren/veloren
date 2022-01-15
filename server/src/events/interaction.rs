@@ -19,6 +19,8 @@ use common::{
     terrain::{Block, SpriteKind},
     uid::Uid,
     vol::ReadVol,
+    mounting::{Mount, Rider, Mounting},
+    link::Is,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 
@@ -97,62 +99,50 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
     }
 }
 
-/// FIXME: Make mounting more robust, avoid bidirectional links.
-pub fn handle_mount(server: &mut Server, mounter: EcsEntity, mountee: EcsEntity) {
+pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
     let state = server.state_mut();
 
     if state
         .ecs()
-        .read_storage::<comp::Mounting>()
-        .get(mounter)
+        .read_storage::<Is<Rider>>()
+        .get(rider)
         .is_none()
     {
-        let not_mounting_yet = matches!(
-            state.ecs().read_storage::<comp::MountState>().get(mountee),
-            Some(comp::MountState::Unmounted)
-        );
+        let not_mounting_yet = state
+            .ecs()
+            .read_storage::<Is<Mount>>()
+            .get(mount)
+            .is_none();
 
         let within_range = || {
             let positions = state.ecs().read_storage::<comp::Pos>();
-            within_mounting_range(positions.get(mounter), positions.get(mountee))
+            within_mounting_range(positions.get(rider), positions.get(mount))
         };
         let healths = state.ecs().read_storage::<comp::Health>();
         let alive = |e| healths.get(e).map_or(true, |h| !h.is_dead);
 
-        if not_mounting_yet && within_range() && alive(mounter) && alive(mountee) {
+        if not_mounting_yet && within_range() && alive(rider) && alive(mount) {
             let uids = state.ecs().read_storage::<Uid>();
-            if let (Some(mounter_uid), Some(mountee_uid)) =
-                (uids.get(mounter).copied(), uids.get(mountee).copied())
+            if let (Some(rider_uid), Some(mount_uid)) =
+                (uids.get(rider).copied(), uids.get(mount).copied())
             {
                 drop(uids);
                 drop(healths);
-                // We know the entities must exist to be able to look up their UIDs, so these
-                // are guaranteed to work; hence we can ignore possible errors here.
-                state.write_component_ignore_entity_dead(
-                    mountee,
-                    comp::MountState::MountedBy(mounter_uid),
-                );
-                state.write_component_ignore_entity_dead(mounter, comp::Mounting(mountee_uid));
+                let _ = state.link(Mounting {
+                    mount: mount_uid,
+                    rider: rider_uid,
+                });
             }
         }
     }
 }
 
-pub fn handle_unmount(server: &mut Server, mounter: EcsEntity) {
+pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
-    let mountee_entity = state
+    state
         .ecs()
-        .write_storage::<comp::Mounting>()
-        .get(mounter)
-        .and_then(|mountee| state.ecs().entity_from_uid(mountee.0.into()));
-    if let Some(mountee_entity) = mountee_entity {
-        state
-            .ecs()
-            .write_storage::<comp::MountState>()
-            .get_mut(mountee_entity)
-            .map(|mut ms| *ms = comp::MountState::Unmounted);
-    }
-    state.delete_component::<comp::Mounting>(mounter);
+        .write_storage::<Is<Rider>>()
+        .remove(rider);
 }
 
 /// FIXME: This code is dangerous and needs to be refactored.  We can't just

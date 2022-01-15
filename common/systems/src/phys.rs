@@ -2,7 +2,7 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
-        Body, CharacterState, Collider, Density, Mass, Mounting, Ori, PhysicsState, Pos,
+        Body, CharacterState, Collider, Density, Mass, Ori, PhysicsState, Pos,
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
@@ -14,6 +14,8 @@ use common::{
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
+    mounting::Rider,
+    link::Is,
 };
 use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
@@ -111,7 +113,7 @@ pub struct PhysicsRead<'a> {
     stickies: ReadStorage<'a, Sticky>,
     masses: ReadStorage<'a, Mass>,
     colliders: ReadStorage<'a, Collider>,
-    mountings: ReadStorage<'a, Mounting>,
+    is_ridings: ReadStorage<'a, Is<Rider>>,
     projectiles: ReadStorage<'a, Projectile>,
     char_states: ReadStorage<'a, CharacterState>,
     bodies: ReadStorage<'a, Body>,
@@ -169,7 +171,7 @@ impl<'a> PhysicsData<'a> {
             &self.write.velocities,
             &self.write.positions,
             !&self.write.previous_phys_cache,
-            !&self.read.mountings,
+            !&self.read.is_ridings,
         )
             .join()
             .map(|(e, _, _, _, _, _)| e)
@@ -201,7 +203,7 @@ impl<'a> PhysicsData<'a> {
             &self.read.colliders,
             self.read.scales.maybe(),
             self.read.char_states.maybe(),
-            !&self.read.mountings,
+            !&self.read.is_ridings,
         )
             .join()
         {
@@ -292,14 +294,13 @@ impl<'a> PhysicsData<'a> {
         let lg2_large_cell_size = 6;
         let radius_cutoff = 8;
         let mut spatial_grid = SpatialGrid::new(lg2_cell_size, lg2_large_cell_size, radius_cutoff);
-        for (entity, pos, phys_cache, _, _, _, _) in (
+        for (entity, pos, phys_cache, _, _, _) in (
             &read.entities,
             &write.positions,
             &write.previous_phys_cache,
             write.velocities.mask(),
             !&read.projectiles, // Not needed because they are skipped in the inner loop below
-            !&read.mountings,
-            read.colliders.mask(),
+            !&read.is_ridings,
         )
             .join()
         {
@@ -328,7 +329,7 @@ impl<'a> PhysicsData<'a> {
             previous_phys_cache,
             &read.masses,
             &read.colliders,
-            !&read.mountings,
+            !&read.is_ridings,
             read.stickies.maybe(),
             &mut write.physics_states,
             // TODO: if we need to avoid collisions for other things consider
@@ -476,6 +477,7 @@ impl<'a> PhysicsData<'a> {
                                         collider_other,
                                         *mass,
                                         *mass_other,
+                                        vel,
                                     );
                                 }
                             },
@@ -570,7 +572,7 @@ impl<'a> PhysicsData<'a> {
             write.physics_states.mask(),
             !&write.pos_vel_ori_defers, // This is the one we are adding
             write.previous_phys_cache.mask(),
-            !&read.mountings,
+            !&read.is_ridings,
         )
             .join()
             .map(|t| (t.0, *t.2, *t.3, *t.4))
@@ -601,7 +603,7 @@ impl<'a> PhysicsData<'a> {
             &write.physics_states,
             &read.masses,
             &read.densities,
-            !&read.mountings,
+            !&read.is_ridings,
         )
             .par_join()
             .for_each_init(
@@ -730,7 +732,7 @@ impl<'a> PhysicsData<'a> {
             &mut write.physics_states,
             &mut write.pos_vel_ori_defers,
             previous_phys_cache,
-            !&read.mountings,
+            !&read.is_ridings,
         )
             .par_join()
             .filter(|tuple| tuple.3.is_voxel() == terrain_like_entities)
@@ -1792,6 +1794,7 @@ fn resolve_e2e_collision(
     collider_other: &Collider,
     mass: Mass,
     mass_other: Mass,
+    vel: &Vel,
 ) -> bool {
     // Find the distance betwen our collider and
     // collider we collide with and get vector of pushback.
@@ -1869,7 +1872,9 @@ fn resolve_e2e_collision(
         let distance_coefficient = collision_dist - diff.magnitude();
         let force = ELASTIC_FORCE_COEFFICIENT * distance_coefficient * mass_coefficient;
 
-        *vel_delta += Vec3::from(diff.normalized()) * force * step_delta;
+        let diff = diff.normalized();
+
+        *vel_delta += Vec3::from(diff) * force * step_delta * vel.0.xy().try_normalized().map_or(1.0, |dir| diff.dot(-dir).max(0.0));
     }
 
     *collision_registered = true;

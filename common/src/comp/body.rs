@@ -730,8 +730,8 @@ impl Body {
         )
     }
 
-    /// Component of the mounting offset specific to the mountee
-    pub fn mountee_offset(&self) -> Vec3<f32> {
+    /// Component of the mounting offset specific to the mount
+    pub fn mount_offset(&self) -> Vec3<f32> {
         match self {
             Body::QuadrupedMedium(quadruped_medium) => {
                 match (quadruped_medium.species, quadruped_medium.body_type) {
@@ -789,8 +789,8 @@ impl Body {
         .into()
     }
 
-    /// Component of the mounting offset specific to the mounter
-    pub fn mounter_offset(&self) -> Vec3<f32> {
+    /// Component of the mounting offset specific to the rider
+    pub fn rider_offset(&self) -> Vec3<f32> {
         match self {
             Body::Humanoid(_) => [0.0, 0.0, 0.0],
             _ => [0.0, 0.0, 0.0],

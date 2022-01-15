@@ -622,8 +622,7 @@ fn handle_make_npc(
                     .create_npc(pos, stats, skill_set, health, poise, inventory, body)
                     .with(alignment)
                     .with(scale)
-                    .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)))
-                    .with(comp::MountState::Unmounted);
+                    .with(comp::Vel(Vec3::new(0.0, 0.0, 0.0)));
 
                 if let Some(agent) = agent {
                     entity_builder = entity_builder.with(agent);
@@ -1168,7 +1167,6 @@ fn handle_spawn(
                         body,
                     )
                     .with(comp::Vel(vel))
-                    .with(comp::MountState::Unmounted)
                     .with(alignment);
 
                 if ai {
@@ -1251,7 +1249,6 @@ fn handle_spawn_training_dummy(
             body,
         )
         .with(comp::Vel(vel))
-        .with(comp::MountState::Unmounted)
         .build();
 
     server.notify_client(
