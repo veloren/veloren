@@ -166,8 +166,6 @@ pub struct EntityInfo {
     pub main_tool: Option<Item>,
     pub second_tool: Option<Item>,
     pub scale: f32,
-    // TODO: Properly give NPCs skills
-    pub health_scaling: Option<u16>,
     pub loot: LootSpec<String>,
     pub loadout_asset: Option<String>,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
@@ -191,7 +189,6 @@ impl EntityInfo {
             main_tool: None,
             second_tool: None,
             scale: 1.0,
-            health_scaling: None,
             loot: LootSpec::Nothing,
             loadout_asset: None,
             make_loadout: None,
@@ -365,12 +362,6 @@ impl EntityInfo {
     #[must_use]
     pub fn with_scale(mut self, scale: f32) -> Self {
         self.scale = scale;
-        self
-    }
-
-    #[must_use]
-    pub fn with_health_scaling(mut self, level: u16) -> Self {
-        self.health_scaling = Some(level);
         self
     }
 

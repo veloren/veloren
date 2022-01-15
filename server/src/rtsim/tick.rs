@@ -137,8 +137,7 @@ impl<'a> System<'a> for Sys {
 
                 let mut entity_info = EntityInfo::at(pos.0)
                     .with_entity_config(entity_config, Some(entity_config_path))
-                    .with_lazy_loadout(ad_hoc_loadout)
-                    .with_health_scaling(10);
+                    .with_lazy_loadout(ad_hoc_loadout);
                 // Merchants can be traded with
                 if let Some(economy) = entity.get_trade_info(&world, &index) {
                     entity_info = entity_info

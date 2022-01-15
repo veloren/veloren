@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Back("Ferocious"),
         stats: (
-            protection: Some(Normal(3.0)),
+            protection: Some(Normal(6.0)),
         ),
     )),
     quality: Epic,

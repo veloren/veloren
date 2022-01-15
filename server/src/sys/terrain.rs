@@ -16,7 +16,9 @@ use crate::{
 };
 use common::{
     calendar::Calendar,
-    comp::{self, agent, bird_medium, BehaviorCapability, ForceUpdate, Pos, Waypoint},
+    comp::{
+        self, agent, bird_medium, skillset::skills, BehaviorCapability, ForceUpdate, Pos, Waypoint,
+    },
     event::{EventBus, ServerEvent},
     generation::EntityInfo,
     lottery::LootSpec,
@@ -412,7 +414,6 @@ impl NpcData {
             name,
             scale,
             pos,
-            health_scaling,
             loot,
             // tools and skills
             skillset_asset,
@@ -471,7 +472,10 @@ impl NpcData {
             loadout_builder.build()
         };
 
-        let health = Some(comp::Health::new(body, health_scaling.unwrap_or(0)));
+        let health_level = skill_set
+            .skill_level(skills::Skill::General(skills::GeneralSkill::HealthIncrease))
+            .unwrap_or(0);
+        let health = Some(comp::Health::new(body, health_level));
         let poise = comp::Poise::new(body);
 
         // Allow Humanoid, BirdMedium, and Parrot to speak

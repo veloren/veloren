@@ -25,7 +25,7 @@ use common::{
         },
         skillset::{SkillGroupKind, SkillSet},
     },
-    consts::{ENERGY_PER_LEVEL, HUMANOID_HP_PER_LEVEL},
+    consts::{ENERGY_PER_LEVEL, HP_PER_LEVEL},
 };
 use std::borrow::Cow;
 
@@ -2091,7 +2091,7 @@ fn general_skill_strings(skill: GeneralSkill, i18n: &Localization) -> (&str, Cow
             i18n,
             "hud.skill.inc_health_title",
             "hud.skill.inc_health",
-            u32::from(HUMANOID_HP_PER_LEVEL),
+            u32::from(HP_PER_LEVEL),
         ),
         GeneralSkill::EnergyIncrease => splice_constant(
             i18n,

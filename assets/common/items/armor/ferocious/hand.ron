@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Hand("Ferocious"),
         stats: (
-            protection: Some(Normal(12.0)),
+            protection: Some(Normal(24.0)),
         ),
     )),
     quality: Epic,

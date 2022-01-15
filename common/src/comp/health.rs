@@ -1,6 +1,6 @@
-#[cfg(not(target_arch = "wasm32"))]
-use crate::comp;
 use crate::DamageSource;
+#[cfg(not(target_arch = "wasm32"))]
+use crate::{comp, consts::HP_PER_LEVEL};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
@@ -106,7 +106,7 @@ impl Health {
     pub fn new(body: comp::Body, level: u16) -> Self {
         let health = u32::from(
             body.base_health()
-                .saturating_add(body.base_health_increase().saturating_mul(level)),
+                .saturating_add(HP_PER_LEVEL.saturating_mul(level)),
         ) * Self::SCALING_FACTOR_INT;
         Health {
             current: health,
@@ -129,7 +129,7 @@ impl Health {
         let old_max = self.base_max;
         self.base_max = u32::from(
             body.base_health()
-                .saturating_add(body.base_health_increase().saturating_mul(level)),
+                .saturating_add(HP_PER_LEVEL.saturating_mul(level)),
         ) * Self::SCALING_FACTOR_INT;
         self.current = (self.current + self.base_max - old_max).min(self.maximum);
     }

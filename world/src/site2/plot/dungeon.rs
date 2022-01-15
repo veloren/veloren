@@ -674,8 +674,7 @@ fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_health_scaling(dynamic_rng.gen_range(3..4));
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-0.mugger"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-0.stalker"),
@@ -691,8 +690,7 @@ fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_health_scaling(dynamic_rng.gen_range(4..5));
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff"),
@@ -708,8 +706,7 @@ fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_health_scaling(dynamic_rng.gen_range(5..7));
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff"),
@@ -725,8 +722,7 @@ fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_health_scaling(dynamic_rng.gen_range(7..9));
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff"),
@@ -742,8 +738,7 @@ fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_health_scaling(dynamic_rng.gen_range(9..12));
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff"),
@@ -759,8 +754,7 @@ fn enemy_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_health_scaling(dynamic_rng.gen_range(10..15));
+        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
             0 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
             1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
@@ -888,10 +882,9 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
         0 => {
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster")
-                    .with_health_scaling(dynamic_rng.gen_range(50..75)),
+                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster"),
             );
-            entities.resize_with(entities.len() + 2, || {
+            entities.resize_with(entities.len() + 4, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
                     .with_asset_expect("common.entity.dungeon.tier-5.hound")
             });
