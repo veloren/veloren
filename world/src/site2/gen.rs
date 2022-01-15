@@ -1,6 +1,7 @@
 use super::*;
 use crate::{
     block::block_from_structure,
+    site2::util::Dir,
     util::{RandomField, Sampler},
 };
 use common::{
@@ -27,13 +28,13 @@ pub enum Primitive {
     Ramp {
         aabb: Aabb<i32>,
         inset: i32,
-        dir: u8,
+        dir: Dir,
     },
     Gable {
         aabb: Aabb<i32>,
         inset: i32,
         // X axis parallel or Y axis parallel
-        dir: bool,
+        dir: Dir,
     },
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
@@ -92,6 +93,7 @@ pub enum Fill {
     Sprite(SpriteKind),
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
+    Gradient(util::gradient::Gradient, BlockKind),
     // TODO: the offset field for Prefab is a hack that breaks the compositionality of Translate,
     // we probably need an evaluator for the primitive tree that gets which point is queried at
     // leaf nodes given an input point to make Translate/Rotate work generally
@@ -115,19 +117,19 @@ impl Fill {
             Primitive::Ramp { aabb, inset, dir } => {
                 let inset = (*inset).max(aabb.size().reduce_min());
                 let inner = match dir {
-                    0 => Aabr {
+                    Dir::X => Aabr {
                         min: Vec2::new(aabb.min.x - 1 + inset, aabb.min.y),
                         max: Vec2::new(aabb.max.x, aabb.max.y),
                     },
-                    1 => Aabr {
+                    Dir::NegX => Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y),
                         max: Vec2::new(aabb.max.x - inset, aabb.max.y),
                     },
-                    2 => Aabr {
+                    Dir::Y => Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y - 1 + inset),
                         max: Vec2::new(aabb.max.x, aabb.max.y),
                     },
-                    _ => Aabr {
+                    Dir::NegY => Aabr {
                         min: Vec2::new(aabb.min.x, aabb.min.y),
                         max: Vec2::new(aabb.max.x, aabb.max.y - inset),
                     },
@@ -156,7 +158,7 @@ impl Fill {
             },
             Primitive::Gable { aabb, inset, dir } => {
                 let inset = (*inset).max(aabb.size().reduce_min());
-                let inner = if *dir {
+                let inner = if dir.is_y() {
                     Aabr {
                         min: Vec2::new(aabb.min.x - 1 + inset, aabb.min.y),
                         max: Vec2::new(aabb.max.x - inset, aabb.max.y),
@@ -270,6 +272,7 @@ impl Fill {
                         .get((pos + Vec3::new(pos.z, pos.z, 0)) / Vec3::new(2, 2, 1))
                         % *range as u32) as u8,
                 )),
+                Fill::Gradient(gradient, bk) => Some(Block::new(*bk, gradient.sample(pos.as_()))),
                 Fill::Prefab(p, tr, seed) => p.get(pos - tr).ok().and_then(|sb| {
                     let col_sample = canvas_info.col(canvas_info.wpos)?;
                     block_from_structure(
@@ -403,22 +406,22 @@ impl Painter {
         self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: 0,
+            dir: Dir::X,
         })
         .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: 1,
+            dir: Dir::NegX,
         }))
         .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: 2,
+            dir: Dir::Y,
         }))
         .intersect(self.prim(Primitive::Ramp {
             aabb,
             inset,
-            dir: 3,
+            dir: Dir::NegY,
         }))
     }
 
@@ -460,6 +463,11 @@ impl<'a> PrimitiveRef<'a> {
     pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
 
     pub fn clear(self) { self.painter.fill(self, Fill::Block(Block::empty())); }
+
+    pub fn sample(self, sampling: impl Fn(Vec3<i32>) -> bool + 'static) -> PrimitiveRef<'a> {
+        self.painter
+            .prim(Primitive::sampling(self, Box::new(sampling)))
+    }
 }
 
 pub trait Structure {

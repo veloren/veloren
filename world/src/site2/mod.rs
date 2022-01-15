@@ -1,6 +1,7 @@
 mod gen;
 pub mod plot;
 mod tile;
+pub mod util;
 
 use self::tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
 pub use self::{
