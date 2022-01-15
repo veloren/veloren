@@ -252,7 +252,9 @@ impl<'a> System<'a> for Sys {
                             // Don't send client physics updates about itself unless force update is
                             // set or the client is subject to
                             // server-authoritative physics
-                            force_update.is_some() || player_physics_setting.server_authoritative()
+                            force_update.is_some()
+                                || player_physics_setting.server_authoritative()
+                                || is_rider.get(entity).is_some()
                         } else if matches!(collider, Some(Collider::Voxel { .. })) {
                             // Things with a voxel collider (airships, etc.) need to have very
                             // stable physics so we always send updated

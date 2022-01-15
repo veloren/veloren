@@ -126,12 +126,19 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
             if let (Some(rider_uid), Some(mount_uid)) =
                 (uids.get(rider).copied(), uids.get(mount).copied())
             {
-                drop(uids);
-                drop(healths);
-                let _ = state.link(Mounting {
-                    mount: mount_uid,
-                    rider: rider_uid,
-                });
+                let is_pet = match state.ecs().read_storage::<comp::Alignment>().get(mount) {
+                    Some(comp::Alignment::Owned(owner)) if *owner == rider_uid => true,
+                    _ => false,
+                };
+
+                if is_pet {
+                    drop(uids);
+                    drop(healths);
+                    let _ = state.link(Mounting {
+                        mount: mount_uid,
+                        rider: rider_uid,
+                    });
+                }
             }
         }
     }

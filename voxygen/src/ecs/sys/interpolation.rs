@@ -2,9 +2,12 @@ use crate::ecs::comp::Interpolated;
 use common::{
     comp::{object, Body, Ori, Pos, Vel},
     resources::DeltaTime,
+    link::Is,
+    mounting::Rider,
+    uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
+use specs::{Entities, Join, Read, ReadStorage, WriteStorage, saveload::MarkerAllocator};
 use tracing::warn;
 use vek::*;
 
@@ -14,12 +17,14 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     #[allow(clippy::type_complexity)]
     type SystemData = (
+        Read<'a, UidAllocator>,
         Entities<'a>,
         Read<'a, DeltaTime>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Ori>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Body>,
+        ReadStorage<'a, Is<Rider>>,
         WriteStorage<'a, Interpolated>,
     );
 
@@ -29,18 +34,29 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (entities, dt, positions, orientations, velocities, bodies, mut interpolated): Self::SystemData,
+        (uid_allocator, entities, dt, positions, orientations, velocities, bodies, is_rider, mut interpolated): Self::SystemData,
     ) {
         // Update interpolated positions and orientations
-        for (pos, ori, i, body, vel) in (
+        for (pos, ori, i, body, vel, is_rider) in (
             &positions,
             &orientations,
             &mut interpolated,
             &bodies,
             &velocities,
+            is_rider.maybe(),
         )
             .join()
         {
+            // Riders get their pos/ori set to that of their mount
+            let (pos, vel, ori) = if let Some(((mount_pos, mount_vel), mount_ori)) = is_rider
+                .and_then(|is_rider| uid_allocator.retrieve_entity_internal(is_rider.mount.into()))
+                .and_then(|mount| positions.get(mount).zip(velocities.get(mount)).zip(orientations.get(mount)))
+            {
+                (mount_pos, mount_vel, mount_ori)
+            } else {
+                (pos, vel, ori)
+            };
+
             // Update interpolation values, but don't interpolate far things or objects
             if i.pos.distance_squared(pos.0) < 64.0 * 64.0 && !matches!(body, Body::Object(_)) {
                 // Note, these values are specifically tuned for smoother motion with high
