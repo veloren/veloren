@@ -37,9 +37,11 @@ use common::{
     npc::{self, get_npc_name},
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
-    uid::Uid,
+    uid::{Uid, UidAllocator},
     vol::{ReadVol, RectVolSize},
     Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
+    link::Is,
+    mounting::Rider,
 };
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -50,7 +52,7 @@ use core::{cmp::Ordering, convert::TryFrom, time::Duration};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::Rng;
-use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt};
+use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt, saveload::MarkerAllocator};
 use std::{str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
@@ -201,11 +203,29 @@ fn position_mut<T>(
     descriptor: &str,
     f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
 ) -> CmdResult<T> {
-    let mut pos_storage = server.state.ecs_mut().write_storage::<comp::Pos>();
-    pos_storage
+    let entity = server.state
+        .ecs()
+        .read_storage::<Is<Rider>>()
+        .get(entity)
+        .and_then(|is_rider| server.state
+            .ecs()
+            .read_resource::<UidAllocator>()
+            .retrieve_entity_internal(is_rider.mount.into()))
+        .unwrap_or(entity);
+
+    let res = server.state
+        .ecs()
+        .write_storage::<comp::Pos>()
         .get_mut(entity)
         .map(f)
-        .ok_or_else(|| format!("Cannot get position for {:?}!", descriptor))
+        .ok_or_else(|| format!("Cannot get position for {:?}!", descriptor));
+    if res.is_ok() {
+        let _ = server.state
+            .ecs()
+            .write_storage::<comp::ForceUpdate>()
+            .insert(entity, comp::ForceUpdate);
+    }
+    res
 }
 
 fn insert_or_replace_component<C: specs::Component>(
@@ -766,8 +786,7 @@ fn handle_jump(
     if let (Some(x), Some(y), Some(z)) = parse_args!(args, f32, f32, f32) {
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 += Vec3::new(x, y, z)
-        })?;
-        insert_or_replace_component(server, target, comp::ForceUpdate, "target")
+        })
     } else {
         Err(action.help_string())
     }
@@ -783,8 +802,7 @@ fn handle_goto(
     if let (Some(x), Some(y), Some(z)) = parse_args!(args, f32, f32, f32) {
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 = Vec3::new(x, y, z)
-        })?;
-        insert_or_replace_component(server, target, comp::ForceUpdate, "target")
+        })
     } else {
         Err(action.help_string())
     }
@@ -819,8 +837,7 @@ fn handle_site(
 
         position_mut(server, target, "target", |current_pos| {
             current_pos.0 = site_pos
-        })?;
-        insert_or_replace_component(server, target, comp::ForceUpdate, "target")
+        })
     } else {
         Err(action.help_string())
     }
@@ -847,8 +864,7 @@ fn handle_home(
         target,
         comp::Waypoint::temp_new(home_pos, time),
         "target",
-    )?;
-    insert_or_replace_component(server, target, comp::ForceUpdate, "target")
+    )
 }
 
 fn handle_kill(
@@ -1118,8 +1134,7 @@ fn handle_tp(
     let player_pos = position(server, player, "player")?;
     position_mut(server, target, "target", |target_pos| {
         *target_pos = player_pos
-    })?;
-    insert_or_replace_component(server, target, comp::ForceUpdate, "target")
+    })
 }
 
 fn handle_spawn(

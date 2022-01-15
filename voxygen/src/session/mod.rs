@@ -689,7 +689,7 @@ impl PlayState for SessionState {
                                             !&client.state().ecs().read_storage::<Is<Mount>>(),
                                         )
                                             .join()
-                                            .filter(|(entity, _, mount_state)| *entity != client.entity())
+                                            .filter(|(entity, _, _)| *entity != client.entity())
                                             .map(|(entity, pos, _)| {
                                                 (entity, player_pos.0.distance_squared(pos.0))
                                             })
