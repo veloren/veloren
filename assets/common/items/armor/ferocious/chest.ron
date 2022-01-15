@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Chest("Ferocious"),
         stats: (
-            protection: Some(Normal(30.0)),
+            protection: Some(Normal(60.0)),
         ),
     )),
     quality: Epic,

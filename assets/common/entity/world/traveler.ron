@@ -14,5 +14,6 @@ EntityConfig (
 
     meta: [
         LoadoutAsset("common.loadout.world.traveler"),
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],
 )

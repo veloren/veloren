@@ -1007,13 +1007,11 @@ fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rn
         0 | 1 => entity
             .with_agent_mark(agent::Mark::Guard)
             .with_lazy_loadout(guard_loadout)
-            .with_health_scaling(dynamic_rng.gen_range(10..15))
             .with_asset_expect("common.entity.village.guard"),
         2 => entity
             .with_agent_mark(agent::Mark::Merchant)
             .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
-            .with_health_scaling(dynamic_rng.gen_range(10..15))
             .with_asset_expect("common.entity.village.merchant"),
         _ => entity
             .with_lazy_loadout(villager_loadout)
