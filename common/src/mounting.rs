@@ -116,7 +116,7 @@ impl Link for Mounting {
                     .map(|p| p.0.map(|e| e.floor()))
                     .unwrap_or_else(|| terrain.find_space(old_pos).map(|e| e as f32))
                      + Vec3::new(0.5, 0.5, 0.0);
-                force_update.insert(rider, comp::ForceUpdate);
+                let _ = force_update.insert(rider, comp::ForceUpdate);
             });
     }
 }

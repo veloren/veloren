@@ -176,6 +176,7 @@ const MAX_FLEE_DIST: f32 = 20.0;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
 const HEALING_ITEM_THRESHOLD: f32 = 0.5;
+const IDLE_HEALING_ITEM_THRESHOLD: f32 = 0.999;
 const DEFAULT_ATTACK_RANGE: f32 = 2.0;
 const AWARENESS_INVESTIGATE_THRESHOLD: f32 = 1.0;
 const AWARENESS_DECREMENT_CONSTANT: f32 = 0.07;
@@ -671,7 +672,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
-        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
+        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller, false) {
             agent.action_state.timer = 0.01;
             return;
         }
@@ -809,7 +810,7 @@ impl<'a> AgentData<'a> {
             }
         };
 
-        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
+        if self.damage < IDLE_HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller, true) {
             agent.action_state.timer = 0.01;
             return;
         }
@@ -1427,30 +1428,32 @@ impl<'a> AgentData<'a> {
 
     /// Attempt to consume a healing item, and return whether any healing items
     /// were queued. Callers should use this to implement a delay so that
-    /// the healing isn't interrupted.
-    fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller) -> bool {
+    /// the healing isn't interrupted. If `relaxed` is `true`, we allow eating food and prioritise healing.
+    fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller, relaxed: bool) -> bool {
         let healing_value = |item: &Item| {
             let mut value = 0.0;
 
             if let ItemKind::Consumable {
-                kind: ConsumableKind::Drink,
+                kind,
                 effects,
                 ..
             } = &item.kind
             {
-                for effect in effects.iter() {
-                    use BuffKind::*;
-                    match effect {
-                        Effect::Health(HealthChange { amount, .. }) => {
-                            value += *amount;
-                        },
-                        Effect::Buff(BuffEffect { kind, data, .. })
-                            if matches!(kind, Regeneration | Saturation | Potion) =>
-                        {
-                            value +=
-                                data.strength * data.duration.map_or(0.0, |d| d.as_secs() as f32);
-                        },
-                        _ => {},
+                if matches!(kind, ConsumableKind::Drink) || (relaxed && matches!(kind, ConsumableKind::Food)) {
+                    for effect in effects.iter() {
+                        use BuffKind::*;
+                        match effect {
+                            Effect::Health(HealthChange { amount, .. }) => {
+                                value += *amount;
+                            },
+                            Effect::Buff(BuffEffect { kind, data, .. })
+                                if matches!(kind, Regeneration | Saturation | Potion) =>
+                            {
+                                value +=
+                                    data.strength * data.duration.map_or(0.0, |d| d.as_secs() as f32);
+                            },
+                            _ => {},
+                        }
                     }
                 }
             }
@@ -1466,7 +1469,11 @@ impl<'a> AgentData<'a> {
             })
             .collect();
 
-        consumables.sort_by_key(|(_, item)| healing_value(item));
+        consumables.sort_by_key(|(_, item)| if relaxed {
+            -healing_value(item)
+        } else {
+            healing_value(item)
+        });
 
         if let Some((id, _)) = consumables.last() {
             use comp::inventory::slot::Slot;

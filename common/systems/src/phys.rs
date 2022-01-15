@@ -1874,7 +1874,7 @@ fn resolve_e2e_collision(
 
         let diff = diff.normalized();
 
-        *vel_delta += Vec3::from(diff) * force * step_delta * vel.0.xy().try_normalized().map_or(1.0, |dir| diff.dot(-dir).max(0.0));
+        *vel_delta += Vec3::from(diff) * force * step_delta * vel.0.xy().try_normalized().map_or(1.0, |dir| diff.dot(-dir).max(0.025));
     }
 
     *collision_registered = true;

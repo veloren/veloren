@@ -1,6 +1,6 @@
 use super::*;
 use common::{
-    comp::inventory::{loadout_builder::make_potion_bag, slot::ArmorSlot},
+    comp::inventory::{loadout_builder::{make_potion_bag, make_food_bag}, slot::ArmorSlot},
     resources::Time,
     rtsim::{Memory, MemoryItem},
     store::Id,
@@ -143,7 +143,9 @@ impl Entity {
         // give potions to traveler humanoids or return loadout as is otherwise
         match (body, kind) {
             (comp::Body::Humanoid(_), RtSimEntityKind::Random) => {
-                |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+                |l, _| l
+                    .bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+                    .bag(ArmorSlot::Bag2, Some(make_food_bag(100)))
             },
             (_, RtSimEntityKind::Merchant) => {
                 |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
