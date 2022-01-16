@@ -51,8 +51,14 @@ impl<'a> System<'a> for Sys {
                 .retrieve_entity_internal(is_mount.rider.id())
                 .and_then(|rider| {
                     controllers
-                        .get(rider)
-                        .map(|c| (c.inputs.clone(), c.queued_inputs.clone(), rider))
+                        .get_mut(rider)
+                        .map(|c| {
+                            let queued_inputs = c.queued_inputs
+                                // TODO: Formalise ways to pass inputs to mounts
+                                .drain_filter(|i, _| matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll))
+                                .collect();
+                            (c.inputs.clone(), queued_inputs, rider)
+                        })
                 })
             else { continue };
 
@@ -72,11 +78,7 @@ impl<'a> System<'a> for Sys {
             if let Some(controller) = controllers.get_mut(entity) {
                 *controller = Controller {
                     inputs,
-                    queued_inputs: queued_inputs
-                        .into_iter()
-                        // TODO: Formalise ways to pass inputs to mounts
-                        .filter(|(i, _)| matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll))
-                        .collect(),
+                    queued_inputs,
                     ..Default::default()
                 }
             }

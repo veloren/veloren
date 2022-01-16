@@ -243,6 +243,32 @@ impl CharacterState {
             || matches!(self, CharacterState::Roll(s) if s.stage_section == StageSection::Movement)
     }
 
+    pub fn can_perform_mounted(&self) -> bool {
+        matches!(
+            self,
+            CharacterState::Idle(_)
+                | CharacterState::Sit
+                | CharacterState::Talk
+                | CharacterState::GlideWield(_)
+                | CharacterState::Stunned(_)
+                | CharacterState::BasicBlock(_)
+                | CharacterState::Equipping(_)
+                | CharacterState::Wielding(_)
+                | CharacterState::BasicMelee(_)
+                | CharacterState::BasicRanged(_)
+                | CharacterState::ComboMelee(_)
+                | CharacterState::ChargedRanged(_)
+                | CharacterState::RepeaterRanged(_)
+                | CharacterState::BasicBeam(_)
+                | CharacterState::BasicAura(_)
+                | CharacterState::BasicSummon(_)
+                | CharacterState::SelfBuff(_)
+                | CharacterState::SpriteSummon(_)
+                | CharacterState::UseItem(_)
+                | CharacterState::SpriteInteract(_)
+        )
+    }
+
     pub fn is_sitting(&self) -> bool {
         use use_item::{Data, ItemUseKind, StaticData};
         matches!(

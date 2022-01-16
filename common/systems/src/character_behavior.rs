@@ -210,13 +210,10 @@ impl<'a> System<'a> for Sys {
 
             // Mounted occurs after control actions have been handled
             // If mounted, character state is controlled by mount
-            if is_rider.is_some() {
-                let idle_state = CharacterState::Idle(idle::Data { is_sneaking: false });
-                // TODO: A better way to swap between mount inputs and rider
-                // inputs if *join_struct.char_state !=
-                // idle_state {     *join_struct.char_state =
-                // idle_state; }
-                // continue;
+            if is_rider.is_some() && !join_struct.char_state.can_perform_mounted() {
+                // TODO: A better way to swap between mount inputs and rider inputs
+                *join_struct.char_state = CharacterState::Idle(idle::Data { is_sneaking: false });
+                continue;
             }
 
             let j = JoinData::new(
