@@ -1,5 +1,5 @@
 use common::{
-    comp::{Body, Controller, Ori, Pos, Vel},
+    comp::{Body, Controller, InputKind, Ori, Pos, Vel},
     link::Is,
     mounting::Mount,
     uid::UidAllocator,
@@ -72,7 +72,11 @@ impl<'a> System<'a> for Sys {
             if let Some(controller) = controllers.get_mut(entity) {
                 *controller = Controller {
                     inputs,
-                    queued_inputs,
+                    queued_inputs: queued_inputs
+                        .into_iter()
+                        // TODO: Formalise ways to pass inputs to mounts
+                        .filter(|(i, _)| matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll))
+                        .collect(),
                     ..Default::default()
                 }
             }
