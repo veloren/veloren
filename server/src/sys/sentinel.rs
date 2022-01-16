@@ -4,7 +4,7 @@ use common::{
         item::{tool::AbilityMap, MaterialStatManifest},
         ActiveAbilities, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider,
         Combo, Density, Energy, Group, Health, Inventory, Item, LightEmitter, Mass,
-        Ori, Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel,
+        Ori, Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel, Alignment,
     },
     uid::Uid,
     mounting::{Mount, Rider},
@@ -69,6 +69,8 @@ pub struct TrackedComps<'a> {
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
     pub beam_segment: ReadStorage<'a, BeamSegment>,
+    pub alignment: ReadStorage<'a, Alignment>,
+
     pub ability_map: ReadExpect<'a, AbilityMap>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
 }
@@ -180,6 +182,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        self.alignment
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
         // Add untracked comps
         pos.map(|c| comps.push(c.into()));
         vel.map(|c| comps.push(c.into()));
@@ -217,6 +223,7 @@ pub struct ReadTrackers<'a> {
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
     pub shockwave: ReadExpect<'a, UpdateTracker<Shockwave>>,
     pub beam_segment: ReadExpect<'a, UpdateTracker<BeamSegment>>,
+    pub alignment: ReadExpect<'a, UpdateTracker<Alignment>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_packages(
@@ -268,7 +275,8 @@ impl<'a> ReadTrackers<'a> {
                 filter,
             )
             .with_component(&comps.uid, &*self.shockwave, &comps.shockwave, filter)
-            .with_component(&comps.uid, &*self.beam_segment, &comps.beam_segment, filter);
+            .with_component(&comps.uid, &*self.beam_segment, &comps.beam_segment, filter)
+            .with_component(&comps.uid, &*self.alignment, &comps.alignment, filter);
 
         (entity_sync_package, comp_sync_package)
     }
@@ -303,6 +311,7 @@ pub struct WriteTrackers<'a> {
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
     shockwave: WriteExpect<'a, UpdateTracker<Shockwave>>,
     beam: WriteExpect<'a, UpdateTracker<BeamSegment>>,
+    alignment: WriteExpect<'a, UpdateTracker<Alignment>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -338,6 +347,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
         .record_changes(&comps.character_state);
     trackers.shockwave.record_changes(&comps.shockwave);
     trackers.beam.record_changes(&comps.beam_segment);
+    trackers.alignment.record_changes(&comps.alignment);
     // Debug how many updates are being sent
     /*
     macro_rules! log_counts {
@@ -378,6 +388,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(character_state, "Character States");
     log_counts!(shockwave, "Shockwaves");
     log_counts!(beam, "Beams");
+    log_counts!(alignment, "Alignments");
     */
 }
 
@@ -409,6 +420,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<CharacterState>();
     world.register_tracker::<Shockwave>();
     world.register_tracker::<BeamSegment>();
+    world.register_tracker::<Alignment>();
 }
 
 /// Deleted entities grouped by region

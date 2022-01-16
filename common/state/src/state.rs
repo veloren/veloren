@@ -158,6 +158,7 @@ impl State {
         ecs.register::<comp::Shockwave>();
         ecs.register::<comp::ShockwaveHitEntities>();
         ecs.register::<comp::BeamSegment>();
+        ecs.register::<comp::Alignment>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -187,7 +188,6 @@ impl State {
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Alignment>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();

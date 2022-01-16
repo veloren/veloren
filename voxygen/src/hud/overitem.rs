@@ -6,7 +6,7 @@ use crate::{
 use conrod_core::{
     color,
     widget::{self, RoundedRectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon,
+    widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon, Sizeable,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -21,7 +21,7 @@ widget_ids! {
         // Name
         name_bg,
         name,
-        // Key
+        // Interaction hints
         btn_bg,
         btn,
         // Inventory full
@@ -45,6 +45,7 @@ pub struct Overitem<'a> {
     properties: OveritemProperties,
     pulse: f32,
     key_layout: &'a Option<KeyLayout>,
+    interaction_options: Vec<(GameInput, String)>,
 }
 
 impl<'a> Overitem<'a> {
@@ -58,6 +59,7 @@ impl<'a> Overitem<'a> {
         properties: OveritemProperties,
         pulse: f32,
         key_layout: &'a Option<KeyLayout>,
+        interaction_options: Vec<(GameInput, String)>,
     ) -> Self {
         Self {
             name,
@@ -70,6 +72,7 @@ impl<'a> Overitem<'a> {
             properties,
             pulse,
             key_layout,
+            interaction_options,
         }
     }
 }
@@ -120,7 +123,7 @@ impl<'a> Widget for Overitem<'a> {
     fn update(self, args: widget::UpdateArgs<Self>) -> Self::Event {
         let widget::UpdateArgs { id, state, ui, .. } = args;
 
-        let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.4);
+        let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.8);
 
         // Example:
         //            MUSHROOM
@@ -167,25 +170,35 @@ impl<'a> Widget for Overitem<'a> {
             .parent(id)
             .set(state.ids.name, ui);
 
-        // Pickup Button
-        if let Some(key_button) = self
-            .controls
-            .get_binding(GameInput::Interact)
-            .filter(|_| self.properties.active)
-        {
-            RoundedRectangle::fill_with([btn_rect_size, btn_rect_size], btn_radius, btn_color)
-                .x_y(0.0, btn_rect_pos_y)
-                .depth(self.distance_from_player_sqr + 1.0)
-                .parent(id)
-                .set(state.ids.btn_bg, ui);
-            Text::new(key_button.display_string(self.key_layout).as_str())
+        // Interaction hints
+        if !self.interaction_options.is_empty() {
+            let text = self.interaction_options
+                .iter()
+                .filter_map(|(input, action)| Some((self
+                    .controls
+                    .get_binding(*input)
+                    .filter(|_| self.properties.active)?, action)))
+                .map(|(input, action)| format!("{}  {}", input.display_string(self.key_layout).as_str(), action))
+                .collect::<Vec<_>>()
+                .join("\n");
+
+            let hints_text = Text::new(&text)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(btn_font_size as u32)
                 .color(TEXT_COLOR)
                 .x_y(0.0, btn_text_pos_y)
+                .depth(self.distance_from_player_sqr + 1.0)
+                .parent(id);
+
+            let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+
+            hints_text.set(state.ids.btn, ui);
+
+            RoundedRectangle::fill_with([w + btn_radius * 2.0, h + btn_radius * 2.0], btn_radius, btn_color)
+                .x_y(0.0, btn_rect_pos_y)
                 .depth(self.distance_from_player_sqr + 2.0)
                 .parent(id)
-                .set(state.ids.btn, ui);
+                .set(state.ids.btn_bg, ui);
         }
         if let Some(time) = self.properties.pickup_failed_pulse {
             //should never exceed 1.0, but just in case

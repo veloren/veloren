@@ -400,6 +400,7 @@ impl<'a> PhysicsData<'a> {
                                 mass,
                                 collider,
                                 read.char_states.get(entity),
+                                read.is_ridings.get(entity),
                             ))
                         })
                         .for_each(
@@ -411,6 +412,7 @@ impl<'a> PhysicsData<'a> {
                                 mass_other,
                                 collider_other,
                                 char_state_other_maybe,
+                                other_is_riding_maybe,
                             )| {
                                 let collision_boundary = previous_cache.collision_boundary
                                     + previous_cache_other.collision_boundary;
@@ -473,7 +475,7 @@ impl<'a> PhysicsData<'a> {
                                         *mass,
                                         *mass_other,
                                         vel,
-                                        is_riding.is_some(),
+                                        is_riding.is_some() || other_is_riding_maybe.is_some(),
                                     );
                                 }
                             },

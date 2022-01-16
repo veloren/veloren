@@ -90,6 +90,8 @@ use common::{
     uid::Uid,
     util::{srgba_to_linear, Dir},
     vol::RectRasterableVol,
+    mounting::Mount,
+    link::Is,
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -1140,6 +1142,8 @@ impl Hud {
             let entities = ecs.entities();
             let me = client.entity();
             let poises = ecs.read_storage::<comp::Poise>();
+            let alignments = ecs.read_storage::<comp::Alignment>();
+            let is_mount = ecs.read_storage::<Is<Mount>>();
 
             // Check if there was a persistence load error of the skillset, and if so
             // display a dialog prompt
@@ -1664,7 +1668,7 @@ impl Hud {
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
             let pulse = self.pulse;
 
-            let make_overitem = |item: &Item, pos, distance, properties, fonts| {
+            let make_overitem = |item: &Item, pos, distance, properties, fonts, interaction_options| {
                 let text = if item.amount() > 1 {
                     format!("{} x {}", item.amount(), item.name())
                 } else {
@@ -1684,6 +1688,7 @@ impl Hud {
                     properties,
                     pulse,
                     &global_state.window.key_layout,
+                    interaction_options,
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(pos)
@@ -1714,6 +1719,7 @@ impl Hud {
                         pickup_failed_pulse: self.failed_entity_pickups.get(&entity).copied(),
                     },
                     &self.fonts,
+                    vec![(GameInput::Interact, i18n.get("hud.pick_up").to_string())],
                 )
                 .set(overitem_id, ui_widgets);
             }
@@ -1733,9 +1739,9 @@ impl Hud {
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
                 // This is only done once per frame, so it's not a performance issue
-                if block.get_sprite().map_or(false, |s| s.is_container()) {
+                if let Some(sprite) = block.get_sprite().filter(|s| s.is_container()) {
                     overitem::Overitem::new(
-                        "???".into(),
+                        format!("{:?}", sprite).into(),
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -1744,6 +1750,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
+                        vec![(GameInput::Interact, i18n.get("hud.open").to_string())],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -1755,6 +1762,7 @@ impl Hud {
                         pos.distance_squared(player_pos),
                         overitem_properties,
                         &self.fonts,
+                        vec![(GameInput::Interact, i18n.get("hud.collect").to_string())],
                     )
                     .set(overitem_id, ui_widgets);
                 } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
@@ -1769,6 +1777,7 @@ impl Hud {
                         overitem_properties,
                         self.pulse,
                         &global_state.window.key_layout,
+                        vec![(GameInput::Interact, i18n.get("hud.use").to_string())],
                     )
                     .x_y(0.0, 100.0)
                     .position_ingame(over_pos)
@@ -1779,7 +1788,7 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group) in (
+            for (entity, pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group, dist_sqr, alignment, is_mount) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1795,6 +1804,7 @@ impl Hud {
                 &inventories,
                 players.maybe(),
                 poises.maybe(),
+                (alignments.maybe(), is_mount.maybe()),
             )
                 .join()
                 .filter(|t| {
@@ -1818,6 +1828,7 @@ impl Hud {
                         inventory,
                         player,
                         poise,
+                        (alignment, is_mount),
                     )| {
                         // Use interpolated position if available
                         let pos = interpolated.map_or(pos.0, |i| i.pos);
@@ -1879,6 +1890,7 @@ impl Hud {
 
                         (info.is_some() || bubble.is_some()).then(|| {
                             (
+                                entity,
                                 pos,
                                 info,
                                 bubble,
@@ -1889,6 +1901,9 @@ impl Hud {
                                 body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
                                 hpfl,
                                 in_group,
+                                dist_sqr,
+                                alignment,
+                                is_mount,
                             )
                         })
                     },
@@ -1911,8 +1926,24 @@ impl Hud {
                     &global_state.settings.interface,
                     self.pulse,
                     i18n,
+                    &global_state.settings.controls,
                     &self.imgs,
                     &self.fonts,
+                    &global_state.window.key_layout,
+                    match alignment {
+                        // TODO: Don't use `MAX_MOUNT_RANGE` here, add dedicated interaction range
+                        Some(comp::Alignment::Npc) if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
+                            && interactable.as_ref().and_then(|i| i.entity()) == Some(entity) =>
+                            vec![
+                                (GameInput::Interact, i18n.get("hud.talk").to_string()),
+                                (GameInput::Trade, i18n.get("hud.trade").to_string()),
+                            ],
+                        Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()
+                            && is_mount.is_none()
+                            && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
+                            vec![(GameInput::Mount, i18n.get("hud.mount").to_string())],
+                        _ => Vec::new(),
+                    },
                 )
                 .x_y(0.0, 100.0)
                 .position_ingame(ingame_pos)

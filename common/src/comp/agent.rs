@@ -8,8 +8,8 @@ use crate::{
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
-use serde::Deserialize;
-use specs::{Component, Entity as EcsEntity};
+use serde::{Serialize, Deserialize};
+use specs::{Component, Entity as EcsEntity, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{collections::VecDeque, fmt};
 use strum::IntoEnumIterator;
@@ -21,7 +21,7 @@ use super::dialogue::Subject;
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
 
-#[derive(Copy, Clone, Debug, PartialEq, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Alignment {
     /// Wild animals and gentle giants
     Wild,
@@ -79,7 +79,7 @@ impl Alignment {
 }
 
 impl Component for Alignment {
-    type Storage = IdvStorage<Self>;
+    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
 bitflags::bitflags! {

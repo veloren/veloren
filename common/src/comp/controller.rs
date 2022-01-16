@@ -10,7 +10,7 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage};
+use specs::Component;
 use specs_idvs::IdvStorage;
 use std::collections::BTreeMap;
 use vek::*;
