@@ -227,7 +227,6 @@ impl Room {
         // Toss mobs in the center of the room
         if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {
-                0 => enemy_0(dynamic_rng, tile_wcenter),
                 1 => enemy_1(dynamic_rng, tile_wcenter),
                 2 => enemy_2(dynamic_rng, tile_wcenter),
                 3 => enemy_3(dynamic_rng, tile_wcenter),
@@ -672,22 +671,6 @@ impl Floor {
             if pos1.x > pos2.x { 2 } else { 6 }
         }
     }
-}
-
-fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let number = dynamic_rng.gen_range(2..=4);
-    let mut entities = Vec::new();
-    entities.resize_with(number, || {
-        // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
-        match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.mugger", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.stalker", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.logger", dynamic_rng),
-        }
-    });
-
-    entities
 }
 
 fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
@@ -1471,7 +1454,6 @@ mod tests {
     fn test_creating_enemies() {
         let mut dynamic_rng = rand::thread_rng();
         let random_position = Vec3::new(0, 0, 0);
-        enemy_0(&mut dynamic_rng, random_position);
         enemy_1(&mut dynamic_rng, random_position);
         enemy_2(&mut dynamic_rng, random_position);
         enemy_3(&mut dynamic_rng, random_position);
