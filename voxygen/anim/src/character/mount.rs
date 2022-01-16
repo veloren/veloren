@@ -152,7 +152,9 @@ impl Animation for MountAnimation {
             next.lantern.orientation = next.hand_r.orientation.inverse()
                 * Quaternion::rotation_x(fast * 0.1)
                 * Quaternion::rotation_y(fast2 * 0.1);
-        }
+        } else {
+            next.lantern.position = Vec3::new(s_a.lantern.0, s_a.lantern.1, s_a.lantern.2);
+        };
 
         next.glider.position = Vec3::new(0.0, 0.0, 10.0);
         next.glider.scale = Vec3::one() * 0.0;
