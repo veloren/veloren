@@ -282,7 +282,8 @@ impl World {
                         .get_origin()
                         .distance_squared(chunk_center_wpos2d)
                 })
-                .map(|id| index.sites[*id].name().to_string()),
+                .map(|id| index.sites[*id].name().to_string())
+                .or_else(|| sim_chunk.poi.map(|poi| self.civs.pois[poi].name.clone())),
             sim_chunk.get_biome(),
             sim_chunk.alt,
             sim_chunk.tree_density,

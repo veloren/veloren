@@ -511,11 +511,14 @@ impl Civs {
             // Select point
             let idx = biome.1[ctx.rng.gen_range(0..biome.1.len())];
             let name = format!("{:?}", biome.0);
-            self.pois.insert(PointOfInterest {
+            let id = self.pois.insert(PointOfInterest {
                 name,
                 loc: uniform_idx_as_vec2(map_size_lg, idx),
                 kind: PoiKind::Biome(biome.1.len() as u32),
             });
+            for chunk in biome.1 {
+                ctx.sim.chunks[chunk].poi = Some(id);
+            }
         }
 
         info!(?num_biomes, "all biomes named");

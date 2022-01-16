@@ -112,6 +112,7 @@ impl<'a> CanvasInfo<'a> {
             surface_veg: 0.0,
             sites: Vec::new(),
             place: None,
+            poi: None,
             path: Default::default(),
             cave: Default::default(),
             cliff_height: 0.0,
