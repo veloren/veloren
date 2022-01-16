@@ -34,11 +34,11 @@ impl Animation for JumpAnimation {
         next.foot_br.scale = Vec3::one() * 0.96;
         next.ears.scale = Vec3::one() * 1.02;
         let speed = Vec2::<f32>::from(velocity).magnitude();
-        let velocityalt = speed.max(1.0);
+        let velocityalt = speed.max(3.0);
         let normalize = velocityalt / 22.0;
 
-        let x_tilt = (avg_vel.z.atan2(avg_vel.xy().magnitude()) * normalize).max(-0.35);
-        let x_tilt = if velocityalt < 2.0 {
+        let x_tilt = (avg_vel.z.atan2(avg_vel.xy().magnitude()) * normalize).max(-0.28);
+        let x_tilt = if velocityalt < 3.5 {
             x_tilt.abs()
         } else {
             x_tilt
@@ -57,7 +57,7 @@ impl Animation for JumpAnimation {
         next.tail.orientation = Quaternion::rotation_x(-0.6 * normalize + x_tilt * 2.0);
 
         next.torso_front.position = Vec3::new(0.0, s_a.torso_front.0, s_a.torso_front.1);
-        next.torso_front.orientation = Quaternion::rotation_x(x_tilt * 1.9);
+        next.torso_front.orientation = Quaternion::rotation_x(x_tilt * 3.5);
 
         next.torso_back.position = Vec3::new(0.0, s_a.torso_back.0, s_a.torso_back.1);
         next.torso_back.orientation = Quaternion::rotation_x(x_tilt * -1.2);
@@ -66,10 +66,10 @@ impl Animation for JumpAnimation {
         next.ears.orientation = Quaternion::rotation_x(x_tilt * 1.5);
 
         next.leg_fl.position = Vec3::new(-s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
-        next.leg_fl.orientation = Quaternion::rotation_x(1.2 * normalize + x_tilt * 0.8);
+        next.leg_fl.orientation = Quaternion::rotation_x(1.2 * normalize + x_tilt.abs() * 0.8);
 
         next.leg_fr.position = Vec3::new(s_a.leg_f.0, s_a.leg_f.1, s_a.leg_f.2);
-        next.leg_fr.orientation = Quaternion::rotation_x(1.2 * normalize + x_tilt * 0.8);
+        next.leg_fr.orientation = Quaternion::rotation_x(1.2 * normalize + x_tilt.abs() * 0.8);
 
         next.leg_bl.position = Vec3::new(-s_a.leg_b.0, s_a.leg_b.1, s_a.leg_b.2);
         next.leg_bl.orientation = Quaternion::rotation_x(-0.8 * normalize + x_tilt * -0.8);

@@ -65,7 +65,7 @@ impl Animation for MountAnimation {
         let speed = (Vec2::<f32>::from(velocity).magnitude()).min(24.0);
         let canceler = (speed / 24.0).powf(0.6);
         let _x_tilt = avg_vel.z.atan2(avg_vel.xy().magnitude()) * canceler;
-        let _tilt = if ::vek::Vec2::new(ori, last_ori)
+        let tilt = if ::vek::Vec2::new(ori, last_ori)
             .map(|o| o.magnitude_squared())
             .map(|m| m > 0.001 && m.is_finite())
             .reduce_and()
@@ -88,19 +88,36 @@ impl Animation for MountAnimation {
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.1 + stop * -0.8);
-        next.head.orientation = Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1)
-            * Quaternion::rotation_x((0.4 + slowa * -0.1 + slow * 0.1 + head_look.y).abs());
+        next.head.orientation =
+            Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1 + tilt * -2.0)
+                * Quaternion::rotation_x(
+                    (canceler * 0.3
+                        + 0.4
+                        + slowa * -0.1
+                        + slow * 0.1
+                        + head_look.y
+                        + tilt.abs() * 1.2)
+                        .abs(),
+                );
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
-        next.chest.orientation = Quaternion::rotation_x(-0.6 + stop * 0.15);
+        next.chest.orientation =
+            Quaternion::rotation_x(-0.6 + stop * 0.15 + canceler * -0.3 + tilt.abs() * -1.5)
+                * Quaternion::rotation_y(tilt * 2.0);
 
-        next.belt.position = Vec3::new(0.0, s_a.belt.0 + stop * 1.2, s_a.belt.1);
-        next.belt.orientation = Quaternion::rotation_x(stop * 0.3);
+        next.belt.position = Vec3::new(0.0, s_a.belt.0 + stop * 1.2, s_a.belt.1 + 1.0);
+        next.belt.orientation =
+            Quaternion::rotation_x(stop * 0.3) * Quaternion::rotation_y(tilt * -0.5);
 
         next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
 
-        next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + stop * 2.5, s_a.shorts.1 + stop * 0.6);
-        next.shorts.orientation = Quaternion::rotation_x(stop * 0.6);
+        next.shorts.position = Vec3::new(
+            0.0,
+            s_a.shorts.0 + stop * 2.5 + 1.0,
+            s_a.shorts.1 + stop * 0.6 + 2.0,
+        );
+        next.shorts.orientation =
+            Quaternion::rotation_x(stop * 0.6) * Quaternion::rotation_y(tilt * -1.0);
 
         next.hand_l.position = Vec3::new(
             -s_a.hand.0 + 4.0,
