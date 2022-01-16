@@ -1,9 +1,9 @@
 use crate::sync;
 use common::{
     comp,
-    resources::Time,
-    mounting::{Mount, Rider},
     link::Is,
+    mounting::{Mount, Rider},
+    resources::Time,
 };
 use serde::{Deserialize, Serialize};
 use specs::WorldExt;
@@ -215,7 +215,9 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Vel(_) => sync::handle_interp_remove::<comp::Vel>(entity, world),
             EcsCompPhantom::Ori(_) => sync::handle_interp_remove::<comp::Ori>(entity, world),
             EcsCompPhantom::Shockwave(_) => sync::handle_remove::<comp::Shockwave>(entity, world),
-            EcsCompPhantom::BeamSegment(_) => sync::handle_remove::<comp::BeamSegment>(entity, world),
+            EcsCompPhantom::BeamSegment(_) => {
+                sync::handle_remove::<comp::BeamSegment>(entity, world)
+            },
             EcsCompPhantom::Alignment(_) => sync::handle_remove::<comp::Alignment>(entity, world),
         }
     }

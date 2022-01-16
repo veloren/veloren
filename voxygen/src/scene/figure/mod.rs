@@ -35,13 +35,13 @@ use common::{
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, Last, LightAnimation,
         LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
+    link::Is,
+    mounting::Rider,
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
     terrain::TerrainChunk,
     uid::UidAllocator,
     vol::RectRasterableVol,
-    link::Is,
-    mounting::Rider,
 };
 use common_base::span;
 use common_state::State;
@@ -489,8 +489,15 @@ impl FigureMgr {
                 .and_then(|body| self.states.get_mut(body, &entity))
                 .and_then(|state| {
                     // Calculate the correct lantern position
-                    let pos = anim::vek::Vec3::from(interpolated.map(|i| i.pos).unwrap_or(pos.0).into_array());
-                    Some(state.mount_world_pos + state.mount_transform.orientation * anim::vek::Vec3::from(state.lantern_offset?.into_array()) - pos)
+                    let pos = anim::vek::Vec3::from(
+                        interpolated.map(|i| i.pos).unwrap_or(pos.0).into_array(),
+                    );
+                    Some(
+                        state.mount_world_pos
+                            + state.mount_transform.orientation
+                                * anim::vek::Vec3::from(state.lantern_offset?.into_array())
+                            - pos,
+                    )
                 })
             {
                 light_anim.offset = vek::Vec3::from(lantern_offset);
@@ -739,7 +746,9 @@ impl FigureMgr {
             let (in_frustum, lpindex) = if let Some(ref mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
-                let in_frustum = in_frustum || matches!(body, Body::Ship(_));
+                let in_frustum = in_frustum
+                    || matches!(body, Body::Ship(_))
+                    || pos.0.distance_squared(focus_pos) < 32.0f32.powi(2);
                 meta.visible = in_frustum;
                 meta.lpindex = lpindex;
                 if in_frustum {

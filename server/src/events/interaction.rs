@@ -15,12 +15,12 @@ use common::{
         Inventory, Pos, SkillGroupKind,
     },
     consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
+    link::Is,
+    mounting::{Mount, Mounting, Rider},
     outcome::Outcome,
     terrain::{Block, SpriteKind},
     uid::Uid,
     vol::ReadVol,
-    mounting::{Mount, Rider, Mounting},
-    link::Is,
 };
 use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 
@@ -102,17 +102,8 @@ pub fn handle_npc_interaction(server: &mut Server, interactor: EcsEntity, npc_en
 pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
     let state = server.state_mut();
 
-    if state
-        .ecs()
-        .read_storage::<Is<Rider>>()
-        .get(rider)
-        .is_none()
-    {
-        let not_mounting_yet = state
-            .ecs()
-            .read_storage::<Is<Mount>>()
-            .get(mount)
-            .is_none();
+    if state.ecs().read_storage::<Is<Rider>>().get(rider).is_none() {
+        let not_mounting_yet = state.ecs().read_storage::<Is<Mount>>().get(mount).is_none();
 
         let within_range = || {
             let positions = state.ecs().read_storage::<comp::Pos>();
@@ -126,10 +117,13 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
             if let (Some(rider_uid), Some(mount_uid)) =
                 (uids.get(rider).copied(), uids.get(mount).copied())
             {
-                let is_pet = match state.ecs().read_storage::<comp::Alignment>().get(mount) {
-                    Some(comp::Alignment::Owned(owner)) if *owner == rider_uid => true,
-                    _ => false,
-                };
+                let is_pet = matches!(
+                    state
+                        .ecs()
+                        .read_storage::<comp::Alignment>()
+                        .get(mount),
+                    Some(comp::Alignment::Owned(owner)) if *owner == rider_uid,
+                );
 
                 if is_pet {
                     drop(uids);
@@ -146,10 +140,7 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
 
 pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
-    state
-        .ecs()
-        .write_storage::<Is<Rider>>()
-        .remove(rider);
+    state.ecs().write_storage::<Is<Rider>>().remove(rider);
 }
 
 /// FIXME: This code is dangerous and needs to be refactored.  We can't just

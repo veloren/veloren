@@ -27,6 +27,8 @@ use common::{
     consts::GRAVITY,
     effect::{BuffEffect, Effect},
     event::{Emitter, EventBus, ServerEvent},
+    link::Is,
+    mounting::Mount,
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
@@ -37,8 +39,6 @@ use common::{
     uid::{Uid, UidAllocator},
     util::Dir,
     vol::ReadVol,
-    mounting::Mount,
-    link::Is,
 };
 use common_base::prof_span;
 use common_ecs::{Job, Origin, ParMode, Phase, System};
@@ -1428,18 +1428,16 @@ impl<'a> AgentData<'a> {
 
     /// Attempt to consume a healing item, and return whether any healing items
     /// were queued. Callers should use this to implement a delay so that
-    /// the healing isn't interrupted. If `relaxed` is `true`, we allow eating food and prioritise healing.
+    /// the healing isn't interrupted. If `relaxed` is `true`, we allow eating
+    /// food and prioritise healing.
     fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller, relaxed: bool) -> bool {
         let healing_value = |item: &Item| {
             let mut value = 0.0;
 
-            if let ItemKind::Consumable {
-                kind,
-                effects,
-                ..
-            } = &item.kind
-            {
-                if matches!(kind, ConsumableKind::Drink) || (relaxed && matches!(kind, ConsumableKind::Food)) {
+            if let ItemKind::Consumable { kind, effects, .. } = &item.kind {
+                if matches!(kind, ConsumableKind::Drink)
+                    || (relaxed && matches!(kind, ConsumableKind::Food))
+                {
                     for effect in effects.iter() {
                         use BuffKind::*;
                         match effect {
@@ -1449,8 +1447,8 @@ impl<'a> AgentData<'a> {
                             Effect::Buff(BuffEffect { kind, data, .. })
                                 if matches!(kind, Regeneration | Saturation | Potion) =>
                             {
-                                value +=
-                                    data.strength * data.duration.map_or(0.0, |d| d.as_secs() as f32);
+                                value += data.strength
+                                    * data.duration.map_or(0.0, |d| d.as_secs() as f32);
                             },
                             _ => {},
                         }
@@ -1469,10 +1467,12 @@ impl<'a> AgentData<'a> {
             })
             .collect();
 
-        consumables.sort_by_key(|(_, item)| if relaxed {
-            -healing_value(item)
-        } else {
-            healing_value(item)
+        consumables.sort_by_key(|(_, item)| {
+            if relaxed {
+                -healing_value(item)
+            } else {
+                healing_value(item)
+            }
         });
 
         if let Some((id, _)) = consumables.last() {

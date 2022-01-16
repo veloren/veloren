@@ -2,11 +2,13 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
-        Body, CharacterState, Collider, Density, Mass, Ori, PhysicsState, Pos,
-        PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
+        Body, CharacterState, Collider, Density, Mass, Ori, PhysicsState, Pos, PosVelOriDefer,
+        PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
+    link::Is,
+    mounting::Rider,
     outcome::Outcome,
     resources::DeltaTime,
     states,
@@ -14,8 +16,6 @@ use common::{
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
-    mounting::Rider,
-    link::Is,
 };
 use common_base::{prof_span, span};
 use common_ecs::{Job, Origin, ParMode, Phase, PhysicsMetrics, System};
@@ -1851,7 +1851,8 @@ fn resolve_e2e_collision(
     //
     // This allows using e2e pushback to gain speed by jumping out of a roll
     // while in the middle of a collider, this is an intentional combat mechanic.
-    let forced_movement = matches!(char_state_maybe, Some(cs) if cs.is_forced_movement()) || is_riding;
+    let forced_movement =
+        matches!(char_state_maybe, Some(cs) if cs.is_forced_movement()) || is_riding;
 
     // Don't apply repulsive force to projectiles,
     // or if we're colliding with a terrain-like entity,
@@ -1873,7 +1874,14 @@ fn resolve_e2e_collision(
 
         let diff = diff.normalized();
 
-        *vel_delta += Vec3::from(diff) * force * step_delta * vel.0.xy().try_normalized().map_or(1.0, |dir| diff.dot(-dir).max(0.025));
+        *vel_delta += Vec3::from(diff)
+            * force
+            * step_delta
+            * vel
+                .0
+                .xy()
+                .try_normalized()
+                .map_or(1.0, |dir| diff.dot(-dir).max(0.025));
     }
 
     *collision_registered = true;

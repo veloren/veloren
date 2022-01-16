@@ -18,11 +18,11 @@ use common::{
         Group, Inventory, Poise,
     },
     effect::Effect,
+    link::{Link, LinkHandle},
+    mounting::Mounting,
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
-    link::{Is, Link, Role, LinkHandle},
-    mounting::Mounting,
 };
 use common_net::{
     msg::{CharacterInfo, PlayerListUpdate, PresenceKind, ServerGeneral},
@@ -32,7 +32,7 @@ use common_state::State;
 use rand::prelude::*;
 use specs::{
     saveload::MarkerAllocator, Builder, Entity as EcsEntity, EntityBuilder as EcsEntityBuilder,
-    Join, WorldExt, Component,
+    Join, WorldExt,
 };
 use std::time::Duration;
 use tracing::{trace, warn};
@@ -112,8 +112,9 @@ pub trait StateExt {
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_players(&self, msg: ServerGeneral);
     fn notify_in_game_clients(&self, msg: ServerGeneral);
-    /// Create a new link between entities (see [`common::mounting`] for an example).
-    fn link<L: Link>(&mut self, link: L) -> Result<(), ()>;
+    /// Create a new link between entities (see [`common::mounting`] for an
+    /// example).
+    fn link<L: Link>(&mut self, link: L) -> Result<(), L::Error>;
     /// Maintain active links between entities
     fn maintain_links(&mut self);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
@@ -277,7 +278,7 @@ impl StateExt for State {
         mountable: bool,
     ) -> EcsEntityBuilder {
         let body = comp::Body::Ship(ship);
-        let mut builder = self
+        let builder = self
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -831,13 +832,10 @@ impl StateExt for State {
         }
     }
 
-    fn link<L: Link>(&mut self, link: L) -> Result<(), ()> {
+    fn link<L: Link>(&mut self, link: L) -> Result<(), L::Error> {
         let linker = LinkHandle::from_link(link);
 
-        L::create(
-            &linker,
-            self.ecs().system_data(),
-        )?;
+        L::create(&linker, self.ecs().system_data())?;
 
         self.ecs_mut()
             .entry::<Vec<LinkHandle<L>>>()
@@ -850,11 +848,13 @@ impl StateExt for State {
     fn maintain_links(&mut self) {
         fn maintain_link<L: Link>(state: &State) {
             if let Some(mut handles) = state.ecs().try_fetch_mut::<Vec<LinkHandle<L>>>() {
-                handles.retain(|link| if L::persist(link, state.ecs().system_data()) {
-                    true
-                } else {
-                    L::delete(link, state.ecs().system_data());
-                    false
+                handles.retain(|link| {
+                    if L::persist(link, state.ecs().system_data()) {
+                        true
+                    } else {
+                        L::delete(link, state.ecs().system_data());
+                        false
+                    }
                 });
             }
         }

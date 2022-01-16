@@ -6,7 +6,7 @@ use crate::{
 use conrod_core::{
     color,
     widget::{self, RoundedRectangle, Text},
-    widget_ids, Color, Colorable, Positionable, Widget, WidgetCommon, Sizeable,
+    widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
 use std::borrow::Cow;
@@ -172,13 +172,24 @@ impl<'a> Widget for Overitem<'a> {
 
         // Interaction hints
         if !self.interaction_options.is_empty() {
-            let text = self.interaction_options
+            let text = self
+                .interaction_options
                 .iter()
-                .filter_map(|(input, action)| Some((self
-                    .controls
-                    .get_binding(*input)
-                    .filter(|_| self.properties.active)?, action)))
-                .map(|(input, action)| format!("{}  {}", input.display_string(self.key_layout).as_str(), action))
+                .filter_map(|(input, action)| {
+                    Some((
+                        self.controls
+                            .get_binding(*input)
+                            .filter(|_| self.properties.active)?,
+                        action,
+                    ))
+                })
+                .map(|(input, action)| {
+                    format!(
+                        "{}  {}",
+                        input.display_string(self.key_layout).as_str(),
+                        action
+                    )
+                })
                 .collect::<Vec<_>>()
                 .join("\n");
 
@@ -194,11 +205,15 @@ impl<'a> Widget for Overitem<'a> {
 
             hints_text.set(state.ids.btn, ui);
 
-            RoundedRectangle::fill_with([w + btn_radius * 2.0, h + btn_radius * 2.0], btn_radius, btn_color)
-                .x_y(0.0, btn_rect_pos_y)
-                .depth(self.distance_from_player_sqr + 2.0)
-                .parent(id)
-                .set(state.ids.btn_bg, ui);
+            RoundedRectangle::fill_with(
+                [w + btn_radius * 2.0, h + btn_radius * 2.0],
+                btn_radius,
+                btn_color,
+            )
+            .x_y(0.0, btn_rect_pos_y)
+            .depth(self.distance_from_player_sqr + 2.0)
+            .parent(id)
+            .set(state.ids.btn_bg, ui);
         }
         if let Some(time) = self.properties.pickup_failed_pulse {
             //should never exceed 1.0, but just in case

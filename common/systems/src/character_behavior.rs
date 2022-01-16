@@ -11,6 +11,8 @@ use common::{
         StateUpdate, Stats, Vel,
     },
     event::{EventBus, LocalEvent, ServerEvent},
+    link::Is,
+    mounting::Rider,
     outcome::Outcome,
     resources::{DeltaTime, Time},
     states::{
@@ -19,8 +21,6 @@ use common::{
     },
     terrain::TerrainGrid,
     uid::Uid,
-    mounting::Rider,
-    link::Is,
 };
 use common_ecs::{Job, Origin, Phase, System};
 

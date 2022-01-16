@@ -83,6 +83,8 @@ use common::{
         BuffData, BuffKind, Item,
     },
     consts::MAX_PICKUP_RANGE,
+    link::Is,
+    mounting::Mount,
     outcome::Outcome,
     slowjob::SlowJobPool,
     terrain::{SpriteKind, TerrainChunk},
@@ -90,8 +92,6 @@ use common::{
     uid::Uid,
     util::{srgba_to_linear, Dir},
     vol::RectRasterableVol,
-    mounting::Mount,
-    link::Is,
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -1668,31 +1668,32 @@ impl Hud {
             let mut sct_bg_walker = self.ids.sct_bgs.walk();
             let pulse = self.pulse;
 
-            let make_overitem = |item: &Item, pos, distance, properties, fonts, interaction_options| {
-                let text = if item.amount() > 1 {
-                    format!("{} x {}", item.amount(), item.name())
-                } else {
-                    item.name().to_string()
+            let make_overitem =
+                |item: &Item, pos, distance, properties, fonts, interaction_options| {
+                    let text = if item.amount() > 1 {
+                        format!("{} x {}", item.amount(), item.name())
+                    } else {
+                        item.name().to_string()
+                    };
+
+                    let quality = get_quality_col(item);
+
+                    // Item
+                    overitem::Overitem::new(
+                        text.into(),
+                        quality,
+                        distance,
+                        fonts,
+                        i18n,
+                        &global_state.settings.controls,
+                        properties,
+                        pulse,
+                        &global_state.window.key_layout,
+                        interaction_options,
+                    )
+                    .x_y(0.0, 100.0)
+                    .position_ingame(pos)
                 };
-
-                let quality = get_quality_col(item);
-
-                // Item
-                overitem::Overitem::new(
-                    text.into(),
-                    quality,
-                    distance,
-                    fonts,
-                    i18n,
-                    &global_state.settings.controls,
-                    properties,
-                    pulse,
-                    &global_state.window.key_layout,
-                    interaction_options,
-                )
-                .x_y(0.0, 100.0)
-                .position_ingame(pos)
-            };
 
             self.failed_block_pickups
                 .retain(|_, t| pulse - *t < overitem::PICKUP_FAILED_FADE_OUT_TIME);
@@ -1788,7 +1789,22 @@ impl Hud {
             let speech_bubbles = &self.speech_bubbles;
 
             // Render overhead name tags and health bars
-            for (entity, pos, info, bubble, _, _, health, _, height_offset, hpfl, in_group, dist_sqr, alignment, is_mount) in (
+            for (
+                entity,
+                pos,
+                info,
+                bubble,
+                _,
+                _,
+                health,
+                _,
+                height_offset,
+                hpfl,
+                in_group,
+                dist_sqr,
+                alignment,
+                is_mount,
+            ) in (
                 &entities,
                 &pos,
                 interpolated.maybe(),
@@ -1932,16 +1948,23 @@ impl Hud {
                     &global_state.window.key_layout,
                     match alignment {
                         // TODO: Don't use `MAX_MOUNT_RANGE` here, add dedicated interaction range
-                        Some(comp::Alignment::Npc) if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
-                            && interactable.as_ref().and_then(|i| i.entity()) == Some(entity) =>
+                        Some(comp::Alignment::Npc)
+                            if dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2)
+                                && interactable.as_ref().and_then(|i| i.entity())
+                                    == Some(entity) =>
+                        {
                             vec![
                                 (GameInput::Interact, i18n.get("hud.talk").to_string()),
                                 (GameInput::Trade, i18n.get("hud.trade").to_string()),
-                            ],
-                        Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()
-                            && is_mount.is_none()
-                            && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
-                            vec![(GameInput::Mount, i18n.get("hud.mount").to_string())],
+                            ]
+                        },
+                        Some(comp::Alignment::Owned(owner))
+                            if Some(*owner) == client.uid()
+                                && is_mount.is_none()
+                                && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
+                        {
+                            vec![(GameInput::Mount, i18n.get("hud.mount").to_string())]
+                        },
                         _ => Vec::new(),
                     },
                 )

@@ -8,8 +8,8 @@ use crate::{
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
-use serde::{Serialize, Deserialize};
-use specs::{Component, Entity as EcsEntity, DerefFlaggedStorage};
+use serde::{Deserialize, Serialize};
+use specs::{Component, DerefFlaggedStorage, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use std::{collections::VecDeque, fmt};
 use strum::IntoEnumIterator;

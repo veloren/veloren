@@ -1,14 +1,13 @@
 use common::{
-    comp::{Body, Controller, Ori, Pos, Vel, ForceUpdate},
-    uid::UidAllocator,
-    mounting::{Mount, Rider},
+    comp::{Body, Controller, Ori, Pos, Vel},
     link::Is,
-    uid::Uid,
+    mounting::Mount,
+    uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entities, Join, Read, ReadStorage, WriteStorage, WriteExpect,
+    Entities, Join, Read, ReadStorage, WriteStorage,
 };
 use vek::*;
 
@@ -20,14 +19,11 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, UidAllocator>,
         Entities<'a>,
-        ReadStorage<'a, Uid>,
         WriteStorage<'a, Controller>,
-        ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Is<Mount>>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
-        ReadStorage<'a, ForceUpdate>,
         ReadStorage<'a, Body>,
     );
 
@@ -40,14 +36,11 @@ impl<'a> System<'a> for Sys {
         (
             uid_allocator,
             entities,
-            uids,
             mut controllers,
-            is_riders,
             is_mounts,
             mut positions,
             mut velocities,
             mut orientations,
-            force_updates,
             bodies,
         ): Self::SystemData,
     ) {
@@ -71,8 +64,7 @@ impl<'a> System<'a> for Sys {
                 let mounter_body = bodies.get(rider);
                 let mounting_offset = body.map_or(Vec3::unit_z(), Body::mount_offset)
                     + mounter_body.map_or(Vec3::zero(), Body::rider_offset);
-                let _ = positions
-                    .insert(rider, Pos(pos.0 + ori.to_quat() * mounting_offset));
+                let _ = positions.insert(rider, Pos(pos.0 + ori.to_quat() * mounting_offset));
                 let _ = orientations.insert(rider, ori);
                 let _ = velocities.insert(rider, vel);
             }

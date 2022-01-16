@@ -174,9 +174,11 @@ impl TerrainGrid {
         (0..SEARCH_DIST * 2 + 1)
             .map(|i| if i % 2 == 0 { i } else { -i } / 2)
             .map(|z_diff| pos + Vec3::unit_z() * z_diff)
-            .find(|pos| self.get(pos - Vec3::unit_z())
-                .map_or(false, |b| b.is_filled())
-                && self.is_space(*pos))
+            .find(|pos| {
+                self.get(pos - Vec3::unit_z())
+                    .map_or(false, |b| b.is_filled())
+                    && self.is_space(*pos)
+            })
     }
 }
 

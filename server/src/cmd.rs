@@ -34,14 +34,14 @@ use common::{
     effect::Effect,
     event::{EventBus, ServerEvent},
     generation::{EntityConfig, EntityInfo},
+    link::Is,
+    mounting::Rider,
     npc::{self, get_npc_name},
     resources::{BattleMode, PlayerPhysicsSettings, Time, TimeOfDay},
     terrain::{Block, BlockKind, SpriteKind, TerrainChunkSize},
     uid::{Uid, UidAllocator},
     vol::{ReadVol, RectVolSize},
     Damage, DamageKind, DamageSource, Explosion, LoadoutBuilder, RadiusEffect,
-    link::Is,
-    mounting::Rider,
 };
 use common_net::{
     msg::{DisconnectReason, Notification, PlayerListUpdate, ServerGeneral},
@@ -52,7 +52,9 @@ use core::{cmp::Ordering, convert::TryFrom, time::Duration};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::Rng;
-use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt, saveload::MarkerAllocator};
+use specs::{
+    saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
+};
 use std::{str::FromStr, sync::Arc};
 use vek::*;
 use wiring::{Circuit, Wire, WiringAction, WiringActionEffect, WiringElement};
@@ -203,24 +205,30 @@ fn position_mut<T>(
     descriptor: &str,
     f: impl for<'a> FnOnce(&'a mut comp::Pos) -> T,
 ) -> CmdResult<T> {
-    let entity = server.state
+    let entity = server
+        .state
         .ecs()
         .read_storage::<Is<Rider>>()
         .get(entity)
-        .and_then(|is_rider| server.state
-            .ecs()
-            .read_resource::<UidAllocator>()
-            .retrieve_entity_internal(is_rider.mount.into()))
+        .and_then(|is_rider| {
+            server
+                .state
+                .ecs()
+                .read_resource::<UidAllocator>()
+                .retrieve_entity_internal(is_rider.mount.into())
+        })
         .unwrap_or(entity);
 
-    let res = server.state
+    let res = server
+        .state
         .ecs()
         .write_storage::<comp::Pos>()
         .get_mut(entity)
         .map(f)
         .ok_or_else(|| format!("Cannot get position for {:?}!", descriptor));
     if res.is_ok() {
-        let _ = server.state
+        let _ = server
+            .state
             .ecs()
             .write_storage::<comp::ForceUpdate>()
             .insert(entity, comp::ForceUpdate);

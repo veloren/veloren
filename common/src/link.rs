@@ -1,14 +1,13 @@
 use serde::{Deserialize, Serialize};
-use specs::{SystemData, Component, DerefFlaggedStorage};
+use specs::{Component, DerefFlaggedStorage, SystemData};
 use specs_idvs::IdvStorage;
-use std::{
-    ops::Deref,
-    sync::Arc,
-};
+use std::{ops::Deref, sync::Arc};
 
 pub trait Link: Sized + Send + Sync + 'static {
+    type Error;
+
     type CreateData<'a>: SystemData<'a>;
-    fn create(this: &LinkHandle<Self>, data: Self::CreateData<'_>) -> Result<(), ()>;
+    fn create(this: &LinkHandle<Self>, data: Self::CreateData<'_>) -> Result<(), Self::Error>;
 
     type PersistData<'a>: SystemData<'a>;
     fn persist(this: &LinkHandle<Self>, data: Self::PersistData<'_>) -> bool;
@@ -35,16 +34,22 @@ impl<R: Role> Is<R> {
 }
 
 impl<R: Role> Clone for Is<R> {
-    fn clone(&self) -> Self { Self { link: self.link.clone() } }
+    fn clone(&self) -> Self {
+        Self {
+            link: self.link.clone(),
+        }
+    }
 }
 
 impl<R: Role> Deref for Is<R> {
     type Target = R::Link;
+
     fn deref(&self) -> &Self::Target { &self.link }
 }
 
 impl<R: Role + 'static> Component for Is<R>
-    where R::Link: Send + Sync + 'static
+where
+    R::Link: Send + Sync + 'static,
 {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
@@ -56,21 +61,24 @@ pub struct LinkHandle<L: Link> {
 
 impl<L: Link> Clone for LinkHandle<L> {
     fn clone(&self) -> Self {
-        Self { link: self.link.clone() }
+        Self {
+            link: Arc::clone(&self.link),
+        }
     }
 }
 
 impl<L: Link> LinkHandle<L> {
     pub fn from_link(link: L) -> Self {
-        Self { link: Arc::new(link) }
+        Self {
+            link: Arc::new(link),
+        }
     }
 
-    pub fn make_role<R: Role<Link = L>>(&self) -> Is<R> {
-        Is { link: self.clone() }
-    }
+    pub fn make_role<R: Role<Link = L>>(&self) -> Is<R> { Is { link: self.clone() } }
 }
 
 impl<L: Link> Deref for LinkHandle<L> {
     type Target = L;
+
     fn deref(&self) -> &Self::Target { &self.link }
 }

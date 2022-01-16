@@ -8,6 +8,8 @@ use common::{
     calendar::Calendar,
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
+    link::Is,
+    mounting::{Mount, Rider},
     outcome::Outcome,
     region::RegionMap,
     resources::{
@@ -19,8 +21,6 @@ use common::{
     time::DayPeriod,
     trade::Trades,
     vol::{ReadVol, WriteVol},
-    link::Is,
-    mounting::{Mount, Rider},
 };
 use common_base::span;
 use common_ecs::{PhysicsMetrics, SysMetrics};
@@ -34,10 +34,7 @@ use specs::{
     storage::{MaskedStorage as EcsMaskedStorage, Storage as EcsStorage},
     Component, DispatcherBuilder, Entity as EcsEntity, WorldExt,
 };
-use std::{
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::sync::Arc;
 use vek::*;
 
 /// How much faster should an in-game day be compared to a real day?

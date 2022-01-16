@@ -22,13 +22,13 @@ use common::{
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
+    link::Is,
+    mounting::Mount,
     outcome::Outcome,
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{Dir, Plane},
     vol::ReadVol,
-    link::Is,
-    mounting::{Mounting, Mount},
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -687,10 +687,12 @@ impl PlayState for SessionState {
                                             &client.state().ecs().read_storage::<comp::Pos>(),
                                             // TODO: More cleverly filter by things that can actually be mounted
                                             !&client.state().ecs().read_storage::<Is<Mount>>(),
+                                            client.state().ecs().read_storage::<comp::Alignment>().maybe(),
                                         )
                                             .join()
-                                            .filter(|(entity, _, _)| *entity != client.entity())
-                                            .map(|(entity, pos, _)| {
+                                            .filter(|(entity, _, _, _)| *entity != client.entity())
+                                            .filter(|(_, _, _, alignment)| matches!(alignment, Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()))
+                                            .map(|(entity, pos, _, _)| {
                                                 (entity, player_pos.0.distance_squared(pos.0))
                                             })
                                             .filter(|(_, dist_sqr)| {
