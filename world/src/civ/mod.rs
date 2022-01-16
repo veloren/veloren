@@ -548,7 +548,7 @@ impl Civs {
             let size_parameter = ((chords[2] + chords[3]) + (chords[0] + chords[1]) / 4) as u32;
             let lake = PointOfInterest {
                 name: {
-                    let name = NameGen::location(rng).generate();
+                    let name = NameGen::location(rng).generate_biome();
                     if size_parameter > 30 {
                         format!("{} Sea", name)
                     } else if (water_alt - alt) < 30 {
