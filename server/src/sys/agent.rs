@@ -1458,29 +1458,27 @@ impl<'a> AgentData<'a> {
             value as i32
         };
 
-        let mut consumables: Vec<_> = self
+        let item = self
             .inventory
             .slots_with_id()
             .filter_map(|(id, slot)| match slot {
                 Some(item) if healing_value(item) > 0 => Some((id, item)),
                 _ => None,
             })
-            .collect();
+            .max_by_key(|(_, item)| {
+                if relaxed {
+                    -healing_value(item)
+                } else {
+                    healing_value(item)
+                }
+            });
 
-        consumables.sort_by_key(|(_, item)| {
-            if relaxed {
-                -healing_value(item)
-            } else {
-                healing_value(item)
-            }
-        });
-
-        if let Some((id, _)) = consumables.last() {
+        if let Some((id, _)) = item {
             use comp::inventory::slot::Slot;
             controller
                 .actions
                 .push(ControlAction::InventoryAction(InventoryAction::Use(
-                    Slot::Inventory(*id),
+                    Slot::Inventory(id),
                 )));
             true
         } else {

@@ -490,11 +490,6 @@ impl<'a> Widget for Overhead<'a> {
                 let btn_radius = btn_rect_size / 5.0;
                 let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.8);
 
-                // RoundedRectangle::fill_with([btn_rect_size, btn_rect_size], btn_radius,
-                // btn_color)     .x_y(0.0, btn_rect_pos_y)
-                //     .depth(self.distance_from_player_sqr + 2.0)
-                //     .parent(id)
-                //     .set(state.ids.btn_bg, ui);
                 let hints_text = Text::new(&text)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(btn_font_size as u32)
