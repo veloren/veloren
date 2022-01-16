@@ -114,7 +114,7 @@ impl CharacterBehavior for Data {
 
                         let stats = comp::Stats::new("Summon".to_string());
 
-                        let health = self.static_data.summon_info.has_health.then_some({
+                        let health = self.static_data.summon_info.has_health.then(|| {
                             let health_level = skill_set
                                 .skill_level(skills::Skill::General(
                                     skills::GeneralSkill::HealthIncrease,
