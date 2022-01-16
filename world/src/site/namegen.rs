@@ -3,6 +3,7 @@ use rand::prelude::*;
 pub struct NameGen<'a, R: Rng> {
     // 2..
     pub approx_syllables: usize,
+    pub approx_syllables_long: usize,
 
     rng: &'a mut R,
 }
@@ -11,6 +12,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
     pub fn location(rng: &'a mut R) -> Self {
         Self {
             approx_syllables: rng.gen_range(1..4),
+            approx_syllables_long: rng.gen_range(3..4),
             rng,
         }
     }
@@ -52,27 +54,31 @@ impl<'a, R: Rng> NameGen<'a, R> {
 
     pub fn generate_biome(self) -> String {
         let cons = vec![
-            "d", "f", "ph", "r", "st", "t", "s", "p", "sh", "th", "br", "tr", "m", "k", "st", "w",
-            "y", "cr", "fr", "dr", "pl", "wr", "sn", "g", "qu", "l",
+            "b", "d", "f", "g", "h", "k", "l", "m", "n", "s", "t", "w", "br", "dr", "gr", "gh",
+            "kh", "kr", "st", "str", "th", "tr", "ar", "ark", "adr", "ath", "an", "el", "elb",
+            "eldr", "estr", "ostr", "ond", "ondr", "ul", "uld", "eld", "eldr",
         ];
-        let mut start = cons.clone();
-        start.extend(vec![
-            "cr", "thr", "str", "br", "iv", "est", "ost", "ing", "kr", "in", "on", "tr", "tw",
-            "wh", "eld", "ar", "or", "ear", "irr", "mi", "en", "ed", "et", "ow", "fr", "shr", "wr",
-            "gr", "pr",
-        ]);
-        let mut middle = cons.clone();
+        let start = cons.clone();
+        let mid = vec![
+            "br", "d", "dr", "dn", "dm", "fr", "g", "gr", "gl", "k", "kr", "l", "ll", "m", "mm",
+            "n", "nn", "nd", "st", "th", "rw", "nw", "thr", "lk", "nk", "ng", "rd", "rk", "nr",
+            "nth", "rth", "kn", "rl", "gg", "lg", "str", "nb", "lb", "ld", "rm", "sd", "sb",
+        ];
+        let mut middle = mid.clone();
         middle.extend(vec!["tt"]);
-        let vowel = vec!["o", "e", "a", "i", "u", "au", "ee", "ow", "ay", "ey", "oe"];
+        let vowel = vec!["o", "e", "a", "u", "ae"];
         let end = vec![
-            "a", "ia", "ium", "ist", "en", "on", "og", "end", "ind", "ock", "een", "edge", "ed",
-            "est", "ean", "ead", "eon", "ow", "in", "on", "id", "ir", "or", "in", "en",
+            "ul", "um", "un", "uth", "und", "ur", "an", "a", "ar", "a", "amar", "amur", "ath",
+            "or", "on", "oth", "omor", "omur", "omar", "ador", "odor", "en", "end", "eth", "amon",
+            "edur", "aden", "oden", "alas", "elas", "alath", "aloth", "eloth", "eres", "ond",
+            "ondor", "undor", "andor", "od", "ed", "amad", "ud", "amud", "ulud", "alud", "allen",
+            "alad", "and", "an", "as", "es",
         ];
 
         let mut name = String::new();
 
         name += start.choose(self.rng).unwrap();
-        for _ in 0..self.approx_syllables.saturating_sub(2) {
+        for _ in 0..self.approx_syllables_long.saturating_sub(2) {
             name += vowel.choose(self.rng).unwrap();
             name += middle.choose(self.rng).unwrap();
         }
