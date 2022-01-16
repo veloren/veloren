@@ -131,7 +131,7 @@ impl World {
                         name: poi.name.clone(),
                         kind: match &poi.kind {
                             civ::PoiKind::Peak(alt) => world_msg::PoiKind::Peak(*alt),
-                            civ::PoiKind::Lake(size) => world_msg::PoiKind::Lake(*size),
+                            civ::PoiKind::Biome(size) => world_msg::PoiKind::Lake(*size),
                         },
                         wpos: poi.loc * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                     }
