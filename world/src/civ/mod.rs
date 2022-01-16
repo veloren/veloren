@@ -508,9 +508,26 @@ impl Civs {
         let num_biomes = biomes.len();
 
         for biome in biomes {
-            // Select point
-            let idx = biome.1[ctx.rng.gen_range(0..biome.1.len())];
-            let name = format!("{:?}", biome.0);
+            // find average center of the biome
+            let mut biomes = biome.1.iter();
+            // There is always at least 1 biome
+            let mut center = uniform_idx_as_vec2(map_size_lg, *biomes.next().unwrap());
+            biomes.for_each(|b| {
+                center += uniform_idx_as_vec2(map_size_lg, *b);
+                center /= 2;
+            });
+            // Select the point closest to the center
+
+            let idx = *biome
+                .1
+                .iter()
+                .min_by_key(|&b| center.distance_squared(uniform_idx_as_vec2(map_size_lg, *b)))
+                .unwrap();
+            let name = format!(
+                "{} {:?}",
+                NameGen::location(&mut ctx.rng).generate_biome(),
+                biome.0
+            );
             let id = self.pois.insert(PointOfInterest {
                 name,
                 loc: uniform_idx_as_vec2(map_size_lg, idx),
