@@ -970,14 +970,14 @@ pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
 
 #[cfg(not(target_arch = "wasm32"))]
 pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
-    const DAMAGE_WEIGHT: f32 = 1.5;
-    const SPEED_WEIGHT: f32 = 1.5;
+    const DAMAGE_WEIGHT: f32 = 2.0;
+    const SPEED_WEIGHT: f32 = 2.0;
     const CRIT_CHANCE_WEIGHT: f32 = 1.5;
-    const RANGE_WEIGHT: f32 = 1.0;
+    const RANGE_WEIGHT: f32 = 0.0;
     const EFFECT_WEIGHT: f32 = 1.0;
     const EQUIP_TIME_WEIGHT: f32 = 0.5;
-    const ENERGY_EFFICIENCY_WEIGHT: f32 = 1.0;
-    const BUFF_STRENGTH_WEIGHT: f32 = 1.0;
+    const ENERGY_EFFICIENCY_WEIGHT: f32 = 0.0;
+    const BUFF_STRENGTH_WEIGHT: f32 = 0.0;
 
     if let ItemKind::Tool(tool) = item.kind() {
         let stats = tool::Stats::from((msm, item.components(), tool));
@@ -988,7 +988,7 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
 
         let damage_rating = stats.power;
         let speed_rating = stats.speed;
-        let crit_chance_rating = stats.crit_chance;
+        let crit_chance_rating = stats.crit_chance / 0.1;
         let range_rating = stats.range;
         let effect_rating = stats.effect_power;
         let equip_time_rating = stats.equip_time_secs;
