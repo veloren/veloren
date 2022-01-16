@@ -601,13 +601,13 @@ impl<'a> Skillbar<'a> {
 
         // Helper
         let tooltip_text = |slot| {
-            let (hotbar, inventory, _, _, active_abilities, _) = content_source;
+            let (hotbar, inventory, _, skill_set, active_abilities, _) = content_source;
             hotbar.get(slot).and_then(|content| match content {
                 hotbar::SlotContents::Inventory(i, _) => inventory
                     .get_by_hash(i)
                     .map(|item| (item.name(), item.description())),
                 hotbar::SlotContents::Ability(i) => active_abilities
-                    .abilities
+                    .auxiliary_set(Some(inventory), Some(skill_set))
                     .get(i)
                     .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
                     .map(util::ability_description),

@@ -115,6 +115,7 @@ pub enum ServerEvent {
             comp::Inventory,
             Option<comp::Waypoint>,
             Vec<(comp::Pet, comp::Body, comp::Stats)>,
+            comp::ActiveAbilities,
         ),
     },
     ExitIngame {
@@ -202,6 +203,12 @@ pub enum ServerEvent {
     },
     EntityAttackedHook {
         entity: EcsEntity,
+    },
+    ChangeAbility {
+        entity: EcsEntity,
+        slot: usize,
+        auxiliary_key: comp::ability::AuxiliaryKey,
+        new_ability: comp::ability::AuxiliaryAbility,
     },
 }
 

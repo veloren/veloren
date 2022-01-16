@@ -1,5 +1,5 @@
 use crate::hud::item_imgs::ItemKey;
-use common::comp::inventory::item::Item;
+use common::comp::{self, inventory::item::Item};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -70,7 +70,13 @@ impl State {
         {
             use common::comp::ability::AuxiliaryAbility;
             for ((i, ability), hotbar_slot) in active_abilities
-                .abilities
+                .auxiliary_set(
+                    client.inventories().get(client.entity()),
+                    client
+                        .state()
+                        .read_storage::<comp::SkillSet>()
+                        .get(client.entity()),
+                )
                 .iter()
                 .enumerate()
                 .zip(self.slots.iter_mut())

@@ -1,4 +1,4 @@
-use crate::{client::Client, sys, Server, StateExt};
+use crate::{client::Client, persistence::PersistedComponents, sys, Server, StateExt};
 use common::{
     character::CharacterId,
     comp::{
@@ -35,14 +35,7 @@ pub fn handle_initialize_character(
 pub fn handle_loaded_character_data(
     server: &mut Server,
     entity: EcsEntity,
-    loaded_components: (
-        comp::Body,
-        comp::Stats,
-        comp::SkillSet,
-        comp::Inventory,
-        Option<comp::Waypoint>,
-        Vec<(comp::Pet, comp::Body, comp::Stats)>,
-    ),
+    loaded_components: PersistedComponents,
 ) {
     server
         .state

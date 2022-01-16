@@ -138,6 +138,7 @@ pub enum ControlEvent {
     Utterance(UtteranceKind),
     ChangeAbility {
         slot: usize,
+        auxiliary_key: ability::AuxiliaryKey,
         new_ability: ability::AuxiliaryAbility,
     },
 }

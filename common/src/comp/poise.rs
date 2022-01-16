@@ -231,15 +231,14 @@ impl Poise {
             .equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
-                    Some(armor.poise_resilience())
+                    armor.poise_resilience()
                 } else {
                     None
                 }
             })
             .map(|protection| match protection {
-                Some(Protection::Normal(protection)) => Some(protection),
-                Some(Protection::Invincible) => None,
-                None => Some(0.0),
+                Protection::Normal(protection) => Some(protection),
+                Protection::Invincible => None,
             })
             .sum::<Option<f32>>();
         match protection {

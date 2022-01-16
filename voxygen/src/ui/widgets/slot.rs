@@ -19,7 +19,9 @@ pub trait SlotKey<C, I>: Copy {
     fn image_ids(key: &Self::ImageKey, source: &I) -> Vec<image::Id>;
 }
 
-pub trait SumSlot: Sized + PartialEq + Copy + Send + 'static {}
+pub trait SumSlot: Sized + PartialEq + Copy + Send + 'static {
+    fn drag_size(&self) -> Option<[f64; 2]>;
+}
 
 pub struct ContentSize {
     // Width divided by height
@@ -217,6 +219,12 @@ where
             let content_img = *content_img;
             let drag_amount = *drag_amount;
 
+            let dragged_size = if let Some(dragged_size) = slot.drag_size() {
+                dragged_size
+            } else {
+                self.drag_img_size.map(|e| e as f64).into_array()
+            };
+
             // If we are dragging and we right click, drop half the stack
             // on the ground or into the slot under the cursor. This only
             // works with open slots or slots containing the same kind of
@@ -260,9 +268,8 @@ where
 
             // Draw image of contents being dragged
             let [mouse_x, mouse_y] = input.mouse.xy;
-            let size = self.drag_img_size.map(|e| e as f64).into_array();
             super::ghost_image::GhostImage::new(content_img)
-                .wh(size)
+                .wh(dragged_size)
                 .xy([mouse_x, mouse_y])
                 .set(self.drag_id, ui);
 

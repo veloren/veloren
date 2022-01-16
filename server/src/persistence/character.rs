@@ -8,10 +8,10 @@ extern crate rusqlite;
 
 use super::{error::PersistenceError, models::*};
 use crate::{
-    comp,
-    comp::Inventory,
+    comp::{self, Inventory},
     persistence::{
         character::conversions::{
+            convert_active_abilities_from_database, convert_active_abilities_to_database,
             convert_body_from_database, convert_body_to_database_json,
             convert_character_from_database, convert_inventory_from_database_items,
             convert_items_to_database_items, convert_loadout_from_database_items,
@@ -234,19 +234,34 @@ pub fn load_character_data(
         })
         .collect::<Vec<(comp::Pet, comp::Body, comp::Stats)>>();
 
-    Ok((
-        convert_body_from_database(&body_data.variant, &body_data.body_data)?,
-        convert_stats_from_database(character_data.alias),
-        convert_skill_set_from_database(&skill_group_data),
-        convert_inventory_from_database_items(
+    let mut stmt = connection.prepare_cached(
+        "
+            SELECT  ability_sets
+            FROM    ability_set
+            WHERE   entity_id = ?1",
+    )?;
+
+    let ability_set_data = stmt.query_row(&[char_id], |row| {
+        Ok(AbilitySets {
+            entity_id: char_id,
+            ability_sets: row.get(0)?,
+        })
+    })?;
+
+    Ok(PersistedComponents {
+        body: convert_body_from_database(&body_data.variant, &body_data.body_data)?,
+        stats: convert_stats_from_database(character_data.alias),
+        skill_set: convert_skill_set_from_database(&skill_group_data),
+        inventory: convert_inventory_from_database_items(
             character_containers.inventory_container_id,
             &inventory_items,
             character_containers.loadout_container_id,
             &loadout_items,
         )?,
-        char_waypoint,
+        waypoint: char_waypoint,
         pets,
-    ))
+        active_abilities: convert_active_abilities_from_database(&ability_set_data),
+    })
 }
 
 /// Loads a list of characters belonging to the player. This data is a small
@@ -327,14 +342,22 @@ pub fn create_character(
     uuid: &str,
     character_alias: &str,
     persisted_components: PersistedComponents,
-    transactionn: &mut Transaction,
+    transaction: &mut Transaction,
 ) -> CharacterCreationResult {
-    check_character_limit(uuid, transactionn)?;
+    check_character_limit(uuid, transaction)?;
 
-    let (body, _stats, skill_set, inventory, waypoint, _) = persisted_components;
+    let PersistedComponents {
+        body,
+        stats: _,
+        skill_set,
+        inventory,
+        waypoint,
+        pets: _,
+        active_abilities,
+    } = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
-    let mut new_entity_ids = get_new_entity_ids(transactionn, |next_id| next_id + 3)?;
+    let mut new_entity_ids = get_new_entity_ids(transaction, |next_id| next_id + 3)?;
 
     // Create pseudo-container items for character
     let character_id = new_entity_ids.next().unwrap();
@@ -365,7 +388,7 @@ pub fn create_character(
         },
     ];
 
-    let mut stmt = transactionn.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         INSERT INTO item (item_id,
                           parent_container_item_id,
@@ -386,7 +409,7 @@ pub fn create_character(
     }
     drop(stmt);
 
-    let mut stmt = transactionn.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         INSERT INTO body (body_id,
                           variant,
@@ -402,7 +425,7 @@ pub fn create_character(
     ])?;
     drop(stmt);
 
-    let mut stmt = transactionn.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         INSERT INTO character (character_id,
                                player_uuid,
@@ -421,7 +444,7 @@ pub fn create_character(
 
     let db_skill_groups = convert_skill_groups_to_database(character_id, skill_set.skill_groups());
 
-    let mut stmt = transactionn.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         INSERT INTO skill_group (entity_id,
                                  skill_group_kind,
@@ -444,10 +467,25 @@ pub fn create_character(
     }
     drop(stmt);
 
+    let ability_sets = convert_active_abilities_to_database(character_id, &active_abilities);
+
+    let mut stmt = transaction.prepare_cached(
+        "
+        INSERT INTO ability_set (entity_id,
+                                 ability_sets)
+        VALUES (?1, ?2)",
+    )?;
+
+    stmt.execute(&[
+        &character_id as &dyn ToSql,
+        &ability_sets.ability_sets as &dyn ToSql,
+    ])?;
+    drop(stmt);
+
     // Insert default inventory and loadout item records
     let mut inserts = Vec::new();
 
-    get_new_entity_ids(transactionn, |mut next_id| {
+    get_new_entity_ids(transaction, |mut next_id| {
         let inserts_ = convert_items_to_database_items(
             loadout_container_id,
             &inventory,
@@ -458,7 +496,7 @@ pub fn create_character(
         next_id
     })?;
 
-    let mut stmt = transactionn.prepare_cached(
+    let mut stmt = transaction.prepare_cached(
         "
         INSERT INTO item (item_id,
                           parent_container_item_id,
@@ -479,7 +517,7 @@ pub fn create_character(
     }
     drop(stmt);
 
-    load_character_list(uuid, transactionn).map(|list| (character_id, list))
+    load_character_list(uuid, transaction).map(|list| (character_id, list))
 }
 
 pub fn edit_character(
@@ -578,6 +616,17 @@ pub fn delete_character(
     if !pet_ids.is_empty() {
         delete_pets(transaction, char_id, Rc::new(pet_ids))?;
     }
+
+    // Delete ability sets
+    let mut stmt = transaction.prepare_cached(
+        "
+        DELETE
+        FROM    ability_set
+        WHERE   entity_id = ?1",
+    )?;
+
+    stmt.execute(&[&char_id])?;
+    drop(stmt);
 
     // Delete character
     let mut stmt = transaction.prepare_cached(
@@ -892,6 +941,7 @@ pub fn update(
     inventory: comp::Inventory,
     pets: Vec<PetPersistenceData>,
     char_waypoint: Option<comp::Waypoint>,
+    active_abilities: comp::ability::ActiveAbilities,
     transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
     // Run pet persistence
@@ -1031,6 +1081,28 @@ pub fn update(
     if waypoint_count != 1 {
         return Err(PersistenceError::OtherError(format!(
             "Error updating character table for char_id {}",
+            char_id
+        )));
+    }
+
+    let ability_sets = convert_active_abilities_to_database(char_id, &active_abilities);
+
+    let mut stmt = transaction.prepare_cached(
+        "
+        UPDATE  ability_set
+        SET     ability_sets = ?1
+        WHERE   entity_id = ?2
+    ",
+    )?;
+
+    let ability_sets_count = stmt.execute(&[
+        &ability_sets.ability_sets as &dyn ToSql,
+        &char_id as &dyn ToSql,
+    ])?;
+
+    if ability_sets_count != 1 {
+        return Err(PersistenceError::OtherError(format!(
+            "Error updating ability_set table for char_id {}",
             char_id
         )));
     }

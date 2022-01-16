@@ -1,11 +1,11 @@
 use crate::persistence::{
     character::EntityId,
-    models::{Character, Item, SkillGroup},
+    models::{AbilitySets, Character, Item, SkillGroup},
 };
 
 use crate::persistence::{
     error::PersistenceError,
-    json_models::{self, CharacterPosition, GenericBody, HumanoidBody},
+    json_models::{self, CharacterPosition, DatabaseAbilitySet, GenericBody, HumanoidBody},
 };
 use common::{
     character::CharacterId,
@@ -601,4 +601,29 @@ pub fn convert_skill_groups_to_database<'a, I: Iterator<Item = &'a skillset::Ski
                 .unwrap_or_default(),
         })
         .collect()
+}
+
+pub fn convert_active_abilities_to_database(
+    entity_id: CharacterId,
+    active_abilities: &ability::ActiveAbilities,
+) -> AbilitySets {
+    let ability_sets = json_models::active_abilities_to_db_model(active_abilities);
+    AbilitySets {
+        entity_id,
+        ability_sets: serde_json::to_string(&ability_sets).unwrap_or_default(),
+    }
+}
+
+pub fn convert_active_abilities_from_database(
+    ability_sets: &AbilitySets,
+) -> ability::ActiveAbilities {
+    let ability_sets = serde_json::from_str::<Vec<DatabaseAbilitySet>>(&ability_sets.ability_sets)
+        .unwrap_or_else(|err| {
+            common_base::dev_panic!(format!(
+                "Failed to parse ability sets. Error: {:#?}\nAbility sets:\n{:#?}",
+                err, ability_sets.ability_sets
+            ));
+            Vec::new()
+        });
+    json_models::active_abilities_from_db_model(ability_sets)
 }

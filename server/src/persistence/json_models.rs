@@ -1,4 +1,6 @@
 use common::comp;
+use common_base::dev_panic;
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::string::ToString;
 use vek::Vec3;
@@ -105,4 +107,177 @@ pub fn db_string_to_skill_group(skill_group_string: &str) -> comp::skillset::Ski
             skill_group_string
         ),
     }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct DatabaseAbilitySet {
+    mainhand: String,
+    offhand: String,
+    abilities: Vec<String>,
+}
+
+fn aux_ability_to_string(ability: common::comp::ability::AuxiliaryAbility) -> String {
+    use common::comp::ability::AuxiliaryAbility;
+    match ability {
+        AuxiliaryAbility::MainWeapon(index) => format!("Main Weapon:index:{}", index),
+        AuxiliaryAbility::OffWeapon(index) => format!("Off Weapon:index:{}", index),
+        AuxiliaryAbility::Empty => String::from("Empty"),
+    }
+}
+
+fn aux_ability_from_string(ability: &str) -> common::comp::ability::AuxiliaryAbility {
+    use common::comp::ability::AuxiliaryAbility;
+    let mut parts = ability.split(":index:");
+    match parts.next() {
+        Some("Main Weapon") => match parts
+            .next()
+            .map(|index| index.parse::<usize>().map_err(|_| index))
+        {
+            Some(Ok(index)) => AuxiliaryAbility::MainWeapon(index),
+            Some(Err(error)) => {
+                dev_panic!(format!(
+                    "Conversion from database to ability set failed. Unable to parse index for \
+                     mainhand abilities: {}",
+                    error
+                ));
+                AuxiliaryAbility::Empty
+            },
+            None => {
+                dev_panic!(String::from(
+                    "Conversion from database to ability set failed. Unable to find an index for \
+                     mainhand abilities"
+                ));
+                AuxiliaryAbility::Empty
+            },
+        },
+        Some("Off Weapon") => match parts
+            .next()
+            .map(|index| index.parse::<usize>().map_err(|_| index))
+        {
+            Some(Ok(index)) => AuxiliaryAbility::OffWeapon(index),
+            Some(Err(error)) => {
+                dev_panic!(format!(
+                    "Conversion from database to ability set failed. Unable to parse index for \
+                     offhand abilities: {}",
+                    error
+                ));
+                AuxiliaryAbility::Empty
+            },
+            None => {
+                dev_panic!(String::from(
+                    "Conversion from database to ability set failed. Unable to find an index for \
+                     offhand abilities"
+                ));
+                AuxiliaryAbility::Empty
+            },
+        },
+        Some("Empty") => AuxiliaryAbility::Empty,
+        unknown => {
+            dev_panic!(format!(
+                "Conversion from database to ability set failed. Unknown auxiliary ability: {:#?}",
+                unknown
+            ));
+            AuxiliaryAbility::Empty
+        },
+    }
+}
+
+fn tool_kind_to_string(tool: Option<common::comp::item::tool::ToolKind>) -> String {
+    use common::comp::item::tool::ToolKind::*;
+    String::from(match tool {
+        Some(Sword) => "Sword",
+        Some(Axe) => "Axe",
+        Some(Hammer) => "Hammer",
+        Some(Bow) => "Bow",
+        Some(Staff) => "Staff",
+        Some(Sceptre) => "Sceptre",
+        Some(Dagger) => "Dagger",
+        Some(Shield) => "Shield",
+        Some(Spear) => "Spear",
+        Some(Blowgun) => "Blowgun",
+        Some(Pick) => "Pick",
+
+        // Toolkinds that are not anticipated to have many active aiblities (if any at all)
+        Some(Farming) => "Farming",
+        Some(Debug) => "Debug",
+        Some(Natural) => "Natural",
+        Some(Empty) => "Empty",
+        None => "None",
+    })
+}
+
+fn tool_kind_from_string(tool: String) -> Option<common::comp::item::tool::ToolKind> {
+    use common::comp::item::tool::ToolKind::*;
+    match tool.as_str() {
+        "Sword" => Some(Sword),
+        "Axe" => Some(Axe),
+        "Hammer" => Some(Hammer),
+        "Bow" => Some(Bow),
+        "Staff" => Some(Staff),
+        "Sceptre" => Some(Sceptre),
+        "Dagger" => Some(Dagger),
+        "Shield" => Some(Shield),
+        "Spear" => Some(Spear),
+        "Blowgun" => Some(Blowgun),
+        "Pick" => Some(Pick),
+
+        "Farming" => Some(Farming),
+        "Debug" => Some(Debug),
+        "Natural" => Some(Natural),
+        "Empty" => Some(Empty),
+        "None" => None,
+        unknown => {
+            dev_panic!(format!(
+                "Conversion from database to ability set failed. Unknown toolkind: {:#?}",
+                unknown
+            ));
+            None
+        },
+    }
+}
+
+pub fn active_abilities_to_db_model(
+    active_abilities: &comp::ability::ActiveAbilities,
+) -> Vec<DatabaseAbilitySet> {
+    active_abilities
+        .auxiliary_sets
+        .iter()
+        .map(|((mainhand, offhand), abilities)| DatabaseAbilitySet {
+            mainhand: tool_kind_to_string(*mainhand),
+            offhand: tool_kind_to_string(*offhand),
+            abilities: abilities
+                .iter()
+                .map(|ability| aux_ability_to_string(*ability))
+                .collect(),
+        })
+        .collect::<Vec<_>>()
+}
+
+pub fn active_abilities_from_db_model(
+    ability_sets: Vec<DatabaseAbilitySet>,
+) -> comp::ability::ActiveAbilities {
+    let ability_sets = ability_sets
+        .into_iter()
+        .map(
+            |DatabaseAbilitySet {
+                 mainhand,
+                 offhand,
+                 abilities,
+             }| {
+                let mut auxiliary_abilities =
+                    [comp::ability::AuxiliaryAbility::Empty; comp::ability::MAX_ABILITIES];
+                for (empty, ability) in auxiliary_abilities.iter_mut().zip(abilities.into_iter()) {
+                    *empty = aux_ability_from_string(&ability);
+                }
+                (
+                    (
+                        tool_kind_from_string(mainhand),
+                        tool_kind_from_string(offhand),
+                    ),
+                    auxiliary_abilities,
+                )
+            },
+        )
+        .collect::<HashMap<_, _>>();
+    comp::ability::ActiveAbilities::new(ability_sets)
 }

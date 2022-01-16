@@ -74,7 +74,9 @@ use client::Client;
 use common::{
     combat,
     comp::{
-        self, fluid_dynamics,
+        self,
+        ability::AuxiliaryAbility,
+        fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skillset::{skills::Skill, SkillGroupKind},
@@ -535,8 +537,7 @@ pub enum Event {
     RemoveBuff(BuffKind),
     UnlockSkill(Skill),
     RequestSiteInfo(SiteId),
-    // TODO: This variant currently unused. UI is needed for it to be properly used.
-    ChangeAbility(usize, comp::ability::AuxiliaryAbility),
+    ChangeAbility(usize, AuxiliaryAbility),
 
     SettingsChange(SettingsChange),
     AcknowledgePersistenceLoadError,
@@ -651,7 +652,7 @@ pub struct Show {
     ingame: bool,
     chat_tab_settings_index: Option<usize>,
     settings_tab: SettingsTab,
-    skilltreetab: SelectedSkillTree,
+    diary_fields: diary::DiaryShow,
     crafting_tab: CraftingTab,
     crafting_search_key: Option<String>,
     craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
@@ -746,6 +747,7 @@ impl Show {
             self.salvage = false;
             self.bag = false;
             self.map = false;
+            self.diary_fields = diary::DiaryShow::default();
             self.diary = open;
             self.want_grab = !open;
         }
@@ -851,7 +853,7 @@ impl Show {
     }
 
     fn open_skill_tree(&mut self, tree_sel: SelectedSkillTree) {
-        self.skilltreetab = tree_sel;
+        self.diary_fields.skilltreetab = tree_sel;
         self.social = false;
     }
 
@@ -1045,7 +1047,7 @@ impl Hud {
                 group_menu: false,
                 chat_tab_settings_index: None,
                 settings_tab: SettingsTab::Interface,
-                skilltreetab: SelectedSkillTree::General,
+                diary_fields: diary::DiaryShow::default(),
                 crafting_tab: CraftingTab::All,
                 crafting_search_key: None,
                 craft_sprite: None,
@@ -3097,17 +3099,42 @@ impl Hud {
         if self.show.diary {
             let entity = client.entity();
             let skill_sets = ecs.read_storage::<comp::SkillSet>();
-            if let Some(skill_set) = skill_sets.get(entity) {
+            if let (
+                Some(skill_set),
+                Some(active_abilities),
+                Some(inventory),
+                Some(health),
+                Some(energy),
+                Some(body),
+                Some(poise),
+            ) = (
+                skill_sets.get(entity),
+                active_abilities.get(entity),
+                inventories.get(entity),
+                healths.get(entity),
+                energies.get(entity),
+                bodies.get(entity),
+                poises.get(entity),
+            ) {
                 for event in Diary::new(
                     &self.show,
                     client,
+                    global_state,
                     skill_set,
+                    active_abilities,
+                    inventory,
+                    health,
+                    energy,
+                    poise,
+                    body,
+                    &msm,
                     &self.imgs,
                     &self.item_imgs,
                     &self.fonts,
                     i18n,
                     &self.rot_imgs,
                     tooltip_manager,
+                    &mut self.slot_manager,
                     self.pulse,
                 )
                 .set(self.ids.diary, ui_widgets)
@@ -3122,6 +3149,9 @@ impl Hud {
                             self.show.open_skill_tree(tree_sel)
                         },
                         diary::Event::UnlockSkill(skill) => events.push(Event::UnlockSkill(skill)),
+                        diary::Event::ChangeSection(section) => {
+                            self.show.diary_fields.section = section;
+                        },
                     }
                 }
             }
@@ -3278,7 +3308,7 @@ impl Hud {
         // Maintain slot manager
         'slot_events: for event in self.slot_manager.maintain(ui_widgets) {
             use comp::slot::Slot;
-            use slots::{InventorySlot, SlotKind::*};
+            use slots::{AbilitySlot, InventorySlot, SlotKind::*};
             let to_slot = |slot_kind| match slot_kind {
                 Inventory(InventorySlot {
                     slot, ours: true, ..
@@ -3287,6 +3317,7 @@ impl Hud {
                 Equip(e) => Some(Slot::Equip(e)),
                 Hotbar(_) => None,
                 Trade(_) => None,
+                Ability(_) => None,
             };
             match event {
                 slot::Event::Dragged(a, b) => {
@@ -3336,6 +3367,33 @@ impl Hud {
                                 }
                             }
                         }
+                    } else if let (Ability(a), Ability(b)) = (a, b) {
+                        match (a, b) {
+                            (AbilitySlot::Ability(ability), AbilitySlot::Slot(index)) => {
+                                events.push(Event::ChangeAbility(index, ability));
+                            },
+                            (AbilitySlot::Slot(a), AbilitySlot::Slot(b)) => {
+                                let me = client.entity();
+                                if let Some(active_abilities) = active_abilities.get(me) {
+                                    let ability_a = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(a)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    let ability_b = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(b)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    events.push(Event::ChangeAbility(a, ability_b));
+                                    events.push(Event::ChangeAbility(b, ability_a));
+                                }
+                            },
+                            (AbilitySlot::Slot(index), _) => {
+                                events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                            },
+                            (AbilitySlot::Ability(_), AbilitySlot::Ability(_)) => {},
+                        }
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -3355,6 +3413,8 @@ impl Hud {
                                 }));
                             }
                         }
+                    } else if let Ability(AbilitySlot::Slot(index)) = from {
+                        events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                     }
                 },
                 slot::Event::SplitDropped(from) => {
@@ -3364,6 +3424,8 @@ impl Hud {
                     } else if let Hotbar(h) = from {
                         self.hotbar.clear_slot(h);
                         events.push(Event::ChangeHotbarState(Box::new(self.hotbar.to_owned())));
+                    } else if let Ability(AbilitySlot::Slot(index)) = from {
+                        events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                     }
                 },
                 slot::Event::SplitDragged(a, b) => {
@@ -3407,6 +3469,33 @@ impl Hud {
                                 }
                             }
                         }
+                    } else if let (Ability(a), Ability(b)) = (a, b) {
+                        match (a, b) {
+                            (AbilitySlot::Ability(ability), AbilitySlot::Slot(index)) => {
+                                events.push(Event::ChangeAbility(index, ability));
+                            },
+                            (AbilitySlot::Slot(a), AbilitySlot::Slot(b)) => {
+                                let me = client.entity();
+                                if let Some(active_abilities) = active_abilities.get(me) {
+                                    let ability_a = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(a)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    let ability_b = active_abilities
+                                        .auxiliary_set(inventories.get(me), skill_sets.get(me))
+                                        .get(b)
+                                        .copied()
+                                        .unwrap_or(AuxiliaryAbility::Empty);
+                                    events.push(Event::ChangeAbility(a, ability_b));
+                                    events.push(Event::ChangeAbility(b, ability_a));
+                                }
+                            },
+                            (AbilitySlot::Slot(index), _) => {
+                                events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                            },
+                            (AbilitySlot::Ability(_), AbilitySlot::Ability(_)) => {},
+                        }
                     }
                 },
                 slot::Event::Used(from) => {
@@ -3442,6 +3531,8 @@ impl Hud {
                             },
                             hotbar::SlotContents::Ability(_) => {},
                         });
+                    } else if let Ability(AbilitySlot::Slot(index)) = from {
+                        events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
                     }
                 },
                 slot::Event::Request {

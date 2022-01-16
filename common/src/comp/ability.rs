@@ -25,12 +25,14 @@ use crate::{
     },
     terrain::SpriteKind,
 };
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{convert::TryFrom, time::Duration};
 
 pub const MAX_ABILITIES: usize = 5;
+pub type AuxiliaryKey = (Option<ToolKind>, Option<ToolKind>);
 
 // TODO: Potentially look into storing previous ability sets for weapon
 // combinations and automatically reverting back to them on switching to that
@@ -41,7 +43,7 @@ pub struct ActiveAbilities {
     pub primary: PrimaryAbility,
     pub secondary: SecondaryAbility,
     pub movement: MovementAbility,
-    pub abilities: [AuxiliaryAbility; MAX_ABILITIES],
+    pub auxiliary_sets: HashMap<AuxiliaryKey, [AuxiliaryAbility; MAX_ABILITIES]>,
 }
 
 impl Component for ActiveAbilities {
@@ -54,31 +56,72 @@ impl Default for ActiveAbilities {
             primary: PrimaryAbility::Tool,
             secondary: SecondaryAbility::Tool,
             movement: MovementAbility::Species,
-            abilities: [AuxiliaryAbility::Empty; MAX_ABILITIES],
+            auxiliary_sets: HashMap::new(),
         }
     }
 }
 
 impl ActiveAbilities {
-    pub fn new(inv: Option<&Inventory>, skill_set: Option<&SkillSet>) -> Self {
-        let mut pool = Self::default();
-        pool.auto_update(inv, skill_set);
-        pool
+    pub fn new(auxiliary_sets: HashMap<AuxiliaryKey, [AuxiliaryAbility; MAX_ABILITIES]>) -> Self {
+        ActiveAbilities {
+            auxiliary_sets,
+            ..Self::default()
+        }
     }
 
-    pub fn change_ability(&mut self, slot: usize, new_ability: AuxiliaryAbility) {
-        if let Some(ability) = self.abilities.get_mut(slot) {
+    pub fn change_ability(
+        &mut self,
+        slot: usize,
+        auxiliary_key: AuxiliaryKey,
+        new_ability: AuxiliaryAbility,
+        inventory: Option<&Inventory>,
+        skill_set: Option<&SkillSet>,
+    ) {
+        let auxiliary_set = self
+            .auxiliary_sets
+            .entry(auxiliary_key)
+            .or_insert(Self::default_ability_set(inventory, skill_set));
+        if let Some(ability) = auxiliary_set.get_mut(slot) {
             *ability = new_ability;
         }
     }
 
-    pub fn get_ability(&self, input: AbilityInput) -> Ability {
+    pub fn auxiliary_set(
+        &self,
+        inv: Option<&Inventory>,
+        skill_set: Option<&SkillSet>,
+    ) -> [AuxiliaryAbility; MAX_ABILITIES] {
+        let tool_kind = |slot| {
+            inv.and_then(|inv| inv.equipped(slot))
+                .and_then(|item| match item.kind() {
+                    ItemKind::Tool(tool) => Some(tool.kind),
+                    _ => None,
+                })
+        };
+
+        let aux_key = (
+            tool_kind(EquipSlot::ActiveMainhand),
+            tool_kind(EquipSlot::ActiveOffhand),
+        );
+
+        self.auxiliary_sets
+            .get(&aux_key)
+            .copied()
+            .unwrap_or_else(|| Self::default_ability_set(inv, skill_set))
+    }
+
+    pub fn get_ability(
+        &self,
+        input: AbilityInput,
+        inventory: Option<&Inventory>,
+        skill_set: Option<&SkillSet>,
+    ) -> Ability {
         match input {
             AbilityInput::Primary => self.primary.into(),
             AbilityInput::Secondary => self.secondary.into(),
             AbilityInput::Movement => self.movement.into(),
             AbilityInput::Auxiliary(index) => self
-                .abilities
+                .auxiliary_set(inventory, skill_set)
                 .get(index)
                 .copied()
                 .map(|a| a.into())
@@ -96,7 +139,7 @@ impl ActiveAbilities {
         body: Option<&Body>,
         // bool is from_offhand
     ) -> Option<(CharacterAbility, bool)> {
-        let ability = self.get_ability(input);
+        let ability = self.get_ability(input, inv, Some(skill_set));
 
         let ability_set = |equip_slot| {
             inv.and_then(|inv| inv.equipped(equip_slot))
@@ -150,34 +193,34 @@ impl ActiveAbilities {
         }
     }
 
-    // TODO: Potentially remove after there is an actual UI
-    pub fn auto_update(&mut self, inv: Option<&Inventory>, skill_set: Option<&SkillSet>) {
-        fn iter_unlocked_abilities<'a>(
-            inv: Option<&'a Inventory>,
-            skill_set: Option<&'a SkillSet>,
-            equip_slot: EquipSlot,
-        ) -> impl Iterator<Item = usize> + 'a {
-            inv.and_then(|inv| inv.equipped(equip_slot))
-                .into_iter()
-                .flat_map(|i| &i.item_config_expect().abilities.abilities)
-                .enumerate()
-                .filter_map(move |(i, (skill, _))| {
-                    skill
-                        .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
-                        .then_some(i)
-                })
-        }
-
-        let main_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
-            .map(AuxiliaryAbility::MainWeapon);
-        let off_abilities = iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
-            .map(AuxiliaryAbility::OffWeapon);
-
-        (0..MAX_ABILITIES)
-            .zip(main_abilities.chain(off_abilities))
-            .for_each(|(i, ability)| {
-                self.change_ability(i, ability);
+    pub fn iter_unlocked_abilities<'a>(
+        inv: Option<&'a Inventory>,
+        skill_set: Option<&'a SkillSet>,
+        equip_slot: EquipSlot,
+    ) -> impl Iterator<Item = usize> + 'a {
+        inv.and_then(|inv| inv.equipped(equip_slot))
+            .into_iter()
+            .flat_map(|i| &i.item_config_expect().abilities.abilities)
+            .enumerate()
+            .filter_map(move |(i, (skill, _))| {
+                skill
+                    .map_or(true, |s| skill_set.map_or(false, |ss| ss.has_skill(s)))
+                    .then_some(i)
             })
+    }
+
+    fn default_ability_set<'a>(
+        inv: Option<&'a Inventory>,
+        skill_set: Option<&'a SkillSet>,
+    ) -> [AuxiliaryAbility; MAX_ABILITIES] {
+        let mut iter = Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveMainhand)
+            .map(AuxiliaryAbility::MainWeapon)
+            .chain(
+                Self::iter_unlocked_abilities(inv, skill_set, EquipSlot::ActiveOffhand)
+                    .map(AuxiliaryAbility::OffWeapon),
+            );
+
+        [(); MAX_ABILITIES].map(|()| iter.next().unwrap_or(AuxiliaryAbility::Empty))
     }
 }
 

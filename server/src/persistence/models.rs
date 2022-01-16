@@ -35,3 +35,8 @@ pub struct Pet {
     pub body_variant: String,
     pub body_data: String,
 }
+
+pub struct AbilitySets {
+    pub entity_id: i64,
+    pub ability_sets: String,
+}

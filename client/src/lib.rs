@@ -27,7 +27,7 @@ use common::{
         group,
         invite::{InviteKind, InviteResponse},
         skills::Skill,
-        slot::{InvSlotId, Slot},
+        slot::{EquipSlot, InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
         UtteranceKind,
@@ -1404,8 +1404,26 @@ impl Client {
     }
 
     pub fn change_ability(&mut self, slot: usize, new_ability: comp::ability::AuxiliaryAbility) {
+        let auxiliary_key = self
+            .inventories()
+            .get(self.entity())
+            .map_or((None, None), |inv| {
+                let tool_kind = |slot| {
+                    inv.equipped(slot).and_then(|item| match item.kind() {
+                        comp::item::ItemKind::Tool(tool) => Some(tool.kind),
+                        _ => None,
+                    })
+                };
+
+                (
+                    tool_kind(EquipSlot::ActiveMainhand),
+                    tool_kind(EquipSlot::ActiveOffhand),
+                )
+            });
+
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::ChangeAbility {
             slot,
+            auxiliary_key,
             new_ability,
         }))
     }

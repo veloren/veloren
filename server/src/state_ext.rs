@@ -238,10 +238,7 @@ impl StateExt for State {
                     .unwrap_or(0),
             ))
             .with(stats)
-            .with(comp::ActiveAbilities::new(
-                Some(&inventory),
-                Some(&skill_set),
-            ))
+            .with(comp::ActiveAbilities::default())
             .with(skill_set)
             .maybe_with(health)
             .with(poise)
@@ -500,7 +497,15 @@ impl StateExt for State {
     }
 
     fn update_character_data(&mut self, entity: EcsEntity, components: PersistedComponents) {
-        let (body, stats, skill_set, inventory, waypoint, pets) = components;
+        let PersistedComponents {
+            body,
+            stats,
+            skill_set,
+            inventory,
+            waypoint,
+            pets,
+            active_abilities,
+        } = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
             // Notify clients of a player list update
@@ -530,10 +535,7 @@ impl StateExt for State {
             self.write_component_ignore_entity_dead(entity, comp::Energy::new(body, energy_level));
             self.write_component_ignore_entity_dead(entity, comp::Poise::new(body));
             self.write_component_ignore_entity_dead(entity, stats);
-            self.write_component_ignore_entity_dead(
-                entity,
-                comp::ActiveAbilities::new(Some(&inventory), Some(&skill_set)),
-            );
+            self.write_component_ignore_entity_dead(entity, active_abilities);
             self.write_component_ignore_entity_dead(entity, skill_set);
             self.write_component_ignore_entity_dead(entity, inventory);
             self.write_component_ignore_entity_dead(

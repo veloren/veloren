@@ -21,15 +21,17 @@ use std::{
 };
 use tracing::info;
 
-/// A tuple of the components that are persisted to the DB for each character
-pub type PersistedComponents = (
-    comp::Body,
-    comp::Stats,
-    comp::SkillSet,
-    comp::Inventory,
-    Option<comp::Waypoint>,
-    Vec<PetPersistenceData>,
-);
+/// A struct of the components that are persisted to the DB for each character
+#[derive(Debug)]
+pub struct PersistedComponents {
+    pub body: comp::Body,
+    pub stats: comp::Stats,
+    pub skill_set: comp::SkillSet,
+    pub inventory: comp::Inventory,
+    pub waypoint: Option<comp::Waypoint>,
+    pub pets: Vec<PetPersistenceData>,
+    pub active_abilities: comp::ActiveAbilities,
+}
 
 pub type EditableComponents = (comp::Body,);
 

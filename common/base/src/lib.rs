@@ -31,7 +31,7 @@ macro_rules! dev_panic {
         if cfg!(any(debug_assertions, test)) {
             panic!("{}", $msg);
         } else {
-            tracing::warn!("{}", $msg);
+            tracing::error!("{}", $msg);
         }
     };
 

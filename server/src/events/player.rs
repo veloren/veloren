@@ -202,6 +202,7 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         Some(presence),
         Some(skill_set),
         Some(inventory),
+        Some(active_abilities),
         Some(player_uid),
         Some(player_info),
         mut character_updater,
@@ -210,6 +211,9 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
         state.read_storage::<Presence>().get(entity),
         state.read_storage::<comp::SkillSet>().get(entity),
         state.read_storage::<comp::Inventory>().get(entity),
+        state
+            .read_storage::<comp::ability::ActiveAbilities>()
+            .get(entity),
         state.read_storage::<Uid>().get(entity),
         state.read_storage::<comp::Player>().get(entity),
         state.ecs().fetch_mut::<CharacterUpdater>(),
@@ -251,7 +255,13 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
 
                 character_updater.add_pending_logout_update(
                     char_id,
-                    (skill_set.clone(), inventory.clone(), pets, waypoint),
+                    (
+                        skill_set.clone(),
+                        inventory.clone(),
+                        pets,
+                        waypoint,
+                        active_abilities.clone(),
+                    ),
                 );
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },
