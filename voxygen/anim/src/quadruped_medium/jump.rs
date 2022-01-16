@@ -43,7 +43,6 @@ impl Animation for JumpAnimation {
         } else {
             x_tilt
         };
-        println!("{} days", x_tilt);
 
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
         next.head.orientation = Quaternion::rotation_x(x_tilt * -0.5);

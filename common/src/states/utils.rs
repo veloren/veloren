@@ -421,7 +421,14 @@ pub fn handle_orientation(
         // Angle factor used to keep turning rate approximately constant by
         // counteracting slerp turning more with a larger angle
         let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
-        data.body.base_ori_rate() * efficiency * angle_factor
+        data.body.base_ori_rate()
+            * efficiency
+            * angle_factor
+            * if data.physics.on_ground.is_some() {
+                1.0
+            } else {
+                0.2
+            }
     };
     update.ori = update
         .ori
