@@ -865,7 +865,10 @@ impl Client {
 
     /// Request a state transition to `ClientState::Registered` from an ingame
     /// state.
-    pub fn request_remove_character(&mut self) { self.send_msg(ClientGeneral::ExitInGame); }
+    pub fn request_remove_character(&mut self) {
+        self.chat_mode = ChatMode::World;
+        self.send_msg(ClientGeneral::ExitInGame);
+    }
 
     pub fn set_view_distance(&mut self, view_distance: u32) {
         let view_distance = view_distance.max(1).min(65);
