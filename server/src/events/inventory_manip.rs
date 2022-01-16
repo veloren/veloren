@@ -192,6 +192,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         },
         comp::InventoryManip::Collect(pos) => {
             let block = state.terrain().get(pos).ok().copied();
+            let mut drop_item = None;
 
             if let Some(block) = block {
                 if block.is_collectible() && state.can_set_block(pos) {
@@ -201,7 +202,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             &state.ecs().read_resource::<AbilityMap>(),
                             &state.ecs().read_resource::<MaterialStatManifest>(),
                         );
-                        let (event, item_was_added) = match inventory.push(item) {
+                        let event = match inventory.push(item) {
                             Ok(_) => {
                                 let ecs = state.ecs();
                                 if let Some(group_id) =
@@ -209,33 +210,26 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 {
                                     announce_loot_to_group(group_id, ecs, entity, &item_msg.name);
                                 }
-                                (
-                                    Some(comp::InventoryUpdate::new(
-                                        comp::InventoryUpdateEvent::Collected(item_msg),
-                                    )),
-                                    true,
-                                )
+                                comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(
+                                    item_msg,
+                                ))
                             },
                             // The item we created was in some sense "fake" so it's safe to
                             // drop it.
-                            Err(_) => (
-                                Some(comp::InventoryUpdate::new(
+                            Err(_) => {
+                                drop_item = Some(item_msg);
+                                comp::InventoryUpdate::new(
                                     comp::InventoryUpdateEvent::BlockCollectFailed(pos),
-                                )),
-                                false,
-                            ),
+                                )
+                            },
                         };
-                        if let Some(event) = event {
-                            state
-                                .ecs()
-                                .write_storage()
-                                .insert(entity, event)
-                                .expect("We know entity exists since we got its inventory.");
-                            if item_was_added {
-                                // we made sure earlier the block was not already modified this tick
-                                state.set_block(pos, block.into_vacant())
-                            };
-                        }
+                        state
+                            .ecs()
+                            .write_storage()
+                            .insert(entity, event)
+                            .expect("We know entity exists since we got its inventory.");
+                        // we made sure earlier the block was not already modified this tick
+                        state.set_block(pos, block.into_vacant());
                     } else {
                         debug!(
                             "Failed to reclaim item from block at pos={} or entity had no \
@@ -252,6 +246,22 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 }
             }
             drop(inventories);
+            if let Some(item) = drop_item {
+                // TODO: Choose a body appropriate for the item
+                let body = match item.item_definition_id() {
+                    "common.items.utility.coins" => comp::object::Body::Coins,
+                    _ => comp::object::Body::Pouch,
+                };
+
+                state
+                    .create_object(Default::default(), body)
+                    .with(comp::Pos(
+                        Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32) + Vec3::unit_z(),
+                    ))
+                    .with(item)
+                    .with(comp::Vel(Vec3::zero()))
+                    .build();
+            }
         },
         comp::InventoryManip::Use(slot) => {
             let mut maybe_effect = None;

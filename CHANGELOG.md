@@ -63,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - You are now immune to poise damage for 1 second after leaving a stunned state
 - Removed or reduced poise damage from most abilities
 - Made the hotbar link to items by item definition id and component composition instead of specific inventory slots.
+- Made loot boxes drop items instead of doing nothing in order to loot forcing
 
 ### Removed
 
