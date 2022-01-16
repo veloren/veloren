@@ -713,18 +713,18 @@ impl PlayState for SessionState {
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
-                                                    Some(Interaction::Collect) => {
+                                                    Interaction::Collect => {
                                                         if block.is_collectible() {
                                                             client.collect_block(pos);
                                                         }
                                                     },
-                                                    Some(Interaction::Craft(tab)) => {
+                                                    Interaction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
                                                             tab,
                                                             block.get_sprite().map(|s| (pos, s)),
                                                         )
                                                     },
-                                                    _ => {},
+                                                    Interaction::Mine => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {

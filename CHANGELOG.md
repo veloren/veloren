@@ -36,6 +36,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crushing damage now does poise damage to a target equal to the amount mitigated by armor
 - UI to select abilities and assign to hotbar
 - Position of abilities on hotbar is now persisted through the server
+- Interation hints now appear for sprites and entities
+- Players can now mount and ride pets
 
 ### Changed
 

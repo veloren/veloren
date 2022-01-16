@@ -57,7 +57,10 @@ use crate::{
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     render::UiDrawer,
-    scene::camera::{self, Camera},
+    scene::{
+        camera::{self, Camera},
+        terrain::Interaction,
+    },
     session::{
         interactable::Interactable,
         settings_change::{Chat as ChatChange, Interface as InterfaceChange, SettingsChange},
@@ -1726,7 +1729,7 @@ impl Hud {
             }
 
             // Render overtime for an interactable block
-            if let Some(Interactable::Block(block, pos, _)) = interactable {
+            if let Some(Interactable::Block(block, pos, interaction)) = interactable {
                 let overitem_id = overitem_walker.next(
                     &mut self.ids.overitems,
                     &mut ui_widgets.widget_id_generator(),
@@ -1763,7 +1766,17 @@ impl Hud {
                         pos.distance_squared(player_pos),
                         overitem_properties,
                         &self.fonts,
-                        vec![(GameInput::Interact, i18n.get("hud.collect").to_string())],
+                        match interaction {
+                            Interaction::Collect => {
+                                vec![(GameInput::Interact, i18n.get("hud.collect").to_string())]
+                            },
+                            Interaction::Craft(_) => {
+                                vec![(GameInput::Interact, i18n.get("hud.use").to_string())]
+                            },
+                            Interaction::Mine => {
+                                vec![(GameInput::Primary, i18n.get("hud.mine").to_string())]
+                            },
+                        },
                     )
                     .set(overitem_id, ui_widgets);
                 } else if let Some(desc) = block.get_sprite().and_then(|s| get_sprite_desc(s, i18n))
@@ -1960,6 +1973,7 @@ impl Hud {
                         },
                         Some(comp::Alignment::Owned(owner))
                             if Some(*owner) == client.uid()
+                                && !client.is_riding()
                                 && is_mount.is_none()
                                 && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
                         {

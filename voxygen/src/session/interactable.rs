@@ -22,7 +22,7 @@ use crate::scene::{terrain::Interaction, Scene};
 // enum since they don't use the interaction key
 #[derive(Clone, Copy, Debug)]
 pub enum Interactable {
-    Block(Block, Vec3<i32>, Option<Interaction>),
+    Block(Block, Vec3<i32>, Interaction),
     Entity(specs::Entity),
 }
 
@@ -81,9 +81,8 @@ pub(super) fn select_interactable(
         .or_else(|| {
             collect_target.and_then(|t| {
                 if Some(t.distance) == nearest_dist {
-                    get_block(client, t).map(|b| {
-                        Interactable::Block(b, t.position_int(), Some(Interaction::Collect))
-                    })
+                    get_block(client, t)
+                        .map(|b| Interactable::Block(b, t.position_int(), Interaction::Collect))
                 } else {
                     None
                 }
@@ -99,7 +98,7 @@ pub(super) fn select_interactable(
                         // elements (e.g. minerals). The mineable weakrock are used
                         // in the terrain selected_pos, but is not an interactable.
                         if b.mine_tool().is_some() && b.is_air() {
-                            Some(Interactable::Block(b, t.position_int(), None))
+                            Some(Interactable::Block(b, t.position_int(), Interaction::Mine))
                         } else {
                             None
                         }
@@ -200,7 +199,7 @@ pub(super) fn select_interactable(
                     .get(block_pos)
                     .ok()
                     .copied()
-                    .map(|b| Interactable::Block(b, block_pos, Some(*interaction)))
+                    .map(|b| Interactable::Block(b, block_pos, *interaction))
             })
             .or_else(|| closest_interactable_entity.map(|(e, _)| Interactable::Entity(e)))
     }
