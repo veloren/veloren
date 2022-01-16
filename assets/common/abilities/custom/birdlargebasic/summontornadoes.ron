@@ -7,7 +7,7 @@ BasicSummon(
     summon_info: (
         body: Object(Tornado),
         scale: None,
-        health_scaling: None,
+        has_health: false,
         loadout_config: None,
         skillset_config: None,
     ),

@@ -7,7 +7,7 @@ BasicSummon(
     summon_info: (
         body: Object(SeaLantern),
         scale: None,
-        health_scaling: Some(0),
+        has_health: true,
         loadout_config: None,
         skillset_config: None,
     ),
