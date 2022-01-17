@@ -7,6 +7,8 @@ use crate::{
 use common::{
     calendar::Calendar,
     comp::{Collider, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
+    link::Is,
+    mounting::Rider,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, TimeOfDay},
@@ -49,6 +51,7 @@ impl<'a> System<'a> for Sys {
         Write<'a, DeletedEntities>,
         Write<'a, Vec<Outcome>>,
         Read<'a, PlayerPhysicsSettings>,
+        ReadStorage<'a, Is<Rider>>,
         ReadStorage<'a, Player>,
         TrackedComps<'a>,
         ReadTrackers<'a>,
@@ -83,6 +86,7 @@ impl<'a> System<'a> for Sys {
             mut deleted_entities,
             mut outcomes,
             player_physics_settings,
+            is_rider,
             players,
             tracked_comps,
             trackers,
@@ -248,7 +252,9 @@ impl<'a> System<'a> for Sys {
                             // Don't send client physics updates about itself unless force update is
                             // set or the client is subject to
                             // server-authoritative physics
-                            force_update.is_some() || player_physics_setting.server_authoritative()
+                            force_update.is_some()
+                                || player_physics_setting.server_authoritative()
+                                || is_rider.get(entity).is_some()
                         } else if matches!(collider, Some(Collider::Voxel { .. })) {
                             // Things with a voxel collider (airships, etc.) need to have very
                             // stable physics so we always send updated

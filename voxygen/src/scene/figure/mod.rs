@@ -33,8 +33,10 @@ use common::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
         Body, CharacterState, Collider, Controller, Health, Inventory, Item, Last, LightAnimation,
-        LightEmitter, Mounting, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
+    link::Is,
+    mounting::Rider,
     resources::{DeltaTime, Time},
     states::{equipping, idle, utils::StageSection, wielding},
     terrain::TerrainChunk,
@@ -458,9 +460,11 @@ impl FigureMgr {
         }
         let dt = ecs.fetch::<DeltaTime>().0;
         let updater = ecs.read_resource::<LazyUpdate>();
-        for (entity, light_emitter_opt, body, mut light_anim) in (
+        for (entity, light_emitter_opt, interpolated, pos, body, mut light_anim) in (
             &ecs.entities(),
             ecs.read_storage::<LightEmitter>().maybe(),
+            ecs.read_storage::<crate::ecs::comp::Interpolated>().maybe(),
+            &ecs.read_storage::<Pos>(),
             ecs.read_storage::<Body>().maybe(),
             &mut ecs.write_storage::<LightAnimation>(),
         )
@@ -483,7 +487,18 @@ impl FigureMgr {
                 };
             if let Some(lantern_offset) = body
                 .and_then(|body| self.states.get_mut(body, &entity))
-                .and_then(|state| state.lantern_offset)
+                .and_then(|state| {
+                    // Calculate the correct lantern position
+                    let pos = anim::vek::Vec3::from(
+                        interpolated.map(|i| i.pos).unwrap_or(pos.0).into_array(),
+                    );
+                    Some(
+                        state.mount_world_pos
+                            + state.mount_transform.orientation
+                                * anim::vek::Vec3::from(state.lantern_offset?.into_array())
+                            - pos,
+                    )
+                })
             {
                 light_anim.offset = vek::Vec3::from(lantern_offset);
             } else if let Some(body) = body {
@@ -626,7 +641,7 @@ impl FigureMgr {
                 inventory,
                 item,
                 light_emitter,
-                mountings,
+                is_rider,
                 collider,
             ),
         ) in (
@@ -644,7 +659,7 @@ impl FigureMgr {
             ecs.read_storage::<Inventory>().maybe(),
             ecs.read_storage::<Item>().maybe(),
             ecs.read_storage::<LightEmitter>().maybe(),
-            ecs.read_storage::<Mounting>().maybe(),
+            ecs.read_storage::<Is<Rider>>().maybe(),
             ecs.read_storage::<Collider>().maybe(),
         )
             .join()
@@ -731,7 +746,9 @@ impl FigureMgr {
             let (in_frustum, lpindex) = if let Some(ref mut meta) = state {
                 let (in_frustum, lpindex) = BoundingSphere::new(pos.0.into_array(), radius)
                     .coherent_test_against_frustum(frustum, meta.lpindex);
-                let in_frustum = in_frustum || matches!(body, Body::Ship(_));
+                let in_frustum = in_frustum
+                    || matches!(body, Body::Ship(_))
+                    || pos.0.distance_squared(focus_pos) < 32.0f32.powi(2);
                 meta.visible = in_frustum;
                 meta.lpindex = lpindex;
                 if in_frustum {
@@ -791,12 +808,12 @@ impl FigureMgr {
 
             let hands = (active_tool_hand, second_tool_hand);
 
-            // If a mountee exists, get its animated mounting transform and its position
+            // If a mount exists, get its animated mounting transform and its position
             let mount_transform_pos = (|| -> Option<_> {
-                let Mounting(entity) = mountings?;
-                let entity = uid_allocator.retrieve_entity_internal((*entity).into())?;
-                let body = *bodies.get(entity)?;
-                let meta = self.states.get_mut(&body, &entity)?;
+                let mount = is_rider?.mount;
+                let mount = uid_allocator.retrieve_entity_internal(mount.into())?;
+                let body = *bodies.get(mount)?;
+                let meta = self.states.get_mut(&body, &mount)?;
                 Some((meta.mount_transform, meta.mount_world_pos))
             })();
 
@@ -869,7 +886,7 @@ impl FigureMgr {
                         physics.on_ground.is_some(),
                         rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
                         physics.in_liquid().is_some(),                      // In water
-                        mountings.is_some(),
+                        is_rider.is_some(),
                     ) {
                         // Standing
                         (true, false, false, false) => {
@@ -1140,6 +1157,8 @@ impl FigureMgr {
                                 (
                                     Some(s.static_data.ability_info),
                                     hands,
+                                    ori * anim::vek::Vec3::<f32>::unit_y(),
+                                    look_dir,
                                     rel_vel,
                                     time,
                                     Some(s.stage_section),
@@ -1779,9 +1798,17 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::quadruped_small::JumpAnimation::update_skeleton(
+                        (false, _, false) => anim::quadruped_small::RunAnimation::update_skeleton(
                             &QuadrupedSmallSkeleton::default(),
-                            (rel_vel.magnitude(), time),
+                            (
+                                rel_vel.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -1972,7 +1999,7 @@ impl FigureMgr {
                         (false, _, false) => {
                             anim::quadruped_medium::JumpAnimation::update_skeleton(
                                 &QuadrupedMediumSkeleton::default(),
-                                time,
+                                (time, rel_vel, rel_avg_vel),
                                 state.state_time,
                                 &mut state_animation_rate,
                                 skeleton_attr,
@@ -2282,9 +2309,17 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::quadruped_low::JumpAnimation::update_skeleton(
+                        (false, _, false) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::default(),
-                            (rel_vel.magnitude(), time),
+                            (
+                                rel_vel.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,
@@ -5519,9 +5554,9 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: Option<anim::vek::Vec3<f32>>,
-    // Animation to be applied to mounter of this entity
+    // Animation to be applied to rider of this entity
     mount_transform: anim::vek::Transform<f32, f32, f32>,
-    // Contains the position of this figure or if it is a mounter it will contain the mountee's
+    // Contains the position of this figure or if it is a rider it will contain the mount's
     // mount_world_pos
     // Unlike the interpolated position stored in the ecs this will be propagated along
     // mount chains
@@ -5635,7 +5670,7 @@ impl<S: Skeleton> FigureState<S> {
         model: Option<&FigureModelEntry<N>>,
         // TODO: there is the potential to drop the optional body from the common params and just
         // use this one but we need to add a function to the skelton trait or something in order to
-        // get the mounter offset
+        // get the rider offset
         skel_body: S::Body,
     ) {
         // NOTE: As long as update() always gets called after get_or_create_model(), and
@@ -5672,26 +5707,26 @@ impl<S: Skeleton> FigureState<S> {
             let scale_mat = anim::vek::Mat4::scaling_3d(anim::vek::Vec3::from(*scale));
             if let Some((transform, _)) = *mount_transform_pos {
                 // Note: if we had a way to compute a "default" transform of the bones then in
-                // the animations we could make use of the mountee_offset from common by
-                // computing what the offset of the mounter is from the mounted
-                // bone in its default position when the mounter has the mount
+                // the animations we could make use of the mount_offset from common by
+                // computing what the offset of the rider is from the mounted
+                // bone in its default position when the rider has the mount
                 // offset in common applied to it. Since we don't have this
                 // right now we instead need to recreate the same effect in the
                 // animations and keep it in sync.
                 //
-                // Component of mounting offset specific to the mounter.
-                let mounter_offset = anim::vek::Mat4::<f32>::translation_3d(
-                    body.map_or_else(Vec3::zero, |b| b.mounter_offset()),
+                // Component of mounting offset specific to the rider.
+                let rider_offset = anim::vek::Mat4::<f32>::translation_3d(
+                    body.map_or_else(Vec3::zero, |b| b.rider_offset()),
                 );
 
                 // NOTE: It is kind of a hack to use this entity's ori here if it is
                 // mounted on another but this happens to match the ori of the
-                // mountee so it works, change this if it causes jankiness in the future.
+                // mount so it works, change this if it causes jankiness in the future.
                 let transform = anim::vek::Transform {
                     orientation: *ori * transform.orientation,
                     ..transform
                 };
-                anim::vek::Mat4::from(transform) * mounter_offset * scale_mat
+                anim::vek::Mat4::from(transform) * rider_offset * scale_mat
             } else {
                 let ori_mat = anim::vek::Mat4::from(*ori);
                 ori_mat * scale_mat

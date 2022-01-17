@@ -1,5 +1,10 @@
 use crate::sync;
-use common::{comp, resources::Time};
+use common::{
+    comp,
+    link::Is,
+    mounting::{Mount, Rider},
+    resources::Time,
+};
 use serde::{Deserialize, Serialize};
 use specs::WorldExt;
 use std::marker::PhantomData;
@@ -27,8 +32,8 @@ sum_type! {
         Item(comp::Item),
         Scale(comp::Scale),
         Group(comp::Group),
-        MountState(comp::MountState),
-        Mounting(comp::Mounting),
+        IsMount(Is<Mount>),
+        IsRider(Is<Rider>),
         Mass(comp::Mass),
         Density(comp::Density),
         Collider(comp::Collider),
@@ -39,6 +44,7 @@ sum_type! {
         Ori(comp::Ori),
         Shockwave(comp::Shockwave),
         BeamSegment(comp::BeamSegment),
+        Alignment(comp::Alignment),
     }
 }
 // Automatically derive From<T> for EcsCompPhantom
@@ -63,8 +69,8 @@ sum_type! {
         Item(PhantomData<comp::Item>),
         Scale(PhantomData<comp::Scale>),
         Group(PhantomData<comp::Group>),
-        MountState(PhantomData<comp::MountState>),
-        Mounting(PhantomData<comp::Mounting>),
+        IsMount(PhantomData<Is<Mount>>),
+        IsRider(PhantomData<Is<Rider>>),
         Mass(PhantomData<comp::Mass>),
         Density(PhantomData<comp::Density>),
         Collider(PhantomData<comp::Collider>),
@@ -75,6 +81,7 @@ sum_type! {
         Ori(PhantomData<comp::Ori>),
         Shockwave(PhantomData<comp::Shockwave>),
         BeamSegment(PhantomData<comp::BeamSegment>),
+        Alignment(PhantomData<comp::Alignment>),
     }
 }
 impl sync::CompPacket for EcsCompPacket {
@@ -104,8 +111,8 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Item(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Group(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::MountState(comp) => sync::handle_insert(comp, entity, world),
-            EcsCompPacket::Mounting(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::IsMount(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::IsRider(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Mass(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Density(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::Collider(comp) => sync::handle_insert(comp, entity, world),
@@ -122,6 +129,7 @@ impl sync::CompPacket for EcsCompPacket {
             },
             EcsCompPacket::Shockwave(comp) => sync::handle_insert(comp, entity, world),
             EcsCompPacket::BeamSegment(comp) => sync::handle_insert(comp, entity, world),
+            EcsCompPacket::Alignment(comp) => sync::handle_insert(comp, entity, world),
         }
     }
 
@@ -149,8 +157,8 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPacket::Item(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Scale(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Group(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::MountState(comp) => sync::handle_modify(comp, entity, world),
-            EcsCompPacket::Mounting(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::IsMount(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::IsRider(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Mass(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Density(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::Collider(comp) => sync::handle_modify(comp, entity, world),
@@ -167,6 +175,7 @@ impl sync::CompPacket for EcsCompPacket {
             },
             EcsCompPacket::Shockwave(comp) => sync::handle_modify(comp, entity, world),
             EcsCompPacket::BeamSegment(comp) => sync::handle_modify(comp, entity, world),
+            EcsCompPacket::Alignment(comp) => sync::handle_modify(comp, entity, world),
         }
     }
 
@@ -193,8 +202,8 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Item(_) => sync::handle_remove::<comp::Item>(entity, world),
             EcsCompPhantom::Scale(_) => sync::handle_remove::<comp::Scale>(entity, world),
             EcsCompPhantom::Group(_) => sync::handle_remove::<comp::Group>(entity, world),
-            EcsCompPhantom::MountState(_) => sync::handle_remove::<comp::MountState>(entity, world),
-            EcsCompPhantom::Mounting(_) => sync::handle_remove::<comp::Mounting>(entity, world),
+            EcsCompPhantom::IsMount(_) => sync::handle_remove::<Is<Mount>>(entity, world),
+            EcsCompPhantom::IsRider(_) => sync::handle_remove::<Is<Rider>>(entity, world),
             EcsCompPhantom::Mass(_) => sync::handle_remove::<comp::Mass>(entity, world),
             EcsCompPhantom::Density(_) => sync::handle_remove::<comp::Density>(entity, world),
             EcsCompPhantom::Collider(_) => sync::handle_remove::<comp::Collider>(entity, world),
@@ -206,7 +215,10 @@ impl sync::CompPacket for EcsCompPacket {
             EcsCompPhantom::Vel(_) => sync::handle_interp_remove::<comp::Vel>(entity, world),
             EcsCompPhantom::Ori(_) => sync::handle_interp_remove::<comp::Ori>(entity, world),
             EcsCompPhantom::Shockwave(_) => sync::handle_remove::<comp::Shockwave>(entity, world),
-            EcsCompPhantom::BeamSegment(_) => sync::handle_remove::<comp::Ori>(entity, world),
+            EcsCompPhantom::BeamSegment(_) => {
+                sync::handle_remove::<comp::BeamSegment>(entity, world)
+            },
+            EcsCompPhantom::Alignment(_) => sync::handle_remove::<comp::Alignment>(entity, world),
         }
     }
 }

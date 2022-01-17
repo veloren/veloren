@@ -4,18 +4,20 @@ use super::{
     TEXT_BG, TEXT_COLOR,
 };
 use crate::{
+    game_input::GameInput,
     hud::{get_buff_image, get_buff_info},
-    settings::InterfaceSettings,
+    settings::{ControlSettings, InterfaceSettings},
     ui::{fonts::Fonts, Ingameable},
 };
 use common::comp::{Buffs, Energy, Health, SpeechBubble, SpeechBubbleType};
 use conrod_core::{
     color,
     position::Align,
-    widget::{self, Image, Rectangle, Text},
+    widget::{self, Image, Rectangle, RoundedRectangle, Text},
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
+use keyboard_keynames::key_layout::KeyLayout;
 
 const MAX_BUBBLE_WIDTH: f64 = 250.0;
 widget_ids! {
@@ -53,6 +55,10 @@ widget_ids! {
         buffs_align,
         buffs[],
         buff_timers[],
+
+        // Interaction hints
+        interaction_hints,
+        interaction_hints_bg,
     }
 }
 
@@ -84,14 +90,18 @@ pub struct Overhead<'a> {
     settings: &'a InterfaceSettings,
     pulse: f32,
     i18n: &'a Localization,
+    controls: &'a ControlSettings,
     imgs: &'a Imgs,
     fonts: &'a Fonts,
+    key_layout: &'a Option<KeyLayout>,
+    interaction_options: Vec<(GameInput, String)>,
 
     #[conrod(common_builder)]
     common: widget::CommonBuilder,
 }
 
 impl<'a> Overhead<'a> {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         info: Option<Info<'a>>,
         bubble: Option<&'a SpeechBubble>,
@@ -99,8 +109,11 @@ impl<'a> Overhead<'a> {
         settings: &'a InterfaceSettings,
         pulse: f32,
         i18n: &'a Localization,
+        controls: &'a ControlSettings,
         imgs: &'a Imgs,
         fonts: &'a Fonts,
+        key_layout: &'a Option<KeyLayout>,
+        interaction_options: Vec<(GameInput, String)>,
     ) -> Self {
         Self {
             info,
@@ -109,8 +122,11 @@ impl<'a> Overhead<'a> {
             settings,
             pulse,
             i18n,
+            controls,
             imgs,
             fonts,
+            key_layout,
+            interaction_options,
             common: widget::CommonBuilder::default(),
         }
     }
@@ -157,6 +173,7 @@ impl<'a> Ingameable for Overhead<'a> {
                 } else {
                     0
                 }
+                + (!self.interaction_options.is_empty()) as usize * 2
         }) + if self.bubble.is_some() { 13 } else { 0 }
     }
 }
@@ -447,6 +464,68 @@ impl<'a> Widget for Overhead<'a> {
                     }
                 },
                 _ => {},
+            }
+
+            // Interaction hints
+            if !self.interaction_options.is_empty() {
+                let text = self
+                    .interaction_options
+                    .iter()
+                    .filter_map(|(input, action)| {
+                        Some((self.controls.get_binding(*input)?, action))
+                    })
+                    .map(|(input, action)| {
+                        format!(
+                            "{}  {}",
+                            input.display_string(self.key_layout).as_str(),
+                            action
+                        )
+                    })
+                    .collect::<Vec<_>>()
+                    .join("\n");
+
+                let scale = 30.0;
+                let btn_rect_size = scale * 0.8;
+                let btn_font_size = scale * 0.6;
+                let btn_radius = btn_rect_size / 5.0;
+                let btn_color = Color::Rgba(0.0, 0.0, 0.0, 0.8);
+
+                let hints_text = Text::new(&text)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(btn_font_size as u32)
+                    .color(TEXT_COLOR)
+                    .parent(id)
+                    .down_from(
+                        self.info.map_or(state.ids.name, |info| {
+                            if info.health.map_or(false, should_show_healthbar) {
+                                if info.energy.is_some() {
+                                    state.ids.mana_bar
+                                } else {
+                                    state.ids.health_bar
+                                }
+                            } else {
+                                state.ids.name
+                            }
+                        }),
+                        12.0,
+                    )
+                    .align_middle_x_of(state.ids.name)
+                    .depth(1.0);
+
+                let [w, h] = hints_text.get_wh(ui).unwrap_or([btn_rect_size; 2]);
+
+                hints_text.set(state.ids.interaction_hints, ui);
+
+                RoundedRectangle::fill_with(
+                    [w + btn_radius * 2.0, h + btn_radius * 2.0],
+                    btn_radius,
+                    btn_color,
+                )
+                .depth(2.0)
+                .middle_of(state.ids.interaction_hints)
+                .align_middle_y_of(state.ids.interaction_hints)
+                .parent(id)
+                .set(state.ids.interaction_hints_bg, ui);
             }
         }
         // Speech bubble

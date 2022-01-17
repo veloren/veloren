@@ -8,6 +8,8 @@ use common::{
     calendar::Calendar,
     comp,
     event::{EventBus, LocalEvent, ServerEvent},
+    link::Is,
+    mounting::{Mount, Rider},
     outcome::Outcome,
     region::RegionMap,
     resources::{
@@ -141,8 +143,8 @@ impl State {
         ecs.register::<comp::LightEmitter>();
         ecs.register::<comp::Item>();
         ecs.register::<comp::Scale>();
-        ecs.register::<comp::Mounting>();
-        ecs.register::<comp::MountState>();
+        ecs.register::<Is<Mount>>();
+        ecs.register::<Is<Rider>>();
         ecs.register::<comp::Mass>();
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();
@@ -153,6 +155,7 @@ impl State {
         ecs.register::<comp::Shockwave>();
         ecs.register::<comp::ShockwaveHitEntities>();
         ecs.register::<comp::BeamSegment>();
+        ecs.register::<comp::Alignment>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();
@@ -182,7 +185,6 @@ impl State {
         ecs.register::<comp::Last<comp::Pos>>();
         ecs.register::<comp::Last<comp::Vel>>();
         ecs.register::<comp::Last<comp::Ori>>();
-        ecs.register::<comp::Alignment>();
         ecs.register::<comp::Agent>();
         ecs.register::<comp::WaypointArea>();
         ecs.register::<comp::ForceUpdate>();

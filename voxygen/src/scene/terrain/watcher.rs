@@ -9,6 +9,7 @@ use vek::*;
 pub enum Interaction {
     Collect,
     Craft(CraftingTab),
+    Mine,
 }
 
 #[derive(Default)]

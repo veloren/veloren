@@ -34,6 +34,8 @@ use common::{
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
+    link::Is,
+    mounting::Rider,
     outcome::Outcome,
     recipe::RecipeBook,
     resources::{PlayerEntity, TimeOfDay},
@@ -1152,10 +1154,10 @@ impl Client {
         )));
     }
 
-    pub fn is_mounted(&self) -> bool {
+    pub fn is_riding(&self) -> bool {
         self.state
             .ecs()
-            .read_storage::<comp::Mounting>()
+            .read_storage::<Is<Rider>>()
             .get(self.entity())
             .is_some()
     }

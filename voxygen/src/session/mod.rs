@@ -22,6 +22,8 @@ use common::{
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
+    link::Is,
+    mounting::Mount,
     outcome::Outcome,
     terrain::{Block, BlockKind},
     trade::TradeResult,
@@ -670,7 +672,7 @@ impl PlayState for SessionState {
                             },
                             GameInput::Mount if state => {
                                 let mut client = self.client.borrow_mut();
-                                if client.is_mounted() {
+                                if client.is_riding() {
                                     client.unmount();
                                 } else {
                                     let player_pos = client
@@ -683,17 +685,14 @@ impl PlayState for SessionState {
                                         let closest_mountable_entity = (
                                             &client.state().ecs().entities(),
                                             &client.state().ecs().read_storage::<comp::Pos>(),
-                                            &client
-                                                .state()
-                                                .ecs()
-                                                .read_storage::<comp::MountState>(),
+                                            // TODO: More cleverly filter by things that can actually be mounted
+                                            !&client.state().ecs().read_storage::<Is<Mount>>(),
+                                            client.state().ecs().read_storage::<comp::Alignment>().maybe(),
                                         )
                                             .join()
-                                            .filter(|(entity, _, mount_state)| {
-                                                *entity != client.entity()
-                                                    && **mount_state == comp::MountState::Unmounted
-                                            })
-                                            .map(|(entity, pos, _)| {
+                                            .filter(|(entity, _, _, _)| *entity != client.entity())
+                                            .filter(|(_, _, _, alignment)| matches!(alignment, Some(comp::Alignment::Owned(owner)) if Some(*owner) == client.uid()))
+                                            .map(|(entity, pos, _, _)| {
                                                 (entity, player_pos.0.distance_squared(pos.0))
                                             })
                                             .filter(|(_, dist_sqr)| {
@@ -714,18 +713,18 @@ impl PlayState for SessionState {
                                         match interactable {
                                             Interactable::Block(block, pos, interaction) => {
                                                 match interaction {
-                                                    Some(Interaction::Collect) => {
+                                                    Interaction::Collect => {
                                                         if block.is_collectible() {
                                                             client.collect_block(pos);
                                                         }
                                                     },
-                                                    Some(Interaction::Craft(tab)) => {
+                                                    Interaction::Craft(tab) => {
                                                         self.hud.show.open_crafting_tab(
                                                             tab,
                                                             block.get_sprite().map(|s| (pos, s)),
                                                         )
                                                     },
-                                                    _ => {},
+                                                    Interaction::Mine => {},
                                                 }
                                             },
                                             Interactable::Entity(entity) => {

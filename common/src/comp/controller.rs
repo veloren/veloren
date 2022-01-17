@@ -10,7 +10,7 @@ use crate::{
     util::Dir,
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage};
+use specs::Component;
 use specs_idvs::IdvStorage;
 use std::collections::BTreeMap;
 use vek::*;
@@ -283,21 +283,4 @@ impl Controller {
 
 impl Component for Controller {
     type Storage = IdvStorage<Self>;
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum MountState {
-    Unmounted,
-    MountedBy(Uid),
-}
-
-impl Component for MountState {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
-}
-
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Mounting(pub Uid);
-
-impl Component for Mounting {
-    type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }

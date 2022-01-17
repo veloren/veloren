@@ -73,7 +73,7 @@ impl Skeleton for BipedSmallSkeleton {
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::BipedSmall(body)
-                    .mountee_offset()
+                    .mount_offset()
                     .into_tuple()
                     .into(),
                 ..Default::default()

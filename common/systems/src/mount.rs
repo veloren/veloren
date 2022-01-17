@@ -1,5 +1,7 @@
 use common::{
-    comp::{Body, Controller, MountState, Mounting, Ori, Pos, Vel},
+    comp::{Body, Controller, InputKind, Ori, Pos, Vel},
+    link::Is,
+    mounting::Mount,
     uid::UidAllocator,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -18,8 +20,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, UidAllocator>,
         Entities<'a>,
         WriteStorage<'a, Controller>,
-        WriteStorage<'a, MountState>,
-        WriteStorage<'a, Mounting>,
+        ReadStorage<'a, Is<Mount>>,
         WriteStorage<'a, Pos>,
         WriteStorage<'a, Vel>,
         WriteStorage<'a, Ori>,
@@ -36,69 +37,51 @@ impl<'a> System<'a> for Sys {
             uid_allocator,
             entities,
             mut controllers,
-            mut mount_state,
-            mut mountings,
+            is_mounts,
             mut positions,
             mut velocities,
             mut orientations,
             bodies,
         ): Self::SystemData,
     ) {
-        // Mounted entities.
-        for (entity, mut mount_states, body) in (&entities, &mut mount_state, bodies.maybe()).join()
-        {
-            match *mount_states {
-                MountState::Unmounted => {},
-                MountState::MountedBy(mounter_uid) => {
-                    // Note: currently controller events are not passed through since none of them
-                    // are currently relevant to controlling the mounted entity
-                    if let Some((inputs, queued_inputs, mounter)) = uid_allocator
-                        .retrieve_entity_internal(mounter_uid.id())
-                        .and_then(|mounter| {
-                            controllers
-                                .get(mounter)
-                                .map(|c| (c.inputs.clone(), c.queued_inputs.clone(), mounter))
+        // For each mount...
+        for (entity, is_mount, body) in (&entities, &is_mounts, bodies.maybe()).join() {
+            // ...find the rider...
+            let Some((inputs, queued_inputs, rider)) = uid_allocator
+                .retrieve_entity_internal(is_mount.rider.id())
+                .and_then(|rider| {
+                    controllers
+                        .get_mut(rider)
+                        .map(|c| {
+                            let queued_inputs = c.queued_inputs
+                                // TODO: Formalise ways to pass inputs to mounts
+                                .drain_filter(|i, _| matches!(i, InputKind::Jump | InputKind::Fly | InputKind::Roll))
+                                .collect();
+                            (c.inputs.clone(), queued_inputs, rider)
                         })
-                    {
-                        // TODO: consider joining on these? (remember we can use .maybe())
-                        let pos = positions.get(entity).copied();
-                        let ori = orientations.get(entity).copied();
-                        let vel = velocities.get(entity).copied();
-                        if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
-                            let mounter_body = bodies.get(mounter);
-                            let mounting_offset = body.map_or(Vec3::unit_z(), Body::mountee_offset)
-                                + mounter_body.map_or(Vec3::zero(), Body::mounter_offset);
-                            let _ = positions
-                                .insert(mounter, Pos(pos.0 + ori.to_quat() * mounting_offset));
-                            let _ = orientations.insert(mounter, ori);
-                            let _ = velocities.insert(mounter, vel);
-                        }
-                        if let Some(controller) = controllers.get_mut(entity) {
-                            *controller = Controller {
-                                inputs,
-                                queued_inputs,
-                                ..Default::default()
-                            }
-                        }
-                    } else {
-                        *mount_states = MountState::Unmounted;
-                    }
-                },
-            }
-        }
+                })
+            else { continue };
 
-        let mut to_unmount = Vec::new();
-        for (entity, Mounting(mountee_uid)) in (&entities, &mountings).join() {
-            if uid_allocator
-                .retrieve_entity_internal(mountee_uid.id())
-                .filter(|mountee| entities.is_alive(*mountee))
-                .is_none()
-            {
-                to_unmount.push(entity);
+            // ...apply the mount's position/ori/velocity to the rider...
+            let pos = positions.get(entity).copied();
+            let ori = orientations.get(entity).copied();
+            let vel = velocities.get(entity).copied();
+            if let (Some(pos), Some(ori), Some(vel)) = (pos, ori, vel) {
+                let mounter_body = bodies.get(rider);
+                let mounting_offset = body.map_or(Vec3::unit_z(), Body::mount_offset)
+                    + mounter_body.map_or(Vec3::zero(), Body::rider_offset);
+                let _ = positions.insert(rider, Pos(pos.0 + ori.to_quat() * mounting_offset));
+                let _ = orientations.insert(rider, ori);
+                let _ = velocities.insert(rider, vel);
             }
-        }
-        for entity in to_unmount {
-            mountings.remove(entity);
+            // ...and apply the rider's inputs to the mount's controller.
+            if let Some(controller) = controllers.get_mut(entity) {
+                *controller = Controller {
+                    inputs,
+                    queued_inputs,
+                    ..Default::default()
+                }
+            }
         }
     }
 }

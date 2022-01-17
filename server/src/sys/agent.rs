@@ -21,12 +21,14 @@ use common::{
         skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
         AbilityInput, ActiveAbilities, Agent, Alignment, BehaviorCapability, BehaviorState, Body,
         CharacterAbility, CharacterState, Combo, ControlAction, ControlEvent, Controller, Energy,
-        Health, HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, MountState, Ori,
+        Health, HealthChange, InputKind, Inventory, InventoryAction, LightEmitter, Ori,
         PhysicsState, Pos, Scale, SkillSet, Stats, UnresolvedChatMsg, UtteranceKind, Vel,
     },
     consts::GRAVITY,
     effect::{BuffEffect, Effect},
     event::{Emitter, EventBus, ServerEvent},
+    link::Is,
+    mounting::Mount,
     path::TraversalConfig,
     resources::{DeltaTime, Time, TimeOfDay},
     rtsim::{Memory, MemoryItem, RtSimEntity, RtSimEvent},
@@ -152,7 +154,7 @@ pub struct ReadData<'a> {
     terrain: ReadExpect<'a, TerrainGrid>,
     alignments: ReadStorage<'a, Alignment>,
     bodies: ReadStorage<'a, Body>,
-    mount_states: ReadStorage<'a, MountState>,
+    is_mounts: ReadStorage<'a, Is<Mount>>,
     time_of_day: Read<'a, TimeOfDay>,
     light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]
@@ -174,6 +176,7 @@ const MAX_FLEE_DIST: f32 = 20.0;
 const AVG_FOLLOW_DIST: f32 = 6.0;
 const RETARGETING_THRESHOLD_SECONDS: f64 = 10.0;
 const HEALING_ITEM_THRESHOLD: f32 = 0.5;
+const IDLE_HEALING_ITEM_THRESHOLD: f32 = 0.999;
 const DEFAULT_ATTACK_RANGE: f32 = 2.0;
 const AWARENESS_INVESTIGATE_THRESHOLD: f32 = 1.0;
 const AWARENESS_DECREMENT_CONSTANT: f32 = 0.07;
@@ -224,15 +227,9 @@ impl<'a> System<'a> for Sys {
             &mut controllers,
             read_data.light_emitter.maybe(),
             read_data.groups.maybe(),
-            read_data.mount_states.maybe(),
+            !&read_data.is_mounts,
         )
             .par_join()
-            .filter(|(_, _, _, _, _, _, _, _, _, _, _, _, mount_state)| {
-                // Skip mounted entities
-                mount_state
-                    .map(|ms| *ms == MountState::Unmounted)
-                    .unwrap_or(true)
-            })
             .for_each_init(
                 || {
                     prof_span!(guard, "agent rayon job");
@@ -675,7 +672,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
-        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
+        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller, false) {
             agent.action_state.timer = 0.01;
             return;
         }
@@ -813,7 +810,7 @@ impl<'a> AgentData<'a> {
             }
         };
 
-        if self.damage < HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller) {
+        if self.damage < IDLE_HEALING_ITEM_THRESHOLD && self.heal_self(agent, controller, true) {
             agent.action_state.timer = 0.01;
             return;
         }
@@ -1431,53 +1428,57 @@ impl<'a> AgentData<'a> {
 
     /// Attempt to consume a healing item, and return whether any healing items
     /// were queued. Callers should use this to implement a delay so that
-    /// the healing isn't interrupted.
-    fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller) -> bool {
+    /// the healing isn't interrupted. If `relaxed` is `true`, we allow eating
+    /// food and prioritise healing.
+    fn heal_self(&self, _agent: &mut Agent, controller: &mut Controller, relaxed: bool) -> bool {
         let healing_value = |item: &Item| {
             let mut value = 0.0;
 
-            if let ItemKind::Consumable {
-                kind: ConsumableKind::Drink,
-                effects,
-                ..
-            } = &item.kind
-            {
-                for effect in effects.iter() {
-                    use BuffKind::*;
-                    match effect {
-                        Effect::Health(HealthChange { amount, .. }) => {
-                            value += *amount;
-                        },
-                        Effect::Buff(BuffEffect { kind, data, .. })
-                            if matches!(kind, Regeneration | Saturation | Potion) =>
-                        {
-                            value +=
-                                data.strength * data.duration.map_or(0.0, |d| d.as_secs() as f32);
-                        },
-                        _ => {},
+            if let ItemKind::Consumable { kind, effects, .. } = &item.kind {
+                if matches!(kind, ConsumableKind::Drink)
+                    || (relaxed && matches!(kind, ConsumableKind::Food))
+                {
+                    for effect in effects.iter() {
+                        use BuffKind::*;
+                        match effect {
+                            Effect::Health(HealthChange { amount, .. }) => {
+                                value += *amount;
+                            },
+                            Effect::Buff(BuffEffect { kind, data, .. })
+                                if matches!(kind, Regeneration | Saturation | Potion) =>
+                            {
+                                value += data.strength
+                                    * data.duration.map_or(0.0, |d| d.as_secs() as f32);
+                            },
+                            _ => {},
+                        }
                     }
                 }
             }
             value as i32
         };
 
-        let mut consumables: Vec<_> = self
+        let item = self
             .inventory
             .slots_with_id()
             .filter_map(|(id, slot)| match slot {
                 Some(item) if healing_value(item) > 0 => Some((id, item)),
                 _ => None,
             })
-            .collect();
+            .max_by_key(|(_, item)| {
+                if relaxed {
+                    -healing_value(item)
+                } else {
+                    healing_value(item)
+                }
+            });
 
-        consumables.sort_by_key(|(_, item)| healing_value(item));
-
-        if let Some((id, _)) = consumables.last() {
+        if let Some((id, _)) = item {
             use comp::inventory::slot::Slot;
             controller
                 .actions
                 .push(ControlAction::InventoryAction(InventoryAction::Use(
-                    Slot::Inventory(*id),
+                    Slot::Inventory(id),
                 )));
             true
         } else {

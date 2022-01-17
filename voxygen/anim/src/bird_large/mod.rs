@@ -101,7 +101,7 @@ impl Skeleton for BirdLargeSkeleton {
             // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
                 position: common::comp::Body::BirdLarge(body)
-                    .mountee_offset()
+                    .mount_offset()
                     .into_tuple()
                     .into(),
                 ..Default::default()

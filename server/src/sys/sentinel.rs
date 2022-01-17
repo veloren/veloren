@@ -2,10 +2,12 @@
 use common::{
     comp::{
         item::{tool::AbilityMap, MaterialStatManifest},
-        ActiveAbilities, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState, Collider,
-        Combo, Density, Energy, Group, Health, Inventory, Item, LightEmitter, Mass, MountState,
-        Mounting, Ori, Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel,
+        ActiveAbilities, Alignment, Auras, BeamSegment, Body, Buffs, CanBuild, CharacterState,
+        Collider, Combo, Density, Energy, Group, Health, Inventory, Item, LightEmitter, Mass, Ori,
+        Player, Poise, Pos, Scale, Shockwave, SkillSet, Stats, Sticky, Vel,
     },
+    link::Is,
+    mounting::{Mount, Rider},
     uid::Uid,
 };
 use common_ecs::{Job, Origin, Phase, System};
@@ -56,8 +58,8 @@ pub struct TrackedComps<'a> {
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     pub item: ReadStorage<'a, Item>,
     pub scale: ReadStorage<'a, Scale>,
-    pub mounting: ReadStorage<'a, Mounting>,
-    pub mount_state: ReadStorage<'a, MountState>,
+    pub is_mount: ReadStorage<'a, Is<Mount>>,
+    pub is_rider: ReadStorage<'a, Is<Rider>>,
     pub group: ReadStorage<'a, Group>,
     pub mass: ReadStorage<'a, Mass>,
     pub density: ReadStorage<'a, Density>,
@@ -67,6 +69,8 @@ pub struct TrackedComps<'a> {
     pub character_state: ReadStorage<'a, CharacterState>,
     pub shockwave: ReadStorage<'a, Shockwave>,
     pub beam_segment: ReadStorage<'a, BeamSegment>,
+    pub alignment: ReadStorage<'a, Alignment>,
+
     pub ability_map: ReadExpect<'a, AbilityMap>,
     pub msm: ReadExpect<'a, MaterialStatManifest>,
 }
@@ -137,11 +141,11 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .copied()
             .map(|c| comps.push(c.into()));
-        self.mounting
+        self.is_mount
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
-        self.mount_state
+        self.is_rider
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
@@ -178,6 +182,10 @@ impl<'a> TrackedComps<'a> {
             .get(entity)
             .cloned()
             .map(|c| comps.push(c.into()));
+        self.alignment
+            .get(entity)
+            .cloned()
+            .map(|c| comps.push(c.into()));
         // Add untracked comps
         pos.map(|c| comps.push(c.into()));
         vel.map(|c| comps.push(c.into()));
@@ -205,8 +213,8 @@ pub struct ReadTrackers<'a> {
     pub inventory: ReadExpect<'a, UpdateTracker<Inventory>>,
     pub item: ReadExpect<'a, UpdateTracker<Item>>,
     pub scale: ReadExpect<'a, UpdateTracker<Scale>>,
-    pub mounting: ReadExpect<'a, UpdateTracker<Mounting>>,
-    pub mount_state: ReadExpect<'a, UpdateTracker<MountState>>,
+    pub is_mount: ReadExpect<'a, UpdateTracker<Is<Mount>>>,
+    pub is_rider: ReadExpect<'a, UpdateTracker<Is<Rider>>>,
     pub group: ReadExpect<'a, UpdateTracker<Group>>,
     pub mass: ReadExpect<'a, UpdateTracker<Mass>>,
     pub density: ReadExpect<'a, UpdateTracker<Density>>,
@@ -215,6 +223,7 @@ pub struct ReadTrackers<'a> {
     pub character_state: ReadExpect<'a, UpdateTracker<CharacterState>>,
     pub shockwave: ReadExpect<'a, UpdateTracker<Shockwave>>,
     pub beam_segment: ReadExpect<'a, UpdateTracker<BeamSegment>>,
+    pub alignment: ReadExpect<'a, UpdateTracker<Alignment>>,
 }
 impl<'a> ReadTrackers<'a> {
     pub fn create_sync_packages(
@@ -251,8 +260,8 @@ impl<'a> ReadTrackers<'a> {
             )
             .with_component(&comps.uid, &*self.item, &comps.item, filter)
             .with_component(&comps.uid, &*self.scale, &comps.scale, filter)
-            .with_component(&comps.uid, &*self.mounting, &comps.mounting, filter)
-            .with_component(&comps.uid, &*self.mount_state, &comps.mount_state, filter)
+            .with_component(&comps.uid, &*self.is_mount, &comps.is_mount, filter)
+            .with_component(&comps.uid, &*self.is_rider, &comps.is_rider, filter)
             .with_component(&comps.uid, &*self.group, &comps.group, filter)
             .with_component(&comps.uid, &*self.mass, &comps.mass, filter)
             .with_component(&comps.uid, &*self.density, &comps.density, filter)
@@ -266,7 +275,8 @@ impl<'a> ReadTrackers<'a> {
                 filter,
             )
             .with_component(&comps.uid, &*self.shockwave, &comps.shockwave, filter)
-            .with_component(&comps.uid, &*self.beam_segment, &comps.beam_segment, filter);
+            .with_component(&comps.uid, &*self.beam_segment, &comps.beam_segment, filter)
+            .with_component(&comps.uid, &*self.alignment, &comps.alignment, filter);
 
         (entity_sync_package, comp_sync_package)
     }
@@ -290,8 +300,8 @@ pub struct WriteTrackers<'a> {
     light_emitter: WriteExpect<'a, UpdateTracker<LightEmitter>>,
     item: WriteExpect<'a, UpdateTracker<Item>>,
     scale: WriteExpect<'a, UpdateTracker<Scale>>,
-    mounting: WriteExpect<'a, UpdateTracker<Mounting>>,
-    mount_state: WriteExpect<'a, UpdateTracker<MountState>>,
+    is_mounts: WriteExpect<'a, UpdateTracker<Is<Mount>>>,
+    is_riders: WriteExpect<'a, UpdateTracker<Is<Rider>>>,
     group: WriteExpect<'a, UpdateTracker<Group>>,
     mass: WriteExpect<'a, UpdateTracker<Mass>>,
     density: WriteExpect<'a, UpdateTracker<Density>>,
@@ -301,6 +311,7 @@ pub struct WriteTrackers<'a> {
     character_state: WriteExpect<'a, UpdateTracker<CharacterState>>,
     shockwave: WriteExpect<'a, UpdateTracker<Shockwave>>,
     beam: WriteExpect<'a, UpdateTracker<BeamSegment>>,
+    alignment: WriteExpect<'a, UpdateTracker<Alignment>>,
 }
 
 fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
@@ -323,8 +334,8 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     trackers.light_emitter.record_changes(&comps.light_emitter);
     trackers.item.record_changes(&comps.item);
     trackers.scale.record_changes(&comps.scale);
-    trackers.mounting.record_changes(&comps.mounting);
-    trackers.mount_state.record_changes(&comps.mount_state);
+    trackers.is_mounts.record_changes(&comps.is_mount);
+    trackers.is_riders.record_changes(&comps.is_rider);
     trackers.group.record_changes(&comps.group);
     trackers.mass.record_changes(&comps.mass);
     trackers.density.record_changes(&comps.density);
@@ -336,6 +347,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
         .record_changes(&comps.character_state);
     trackers.shockwave.record_changes(&comps.shockwave);
     trackers.beam.record_changes(&comps.beam_segment);
+    trackers.alignment.record_changes(&comps.alignment);
     // Debug how many updates are being sent
     /*
     macro_rules! log_counts {
@@ -366,8 +378,8 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(light_emitter, "Light emitters");
     log_counts!(item, "Items");
     log_counts!(scale, "Scales");
-    log_counts!(mounting, "Mountings");
-    log_counts!(mount_state, "Mount States");
+    log_counts!(is_mounts, "mounts");
+    log_counts!(is_riders, "riders");
     log_counts!(mass, "Masses");
     log_counts!(mass, "Densities");
     log_counts!(collider, "Colliders");
@@ -376,6 +388,7 @@ fn record_changes(comps: &TrackedComps, trackers: &mut WriteTrackers) {
     log_counts!(character_state, "Character States");
     log_counts!(shockwave, "Shockwaves");
     log_counts!(beam, "Beams");
+    log_counts!(alignment, "Alignments");
     */
 }
 
@@ -396,8 +409,8 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<LightEmitter>();
     world.register_tracker::<Item>();
     world.register_tracker::<Scale>();
-    world.register_tracker::<Mounting>();
-    world.register_tracker::<MountState>();
+    world.register_tracker::<Is<Mount>>();
+    world.register_tracker::<Is<Rider>>();
     world.register_tracker::<Group>();
     world.register_tracker::<Mass>();
     world.register_tracker::<Density>();
@@ -407,6 +420,7 @@ pub fn register_trackers(world: &mut World) {
     world.register_tracker::<CharacterState>();
     world.register_tracker::<Shockwave>();
     world.register_tracker::<BeamSegment>();
+    world.register_tracker::<Alignment>();
 }
 
 /// Deleted entities grouped by region

@@ -154,6 +154,19 @@ pub fn make_potion_bag(quantity: u32) -> Item {
 }
 
 #[must_use]
+pub fn make_food_bag(quantity: u32) -> Item {
+    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.tiny_leather_pouch");
+    if let Some(i) = bag.slots_mut().iter_mut().next() {
+        let mut food = Item::new_from_asset_expect("common.items.food.apple_stick");
+        if let Err(e) = food.set_amount(quantity) {
+            warn!("Failed to set food quantity: {:?}", e);
+        }
+        *i = Some(food);
+    }
+    bag
+}
+
+#[must_use]
 // We have many species so this function is long
 // Also we are using default tools for un-specified species so
 // it's fine to have wildcards

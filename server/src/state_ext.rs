@@ -18,6 +18,8 @@ use common::{
         Group, Inventory, Poise,
     },
     effect::Effect,
+    link::{Link, LinkHandle},
+    mounting::Mounting,
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     uid::{Uid, UidAllocator},
@@ -110,6 +112,11 @@ pub trait StateExt {
     fn send_chat(&self, msg: comp::UnresolvedChatMsg);
     fn notify_players(&self, msg: ServerGeneral);
     fn notify_in_game_clients(&self, msg: ServerGeneral);
+    /// Create a new link between entities (see [`common::mounting`] for an
+    /// example).
+    fn link<L: Link>(&mut self, link: L) -> Result<(), L::Error>;
+    /// Maintain active links between entities
+    fn maintain_links(&mut self);
     /// Delete an entity, recording the deletion in [`DeletedEntities`]
     fn delete_entity_recorded(
         &mut self,
@@ -271,7 +278,7 @@ impl StateExt for State {
         mountable: bool,
     ) -> EcsEntityBuilder {
         let body = comp::Body::Ship(ship);
-        let mut builder = self
+        let builder = self
             .ecs_mut()
             .create_entity_synced()
             .with(pos)
@@ -294,7 +301,7 @@ impl StateExt for State {
             .with(comp::Combo::default());
 
         if mountable {
-            builder = builder.with(comp::MountState::Unmounted);
+            // TODO: Re-add mounting check
         }
         builder
     }
@@ -823,6 +830,36 @@ impl StateExt for State {
             }
             lazy_msg.as_ref().map(|msg| client.send_prepared(msg));
         }
+    }
+
+    fn link<L: Link>(&mut self, link: L) -> Result<(), L::Error> {
+        let linker = LinkHandle::from_link(link);
+
+        L::create(&linker, self.ecs().system_data())?;
+
+        self.ecs_mut()
+            .entry::<Vec<LinkHandle<L>>>()
+            .or_insert_with(Vec::new)
+            .push(linker);
+
+        Ok(())
+    }
+
+    fn maintain_links(&mut self) {
+        fn maintain_link<L: Link>(state: &State) {
+            if let Some(mut handles) = state.ecs().try_fetch_mut::<Vec<LinkHandle<L>>>() {
+                handles.retain(|link| {
+                    if L::persist(link, state.ecs().system_data()) {
+                        true
+                    } else {
+                        L::delete(link, state.ecs().system_data());
+                        false
+                    }
+                });
+            }
+        }
+
+        maintain_link::<Mounting>(self);
     }
 
     fn delete_entity_recorded(

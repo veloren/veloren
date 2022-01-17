@@ -8,7 +8,8 @@
     drain_filter,
     never_type,
     option_zip,
-    unwrap_infallible
+    unwrap_infallible,
+    let_else
 )]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 
@@ -662,6 +663,9 @@ impl Server {
         // Process any pending request to disconnect all clients, the disconnections
         // will be processed once handle_events() is called below
         let disconnect_type = self.disconnect_all_clients_if_requested();
+
+        // Handle entity links (such as mounting)
+        self.state.maintain_links();
 
         // Handle game events
         frontend_events.append(&mut self.handle_events());

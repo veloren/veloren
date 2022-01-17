@@ -26,7 +26,7 @@
         "hud.tutorial_elements": r#"Crafting"#,
 
 "hud.temp_quest_headline": r#"Greetings Traveller!"#,
-"hud.temp_quest_text": r#"To begin your journey you could start looking through this village and gather some supplies. 
+"hud.temp_quest_text": r#"To begin your journey you could start looking through this village and gather some supplies.
 
 You are welcome to take whatever you need on your journey!
 
@@ -46,6 +46,14 @@ Whenever you feel ready, try to get even better equipment from the many challeng
         "hud.free_look_indicator": "Free look active. Press {key} to disable.",
         "hud.camera_clamp_indicator": "Camera vertical clamp active. Press {key} to disable.",
         "hud.auto_walk_indicator": "Auto walk/swim active",
+        "hud.collect": "Collect",
+        "hud.pick_up": "Pick up",
+        "hud.open": "Open",
+        "hud.use": "Use",
+        "hud.mine": "Mine",
+        "hud.talk": "Talk",
+        "hud.trade": "Trade",
+        "hud.mount": "Mount",
     },
 
 

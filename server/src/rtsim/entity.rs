@@ -1,6 +1,9 @@
 use super::*;
 use common::{
-    comp::inventory::{loadout_builder::make_potion_bag, slot::ArmorSlot},
+    comp::inventory::{
+        loadout_builder::{make_food_bag, make_potion_bag},
+        slot::ArmorSlot,
+    },
     resources::Time,
     rtsim::{Memory, MemoryItem},
     store::Id,
@@ -142,8 +145,9 @@ impl Entity {
 
         // give potions to traveler humanoids or return loadout as is otherwise
         match (body, kind) {
-            (comp::Body::Humanoid(_), RtSimEntityKind::Random) => {
-                |l, _| l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+            (comp::Body::Humanoid(_), RtSimEntityKind::Random) => |l, _| {
+                l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
+                    .bag(ArmorSlot::Bag2, Some(make_food_bag(100)))
             },
             (_, RtSimEntityKind::Merchant) => {
                 |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
@@ -163,7 +167,9 @@ impl Entity {
                             .iter()
                             .filter(|s| s.1.is_settlement() || s.1.is_castle())
                             .min_by_key(|(_, site)| {
-                                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                                let wpos = site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                                    e * sz as i32 + sz as i32 / 2
+                                });
                                 wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32
                             })
                             .map(|(id, _)| id)
@@ -173,7 +179,9 @@ impl Entity {
                             // with at least one path, we need to get them to a town that does.
                             let nearest_site = &world.civs().sites[nearest_site_id];
                             let site_wpos =
-                                nearest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                                nearest_site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                                    e * sz as i32 + sz as i32 / 2
+                                });
                             let dist =
                                 site_wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
                             if dist < 64_u32.pow(2) {
@@ -204,7 +212,9 @@ impl Entity {
                             })
                             .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                             .min_by_key(|(_, site)| {
-                                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                                let wpos = site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                                    e * sz as i32 + sz as i32 / 2
+                                });
                                 let dist =
                                     wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
                                 dist + if dist < 96_u32.pow(2) { 100_000_000 } else { 0 }
@@ -215,8 +225,10 @@ impl Entity {
                                 (Normal::new(0.0, 64.0), Normal::new(0.0, 256.0))
                             {
                                 let mut path = Vec::<Vec2<i32>>::default();
-                                let target_site_pos = site.center.map(|e| e as f32)
-                                    * TerrainChunk::RECT_SIZE.map(|e| e as f32);
+                                let target_site_pos =
+                                    site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                                        (e * sz as i32 + sz as i32 / 2) as f32
+                                    });
                                 let offset_site_pos =
                                     target_site_pos.map(|v| v + normalpos.sample(&mut rng));
                                 let offset_dir = (offset_site_pos - self.pos.xy()).normalized();
@@ -252,7 +264,9 @@ impl Entity {
                             })
                             .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                             .min_by_key(|(_, site)| {
-                                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                                let wpos = site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                                    e * sz as i32 + sz as i32 / 2
+                                });
                                 let dist =
                                     wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
                                 dist + if dist < 96_u32.pow(2) { 100_000 } else { 0 }
@@ -275,7 +289,9 @@ impl Entity {
                     .neighbors(site_id)
                     .filter(|sid| {
                         let site = world.civs().sites.get(*sid);
-                        let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                        let wpos = site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                            e * sz as i32 + sz as i32 / 2
+                        });
                         let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
                         dist > 96_u32.pow(2)
                     })
@@ -310,7 +326,9 @@ impl Entity {
                     .filter(|s| s.1.is_settlement() | s.1.is_castle())
                     .filter(|_| thread_rng().gen_range(0i32..4) == 0)
                     .min_by_key(|(_, site)| {
-                        let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                        let wpos = site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                            e * sz as i32 + sz as i32 / 2
+                        });
                         let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
                         dist + if dist < 96_u32.pow(2) { 100_000 } else { 0 }
                     })
@@ -333,7 +351,9 @@ impl Entity {
                     .site_tmp
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
 
-                let wpos = site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let wpos = site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                    e * sz as i32 + sz as i32 / 2
+                });
                 let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
 
                 if dist < 64_u32.pow(2) {
@@ -435,7 +455,9 @@ impl Entity {
                 };
 
                 if let Some(sim_pos) = track.path().iter().nth(nth) {
-                    let chunkpos = sim_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                    let chunkpos = sim_pos.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                        e * sz as i32 + sz as i32 / 2
+                    });
                     let wpos = if let Some(pathdata) = world.sim().get_nearest_path(chunkpos) {
                         pathdata.1.map(|e| e as i32)
                     } else {
@@ -523,7 +545,9 @@ impl Entity {
                     .site_tmp
                     .map_or("".to_string(), |id| index.sites[id].name().to_string());
 
-                let wpos = dest_site.center * TerrainChunk::RECT_SIZE.map(|e| e as i32);
+                let wpos = dest_site.center.map2(TerrainChunk::RECT_SIZE, |e, sz| {
+                    e * sz as i32 + sz as i32 / 2
+                });
                 let dist = wpos.map(|e| e as f32).distance_squared(self.pos.xy()) as u32;
 
                 // Once at site, stay for a bit, then move to other site
