@@ -54,6 +54,7 @@ pub use self::{
     },
     texture::Texture,
 };
+use hashbrown::HashSet;
 pub use wgpu::{AddressMode, FilterMode};
 
 pub trait Vertex: Clone + bytemuck::Pod {
@@ -341,6 +342,8 @@ pub struct RenderMode {
     pub shadow: ShadowMode,
     pub bloom: BloomMode,
 
+    pub experimental_shaders: HashSet<ExperimentalShader>,
+
     pub upscale_mode: UpscaleMode,
     pub present_mode: PresentMode,
     pub profiler_enabled: bool,
@@ -356,6 +359,7 @@ impl RenderMode {
                 lighting: self.lighting,
                 shadow: self.shadow,
                 bloom: self.bloom,
+                experimental_shaders: self.experimental_shaders,
             },
             OtherModes {
                 upscale_mode: self.upscale_mode,
@@ -376,6 +380,7 @@ pub struct PipelineModes {
     lighting: LightingMode,
     pub shadow: ShadowMode,
     bloom: BloomMode,
+    experimental_shaders: HashSet<ExperimentalShader>,
 }
 
 /// Other render modes that don't effect pipelines
@@ -384,4 +389,12 @@ struct OtherModes {
     upscale_mode: UpscaleMode,
     present_mode: PresentMode,
     profiler_enabled: bool,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum ExperimentalShader {
+    /// Add brick-like normal mapping to the world.
+    Brickloren,
+    /// Remove the default procedural noise from terrain.
+    NoNoise,
 }

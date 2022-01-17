@@ -167,6 +167,17 @@ void main() {
     // uint norm_index = (f_pos_norm >> 29) & 0x7u;
     // vec3 f_norm = normals[norm_index];
     vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
+
+    #ifdef EXPERIMENTAL_BRICKLOREN
+        vec3 pos = f_pos - focus_off.xyz;
+        vec3 fp = pos * vec3(1.0, 1.0, 3.0);
+        fp.xy += floor(fp.z) * 0.5;
+        vec3 clamped = min(floor(fp.xyz) + vec3(0.92, 0.92, 0.8), max(floor(fp.xyz) + vec3(0.06, 0.06, 0.2), fp.xyz));
+        f_norm.xyz += (fp.xyz - clamped) * 8.0 * sign(1.0 - f_norm) * max(1.0 - length(f_pos - cam_pos.xyz) / 64.0, 0);
+        f_norm = normalize(f_norm);
+        f_col /= 1.0 + length((fp - clamped) * sign(1.0 - f_norm)) * 2;
+    #endif
+
     // vec3 du = dFdx(f_pos);
     // vec3 dv = dFdy(f_pos);
     // vec3 f_norm = normalize(cross(du, dv));
@@ -305,7 +316,11 @@ void main() {
 
     // vec3 surf_color = illuminate(srgb_to_linear(f_col), light, diffuse_light, ambient_light);
     vec3 f_chunk_pos = f_pos - (model_offs - focus_off.xyz);
-    float noise = hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0));//0.005/* - 0.01*/;
+    #ifdef EXPERIMENTAL_NONOISE
+        float noise = 0.0;
+    #else
+        float noise = hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0));//0.005/* - 0.01*/;
+    #endif
 
 //vec3 srgb_to_linear(vec3 srgb) {
 //    bvec3 cutoff = lessThan(srgb, vec3(0.04045));
