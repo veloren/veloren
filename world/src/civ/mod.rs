@@ -523,27 +523,37 @@ impl Civs {
                 .iter()
                 .min_by_key(|&b| center.distance_squared(uniform_idx_as_vec2(map_size_lg, *b)))
                 .unwrap();
-            let name = match biome.0 {
-                common::terrain::BiomeKind::Forest => format!("{}\n{:?}", NameGen::location(&mut ctx.rng).generate_forest(), biome.0),
-                common::terrain::BiomeKind::Grassland
-                |common::terrain::BiomeKind::Lake
-                | common::terrain::BiomeKind::Ocean
-                | common::terrain::BiomeKind::Mountain
-                | common::terrain::BiomeKind::Snowland
-                | common::terrain::BiomeKind::Desert
-                | common::terrain::BiomeKind::Swamp
-                | common::terrain::BiomeKind::Jungle
-                | common::terrain::BiomeKind::Savannah
-                | common::terrain::BiomeKind::Taiga => format!("{}\n{:?}", NameGen::location(&mut ctx.rng).generate_biome(), biome.0),
-                _ => String::new()
-            };
-            let id = self.pois.insert(PointOfInterest {
-                name,
-                loc: uniform_idx_as_vec2(map_size_lg, idx),
-                kind: PoiKind::Biome(biome.1.len() as u32),
-            });
-            for chunk in biome.1 {
-                ctx.sim.chunks[chunk].poi = Some(id);
+            if biome.1.len() as u32 > 750 {
+                let name = match biome.0 {
+                    common::terrain::BiomeKind::Forest => format!(
+                        "{}\n{:?}",
+                        NameGen::location(&mut ctx.rng).generate_forest(),
+                        biome.0
+                    ),
+                    common::terrain::BiomeKind::Grassland
+                    | common::terrain::BiomeKind::Lake
+                    | common::terrain::BiomeKind::Ocean
+                    | common::terrain::BiomeKind::Mountain
+                    | common::terrain::BiomeKind::Snowland
+                    | common::terrain::BiomeKind::Desert
+                    | common::terrain::BiomeKind::Swamp
+                    | common::terrain::BiomeKind::Jungle
+                    | common::terrain::BiomeKind::Savannah
+                    | common::terrain::BiomeKind::Taiga => format!(
+                        "{}\n{:?}",
+                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        biome.0
+                    ),
+                    _ => String::new(),
+                };
+                let id = self.pois.insert(PointOfInterest {
+                    name,
+                    loc: uniform_idx_as_vec2(map_size_lg, idx),
+                    kind: PoiKind::Biome(biome.1.len() as u32),
+                });
+                for chunk in biome.1 {
+                    ctx.sim.chunks[chunk].poi = Some(id);
+                }
             }
         }
 

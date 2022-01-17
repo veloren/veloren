@@ -89,15 +89,17 @@ impl<'a, R: Rng> NameGen<'a, R> {
 
     pub fn generate_forest(self) -> String {
         let cons = vec![
-            "green", "moss", "ever", "briar", "thorn", "oak", "deep", "moon", "star", "sun", "bright", "glare",
-            "fair", "calm", "mistral", "whisper", "clover", "hollow", "spring", "morrow", "dim", "dusk", "dawn", "night",
-            "shimmer", "silver", "gold", "whisper", "fern", "quiet", "still", "gleam", "wild", "blind", "swift",
+            "green", "moss", "ever", "briar", "thorn", "oak", "deep", "moon", "star", "sun",
+            "bright", "glare", "fair", "calm", "mistral", "whisper", "clover", "hollow", "spring",
+            "morrow", "dim", "dusk", "dawn", "night", "shimmer", "silver", "gold", "whisper",
+            "fern", "quiet", "still", "gleam", "wild", "blind", "swift",
         ];
         let start = cons.clone();
         let end = vec![
-            "root", "bark", "log", "brook", "well", "shire", "leaf", "more", "bole", "heart", "song", "dew",
-            "bough", "path", "wind", "breeze", "light", "branch", "bloom", "vale", "glen", "rest", "shade",
-            "fall", "sward", "thicket", "shrub", "bush", "grasp", "grip", "gale", "crawl", "run", "shadow",
+            "root", "bark", "log", "brook", "well", "shire", "leaf", "more", "bole", "heart",
+            "song", "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "vale",
+            "glen", "rest", "shade", "fall", "sward", "thicket", "shrub", "bush", "grasp", "grip",
+            "gale", "crawl", "run", "shadow",
         ];
         let mut name = String::new();
         name += start.choose(self.rng).unwrap();
