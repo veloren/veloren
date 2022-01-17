@@ -1236,7 +1236,8 @@ impl PlayState for SessionState {
                         let mut move_allowed = true;
                         let mut maybe_lantern: Option<comp::item::Lantern> = None;
                         if !bypass_dialog {
-                            if let Some(inventory) = self.client
+                            if let Some(inventory) = self
+                                .client
                                 .borrow()
                                 .state()
                                 .ecs()
