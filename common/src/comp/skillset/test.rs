@@ -2,6 +2,7 @@ use super::*;
 use crate::comp::{skillset::SkillPrerequisitesMap, Skill};
 use hashbrown::HashMap;
 
+// Unneeded cfg(test) here keeps rust-analyzer happy
 #[cfg(test)]
 use petgraph::{algo::is_cyclic_undirected, graph::UnGraph};
 
