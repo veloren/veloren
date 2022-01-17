@@ -1025,7 +1025,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         }
 
                         if let Some(e_m_diff) = diff.energy_max() {
-                            if e_m_diff > Energy::ENERGY_EPSILON {
+                            if e_m_diff.abs() > Energy::ENERGY_EPSILON {
                                 let text = format!("{} {:.1}", &energy_max_diff.0, e_m_diff);
                                 diff_text(
                                     text,
@@ -1036,7 +1036,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                         }
 
                         if let Some(e_r_diff) = diff.energy_reward() {
-                            if e_r_diff > Energy::ENERGY_EPSILON {
+                            if e_r_diff.abs() > Energy::ENERGY_EPSILON {
                                 let text =
                                     format!("{} {:.1}", &energy_reward_diff.0, e_r_diff * 100.0);
                                 diff_text(
