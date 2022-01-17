@@ -114,23 +114,32 @@ macro_rules! trackers {
                 $(
                     self.$component_name.record_changes(&comps.$component_name);
                 )*
-                // TODO: integrate env var switches to report counts to tracy/etc
-                // Debug how many updates are being sent
-                /*
+
+                const LOG_COUNTS: bool = false;
+                let plot_counts = common_base::TRACY_ENABLED && matches!(std::env::var("PLOT_UPDATE_COUNTS").as_deref(), Ok("1"));
+
                 macro_rules! log_counts {
                     ($comp:ident, $name:expr) => {
-                        // Note: if this will be used in actual server it would be more efficient to
-                        // count during record_changes
-                        let tracker = &self.$comp;
-                        let inserted = tracker.inserted().into_iter().count();
-                        let modified = tracker.modified().into_iter().count();
-                        let removed = tracker.removed().into_iter().count();
-                        tracing::warn!("{:6} insertions detected for    {}", inserted, $name);
-                        tracing::warn!("{:6} modifications detected for {}", modified, $name);
-                        tracing::warn!("{:6} deletions detected for     {}", removed, $name);
+                        if LOG_COUNTS || plot_counts {
+                            let tracker = &self.$comp;
+                            let inserted = tracker.inserted().into_iter().count();
+                            let modified = tracker.modified().into_iter().count();
+                            let removed = tracker.removed().into_iter().count();
+
+                            if plot_counts {
+                                let sum = inserted + modified + removed;
+                                common_base::plot!(concat!($name, "updates"), sum as f64);
+                            }
+
+                            if LOG_COUNTS {
+                                tracing::warn!("{:6} insertions detected for    {}", inserted, $name);
+                                tracing::warn!("{:6} modifications detected for {}", modified, $name);
+                                tracing::warn!("{:6} deletions detected for     {}", removed, $name);
+                            }
+                        }
                     };
-                };
-                $(log_counts!($component_name, concat!(stringify!($component_name), 's'));)* */
+                }
+                $(log_counts!($component_name, concat!(stringify!($component_name), 's'));)*
             }
 
             pub fn create_sync_packages(

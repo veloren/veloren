@@ -6,6 +6,8 @@ pub use userdata_dir::userdata_dir;
 
 #[cfg(feature = "tracy")] pub use tracy_client;
 
+pub const TRACY_ENABLED: bool = cfg!(feature = "tracy");
+
 #[cfg(not(feature = "tracy"))]
 #[macro_export]
 macro_rules! plot {
