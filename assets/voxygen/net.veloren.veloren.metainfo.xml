@@ -60,6 +60,12 @@
     </screenshot>
   </screenshots>
 
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>gamepad</control>
+  </supports>
+
   <keywords>
     <keyword>multiplayer</keyword>
     <keyword>sandbox</keyword>
