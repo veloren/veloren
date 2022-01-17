@@ -479,14 +479,14 @@ impl Civs {
         to_explore.insert(start_point);
         explored.insert(start_point);
 
-        while to_explore.len() > 0 {
+        while !to_explore.is_empty() {
             let exploring = *to_explore.iter().next().unwrap();
             to_explore.remove(&exploring);
             to_floodfill.insert(exploring);
             // Should always be a chunk on the map
             let biome = ctx.sim.chunks[exploring].get_biome();
             biomes.push((biome, Vec::new()));
-            while to_floodfill.len() > 0 {
+            while !to_floodfill.is_empty() {
                 let filling = *to_floodfill.iter().next().unwrap();
                 to_explore.remove(&filling);
                 to_floodfill.remove(&filling);
