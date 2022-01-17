@@ -1234,9 +1234,9 @@ impl PlayState for SessionState {
                         bypass_dialog,
                     } => {
                         let mut move_allowed = true;
+                        let mut maybe_lantern: Option<comp::item::Lantern> = None;
                         if !bypass_dialog {
-                            if let Some(inventory) = self
-                                .client
+                            if let Some(inventory) = self.client
                                 .borrow()
                                 .state()
                                 .ecs()
@@ -1246,6 +1246,18 @@ impl PlayState for SessionState {
                                 match (slot_a, slot_b) {
                                     (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
                                     | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
+                                        if let EquipSlot::Lantern = equip_slot {
+                                            maybe_lantern =
+                                                inventory.get(inv_slot).and_then(|item| {
+                                                    if let comp::item::ItemKind::Lantern(l) =
+                                                        item.kind()
+                                                    {
+                                                        Some(l.clone())
+                                                    } else {
+                                                        None
+                                                    }
+                                                });
+                                        }
                                         if !inventory.can_swap(inv_slot, equip_slot) {
                                             move_allowed = false;
                                         } else {
@@ -1276,6 +1288,9 @@ impl PlayState for SessionState {
                             }
                         }
                         if move_allowed {
+                            if let Some(new_lantern) = maybe_lantern {
+                                self.client.borrow_mut().update_lantern(new_lantern);
+                            }
                             self.client.borrow_mut().swap_slots(slot_a, slot_b);
                         }
                     },

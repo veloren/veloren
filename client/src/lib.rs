@@ -1081,6 +1081,12 @@ impl Client {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::DisableLantern));
     }
 
+    pub fn update_lantern(&mut self, lantern: comp::item::Lantern) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::UpdateLantern(
+            lantern,
+        )));
+    }
+
     pub fn remove_buff(&mut self, buff_id: BuffKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::RemoveBuff(
             buff_id,

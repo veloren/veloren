@@ -35,6 +35,19 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::iter::FromIterator;
 
+pub fn update_lantern(server: &mut Server, entity: EcsEntity, lantern: comp::item::Lantern){
+    let _ = server
+        .state_mut()
+        .ecs()
+        .write_storage::<comp::LightEmitter>()
+        .insert(entity, comp::LightEmitter{
+            col: lantern.color(),
+            strength: lantern.strength(),
+            flicker: 0.35,
+            animated: true,
+        });
+}
+
 pub fn handle_lantern(server: &mut Server, entity: EcsEntity, enable: bool) {
     let ecs = server.state_mut().ecs();
 

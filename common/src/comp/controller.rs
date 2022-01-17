@@ -125,6 +125,7 @@ pub enum ControlEvent {
     //ToggleLantern,
     EnableLantern,
     DisableLantern,
+    UpdateLantern(crate::comp::item::Lantern),
     Interact(Uid),
     InitiateInvite(Uid, InviteKind),
     InviteResponse(InviteResponse),
