@@ -129,6 +129,7 @@ pub enum Interface {
     MapShowCaves(bool),
     MapShowTrees(bool),
     MapShowPeaks(bool),
+    MapShowBiomes(bool),
     MapShowVoxelMap(bool),
 
     ResetInterfaceSettings,
@@ -534,6 +535,9 @@ impl SettingsChange {
                     },
                     Interface::MapShowPeaks(map_show_peaks) => {
                         settings.interface.map_show_peaks = map_show_peaks;
+                    },
+                    Interface::MapShowBiomes(map_show_biomes) => {
+                        settings.interface.map_show_biomes = map_show_biomes;
                     },
                     Interface::MapShowVoxelMap(map_show_voxel_map) => {
                         settings.interface.map_show_voxel_map = map_show_voxel_map;

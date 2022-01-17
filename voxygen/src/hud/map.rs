@@ -42,6 +42,8 @@ widget_ids! {
         mmap_poi_titles[],
         peaks_txt,
         peaks_txt_bg,
+        biomes_txt,
+        biomes_txt_bg,
         site_difs[],
         member_indicators[],
         member_height_indicators[],
@@ -65,6 +67,9 @@ widget_ids! {
         show_peaks_img,
         show_peaks_box,
         show_peaks_text,
+        show_biomes_img,
+        show_biomes_box,
+        show_biomes_text,
         show_voxel_map_img,
         show_voxel_map_box,
         show_voxel_map_text,
@@ -209,6 +214,7 @@ impl<'a> Widget for Map<'a> {
         let show_caves = self.global_state.settings.interface.map_show_caves;
         let show_trees = self.global_state.settings.interface.map_show_trees;
         let show_peaks = self.global_state.settings.interface.map_show_peaks;
+        let show_biomes = self.global_state.settings.interface.map_show_biomes;
         let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
         let mut events = Vec::new();
@@ -641,9 +647,43 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.show_trees_box)
             .color(TEXT_COLOR)
             .set(state.ids.show_trees_text, ui);
+        // Biomes
+        Image::new(self.imgs.mmap_poi_biome)
+            .down_from(state.ids.show_trees_img, 10.0)
+            .w_h(20.0, 20.0)
+            .set(state.ids.show_biomes_img, ui);
+        if Button::image(if show_biomes {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox
+        })
+        .w_h(18.0, 18.0)
+        .hover_image(if show_biomes {
+            self.imgs.checkbox_checked_mo
+        } else {
+            self.imgs.checkbox_mo
+        })
+        .press_image(if show_biomes {
+            self.imgs.checkbox_checked
+        } else {
+            self.imgs.checkbox_press
+        })
+        .right_from(state.ids.show_biomes_img, 10.0)
+        .set(state.ids.show_biomes_box, ui)
+        .was_clicked()
+        {
+            events.push(Event::SettingsChange(MapShowBiomes(!show_biomes)));
+        }
+        Text::new(i18n.get("hud.map.biomes"))
+            .right_from(state.ids.show_biomes_box, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.show_biomes_box)
+            .color(TEXT_COLOR)
+            .set(state.ids.show_biomes_text, ui);
         // Peaks
         Image::new(self.imgs.mmap_poi_peak)
-            .down_from(state.ids.show_trees_img, 10.0)
+            .down_from(state.ids.show_biomes_img, 10.0)
             .w_h(20.0, 20.0)
             .set(state.ids.show_peaks_img, ui);
         if Button::image(if show_peaks {
@@ -1023,7 +1063,7 @@ impl<'a> Widget for Map<'a> {
                     }
                 },
                 PoiKind::Lake(size) => {
-                    if zoom.powi(2) * size as f64 > 30.0 {
+                    if show_biomes && zoom > 2.0 && zoom.powi(2) * size as f64 > 30.0 {
                         let font_scale_factor = if size > 20 {
                             size as f64 / 25.0
                         } else if size > 10 {
