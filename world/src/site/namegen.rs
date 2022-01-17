@@ -3,8 +3,6 @@ use rand::prelude::*;
 pub struct NameGen<'a, R: Rng> {
     // 2..
     pub approx_syllables: usize,
-    pub approx_syllables_long: usize,
-
     rng: &'a mut R,
 }
 
@@ -12,7 +10,6 @@ impl<'a, R: Rng> NameGen<'a, R> {
     pub fn location(rng: &'a mut R) -> Self {
         Self {
             approx_syllables: rng.gen_range(1..4),
-            approx_syllables_long: rng.gen_range(3..4),
             rng,
         }
     }
@@ -78,7 +75,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
         let mut name = String::new();
 
         name += start.choose(self.rng).unwrap();
-        for _ in 0..self.approx_syllables_long.saturating_sub(2) {
+        for _ in 0..self.approx_syllables.saturating_sub(2) + 1 {
             name += vowel.choose(self.rng).unwrap();
             name += middle.choose(self.rng).unwrap();
         }
