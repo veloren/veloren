@@ -149,7 +149,7 @@ impl Animation for MountAnimation {
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
 
-        next.torso.position = Vec3::new(0.0, 0.0, stop * -1.76);
+        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
         if skeleton.holding_lantern {
             next.hand_r.position = Vec3::new(

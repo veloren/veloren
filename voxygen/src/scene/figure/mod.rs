@@ -2299,9 +2299,17 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // In air
-                        (false, _, false) => anim::quadruped_low::JumpAnimation::update_skeleton(
+                        (false, _, false) => anim::quadruped_low::RunAnimation::update_skeleton(
                             &QuadrupedLowSkeleton::default(),
-                            (rel_vel.magnitude(), time),
+                            (
+                                rel_vel.magnitude(),
+                                // TODO: Update to use the quaternion.
+                                ori * anim::vek::Vec3::<f32>::unit_y(),
+                                state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                time,
+                                rel_avg_vel,
+                                state.acc_vel,
+                            ),
                             state.state_time,
                             &mut state_animation_rate,
                             skeleton_attr,

@@ -33,6 +33,7 @@ skeleton_impls!(struct QuadrupedLowSkeleton {
     + foot_fr,
     + foot_bl,
     + foot_br,
+    mount,
 });
 
 impl Skeleton for QuadrupedLowSkeleton {
@@ -69,15 +70,32 @@ impl Skeleton for QuadrupedLowSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_bl)),
             make_bone(chest_mat * Mat4::<f32>::from(self.foot_br)),
         ];
+        //let (mount_bone_mat, mount_bone_ori) = (chest_mat, self.chest.orientation);
+        // Offset from the mounted bone's origin.
+        // Note: This could be its own bone if we need to animate it independently.
+
+        // NOTE: We apply the ori from base_mat externally so we don't need to worry
+        // about it here for now.
+
+        use comp::quadruped_low::Species::*;
+        let (mount_bone_mat, mount_bone_ori) = match (body.species, body.body_type) {
+            (Maneater, _) => (
+                head_upper_mat,
+                self.chest.orientation * self.head_lower.orientation * self.head_upper.orientation,
+            ),
+            _ => (chest_mat, self.chest.orientation),
+        };
+        let mount_position = (mount_bone_mat * Vec4::from_point(mount_point(&body)))
+            .homogenized()
+            .xyz();
+        let mount_orientation = mount_bone_ori;
+
         Offsets {
             lantern: None,
-            // TODO: see quadruped_medium for how to animate this
             mount_bone: Transform {
-                position: common::comp::Body::QuadrupedLow(body)
-                    .mount_offset()
-                    .into_tuple()
-                    .into(),
-                ..Default::default()
+                position: mount_position,
+                orientation: mount_orientation,
+                scale: Vec3::one(),
             },
         }
     }
@@ -310,4 +328,26 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
         }
     }
+}
+fn mount_point(body: &Body) -> Vec3<f32> {
+    use comp::quadruped_low::{BodyType::*, Species::*};
+    match (body.species, body.body_type) {
+        (Crocodile, _) => (0.0, 4.5, 0.0),
+        (Alligator, _) => (0.0, 4.25, 0.0),
+        (Salamander, Male) => (0.0, 5.0, 1.0),
+        (Salamander, Female) => (0.0, 5.0, 1.0),
+        (Monitor, _) => (0.0, 2.0, 0.0),
+        (Asp, _) => (0.0, 2.0, 2.0),
+        (Tortoise, _) => (0.0, -7.0, 1.0),
+        (Rocksnapper, _) => (0.0, -7.0, 6.5),
+        (Pangolin, _) => (0.0, -6.5, 0.0),
+        (Maneater, _) => (0.0, 4.0, -9.5),
+        (Sandshark, _) => (0.0, -4.0, 0.0),
+        (Hakulaq, _) => (0.0, 4.0, -2.5),
+        (Lavadrake, _) => (0.0, 2.0, 0.5),
+        (Icedrake, _) => (0.0, -8.0, 4.5),
+        (Basilisk, _) => (0.0, -2.0, 4.0),
+        (Deadwood, _) => (0.0, -2.0, -1.0),
+    }
+    .into()
 }

@@ -64,7 +64,9 @@ impl Animation for ShootAnimation {
         } else {
             0.0
         } * 1.3;
-
+        let ori_angle = orientation.y.atan2(orientation.x);
+        let lookdir_angle = look_dir.y.atan2(look_dir.x);
+        let swivel = lookdir_angle - ori_angle;
         match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {
                 let (move1, move2, move3) = match stage_section {
@@ -96,14 +98,14 @@ impl Animation for ShootAnimation {
                         * Quaternion::rotation_z(
                             s_a.stc.5 - (0.2 + move1 * -0.5 + move2 * 0.8) * (1.0 - move3),
                         );
-                next.chest.orientation =
-                    Quaternion::rotation_z((move1 * 0.3 + move2 * 0.2) * (1.0 - move3));
+
                 next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
                 next.head.orientation = Quaternion::rotation_x(look_dir.z * 0.7)
                     * Quaternion::rotation_z(
                         tilt * -2.5 + (move1 * -0.2 + move2 * -0.4) * (1.0 - move3),
                     );
-
+                next.chest.orientation = Quaternion::rotation_z(swivel * 0.8);
+                next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
                 if speed < 0.5 {
                     next.belt.orientation =
                         Quaternion::rotation_x(0.07) * Quaternion::rotation_z(0.0);
@@ -148,17 +150,17 @@ impl Animation for ShootAnimation {
                     s_a.bc.1 + 2.0 + (look_dir.z * -5.0).min(-2.0) + move2 * -1.0,
                     s_a.bc.2 + 8.0 + (look_dir.z * 15.0).max(-8.0),
                 );
-                next.control.orientation = Quaternion::rotation_x(look_dir.z + move2 * -0.0)
-                    * Quaternion::rotation_y(-look_dir.z + s_a.bc.4 - 1.25 + move2 * -0.0)
-                    * Quaternion::rotation_z(s_a.bc.5 - 0.2 + move2 * -0.1);
-                next.chest.orientation = Quaternion::rotation_z(0.8 + move2 * 0.5);
-                next.head.position = Vec3::new(0.0 - 2.0, s_a.head.0, s_a.head.1);
+                next.control.orientation = Quaternion::rotation_x(look_dir.z)
+                    * Quaternion::rotation_y(-look_dir.z + s_a.bc.4 - 1.25)
+                    * Quaternion::rotation_z(0.0 - 0.0 + move2 * -0.0); //.2,.1
 
-                next.head.orientation = Quaternion::rotation_x(look_dir.z * 0.7)
-                    * Quaternion::rotation_z(tilt * -2.5 - 0.5 + (move2 * -0.2).sin());
-                next.chest.orientation = Quaternion::rotation_z(0.8 + move2 * 0.2);
-                next.belt.orientation = Quaternion::rotation_z(move2 * 0.3);
-                next.shorts.orientation = Quaternion::rotation_z(move2 * 0.5);
+                next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+
+                next.head.orientation =
+                    Quaternion::rotation_x(look_dir.z * 0.7) * Quaternion::rotation_z(tilt * -0.0);
+                next.chest.orientation = Quaternion::rotation_z(swivel * 0.8);
+                next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
+
                 next.shoulder_l.orientation = Quaternion::rotation_x(move2 * 0.5);
 
                 if speed < 0.5 {
