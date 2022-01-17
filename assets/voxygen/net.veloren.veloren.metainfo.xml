@@ -60,10 +60,11 @@
     </screenshot>
   </screenshots>
 
-  <requires>
+  <supports>
     <control>pointing</control>
     <control>keyboard</control>
-  </requires>
+    <control>gamepad</control>
+  </supports>
 
   <keywords>
     <keyword>multiplayer</keyword>
