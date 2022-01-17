@@ -10,9 +10,9 @@ BasicSummon(
             body_type: Male,
         )),
         scale: None,
-        health_scaling: Some(80),
+        has_health: true,
         loadout_config: Some(HuskSummon),
-        skillset_config: None,
+        skillset_config: Some(Rank5),
     ),
     duration: None,
 )

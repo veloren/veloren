@@ -3,6 +3,7 @@ use crate::{
         self,
         character_state::OutputEvents,
         inventory::loadout_builder::{self, LoadoutBuilder},
+        skillset::skills,
         Behavior, BehaviorCapability, CharacterState, Projectile, StateUpdate,
     },
     event::{LocalEvent, ServerEvent},
@@ -113,11 +114,14 @@ impl CharacterBehavior for Data {
 
                         let stats = comp::Stats::new("Summon".to_string());
 
-                        let health_scaling = self
-                            .static_data
-                            .summon_info
-                            .health_scaling
-                            .map(|health_scaling| comp::Health::new(body, health_scaling));
+                        let health = self.static_data.summon_info.has_health.then(|| {
+                            let health_level = skill_set
+                                .skill_level(skills::Skill::General(
+                                    skills::GeneralSkill::HealthIncrease,
+                                ))
+                                .unwrap_or(0);
+                            comp::Health::new(body, health_level)
+                        });
 
                         // Ray cast to check where summon should happen
                         let summon_frac =
@@ -173,7 +177,7 @@ impl CharacterBehavior for Data {
                             pos: comp::Pos(collision_vector - Vec3::unit_z() * obstacle_z),
                             stats,
                             skill_set,
-                            health: health_scaling,
+                            health,
                             poise: comp::Poise::new(body),
                             loadout,
                             body,
@@ -250,7 +254,7 @@ impl CharacterBehavior for Data {
 pub struct SummonInfo {
     body: comp::Body,
     scale: Option<comp::Scale>,
-    health_scaling: Option<u16>,
+    has_health: bool,
     // TODO: use assets for specifying skills and loadout?
     loadout_config: Option<loadout_builder::Preset>,
     skillset_config: Option<skillset_builder::Preset>,

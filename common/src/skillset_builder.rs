@@ -10,7 +10,13 @@ use tracing::warn;
 /// When you're adding new enum variant,
 /// handle it in [`with_preset`](SkillSetBuilder::with_preset) method
 #[derive(Copy, Clone, PartialEq, Serialize, Deserialize, Debug)]
-pub enum Preset {}
+pub enum Preset {
+    Rank1,
+    Rank2,
+    Rank3,
+    Rank4,
+    Rank5,
+}
 
 #[derive(Debug, Deserialize, Clone)]
 struct SkillSetTree(Vec<SkillNode>);
@@ -87,7 +93,15 @@ impl SkillSetBuilder {
 
     /// Applies preset
     #[must_use]
-    pub const fn with_preset(self, _preset: Preset) -> Self { self }
+    pub fn with_preset(self, preset: Preset) -> Self {
+        match preset {
+            Preset::Rank1 => self.with_asset_expect("common.skillset.preset.rank1.fullskill"),
+            Preset::Rank2 => self.with_asset_expect("common.skillset.preset.rank2.fullskill"),
+            Preset::Rank3 => self.with_asset_expect("common.skillset.preset.rank3.fullskill"),
+            Preset::Rank4 => self.with_asset_expect("common.skillset.preset.rank4.fullskill"),
+            Preset::Rank5 => self.with_asset_expect("common.skillset.preset.rank5.fullskill"),
+        }
+    }
 
     #[must_use]
     /// # Panics
