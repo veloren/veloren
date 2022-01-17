@@ -5,6 +5,7 @@ use super::{
 use common::{
     comp::item::{Hands, ToolKind},
     states::utils::{AbilityInfo, StageSection},
+    util::Dir,
 };
 use core::f32::consts::PI;
 
@@ -15,6 +16,8 @@ impl Animation for RepeaterAnimation {
     type Dependency<'a> = (
         Option<AbilityInfo>,
         (Option<Hands>, Option<Hands>),
+        Vec3<f32>,
+        Dir,
         Vec3<f32>,
         f32,
         Option<StageSection>,
@@ -27,7 +30,7 @@ impl Animation for RepeaterAnimation {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "character_repeater")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (ability_info, hands, velocity, _global_time, stage_section): Self::Dependency<'a>,
+        (ability_info, hands, orientation,look_dir, velocity, _global_time, stage_section): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
@@ -35,7 +38,9 @@ impl Animation for RepeaterAnimation {
         *rate = 1.0;
         let mut next = (*skeleton).clone();
         let speed = Vec2::<f32>::from(velocity).magnitude();
-
+        let ori_angle = orientation.y.atan2(orientation.x);
+        let lookdir_angle = look_dir.y.atan2(look_dir.x);
+        let swivel = lookdir_angle - ori_angle;
         let (move1base, move2base, move3base, move4) = match stage_section {
             Some(StageSection::Movement) => (anim_time, 0.0, 0.0, 0.0),
             Some(StageSection::Buildup) => (1.0, anim_time, 0.0, 0.0),
@@ -60,6 +65,10 @@ impl Animation for RepeaterAnimation {
             next.hold.position = Vec3::new(0.0, -1.0 + move3 * 2.0, -5.2);
             next.hold.orientation = Quaternion::rotation_x(-PI / 2.0) * Quaternion::rotation_z(0.0);
             next.hold.scale = Vec3::one() * (1.0);
+
+            next.chest.orientation = Quaternion::rotation_z(swivel * 0.8);
+            next.torso.orientation = Quaternion::rotation_z(swivel * 0.2);
+
             if speed < 0.5 {
                 next.foot_l.position = Vec3::new(
                     -s_a.foot.0 + move1 * -0.75,

@@ -43,10 +43,6 @@ impl Animation for MountAnimation {
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let slow = (anim_time * 1.0).sin();
-        let slowa = (anim_time * 1.0 + PI / 2.0).sin();
-        let stop = (anim_time * 3.0).min(PI / 2.0).sin();
-
         let head_look = Vec2::new(
             (global_time * 0.05 + anim_time / 15.0)
                 .floor()
@@ -82,74 +78,47 @@ impl Animation for MountAnimation {
         next.hand_l.scale = Vec3::one() * 1.04;
         next.hand_r.scale = Vec3::one() * 1.04;
         next.back.scale = Vec3::one() * 1.02;
+        next.belt.scale = Vec3::one() * 1.02;
         next.hold.scale = Vec3::one() * 0.0;
         next.lantern.scale = Vec3::one() * 0.65;
         next.shoulder_l.scale = Vec3::one() * 1.1;
         next.shoulder_r.scale = Vec3::one() * 1.1;
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + slow * 0.1 + stop * -0.8);
-        next.head.orientation =
-            Quaternion::rotation_z(head_look.x + slow * 0.2 - slow * 0.1 + tilt * -2.0)
-                * Quaternion::rotation_x(
-                    (canceler * 0.3
-                        + 0.4
-                        + slowa * -0.1
-                        + slow * 0.1
-                        + head_look.y
-                        + tilt.abs() * 1.2)
-                        .abs(),
-                );
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+        next.head.orientation = Quaternion::rotation_z(head_look.x + tilt * -2.0)
+            * Quaternion::rotation_x((0.35 + head_look.y + tilt.abs() * 1.2).abs());
 
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1);
         next.chest.orientation =
-            Quaternion::rotation_x(-0.6 + stop * 0.15 + canceler * -0.3 + tilt.abs() * -1.5)
-                * Quaternion::rotation_y(tilt * 2.0);
+            Quaternion::rotation_x(-0.4 + tilt.abs() * -1.5) * Quaternion::rotation_y(tilt * 2.0);
 
-        next.belt.position = Vec3::new(0.0, s_a.belt.0 + stop * 1.2, s_a.belt.1 + 1.0);
-        next.belt.orientation =
-            Quaternion::rotation_x(stop * 0.3) * Quaternion::rotation_y(tilt * -0.5);
+        next.belt.position = Vec3::new(0.0, s_a.belt.0 + 0.5, s_a.belt.1 + 0.5);
+        next.belt.orientation = Quaternion::rotation_x(0.2) * Quaternion::rotation_y(tilt * -0.5);
 
         next.back.position = Vec3::new(0.0, s_a.back.0, s_a.back.1);
 
-        next.shorts.position = Vec3::new(
-            0.0,
-            s_a.shorts.0 + stop * 2.5 + 1.0,
-            s_a.shorts.1 + stop * 0.6 + 2.0,
-        );
-        next.shorts.orientation =
-            Quaternion::rotation_x(stop * 0.6) * Quaternion::rotation_y(tilt * -1.0);
+        next.shorts.position = Vec3::new(0.0, s_a.shorts.0 + 1.0, s_a.shorts.1 + 1.0);
+        next.shorts.orientation = Quaternion::rotation_x(0.3) * Quaternion::rotation_y(tilt * -1.0);
 
-        next.hand_l.position = Vec3::new(
-            -s_a.hand.0 + 4.0,
-            s_a.hand.1 + slowa * 0.15 + stop * 8.0,
-            s_a.hand.2 + slow * 0.7 + stop * 4.0,
-        );
+        next.hand_l.position = Vec3::new(-s_a.hand.0 + 3.0, s_a.hand.1 + 9.0, s_a.hand.2 + 4.0);
         next.hand_l.orientation =
-            Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(-PI / 2.0);
+            Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(-PI / 2.0 + 0.5);
 
-        next.hand_r.position = Vec3::new(
-            s_a.hand.0 - 4.0,
-            s_a.hand.1 + slowa * 0.15 + stop * 8.0,
-            s_a.hand.2 + slow * 0.7 + stop * 4.0,
-        );
+        next.hand_r.position = Vec3::new(s_a.hand.0 - 3.0, s_a.hand.1 + 9.0, s_a.hand.2 + 4.0);
         next.hand_r.orientation =
-            Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI / 2.0);
+            Quaternion::rotation_x(PI / 2.0) * Quaternion::rotation_z(PI / 2.0 - 0.5);
 
         next.foot_l.position = Vec3::new(-s_a.foot.0 - 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
-        next.foot_l.orientation = Quaternion::rotation_x(slow * 0.1 + stop * 0.4 + slow * 0.1)
-            * Quaternion::rotation_y(0.5);
+        next.foot_l.orientation = Quaternion::rotation_x(0.5) * Quaternion::rotation_y(0.5);
 
         next.foot_r.position = Vec3::new(s_a.foot.0 + 2.0, 4.0 + s_a.foot.1, s_a.foot.2);
-        next.foot_r.orientation = Quaternion::rotation_x(slowa * 0.1 + stop * 0.4 + slowa * 0.1)
-            * Quaternion::rotation_y(-0.5);
+        next.foot_r.orientation = Quaternion::rotation_x(0.5) * Quaternion::rotation_y(-0.5);
 
         next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_x(0.0);
 
         next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(0.0);
-
-        next.torso.position = Vec3::new(0.0, 0.0, 0.0);
 
         if skeleton.holding_lantern {
             next.hand_r.position = Vec3::new(
