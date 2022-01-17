@@ -3,7 +3,7 @@ ComboMelee(
         stage: 1,
         base_damage: 15.0,
         damage_increase: 1.0,
-        base_poise_damage: 20,
+        base_poise_damage: 0,
         poise_damage_increase: 0,
         knockback: 3.5,
         range: 4.5,

@@ -12,7 +12,7 @@ use crate::{
         },
         skillset::SkillGroupKind,
         Alignment, Body, CharacterState, Combo, Energy, Health, HealthChange, Inventory, Ori,
-        Player, Poise, SkillSet, Stats,
+        Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::ServerEvent,
     outcome::Outcome,
@@ -70,6 +70,7 @@ pub struct TargetInfo<'a> {
     pub pos: Vec3<f32>,
     pub ori: Option<&'a Ori>,
     pub char_state: Option<&'a CharacterState>,
+    pub energy: Option<&'a Energy>,
 }
 
 #[derive(Clone, Copy)]
@@ -135,12 +136,12 @@ impl Attack {
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
-        kind: DamageKind,
+        damage: Damage,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         let damage_reduction =
-            Damage::compute_damage_reduction(target.inventory, target.stats, Some(kind));
+            Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats);
         let block_reduction = match source {
             AttackSource::Melee => {
                 if let (Some(CharacterState::BasicBlock(data)), Some(ori)) =
@@ -223,7 +224,7 @@ impl Attack {
                 &target,
                 attack_source,
                 dir,
-                damage.damage.kind,
+                damage.damage,
                 &mut emit,
                 &mut emit_outcome,
             );
@@ -243,6 +244,58 @@ impl Attack {
                     entity: target.entity,
                     change,
                 });
+                match damage.damage.kind {
+                    DamageKind::Slashing => {
+                        // For slashing damage, reduce target energy by some fraction of applied
+                        // damage. When target would lose more energy than they have, deal an
+                        // equivalent amount of damage
+                        if let Some(target_energy) = target.energy {
+                            let energy_change = applied_damage * SLASHING_ENERGY_FRACTION;
+                            if energy_change > target_energy.current() {
+                                let health_change = HealthChange {
+                                    amount: -(energy_change - target_energy.current()),
+                                    by: attacker.map(|x| x.into()),
+                                    cause: Some(damage.damage.source),
+                                    time,
+                                };
+                                emit(ServerEvent::HealthChange {
+                                    entity: target.entity,
+                                    change: health_change,
+                                });
+                            }
+                            emit(ServerEvent::EnergyChange {
+                                entity: target.entity,
+                                change: -energy_change,
+                            });
+                        }
+                    },
+                    DamageKind::Crushing => {
+                        // For crushing damage, reduce target poise by some fraction of the amount
+                        // of damage that was reduced by target's protection
+                        // Damage reduction should never equal 1 here as otherwise the check above
+                        // that health change amount is greater than 0 would fail.
+                        let reduced_damage =
+                            applied_damage * damage_reduction / (1.0 - damage_reduction);
+                        let poise = reduced_damage * CRUSHING_POISE_FRACTION;
+                        let change = -Poise::apply_poise_reduction(poise, target.inventory);
+                        let poise_change = PoiseChange {
+                            amount: change,
+                            impulse: *dir,
+                            by: attacker.map(|x| x.into()),
+                            cause: Some(damage.damage.source),
+                            time,
+                        };
+                        if change.abs() > Poise::POISE_EPSILON {
+                            emit(ServerEvent::PoiseChange {
+                                entity: target.entity,
+                                change: poise_change,
+                            });
+                        }
+                    },
+                    // Piercing damage ignores some penetration, and is handled when damage
+                    // reduction is computed Energy is a placeholder damage type
+                    DamageKind::Piercing | DamageKind::Energy => {},
+                }
                 for effect in damage.effects.iter() {
                     match effect {
                         CombatEffect::Knockback(kb) => {
@@ -297,10 +350,16 @@ impl Attack {
                             let change = -Poise::apply_poise_reduction(*p, target.inventory)
                                 * strength_modifier;
                             if change.abs() > Poise::POISE_EPSILON {
+                                let poise_change = PoiseChange {
+                                    amount: change,
+                                    impulse: *dir,
+                                    by: attacker.map(|x| x.into()),
+                                    cause: Some(damage.damage.source),
+                                    time,
+                                };
                                 emit(ServerEvent::PoiseChange {
                                     entity: target.entity,
-                                    change,
-                                    kb_dir: *dir,
+                                    change: poise_change,
                                 });
                             }
                         },
@@ -434,10 +493,16 @@ impl Attack {
                         let change =
                             -Poise::apply_poise_reduction(p, target.inventory) * strength_modifier;
                         if change.abs() > Poise::POISE_EPSILON {
+                            let poise_change = PoiseChange {
+                                amount: change,
+                                impulse: *dir,
+                                by: attacker.map(|x| x.into()),
+                                cause: Some(attack_source.into()),
+                                time,
+                            };
                             emit(ServerEvent::PoiseChange {
                                 entity: target.entity,
-                                change,
-                                kb_dir: *dir,
+                                change: poise_change,
                             });
                         }
                     },
@@ -649,19 +714,36 @@ pub enum DamageSource {
     Other,
 }
 
+impl From<AttackSource> for DamageSource {
+    fn from(attack: AttackSource) -> Self {
+        match attack {
+            AttackSource::Melee => DamageSource::Melee,
+            AttackSource::Projectile => DamageSource::Projectile,
+            AttackSource::Explosion => DamageSource::Explosion,
+            AttackSource::Shockwave => DamageSource::Shockwave,
+            AttackSource::Beam => DamageSource::Energy,
+        }
+    }
+}
+
 /// DamageKind for the purpose of differentiating damage reduction
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DamageKind {
-    /// Arrows/Sword dash
+    /// Bypasses some protection from armor
     Piercing,
-    /// Swords/axes
+    /// Reduces energy of target, dealing additional damage when target energy
+    /// is 0
     Slashing,
-    /// Hammers
+    /// Deals additional poise damage the more armored the target is
     Crushing,
-    /// Staves/sceptres (TODO: differentiate further once there are more magic
-    /// weapons)
+    /// Catch all for remaining damage kinds (TODO: differentiate further with
+    /// staff/sceptre reworks
     Energy,
 }
+
+const PIERCING_PENETRATION_FRACTION: f32 = 1.0;
+const SLASHING_ENERGY_FRACTION: f32 = 1.0;
+const CRUSHING_POISE_FRACTION: f32 = 1.0;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -675,9 +757,9 @@ pub struct Damage {
 impl Damage {
     /// Returns the total damage reduction provided by all equipped items
     pub fn compute_damage_reduction(
+        damage: Option<Self>,
         inventory: Option<&Inventory>,
         stats: Option<&Stats>,
-        kind: Option<DamageKind>,
     ) -> f32 {
         let inventory_dr = if let Some(inventory) = inventory {
             let protection = inventory
@@ -696,12 +778,19 @@ impl Damage {
                 })
                 .sum::<Option<f32>>();
 
-            let kind_modifier = if matches!(kind, Some(DamageKind::Piercing)) {
-                0.75
+            let penetration = if let Some(damage) = damage {
+                if let DamageKind::Piercing = damage.kind {
+                    (damage.value * PIERCING_PENETRATION_FRACTION)
+                        .min(protection.unwrap_or(0.0))
+                        .max(0.0)
+                } else {
+                    0.0
+                }
             } else {
-                1.0
+                0.0
             };
-            let protection = protection.map(|dr| dr * kind_modifier);
+
+            let protection = protection.map(|p| p - penetration);
 
             const FIFTY_PERCENT_DR_THRESHOLD: f32 = 60.0;
 
@@ -971,7 +1060,7 @@ pub fn combat_rating(
     // Normalized with a standard max health of 100
     let health_rating = health.base_max()
         / 100.0
-        / (1.0 - Damage::compute_damage_reduction(Some(inventory), None, None)).max(0.00001);
+        / (1.0 - Damage::compute_damage_reduction(None, Some(inventory), None)).max(0.00001);
 
     // Normalized with a standard max energy of 100 and energy reward multiplier of
     // x1

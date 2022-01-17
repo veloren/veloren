@@ -139,9 +139,9 @@ impl StateExt for State {
                 let time = self.ecs().read_resource::<Time>();
                 let change = damage.calculate_health_change(
                     combat::Damage::compute_damage_reduction(
+                        Some(damage),
                         inventories.get(entity),
                         stats.get(entity),
-                        Some(damage.kind),
                     ),
                     damage_contributor,
                     false,
@@ -164,10 +164,24 @@ impl StateExt for State {
                     .get(entity)
                 {
                     if !character_state.is_stunned() {
+                        let groups = self.ecs().read_storage::<comp::Group>();
+                        let damage_contributor = source.and_then(|uid| {
+                            self.ecs().entity_from_uid(uid.0).map(|attacker_entity| {
+                                DamageContributor::new(uid, groups.get(attacker_entity).cloned())
+                            })
+                        });
+                        let time = self.ecs().read_resource::<Time>();
+                        let poise_change = comp::PoiseChange {
+                            amount: change,
+                            impulse: Vec3::zero(),
+                            cause: None,
+                            by: damage_contributor,
+                            time: *time,
+                        };
                         self.ecs()
                             .write_storage::<comp::Poise>()
                             .get_mut(entity)
-                            .map(|mut poise| poise.change_by(change, Vec3::zero()));
+                            .map(|mut poise| poise.change(poise_change));
                     }
                 }
             },

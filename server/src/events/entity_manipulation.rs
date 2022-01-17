@@ -48,14 +48,27 @@ enum DamageContrib {
     NotFound,
 }
 
-pub fn handle_poise(server: &Server, entity: EcsEntity, change: f32, knockback_dir: Vec3<f32>) {
+pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChange) {
     let ecs = &server.state.ecs();
     if let Some(character_state) = ecs.read_storage::<CharacterState>().get(entity) {
-        // Entity is invincible to poise change during stunned/staggered character state
-        if !character_state.is_stunned() {
-            if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
-                poise.change_by(change, knockback_dir);
-            }
+        // Entity is invincible to poise change during stunned/staggered character
+        // state, but the mitigated poise damage is converted to health damage instead
+        if let CharacterState::Stunned(data) = character_state {
+            let health_change = change.amount * data.static_data.poise_state.damage_multiplier();
+            let time = ecs.read_resource::<Time>();
+            let health_change = HealthChange {
+                amount: health_change,
+                by: None,
+                cause: None,
+                time: *time,
+            };
+            let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
+            server_eventbus.emit_now(ServerEvent::HealthChange {
+                entity,
+                change: health_change,
+            });
+        } else if let Some(mut poise) = ecs.write_storage::<Poise>().get_mut(entity) {
+            poise.change(change);
         }
     }
 }
@@ -512,6 +525,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
 
         let inventories = ecs.read_storage::<Inventory>();
         let stats = ecs.read_storage::<Stats>();
+        let time = server.state.ecs().read_resource::<Time>();
 
         // Handle health change
         if let Some(mut health) = ecs.write_storage::<comp::Health>().get_mut(entity) {
@@ -521,11 +535,10 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 value: falldmg,
             };
             let damage_reduction = Damage::compute_damage_reduction(
+                Some(damage),
                 inventories.get(entity),
                 stats.get(entity),
-                Some(DamageKind::Crushing),
             );
-            let time = server.state.ecs().read_resource::<Time>();
             let change =
                 damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time);
             health.change_by(change);
@@ -534,7 +547,14 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
             let poise_change = Poise::apply_poise_reduction(poise_damage, inventories.get(entity));
-            poise.change_by(poise_change, Vec3::unit_z());
+            let poise_change = comp::PoiseChange {
+                amount: poise_change,
+                impulse: Vec3::unit_z(),
+                by: None,
+                cause: None,
+                time: *time,
+            };
+            poise.change(poise_change);
         }
     }
 }
@@ -857,6 +877,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             pos: pos_b.0,
                             ori: ori_b_maybe,
                             char_state: char_state_b_maybe,
+                            energy: energies.get(entity_b),
                         };
 
                         // PvP check
@@ -1195,6 +1216,7 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
     let ecs = &server.state.ecs();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
     let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+    let time = ecs.read_resource::<Time>();
 
     if let (Some(mut char_state), Some(mut poise), Some(pos)) = (
         ecs.write_storage::<CharacterState>().get_mut(entity),
@@ -1206,11 +1228,13 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
             *char_state,
             CharacterState::SpriteInteract(_) | CharacterState::UseItem(_)
         ) {
-            let poise_state = comp::poise::PoiseState::Dazed;
+            let poise_state = comp::poise::PoiseState::Interrupted;
             let was_wielded = char_state.is_wield();
-            if let (Some(stunned_state), impulse_strength) = poise_state.poise_effect(was_wielded) {
+            if let (Some((stunned_state, stunned_duration)), impulse_strength) =
+                poise_state.poise_effect(was_wielded)
+            {
                 // Reset poise if there is some stunned state to apply
-                poise.reset();
+                poise.reset(*time, stunned_duration);
                 *char_state = stunned_state;
                 outcomes.push(Outcome::PoiseChange {
                     pos: pos.0,

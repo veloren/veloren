@@ -164,6 +164,7 @@ impl<'a> System<'a> for Sys {
                         pos: pos_b.0,
                         ori: read_data.orientations.get(target),
                         char_state: read_data.char_states.get(target),
+                        energy: read_data.energies.get(target),
                     };
 
                     // PvP check

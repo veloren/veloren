@@ -1,9 +1,11 @@
 use crate::{
+    combat::{DamageContributor, DamageSource},
     comp::{
         self,
         inventory::item::{armor::Protection, ItemKind},
         CharacterState, Inventory,
     },
+    resources::Time,
     states,
     util::Dir,
 };
@@ -12,6 +14,22 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{ops::Mul, time::Duration};
 use vek::*;
+
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub struct PoiseChange {
+    /// The amount of the poise change
+    pub amount: f32,
+    /// The direction that the poise change came from, used for when the target
+    /// is knocked down
+    pub impulse: Vec3<f32>,
+    /// The individual or group who caused the poise change (None if the
+    /// damage wasn't caused by an entity)
+    pub by: Option<DamageContributor>,
+    /// The category of action that resulted in the poise change
+    pub cause: Option<DamageSource>,
+    /// The time that the poise change occurred at
+    pub time: Time,
+}
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 /// Poise is represented by u32s within the module, but treated as a float by
@@ -36,6 +54,8 @@ pub struct Poise {
     pub last_change: Dir,
     /// Rate of poise regeneration per tick. Starts at zero and accelerates.
     pub regen_rate: f32,
+    /// Time that entity was last in a poise state
+    last_stun_time: Option<Time>,
 }
 
 /// States to define effects of a poise change
@@ -54,7 +74,9 @@ pub enum PoiseState {
 }
 
 impl PoiseState {
-    pub fn poise_effect(&self, was_wielded: bool) -> (Option<CharacterState>, Option<f32>) {
+    /// Returns the optional stunned character state and duration of stun, and
+    /// optional impulse strength corresponding to a particular poise state
+    pub fn poise_effect(&self, was_wielded: bool) -> (Option<(CharacterState, f64)>, Option<f32>) {
         use states::{
             stunned::{Data, StaticData},
             utils::StageSection,
@@ -64,38 +86,54 @@ impl PoiseState {
         let (charstate_parameters, impulse) = match self {
             PoiseState::Normal => (None, None),
             PoiseState::Interrupted => (
-                Some((Duration::from_millis(125), Duration::from_millis(125), 0.80)),
+                Some((Duration::from_millis(200), Duration::from_millis(200), 0.8)),
                 None,
             ),
             PoiseState::Stunned => (
-                Some((Duration::from_millis(300), Duration::from_millis(300), 0.65)),
-                Some(5.0),
+                Some((Duration::from_millis(400), Duration::from_millis(400), 0.5)),
+                None,
             ),
             PoiseState::Dazed => (
-                Some((Duration::from_millis(600), Duration::from_millis(250), 0.45)),
-                Some(10.0),
+                Some((Duration::from_millis(750), Duration::from_millis(450), 0.2)),
+                None,
             ),
             PoiseState::KnockedDown => (
-                Some((Duration::from_millis(750), Duration::from_millis(500), 0.4)),
+                Some((Duration::from_millis(1000), Duration::from_millis(600), 0.0)),
                 Some(10.0),
             ),
         };
         (
             charstate_parameters.map(|(buildup_duration, recover_duration, movement_speed)| {
-                CharacterState::Stunned(Data {
-                    static_data: StaticData {
-                        buildup_duration,
-                        recover_duration,
-                        movement_speed,
-                        poise_state: *self,
-                    },
-                    timer: Duration::default(),
-                    stage_section: StageSection::Buildup,
-                    was_wielded,
-                })
+                (
+                    CharacterState::Stunned(Data {
+                        static_data: StaticData {
+                            buildup_duration,
+                            recover_duration,
+                            movement_speed,
+                            poise_state: *self,
+                        },
+                        timer: Duration::default(),
+                        stage_section: StageSection::Buildup,
+                        was_wielded,
+                    }),
+                    buildup_duration.as_secs_f64() + recover_duration.as_secs_f64(),
+                )
             }),
             impulse,
         )
+    }
+
+    /// Returns the multiplier on poise damage to health damage for when the
+    /// target is in a poise state
+    pub fn damage_multiplier(&self) -> f32 {
+        match self {
+            Self::Interrupted => 0.1,
+            Self::Stunned => 0.25,
+            Self::Dazed => 0.5,
+            Self::KnockedDown => 1.0,
+            // Should never be reached
+            Self::Normal => 0.0,
+        }
     }
 }
 
@@ -107,6 +145,9 @@ impl Poise {
     /// can fit into an f32 with no loss to precision
     // Cast to u32 done as u32::from cannot be called inside constant
     const MAX_SCALED_POISE: u32 = Self::MAX_POISE as u32 * Self::SCALING_FACTOR_INT;
+    /// The amount of time after being in a poise state before you can take
+    /// poise damage again
+    const POISE_BUFFER_TIME: f64 = 1.0;
     /// Used when comparisons to poise are needed outside this module.
     // This value is chosen as anything smaller than this is more precise than our
     // units of poise.
@@ -146,17 +187,27 @@ impl Poise {
             maximum: poise,
             last_change: Dir::default(),
             regen_rate: 0.0,
+            last_stun_time: None,
         }
     }
 
-    pub fn change_by(&mut self, change: f32, impulse: Vec3<f32>) {
-        self.current = (((self.current() + change).clamp(0.0, f32::from(Self::MAX_POISE))
-            * Self::SCALING_FACTOR_FLOAT) as u32)
-            .min(self.maximum);
-        self.last_change = Dir::from_unnormalized(impulse).unwrap_or_default();
+    pub fn change(&mut self, change: PoiseChange) {
+        match self.last_stun_time {
+            Some(last_time) if last_time.0 + Poise::POISE_BUFFER_TIME > change.time.0 => {},
+            _ => {
+                self.current = (((self.current() + change.amount)
+                    .clamp(0.0, f32::from(Self::MAX_POISE))
+                    * Self::SCALING_FACTOR_FLOAT) as u32)
+                    .min(self.maximum);
+                self.last_change = Dir::from_unnormalized(change.impulse).unwrap_or_default();
+            },
+        }
     }
 
-    pub fn reset(&mut self) { self.current = self.maximum; }
+    pub fn reset(&mut self, time: Time, poise_state_time: f64) {
+        self.current = self.maximum;
+        self.last_stun_time = Some(Time(time.0 + poise_state_time));
+    }
 
     /// Returns knockback as a Dir
     /// Kept as helper function should additional fields ever be added to last
@@ -166,10 +217,10 @@ impl Poise {
     /// Defines the poise states based on current poise value
     pub fn poise_state(&self) -> PoiseState {
         match self.current() {
-            x if x > 70.0 => PoiseState::Normal,
-            x if x > 50.0 => PoiseState::Interrupted,
-            x if x > 40.0 => PoiseState::Stunned,
-            x if x > 20.0 => PoiseState::Dazed,
+            x if x > 50.0 => PoiseState::Normal,
+            x if x > 30.0 => PoiseState::Interrupted,
+            x if x > 15.0 => PoiseState::Stunned,
+            x if x > 5.0 => PoiseState::Dazed,
             _ => PoiseState::KnockedDown,
         }
     }

@@ -88,6 +88,7 @@ criterion = "0.3"
 
 #test
 tracing-subscriber = { version = "0.3.2", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
+petgraph = "0.5.1"
 
 [[bench]]
 name = "chonk_benchmark"

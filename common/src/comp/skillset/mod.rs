@@ -16,6 +16,8 @@ use tracing::{trace, warn};
 
 pub mod skills;
 
+#[cfg(test)] mod test;
+
 /// BTreeSet is used here to ensure that skills are ordered. This is important
 /// to ensure that the hash created from it is consistent so that we don't
 /// needlessly force a respec when loading skills from persistence.

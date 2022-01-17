@@ -2,6 +2,7 @@ use super::*;
 use crate::comp::{skillset::SkillPrerequisitesMap, Skill};
 use hashbrown::HashMap;
 
+// Unneeded cfg(test) here keeps rust-analyzer happy
 #[cfg(test)]
 use petgraph::{algo::is_cyclic_undirected, graph::UnGraph};
 
@@ -12,9 +13,7 @@ fn check_cyclic_skill_deps() {
     let mut graph = UnGraph::new_undirected();
     let mut nodes = HashMap::<Skill, _>::new();
     let mut add_node = |graph: &mut UnGraph<Skill, _>, node: Skill| {
-        *nodes
-            .entry(node.clone())
-            .or_insert_with(|| graph.add_node(node.clone()))
+        *nodes.entry(node).or_insert_with(|| graph.add_node(node))
     };
 
     for (skill, prereqs) in skill_prereqs.iter() {

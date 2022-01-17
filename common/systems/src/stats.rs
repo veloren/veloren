@@ -3,8 +3,8 @@ use common::{
     comp::{
         self,
         skills::{GeneralSkill, Skill},
-        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, Pos, SkillSet, Stats,
-        StatsModifier,
+        Body, CharacterState, Combo, Energy, Health, Inventory, Poise, PoiseChange, Pos, SkillSet,
+        Stats, StatsModifier,
     },
     event::{EventBus, ServerEvent},
     resources::{DeltaTime, EntitiesDiedLastTick, Time},
@@ -173,7 +173,14 @@ impl<'a> System<'a> for Sys {
 
                     if res_poise {
                         let poise = &mut *poise;
-                        poise.change_by(poise.regen_rate * dt, Vec3::zero());
+                        let poise_change = PoiseChange {
+                            amount: poise.regen_rate * dt,
+                            impulse: Vec3::zero(),
+                            by: None,
+                            cause: None,
+                            time: *read_data.time,
+                        };
+                        poise.change(poise_change);
                         poise.regen_rate = (poise.regen_rate + POISE_REGEN_ACCEL * dt).min(10.0);
                     }
                 },
