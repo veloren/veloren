@@ -105,7 +105,7 @@ impl<'a> System<'a> for Sys {
             vel,
             ori,
             mass,
-            mut density,
+            density,
             energy,
             inventory,
             controller,
@@ -180,7 +180,7 @@ impl<'a> System<'a> for Sys {
                 vel,
                 ori,
                 mass,
-                density: &mut density,
+                density,
                 energy,
                 inventory,
                 controller,
@@ -241,12 +241,17 @@ impl Sys {
         // TODO: if checking equality is expensive use optional field in StateUpdate
         if *join.char_state != state_update.character {
             *join.char_state = state_update.character
+        }
+        if *join.density != state_update.density {
+            *join.density = state_update.density
+        }
+        if *join.energy != state_update.energy {
+            *join.energy = state_update.energy;
         };
+
         *join.pos = state_update.pos;
         *join.vel = state_update.vel;
         *join.ori = state_update.ori;
-        *join.density = state_update.density;
-        *join.energy = state_update.energy;
         join.controller
             .queued_inputs
             .append(&mut state_update.queued_inputs);

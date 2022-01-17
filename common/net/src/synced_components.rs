@@ -50,11 +50,14 @@ macro_rules! synced_components {
             // ServerGeneral::InventoryUpdate so we could use that instead
             // or remove the part where it clones the inventory.
             inventory: Inventory,
+            // TODO: this is used in combat rating calculation in voxygen but we can probably
+            // remove it from that and then see if it's used for anything else and try to move
+            // to only being synced for the client's entity.
+            skill_set: SkillSet,
 
             // Synced to the client only for its own entity
 
             combo: Combo,
-            skill_set: SkillSet,
             active_abilities: ActiveAbilities,
             can_build: CanBuild,
         }
@@ -193,13 +196,13 @@ impl NetSync for Inventory {
     const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
 }
 
+impl NetSync for SkillSet {
+    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+}
+
 // SyncFrom::ClientEntity
 
 impl NetSync for Combo {
-    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
-}
-
-impl NetSync for SkillSet {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
 }
 

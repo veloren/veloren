@@ -4,7 +4,7 @@ use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::ops::Mul;
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 /// Energy is represented by u32s within the module, but treated as a float by
 /// the rest of the game.
 // As a general rule, all input and output values to public functions should be
