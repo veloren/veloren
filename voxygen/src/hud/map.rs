@@ -42,8 +42,6 @@ widget_ids! {
         mmap_poi_titles[],
         peaks_txt,
         peaks_txt_bg,
-        biomes_txt,
-        biomes_txt_bg,
         site_difs[],
         member_indicators[],
         member_height_indicators[],
