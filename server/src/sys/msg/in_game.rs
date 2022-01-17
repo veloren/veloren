@@ -7,6 +7,8 @@ use common::{
         Vel,
     },
     event::{EventBus, ServerEvent},
+    link::Is,
+    mounting::Rider,
     resources::PlayerPhysicsSettings,
     terrain::TerrainGrid,
     vol::ReadVol,
@@ -32,6 +34,7 @@ impl Sys {
         maybe_presence: &mut Option<&mut Presence>,
         terrain: &ReadExpect<'_, TerrainGrid>,
         can_build: &ReadStorage<'_, CanBuild>,
+        is_rider: &ReadStorage<'_, Is<Rider>>,
         force_updates: &ReadStorage<'_, ForceUpdate>,
         skill_sets: &mut WriteStorage<'_, SkillSet>,
         healths: &ReadStorage<'_, Health>,
@@ -119,6 +122,7 @@ impl Sys {
                 if matches!(presence.kind, PresenceKind::Character(_))
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
+                    && is_rider.get(entity).is_none()
                     && player_physics_setting
                         .as_ref()
                         .map_or(true, |s| s.client_authoritative())
@@ -307,6 +311,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, TerrainGrid>,
         ReadStorage<'a, CanBuild>,
         ReadStorage<'a, ForceUpdate>,
+        ReadStorage<'a, Is<Rider>>,
         WriteStorage<'a, SkillSet>,
         ReadStorage<'a, Health>,
         Write<'a, BlockChange>,
@@ -336,6 +341,7 @@ impl<'a> System<'a> for Sys {
             terrain,
             can_build,
             force_updates,
+            is_rider,
             mut skill_sets,
             healths,
             mut block_changes,
@@ -372,6 +378,7 @@ impl<'a> System<'a> for Sys {
                     &mut maybe_presence.as_deref_mut(),
                     &terrain,
                     &can_build,
+                    &is_rider,
                     &force_updates,
                     &mut skill_sets,
                     &healths,
