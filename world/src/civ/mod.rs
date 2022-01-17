@@ -197,31 +197,36 @@ impl Civs {
 
             let mut rng = ctx.reseed().rng;
             let site = index.sites.insert(match &sim_site.kind {
-                SiteKind::Settlement => {
-                    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Castle => {
-                    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
-                },
-                SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Tree => {
-                    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
-                },
-                SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
-                    &Land::from_sim(ctx.sim),
-                    &mut rng,
-                    wpos,
-                )),
-                SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
+                //SiteKind::Settlement => {
+                //    WorldSite::settlement(Settlement::generate(wpos, Some(ctx.sim), &mut rng))
+                //},
+                //SiteKind::Dungeon => WorldSite::dungeon(site2::Site::generate_dungeon(
+                //    &Land::from_sim(ctx.sim),
+                //    &mut rng,
+                //    wpos,
+                //)),
+                //SiteKind::Castle => {
+                //    WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
+                //},
+                //SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
+                //    &Land::from_sim(ctx.sim),
+                //    &mut rng,
+                //    wpos,
+                //)),
+                //SiteKind::Tree => {
+                //    WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
+                //},
+                //SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
+                //    &Land::from_sim(ctx.sim),
+                //    &mut rng,
+                //    wpos,
+                //)),
+                //SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
+                //    &Land::from_sim(ctx.sim),
+                //    &mut rng,
+                //    wpos,
+                //)),
+                _ => WorldSite::gnarling(site2::Site::generate_gnarling(
                     &Land::from_sim(ctx.sim),
                     &mut rng,
                     wpos,

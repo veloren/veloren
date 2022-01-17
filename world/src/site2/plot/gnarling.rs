@@ -5,8 +5,10 @@ use common::{
     terrain::{Structure as PrefabStructure, StructuresGroup},
 };
 use inline_tweak::tweak;
+use kiddo::{distance::squared_euclidean, KdTree};
 use lazy_static::lazy_static;
 use rand::prelude::*;
+use std::collections::HashMap;
 use vek::*;
 
 pub struct GnarlingFortification {
@@ -20,6 +22,14 @@ pub struct GnarlingFortification {
     // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
     // to origin, ori tells which way structure should face
     structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Ori)>,
+    tunnels: Tunnels,
+}
+
+struct Tunnels {
+    start: Vec3<i32>,
+    end: Vec3<i32>,
+    branches: Vec<(Vec3<i32>, Vec3<i32>)>,
+    terminals: Vec<Vec3<i32>>,
 }
 
 enum GnarlingStructure {
@@ -63,6 +73,39 @@ impl GnarlingFortification {
         };
 
         let radius = wall_radius + 50;
+
+        // Tunnels
+        let alt = land.get_alt_approx(wpos) as i32;
+        let start = wpos.with_z(alt - 8);
+        let boss_room_shift = rng.gen_range(70..radius);
+        let end_xy = match rng.gen_range(0..4) {
+            0 => Vec2::new(start.x + boss_room_shift, start.y + boss_room_shift),
+            1 => Vec2::new(start.x - boss_room_shift, start.y + boss_room_shift),
+            2 => Vec2::new(start.x - boss_room_shift, start.y - boss_room_shift),
+            3 => Vec2::new(start.x + boss_room_shift, start.y - boss_room_shift),
+            // Unreachable
+            _ => unreachable!(),
+        };
+
+        let is_underground = |pos: Vec3<i32>| land.get_alt_approx(pos.xy()) as i32 - 10 > pos.z;
+        let mut end = end_xy.with_z(start.z - 20);
+        for i in 1..31 {
+            let new_z = start.z - (i * 20);
+            if is_underground(end_xy.with_z(new_z + 35)) {
+                end = end_xy.with_z(new_z);
+                break;
+            }
+        }
+
+        let (branches, terminals) =
+            rrt(start, end, is_underground, rng).unwrap_or((Vec::new(), Vec::new()));
+
+        let tunnels = Tunnels {
+            start,
+            end,
+            branches,
+            terminals,
+        };
 
         let num_points = (wall_radius / 15).max(5);
         let outer_wall_corners = (0..num_points)
@@ -262,6 +305,7 @@ impl GnarlingFortification {
             wall_towers,
             wall_segments,
             structure_locations,
+            tunnels,
         }
     }
 
@@ -281,6 +325,36 @@ impl GnarlingFortification {
             min: rpos,
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
         };
+
+        for terminal in &self.tunnels.terminals {
+            if area.contains_point(terminal.xy() - self.origin) {
+                let chance = dynamic_rng.gen_range(0..10);
+                match chance {
+                    0..=4 => supplement.add_entity(mandragora(*terminal, dynamic_rng)),
+                    5 => {
+                        supplement.add_entity(mandragora(*terminal, dynamic_rng));
+                        supplement.add_entity(mandragora(*terminal, dynamic_rng));
+                    },
+                    6 => supplement.add_entity(deadwood(*terminal, dynamic_rng)),
+                    7 => {
+                        supplement.add_entity(mandragora(*terminal, dynamic_rng));
+                        supplement.add_entity(deadwood(*terminal, dynamic_rng));
+                    },
+                    8 => {
+                        supplement.add_entity(mandragora(*terminal, dynamic_rng));
+                        supplement.add_entity(mandragora(*terminal, dynamic_rng));
+                        supplement.add_entity(mandragora(*terminal, dynamic_rng));
+                    },
+                    _ => {},
+                }
+            }
+        }
+        if area.contains_point(self.tunnels.end.xy() - self.origin) {
+            supplement.add_entity(harvester_boss(
+                self.tunnels.end + Vec2::new(5, 5) - 12 * Vec3::unit_z(),
+                dynamic_rng,
+            ));
+        }
 
         for (loc, pos, ori) in &self.structure_locations {
             let wpos = *pos + self.origin;
@@ -1224,6 +1298,200 @@ impl Structure for GnarlingFortification {
                     },
                 }
             });
+
+        // Create tunnels beneath the fortification
+        let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8)));
+        let alt = land.get_alt_approx(self.origin) as i32;
+        let entrance = painter.cylinder(Aabb {
+            min: Vec3::new(self.tunnels.start.x - 3, self.tunnels.start.y - 3, alt),
+            max: Vec3::new(
+                self.tunnels.start.x + 3 + 1,
+                self.tunnels.start.y + 3 + 1,
+                alt + 5,
+            ),
+        });
+        let entrance_hollow = painter.cylinder(Aabb {
+            min: Vec3::new(
+                self.tunnels.start.x - 2,
+                self.tunnels.start.y - 2,
+                self.tunnels.start.z,
+            ),
+            max: Vec3::new(
+                self.tunnels.start.x + 2 + 1,
+                self.tunnels.start.y + 2 + 1,
+                alt + 4,
+            ),
+        });
+        let entrance_door = painter.aabb(Aabb {
+            min: Vec3::new(self.tunnels.start.x - 1, self.tunnels.start.y, alt),
+            max: Vec3::new(
+                self.tunnels.start.x + 1 + 1,
+                self.tunnels.start.y + 3 + 1,
+                alt + 4,
+            ),
+        });
+        entrance.fill(wood);
+        entrance_hollow.clear();
+        entrance_door.clear();
+
+        let boss_room = painter
+            .sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 5,
+                    self.tunnels.end.y + 5,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 5,
+                    self.tunnels.end.y + 5,
+                    self.tunnels.end.z,
+                ) + 15,
+            })
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 10,
+                    self.tunnels.end.y + 5,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 10,
+                    self.tunnels.end.y + 5,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 5,
+                    self.tunnels.end.y + 10,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 5,
+                    self.tunnels.end.y + 10,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 10,
+                    self.tunnels.end.y + 10,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 10,
+                    self.tunnels.end.y + 10,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 15,
+                    self.tunnels.end.y + 15,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 15,
+                    self.tunnels.end.y + 15,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 15,
+                    self.tunnels.end.y + 10,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 15,
+                    self.tunnels.end.y + 10,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 10,
+                    self.tunnels.end.y + 15,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 10,
+                    self.tunnels.end.y + 15,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 5,
+                    self.tunnels.end.y + 15,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 5,
+                    self.tunnels.end.y + 15,
+                    self.tunnels.end.z,
+                ) + 15,
+            }))
+            .union(painter.sphere(Aabb {
+                min: Vec3::new(
+                    self.tunnels.end.x + 15,
+                    self.tunnels.end.y + 5,
+                    self.tunnels.end.z,
+                ) - 15,
+                max: Vec3::new(
+                    self.tunnels.end.x + 15,
+                    self.tunnels.end.y + 5,
+                    self.tunnels.end.z,
+                ) + 15,
+            }));
+
+        //let mut tunnels = painter.prim(Primitive::Empty);
+        for branch in self.tunnels.branches.iter() {
+            let tunnel = painter.line(branch.0, branch.1, 4.0);
+            tunnel.clear();
+        }
+        for terminal in self.tunnels.terminals.iter() {
+            let room = painter.sphere(Aabb {
+                min: terminal - 7,
+                max: terminal + 7 + 1,
+            });
+            room.clear();
+
+            // Chest
+            let chest_seed = terminal.magnitude_squared() % 5;
+            if chest_seed < 4 {
+                let chest_pos = Vec3::new(terminal.x, terminal.y - 4, terminal.z - 6);
+                painter.fill(
+                    painter.aabb(Aabb {
+                        min: chest_pos,
+                        max: chest_pos + 1,
+                    }),
+                    Fill::Block(Block::air(SpriteKind::DungeonChest0).with_ori(4).unwrap()),
+                );
+                if chest_seed < 2 {
+                    let chest_pos = Vec3::new(terminal.x, terminal.y + 4, terminal.z - 6);
+                    painter.fill(
+                        painter.aabb(Aabb {
+                            min: chest_pos,
+                            max: chest_pos + 1,
+                        }),
+                        Fill::Block(Block::air(SpriteKind::DungeonChest0).with_ori(0).unwrap()),
+                    );
+                    if chest_seed < 1 {
+                        let chest_pos = Vec3::new(terminal.x - 4, terminal.y, terminal.z - 6);
+                        painter.fill(
+                            painter.aabb(Aabb {
+                                min: chest_pos,
+                                max: chest_pos + 1,
+                            }),
+                            Fill::Block(Block::air(SpriteKind::DungeonChest0).with_ori(2).unwrap()),
+                        );
+                    }
+                }
+            }
+        }
+        // Clear boss room afterwards as a terminal may end up in the same volume due to
+        // the size of the boss room
+        boss_room.clear();
     }
 }
 
@@ -1273,4 +1541,110 @@ fn wood_golem<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 fn harvester_boss<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     EntityInfo::at(pos.map(|x| x as f32))
         .with_asset_expect("common.entity.dungeon.gnarling.harvester", rng)
+}
+
+fn rrt<F>(
+    start: Vec3<i32>,
+    end: Vec3<i32>,
+    is_valid_point: F,
+    rng: &mut impl Rng,
+) -> Option<(Vec<(Vec3<i32>, Vec3<i32>)>, Vec<Vec3<i32>>)>
+where
+    F: Fn(Vec3<i32>) -> bool,
+{
+    let mut nodes = Vec::new();
+    let mut node_index: usize = 0;
+
+    // HashMap<ChildNode, ParentNode>
+    let mut parents = HashMap::new();
+
+    let mut kdtree = KdTree::new();
+    let start = start.map(|a| (a + 1) as f32);
+    let end = end.map(|a| (a + 1) as f32);
+
+    let min_x = start.x.min(end.x);
+    let max_x = start.x.max(end.x);
+    let min_y = start.y.min(end.y);
+    let max_y = start.y.max(end.y);
+    let min_z = start.z.min(end.z);
+    let max_z = start.z.max(end.z);
+
+    kdtree.add(&[start.x, start.y, start.z], node_index).ok()?;
+    nodes.push(start);
+    node_index += 1;
+    let mut connect = false;
+
+    for _i in 0..7000 {
+        let radius: f32 = rng.gen_range(12.0..22.0);
+        let radius_sqrd = radius.powi(2);
+        if connect {
+            break;
+        }
+        let sampled_point = Vec3::new(
+            rng.gen_range(min_x - 20.0..max_x + 20.0),
+            rng.gen_range(min_y - 20.0..max_y + 20.0),
+            rng.gen_range(min_z - 5.0..max_z - 7.0),
+        );
+        let nearest_index = *kdtree
+            .nearest_one(
+                &[sampled_point.x, sampled_point.y, sampled_point.z],
+                &squared_euclidean,
+            )
+            .ok()?
+            .1 as usize;
+        let nearest = nodes[nearest_index];
+        let dist_sqrd = sampled_point.distance_squared(nearest);
+        let new_point = if dist_sqrd > radius_sqrd {
+            nearest + (sampled_point - nearest).normalized().map(|a| a * radius)
+        } else {
+            sampled_point
+        };
+        if is_valid_point(new_point.map(|e| e.floor() as i32)) {
+            kdtree
+                .add(&[new_point.x, new_point.y, new_point.z], node_index)
+                .ok()?;
+            nodes.push(new_point);
+            parents.insert(node_index, nearest_index);
+            node_index += 1;
+        }
+        if new_point.distance_squared(end) < radius.powi(2) {
+            connect = true;
+        }
+    }
+
+    let mut path = Vec::new();
+    let nearest_index = *kdtree
+        .nearest_one(&[end.x, end.y, end.z], &squared_euclidean)
+        .ok()?
+        .1 as usize;
+    kdtree.add(&[end.x, end.y, end.z], node_index).ok()?;
+    nodes.push(end);
+    parents.insert(node_index, nearest_index);
+    path.push(end);
+    let mut current_node_index = node_index;
+    while current_node_index > 0 {
+        current_node_index = *parents.get(&current_node_index).unwrap();
+        path.push(nodes[current_node_index]);
+    }
+    path.reverse();
+
+    let mut terminals = Vec::new();
+    let last = nodes.len() - 1;
+    for (node_id, node_pos) in nodes.iter().enumerate() {
+        if !parents.values().any(|e| e == &node_id) && node_id != 0 && node_id != last {
+            terminals.push(node_pos.map(|e| e.floor() as i32));
+        }
+    }
+
+    let branches = parents
+        .iter()
+        .map(|(a, b)| {
+            (
+                nodes[*a].map(|e| e.floor() as i32),
+                nodes[*b].map(|e| e.floor() as i32),
+            )
+        })
+        .collect::<Vec<(Vec3<i32>, Vec3<i32>)>>();
+
+    Some((branches, terminals))
 }

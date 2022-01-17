@@ -7,5 +7,7 @@ EntityConfig (
 
     hands: Uninit,
 
-    meta: [],
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.gnarling.mandragora"),
+    ],
 )
