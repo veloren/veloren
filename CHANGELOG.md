@@ -38,6 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Position of abilities on hotbar is now persisted through the server
 - Interation hints now appear for sprites and entities
 - Players can now mount and ride pets
+- Experimental shaders, that can be enabled in Voxygen's settings (see the book for more information)
 
 ### Changed
 
