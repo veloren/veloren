@@ -1,4 +1,4 @@
-use crate::sync;
+use crate::sync::{self, NetSync};
 use common::comp;
 use serde::{Deserialize, Serialize};
 use std::marker::PhantomData;
@@ -30,7 +30,8 @@ macro_rules! comp_packet {
 
             fn apply_insert(self, entity: specs::Entity, world: &specs::World, force_update: bool) {
                 match self {
-                    $(Self::$component_type(comp) => {
+                    $(Self::$component_type(mut comp) => {
+                        comp.pre_insert(world);
                         sync::handle_insert(comp, entity, world);
                     },)*
                     Self::Pos(comp) => {
@@ -47,7 +48,8 @@ macro_rules! comp_packet {
 
             fn apply_modify(self, entity: specs::Entity, world: &specs::World, force_update: bool) {
                 match self {
-                    $(Self::$component_type(comp) => {
+                    $(Self::$component_type(mut comp) => {
+                        comp.pre_modify(world);
                         sync::handle_modify(comp, entity, world);
                     },)*
                     Self::Pos(comp) => {
