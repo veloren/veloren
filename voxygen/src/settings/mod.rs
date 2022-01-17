@@ -128,4 +128,14 @@ impl Settings {
     }
 
     fn get_path(config_dir: &Path) -> PathBuf { config_dir.join("settings.ron") }
+
+    pub fn display_warnings(&self) {
+        if !self.graphics.render_mode.experimental_shaders.is_empty() {
+            warn!(
+                "One or more experimental shaders are enabled, all rendering guarantees are off. \
+                 Experimental shaders may be unmaintained, mutually-incompatible, entirely \
+                 broken, or may cause your GPU to explode. You have been warned!"
+            );
+        }
+    }
 }

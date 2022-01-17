@@ -143,7 +143,7 @@ impl ShaderModules {
         let shadows = shaders.get("include.shadows").unwrap();
 
         // We dynamically add extra configuration settings to the constants file.
-        let constants = format!(
+        let mut constants = format!(
             r#"
 {}
 
@@ -180,6 +180,13 @@ impl ShaderModules {
                 ShadowMode::Cheap | ShadowMode::Map(_) => "SHADOW_MODE_CHEAP",
             },
         );
+
+        for shader in pipeline_modes.experimental_shaders.iter() {
+            constants += &format!(
+                "#define EXPERIMENTAL_{}\n",
+                format!("{:?}", shader).to_uppercase()
+            );
+        }
 
         let constants = match pipeline_modes.bloom {
             BloomMode::Off => constants,
