@@ -40,12 +40,10 @@ macro_rules! synced_components {
             shockwave: Shockwave,
             beam_segment: BeamSegment,
             alignment: Alignment,
-            // TODO: evaluate if this can be `FromClient`
-            combo: Combo,
             // TODO: evaluate if this is used on the client,
             // and if so what it is used for
             player: Player,
-            // TODO: change this to FromClient and sync the bare minimum
+            // TODO: change this to `SyncFrom::ClientEntity` and sync the bare minimum
             // from other entities (e.g. just keys needed to show appearance
             // based on their loadout). Also, it looks like this actually has
             // an alternative sync method implemented in entity_sync via
@@ -55,6 +53,7 @@ macro_rules! synced_components {
 
             // Synced to the client only for its own entity
 
+            combo: Combo,
             skill_set: SkillSet,
             active_abilities: ActiveAbilities,
             can_build: CanBuild,
@@ -186,16 +185,18 @@ impl NetSync for Alignment {
     const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
 }
 
-impl NetSync for Combo {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
-}
-
 impl NetSync for Player {
     const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
 }
 
 impl NetSync for Inventory {
     const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+}
+
+// SyncFrom::ClientEntity
+
+impl NetSync for Combo {
+    const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
 }
 
 impl NetSync for SkillSet {
