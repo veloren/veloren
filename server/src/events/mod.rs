@@ -15,9 +15,9 @@ use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
     handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
-    handle_possess, handle_sound, handle_unmount, update_lantern,
+    handle_possess, handle_sound, handle_unmount,
 };
-use inventory_manip::handle_inventory;
+use inventory_manip::{handle_inventory, swap_lantern};
 use invite::{handle_invite, handle_invite_response};
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
@@ -107,9 +107,14 @@ impl Server {
                 },
                 ServerEvent::EnableLantern(entity) => handle_lantern(self, entity, true),
                 ServerEvent::DisableLantern(entity) => handle_lantern(self, entity, false),
-                ServerEvent::UpdateLantern(entity, lantern) => {
-                    update_lantern(self, entity, lantern)
-                },
+                ServerEvent::UpdateLantern(entity, lantern) => swap_lantern(
+                    &mut self
+                        .state
+                        .ecs()
+                        .write_storage::<common::comp::LightEmitter>(),
+                    entity,
+                    &lantern,
+                ),
                 ServerEvent::NpcInteract(interactor, target) => {
                     handle_npc_interaction(self, interactor, target)
                 },

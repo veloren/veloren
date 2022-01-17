@@ -1234,7 +1234,7 @@ impl PlayState for SessionState {
                         bypass_dialog,
                     } => {
                         let mut move_allowed = true;
-                        let mut maybe_lantern: Option<comp::item::Lantern> = None;
+                        let mut lantern_opt: Option<comp::item::Lantern> = None;
                         if !bypass_dialog {
                             if let Some(inventory) = self
                                 .client
@@ -1248,7 +1248,7 @@ impl PlayState for SessionState {
                                     (Slot::Inventory(inv_slot), Slot::Equip(equip_slot))
                                     | (Slot::Equip(equip_slot), Slot::Inventory(inv_slot)) => {
                                         if let EquipSlot::Lantern = equip_slot {
-                                            maybe_lantern =
+                                            lantern_opt =
                                                 inventory.get(inv_slot).and_then(|item| {
                                                     if let comp::item::ItemKind::Lantern(l) =
                                                         item.kind()
@@ -1289,10 +1289,10 @@ impl PlayState for SessionState {
                             }
                         }
                         if move_allowed {
-                            if let Some(new_lantern) = maybe_lantern {
-                                self.client.borrow_mut().update_lantern(new_lantern);
-                            }
                             self.client.borrow_mut().swap_slots(slot_a, slot_b);
+                            if let Some(lantern) = lantern_opt {
+                                self.client.borrow_mut().update_lantern(lantern)
+                            }
                         }
                     },
                     HudEvent::SplitSwapSlots {

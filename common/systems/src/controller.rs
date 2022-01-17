@@ -72,7 +72,7 @@ impl<'a> System<'a> for Sys {
                         server_emitter.emit(ServerEvent::DisableLantern(entity))
                     },
                     ControlEvent::UpdateLantern(lantern) => {
-                        server_emitter.emit(ServerEvent::UpdateLantern(entity, lantern));
+                        server_emitter.emit(ServerEvent::UpdateLantern(entity, lantern))
                     },
                     ControlEvent::Interact(npc_uid) => {
                         if let Some(npc_entity) = read_data
