@@ -46,7 +46,7 @@ impl GnarlingStructure {
         match (self, other) {
             (Self::Hut, Self::Hut) => 15,
             (_, Self::Longhut) | (Self::Longhut, _) => 25,
-            (_, Self::Banner) | (Self::Banner, _) => 10,
+            (_, Self::Banner) | (Self::Banner, _) => 15,
 
             (Self::Hut, Self::Totem) | (Self::Totem, Self::Hut) => 20,
             (Self::Totem, Self::Totem) => 50,
@@ -175,7 +175,7 @@ impl GnarlingFortification {
                 let structure_kind = match rng.gen_range(0..10) {
                     0 => GnarlingStructure::Totem,
                     1..=3 => GnarlingStructure::Longhut,
-                    //3..=8 => GnarlingStructure::Banner,
+                    4..=5 => GnarlingStructure::Banner,
                     _ => GnarlingStructure::Hut,
                 };
 
@@ -541,13 +541,50 @@ impl Structure for GnarlingFortification {
                 .prim(Primitive::cylinder(
                     tower_base_pos,
                     tower_radius,
-                    tower_depth as f32 + tower_height,
+                    tower_depth as f32 + tower_height - 5.0,
                 ))
                 .fill(Fill::Block(Block::new(
                     BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
+                    Rgb::new(55, 25, 8), //dark brown
                 )));
-
+            painter
+                .prim(Primitive::cylinder(
+                    wpos.with_z(
+                        land.get_alt_approx(wpos) as i32 - tower_depth
+                            + tower_depth as i32
+                            + tower_height as i32
+                            - 5,
+                    ),
+                    tower_radius,
+                    5.0,
+                ))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(115, 58, 26), //light brown
+                )));
+            painter
+                .prim(Primitive::cylinder(tower_base_pos, tower_radius + 1.0, 5.0))
+                .fill(Fill::Block(Block::new(
+                    BlockKind::Wood,
+                    Rgb::new(22, 36, 20), //green
+                )));
+            let red_deco1 = painter.aabb(Aabb {
+                min: Vec2::new(wpos.x - 5, wpos.y - 1)
+                    .with_z(land.get_alt_approx(wpos) as i32 - tower_depth),
+                max: Vec2::new(wpos.x + 5, wpos.y + 1)
+                    .with_z(land.get_alt_approx(wpos) as i32 - tower_depth + 16),
+            });
+            let red_deco2 = painter.aabb(Aabb {
+                min: Vec2::new(wpos.x - 1, wpos.y - 5)
+                    .with_z(land.get_alt_approx(wpos) as i32 - tower_depth),
+                max: Vec2::new(wpos.x + 1, wpos.y + 5)
+                    .with_z(land.get_alt_approx(wpos) as i32 - tower_depth + 16),
+            });
+            let red_deco = red_deco1.union(red_deco2);
+            red_deco.fill(Fill::Block(Block::new(
+                BlockKind::Wood,
+                Rgb::new(102, 31, 24), //red
+            )));
             // Tower cylinder
             let tower_floor_pos = wpos.with_z(land.get_alt_approx(wpos) as i32);
 
@@ -645,11 +682,46 @@ impl Structure for GnarlingFortification {
 
                     // Wall
                     let floor_pos = wpos.with_z(alt + 1);
+                    //alternating colors for ring pattern on ceiling
                     painter
-                        .prim(Primitive::cylinder(floor_pos, hut_radius, hut_wall_height))
+                        .prim(Primitive::cylinder(
+                            floor_pos,
+                            hut_radius,
+                            hut_wall_height + 3.0,
+                        ))
                         .fill(Fill::Block(Block::new(
                             BlockKind::Wood,
-                            Rgb::new(115, 58, 26),
+                            Rgb::new(71, 33, 11),
+                        )));
+                    painter
+                        .prim(Primitive::cylinder(
+                            floor_pos,
+                            hut_radius - 1.0,
+                            hut_wall_height + 3.0,
+                        ))
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
+                        )));
+                    painter
+                        .prim(Primitive::cylinder(
+                            floor_pos,
+                            hut_radius - 2.0,
+                            hut_wall_height + 3.0,
+                        ))
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(71, 33, 11),
+                        )));
+                    painter
+                        .prim(Primitive::cylinder(
+                            floor_pos,
+                            hut_radius - 3.0,
+                            hut_wall_height + 3.0,
+                        ))
+                        .fill(Fill::Block(Block::new(
+                            BlockKind::Wood,
+                            Rgb::new(55, 25, 8),
                         )));
                     painter
                         .prim(Primitive::cylinder(
@@ -689,26 +761,55 @@ impl Structure for GnarlingFortification {
                     let roof_radius = hut_radius + roof_overhang;
                     painter
                         .prim(Primitive::cone(
-                            wpos.with_z(alt + 1 + hut_wall_height as i32),
-                            roof_radius,
-                            roof_height,
+                            wpos.with_z(alt + 3 + hut_wall_height as i32),
+                            roof_radius - 1.0,
+                            roof_height - 1.0,
                         ))
                         .fill(Fill::Block(Block::new(
                             BlockKind::Leaves,
                             Rgb::new(22, 36, 20),
                         )));
+                    //small bits handing from huts
+                    let tendril1 = painter.line(
+                        Vec2::new(wpos.x - 3, wpos.y - 5).with_z(alt + 1 + hut_wall_height as i32),
+                        Vec2::new(wpos.x - 3, wpos.y - 5).with_z(alt + 3 + hut_wall_height as i32),
+                        1.0,
+                    );
+
+                    let tendril2 = painter.line(
+                        Vec2::new(wpos.x + 4, wpos.y + 2).with_z(alt + 2 + hut_wall_height as i32),
+                        Vec2::new(wpos.x + 4, wpos.y + 2).with_z(alt + 3 + hut_wall_height as i32),
+                        1.0,
+                    );
+
+                    let tendril3 = tendril2.translate(Vec3::new(-7, 2, 0));
+                    let tendril4 = tendril1.translate(Vec3::new(7, 4, 0));
+                    let tendrils = tendril1.union(tendril2).union(tendril3).union(tendril4);
+
+                    tendrils.fill(Fill::Block(Block::new(
+                        BlockKind::Leaves,
+                        Rgb::new(22, 36, 20),
+                    )));
+                    //sphere to delete some hut
+                    painter
+                        .prim(Primitive::sphere(
+                            Vec2::new(wpos.x + 1, wpos.y + 2)
+                                .with_z(alt + 11 + hut_wall_height as i32),
+                            8.5 as f32,
+                        ))
+                        .fill(Fill::Block(Block::empty()));
                 }
 
                 fn generate_longhut(
                     painter: &Painter,
                     wpos: Vec2<i32>,
                     alt: i32,
-                    door_dir: Ori,
+                    _door_dir: Ori,
                     hut_radius: f32,
-                    hut_wall_height: f32,
-                    door_height: i32,
+                    _hut_wall_height: f32,
+                    _door_height: i32,
                     roof_height: f32,
-                    roof_overhang: f32,
+                    _roof_overhang: f32,
                 ) {
                     // Floor
                     let raise = 5;
@@ -904,7 +1005,7 @@ impl Structure for GnarlingFortification {
                                 .with_z(alt + raise + height_1 as i32 + 7),
                         })
                         .fill(Fill::Block(Block::empty()));
-                    let rafter = painter
+                    painter
                         .aabb(Aabb {
                             min: Vec2::new(wpos.x - 15, wpos.y - 1)
                                 .with_z(alt + raise + height_1 as i32 - 3),
@@ -943,7 +1044,7 @@ impl Structure for GnarlingFortification {
                             BlockKind::Leaves,
                             Rgb::new(55, 25, 8),
                         )));
-                    let color = painter
+                    painter
                         .aabb(Aabb {
                             min: Vec2::new(wpos.x - 1, wpos.y - 15)
                                 .with_z(alt + raise + height_1 as i32 - 3),
@@ -1054,39 +1155,75 @@ impl Structure for GnarlingFortification {
                     },
 
                     GnarlingStructure::Banner => {
-                        painter
-                            .aabb(Aabb {
-                                min: (wpos - 1).with_z(alt - 3),
-                                max: (wpos).with_z(alt + 30),
-                            })
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Leaves,
-                                Rgb::new(55, 25, 8),
-                            )));
+                        let flag = painter.aabb(Aabb {
+                            min: Vec2::new(wpos.x + 1, wpos.y - 1).with_z(alt + 8),
+                            max: Vec2::new(wpos.x + 8, wpos.y).with_z(alt + 38),
+                        });
+                        flag.fill(Fill::Block(Block::new(
+                            BlockKind::Leaves,
+                            Rgb::new(102, 31, 24),
+                        )));
+                        //add green streaks
+                        let streak1 = painter
+                            .line(
+                                Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt + 20),
+                                Vec2::new(wpos.x + 8, wpos.y - 1).with_z(alt + 33),
+                                4.0,
+                            )
+                            .intersect(flag);
 
+                        let streak2 = painter
+                            .line(
+                                Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt + 12),
+                                Vec2::new(wpos.x + 8, wpos.y - 1).with_z(alt + 25),
+                                1.5,
+                            )
+                            .intersect(flag);
+                        let streak3 = painter
+                            .line(
+                                Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt + 8),
+                                Vec2::new(wpos.x + 8, wpos.y - 1).with_z(alt + 21),
+                                1.0,
+                            )
+                            .intersect(flag);
+                        let streaks = streak1.union(streak2).union(streak3);
+                        streaks.fill(Fill::Block(Block::new(
+                            BlockKind::Leaves,
+                            Rgb::new(22, 36, 20),
+                        )));
+                        //erase from top and bottom of rectangle flag for shape
                         painter
                             .line(
-                                Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt + 25),
-                                Vec2::new(wpos.x + 8, wpos.y - 1).with_z(alt + 38),
-                                0.9,
+                                Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt + 31),
+                                Vec2::new(wpos.x + 8, wpos.y - 1).with_z(alt + 44),
+                                5.0,
                             )
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Leaves,
-                                Rgb::new(55, 25, 8),
-                            )));
+                            .intersect(flag)
+                            .fill(Fill::Block(Block::empty()));
                         painter
-                            .plane(
-                                Aabr {
-                                    min: Vec2::new(wpos.x + 1, wpos.y - 1),
-                                    max: Vec2::new(wpos.x + 8, wpos.y),
-                                },
-                                (wpos + 10).with_z(alt + 20),
-                                Vec2::new(-1.0, 1.0),
-                            )
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Leaves,
-                                Rgb::new(102, 31, 24),
-                            )));
+                            .prim(Primitive::sphere(
+                                Vec2::new(wpos.x + 8, wpos.y).with_z(alt + 8),
+                                6.0 as f32,
+                            ))
+                            .intersect(flag)
+                            .fill(Fill::Block(Block::empty()));
+
+                        //flagpole
+                        let column = painter.aabb(Aabb {
+                            min: (wpos - 1).with_z(alt - 3),
+                            max: (wpos).with_z(alt + 30),
+                        });
+
+                        let arm = painter.line(
+                            Vec2::new(wpos.x - 5, wpos.y - 1).with_z(alt + 26),
+                            Vec2::new(wpos.x + 8, wpos.y - 1).with_z(alt + 39),
+                            0.9,
+                        );
+                        let flagpole = column.union(arm);
+                        flagpole.fill(Fill::Block(Block::new(
+                            BlockKind::Leaves,
+                            Rgb::new(55, 25, 8),
+                        )));
                     },
                     GnarlingStructure::WatchTower => {
                         let platform_1_height = 14;
@@ -1112,17 +1249,17 @@ impl Structure for GnarlingFortification {
                         let support_1 = painter.line(
                             wpos.with_z(alt),
                             (wpos + 2).with_z(alt + platform_1_height),
-                            0.9,
+                            1.0,
                         );
                         let support_2 = support_1
                             .rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
-                            .translate(Vec3::new(0, 11, 0));
+                            .translate(Vec3::new(0, 13, 0));
                         let support_3 = support_1
                             .rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1))
-                            .translate(Vec3::new(11, 0, 0));
+                            .translate(Vec3::new(13, 0, 0));
                         let support_4 = support_1
                             .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
-                            .translate(Vec3::new(11, 11, 0));
+                            .translate(Vec3::new(13, 13, 0));
 
                         let supports = support_1.union(support_2).union(support_3).union(support_4);
 
@@ -1279,20 +1416,63 @@ impl Structure for GnarlingFortification {
                                         .with_z(alt + roof_height),
                                 }),
                             );
+                        //skirt
+                        let skirt1 = painter
+                            .aabb(Aabb {
+                                min: Vec2::new(wpos.x + 1, wpos.y)
+                                    .with_z(alt + platform_1_height - 3),
+                                max: Vec2::new(wpos.x + 4, wpos.y + 1)
+                                    .with_z(alt + platform_1_height + 1),
+                            })
+                            .without(painter.line(
+                                Vec2::new(wpos.x + 1, wpos.y).with_z(alt + platform_1_height - 1),
+                                Vec2::new(wpos.x + 1, wpos.y).with_z(alt + platform_1_height - 3),
+                                1.0,
+                            ))
+                            .without(painter.line(
+                                Vec2::new(wpos.x + 3, wpos.y).with_z(alt + platform_1_height - 2),
+                                Vec2::new(wpos.x + 3, wpos.y).with_z(alt + platform_1_height - 3),
+                                1.0,
+                            ));
+                        let skirt2 = skirt1
+                            .translate(Vec3::new(6, 0, 0))
+                            .rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
+                        let skirt3 = skirt2.translate(Vec3::new(3, 0, 0));
 
-                        let tower = platform_1
-                            .union(platform_2)
-                            .union(platform_3)
-                            .union(supports)
+                        let skirtside1 = skirt1.union(skirt2).union(skirt3);
+                        let skirtside2 = skirtside1
+                            .rotate(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
+                            .translate(Vec3::new(-1, 2, 0));
+
+                        let skirtcorner1 = skirtside1.union(skirtside2);
+                        let skirtcorner2 = skirtcorner1
+                            .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .translate(Vec3::new(13, 11, 0));
+
+                        let skirt1 = skirtcorner1.union(skirtcorner2);
+                        let skirt2 = skirt1
+                            .rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .translate(Vec3::new(0, 11, 6));
+
+                        let skirt = skirt1.union(skirt2).union(roof);
+                        painter.fill(
+                            skirt,
+                            Fill::Block(Block::new(BlockKind::Leaves, Rgb::new(22, 36, 20))),
+                        );
+
+                        let towerplatform = platform_1.union(platform_2).union(platform_3);
+
+                        painter.fill(
+                            towerplatform,
+                            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(115, 58, 26))),
+                        );
+                        let towervertical = supports
                             .union(platform_1_supports)
-                            // .union(platform_1_pillars)
                             .union(platform_2_supports)
-                            // .union(platform_2_pillars)
-                            .union(roof)
                             .union(roof_pillars);
 
                         painter.fill(
-                            tower,
+                            towervertical,
                             Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
                         );
                     },
