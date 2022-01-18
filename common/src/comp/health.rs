@@ -90,13 +90,29 @@ impl Health {
     /// Returns the fraction of health an entity has remaining
     pub fn fraction(&self) -> f32 { self.current() / self.maximum().max(1.0) }
 
-    /// Updates the maximum value for health
-    pub fn update_maximum(&mut self, modifiers: comp::stats::StatsModifier) {
+    /// Calculates a new maximum value and returns it if the value differs from
+    /// the current maximum.
+    ///
+    /// Note: The returned value uses an internal format so don't expect it to
+    /// be useful for anything other than a parameter to
+    /// [`Self::update_maximum`].
+    pub fn needs_maximum_update(&self, modifiers: comp::stats::StatsModifier) -> Option<u32> {
         let maximum = modifiers
             .compute_maximum(self.base_max())
             .mul(Self::SCALING_FACTOR_FLOAT)
             // NaN does not need to be handled here as rust will automatically change to 0 when casting to u32
             .clamp(0.0, Self::MAX_SCALED_HEALTH as f32) as u32;
+
+        (maximum != self.maximum).then(|| maximum)
+    }
+
+    /// Updates the maximum value for health.
+    ///
+    /// Note: The accepted `u32` value is in the internal format of this type.
+    /// So attempting to pass values that weren't returned from
+    /// [`Self::needs_maximum_update`] can produce strange or unexpected
+    /// results.
+    pub fn update_maximum(&mut self, maximum: u32) {
         self.maximum = maximum;
         // Clamp the current health to enforce the current <= maximum invariant.
         self.current = self.current.min(self.maximum);

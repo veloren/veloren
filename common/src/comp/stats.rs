@@ -30,6 +30,7 @@ impl StatsModifier {
         base_value * self.mult_mod + self.add_mod
     }
 
+    // Note: unused for now
     pub fn update_maximum(&self) -> bool {
         self.add_mod.abs() > f32::EPSILON || (self.mult_mod - 1.0).abs() > f32::EPSILON
     }
