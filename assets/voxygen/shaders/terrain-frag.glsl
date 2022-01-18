@@ -166,15 +166,17 @@ void main() {
     // Use an array to avoid conditional branching
     // uint norm_index = (f_pos_norm >> 29) & 0x7u;
     // vec3 f_norm = normals[norm_index];
-    vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
+    vec3 face_norm = normals[(f_pos_norm >> 29) & 0x7u];
+    vec3 f_norm = face_norm;
 
     #ifdef EXPERIMENTAL_BRICKLOREN
         vec3 pos = f_pos + focus_off.xyz;
-        vec3 sz = vec3(1.0 + mod(floor(pos.z * 3 + floor(pos.x) + floor(pos.y) - 0.01), 2.0) * 2, 1.0 + mod(floor(pos.z * 3 + floor(pos.x) + floor(pos.y) + 0.99), 2.0) * 2, 3.0);
+        const vec3 bk_sz = vec3(2, 2, 2);
+        vec3 sz = vec3(1.0 + mod(floor(pos.z * bk_sz.z + floor(pos.x) + floor(pos.y) - 0.01), 2.0) * (bk_sz.x - 1), 1.0 + mod(floor(pos.z * bk_sz.z + floor(pos.x) + floor(pos.y) + 0.99), 2.0) * (bk_sz.y - 1), bk_sz.z);
         vec3 fp = pos * sz;
-        vec3 clamped = min(floor(fp.xyz) + 1.0 - 0.05 * sz, max(floor(fp.xyz) + 0.05 * sz, fp.xyz));
-        f_norm.xyz += (fp.xyz - clamped) * 6.0 * sign(1.0 - f_norm) * max(1.0 - length(f_pos - cam_pos.xyz) / 64.0, 0);
-        /* f_norm = normalize(f_norm); */
+        vec3 clamped = min(floor(fp.xyz) + 1.0 - 0.07 * sz, max(floor(fp.xyz) - 0.07 * sz, fp.xyz));
+        f_norm.xyz += (fp.xyz - clamped) * 5.0 * sign(1.0 - f_norm) * max(1.0 - length(f_pos - cam_pos.xyz) / 64.0, 0);
+        f_norm = normalize(f_norm);
         f_col /= 1.0 + length((fp - clamped) * sign(1.0 - f_norm)) * 2;
     #endif
 
@@ -284,7 +286,7 @@ void main() {
 
     // TODO: Apply AO after this
     vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2);
-    reflected_light += glow;
+    reflected_light += glow * pow(max(dot(face_norm, f_norm), 0), 2);
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
@@ -319,7 +321,11 @@ void main() {
     #ifdef EXPERIMENTAL_NONOISE
         float noise = 0.0;
     #else
-        float noise = hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0));//0.005/* - 0.01*/;
+        #ifdef EXPERIMENTAL_BRICKLOREN
+            float noise = hash(vec4(floor(clamped), 0)) * 2 + hash(vec4(floor(clamped * 27 / sz), 0)) * 0.5;
+        #else
+            float noise = hash(vec4(floor(f_chunk_pos * 3.0 - f_norm * 0.5), 0));//0.005/* - 0.01*/;
+        #endif
     #endif
 
 //vec3 srgb_to_linear(vec3 srgb) {
