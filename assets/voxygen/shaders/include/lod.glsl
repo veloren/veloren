@@ -313,7 +313,16 @@ vec3 lod_norm(vec2 f_pos/*vec3 pos*/, vec4 square) {
 vec3 lod_norm(vec2 f_pos/*vec3 pos*/) {
     const float SAMPLE_W = 32;
 
-    return lod_norm(f_pos, vec4(f_pos - vec2(SAMPLE_W), f_pos + vec2(SAMPLE_W)));
+    vec3 norm = lod_norm(f_pos, vec4(f_pos - vec2(SAMPLE_W), f_pos + vec2(SAMPLE_W)));
+
+    #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
+        norm.xy += vec2(
+            textureLod(sampler2D(t_noise, s_noise), f_pos / 400, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), f_pos / 400 + 0.5, 0).x - 0.5
+        ) * 0.35;
+    #endif
+
+    return normalize(norm);
 }
 
 
@@ -340,11 +349,24 @@ layout(set = 0, binding = 11)
 uniform sampler s_map;
 
 vec3 lod_col(vec2 pos) {
-    //return vec3(0, 0.5, 0);
-    // return /*linear_to_srgb*/vec3(alt_at(pos), textureBicubic(t_map, pos_to_tex(pos)).gb);
-    return /*linear_to_srgb*/(textureBicubic(t_map, s_map, pos_to_tex(pos)).rgb)
-        ;//+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
-        //+ (texture(t_noise, pos * 0.04 + texture(t_noise, pos * 0.005).xy * 2.0 + texture(t_noise, pos * 0.06).xy * 0.6).x - 0.5) * 0.1;
+    #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
+        pos += vec2(
+            textureLod(sampler2D(t_noise, s_noise), pos / 200, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), pos / 200 + 0.5, 0).x - 0.5
+        ) * 64;
+    #endif
+
+    vec3 col = textureBicubic(t_map, s_map, pos_to_tex(pos)).rgb;
+
+    #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
+        col *= pow(vec3(
+            textureLod(sampler2D(t_noise, s_noise), pos / 50, 0).x,
+            textureLod(sampler2D(t_noise, s_noise), pos / 50 + 0.5, 0).x,
+            textureLod(sampler2D(t_noise, s_noise), pos / 50 + 0.5, 0).x
+        ), vec3(0.5));
+    #endif
+
+    return col;
 }
 #endif
 

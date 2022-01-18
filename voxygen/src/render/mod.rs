@@ -391,6 +391,10 @@ struct OtherModes {
     profiler_enabled: bool,
 }
 
+/// Experimental shader modes.
+///
+/// You can enable these using Voxygen's `settings.ron`. See
+/// [here](https://book.veloren.net/players/voxygen.html#experimental-shaders) for more information.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ExperimentalShader {
     /// Add brick-like normal mapping to the world.
@@ -402,4 +406,6 @@ pub enum ExperimentalShader {
     /// Remove the glow effect around point lights (this is *not* the same thing
     /// as bloom).
     NoPointGlow,
+    /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.
+    ProceduralLodDetail,
 }
