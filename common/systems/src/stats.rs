@@ -93,7 +93,7 @@ impl<'a> System<'a> for Sys {
             let stat = stats;
 
             if let Some(new_max) = health.needs_maximum_update(stat.max_health_modifiers) {
-                health.update_maximum(new_max);
+                health.update_internal_integer_maximum(new_max);
             }
 
             // Calculates energy scaling from stats and inventory
@@ -104,7 +104,7 @@ impl<'a> System<'a> for Sys {
             };
 
             if let Some(new_max) = energy.needs_maximum_update(energy_mods) {
-                energy.update_maximum(new_max);
+                energy.update_internal_integer_maximum(new_max);
             }
         }
 

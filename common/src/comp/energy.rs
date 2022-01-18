@@ -76,7 +76,7 @@ impl Energy {
     /// So attempting to pass values that weren't returned from
     /// [`Self::needs_maximum_update`] can produce strange or unexpected
     /// results.
-    pub fn update_maximum(&mut self, maximum: u32) {
+    pub fn update_internal_integer_maximum(&mut self, maximum: u32) {
         self.maximum = maximum;
         // Clamp the current energy to enforce the current <= maximum invariant.
         self.current = self.current.min(self.maximum);
