@@ -995,13 +995,11 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
         let energy_efficiency_rating = stats.energy_efficiency;
         let buff_strength_rating = stats.buff_strength;
 
-        (1.0 + (damage_rating * DAMAGE_WEIGHT)
-            + 1.0
+        0.5 + (1.0
+            + (damage_rating * DAMAGE_WEIGHT)
             + (speed_rating * SPEED_WEIGHT)
-            + 1.0
             + (crit_chance_rating * CRIT_CHANCE_WEIGHT)
             + (range_rating * RANGE_WEIGHT)
-            + 1.0
             + (effect_rating * EFFECT_WEIGHT)
             + (equip_time_rating * EQUIP_TIME_WEIGHT)
             + (energy_efficiency_rating * ENERGY_EFFICIENCY_WEIGHT)
