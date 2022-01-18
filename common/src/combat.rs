@@ -991,7 +991,7 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
         let crit_chance_rating = stats.crit_chance - 0.1;
         let range_rating = stats.range;
         let effect_rating = stats.effect_power - 1.0;
-        let equip_time_rating = 1.0 / stats.equip_time_secs;
+        let equip_time_rating = 0.5 - stats.equip_time_secs;
         let energy_efficiency_rating = stats.energy_efficiency;
         let buff_strength_rating = stats.buff_strength;
 
