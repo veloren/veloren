@@ -131,7 +131,7 @@ impl TerrainChunkMeta {
         }
     }
 
-    pub fn name(&self) -> &str { self.name.as_deref().unwrap_or("") }
+    pub fn name(&self) -> Option<&str> { self.name.as_deref() }
 
     pub fn biome(&self) -> BiomeKind { self.biome }
 
