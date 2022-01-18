@@ -505,26 +505,11 @@ impl Civs {
                 }
             }
         }
-        let num_biomes = biomes.len();
-
+        let mut biome_count = 0;
         for biome in biomes {
-            // find average center of the biome
-            let mut biomes = biome.1.iter();
-            // There is always at least 1 biome
-            let mut center = uniform_idx_as_vec2(map_size_lg, *biomes.next().unwrap());
-            biomes.for_each(|b| {
-                center += uniform_idx_as_vec2(map_size_lg, *b);
-                center /= 2;
-            });
-            // Select the point closest to the center
-            let idx = *biome
-                .1
-                .iter()
-                .min_by_key(|&b| center.distance_squared(uniform_idx_as_vec2(map_size_lg, *b)))
-                .unwrap();
             let name = match biome.0 {
                 common::terrain::BiomeKind::Forest if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..8) {
+                    Some(match ctx.rng.gen_range(0..8) {
                         0 => format!(
                             "{}\nForest",
                             NameGen::location(&mut ctx.rng).generate_temp_forest()
@@ -561,10 +546,10 @@ impl Civs {
                             "{}\nForest",
                             NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Grassland if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..10) {
+                    Some(match ctx.rng.gen_range(0..10) {
                         0 => format!(
                             "{}\nGrasslands",
                             NameGen::location(&mut ctx.rng).generate_grassland()
@@ -613,10 +598,10 @@ impl Civs {
                             "{}\nGrassland",
                             NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Ocean if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..3) {
+                    Some(match ctx.rng.gen_range(0..3) {
                         0 => format!(
                             "{}\nOcean",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -631,10 +616,10 @@ impl Civs {
                             "{}\nOcean",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Mountain if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..11) {
+                    Some(match ctx.rng.gen_range(0..11) {
                         0 => format!(
                             "{}\nMountains",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -687,10 +672,10 @@ impl Civs {
                             "{}\nMountains",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Snowland if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..6) {
+                    Some(match ctx.rng.gen_range(0..6) {
                         0 => format!(
                             "{}\nSnowlands",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -723,10 +708,10 @@ impl Civs {
                             "{}\nSnowlands",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Desert if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..5) {
+                    Some(match ctx.rng.gen_range(0..5) {
                         0 => format!(
                             "{}\nDesert",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -755,10 +740,10 @@ impl Civs {
                             "{}\nDesert",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Swamp if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..7) {
+                    Some(match ctx.rng.gen_range(0..7) {
                         0 => format!(
                             "{}\nSwamp",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -789,10 +774,10 @@ impl Civs {
                             "{}\nSnowlands",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Jungle if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..7) {
+                    Some(match ctx.rng.gen_range(0..7) {
                         0 => format!(
                             "{}\nJungle",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -826,10 +811,10 @@ impl Civs {
                             "{}\nJungle",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Savannah if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..4) {
+                    Some(match ctx.rng.gen_range(0..4) {
                         0 => format!(
                             "{}\nSavannah",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -854,10 +839,10 @@ impl Civs {
                             "{}\nSavannah",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Taiga if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..4) {
+                    Some(match ctx.rng.gen_range(0..4) {
                         0 => format!(
                             "{}\nTaiga",
                             NameGen::location(&mut ctx.rng).generate_biome()
@@ -882,35 +867,52 @@ impl Civs {
                             "{}\nTaiga",
                             NameGen::location(&mut ctx.rng).generate_biome()
                         ),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 200 => {
-                    match ctx.rng.gen_range(0..2) {
+                    Some(match ctx.rng.gen_range(0..2) {
                         0 => format!("{}\nLake", NameGen::location(&mut ctx.rng).generate()),
                         1 => format!("Loch\n{}", NameGen::location(&mut ctx.rng).generate()),
                         _ => format!("{}\nLake", NameGen::location(&mut ctx.rng).generate()),
-                    }
+                    })
                 },
                 common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 10 => {
-                    match ctx.rng.gen_range(0..1) {
+                    Some(match ctx.rng.gen_range(0..1) {
                         0 => format!("{}\nPool", NameGen::location(&mut ctx.rng).generate()),
                         1 => format!("{}\nWell", NameGen::location(&mut ctx.rng).generate()),
                         _ => format!("{}\nPond", NameGen::location(&mut ctx.rng).generate()),
-                    }
+                    })
                 },
-                _ => String::new(),
+                _ => None,
             };
-            let id = self.pois.insert(PointOfInterest {
-                name,
-                loc: uniform_idx_as_vec2(map_size_lg, idx),
-                kind: PoiKind::Biome(biome.1.len() as u32),
-            });
-            for chunk in biome.1 {
-                ctx.sim.chunks[chunk].poi = Some(id);
+            if let Some(name) = name {
+                // find average center of the biome
+                let mut biomes = biome.1.iter();
+                // There is always at least 1 biome
+                let mut center = uniform_idx_as_vec2(map_size_lg, *biomes.next().unwrap());
+                biomes.for_each(|b| {
+                    center += uniform_idx_as_vec2(map_size_lg, *b);
+                    center /= 2;
+                });
+                // Select the point closest to the center
+                let idx = *biome
+                    .1
+                    .iter()
+                    .min_by_key(|&b| center.distance_squared(uniform_idx_as_vec2(map_size_lg, *b)))
+                    .unwrap();
+                let id = self.pois.insert(PointOfInterest {
+                    name,
+                    loc: uniform_idx_as_vec2(map_size_lg, idx),
+                    kind: PoiKind::Biome(biome.1.len() as u32),
+                });
+                for chunk in biome.1 {
+                    ctx.sim.chunks[chunk].poi = Some(id);
+                }
+                biome_count += 1;
             }
         }
 
-        info!(?num_biomes, "all biomes named");
+        info!(?biome_count, "all biomes named");
     }
 
     /// Adds mountain POIs and name them
