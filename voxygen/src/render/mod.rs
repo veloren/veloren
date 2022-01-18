@@ -397,4 +397,6 @@ pub enum ExperimentalShader {
     Brickloren,
     /// Remove the default procedural noise from terrain.
     NoNoise,
+    /// Simulated a curved world.
+    CurvedWorld,
 }

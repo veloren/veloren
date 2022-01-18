@@ -1,3 +1,4 @@
+#include <constants.glsl>
 #include <random.glsl>
 #include <lod.glsl>
 
@@ -15,6 +16,10 @@ float cloud_broad(vec3 pos) {
 
 // Returns vec4(r, g, b, density)
 vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground) {
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        pos.z += pow(distance(pos.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
+
     // Natural attenuation of air (air naturally attenuates light that passes through it)
     // Simulate the atmosphere thinning as you get higher. Not physically accurate, but then
     // it can't be since Veloren's world is flat, not spherical.

@@ -95,6 +95,10 @@ void main() {
         vec4(pos, 1.0)
     ).xyz + (model_pos - focus_off.xyz);
 
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
+
     /* f_pos.z -= 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0); */
 
     f_uv_pos = vec2((uvec2(v_atlas_pos) >> uvec2(2, 17)) & uvec2(0x7FFFu, 0x7FFFu));

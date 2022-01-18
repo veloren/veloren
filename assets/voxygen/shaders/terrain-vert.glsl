@@ -77,9 +77,15 @@ void main() {
 
     f_load_time = load_time;
 
+    vec3 v_pos = f_pos;
+
     // Terrain 'pop-in' effect
-    f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+    v_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
     // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
+
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        v_pos.z -= pow(distance(v_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
 
     // vec3 light_col = vec3(
     //          hash(floor(vec4(f_chunk_pos.x, 0, 0, 0))),
@@ -157,10 +163,10 @@ void main() {
 #ifdef HAS_SHADOW_MAPS
     gl_Position =
         /*all_mat*/shadowMatrices/*texture_mat*/ *
-        vec4(f_pos/*newRay*/, 1);
+        vec4(v_pos/*newRay*/, 1);
     gl_Position.z = clamp(gl_Position.z, -abs(gl_Position.w), abs(gl_Position.w));
 #else
-    gl_Position = all_mat * vec4(f_pos/*newRay*/, 1);
+    gl_Position = all_mat * vec4(v_pos/*newRay*/, 1);
 #endif
     // gl_Position.y /= gl_Position.w;
     // gl_Position.w = 1.0;

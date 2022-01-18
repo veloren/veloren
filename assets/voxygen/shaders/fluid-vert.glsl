@@ -54,6 +54,12 @@ void main() {
     // f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
     // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
 
+    f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
+
     // Small waves
     // f_pos.xy += 0.01; // Avoid z-fighting
     // f_pos.x += 0.1 * sin(tick.x / 60 * hash(vec4(f_pos.xyz, 1.0)));
