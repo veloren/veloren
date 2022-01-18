@@ -78,7 +78,7 @@ impl Energy {
     /// results.
     pub fn update_maximum(&mut self, maximum: u32) {
         self.maximum = maximum;
-        // Clamp the current health to enforce the current <= maximum invariant.
+        // Clamp the current energy to enforce the current <= maximum invariant.
         self.current = self.current.min(self.maximum);
     }
 

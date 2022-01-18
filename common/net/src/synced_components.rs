@@ -14,7 +14,6 @@
 //! when using the x macro defined here which requires this.
 
 /// This provides a lowercase name and the component type.
-//#[rustfmt::skip]
 #[macro_export]
 macro_rules! synced_components {
     ($macro:ident) => {
