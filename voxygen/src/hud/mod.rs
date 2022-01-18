@@ -4055,6 +4055,9 @@ impl Hud {
         events
     }
 
+    #[inline]
+    pub fn clear_cursor(&mut self) { self.slot_manager.idle(); }
+
     pub fn render<'a>(&'a self, drawer: &mut UiDrawer<'_, 'a>) {
         span!(_guard, "render", "Hud::render");
         // Don't show anything if the UI is toggled off.

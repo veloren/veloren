@@ -223,6 +223,7 @@ impl SessionState {
                     self.hud.new_message(ChatType::Meta.chat_msg(msg));
                 },
                 client::Event::TradeComplete { result, trade: _ } => {
+                    self.hud.clear_cursor();
                     let i18n = global_state.i18n.read();
                     let msg = match result {
                         TradeResult::Completed => i18n.get("hud.trade.result.completed"),
