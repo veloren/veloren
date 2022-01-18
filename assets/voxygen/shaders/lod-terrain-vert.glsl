@@ -44,12 +44,16 @@ void main() {
 
     // f_shadow = textureBicubic(t_horizon, pos_to_tex(f_pos.xy));
 
-    // TODO: disabled because it isn't designed to work with reverse depth 
+    // TODO: disabled because it isn't designed to work with reverse depth
     //float dist = distance(focus_pos.xy, f_pos.xy);
     //pull_down = 0.2 / pow(dist / (view_distance.x * 0.9), 20.0);
 
     pull_down = 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
     f_pos.z -= pull_down;
+
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
 
     // f_pos.z -= 100.0 * pow(1.0 + 0.01 / view_distance.x, -pow(distance(focus_pos.xy, f_pos.xy), 2.0));
     // f_pos.z = mix(-f_pos.z, f_pos.z, view_distance.x <= distance(focus_pos.xy, f_pos.xy) + 32.0);
@@ -98,9 +102,9 @@ void main() {
         all_mat *
         vec4(f_pos/*newRay*/, 1);
     // Pull up the depth to avoid drawing over voxels (biased according to VD)
-    // TODO: disabled because it isn't designed to work with reverse depth 
+    // TODO: disabled because it isn't designed to work with reverse depth
     //gl_Position.z += 0.1 * clamp((view_distance.x * 1.0 - dist) * 0.01, 0, 1);
-    
+
     // gl_Position.z = -gl_Position.z / gl_Position.w;
     // gl_Position.z = -gl_Position.z / gl_Position.w;
     // gl_Position.z = -gl_Position.z * gl_Position.w;

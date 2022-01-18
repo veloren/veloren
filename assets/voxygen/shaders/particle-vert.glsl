@@ -585,6 +585,10 @@ void main() {
 
     f_pos = start_pos + (v_pos * attr.scale * SCALE * mat3(attr.rot) + attr.offs);
 
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
+
     // First 3 normals are negative, next 3 are positive
     // TODO: Make particle normals match orientation
     vec4 normals[6] = vec4[](vec4(-1,0,0,0), vec4(1,0,0,0), vec4(0,-1,0,0), vec4(0,1,0,0), vec4(0,0,-1,0), vec4(0,0,1,0));

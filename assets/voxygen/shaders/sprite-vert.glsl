@@ -85,6 +85,10 @@ void main() {
     // Terrain 'pop-in' effect
     f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
 
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
+
     // Wind sway effect
     f_pos += model_wind_sway * vec3(
         sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
@@ -117,7 +121,7 @@ void main() {
     f_uv_pos = vec2((uvec2(v_atlas_pos) >> uvec2(0, 16)) & uvec2(0xFFFFu, 0xFFFFu));;
 
     // Position of the sprite block in the chunk
-    // Used solely for highlighting the selected sprite 
+    // Used solely for highlighting the selected sprite
     vec3 inst_chunk_pos = vec3(inst_pos_ori & 0x3Fu, (inst_pos_ori >> 6) & 0x3Fu, float((inst_pos_ori >> 12) & 0xFFFFu) - EXTRA_NEG_Z);
     // Select glowing
     vec3 sprite_pos = inst_chunk_pos + chunk_offs;

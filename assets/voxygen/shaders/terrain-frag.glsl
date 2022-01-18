@@ -169,12 +169,12 @@ void main() {
     vec3 f_norm = normals[(f_pos_norm >> 29) & 0x7u];
 
     #ifdef EXPERIMENTAL_BRICKLOREN
-        vec3 pos = f_pos - focus_off.xyz;
-        vec3 fp = pos * vec3(1.0, 1.0, 3.0);
-        fp.xy += floor(fp.z) * 0.5;
-        vec3 clamped = min(floor(fp.xyz) + vec3(0.92, 0.92, 0.8), max(floor(fp.xyz) + vec3(0.06, 0.06, 0.2), fp.xyz));
-        f_norm.xyz += (fp.xyz - clamped) * 8.0 * sign(1.0 - f_norm) * max(1.0 - length(f_pos - cam_pos.xyz) / 64.0, 0);
-        f_norm = normalize(f_norm);
+        vec3 pos = f_pos + focus_off.xyz;
+        vec3 sz = vec3(1.0 + mod(floor(pos.z * 3 + floor(pos.x) + floor(pos.y) - 0.01), 2.0) * 2, 1.0 + mod(floor(pos.z * 3 + floor(pos.x) + floor(pos.y) + 0.99), 2.0) * 2, 3.0);
+        vec3 fp = pos * sz;
+        vec3 clamped = min(floor(fp.xyz) + 1.0 - 0.05 * sz, max(floor(fp.xyz) + 0.05 * sz, fp.xyz));
+        f_norm.xyz += (fp.xyz - clamped) * 6.0 * sign(1.0 - f_norm) * max(1.0 - length(f_pos - cam_pos.xyz) / 64.0, 0);
+        /* f_norm = normalize(f_norm); */
         f_col /= 1.0 + length((fp - clamped) * sign(1.0 - f_norm)) * 2;
     #endif
 
