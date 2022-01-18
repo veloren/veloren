@@ -168,15 +168,13 @@ impl<P: CompPacket> CompSyncPackage<P> {
             .push((uid.into(), CompUpdateKind::Removed(PhantomData::<C>.into())));
     }
 
-    #[must_use]
-    pub fn with_component<'a, C: Component + Clone + Send + Sync>(
-        mut self,
+    pub fn add_component_updates<'a, C: Component + Clone + Send + Sync>(
+        &mut self,
         uids: &ReadStorage<'a, Uid>,
         tracker: &UpdateTracker<C>,
         storage: &ReadStorage<'a, C>,
         filter: impl Join + Copy,
-    ) -> Self
-    where
+    ) where
         P: From<C>,
         C: TryFrom<P>,
         P::Phantom: From<PhantomData<C>>,
@@ -184,6 +182,27 @@ impl<P: CompPacket> CompSyncPackage<P> {
         C::Storage: specs::storage::Tracked,
     {
         tracker.get_updates_for(uids, storage, filter, &mut self.comp_updates);
-        self
     }
+
+    pub fn add_component_update<'a, C: Component + Clone + Send + Sync>(
+        &mut self,
+        tracker: &UpdateTracker<C>,
+        storage: &ReadStorage<'a, C>,
+        uid: u64,
+        entity: Entity,
+    ) where
+        P: From<C>,
+        C: TryFrom<P>,
+        P::Phantom: From<PhantomData<C>>,
+        P::Phantom: TryInto<PhantomData<C>>,
+        C::Storage: specs::storage::Tracked,
+    {
+        if let Some(comp_update) = tracker.get_update(storage, entity) {
+            self.comp_updates.push((uid, comp_update))
+        }
+    }
+
+    /// Returns whether this package is empty, useful for not sending an empty
+    /// message.
+    pub fn is_empty(&self) -> bool { self.comp_updates.is_empty() }
 }

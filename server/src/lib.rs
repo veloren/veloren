@@ -60,7 +60,7 @@ use crate::{
     presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
     rtsim::RtSim,
     state_ext::StateExt,
-    sys::sentinel::{DeletedEntities, TrackedComps},
+    sys::sentinel::{DeletedEntities, TrackedStorages},
 };
 #[cfg(not(feature = "worldgen"))]
 use common::grid::Grid;
@@ -447,7 +447,7 @@ impl Server {
         state.ecs_mut().write_resource::<TimeOfDay>().0 = settings.start_time;
 
         // Register trackers
-        sys::sentinel::register_trackers(state.ecs_mut());
+        sys::sentinel::UpdateTrackers::register(state.ecs_mut());
 
         state.ecs_mut().insert(DeletedEntities::default());
 
@@ -1025,7 +1025,7 @@ impl Server {
             )
             .send(ServerInit::GameSync {
                 // Send client their entity
-                entity_package: TrackedComps::fetch(self.state.ecs())
+                entity_package: TrackedStorages::fetch(self.state.ecs())
                     .create_entity_package(entity, None, None, None)
                     .expect(
                         "We just created this entity as marked() (using create_entity_synced) so \

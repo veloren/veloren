@@ -1,4 +1,4 @@
-use super::sentinel::{DeletedEntities, ReadTrackers, TrackedComps};
+use super::sentinel::{DeletedEntities, TrackedStorages, UpdateTrackers};
 use crate::{
     client::Client,
     presence::{Presence, RegionSubscription},
@@ -6,9 +6,7 @@ use crate::{
 };
 use common::{
     calendar::Calendar,
-    comp::{Collider, ForceUpdate, Inventory, InventoryUpdate, Last, Ori, Player, Pos, Vel},
-    link::Is,
-    mounting::Rider,
+    comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Pos, Vel},
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, TimeOfDay},
@@ -31,30 +29,25 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, Tick>,
+        Read<'a, PlayerPhysicsSettings>,
+        TrackedStorages<'a>,
         ReadExpect<'a, TimeOfDay>,
         ReadExpect<'a, Calendar>,
         ReadExpect<'a, RegionMap>,
-        ReadStorage<'a, Uid>,
+        ReadExpect<'a, UpdateTrackers>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Vel>,
         ReadStorage<'a, Ori>,
-        ReadStorage<'a, Inventory>,
         ReadStorage<'a, RegionSubscription>,
         ReadStorage<'a, Presence>,
-        ReadStorage<'a, Collider>,
+        ReadStorage<'a, Client>,
         WriteStorage<'a, Last<Pos>>,
         WriteStorage<'a, Last<Vel>>,
         WriteStorage<'a, Last<Ori>>,
-        ReadStorage<'a, Client>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
         Write<'a, Vec<Outcome>>,
-        Read<'a, PlayerPhysicsSettings>,
-        ReadStorage<'a, Is<Rider>>,
-        ReadStorage<'a, Player>,
-        TrackedComps<'a>,
-        ReadTrackers<'a>,
     );
 
     const NAME: &'static str = "entity_sync";
@@ -66,33 +59,35 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             tick,
+            player_physics_settings,
+            tracked_storages,
             time_of_day,
             calendar,
             region_map,
-            uids,
+            trackers,
             positions,
             velocities,
             orientations,
-            inventories,
             subscriptions,
             presences,
-            colliders,
+            clients,
             mut last_pos,
             mut last_vel,
             mut last_ori,
-            clients,
             mut force_updates,
             mut inventory_updates,
             mut deleted_entities,
             mut outcomes,
-            player_physics_settings,
-            is_rider,
-            players,
-            tracked_comps,
-            trackers,
         ): Self::SystemData,
     ) {
         let tick = tick.0;
+
+        let uids = &tracked_storages.uid;
+        let colliders = &tracked_storages.collider;
+        let inventories = &tracked_storages.inventory;
+        let players = &tracked_storages.player;
+        let is_rider = &tracked_storages.is_rider;
+
         // To send entity updates
         // 1. Iterate through regions
         // 2. Iterate through region subscribers (ie clients)
@@ -161,7 +156,7 @@ impl<'a> System<'a> for Sys {
                                 .get(entity)
                                 .map(|pos| (pos, velocities.get(entity), orientations.get(entity)))
                                 .and_then(|(pos, vel, ori)| {
-                                    tracked_comps.create_entity_package(
+                                    tracked_storages.create_entity_package(
                                         entity,
                                         Some(*pos),
                                         vel.copied(),
@@ -203,7 +198,7 @@ impl<'a> System<'a> for Sys {
                 // Sync tracked components
                 // Get deleted entities in this region from DeletedEntities
                 let (entity_sync_package, comp_sync_package) = trackers.create_sync_packages(
-                    &tracked_comps,
+                    &tracked_storages,
                     region.entities(),
                     deleted_entities_in_region,
                 );
@@ -232,7 +227,7 @@ impl<'a> System<'a> for Sys {
                     for (_, entity, &uid, (&pos, last_pos), vel, ori, force_update, collider) in (
                         region.entities(),
                         &entities,
-                        &uids,
+                        uids,
                         (&positions, last_pos.mask().maybe()),
                         (&velocities, last_vel.mask().maybe()).maybe(),
                         (&orientations, last_vel.mask().maybe()).maybe(),
@@ -353,11 +348,20 @@ impl<'a> System<'a> for Sys {
         // TODO: Sync clients that don't have a position?
 
         // Sync inventories
-        for (inventory, update, client) in (&inventories, &inventory_updates, &clients).join() {
+        for (inventory, update, client) in (inventories, &inventory_updates, &clients).join() {
             client.send_fallible(ServerGeneral::InventoryUpdate(
                 inventory.clone(),
                 update.event(),
             ));
+        }
+
+        // Sync components that just sync to the client's entity
+        for (entity, client) in (&entities, &clients).join() {
+            let comp_sync_package =
+                trackers.create_sync_from_client_package(&tracked_storages, entity);
+            if !comp_sync_package.is_empty() {
+                client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+            }
         }
 
         // Sync outcomes

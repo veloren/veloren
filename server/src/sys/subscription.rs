@@ -1,4 +1,4 @@
-use super::sentinel::{DeletedEntities, TrackedComps};
+use super::sentinel::{DeletedEntities, TrackedStorages};
 use crate::{
     client::Client,
     presence::{self, Presence, RegionSubscription},
@@ -34,7 +34,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Client>,
         WriteStorage<'a, RegionSubscription>,
         Read<'a, DeletedEntities>,
-        TrackedComps<'a>,
+        TrackedStorages<'a>,
     );
 
     const NAME: &'static str = "subscription";
@@ -222,7 +222,7 @@ pub fn initialize_region_subscription(world: &World, entity: specs::Entity) {
         );
 
         let region_map = world.read_resource::<RegionMap>();
-        let tracked_comps = TrackedComps::fetch(world);
+        let tracked_comps = TrackedStorages::fetch(world);
         for key in &regions {
             if let Some(region) = region_map.get(*key) {
                 (
