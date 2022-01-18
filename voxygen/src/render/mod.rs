@@ -399,4 +399,7 @@ pub enum ExperimentalShader {
     NoNoise,
     /// Simulated a curved world.
     CurvedWorld,
+    /// Remove the glow effect around point lights (this is *not* the same thing
+    /// as bloom).
+    NoPointGlow,
 }

@@ -21,6 +21,7 @@
 #include <anti-aliasing.glsl>
 #include <srgb.glsl>
 #include <cloud.glsl>
+#include <light.glsl>
 
 layout(set = 1, binding = 0)
 uniform texture2D t_src_color;
@@ -42,7 +43,6 @@ uniform u_locals {
 
 layout(location = 0) out vec4 tgt_color;
 
-
 vec3 wpos_at(vec2 uv) {
     float buf_depth = texture(sampler2D(t_src_depth, s_src_depth), uv).x;
     mat4 inv = view_mat_inv * proj_mat_inv;//inverse(all_mat);
@@ -60,13 +60,17 @@ vec3 wpos_at(vec2 uv) {
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
 
+    vec3 wpos = wpos_at(uv);
+    float dist = distance(wpos, cam_pos.xyz);
+    vec3 dir = (wpos - cam_pos.xyz) / dist;
+
     // Apply clouds
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
-        vec3 wpos = wpos_at(uv);
-        float dist = distance(wpos, cam_pos.xyz);
-        vec3 dir = (wpos - cam_pos.xyz) / dist;
-
         color.rgb = get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
+    #else
+        #ifdef BLOOM_FACTOR
+            color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb, BLOOM_FACTOR);
+        #endif
     #endif
 
     tgt_color = vec4(color.rgb, 1);

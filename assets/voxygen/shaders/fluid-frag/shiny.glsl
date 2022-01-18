@@ -145,8 +145,8 @@ void main() {
     nmap = mix(f_norm, normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 
     //float suppress_waves = max(dot(), 0);
-    vec3 norm = normalize(vec3(0, 0, 1) * nmap.z + b_norm * nmap.x + c_norm * nmap.y);
-    // vec3 norm = f_norm;
+    vec3 norm = normalize(f_norm * nmap.z + b_norm * nmap.x + c_norm * nmap.y);
+    //norm = f_norm;
 
     vec3 water_color = (1.0 - MU_WATER) * MU_SCATTER;
 #if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
@@ -177,7 +177,7 @@ void main() {
     // Squared to account for prior saturation.
     float f_light = 1.0;// pow(f_light, 1.5);
     vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-    reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, cam_pos.xyz, time_of_day.x, 100000.0, 0.1);
+    reflect_color = get_cloud_color(reflect_color, reflect_ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
     reflect_color *= f_light;
 
     // Prevent the sky affecting light when underground
