@@ -4,12 +4,16 @@ LeapMelee(
     movement_duration: 0.4,
     swing_duration: 0.075,
     recover_duration: 0.2,
-    base_damage: 12.0,
-    base_poise_damage: 60,
-    knockback: 4.0,
-    range: 4.5,
-    max_angle: 180.0,
+    melee_constructor: (
+        kind: Bash(
+            damage: 12.0,
+            poise: 60.0,
+            knockback: 4.0,
+            energy_regen: 0.0,
+        ),
+        range: 4.5,
+        angle: 180.0,
+    ),
     forward_leap_strength: 40.0,
     vertical_leap_strength: 10.0,
-    damage_kind: Crushing,
 )

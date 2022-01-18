@@ -3,16 +3,14 @@ BasicMelee(
     buildup_duration: 0.3,
     swing_duration: 0.1,
     recover_duration: 0.6,
-    base_damage: 15.0,
-    base_poise_damage: 60.0,
-    knockback: ( strength: 15.0, direction: Away),
-    range: 5.0,
-    max_angle: 60.0,
-    damage_effect: Some(Buff((
-        kind: Crippled,
-        dur_secs: 10.0,
-        strength: Value(0.5),
-        chance: 1.0,
-    ))),
-    damage_kind: Slashing,
+    melee_constructor: (
+        kind: Slash(
+            damage: 15.0,
+            poise: 60.0,
+            knockback: 15.0,
+            energy_regen: 0.0,
+        ),
+        range: 5.0,
+        angle: 60.0,
+    ),
 )

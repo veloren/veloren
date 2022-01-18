@@ -2,16 +2,16 @@ SpinMelee(
     buildup_duration: 0.35,
     swing_duration: 0.4,
     recover_duration: 0.5,
-    base_damage: 12.0,
-    base_poise_damage: 10,
-    knockback: ( strength: 10.0, direction: Away),
-    range: 3.5,
-    damage_effect: Some(Buff((
-        kind: Bleeding,
-        dur_secs: 10.0,
-        strength: DamageFraction(0.1),
-        chance: 0.1,
-    ))),
+    melee_constructor: (
+        kind: Slash(
+            damage: 12.0,
+            poise: 10.0,
+            knockback: 10.0,
+            energy_regen: 0.0,
+        ),
+        range: 3.5,
+        angle: 360.0,
+    ),
     energy_cost: 20.0,
     is_infinite: false,
     movement_behavior: ForwardGround,
@@ -19,6 +19,4 @@ SpinMelee(
     forward_speed: 1.0,
     num_spins: 3,
     specifier: None,
-    target: Some(OutOfGroup),
-    damage_kind: Slashing,
 )

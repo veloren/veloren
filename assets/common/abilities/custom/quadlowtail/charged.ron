@@ -1,17 +1,24 @@
 ChargedMelee(
     energy_cost: 0,
     energy_drain: 0,
-    initial_damage: 4.0,
-    scaled_damage: 20.0,
-    initial_poise_damage: 30,
-    scaled_poise_damage: 80,
-    initial_knockback: 10.0,
-    scaled_knockback: 20.0,
-    range: 6.0,
-    max_angle: 90.0,
+    melee_constructor: (
+        kind: Bash(
+            damage: 4.0,
+            poise: 30.0,
+            knockback: 10.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some(Bash(
+            damage: 20.0,
+            poise: 80.0,
+            knockback: 20.0,
+            energy_regen: 0.0,
+        )),
+        range: 6.0,
+        angle: 90.0,
+    ),
     charge_duration: 0.8,
     swing_duration: 0.7,
     hit_timing: 0.9,
     recover_duration: 0.7,
-    damage_kind: Crushing,
 )

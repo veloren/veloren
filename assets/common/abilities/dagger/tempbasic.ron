@@ -3,16 +3,14 @@ BasicMelee(
     buildup_duration: 0.1,
     swing_duration: 0.1,
     recover_duration: 0.3,
-    base_damage: 5.0,
-    base_poise_damage: 0,
-    knockback: ( strength: 0.0, direction: Away),
-    range: 3.5,
-    max_angle: 20.0,
-    damage_effect: Some(Buff((
-        kind: Bleeding,
-        dur_secs: 10.0,
-        strength: DamageFraction(0.1),
-        chance: 0.1,
-    ))),
-    damage_kind: Piercing,
+    melee_constructor: (
+        kind: Stab(
+            damage: 5.0,
+            poise: 0.0,
+            knockback: 0.0,
+            energy_regen: 0.0,
+        ),
+        range: 3.5,
+        angle: 20.0,
+    ),
 )

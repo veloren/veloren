@@ -603,7 +603,7 @@ impl ParticleMgr {
                         match specifier {
                             states::spin_melee::FrontendSpecifier::CultistVortex => {
                                 if matches!(spin.stage_section, StageSection::Action) {
-                                    let range = spin.static_data.range;
+                                    let range = spin.static_data.melee_constructor.range;
                                     // Particles for vortex
                                     let heartbeats =
                                         self.scheduler.heartbeats(Duration::from_millis(3));

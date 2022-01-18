@@ -1,13 +1,21 @@
 DashMelee(
     energy_cost: 0,
-    base_damage: 8.0,
-    scaled_damage: 16.0,
-    base_poise_damage: 0,
-    scaled_poise_damage: 0,
-    base_knockback: 8.0,
-    scaled_knockback: 7.0,
-    range: 2.0,
-    angle: 15.0,
+    melee_constructor: (
+        kind: Slash(
+            damage: 8.0,
+            poise: 0.0,
+            knockback: 8.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some(Slash(
+            damage: 16.0,
+            poise: 0.0,
+            knockback: 7.0,
+            energy_regen: 0.0,
+        )),
+        range: 2.0,
+        angle: 15.0,
+    ),
     energy_drain: 0,
     forward_speed: 3.0,
     buildup_duration: 0.5,
@@ -17,11 +25,4 @@ DashMelee(
     ori_modifier: 0.3,
     charge_through: false,
     is_interruptible: true,
-    damage_kind: Slashing,
-    damage_effect: Some(Buff((
-        kind: Bleeding,
-        dur_secs: 10.0,
-        strength: DamageFraction(0.1),
-        chance: 0.1,
-    ))),
 )

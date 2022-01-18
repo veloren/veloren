@@ -109,6 +109,8 @@ impl Stage<f32> {
     }
 }
 
+// TODO: Completely rewrite this with skill tree rework. Don't bother converting
+// to melee constructor.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 /// Separated out to condense update portions of character state
 pub struct StaticData {

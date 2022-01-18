@@ -1,9 +1,5 @@
 use crate::{
-    combat::{
-        Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement, Damage, DamageKind,
-        DamageSource, GroupTarget, Knockback,
-    },
-    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, Melee, MeleeConstructor, StateUpdate},
     consts::GRAVITY,
     states::{
         behavior::{CharacterBehavior, JoinData},
@@ -24,16 +20,8 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long until state ends
     pub recover_duration: Duration,
-    /// Base damage
-    pub base_damage: f32,
-    /// Base poise damage
-    pub base_poise_damage: f32,
-    /// Knockback
-    pub knockback: Knockback,
-    /// Range
-    pub range: f32,
-    /// Adds an effect onto the main damage of the attack
-    pub damage_effect: Option<CombatEffect>,
+    /// Used to construct the Melee attack
+    pub melee_constructor: MeleeConstructor,
     /// Energy cost per attack
     pub energy_cost: f32,
     /// Whether spin state is infinite
@@ -46,14 +34,10 @@ pub struct StaticData {
     pub forward_speed: f32,
     /// Number of spins
     pub num_spins: u32,
-    /// Used to determine targeting of attack
-    pub target: Option<GroupTarget>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
-    /// What kind of damage the attack does
-    pub damage_kind: DamageKind,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -111,54 +95,15 @@ impl CharacterBehavior for Data {
                         ..*self
                     });
 
-                    let poise = AttackEffect::new(
-                        self.static_data.target,
-                        CombatEffect::Poise(self.static_data.base_poise_damage as f32),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let knockback = AttackEffect::new(
-                        self.static_data.target,
-                        CombatEffect::Knockback(self.static_data.knockback),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let mut damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Melee,
-                            kind: self.static_data.damage_kind,
-                            value: self.static_data.base_damage as f32,
-                        },
-                        self.static_data.target,
-                    );
-                    if let Some(effect) = self.static_data.damage_effect {
-                        damage = damage.with_effect(effect);
-                    }
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
-                        .with_effect(poise)
-                        .with_effect(knockback)
-                        .with_combo_increment();
+                    let crit_data = get_crit_data(data, self.static_data.ability_info);
+                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
 
-                    // Hit attempt
-                    data.updater.insert(data.entity, Melee {
-                        attack,
-                        range: self.static_data.range,
-                        max_angle: 180_f32.to_radians(),
-                        applied: false,
-                        hit_count: 0,
-                        break_block: data
-                            .inputs
-                            .break_block_pos
-                            .map(|p| {
-                                (
-                                    p.map(|e| e.floor() as i32),
-                                    self.static_data.ability_info.tool,
-                                )
-                            })
-                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
-                    });
+                    data.updater.insert(
+                        data.entity,
+                        self.static_data
+                            .melee_constructor
+                            .create_melee(crit_data, buff_strength),
+                    );
                 } else if self.timer < self.static_data.swing_duration {
                     if matches!(
                         self.static_data.movement_behavior,
