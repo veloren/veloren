@@ -423,7 +423,12 @@ pub enum ExperimentalShader {
     Brickloren,
     /// Remove the default procedural noise from terrain.
     NoNoise,
-    /// Simulated a curved world.
+    /// Add a sobel filter that draws lines in post-process by detecting edges
+    /// inbetween colors. This does perform 8 times more texture samples in
+    /// post-processing so there is potentially a significant performance
+    /// impact especially with anti aliasing enabled.
+    Sobel,
+    /// Simulate a curved world.
     CurvedWorld,
     /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.
     ProceduralLodDetail,
