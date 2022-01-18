@@ -4,7 +4,7 @@ use crate::{
         Body, UtteranceKind,
     },
     path::Chaser,
-    rtsim::RtSimController,
+    rtsim::{Memory, MemoryItem, RtSimController, RtSimEvent},
     trade::{PendingTrade, ReducedInventory, SiteId, SitePrices, TradeId, TradeResult},
     uid::Uid,
 };
@@ -20,6 +20,8 @@ use super::dialogue::Subject;
 
 pub const DEFAULT_INTERACTION_TIME: f32 = 3.0;
 pub const TRADE_INTERACTION_TIME: f32 = 300.0;
+const AWARENESS_DECREMENT_CONSTANT: f32 = 2.1;
+const SECONDS_BEFORE_FORGET_SOUNDS: f64 = 180.0;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum Alignment {
@@ -351,6 +353,17 @@ pub struct Target {
     pub aggro_on: bool,
 }
 
+impl Target {
+    pub fn new(target: EcsEntity, hostile: bool, selected_at: f64, aggro_on: bool) -> Self {
+        Self {
+            target,
+            hostile,
+            selected_at,
+            aggro_on,
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, EnumIter)]
 pub enum TimerAction {
     Interact,
@@ -521,6 +534,61 @@ impl Agent {
     pub fn with_aggro_no_warn(mut self) -> Self {
         self.psyche.aggro_dist = None;
         self
+    }
+
+    pub fn decrement_awareness(&mut self, dt: f32) {
+        let mut decrement = dt * AWARENESS_DECREMENT_CONSTANT;
+        let awareness = self.awareness;
+
+        let too_high = awareness >= 100.0;
+        let high = awareness >= 50.0;
+        let medium = awareness >= 30.0;
+        let low = awareness > 15.0;
+        let positive = awareness >= 0.0;
+        let negative = awareness < 0.0;
+
+        if too_high {
+            decrement *= 3.0;
+        } else if high {
+            decrement *= 1.0;
+        } else if medium {
+            decrement *= 2.5;
+        } else if low {
+            decrement *= 0.70;
+        } else if positive {
+            decrement *= 0.5;
+        } else if negative {
+            return;
+        }
+
+        self.awareness -= decrement;
+    }
+
+    pub fn forget_old_sounds(&mut self, time: f64) {
+        if !self.sounds_heard.is_empty() {
+            // Keep (retain) only newer sounds
+            self.sounds_heard
+                .retain(|&sound| time - sound.time <= SECONDS_BEFORE_FORGET_SOUNDS);
+        }
+    }
+
+    pub fn allowed_to_speak(&self) -> bool { self.behavior.can(BehaviorCapability::SPEAK) }
+
+    pub fn forget_enemy(&mut self, target_name: &str) {
+        self.rtsim_controller
+            .events
+            .push(RtSimEvent::ForgetEnemy(target_name.to_owned()));
+    }
+
+    pub fn add_enemy(&mut self, target_name: &str, time: f64) {
+        self.rtsim_controller
+            .events
+            .push(RtSimEvent::AddMemory(Memory {
+                item: MemoryItem::CharacterFight {
+                    name: target_name.to_owned(),
+                },
+                time_to_forget: time + 300.0,
+            }));
     }
 }
 
