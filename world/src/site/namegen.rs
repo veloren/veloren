@@ -91,19 +91,47 @@ impl<'a, R: Rng> NameGen<'a, R> {
             .collect()
     }
 
-    pub fn generate_forest(self) -> String {
+    pub fn generate_temp_forest(self) -> String {
         let cons = vec![
             "green", "moss", "ever", "briar", "thorn", "oak", "deep", "moon", "star", "sun",
             "bright", "glare", "fair", "calm", "mistral", "whisper", "clover", "hollow", "spring",
             "morrow", "dim", "dusk", "dawn", "night", "shimmer", "silver", "gold", "whisper",
-            "fern", "quiet", "still", "gleam", "wild", "blind", "swift",
+            "fern", "quiet", "still", "gleam", "wild", "blind", "swift", "gnarl", "flutter",
+            "silent", "honey", "bramble", "rose",
         ];
         let start = cons.clone();
         let end = vec![
             "root", "bark", "log", "brook", "well", "shire", "leaf", "more", "bole", "heart",
             "song", "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "vale",
             "glen", "rest", "shade", "fall", "sward", "thicket", "shrub", "bush", "grasp", "grip",
-            "gale", "crawl", "run", "shadow",
+            "gale", "crawl", "run", "shadow", "rise", "glow", "wish", "will", "walk", "wander",
+            "wake", "eye", "blossom", "sprout", "barb",
+        ];
+        let mut name = String::new();
+        name += start.choose(self.rng).unwrap();
+        name += end.choose(self.rng).unwrap();
+
+        name.chars()
+            .enumerate()
+            .map(|(i, c)| if i == 0 { c.to_ascii_uppercase() } else { c })
+            .collect()
+    }
+
+    pub fn generate_grassland(self) -> String {
+        let cons = vec![
+            "green", "heather", "flower", "blue", "yellow", "vast", "moon", "star", "sun",
+            "bright", "fair", "calm", "mistral", "whisper", "clover", "sooth", "spring", "morrow",
+            "dim", "dusk", "dawn", "night", "shimmer", "silver", "gold", "amber", "quiet", "still",
+            "gleam", "wild", "corm", "mint", "feather", "silent", "bronze", "bister", "thistle",
+            "bristle", "dew", "bramble", "sorrel", "broad", "petal",
+        ];
+        let start = cons.clone();
+        let end = vec![
+            "brook", "well", "flight", "more", "heart", "song", "barb", "wort", "hoof", "foot",
+            "herd", "path", "wind", "breeze", "light", "bloom", "rest", "balm", "reach", "flow",
+            "graze", "trail", "fall", "thicket", "shrub", "bush", "gale", "run", "stem", "glare",
+            "gaze", "rove", "brew", "rise", "glow", "wish", "will", "walk", "wander", "wake",
+            "sky", "burrow", "cross", "roam",
         ];
         let mut name = String::new();
         name += start.choose(self.rng).unwrap();

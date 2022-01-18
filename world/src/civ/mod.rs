@@ -527,79 +527,79 @@ impl Civs {
                     match ctx.rng.gen_range(0..8) {
                         0 => format!(
                             "{}\nForest",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         1 => format!(
                             "{}\nWoodlands",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         2 => format!(
                             "{}\nWoods",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         3 => format!(
                             "{}\nGlades",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         4 => format!(
                             "{}\nGrove",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         5 => format!(
                             "{}\nGlades",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         6 => format!(
                             "{}\nThickets",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         7 => format!(
                             "{}\nWeald",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                         _ => format!(
                             "{}\nForest",
-                            NameGen::location(&mut ctx.rng).generate_forest()
+                            NameGen::location(&mut ctx.rng).generate_temp_forest()
                         ),
                     }
                 },
                 common::terrain::BiomeKind::Grassland if biome.1.len() as u32 > 750 => {
-                    match ctx.rng.gen_range(0..11) {
+                    match ctx.rng.gen_range(0..10) {
                         0 => format!(
                             "{}\nGrasslands",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         1 => format!(
                             "{}\nFlats",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         2 => format!(
                             "{}\nGreens",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         3 => format!(
                             "{}\nPlains",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         4 => format!(
                             "{}\nMeadows",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         5 => format!(
                             "{}\nFields",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         6 => format!(
                             "{}\nHeath",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         7 => format!(
                             "{}\nPrairie",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         8 => format!(
                             "{}\nSteppe",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         9 => format!(
                             "{}\nDowns",
@@ -607,15 +607,11 @@ impl Civs {
                         ),
                         10 => format!(
                             "{}\nHeath",
-                            NameGen::location(&mut ctx.rng).generate_biome()
-                        ),
-                        11 => format!(
-                            "{}\nHeath",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                         _ => format!(
                             "{}\nGrassland",
-                            NameGen::location(&mut ctx.rng).generate_biome()
+                            NameGen::location(&mut ctx.rng).generate_grassland()
                         ),
                     }
                 },
