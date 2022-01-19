@@ -184,6 +184,8 @@ impl<P: CompPacket> CompSyncPackage<P> {
         tracker.get_updates_for(uids, storage, filter, &mut self.comp_updates);
     }
 
+    /// If there was an update to the component `C` on the provided entity this
+    /// will add the update to this package.
     pub fn add_component_update<'a, C: Component + Clone + Send + Sync>(
         &mut self,
         tracker: &UpdateTracker<C>,

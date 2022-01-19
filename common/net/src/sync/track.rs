@@ -139,17 +139,17 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
         C::Storage: specs::storage::Tracked,
     {
         let id = entity.id();
-        // Generate inserted update if one exists
+        // Generate update if one exists.
         //
         // Note: presence of the id in these bitsets should be mutually exclusive
-        if self.inserted.contains(id) {
-            storage
-                .get(entity)
-                .map(|comp| CompUpdateKind::Inserted(P::from(comp.clone())))
-        } else if self.modified.contains(id) {
+        if self.modified.contains(id) {
             storage
                 .get(entity)
                 .map(|comp| CompUpdateKind::Modified(P::from(comp.clone())))
+        } else if self.inserted.contains(id) {
+            storage
+                .get(entity)
+                .map(|comp| CompUpdateKind::Inserted(P::from(comp.clone())))
         } else if self.removed.contains(id) {
             Some(CompUpdateKind::Removed(P::Phantom::from(PhantomData::<C>)))
         } else {

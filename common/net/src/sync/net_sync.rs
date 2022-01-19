@@ -1,5 +1,5 @@
 //! Types of syncing:
-//! * synced from all entities
+//! * synced from any entity (within range)
 //! * synced only from the client's entity
 //!
 //! Types of updating
@@ -25,6 +25,10 @@ where
     //type UpdateFrom = Self;
     //type Update: From<Self::UpdateFrom> = Self;
 
+    /// Determines what for entities this component is synced to the client.
+    ///
+    /// For example, [`SyncFrom::ClientEntity`] can be used to only sync the
+    /// components for the client's own entity.
     const SYNC_FROM: SyncFrom;
 
     // sync::handle_modify(comp, entity, world)
@@ -38,9 +42,9 @@ where
     fn pre_modify(&mut self, world: &specs::World) { let _world = world; }
 }
 
-/// Whether a component is synced to the client for all entities or for just the
+/// Whether a component is synced to the client for any entity or for just the
 /// client's own entity.
 pub enum SyncFrom {
-    AllEntities,
+    AnyEntity,
     ClientEntity,
 }

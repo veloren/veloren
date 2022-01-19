@@ -93,6 +93,8 @@ impl<'a> System<'a> for Sys {
             let stat = stats;
 
             if let Some(new_max) = health.needs_maximum_update(stat.max_health_modifiers) {
+                // Only call this if we need to since mutable access will trigger sending an
+                // update to the client.
                 health.update_internal_integer_maximum(new_max);
             }
 
@@ -104,6 +106,8 @@ impl<'a> System<'a> for Sys {
             };
 
             if let Some(new_max) = energy.needs_maximum_update(energy_mods) {
+                // Only call this if we need to since mutable access will trigger sending an
+                // update to the client.
                 energy.update_internal_integer_maximum(new_max);
             }
         }

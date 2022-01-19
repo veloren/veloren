@@ -37,16 +37,26 @@ impl<'a> System<'a> for Sys {
 
 /// Holds state like modified bitsets, modification event readers
 macro_rules! trackers {
+    // Every place where we have `$( /* ... */ )*` will be repeated for each synced component.
     ($($component_name:ident: $component_type:ident,)*) => {
         #[derive(SystemData)]
         pub struct TrackedStorages<'a> {
+            // Uids are tracked to detect created entities that should be synced over the network.
+            // Additionally we need access to the uids when generating packets to send to the clients.
             pub uid: ReadStorage<'a, Uid>,
             $(pub $component_name: ReadStorage<'a, $component_type>,)*
+            // TODO: these may be used to duplicate items when we attempt to remove
+            // cloning them.
             pub _ability_map: ReadExpect<'a, AbilityMap>,
             pub _msm: ReadExpect<'a, MaterialStatManifest>,
         }
 
         impl TrackedStorages<'_> {
+            /// Create a package containing all the synced components for this entity. This is
+            /// used to initialized the entity's representation on the client (e.g. used when a new
+            /// entity is within the area synced to the client).
+            ///
+            /// Note: This is only for components that are synced to the client for all entities.
             pub fn create_entity_package(
                 &self,
                 entity: EcsEntity,
@@ -62,10 +72,10 @@ macro_rules! trackers {
                 // if the number of optional components sent is less than 1/8 of the number of component types then
                 // then the suggested approach would no longer be favorable
                 $(
-
+                    // Only add components that are synced from any entity.
                     if matches!(
                         <$component_type as NetSync>::SYNC_FROM,
-                        SyncFrom::AllEntities,
+                        SyncFrom::AnyEntity,
                     ) {
                         self
                             .$component_name
@@ -88,6 +98,9 @@ macro_rules! trackers {
             }
         }
 
+        /// Contains an [`UpdateTracker`] for every synced component (that uses this method of
+        /// change detection).
+        ///
         /// This should be inserted into the ecs as a Resource
         pub struct UpdateTrackers {
             pub uid: UpdateTracker<Uid>,
@@ -108,14 +121,18 @@ macro_rules! trackers {
                 // TODO: if we held copies of components for doing diffing, the components that hold that data could be registered here
             }
 
-            /// Update trackers
+            /// Records updates to components that are provided from the tracked storages as a series of events into bitsets
+            /// that can later be joined on.
             fn record_changes(&mut self, comps: &TrackedStorages) {
                 self.uid.record_changes(&comps.uid);
                 $(
                     self.$component_name.record_changes(&comps.$component_name);
                 )*
 
+                // Enable for logging of counts of component update events.
                 const LOG_COUNTS: bool = false;
+                // Plotting counts via tracy. Env var provided to toggle on so there's no need to
+                // recompile if you are already have a tracy build.
                 let plot_counts = common_base::TRACY_ENABLED && matches!(std::env::var("PLOT_UPDATE_COUNTS").as_deref(), Ok("1"));
 
                 macro_rules! log_counts {
@@ -142,6 +159,10 @@ macro_rules! trackers {
                 $(log_counts!($component_name, concat!(stringify!($component_name), 's'));)*
             }
 
+            /// Create a [`EntitySyncPackage`] and a [`CompSyncPackage`] to provide updates
+            /// for the set entities specified by the provided filter (e.g. for a region).
+            ///
+            /// A deleted entities must be externally constructed and provided here.
             pub fn create_sync_packages(
                 &self,
                 comps: &TrackedStorages,
@@ -155,7 +176,7 @@ macro_rules! trackers {
                 $(
                     if matches!(
                         <$component_type as NetSync>::SYNC_FROM,
-                        SyncFrom::AllEntities,
+                        SyncFrom::AnyEntity,
                     ) {
                         comp_sync_package.add_component_updates(
                             &comps.uid,
@@ -170,7 +191,7 @@ macro_rules! trackers {
             }
 
 
-            /// Create sync package for components that are only synced to the client entity
+            /// Create sync package for components that are only synced for the client's entity.
             pub fn create_sync_from_client_package(
                 &self,
                 comps: &TrackedStorages,
@@ -208,7 +229,11 @@ macro_rules! trackers {
     }
 }
 
+// Import all the component types so they will be available when expanding the
+// macro below.
 use common_net::synced_components::*;
+// Pass `trackers!` macro to this "x macro" which will invoke it with a list
+// of components. This will declare the types defined in the macro above.
 common_net::synced_components!(trackers);
 
 /// Deleted entities grouped by region

@@ -238,7 +238,13 @@ impl Sys {
         mut state_update: StateUpdate,
         output_events: &mut OutputEvents,
     ) {
-        // TODO: if checking equality is expensive use optional field in StateUpdate
+        // Here we check for equality with the previous value of these components before
+        // updating them so that the modification detection will not be
+        // triggered unnecessarily. This is important for minimizing updates
+        // sent to the clients (and thus keeping bandwidth usage down).
+        //
+        // TODO: if checking equality is expensive for char_state use optional field in
+        // StateUpdate
         if *join.char_state != state_update.character {
             *join.char_state = state_update.character
         }
@@ -249,9 +255,11 @@ impl Sys {
             *join.energy = state_update.energy;
         };
 
+        // These components use a different type of change detection.
         *join.pos = state_update.pos;
         *join.vel = state_update.vel;
         *join.ori = state_update.ori;
+
         join.controller
             .queued_inputs
             .append(&mut state_update.queued_inputs);

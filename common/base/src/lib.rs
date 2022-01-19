@@ -6,6 +6,8 @@ pub use userdata_dir::userdata_dir;
 
 #[cfg(feature = "tracy")] pub use tracy_client;
 
+/// Allows downstream crates to conditionally do things based on whether tracy
+/// is enabled without having to expose a cargo feature themselves.
 pub const TRACY_ENABLED: bool = cfg!(feature = "tracy");
 
 #[cfg(not(feature = "tracy"))]

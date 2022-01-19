@@ -82,6 +82,8 @@ impl<'a> System<'a> for Sys {
     ) {
         let tick = tick.0;
 
+        // Storages already provided in `TrackedStorages` that we need to use
+        // for other things besides change detection.
         let uids = &tracked_storages.uid;
         let colliders = &tracked_storages.collider;
         let inventories = &tracked_storages.inventory;
@@ -355,7 +357,7 @@ impl<'a> System<'a> for Sys {
             ));
         }
 
-        // Sync components that just sync to the client's entity
+        // Sync components that are only synced for the client's own entity.
         for (entity, client) in (&entities, &clients).join() {
             let comp_sync_package =
                 trackers.create_sync_from_client_package(&tracked_storages, entity);

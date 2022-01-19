@@ -14,6 +14,8 @@
 //! when using the x macro defined here which requires this.
 
 /// This provides a lowercase name and the component type.
+///
+/// See [module](self) level docs for more details.
 #[macro_export]
 macro_rules! synced_components {
     ($macro:ident) => {
@@ -70,13 +72,26 @@ macro_rules! reexport_comps {
             use common::link::Is;
             use common::mounting::{Mount, Rider};
 
+            // We alias these because the identifier used for the
+            // component's type is reused as an enum variant name
+            // in the macro's that we pass to `synced_components!`.
+            //
+            // This is also the reason we need this inner module, since
+            // we can't just re-export all the types directly from `common::comp`.
             pub type IsMount = Is<Mount>;
             pub type IsRider = Is<Rider>;
         }
 
+        // Re-export all the component types. So that uses of `synced_components!` outside this
+        // module can bring them into scope with a single glob import.
         $(pub use inner::$type;)*
     }
 }
+// Pass `reexport_comps` macro to the "x macro" which will invoke it with a list
+// of components.
+//
+// Note: this brings all these components into scope for the implementations
+// below.
 synced_components!(reexport_comps);
 
 // ===============================
@@ -85,28 +100,30 @@ synced_components!(reexport_comps);
 
 use crate::sync::{NetSync, SyncFrom};
 
+// These are synced from any entity within range.
+
 impl NetSync for Body {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Stats {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Buffs {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Auras {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Energy {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Health {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 
     fn pre_insert(&mut self, world: &specs::World) {
         use common::resources::Time;
@@ -128,78 +145,78 @@ impl NetSync for Health {
 }
 
 impl NetSync for Poise {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for LightEmitter {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Item {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Scale {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Group {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for IsMount {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for IsRider {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Mass {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Density {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Collider {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Sticky {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for CharacterState {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Shockwave {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for BeamSegment {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Alignment {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Player {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for Inventory {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
 impl NetSync for SkillSet {
-    const SYNC_FROM: SyncFrom = SyncFrom::AllEntities;
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
-// SyncFrom::ClientEntity
+// These are synced only from the client's own  entity.
 
 impl NetSync for Combo {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
