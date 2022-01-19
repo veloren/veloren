@@ -22,6 +22,8 @@
 #include <srgb.glsl>
 #include <cloud.glsl>
 #include <light.glsl>
+// This *MUST* come after `cloud.glsl`: it contains a function that depends on `cloud.glsl` when clouds are enabled
+#include <point_glow.glsl>
 
 layout(set = 1, binding = 0)
 uniform texture2D t_src_color;

@@ -141,6 +141,7 @@ impl ShaderModules {
         let random = shaders.get("include.random").unwrap();
         let lod = shaders.get("include.lod").unwrap();
         let shadows = shaders.get("include.shadows").unwrap();
+        let point_glow = shaders.get("include.point_glow").unwrap();
 
         // We dynamically add extra configuration settings to the constants file.
         let mut constants = format!(
@@ -241,6 +242,7 @@ impl ShaderModules {
                     "lod.glsl" => lod.0.to_owned(),
                     "anti-aliasing.glsl" => anti_alias.0.to_owned(),
                     "cloud.glsl" => cloud.0.to_owned(),
+                    "point_glow.glsl" => point_glow.0.to_owned(),
                     other => {
                         return Err(format!(
                             "Include {} in {} is not defined",
