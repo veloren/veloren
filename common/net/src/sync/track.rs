@@ -17,7 +17,7 @@ impl<C: Component> UpdateTracker<C>
 where
     C::Storage: specs::storage::Tracked,
 {
-    pub fn new(specs_world: &mut World) -> Self {
+    pub fn new(specs_world: &World) -> Self {
         Self {
             reader_id: specs_world.write_storage::<C>().register_reader(),
             inserted: BitSet::new(),
@@ -120,6 +120,40 @@ impl<C: Component + Clone + Send + Sync> UpdateTracker<C> {
                 (*uid).into(),
                 CompUpdateKind::Removed(P::Phantom::from(PhantomData::<C>)),
             ));
+        }
+    }
+
+    /// Returns `Some(update)` if the tracked component was modified for this
+    /// entity.
+    pub fn get_update<'a, P>(
+        &self,
+        storage: &specs::ReadStorage<'a, C>,
+        entity: Entity,
+    ) -> Option<CompUpdateKind<P>>
+    where
+        P: CompPacket,
+        P: From<C>,
+        C: TryFrom<P>,
+        P::Phantom: From<PhantomData<C>>,
+        P::Phantom: TryInto<PhantomData<C>>,
+        C::Storage: specs::storage::Tracked,
+    {
+        let id = entity.id();
+        // Generate update if one exists.
+        //
+        // Note: presence of the id in these bitsets should be mutually exclusive
+        if self.modified.contains(id) {
+            storage
+                .get(entity)
+                .map(|comp| CompUpdateKind::Modified(P::from(comp.clone())))
+        } else if self.inserted.contains(id) {
+            storage
+                .get(entity)
+                .map(|comp| CompUpdateKind::Inserted(P::from(comp.clone())))
+        } else if self.removed.contains(id) {
+            Some(CompUpdateKind::Removed(P::Phantom::from(PhantomData::<C>)))
+        } else {
+            None
         }
     }
 }

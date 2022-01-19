@@ -92,32 +92,23 @@ impl<'a> System<'a> for Sys {
             }
             let stat = stats;
 
-            let update_max_hp = {
-                stat.max_health_modifiers.update_maximum()
-                    || (health.base_max() - health.maximum()).abs() > Health::HEALTH_EPSILON
-            };
-
-            if update_max_hp {
-                health.update_maximum(stat.max_health_modifiers);
+            if let Some(new_max) = health.needs_maximum_update(stat.max_health_modifiers) {
+                // Only call this if we need to since mutable access will trigger sending an
+                // update to the client.
+                health.update_internal_integer_maximum(new_max);
             }
 
-            let (change_energy, energy_mods) = {
-                // Calculates energy scaling from stats and inventory
-                let energy_mods = StatsModifier {
-                    add_mod: stat.max_energy_modifiers.add_mod
-                        + combat::compute_max_energy_mod(inventory),
-                    mult_mod: stat.max_energy_modifiers.mult_mod,
-                };
-                (
-                    energy_mods.update_maximum()
-                        || (energy.base_max() - energy.maximum()).abs() > Energy::ENERGY_EPSILON,
-                    energy_mods,
-                )
+            // Calculates energy scaling from stats and inventory
+            let energy_mods = StatsModifier {
+                add_mod: stat.max_energy_modifiers.add_mod
+                    + combat::compute_max_energy_mod(inventory),
+                mult_mod: stat.max_energy_modifiers.mult_mod,
             };
 
-            // If modifier sufficiently different, mutably access energy
-            if change_energy {
-                energy.update_maximum(energy_mods);
+            if let Some(new_max) = energy.needs_maximum_update(energy_mods) {
+                // Only call this if we need to since mutable access will trigger sending an
+                // update to the client.
+                energy.update_internal_integer_maximum(new_max);
             }
         }
 
