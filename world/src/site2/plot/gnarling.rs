@@ -44,7 +44,7 @@ enum GnarlingStructure {
 impl GnarlingStructure {
     fn required_separation(&self, other: &Self) -> i32 {
         match (self, other) {
-            (Self::Hut, Self::Hut) => 15,
+            (Self::Hut, Self::Hut) => 13,
             (_, Self::Longhut) | (Self::Longhut, _) => 25,
             (_, Self::Banner) | (Self::Banner, _) => 15,
 
@@ -686,10 +686,19 @@ impl Structure for GnarlingFortification {
                     roof_height: f32,
                     roof_overhang: f32,
                 ) {
+                    let randx = ((wpos.x.abs() as f32 / 10.0
+                        - (wpos.x.abs() as f32 / 10.0).trunc())
+                        * 10.0) as i32;
+                    let randy = ((wpos.y.abs() as f32 / 10.0
+                        - (wpos.y.abs() as f32 / 10.0).trunc())
+                        * 10.0) as i32;
+                    let randz = ((alt.abs() as f32 / 10.0 - (alt.abs() as f32 / 10.0).trunc())
+                        * 10.0) as i32;
+                    let hut_wall_height = hut_wall_height + randy as f32 / 3.0;
                     // Floor
-                    let base = wpos.with_z(alt);
+                    let base = wpos.with_z(alt - 4);
                     painter
-                        .prim(Primitive::cylinder(base, hut_radius + 1.0, 2.0))
+                        .prim(Primitive::cylinder(base, hut_radius + 1.0, 6.0))
                         .fill(Fill::Block(Block::new(
                             BlockKind::Wood,
                             Rgb::new(55, 25, 8),
@@ -750,13 +759,13 @@ impl Structure for GnarlingFortification {
                     let aabb_min = |dir| {
                         match dir {
                             Ori::North | Ori::East => wpos - Vec2::one(),
-                            Ori::South | Ori::West => wpos + Vec2::one(),
+                            Ori::South | Ori::West => wpos + randx / 5 + 1,
                         }
                         .with_z(alt + 1)
                     };
                     let aabb_max = |dir| {
                         (match dir {
-                            Ori::North | Ori::East => wpos + Vec2::one(),
+                            Ori::North | Ori::East => wpos + randx / 5 + 1,
                             Ori::South | Ori::West => wpos - Vec2::one(),
                         } + dir.dir() * hut_radius as i32)
                             .with_z(alt + 1 + door_height)
@@ -808,8 +817,8 @@ impl Structure for GnarlingFortification {
                     //sphere to delete some hut
                     painter
                         .prim(Primitive::sphere(
-                            Vec2::new(wpos.x + 1, wpos.y + 2)
-                                .with_z(alt + 11 + hut_wall_height as i32),
+                            Vec2::new(wpos.x - (randy - 5) / 2, wpos.y - (randz - 5) / 2)
+                                .with_z(alt + 12 + hut_wall_height as i32 - randx / 3),
                             8.5,
                         ))
                         .fill(Fill::Block(Block::empty()));
@@ -1080,7 +1089,7 @@ impl Structure for GnarlingFortification {
                     GnarlingStructure::Hut => {
                         let hut_radius = 5.0;
                         let hut_wall_height = 4.0;
-                        let door_height = 3;
+                        let door_height = 4;
                         let roof_height = 3.0;
                         let roof_overhang = 1.0;
 
@@ -1170,6 +1179,15 @@ impl Structure for GnarlingFortification {
                     },
 
                     GnarlingStructure::Banner => {
+                        let randx = ((wpos.x.abs() as f32 / 10.0
+                            - (wpos.x.abs() as f32 / 10.0).trunc())
+                            * 10.0) as i32;
+                        let randy = ((wpos.y.abs() as f32 / 10.0
+                            - (wpos.y.abs() as f32 / 10.0).trunc())
+                            * 10.0) as i32;
+                        let randz = ((alt.abs() as f32 / 10.0 - (alt.abs() as f32 / 10.0).trunc())
+                            * 10.0) as i32;
+
                         let flag = painter.aabb(Aabb {
                             min: Vec2::new(wpos.x + 1, wpos.y - 1).with_z(alt + 8),
                             max: Vec2::new(wpos.x + 8, wpos.y).with_z(alt + 38),
@@ -1221,6 +1239,24 @@ impl Structure for GnarlingFortification {
                                 6.0,
                             ))
                             .intersect(flag)
+                            .fill(Fill::Block(Block::empty()));
+                        //tatters
+                        painter
+                            .line(
+                                Vec2::new(wpos.x + 3 + randx / 5, wpos.y - 1)
+                                    .with_z(alt + 15 + randy),
+                                Vec2::new(wpos.x + 3 + randy / 5, wpos.y - 1).with_z(alt + 5),
+                                0.9 * randz as f32 / 4.0,
+                            )
+                            .fill(Fill::Block(Block::empty()));
+                        painter
+                            .line(
+                                Vec2::new(wpos.x + 4 + randz / 2, wpos.y - 1)
+                                    .with_z(alt + 20 + randx),
+                                Vec2::new(wpos.x + 4 + randz / 2, wpos.y - 1)
+                                    .with_z(alt + 17 + randy),
+                                0.9 * randz as f32 / 6.0,
+                            )
                             .fill(Fill::Block(Block::empty()));
 
                         //flagpole
