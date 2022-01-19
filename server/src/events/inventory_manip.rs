@@ -431,9 +431,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             | (Slot::Equip(slot::EquipSlot::Lantern), Slot::Inventory(inv_slot)) = (a, b)
             {
                 if let Some(comp::item::ItemKind::Lantern(lantern)) =
-                    inventory.get(inv_slot).and_then(|item| Some(item.kind()))
+                    inventory.get(inv_slot).map(|item| item.kind())
                 {
-                    swap_lantern(&mut ecs.write_storage(), entity, &lantern);
+                    swap_lantern(&mut ecs.write_storage(), entity, lantern);
                 }
             }
 
