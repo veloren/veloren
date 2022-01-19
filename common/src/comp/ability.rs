@@ -1190,23 +1190,13 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sword(DDrain)) {
                     *energy_drain *= modifiers.energy_drain.powi(level.into());
                 }
-                if let MeleeConstructorKind::Slash {
-                    ref mut damage,
-                    poise: _,
-                    knockback: _,
-                    energy_regen: _,
-                } = melee_constructor.kind
-                {
+                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
                     if let Ok(level) = skillset.skill_level(Sword(DDamage)) {
                         *damage *= modifiers.base_damage.powi(level.into());
                     }
                 }
-                if let Some(MeleeConstructorKind::Slash {
-                    ref mut damage,
-                    poise: _,
-                    knockback: _,
-                    energy_regen: _,
-                }) = melee_constructor.scaled
+                if let Some(MeleeConstructorKind::Slash { ref mut damage, .. }) =
+                    melee_constructor.scaled
                 {
                     if let Ok(level) = skillset.skill_level(Sword(DScaling)) {
                         *damage *= modifiers.scaled_damage.powi(level.into());
@@ -1227,13 +1217,7 @@ impl CharacterAbility {
             } => {
                 let modifiers = SKILL_MODIFIERS.sword_tree.spin;
                 *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
-                if let MeleeConstructorKind::Slash {
-                    ref mut damage,
-                    poise: _,
-                    knockback: _,
-                    energy_regen: _,
-                } = melee_constructor.kind
-                {
+                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
                     if let Ok(level) = skillset.skill_level(Sword(SDamage)) {
                         *damage *= modifiers.base_damage.powi(level.into());
                     }
@@ -1299,13 +1283,7 @@ impl CharacterAbility {
                 } else {
                     spin_melee::MovementBehavior::ForwardGround
                 };
-                if let MeleeConstructorKind::Slash {
-                    ref mut damage,
-                    poise: _,
-                    knockback: _,
-                    energy_regen: _,
-                } = melee_constructor.kind
-                {
+                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
                     if let Ok(level) = skillset.skill_level(Axe(SDamage)) {
                         *damage *= modifiers.base_damage.powi(level.into());
                     }
@@ -1328,8 +1306,7 @@ impl CharacterAbility {
                 if let MeleeConstructorKind::Slash {
                     ref mut damage,
                     ref mut knockback,
-                    poise: _,
-                    energy_regen: _,
+                    ..
                 } = melee_constructor.kind
                 {
                     if let Ok(level) = skillset.skill_level(Axe(LDamage)) {
@@ -1400,8 +1377,7 @@ impl CharacterAbility {
                 if let Some(MeleeConstructorKind::Bash {
                     ref mut damage,
                     ref mut knockback,
-                    poise: _,
-                    energy_regen: _,
+                    ..
                 }) = melee_constructor.scaled
                 {
                     if let Ok(level) = skillset.skill_level(Hammer(CDamage)) {
