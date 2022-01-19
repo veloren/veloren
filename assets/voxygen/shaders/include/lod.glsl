@@ -321,9 +321,10 @@ vec3 lod_norm(vec2 f_pos/*vec3 pos*/) {
             textureLod(sampler2D(t_noise, s_noise), wpos / 200, 0).x - 0.5,
             textureLod(sampler2D(t_noise, s_noise), wpos / 200 + 0.5, 0).x - 0.5
         ) * 0.35;
+        norm = normalize(norm);
     #endif
 
-    return normalize(norm);
+    return norm;
 }
 
 

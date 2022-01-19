@@ -33,7 +33,7 @@ float attenuation_strength(vec3 rpos) {
 
 float attenuation_strength_real(vec3 rpos) {
     float d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
-    return 1.0 / (0.0 + d2);
+    return 1.0 / (0.025 + d2);
 }
 
 // // Compute attenuation due to light passing through a substance that fills an area below a horizontal plane

@@ -12,9 +12,12 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color, const flo
             float t = max(dot(light_pos - wpos, dir), 0);
             vec3 nearest = wpos + dir * min(t, max_dist);
 
-            //if (t > max_dist) { continue; }
-
             vec3 difference = light_pos - nearest;
+            float distance_2 = dot(difference, difference);
+            if (distance_2 > 100000.0) {
+                continue;
+            }
+
             #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
                 vec3 _unused;
                 float unused2;
@@ -22,10 +25,6 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color, const flo
             #else
                 const float spread = 1.0;
             #endif
-            float distance_2 = dot(difference, difference);
-            if (distance_2 > 100000.0) {
-                continue;
-            }
 
             float strength = pow(attenuation_strength_real(difference), spread);
 
