@@ -1,13 +1,21 @@
 DashMelee(
     energy_cost: 0,
-    base_damage: 5.0,
-    scaled_damage: 25.0,
-    base_poise_damage: 10,
-    scaled_poise_damage: 40,
-    base_knockback: 10.0,
-    scaled_knockback: 30.0,
-    range: 5.0,
-    angle: 90.0,
+    melee_constructor: (
+        kind: Bash(
+            damage: 5.0,
+            poise: 10.0,
+            knockback: 10.0,
+            energy_regen: 0.0,
+        ),
+        scaled: Some(Bash(
+            damage: 25.0,
+            poise: 40.0,
+            knockback: 30.0,
+            energy_regen: 0.0,
+        )),
+        range: 5.0,
+        angle: 90.0,
+    ),
     energy_drain: 0,
     forward_speed: 10.0,
     buildup_duration: 0.4,
@@ -17,5 +25,4 @@ DashMelee(
     ori_modifier: 0.3,
     charge_through: false,
     is_interruptible: false,
-    damage_kind: Crushing,
 )

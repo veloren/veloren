@@ -11,6 +11,7 @@ use crate::{
             slot::EquipSlot,
             Inventory,
         },
+        melee::{MeleeConstructor, MeleeConstructorKind},
         projectile::ProjectileConstructor,
         skillset::{
             skills::{self, Skill, SKILL_MODIFIERS},
@@ -392,13 +393,7 @@ pub enum CharacterAbility {
         buildup_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
-        base_damage: f32,
-        base_poise_damage: f32,
-        knockback: Knockback,
-        range: f32,
-        max_angle: f32,
-        damage_effect: Option<CombatEffect>,
-        damage_kind: DamageKind,
+        melee_constructor: MeleeConstructor,
     },
     BasicRanged {
         energy_cost: f32,
@@ -431,25 +426,16 @@ pub enum CharacterAbility {
     },
     DashMelee {
         energy_cost: f32,
-        base_damage: f32,
-        scaled_damage: f32,
-        base_poise_damage: f32,
-        scaled_poise_damage: f32,
-        base_knockback: f32,
-        scaled_knockback: f32,
-        range: f32,
-        angle: f32,
         energy_drain: f32,
         forward_speed: f32,
         buildup_duration: f32,
         charge_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
+        melee_constructor: MeleeConstructor,
         ori_modifier: f32,
         charge_through: bool,
         is_interruptible: bool,
-        damage_kind: DamageKind,
-        damage_effect: Option<CombatEffect>,
     },
     BasicBlock {
         buildup_duration: f32,
@@ -483,25 +469,14 @@ pub enum CharacterAbility {
         movement_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
-        base_damage: f32,
-        base_poise_damage: f32,
-        range: f32,
-        max_angle: f32,
-        knockback: f32,
+        melee_constructor: MeleeConstructor,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
-        damage_kind: DamageKind,
-        damage_effect: Option<CombatEffect>,
     },
     SpinMelee {
         buildup_duration: f32,
         swing_duration: f32,
         recover_duration: f32,
-        base_damage: f32,
-        base_poise_damage: f32,
-        knockback: Knockback,
-        range: f32,
-        damage_effect: Option<CombatEffect>,
         energy_cost: f32,
         is_infinite: bool,
         movement_behavior: spin_melee::MovementBehavior,
@@ -509,27 +484,17 @@ pub enum CharacterAbility {
         forward_speed: f32,
         num_spins: u32,
         specifier: Option<spin_melee::FrontendSpecifier>,
-        target: Option<combat::GroupTarget>,
-        damage_kind: DamageKind,
+        melee_constructor: MeleeConstructor,
     },
     ChargedMelee {
         energy_cost: f32,
         energy_drain: f32,
-        initial_damage: f32,
-        scaled_damage: f32,
-        initial_poise_damage: f32,
-        scaled_poise_damage: f32,
-        initial_knockback: f32,
-        scaled_knockback: f32,
-        range: f32,
-        max_angle: f32,
         charge_duration: f32,
         swing_duration: f32,
         hit_timing: f32,
         recover_duration: f32,
+        melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
-        damage_kind: DamageKind,
-        damage_effect: Option<CombatEffect>,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -633,16 +598,18 @@ impl Default for CharacterAbility {
             buildup_duration: 0.25,
             swing_duration: 0.25,
             recover_duration: 0.5,
-            base_damage: 10.0,
-            base_poise_damage: 0.0,
-            knockback: Knockback {
-                strength: 0.0,
-                direction: combat::KnockbackDir::Away,
+            melee_constructor: MeleeConstructor {
+                kind: MeleeConstructorKind::Slash {
+                    damage: 1.0,
+                    knockback: 0.0,
+                    poise: 0.0,
+                    energy_regen: 0.0,
+                },
+                scaled: None,
+                range: 3.5,
+                angle: 15.0,
+                damage_effect: None,
             },
-            range: 3.5,
-            max_angle: 15.0,
-            damage_effect: None,
-            damage_kind: DamageKind::Crushing,
         }
     }
 }
@@ -728,30 +695,13 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
-                ref mut base_damage,
-                ref mut base_poise_damage,
-                knockback: _,
-                ref mut range,
-                max_angle: _,
-                ref mut damage_effect,
-                damage_kind: _,
+                ref mut melee_constructor,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *base_damage *= stats.power;
-                *base_poise_damage *= stats.effect_power;
-                *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
             },
             BasicRanged {
                 ref mut energy_cost,
@@ -800,45 +750,23 @@ impl CharacterAbility {
             },
             DashMelee {
                 ref mut energy_cost,
-                ref mut base_damage,
-                ref mut scaled_damage,
-                ref mut base_poise_damage,
-                ref mut scaled_poise_damage,
-                base_knockback: _,
-                scaled_knockback: _,
-                ref mut range,
-                angle: _,
                 ref mut energy_drain,
                 forward_speed: _,
                 ref mut buildup_duration,
                 charge_duration: _,
                 ref mut swing_duration,
                 ref mut recover_duration,
+                ref mut melee_constructor,
                 ori_modifier: _,
                 charge_through: _,
                 is_interruptible: _,
-                damage_kind: _,
-                ref mut damage_effect,
             } => {
-                *base_damage *= stats.power;
-                *scaled_damage *= stats.power;
-                *base_poise_damage *= stats.effect_power;
-                *scaled_poise_damage *= stats.effect_power;
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
             },
             BasicBlock {
                 ref mut buildup_duration,
@@ -888,106 +816,50 @@ impl CharacterAbility {
                 movement_duration: _,
                 ref mut swing_duration,
                 ref mut recover_duration,
-                ref mut base_damage,
-                ref mut base_poise_damage,
-                ref mut range,
-                max_angle: _,
-                knockback: _,
+                ref mut melee_constructor,
                 forward_leap_strength: _,
                 vertical_leap_strength: _,
-                damage_kind: _,
-                ref mut damage_effect,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *base_damage *= stats.power;
-                *base_poise_damage *= stats.effect_power;
-                *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
             },
             SpinMelee {
                 ref mut buildup_duration,
                 ref mut swing_duration,
                 ref mut recover_duration,
-                ref mut base_damage,
-                ref mut base_poise_damage,
-                knockback: _,
-                ref mut range,
-                ref mut damage_effect,
                 ref mut energy_cost,
+                ref mut melee_constructor,
                 is_infinite: _,
                 movement_behavior: _,
                 is_interruptible: _,
                 forward_speed: _,
                 num_spins: _,
                 specifier: _,
-                target: _,
-                damage_kind: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *base_damage *= stats.power;
-                *base_poise_damage *= stats.effect_power;
-                *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
             },
             ChargedMelee {
                 ref mut energy_cost,
                 ref mut energy_drain,
-                ref mut initial_damage,
-                ref mut scaled_damage,
-                ref mut initial_poise_damage,
-                ref mut scaled_poise_damage,
-                initial_knockback: _,
-                scaled_knockback: _,
-                ref mut range,
-                max_angle: _,
                 charge_duration: _,
                 ref mut swing_duration,
                 hit_timing: _,
                 ref mut recover_duration,
+                ref mut melee_constructor,
                 specifier: _,
-                damage_kind: _,
-                ref mut damage_effect,
             } => {
-                *initial_damage *= stats.power;
-                *scaled_damage *= stats.power;
-                *initial_poise_damage *= stats.effect_power;
-                *scaled_poise_damage *= stats.effect_power;
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
-                if let Some(CombatEffect::Buff(combat::CombatBuff {
-                    kind: _,
-                    dur_secs: _,
-                    strength,
-                    chance: _,
-                })) = damage_effect
-                {
-                    *strength *= stats.buff_strength;
-                }
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
             },
             ChargedRanged {
                 ref mut energy_cost,
@@ -1266,9 +1138,7 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_sword_skills(&mut self, skillset: &SkillSet) {
-        #![allow(clippy::enum_glob_use)]
         use skills::{Skill::Sword, SwordSkill::*};
 
         match self {
@@ -1307,10 +1177,9 @@ impl CharacterAbility {
                 ref mut is_interruptible,
                 ref mut energy_cost,
                 ref mut energy_drain,
-                ref mut base_damage,
-                ref mut scaled_damage,
                 ref mut forward_speed,
                 ref mut charge_through,
+                ref mut melee_constructor,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.sword_tree.dash;
@@ -1321,11 +1190,17 @@ impl CharacterAbility {
                 if let Ok(level) = skillset.skill_level(Sword(DDrain)) {
                     *energy_drain *= modifiers.energy_drain.powi(level.into());
                 }
-                if let Ok(level) = skillset.skill_level(Sword(DDamage)) {
-                    *base_damage *= modifiers.base_damage.powi(level.into());
+                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
+                    if let Ok(level) = skillset.skill_level(Sword(DDamage)) {
+                        *damage *= modifiers.base_damage.powi(level.into());
+                    }
                 }
-                if let Ok(level) = skillset.skill_level(Sword(DScaling)) {
-                    *scaled_damage *= modifiers.scaled_damage.powi(level.into());
+                if let Some(MeleeConstructorKind::Slash { ref mut damage, .. }) =
+                    melee_constructor.scaled
+                {
+                    if let Ok(level) = skillset.skill_level(Sword(DScaling)) {
+                        *damage *= modifiers.scaled_damage.powi(level.into());
+                    }
                 }
                 if skillset.has_skill(Sword(DSpeed)) {
                     *forward_speed *= modifiers.forward_speed;
@@ -1334,16 +1209,18 @@ impl CharacterAbility {
             },
             CharacterAbility::SpinMelee {
                 ref mut is_interruptible,
-                ref mut base_damage,
                 ref mut swing_duration,
                 ref mut energy_cost,
                 ref mut num_spins,
+                ref mut melee_constructor,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.sword_tree.spin;
                 *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
-                if let Ok(level) = skillset.skill_level(Sword(SDamage)) {
-                    *base_damage *= modifiers.base_damage.powi(level.into());
+                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
+                    if let Ok(level) = skillset.skill_level(Sword(SDamage)) {
+                        *damage *= modifiers.base_damage.powi(level.into());
+                    }
                 }
                 if let Ok(level) = skillset.skill_level(Sword(SSpeed)) {
                     *swing_duration *= modifiers.swing_duration.powi(level.into());
@@ -1391,11 +1268,11 @@ impl CharacterAbility {
                 *scales_from_combo = skillset.skill_level(Axe(DsDamage)).unwrap_or(0).into();
             },
             CharacterAbility::SpinMelee {
-                ref mut base_damage,
                 ref mut swing_duration,
                 ref mut energy_cost,
                 ref mut is_infinite,
                 ref mut movement_behavior,
+                ref mut melee_constructor,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.axe_tree.spin;
@@ -1406,8 +1283,10 @@ impl CharacterAbility {
                 } else {
                     spin_melee::MovementBehavior::ForwardGround
                 };
-                if let Ok(level) = skillset.skill_level(Axe(SDamage)) {
-                    *base_damage *= modifiers.base_damage.powi(level.into());
+                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
+                    if let Ok(level) = skillset.skill_level(Axe(SDamage)) {
+                        *damage *= modifiers.base_damage.powi(level.into());
+                    }
                 }
                 if let Ok(level) = skillset.skill_level(Axe(SSpeed)) {
                     *swing_duration *= modifiers.swing_duration.powi(level.into());
@@ -1417,19 +1296,25 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::LeapMelee {
-                ref mut base_damage,
-                ref mut knockback,
+                ref mut melee_constructor,
                 ref mut energy_cost,
                 ref mut forward_leap_strength,
                 ref mut vertical_leap_strength,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.axe_tree.leap;
-                if let Ok(level) = skillset.skill_level(Axe(LDamage)) {
-                    *base_damage *= modifiers.base_damage.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Axe(LKnockback)) {
-                    *knockback *= modifiers.knockback.powi(level.into());
+                if let MeleeConstructorKind::Slash {
+                    ref mut damage,
+                    ref mut knockback,
+                    ..
+                } = melee_constructor.kind
+                {
+                    if let Ok(level) = skillset.skill_level(Axe(LDamage)) {
+                        *damage *= modifiers.base_damage.powi(level.into());
+                    }
+                    if let Ok(level) = skillset.skill_level(Axe(LKnockback)) {
+                        *knockback *= modifiers.knockback.powi(level.into());
+                    }
                 }
                 if let Ok(level) = skillset.skill_level(Axe(LCost)) {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
@@ -1482,19 +1367,25 @@ impl CharacterAbility {
                 *scales_from_combo = skillset.skill_level(Hammer(SsDamage)).unwrap_or(0).into();
             },
             CharacterAbility::ChargedMelee {
-                ref mut scaled_damage,
-                ref mut scaled_knockback,
                 ref mut energy_drain,
                 ref mut charge_duration,
+                ref mut melee_constructor,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.hammer_tree.charged;
 
-                if let Ok(level) = skillset.skill_level(Hammer(CDamage)) {
-                    *scaled_damage *= modifiers.scaled_damage.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(CKnockback)) {
-                    *scaled_knockback *= modifiers.scaled_knockback.powi(level.into());
+                if let Some(MeleeConstructorKind::Bash {
+                    ref mut damage,
+                    ref mut knockback,
+                    ..
+                }) = melee_constructor.scaled
+                {
+                    if let Ok(level) = skillset.skill_level(Hammer(CDamage)) {
+                        *damage *= modifiers.scaled_damage.powi(level.into());
+                    }
+                    if let Ok(level) = skillset.skill_level(Hammer(CKnockback)) {
+                        *knockback *= modifiers.scaled_knockback.powi(level.into());
+                    }
                 }
                 if let Ok(level) = skillset.skill_level(Hammer(CDrain)) {
                     *energy_drain *= modifiers.energy_drain.powi(level.into());
@@ -1505,20 +1396,25 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::LeapMelee {
-                ref mut base_damage,
-                ref mut knockback,
                 ref mut energy_cost,
                 ref mut forward_leap_strength,
                 ref mut vertical_leap_strength,
-                ref mut range,
+                ref mut melee_constructor,
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.hammer_tree.leap;
-                if let Ok(level) = skillset.skill_level(Hammer(LDamage)) {
-                    *base_damage *= modifiers.base_damage.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Hammer(LKnockback)) {
-                    *knockback *= modifiers.knockback.powi(level.into());
+                if let MeleeConstructorKind::Bash {
+                    ref mut damage,
+                    ref mut knockback,
+                    ..
+                } = melee_constructor.kind
+                {
+                    if let Ok(level) = skillset.skill_level(Hammer(LDamage)) {
+                        *damage *= modifiers.base_damage.powi(level.into());
+                    }
+                    if let Ok(level) = skillset.skill_level(Hammer(LKnockback)) {
+                        *knockback *= modifiers.knockback.powi(level.into());
+                    }
                 }
                 if let Ok(level) = skillset.skill_level(Hammer(LCost)) {
                     *energy_cost *= modifiers.energy_cost.powi(level.into());
@@ -1529,7 +1425,7 @@ impl CharacterAbility {
                     *vertical_leap_strength *= strength.powi(level.into());
                 }
                 if let Ok(level) = skillset.skill_level(Hammer(LRange)) {
-                    *range += modifiers.range * f32::from(level);
+                    melee_constructor.range += modifiers.range * f32::from(level);
                 }
             },
             _ => {},
@@ -1798,27 +1694,15 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 swing_duration,
                 recover_duration,
-                base_damage,
-                base_poise_damage,
-                knockback,
-                range,
-                max_angle,
-                damage_effect,
+                melee_constructor,
                 energy_cost: _,
-                damage_kind,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    base_damage: *base_damage,
-                    base_poise_damage: *base_poise_damage,
-                    knockback: *knockback,
-                    range: *range,
-                    max_angle: *max_angle,
-                    damage_effect: *damage_effect,
+                    melee_constructor: *melee_constructor,
                     ability_info,
-                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -1867,35 +1751,18 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             }),
             CharacterAbility::DashMelee {
                 energy_cost: _,
-                base_damage,
-                scaled_damage,
-                base_poise_damage,
-                scaled_poise_damage,
-                base_knockback,
-                scaled_knockback,
-                range,
-                angle,
                 energy_drain,
                 forward_speed,
                 buildup_duration,
                 charge_duration,
                 swing_duration,
                 recover_duration,
+                melee_constructor,
                 ori_modifier,
                 charge_through,
                 is_interruptible,
-                damage_kind,
-                damage_effect,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
-                    base_damage: *base_damage,
-                    scaled_damage: *scaled_damage,
-                    base_poise_damage: *base_poise_damage,
-                    scaled_poise_damage: *scaled_poise_damage,
-                    base_knockback: *base_knockback,
-                    scaled_knockback: *scaled_knockback,
-                    range: *range,
-                    angle: *angle,
                     energy_drain: *energy_drain,
                     forward_speed: *forward_speed,
                     charge_through: *charge_through,
@@ -1903,11 +1770,10 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee_constructor: *melee_constructor,
                     ori_modifier: *ori_modifier,
                     is_interruptible: *is_interruptible,
-                    damage_effect: *damage_effect,
                     ability_info,
-                    damage_kind: *damage_kind,
                 },
                 auto_charge: false,
                 timer: Duration::default(),
@@ -1990,31 +1856,19 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 movement_duration,
                 swing_duration,
                 recover_duration,
-                base_damage,
-                base_poise_damage,
-                knockback,
-                range,
-                max_angle,
+                melee_constructor,
                 forward_leap_strength,
                 vertical_leap_strength,
-                damage_kind,
-                damage_effect,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 static_data: leap_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     movement_duration: Duration::from_secs_f32(*movement_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    base_damage: *base_damage,
-                    base_poise_damage: *base_poise_damage,
-                    knockback: *knockback,
-                    range: *range,
-                    max_angle: *max_angle,
+                    melee_constructor: *melee_constructor,
                     forward_leap_strength: *forward_leap_strength,
                     vertical_leap_strength: *vertical_leap_strength,
-                    damage_effect: *damage_effect,
                     ability_info,
-                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
@@ -2024,11 +1878,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 swing_duration,
                 recover_duration,
-                base_damage,
-                base_poise_damage,
-                knockback,
-                range,
-                damage_effect,
+                melee_constructor,
                 energy_cost,
                 is_infinite,
                 movement_behavior,
@@ -2036,28 +1886,20 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 forward_speed,
                 num_spins,
                 specifier,
-                target,
-                damage_kind,
             } => CharacterState::SpinMelee(spin_melee::Data {
                 static_data: spin_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    base_damage: *base_damage,
-                    base_poise_damage: *base_poise_damage,
-                    knockback: *knockback,
-                    range: *range,
-                    damage_effect: *damage_effect,
+                    melee_constructor: *melee_constructor,
                     energy_cost: *energy_cost,
                     is_infinite: *is_infinite,
                     movement_behavior: *movement_behavior,
                     is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,
-                    target: *target,
                     ability_info,
                     specifier: *specifier,
-                    damage_kind: *damage_kind,
                 },
                 timer: Duration::default(),
                 consecutive_spins: 1,
@@ -2067,41 +1909,23 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::ChargedMelee {
                 energy_cost,
                 energy_drain,
-                initial_damage,
-                scaled_damage,
-                initial_poise_damage,
-                scaled_poise_damage,
-                initial_knockback,
-                scaled_knockback,
                 charge_duration,
                 swing_duration,
                 hit_timing,
                 recover_duration,
-                range,
-                max_angle,
+                melee_constructor,
                 specifier,
-                damage_kind,
-                damage_effect,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
                     energy_drain: *energy_drain,
-                    initial_damage: *initial_damage,
-                    scaled_damage: *scaled_damage,
-                    initial_poise_damage: *initial_poise_damage,
-                    scaled_poise_damage: *scaled_poise_damage,
-                    initial_knockback: *initial_knockback,
-                    scaled_knockback: *scaled_knockback,
-                    range: *range,
-                    max_angle: *max_angle,
                     charge_duration: Duration::from_secs_f32(*charge_duration),
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     hit_timing: *hit_timing,
                     recover_duration: Duration::from_secs_f32(*recover_duration),
-                    damage_effect: *damage_effect,
+                    melee_constructor: *melee_constructor,
                     ability_info,
                     specifier: *specifier,
-                    damage_kind: *damage_kind,
                 },
                 stage_section: StageSection::Charge,
                 timer: Duration::default(),

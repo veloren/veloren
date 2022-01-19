@@ -1,8 +1,6 @@
 use crate::{
-    combat::Attack,
     comp::{
-        item::ConsumableKind, tool::ToolKind, ControlAction, Density, Energy, InputAttr, InputKind,
-        Ori, Pos, Vel,
+        item::ConsumableKind, ControlAction, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
     states::{
@@ -13,11 +11,10 @@ use crate::{
     },
 };
 use serde::{Deserialize, Serialize};
-use specs::{Component, DerefFlaggedStorage, VecStorage};
+use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::collections::BTreeMap;
 use strum_macros::Display;
-use vek::*;
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
@@ -384,18 +381,4 @@ impl Default for CharacterState {
 
 impl Component for CharacterState {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Melee {
-    pub attack: Attack,
-    pub range: f32,
-    pub max_angle: f32,
-    pub applied: bool,
-    pub hit_count: u32,
-    pub break_block: Option<(Vec3<i32>, Option<ToolKind>)>,
-}
-
-impl Component for Melee {
-    type Storage = VecStorage<Self>;
 }

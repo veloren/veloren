@@ -1,10 +1,10 @@
 use super::*;
 use crate::audio::sfx::SfxEvent;
 use common::{
-    combat::{self, DamageKind},
+    combat::DamageKind,
     comp::{
-        inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, CharacterAbilityType,
-        CharacterState, InputKind, Item,
+        inventory::loadout_builder::LoadoutBuilder, item::tool::ToolKind, melee,
+        CharacterAbilityType, CharacterState, InputKind, Item,
     },
     states,
 };
@@ -75,17 +75,19 @@ fn maps_basic_melee() {
                 buildup_duration: Duration::default(),
                 swing_duration: Duration::default(),
                 recover_duration: Duration::default(),
-                base_damage: 10.0,
-                base_poise_damage: 10.0,
-                knockback: combat::Knockback {
-                    strength: 0.0,
-                    direction: combat::KnockbackDir::Away,
+                melee_constructor: melee::MeleeConstructor {
+                    kind: melee::MeleeConstructorKind::Slash {
+                        damage: 1.0,
+                        knockback: 0.0,
+                        poise: 0.0,
+                        energy_regen: 0.0,
+                    },
+                    scaled: None,
+                    range: 3.5,
+                    angle: 15.0,
+                    damage_effect: None,
                 },
-                range: 1.0,
-                max_angle: 1.0,
                 ability_info: empty_ability_info(),
-                damage_effect: None,
-                damage_kind: DamageKind::Slashing,
             },
             timer: Duration::default(),
             stage_section: states::utils::StageSection::Buildup,

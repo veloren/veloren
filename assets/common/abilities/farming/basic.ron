@@ -3,11 +3,14 @@ BasicMelee(
     buildup_duration: 0.6,
     swing_duration: 0.1,
     recover_duration: 0.15,
-    base_damage: 5.0,
-    base_poise_damage: 0,
-    knockback: ( strength: 0.0, direction: Away),
-    range: 3.5,
-    max_angle: 20.0,
-    damage_effect: None,
-    damage_kind: Crushing,
+    melee_constructor: (
+        kind: Bash(
+            damage: 5.0,
+            poise: 0.0,
+            knockback: 0.0,
+            energy_regen: 0.0,
+        ),
+        range: 3.5,
+        angle: 20.0,
+    ),
 )

@@ -1,12 +1,10 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
-    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, Melee, MeleeConstructor, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::{StageSection, *},
         wielding,
     },
-    Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -22,26 +20,14 @@ pub struct StaticData {
     pub swing_duration: Duration,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Base damage
-    pub base_damage: f32,
-    /// Base poise damage
-    pub base_poise_damage: f32,
-    /// Knockback
-    pub knockback: f32,
-    /// Max range
-    pub range: f32,
-    /// Max angle (45.0 will give you a 90.0 angle window)
-    pub max_angle: f32,
+    /// Used to construct the Melee attack
+    pub melee_constructor: MeleeConstructor,
     /// Affects how far forward the player leaps
     pub forward_leap_strength: f32,
     /// Affects how high the player leaps
     pub vertical_leap_strength: f32,
-    /// Adds an effect onto the main damage of the attack
-    pub damage_effect: Option<CombatEffect>,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
-    /// What kind of damage the attack does
-    pub damage_kind: DamageKind,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -131,57 +117,15 @@ impl CharacterBehavior for Data {
             },
             StageSection::Recover => {
                 if !self.exhausted {
-                    let poise = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Poise(self.static_data.base_poise_damage as f32),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let knockback = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Knockback(Knockback {
-                            strength: self.static_data.knockback,
-                            direction: KnockbackDir::Away,
-                        }),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let mut damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Melee,
-                            kind: self.static_data.damage_kind,
-                            value: self.static_data.base_damage as f32,
-                        },
-                        Some(GroupTarget::OutOfGroup),
-                    );
-                    if let Some(effect) = self.static_data.damage_effect {
-                        damage = damage.with_effect(effect);
-                    }
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
-                        .with_effect(poise)
-                        .with_effect(knockback)
-                        .with_combo_increment();
+                    let crit_data = get_crit_data(data, self.static_data.ability_info);
+                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
 
-                    // Hit attempt, when animation plays
-                    data.updater.insert(data.entity, Melee {
-                        attack,
-                        range: self.static_data.range,
-                        max_angle: self.static_data.max_angle.to_radians(),
-                        applied: false,
-                        hit_count: 0,
-                        break_block: data
-                            .inputs
-                            .break_block_pos
-                            .map(|p| {
-                                (
-                                    p.map(|e| e.floor() as i32),
-                                    self.static_data.ability_info.tool,
-                                )
-                            })
-                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
-                    });
+                    data.updater.insert(
+                        data.entity,
+                        self.static_data
+                            .melee_constructor
+                            .create_melee(crit_data, buff_strength),
+                    );
 
                     update.character = CharacterState::LeapMelee(Data {
                         timer: tick_attack_or_default(data, self.timer, None),

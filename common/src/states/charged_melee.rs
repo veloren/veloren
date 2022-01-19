@@ -1,6 +1,5 @@
 use crate::{
-    combat::{Attack, AttackDamage, AttackEffect, CombatEffect, CombatRequirement},
-    comp::{character_state::OutputEvents, tool::ToolKind, CharacterState, Melee, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, Melee, MeleeConstructor, StateUpdate},
     event::LocalEvent,
     outcome::Outcome,
     states::{
@@ -8,7 +7,6 @@ use crate::{
         utils::{StageSection, *},
         wielding,
     },
-    Damage, DamageKind, DamageSource, GroupTarget, Knockback, KnockbackDir,
 };
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
@@ -20,22 +18,6 @@ pub struct StaticData {
     pub energy_drain: f32,
     /// Energy cost per attack
     pub energy_cost: f32,
-    /// How much damage is dealt with no charge
-    pub initial_damage: f32,
-    /// How much the damage is scaled by
-    pub scaled_damage: f32,
-    /// How much poise damage is dealt with no charge
-    pub initial_poise_damage: f32,
-    /// How much poise damage is scaled by
-    pub scaled_poise_damage: f32,
-    /// How much knockback there is with no charge
-    pub initial_knockback: f32,
-    /// How much the knockback is scaled by
-    pub scaled_knockback: f32,
-    /// Max range
-    pub range: f32,
-    /// Max angle (45.0 will give you a 90.0 angle window)
-    pub max_angle: f32,
     /// How long it takes to charge the weapon to max damage and knockback
     pub charge_duration: Duration,
     /// How long the weapon is swinging for
@@ -44,14 +26,12 @@ pub struct StaticData {
     pub hit_timing: f32,
     /// How long the state has until exiting
     pub recover_duration: Duration,
-    /// Adds an effect onto the main damage of the attack
-    pub damage_effect: Option<CombatEffect>,
+    /// Used to construct the Melee attack
+    pub melee_constructor: MeleeConstructor,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Used to specify the melee attack to the frontend
     pub specifier: Option<FrontendSpecifier>,
-    /// What kind of damage the attack does
-    pub damage_kind: DamageKind,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -132,69 +112,25 @@ impl CharacterBehavior for Data {
                         exhausted: true,
                         ..*self
                     });
-                    let poise = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Poise(
-                            self.static_data.initial_poise_damage as f32
-                                + self.charge_amount * self.static_data.scaled_poise_damage as f32,
-                        ),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let knockback = AttackEffect::new(
-                        Some(GroupTarget::OutOfGroup),
-                        CombatEffect::Knockback(Knockback {
-                            strength: self.static_data.initial_knockback
-                                + self.charge_amount * self.static_data.scaled_knockback,
-                            direction: KnockbackDir::Away,
-                        }),
-                    )
-                    .with_requirement(CombatRequirement::AnyDamage);
-                    let mut damage = AttackDamage::new(
-                        Damage {
-                            source: DamageSource::Melee,
-                            kind: self.static_data.damage_kind,
-                            value: self.static_data.initial_damage as f32
-                                + self.charge_amount * self.static_data.scaled_damage as f32,
-                        },
-                        Some(GroupTarget::OutOfGroup),
-                    );
-                    if let Some(effect) = self.static_data.damage_effect {
-                        damage = damage.with_effect(effect);
-                    }
-                    let (crit_chance, crit_mult) =
-                        get_crit_data(data, self.static_data.ability_info);
-                    let attack = Attack::default()
-                        .with_damage(damage)
-                        .with_crit(crit_chance, crit_mult)
-                        .with_effect(poise)
-                        .with_effect(knockback)
-                        .with_combo_increment();
 
-                    // Hit attempt
-                    data.updater.insert(data.entity, Melee {
-                        attack,
-                        range: self.static_data.range,
-                        max_angle: self.static_data.max_angle.to_radians(),
-                        applied: false,
-                        hit_count: 0,
-                        break_block: data
-                            .inputs
-                            .break_block_pos
-                            .map(|p| {
-                                (
-                                    p.map(|e| e.floor() as i32),
-                                    self.static_data.ability_info.tool,
-                                )
-                            })
-                            .filter(|(_, tool)| tool == &Some(ToolKind::Pick)),
-                    });
+                    let crit_data = get_crit_data(data, self.static_data.ability_info);
+                    let buff_strength = get_buff_strength(data, self.static_data.ability_info);
+
+                    data.updater.insert(
+                        data.entity,
+                        self.static_data
+                            .melee_constructor
+                            .handle_scaling(self.charge_amount)
+                            .create_melee(crit_data, buff_strength),
+                    );
 
                     if let Some(FrontendSpecifier::GroundCleave) = self.static_data.specifier {
                         // Send local event used for frontend shenanigans
                         output_events.emit_local(LocalEvent::CreateOutcome(Outcome::GroundSlam {
                             pos: data.pos.0
                                 + *data.ori.look_dir()
-                                    * (data.body.max_radius() + self.static_data.range),
+                                    * (data.body.max_radius()
+                                        + self.static_data.melee_constructor.range),
                         }));
                     }
                 } else if self.timer < self.static_data.swing_duration {

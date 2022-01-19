@@ -29,6 +29,7 @@ pub mod inventory;
 pub mod invite;
 #[cfg(not(target_arch = "wasm32"))] mod last;
 #[cfg(not(target_arch = "wasm32"))] mod location;
+#[cfg(not(target_arch = "wasm32"))] pub mod melee;
 #[cfg(not(target_arch = "wasm32"))] mod misc;
 #[cfg(not(target_arch = "wasm32"))] pub mod ori;
 #[cfg(not(target_arch = "wasm32"))] pub mod pet;
@@ -66,7 +67,7 @@ pub use self::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
         ModifierKind,
     },
-    character_state::{CharacterState, Melee, StateUpdate},
+    character_state::{CharacterState, StateUpdate},
     chat::{
         ChatMode, ChatMsg, ChatType, Faction, SpeechBubble, SpeechBubbleType, UnresolvedChatMsg,
     },
@@ -89,6 +90,7 @@ pub use self::{
     },
     last::Last,
     location::{Waypoint, WaypointArea},
+    melee::{Melee, MeleeConstructor},
     misc::Object,
     ori::Ori,
     pet::Pet,
