@@ -427,6 +427,16 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         comp::InventoryManip::Swap(a, b) => {
             let ecs = state.ecs();
 
+            if let (Slot::Inventory(inv_slot), Slot::Equip(slot::EquipSlot::Lantern))
+            | (Slot::Equip(slot::EquipSlot::Lantern), Slot::Inventory(inv_slot)) = (a, b)
+            {
+                if let Some(comp::item::ItemKind::Lantern(lantern)) =
+                    inventory.get(inv_slot).and_then(|item| Some(item.kind()))
+                {
+                    swap_lantern(&mut ecs.write_storage(), entity, &lantern);
+                }
+            }
+
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
                 let mut merged_stacks = false;
 

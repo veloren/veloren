@@ -93,7 +93,6 @@ pub enum ServerEvent {
     },
     EnableLantern(EcsEntity),
     DisableLantern(EcsEntity),
-    UpdateLantern(EcsEntity, comp::item::Lantern),
     NpcInteract(EcsEntity, EcsEntity),
     InviteResponse(EcsEntity, InviteResponse),
     InitiateInvite(EcsEntity, Uid, InviteKind),
