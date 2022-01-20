@@ -238,9 +238,14 @@ impl Attack {
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
+            // TODO: Check this out later
+            // if applied_damage > 0.0 {
+            //
+            // }
             emit_outcome(Outcome::Damage {
                 pos: target.pos,
-                uid: target.uid,
+                target: target.uid,
+                by: attacker.map(|a| a.uid),
                 amount: applied_damage,
                 crit: is_crit,
             });

@@ -54,7 +54,12 @@ use trade::Trade;
 
 use crate::{
     cmd::get_player_uuid,
-    ecs::{comp as vcomp, comp::HpFloaterList},
+    ecs::{comp as vcomp, comp::{HpFloater, HpFloaterList}, sys::floater},
+    ecs::{
+        comp as vcomp,
+        comp::{HpFloater, HpFloaterList},
+        sys::floater,
+    },
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
     render::UiDrawer,
@@ -1416,14 +1421,17 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        // TODO: Change to use Outcome
 
                         // Calculate total change
                         // Ignores healing
                         let hp_damage: f32 = floaters.iter().map(|f| f.hp_change.min(0.0)).sum();
+                        dbg!(hp_damage);
+
                         // .fold(0.0, |acc, f| f.hp_change.min(0.0) + acc);
                         let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
+                        dbg!(hp_dmg_rounded_abs);
                         let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
+                        dbg!(max_hp_frac);
                         let timer = floaters
                             .last()
                             .expect("There must be at least one floater")
@@ -1481,6 +1489,7 @@ impl Hud {
                             &mut ui_widgets.widget_id_generator(),
                         );
                         let max_hp_frac = floater.hp_change.abs() as f32 / health.maximum() as f32;
+                        dbg!(max_hp_frac);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
@@ -4437,7 +4446,7 @@ impl Hud {
 
     pub fn camera_clamp(&mut self, camera_clamp: bool) { self.show.camera_clamp = camera_clamp; }
 
-    pub fn handle_outcome(&mut self, outcome: &Outcome) {
+    pub fn handle_outcome(&mut self, outcome: &Outcome, client: &Client) {
         match outcome {
             Outcome::ExpChange { uid, exp, xp_pools } => {
                 self.floaters.exp_floaters.push(ExpFloater {
@@ -4473,9 +4482,57 @@ impl Hud {
                 })
             },
             Outcome::Damage {
-                uid, crit, amount, ..
+                by,
+                target,
+                crit,
+                amount,
+                ..
             } => {
-                dbg!(uid);
+                let ecs = client.state().ecs();
+                let mut hp_floater_lists = ecs.write_storage::<vcomp::HpFloaterList>();
+                let uids = ecs.read_storage::<Uid>();
+                let me = client.entity();
+                let my_uid = uids.get(me);
+
+                if let Some(entity) = ecs.entity_from_uid(target.0) {
+                    if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
+                        if match by {
+                            Some(by) => {
+                                let by_me = my_uid.map_or(false, |&uid| *by == uid);
+                                // If the attack was by me also reset this timer
+                                if by_me {
+                                    floater_list.time_since_last_dmg_by_me = Some(0.0);
+                                }
+                                my_uid.map_or(false, |&uid| *target == uid) || by_me
+                            },
+                            None => false,
+                        } {
+                            let last_floater = floater_list.floaters.last_mut();
+                            match last_floater {
+                                Some(f) if f.timer < floater::HP_ACCUMULATETIME => {
+                                    //TODO: Add "jumping" animation on floater when it changes its
+                                    // value
+                                    f.hp_change += -*amount;
+                                },
+                                _ => {
+                                    floater_list.floaters.push(HpFloater {
+                                        timer: 0.0,
+                                        hp_change: -*amount,
+                                        rand: rand::random(),
+                                    });
+                                },
+                            }
+                        } else {
+                            dbg!("not by player/hit player");
+                        }
+                    } else {
+                        dbg!("no floater list");
+                    }
+                } else {
+                    dbg!("no entity from target uid");
+                }
+
+                dbg!(target);
                 dbg!(crit);
                 dbg!(amount);
             },
