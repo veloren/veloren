@@ -861,12 +861,14 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
     if let Some(ability_input) = input.into() {
         if let Some((ability, from_offhand)) = data
             .active_abilities
-            .activate_ability(
-                ability_input,
-                data.inventory,
-                data.skill_set,
-                Some(data.body),
-            )
+            .and_then(|a| {
+                a.activate_ability(
+                    ability_input,
+                    data.inventory,
+                    data.skill_set,
+                    Some(data.body),
+                )
+            })
             .filter(|(ability, _)| ability.requirements_paid(data, update))
         {
             update.character = CharacterState::from((

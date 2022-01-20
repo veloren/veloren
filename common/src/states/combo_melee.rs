@@ -160,6 +160,8 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        let combo_counter = data.combo.map_or(0, |c| c.counter());
+
         handle_move(data, &mut update, 0.4);
 
         // Index should be `self.stage - 1`, however in cases of client-server desync
@@ -173,11 +175,7 @@ impl CharacterBehavior for Data {
 
         let speed_modifer = 1.0
             + self.static_data.max_speed_increase
-                * (1.0
-                    - self
-                        .static_data
-                        .speed_increase
-                        .powi(data.combo.counter() as i32));
+                * (1.0 - self.static_data.speed_increase.powi(combo_counter as i32));
 
         match self.stage_section {
             StageSection::Buildup => {
@@ -225,7 +223,7 @@ impl CharacterBehavior for Data {
                         + (self
                             .static_data
                             .scales_from_combo
-                            .min(data.combo.counter() / self.static_data.num_stages)
+                            .min(combo_counter / self.static_data.num_stages)
                             as f32)
                             * self.static_data.stage_data[stage_index].damage_increase;
 
@@ -233,7 +231,7 @@ impl CharacterBehavior for Data {
                         + (self
                             .static_data
                             .scales_from_combo
-                            .min(data.combo.counter() / self.static_data.num_stages)
+                            .min(combo_counter / self.static_data.num_stages)
                             as f32)
                             * self.static_data.stage_data[stage_index].poise_damage_increase;
                     let poise = AttackEffect::new(
@@ -253,7 +251,7 @@ impl CharacterBehavior for Data {
 
                     let energy = self.static_data.max_energy_gain.min(
                         self.static_data.initial_energy_gain
-                            + data.combo.counter() as f32 * self.static_data.energy_increase,
+                            + combo_counter as f32 * self.static_data.energy_increase,
                     );
 
                     let energy = AttackEffect::new(None, CombatEffect::EnergyReward(energy))

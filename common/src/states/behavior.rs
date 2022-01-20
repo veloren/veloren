@@ -124,9 +124,9 @@ pub struct JoinData<'a> {
     pub updater: &'a LazyUpdate,
     pub stats: &'a Stats,
     pub skill_set: &'a SkillSet,
-    pub active_abilities: &'a ActiveAbilities,
+    pub active_abilities: Option<&'a ActiveAbilities>,
     pub msm: &'a MaterialStatManifest,
-    pub combo: &'a Combo,
+    pub combo: Option<&'a Combo>,
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
 }
@@ -150,8 +150,8 @@ pub struct JoinStruct<'a> {
     pub beam: Option<&'a Beam>,
     pub stat: &'a Stats,
     pub skill_set: &'a SkillSet,
-    pub active_abilities: &'a ActiveAbilities,
-    pub combo: &'a Combo,
+    pub active_abilities: Option<&'a ActiveAbilities>,
+    pub combo: Option<&'a Combo>,
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
 }
