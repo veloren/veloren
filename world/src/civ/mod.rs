@@ -657,13 +657,12 @@ impl Civs {
             };
             if let Some(name) = name {
                 // find average center of the biome
-                let mut biomes = biome.1.iter();
-                // There is always at least 1 biome
-                let mut center = uniform_idx_as_vec2(map_size_lg, *biomes.next().unwrap());
-                biomes.for_each(|b| {
-                    center += uniform_idx_as_vec2(map_size_lg, *b);
-                    center /= 2;
-                });
+                let center = biome
+                    .1
+                    .iter()
+                    .map(|b| uniform_idx_as_vec2(map_size_lg, *b))
+                    .sum::<Vec2<i32>>()
+                    / biome.1.len() as i32;
                 // Select the point closest to the center
                 let idx = *biome
                     .1
