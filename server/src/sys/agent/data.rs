@@ -103,6 +103,7 @@ pub enum Tactic {
     Yeti,
     Tornado,
     Harvester,
+    Backstab,
 }
 
 #[derive(SystemData)]

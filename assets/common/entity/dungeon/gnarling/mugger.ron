@@ -3,8 +3,8 @@
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
     loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.mugger")),
-        base_asset: Loadout("common.loadout.dungeon.tier-0.mugger"),
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.dagger")),
+        base_asset: Loadout("common.loadout.dungeon.gnarling.mugger"),
         inventory: [],
     ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),

@@ -3,8 +3,8 @@
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
     loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.stalker")),
-        base_asset: Loadout("common.loadout.dungeon.tier-0.stalker"),
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.blowgun")),
+        base_asset: Loadout("common.loadout.dungeon.gnarling.stalker"),
         inventory: [],
     ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),

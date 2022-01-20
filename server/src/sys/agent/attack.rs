@@ -19,6 +19,8 @@ use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
 impl<'a> AgentData<'a> {
+    // Intended for any agent that has one attack, that attack is a melee attack,
+    // and the agent is able to freely walk around
     pub fn handle_melee_attack(
         &self,
         agent: &mut Agent,
@@ -28,7 +30,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        if attack_data.in_min_range() && attack_data.angle < 45.0 {
+        if attack_data.in_min_range() && attack_data.angle < 30.0 {
             controller.push_basic_input(InputKind::Primary);
             controller.inputs.move_dir = Vec2::zero();
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -39,6 +41,62 @@ impl<'a> AgentData<'a> {
                 && rng.gen::<f32>() < 0.02
             {
                 controller.push_basic_input(InputKind::Roll);
+            }
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
+        }
+    }
+
+    // Intended for any agent that has one attack, that attack is a melee attack,
+    // the agent is able to freely walk around, and the agent is trying to attack
+    // from behind its target
+    pub fn handle_backstab_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        // Handle attacking of agent
+        if attack_data.in_min_range() && attack_data.angle < 30.0 {
+            controller.push_basic_input(InputKind::Primary);
+            controller.inputs.move_dir = Vec2::zero();
+        }
+
+        // Handle movement of agent
+        let target_ori = agent
+            .target
+            .and_then(|t| read_data.orientations.get(t.target))
+            .map(|ori| ori.look_vec())
+            .unwrap_or_default();
+        let vec_to_target = (tgt_data.pos.0 - self.pos.0).xy();
+        let in_front_of_target = target_ori.dot(self.pos.0 - tgt_data.pos.0) > 0.0;
+        if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // If in front of the target, circle to try and get behind, else just make a
+            // beeline for the back of the agent
+            if in_front_of_target {
+                // Checks both CW and CCW rotation
+                let potential_move_dirs = [
+                    vec_to_target
+                        .rotated_z(PI / 2.)
+                        .try_normalized()
+                        .unwrap_or_default(),
+                    vec_to_target
+                        .rotated_z(-PI / 2.)
+                        .try_normalized()
+                        .unwrap_or_default(),
+                ];
+                // Finds shortest path to get behind
+                if let Some(move_dir) = potential_move_dirs
+                    .iter()
+                    .find(|move_dir| target_ori.xy().dot(**move_dir) < 0.0)
+                {
+                    controller.inputs.move_dir = *move_dir;
+                }
+            } else {
+                controller.inputs.move_dir = vec_to_target.try_normalized().unwrap_or_default();
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);

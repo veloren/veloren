@@ -17,5 +17,6 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: Some(Custom("Dagger Simple")),
+    // TODO: Later investigate if we want to make this back to a simple dagger when more things need a simpler dagger ability set
+    ability_spec: Some(Custom("Gnarling Dagger")),
 )

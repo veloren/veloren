@@ -1703,7 +1703,7 @@ impl<'a> AgentData<'a> {
                 if let Some(ability_spec) = item.ability_spec() {
                     match ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
-                            "Axe Simple" | "Oni" | "Sword Simple" => Tactic::Sword,
+                            "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
                             "Bow Simple" => Tactic::Bow,
                             "Stone Golem" => Tactic::StoneGolem,
@@ -1745,6 +1745,7 @@ impl<'a> AgentData<'a> {
                             "Tidal Totem" => Tactic::RadialTurret,
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
+                            "Gnarling Dagger" => Tactic::Backstab,
                             _ => Tactic::Melee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -2110,6 +2111,14 @@ impl<'a> AgentData<'a> {
             Tactic::Harvester => {
                 self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
+            Tactic::Backstab => self.handle_backstab_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
         }
     }
 
