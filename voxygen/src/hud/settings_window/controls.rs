@@ -209,6 +209,17 @@ impl<'a> Widget for Controls<'a> {
             previous_element_id = Some(state.ids.reset_controls_button)
         }
 
+        let offset = ui
+            .widget_graph()
+            .widget(state.ids.window)
+            .and_then(|widget| {
+                widget
+                    .maybe_y_scroll_state
+                    .as_ref()
+                    .map(|scroll| scroll.offset)
+            })
+            .unwrap_or(0.0);
+
         let toggle_widget = Button::new()
             .label(if self.global_state.window.keybinding_mode {
                 "remap"
@@ -223,7 +234,7 @@ impl<'a> Widget for Controls<'a> {
             .border_rgba(0.0, 0.0, 0.0, 255.0)
             .label_y(Relative::Scalar(1.0));
         if toggle_widget
-            .top_right_with_margins_on(state.ids.window, 10.0, 15.0)
+            .top_right_with_margins_on(state.ids.window, offset + 10.0, 15.0)
             .set(state.ids.keybinding_mode_button, ui)
             .was_clicked()
         {
