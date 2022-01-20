@@ -5,6 +5,8 @@ use client::{self, Client};
 use common::{
     comp,
     consts::MAX_PICKUP_RANGE,
+    link::Is,
+    mounting::Mount,
     terrain::Block,
     util::find_dist::{Cylinder, FindDist},
     vol::ReadVol,
@@ -123,10 +125,11 @@ pub(super) fn targets_under_cursor(
         scales.maybe(),
         &ecs.read_storage::<comp::Body>(),
         ecs.read_storage::<comp::Item>().maybe(),
+        !&ecs.read_storage::<Is<Mount>>(),
     )
         .join()
-        .filter(|(e, _, _, _, _)| *e != player_entity)
-        .filter_map(|(e, p, s, b, i)| {
+        .filter(|(e, _, _, _, _, _)| *e != player_entity)
+        .filter_map(|(e, p, s, b, i, _)| {
             const RADIUS_SCALE: f32 = 3.0;
             // TODO: use collider radius instead of body radius?
             let radius = s.map_or(1.0, |s| s.0) * b.max_radius() * RADIUS_SCALE;

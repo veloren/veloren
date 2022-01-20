@@ -10,6 +10,8 @@ use client::Client;
 use common::{
     comp,
     consts::MAX_PICKUP_RANGE,
+    link::Is,
+    mounting::Mount,
     terrain::Block,
     util::find_dist::{Cube, Cylinder, FindDist},
     vol::ReadVol,
@@ -121,6 +123,7 @@ pub(super) fn select_interactable(
         let scales = ecs.read_storage::<comp::Scale>();
         let colliders = ecs.read_storage::<comp::Collider>();
         let char_states = ecs.read_storage::<comp::CharacterState>();
+        let is_mount = ecs.read_storage::<Is<Mount>>();
 
         let player_cylinder = Cylinder::from_components(
             player_pos,
@@ -135,10 +138,11 @@ pub(super) fn select_interactable(
             scales.maybe(),
             colliders.maybe(),
             char_states.maybe(),
+            !&is_mount,
         )
             .join()
-            .filter(|(e, _, _, _, _)| *e != player_entity)
-            .map(|(e, p, s, c, cs)| {
+            .filter(|(e, _, _, _, _, _)| *e != player_entity)
+            .map(|(e, p, s, c, cs, _)| {
                 let cylinder = Cylinder::from_components(p.0, s.copied(), c, cs);
                 (e, cylinder)
             })
