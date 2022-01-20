@@ -1416,6 +1416,8 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
+                        // TODO: Change to use Outcome
+
                         // Calculate total change
                         // Ignores healing
                         let hp_damage: f32 = floaters.iter().map(|f| f.hp_change.min(0.0)).sum();
@@ -4470,6 +4472,14 @@ impl Hud {
                     timer: 1.0,
                 })
             },
+            Outcome::Damage {
+                uid, crit, amount, ..
+            } => {
+                dbg!(uid);
+                dbg!(crit);
+                dbg!(amount);
+            },
+
             _ => {},
         }
     }

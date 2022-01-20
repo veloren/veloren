@@ -60,6 +60,11 @@ pub enum Outcome {
     },
     Damage {
         pos: Vec3<f32>,
+        /// The exact amount of damage delt, 
+        /// excluding any sources of healing
+        amount: f32,
+        uid: Uid,
+        crit: bool,
     },
     Death {
         pos: Vec3<f32>,

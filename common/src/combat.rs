@@ -238,7 +238,12 @@ impl Attack {
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
-            emit_outcome(Outcome::Damage { pos: target.pos });
+            emit_outcome(Outcome::Damage {
+                pos: target.pos,
+                uid: target.uid,
+                amount: applied_damage,
+                crit: is_crit,
+            });
             if change.amount.abs() > Health::HEALTH_EPSILON {
                 emit(ServerEvent::HealthChange {
                     entity: target.entity,
