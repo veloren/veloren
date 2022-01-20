@@ -92,6 +92,8 @@ make_case_elim!(
         Apple = 77,
         Hive = 78,
         Coconut = 79,
+        SpitPoison = 80,
+        BoltIcicle = 81,
     }
 );
 
@@ -272,6 +274,8 @@ impl Body {
             Body::Apple => "apple",
             Body::Hive => "hive",
             Body::Coconut => "coconut",
+            Body::SpitPoison => "spit_poison",
+            Body::BoltIcicle => "bolt_icicle",
         }
     }
 
@@ -310,7 +314,11 @@ impl Body {
             Body::BedBlue => 50.0,
             Body::Bedroll => 3.0,
             Body::Bench => 100.0,
-            Body::BoltFire | Body::BoltFireBig | Body::BoltNature => 1.0,
+            Body::BoltFire
+            | Body::BoltFireBig
+            | Body::BoltNature
+            | Body::BoltIcicle
+            | Body::SpitPoison => 1.0,
             Body::Bomb => {
                 0.5 * IRON_DENSITY * std::f32::consts::PI / 6.0 * self.dimensions().x.powi(3)
             },

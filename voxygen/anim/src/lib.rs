@@ -47,6 +47,7 @@ macro_rules! skeleton_impls {
     }
 }
 
+pub mod arthropod;
 pub mod biped_large;
 pub mod biped_small;
 pub mod bird_large;

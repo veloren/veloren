@@ -1,3 +1,4 @@
+pub mod arthropod;
 pub mod biped_large;
 pub mod biped_small;
 pub mod bird_large;
@@ -48,6 +49,7 @@ make_case_elim!(
         Theropod(body: theropod::Body) = 12,
         QuadrupedLow(body: quadruped_low::Body) = 13,
         Ship(body: ship::Body) = 14,
+        Arthropod(body: arthropod::Body) = 15,
     }
 );
 
@@ -85,6 +87,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
     pub ship: BodyData<BodyMeta, ()>,
+    pub arthropod: BodyData<BodyMeta, arthropod::AllSpecies<SpeciesMeta>>,
 }
 
 /// Can only retrieve body metadata by direct index.
@@ -107,6 +110,7 @@ impl<BodyMeta, SpeciesMeta> core::ops::Index<NpcKind> for AllBodies<BodyMeta, Sp
             NpcKind::Archaeos => &self.theropod.body,
             NpcKind::Reddragon => &self.dragon.body,
             NpcKind::Crocodile => &self.quadruped_low.body,
+            NpcKind::Tarantula => &self.arthropod.body,
         }
     }
 }
@@ -132,6 +136,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::Golem(_) => &self.golem.body,
             Body::Theropod(_) => &self.theropod.body,
             Body::QuadrupedLow(_) => &self.quadruped_low.body,
+            Body::Arthropod(_) => &self.arthropod.body,
             Body::Ship(_) => &self.ship.body,
         }
     }
@@ -290,6 +295,7 @@ impl Body {
                 theropod::Species::Yale => 1_000.0,
             },
             Body::Ship(ship) => ship.mass().0,
+            Body::Arthropod(_) => 200.0,
         };
         Mass(m)
     }
@@ -395,6 +401,19 @@ impl Body {
                 theropod::Species::Sunlizard => Vec3::new(2.0, 3.6, 2.5),
                 theropod::Species::Woodraptor => Vec3::new(2.0, 3.0, 2.6),
                 theropod::Species::Yale => Vec3::new(1.5, 3.2, 4.0),
+            },
+            Body::Arthropod(body) => match body.species {
+                arthropod::Species::Tarantula => Vec3::new(4.0, 4.0, 1.8),
+                arthropod::Species::Blackwidow => Vec3::new(4.0, 4.0, 2.0),
+                arthropod::Species::Antlion => Vec3::new(4.0, 4.0, 2.2),
+                arthropod::Species::Hornbeetle => Vec3::new(3.2, 3.2, 1.3),
+                arthropod::Species::Leafbeetle => Vec3::new(3.2, 3.2, 1.3),
+                arthropod::Species::Stagbeetle => Vec3::new(3.2, 3.2, 1.3),
+                arthropod::Species::Weevil => Vec3::new(3.2, 3.2, 1.6),
+                arthropod::Species::Cavespider => Vec3::new(4.0, 4.0, 1.4),
+                arthropod::Species::Moltencrawler => Vec3::new(3.2, 4.0, 1.5),
+                arthropod::Species::Mosscrawler => Vec3::new(3.2, 4.0, 1.4),
+                arthropod::Species::Sandcrawler => Vec3::new(3.2, 4.0, 1.4),
             },
         }
     }
@@ -640,6 +659,20 @@ impl Body {
                 quadruped_low::Species::Deadwood => 120,
                 _ => 70,
             },
+            Body::Arthropod(arthropod) => match arthropod.species {
+                arthropod::Species::Tarantula => 120,
+                arthropod::Species::Blackwidow => 120,
+                arthropod::Species::Antlion => 80,
+                arthropod::Species::Hornbeetle => 90,
+                arthropod::Species::Leafbeetle => 90,
+                arthropod::Species::Stagbeetle => 90,
+                arthropod::Species::Weevil => 80,
+                arthropod::Species::Cavespider => 60,
+                arthropod::Species::Moltencrawler => 80,
+                arthropod::Species::Mosscrawler => 80,
+                arthropod::Species::Sandcrawler => 80,
+                _ => 70,
+            },
             Body::Ship(_) => 1000,
         }
     }
@@ -668,10 +701,13 @@ impl Body {
                         | bird_large::Species::Cockatrice
                         | bird_large::Species::FlameWyvern
                 ),
+                Body::Arthropod(b) => matches!(b.species, arthropod::Species::Moltencrawler),
                 _ => false,
             },
-            BuffKind::Ensnared => {
-                matches!(self, Body::BipedLarge(b) if matches!(b.species, biped_large::Species::Harvester))
+            BuffKind::Ensnared => match self {
+                Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Harvester),
+                Body::Arthropod(_) => true,
+                _ => false,
             },
             _ => false,
         }

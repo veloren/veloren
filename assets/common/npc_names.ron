@@ -1207,5 +1207,59 @@
                 generic: "Deadwood"
             ),
         )
-    )
+    ),
+    arthropod: (
+        body: (
+            keyword: "arthropod",
+            names_0: [
+                "Shelob"
+            ]
+        ),
+        species: (
+            tarantula: (
+                keyword: "tarantula",
+                generic: "Tarantula"
+            ),
+            black_widow: (
+                keyword: "black_widow",
+                generic: "Blackwidow"
+            ),
+            antlion: (
+                keyword: "antlion",
+                generic: "Antlion"
+            ),
+            horn_beetle: (
+                keyword: "horn_beetle",
+                generic: "Horn Beetle"
+            ),
+            leaf_beetle: (
+                keyword: "leaf_beetle",
+                generic: "Leaf Beetle"
+            ),
+            stag_beetle: (
+                keyword: "stag_beetle",
+                generic: "Stag Beetle"
+            ),
+            weevil: (
+                keyword: "weevil",
+                generic: "Weevil"
+            ),
+            cave_spider: (
+                keyword: "cave_spider",
+                generic: "Cave Spider"
+            ),
+            crawler_molten: (
+                keyword: "crawler_molten",
+                generic: "Molten Crawler"
+            ),
+            crawler_moss: (
+                keyword: "crawler_moss",
+                generic: "Moss Crawler"
+            ),
+            crawler_sand: (
+                keyword: "crawler_sand",
+                generic: "Sand Crawler"
+            ),
+        )
+    ),
 )

@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("crawler_sand"),
+    alignment: Alignment(Wild),
+
+    loot: LootTable("common.loot_tables.creature.arthropod.ooze"),
+
+    hands: Uninit,
+
+    meta: [],
+)

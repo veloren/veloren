@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("cave_spider"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.arthropod.web"),
+
+    hands: Uninit,
+
+    meta: [],
+)

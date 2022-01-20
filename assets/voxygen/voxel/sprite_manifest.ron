@@ -3691,6 +3691,16 @@ Bomb: Some((
             lod_axes: (0.5, 0.5, 0.5),
         ),
     ],
+    wind_sway: 0.6,
+)),
+EnsnaringWeb: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.misc.ensnaring_web",
+            offset: (-5.0, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
     wind_sway: 0.0,
 )),
 )

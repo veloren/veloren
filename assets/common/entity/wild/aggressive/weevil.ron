@@ -1,0 +1,11 @@
+EntityConfig (
+    name: Automatic,
+    body: RandomWith("weevil"),
+    alignment: Alignment(Enemy),
+
+    loot: LootTable("common.loot_tables.creature.arthropod.leaf"),
+
+    hands: Uninit,
+
+    meta: [],
+)

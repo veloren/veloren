@@ -172,7 +172,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                 | BuffKind::Frenzied
                 | BuffKind::Frozen
                 | BuffKind::Wet
-                | BuffKind::Ensnared => "".to_owned(),
+                | BuffKind::Ensnared
+                | BuffKind::Poisoned => "".to_owned(),
             };
 
             write!(&mut description, "{}", buff_desc).unwrap();
@@ -197,7 +198,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                     | BuffKind::Frenzied
                     | BuffKind::Frozen
                     | BuffKind::Wet
-                    | BuffKind::Ensnared => "".to_owned(),
+                    | BuffKind::Ensnared
+                    | BuffKind::Poisoned => "".to_owned(),
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration = buff.kind {
                 i18n.get("buff.text.every_second").to_string()

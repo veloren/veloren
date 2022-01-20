@@ -1,0 +1,4 @@
+[
+    (1.0, ItemQuantity("common.items.crafting_ing.sticky_thread", 1, 3)),
+    (0.5, ItemQuantity("common.items.crafting_ing.animal_misc.viscous_ooze", 1, 1)),
+]

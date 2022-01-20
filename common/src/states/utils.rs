@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        biped_large, biped_small,
+        arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{EquipSlot, Slot},
         item::{Hands, ItemKind, Tool, ToolKind},
@@ -129,6 +129,19 @@ impl Body {
                 quadruped_low::Species::Deadwood => 140.0,
             },
             Body::Ship(_) => 0.0,
+            Body::Arthropod(arthropod) => match arthropod.species {
+                arthropod::Species::Tarantula => 135.0,
+                arthropod::Species::Blackwidow => 110.0,
+                arthropod::Species::Antlion => 120.0,
+                arthropod::Species::Hornbeetle => 80.0,
+                arthropod::Species::Leafbeetle => 80.0,
+                arthropod::Species::Stagbeetle => 80.0,
+                arthropod::Species::Weevil => 110.0,
+                arthropod::Species::Cavespider => 110.0,
+                arthropod::Species::Moltencrawler => 70.0,
+                arthropod::Species::Mosscrawler => 70.0,
+                arthropod::Species::Sandcrawler => 70.0,
+            },
         }
     }
 
@@ -186,6 +199,7 @@ impl Body {
             },
             Body::Ship(ship) if ship.has_water_thrust() => 0.1,
             Body::Ship(_) => 0.035,
+            Body::Arthropod(_) => 3.5,
         }
     }
 
@@ -214,6 +228,7 @@ impl Body {
             Body::QuadrupedSmall(_) => Some(300.0 * self.mass().0),
             Body::Ship(ship) if ship.has_water_thrust() => Some(3500.0 * self.mass().0),
             Body::Ship(_) => None,
+            Body::Arthropod(_) => Some(300.0 * self.mass().0),
         }
     }
 
@@ -242,6 +257,7 @@ impl Body {
                 | theropod::Species::Woodraptor => Some(0.4 * self.mass().0),
                 _ => None,
             },
+            Body::Arthropod(_) => Some(2.0 * self.mass().0),
             _ => Some(0.4 * self.mass().0),
         }
         .map(|f| f * GRAVITY)

@@ -1681,6 +1681,202 @@ impl<'a> AgentData<'a> {
         self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
     }
 
+    pub fn handle_arthropod_basic_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        agent.action_state.timer += read_data.dt.0;
+        if agent.action_state.timer > 7.0
+            && attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+            // Reset timer
+            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.timer = 0.0;
+            }
+        } else if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
+
+    pub fn handle_arthropod_ranged_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        agent.action_state.timer += read_data.dt.0;
+        if agent.action_state.timer > 6.0
+            && attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+            // Reset timer
+            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.timer = 0.0;
+            }
+        } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
+            && attack_data.angle < 90.0
+        {
+            controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                .xy()
+                .try_normalized()
+                .unwrap_or_else(Vec2::unit_y);
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            if let Some((bearing, speed)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if attack_data.angle < 15.0
+                    && can_see_tgt(
+                        &*read_data.terrain,
+                        self.pos,
+                        tgt_data.pos,
+                        attack_data.dist_sqrd,
+                    )
+                {
+                    if agent.action_state.timer > 5.0 {
+                        agent.action_state.timer = 0.0;
+                    } else if agent.action_state.timer > 2.5 {
+                        controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                            .xy()
+                            .rotated_z(1.75 * PI)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * speed;
+                        agent.action_state.timer += read_data.dt.0;
+                    } else {
+                        controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                            .xy()
+                            .rotated_z(0.25 * PI)
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero)
+                            * speed;
+                        agent.action_state.timer += read_data.dt.0;
+                    }
+                    controller
+                        .actions
+                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                } else {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
+                    self.jump_if(controller, bearing.z > 1.5);
+                    controller.inputs.move_z = bearing.z;
+                }
+            } else {
+                agent.target = None;
+            }
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
+
+    pub fn handle_arthropod_leap_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        agent.action_state.timer += read_data.dt.0;
+        if agent.action_state.timer > 12.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+            // Reset timer
+            if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
+            {
+                agent.action_state.timer = 0.0;
+            }
+        } else if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else if rng.gen_bool(0.01)
+            && attack_data.angle < 15.0
+            && attack_data.dist_sqrd < (6.0 * attack_data.min_attack_dist).powi(2)
+        {
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Ability(0)));
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
+
+    pub fn handle_arthropod_charge_attack(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        agent.action_state.timer += read_data.dt.0;
+        if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
+        {
+            // If already charging, keep charging if not in recover
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Secondary));
+        } else if attack_data.dist_sqrd > (5.0 * attack_data.min_attack_dist).powi(2) {
+            // Charges at target if they are far enough away
+            if attack_data.angle < 60.0 {
+                controller
+                    .actions
+                    .push(ControlAction::basic_input(InputKind::Secondary));
+            }
+        } else if attack_data.angle < 90.0
+            && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
+        {
+            controller.inputs.move_dir = Vec2::zero();
+            controller
+                .actions
+                .push(ControlAction::basic_input(InputKind::Primary));
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
+
     pub fn handle_minotaur_attack(
         &self,
         agent: &mut Agent,

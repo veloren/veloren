@@ -716,6 +716,7 @@ fn body_species(body: &Body) -> String {
         Body::Golem(body) => format!("{:?}", body.species),
         Body::Theropod(body) => format!("{:?}", body.species),
         Body::QuadrupedLow(body) => format!("{:?}", body.species),
+        Body::Arthropod(body) => format!("{:?}", body.species),
         Body::Ship(body) => format!("{:?}", body),
     }
 }

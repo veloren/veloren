@@ -3,7 +3,7 @@
 use crate::{
     assets::{self, AssetExt},
     comp::{
-        biped_large, biped_small, bird_large, golem,
+        arthropod, biped_large, biped_small, bird_large, golem,
         inventory::{
             loadout::Loadout,
             slot::{ArmorSlot, EquipSlot},
@@ -265,6 +265,22 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.theropodbasic",
             )),
         },
+        Body::Arthropod(arthropod) => match arthropod.species {
+            arthropod::Species::Hornbeetle
+            | arthropod::Species::Stagbeetle
+            | arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropodcharge",
+            )),
+            arthropod::Species::Cavespider | arthropod::Species::Blackwidow => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.arthropodranged"),
+            ),
+            arthropod::Species::Weevil | arthropod::Species::Tarantula => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.arthropodleap"),
+            ),
+            _ => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropodbasic",
+            )),
+        },
         Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {
             (biped_large::Species::Occultsaurok, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.staff.saurok_staff",
@@ -471,6 +487,7 @@ impl LoadoutBuilder {
                 | theropod::Species::Odonto => Some("common.items.npc_armor.theropod.rugged"),
                 _ => None,
             },
+            Body::Arthropod(_) => Some("common.items.npc_armor.arthropod.generic"),
             _ => None,
         };
 
@@ -752,6 +769,7 @@ mod tests {
             theropod: Theropod,
             dragon: Dragon,
             golem: Golem,
+            arthropod: Arthropod,
         );
     }
 

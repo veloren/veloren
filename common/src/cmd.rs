@@ -172,6 +172,7 @@ lazy_static! {
             theropod,
             dragon,
             golem,
+            arthropod,
         );
 
         souls
@@ -205,6 +206,7 @@ lazy_static! {
             BuffKind::Frozen => "frozen",
             BuffKind::Wet => "wet",
             BuffKind::Ensnared => "ensnared",
+            BuffKind::Poisoned => "poisoned",
         };
         let mut buff_parser = HashMap::new();
         BuffKind::iter().for_each(|kind| {buff_parser.insert(string_from_buff(kind).to_string(), kind);});

@@ -228,6 +228,30 @@
         secondary: "common.abilities.custom.theropodbasic.dash",
         abilities: [],
     ),
+    Custom("Arthropod Basic"): (
+        primary: "common.abilities.custom.arthropodbasic.singlestrike",
+        secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
+        abilities: [],
+    ),
+    Custom("Arthropod Leap"): (
+        primary: "common.abilities.custom.arthropodbasic.singlestrike",
+        secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
+        abilities: [
+            (None, "common.abilities.custom.arthropodbasic.leap"),
+        ],
+    ),
+    Custom("Arthropod Ranged"): (
+        primary: "common.abilities.custom.arthropodranged.singlestrike",
+        secondary: "common.abilities.custom.arthropodranged.ensnaringweb",
+        abilities: [
+            (None, "common.abilities.custom.arthropodranged.poisonball"),
+        ],
+    ),
+    Custom("Arthropod Charge"): (
+        primary: "common.abilities.custom.arthropodcharge.singlestrike",
+        secondary: "common.abilities.custom.arthropodcharge.charge",
+        abilities: [],
+    ),
     Custom("Turret"): (
         primary: "common.abilities.custom.turret.arrows",
         secondary: "common.abilities.custom.turret.arrows",

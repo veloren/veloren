@@ -7,7 +7,7 @@ BasicRanged(
         radius: 5.0,
         min_falloff: 0.5,
     ),
-    projectile_body: Object(BoltFire), // TODO: Get ice projectile model
+    projectile_body: Object(BoltIcicle),
     /*projectile_light: Some(LightEmitter {
         col: (1.0, 0.75, 0.11).into(),
         ..Default::default()
