@@ -74,6 +74,9 @@ widget_ids! {
         bloom_intensity_text,
         bloom_intensity_slider,
         bloom_intensity_value,
+        point_glow_text,
+        point_glow_slider,
+        point_glow_value,
         //
         upscale_factor_text,
         upscale_factor_list,
@@ -727,7 +730,6 @@ impl<'a> Widget for Video<'a> {
             BloomMode::On(bloom) => bloom.factor.fraction(),
         };
         let max_bloom = 0.3;
-        let bloom_value = ((bloom_intensity * 100.0 / max_bloom) as i32).to_string();
 
         Text::new(self.localized_strings.get("hud.settings.bloom"))
             .font_size(self.fonts.cyri.scale(14))
@@ -769,12 +771,55 @@ impl<'a> Widget for Video<'a> {
                 })))
             }
         }
-        Text::new(&format!("{}%", &bloom_value))
-            .right_from(state.ids.bloom_intensity_slider, 8.0)
+        Text::new(&if bloom_intensity <= f32::EPSILON {
+            "Off".to_string()
+        } else {
+            format!("{}%", (bloom_intensity * 100.0 / max_bloom) as i32)
+        })
+        .right_from(state.ids.bloom_intensity_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.bloom_intensity_value, ui);
+
+        // Point Glow
+        Text::new(self.localized_strings.get("hud.settings.point_glow"))
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
+            .down_from(state.ids.aa_mode_list, 10.0)
+            .right_from(state.ids.bloom_intensity_value, 10.0)
             .color(TEXT_COLOR)
-            .set(state.ids.bloom_intensity_value, ui);
+            .set(state.ids.point_glow_text, ui);
+        if let Some(new_val) = ImageSlider::continuous(
+            render_mode.point_glow,
+            0.0,
+            1.0,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.point_glow_text, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.point_glow_slider, ui)
+        {
+            // Toggle Bloom On and set Custom value to new_val
+            events.push(GraphicsChange::ChangeRenderMode(Box::new(RenderMode {
+                point_glow: new_val,
+                ..render_mode.clone()
+            })));
+        }
+        Text::new(&if render_mode.point_glow <= f32::EPSILON {
+            "Off".to_string()
+        } else {
+            format!("{}%", (render_mode.point_glow * 100.0) as i32)
+        })
+        .right_from(state.ids.point_glow_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.point_glow_value, ui);
 
         // Upscaling factor
         Text::new(self.localized_strings.get("hud.settings.upscale_factor"))

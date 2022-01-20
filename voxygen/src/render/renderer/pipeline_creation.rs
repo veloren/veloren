@@ -182,6 +182,13 @@ impl ShaderModules {
             },
         );
 
+        if pipeline_modes.point_glow > f32::EPSILON {
+            constants += &format!(
+                "\n#define POINT_GLOW_FACTOR {}\n",
+                pipeline_modes.point_glow
+            );
+        }
+
         for shader in pipeline_modes.experimental_shaders.iter() {
             constants += &format!(
                 "#define EXPERIMENTAL_{}\n",

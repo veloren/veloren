@@ -54,6 +54,12 @@
 #define SHADOW_MODE <mode>
 */
 
+/* Constants possibly defined automatically by configuration: */
+
+/*
+#define POINT_GLOW_FACTOR <0.0..1.0>
+*/
+
 /* Constants expected to be defined by any shader that needs to perform lighting calculations
  * (but whose values may take automatically defined constants into account): */
 

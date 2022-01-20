@@ -332,7 +332,7 @@ impl BloomMode {
 }
 
 /// Render modes
-#[derive(PartialEq, Clone, Debug, Default, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct RenderMode {
     pub aa: AaMode,
@@ -341,12 +341,32 @@ pub struct RenderMode {
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
     pub bloom: BloomMode,
+    /// 0.0..1.0
+    pub point_glow: f32,
 
     pub experimental_shaders: HashSet<ExperimentalShader>,
 
     pub upscale_mode: UpscaleMode,
     pub present_mode: PresentMode,
     pub profiler_enabled: bool,
+}
+
+impl Default for RenderMode {
+    fn default() -> Self {
+        Self {
+            aa: AaMode::default(),
+            cloud: CloudMode::default(),
+            fluid: FluidMode::default(),
+            lighting: LightingMode::default(),
+            shadow: ShadowMode::default(),
+            bloom: BloomMode::default(),
+            point_glow: 0.35,
+            experimental_shaders: HashSet::default(),
+            upscale_mode: UpscaleMode::default(),
+            present_mode: PresentMode::default(),
+            profiler_enabled: false,
+        }
+    }
 }
 
 impl RenderMode {
@@ -359,6 +379,7 @@ impl RenderMode {
                 lighting: self.lighting,
                 shadow: self.shadow,
                 bloom: self.bloom,
+                point_glow: self.point_glow,
                 experimental_shaders: self.experimental_shaders,
             },
             OtherModes {
@@ -380,6 +401,7 @@ pub struct PipelineModes {
     lighting: LightingMode,
     pub shadow: ShadowMode,
     bloom: BloomMode,
+    point_glow: f32,
     experimental_shaders: HashSet<ExperimentalShader>,
 }
 
@@ -403,9 +425,6 @@ pub enum ExperimentalShader {
     NoNoise,
     /// Simulated a curved world.
     CurvedWorld,
-    /// Remove the glow effect around point lights (this is *not* the same thing
-    /// as bloom).
-    NoPointGlow,
     /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.
     ProceduralLodDetail,
 }
