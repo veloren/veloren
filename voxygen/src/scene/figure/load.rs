@@ -2195,8 +2195,8 @@ struct ArthropodLateralSubSpec {
 make_vox_spec!(
     arthropod::Body,
     struct ArthropodSpec {
-        central: ArthropodCentralSpec = "voxygen.voxel.Arthropod_central_manifest",
-        lateral: ArthropodLateralSpec = "voxygen.voxel.Arthropod_lateral_manifest",
+        central: ArthropodCentralSpec = "voxygen.voxel.arthropod_central_manifest",
+        lateral: ArthropodLateralSpec = "voxygen.voxel.arthropod_lateral_manifest",
     },
     |FigureKey { body, .. }, spec| {
         [
