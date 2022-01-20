@@ -98,23 +98,24 @@ impl<'a> Widget for Popup<'a> {
 
         // Push chunk name to message queue
         if let Some(chunk) = self.client.current_chunk() {
-            let current = chunk.meta().name();
-            // Check if no other popup is displayed and a new one is needed
-            if state.messages.is_empty()
-                && state
-                    .last_region_name
-                    .as_ref()
-                    .map(|l| l != current)
-                    .unwrap_or(true)
-            {
-                // Update last_region
-                state.update(|s| {
-                    if s.messages.is_empty() {
-                        s.last_message_update = Instant::now();
-                    }
-                    s.last_region_name = Some(current.to_owned());
-                    s.messages.push_back(current.to_owned());
-                });
+            if let Some(current) = chunk.meta().name() {
+                // Check if no other popup is displayed and a new one is needed
+                if state.messages.is_empty()
+                    && state
+                        .last_region_name
+                        .as_ref()
+                        .map(|l| l != current)
+                        .unwrap_or(true)
+                {
+                    // Update last_region
+                    state.update(|s| {
+                        if s.messages.is_empty() {
+                            s.last_message_update = Instant::now();
+                        }
+                        s.last_region_name = Some(current.to_owned());
+                        s.messages.push_back(current.to_owned());
+                    });
+                }
             }
         }
 

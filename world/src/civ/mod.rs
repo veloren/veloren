@@ -4,10 +4,10 @@ mod econ;
 
 use crate::{
     config::CONFIG,
-    sim::{RiverKind, WorldSim},
+    sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
-    util::{attempt, seed_expan, CARDINALS, NEIGHBORS},
+    util::{attempt, seed_expan, NEIGHBORS},
     Index, Land,
 };
 use common::{
@@ -15,7 +15,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{uniform_idx_as_vec2, vec2_as_uniform_idx, MapSizeLg, TerrainChunkSize},
+    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
@@ -89,8 +89,8 @@ impl Civs {
         let mut ctx = GenCtx { sim, rng };
         info!("starting peak naming");
         this.name_peaks(&mut ctx);
-        info!("starting lake naming");
-        this.name_lakes(&mut ctx);
+        info!("starting biome naming");
+        this.name_biomes(&mut ctx);
 
         for _ in 0..ctx.sim.get_size().product() / 10_000 {
             this.generate_cave(&mut ctx);
@@ -468,113 +468,220 @@ impl Civs {
     }
 
     /// Adds lake POIs and names them
-    fn name_lakes(&mut self, ctx: &mut GenCtx<impl Rng>) {
+    fn name_biomes(&mut self, ctx: &mut GenCtx<impl Rng>) {
         let map_size_lg = ctx.sim.map_size_lg();
-        let rng = &mut ctx.rng;
-        let sim_chunks = &ctx.sim.chunks;
-        let lakes = sim_chunks
-            .iter()
-            .enumerate()
-            .filter(|(posi, chunk)| {
-                let neighbor_alts_min = common::terrain::neighbors(map_size_lg, *posi)
-                    .map(|i| sim_chunks[i].alt as u32)
-                    .min();
-                chunk
-                    .river
-                    .river_kind
-                    .map_or(false, |r_kind| matches!(r_kind, RiverKind::Lake { .. }))
-                    && neighbor_alts_min.map_or(false, |n_alt| (chunk.alt as u32) < n_alt)
-            })
-            .map(|(posi, chunk)| {
-                (
-                    uniform_idx_as_vec2(map_size_lg, posi),
-                    chunk.alt as u32,
-                    chunk.water_alt as u32,
-                )
-            })
-            .collect::<Vec<(Vec2<i32>, u32, u32)>>();
-        let mut removals = vec![false; lakes.len()];
-        let mut lake_alts = HashSet::new();
-        for (i, (loc, alt, water_alt)) in lakes.iter().enumerate() {
-            for (k, (n_loc, n_alt, n_water_alt)) in lakes.iter().enumerate() {
-                // If the difference in position of this low point and another is
-                // below a threshold and this chunk's altitude is higher, remove the
-                // lake from the list. Also remove shallow ponds.
-                // If this lake water altitude is already accounted for and the lake bed
-                // altitude is lower than the neighboring lake bed altitude, remove this
-                // lake from the list. Otherwise, add this lake water altitude to the list
-                // of counted lake water altitudes.
-                if i != k
-                    && (*water_alt <= CONFIG.sea_level as u32
-                        || (!lake_alts.insert(water_alt)
-                            && water_alt == n_water_alt
-                            && alt > n_alt)
-                        || ((loc).distance_squared(*n_loc) < POI_THINNING_DIST_SQRD
-                            && alt >= n_alt))
-                {
-                    // This cannot panic as `removals` is the same length as `lakes`
-                    // i is the index in `lakes`
-                    removals[i] = true;
+        let mut biomes: Vec<(common::terrain::BiomeKind, Vec<usize>)> = Vec::new();
+        let mut explored = HashSet::new();
+        let mut to_explore = HashSet::new();
+        let mut to_floodfill = HashSet::new();
+        // TODO: have start point in center and ignore ocean?
+        let start_point = 0;
+        to_explore.insert(start_point);
+        explored.insert(start_point);
+
+        while !to_explore.is_empty() {
+            let exploring = *to_explore.iter().next().unwrap();
+            to_explore.remove(&exploring);
+            to_floodfill.insert(exploring);
+            // Should always be a chunk on the map
+            let biome = ctx.sim.chunks[exploring].get_biome();
+            biomes.push((biome, Vec::new()));
+            while !to_floodfill.is_empty() {
+                let filling = *to_floodfill.iter().next().unwrap();
+                to_explore.remove(&filling);
+                to_floodfill.remove(&filling);
+                explored.insert(filling);
+                biomes.last_mut().unwrap().1.push(filling);
+                for neighbour in common::terrain::neighbors(map_size_lg, filling) {
+                    if explored.contains(&neighbour) {
+                        continue;
+                    }
+                    let n_biome = ctx.sim.chunks[neighbour].get_biome();
+                    if n_biome == biome {
+                        to_floodfill.insert(neighbour);
+                    } else {
+                        to_explore.insert(neighbour);
+                    }
                 }
             }
         }
-        let mut num_lakes = 0;
-        for (_j, (loc, alt, water_alt)) in lakes.iter().enumerate().filter(|&(i, _)| !removals[i]) {
-            // Recenter the location of the lake POI
-            // Sample every few units to speed this up
-            let sample_step = 3;
-            let mut chords: [i32; 4] = [0, 0, 0, 0];
-            // only search up to 100 chunks in any direction
-            for (j, chord) in chords.iter_mut().enumerate() {
-                for i in 0..100 {
-                    let posi = vec2_as_uniform_idx(
-                        map_size_lg,
-                        Vec2::new(loc.x, loc.y) + CARDINALS[j] * sample_step * i,
-                    );
-                    if let Some(r_kind) = sim_chunks[posi].river.river_kind {
-                        if matches!(r_kind, RiverKind::Lake { .. }) {
-                            *chord += sample_step;
-                        } else {
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
-            }
-            let center_y = ((chords[0] + chords[1]) / 2) - chords[1] + loc.y;
-            let center_x = ((chords[2] + chords[3]) / 2) - chords[3] + loc.x;
-            let new_loc = Vec2::new(center_x, center_y);
-            let size_parameter = ((chords[2] + chords[3]) + (chords[0] + chords[1]) / 4) as u32;
-            let lake = PointOfInterest {
-                name: {
-                    let name = NameGen::location(rng).generate();
-                    if size_parameter > 30 {
-                        format!("{} Sea", name)
-                    } else if (water_alt - alt) < 30 {
-                        match rng.gen_range(0..5) {
-                            0 => format!("{} Shallows", name),
-                            1 => format!("{} Pool", name),
-                            2 => format!("{} Well", name),
-                            _ => format!("{} Pond", name),
-                        }
-                    } else {
-                        match rng.gen_range(0..6) {
-                            0 => format!("{} Lake", name),
-                            1 => format!("Loch {}", name),
-                            _ => format!("Lake {}", name),
-                        }
-                    }
+        let mut biome_count = 0;
+        for biome in biomes {
+            let name = match biome.0 {
+                common::terrain::BiomeKind::Forest if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate_temp_forest(),
+                    [
+                        "Forest",
+                        "Woodlands",
+                        "Woods",
+                        "Glades",
+                        "Grove",
+                        "Thickets",
+                        "Weald"
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap()
+                )),
+                common::terrain::BiomeKind::Grassland if biome.1.len() as u32 > 750 => {
+                    Some(format!(
+                        "{} {}",
+                        NameGen::location(&mut ctx.rng).generate_grassland(),
+                        [
+                            "Grasslands",
+                            "Flats",
+                            "Greens",
+                            "Plains",
+                            "Meadows",
+                            "Fields",
+                            "Heath",
+                            "Steppe",
+                            "Downs"
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                    ))
                 },
-                // Size parameter is based on the east west chord length with a smaller factor from
-                // the north south chord length. This is used for text scaling on the map
-                kind: PoiKind::Lake(size_parameter),
-                loc: new_loc,
+                common::terrain::BiomeKind::Ocean if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    ["Ocean", "Blue", "Deep"].choose(&mut ctx.rng).unwrap()
+                )),
+                common::terrain::BiomeKind::Mountain if biome.1.len() as u32 > 750 => {
+                    Some(format!(
+                        "{} {}",
+                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        [
+                            "Mountains",
+                            "Range",
+                            "Reach",
+                            "Massif",
+                            "Rocks",
+                            "Cliffs",
+                            "Peaks",
+                            "Heights",
+                            "Bluffs",
+                            "Ridge",
+                            "Canyon",
+                            "Plateau"
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                    ))
+                },
+                common::terrain::BiomeKind::Snowland if biome.1.len() as u32 > 750 => {
+                    Some(format!(
+                        "{} {}",
+                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        [
+                            "Snowlands",
+                            "Glacier",
+                            "Tundra",
+                            "Snowfields",
+                            "Hills",
+                            "Highlands"
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                    ))
+                },
+                common::terrain::BiomeKind::Desert if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    ["Desert", "Sands", "Sandsea", "Drifts", "Dunes", "Sandfield"]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                )),
+                common::terrain::BiomeKind::Mountain if biome.1.len() as u32 > 750 => {
+                    Some(format!(
+                        "{} {}",
+                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        [
+                            "Swamp",
+                            "Swamps",
+                            "Swamplands",
+                            "Marsh",
+                            "Marshlands",
+                            "Morass",
+                            "Mire",
+                            "Bog",
+                            "Snowlands"
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                    ))
+                },
+                common::terrain::BiomeKind::Jungle if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    [
+                        "Jungle",
+                        "Rainforest",
+                        "Greatwood",
+                        "Wilds",
+                        "Wildwood",
+                        "Tangle",
+                        "Tanglewood",
+                        "Bush"
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap()
+                )),
+                common::terrain::BiomeKind::Savannah if biome.1.len() as u32 > 750 => {
+                    Some(format!(
+                        "{} {}",
+                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        ["Savannah", "Shrubland", "Sierra", "Prairie", "Lowlands"]
+                            .choose(&mut ctx.rng)
+                            .unwrap()
+                    ))
+                },
+                common::terrain::BiomeKind::Taiga if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    ["Taiga", "Timberlands", "Uplands", "Highlands"]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                )),
+                common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 200 => Some(format!(
+                    "{} {}",
+                    ["Lake", "Loch"].choose(&mut ctx.rng).unwrap(),
+                    NameGen::location(&mut ctx.rng).generate()
+                )),
+                common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 10 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate(),
+                    ["Pool", "Well", "Pond"].choose(&mut ctx.rng).unwrap()
+                )),
+                _ => None,
             };
-            num_lakes += 1;
-            self.pois.insert(lake);
+            if let Some(name) = name {
+                // find average center of the biome
+                let center = biome
+                    .1
+                    .iter()
+                    .map(|b| uniform_idx_as_vec2(map_size_lg, *b))
+                    .sum::<Vec2<i32>>()
+                    / biome.1.len() as i32;
+                // Select the point closest to the center
+                let idx = *biome
+                    .1
+                    .iter()
+                    .min_by_key(|&b| center.distance_squared(uniform_idx_as_vec2(map_size_lg, *b)))
+                    .unwrap();
+                let id = self.pois.insert(PointOfInterest {
+                    name,
+                    loc: uniform_idx_as_vec2(map_size_lg, idx),
+                    kind: PoiKind::Biome(biome.1.len() as u32),
+                });
+                for chunk in biome.1 {
+                    ctx.sim.chunks[chunk].poi = Some(id);
+                }
+                biome_count += 1;
+            }
         }
-        info!(?num_lakes, "all lakes named");
+
+        info!(?biome_count, "all biomes named");
     }
 
     /// Adds mountain POIs and name them
@@ -934,5 +1041,5 @@ pub enum PoiKind {
     /// Peak stores the altitude
     Peak(u32),
     /// Lake stores a metric relating to size
-    Lake(u32),
+    Biome(u32),
 }

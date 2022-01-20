@@ -28,7 +28,7 @@ pub(crate) use self::{
 use crate::{
     all::{Environment, ForestKind, TreeAttr},
     block::BlockGen,
-    civ::Place,
+    civ::{Place, PointOfInterest},
     column::ColumnGen,
     layer::spot::Spot,
     site::Site,
@@ -2178,6 +2178,7 @@ pub struct SimChunk {
 
     pub sites: Vec<Id<Site>>,
     pub place: Option<Id<Place>>,
+    pub poi: Option<Id<PointOfInterest>>,
 
     pub path: (Way, Path),
     pub cave: (Way, Cave),
@@ -2419,6 +2420,7 @@ impl SimChunk {
 
             sites: Vec::new(),
             place: None,
+            poi: None,
             path: Default::default(),
             cave: Default::default(),
             cliff_height: 0.0,

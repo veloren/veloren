@@ -886,20 +886,22 @@ impl<'a> Widget for MiniMap<'a> {
         match self.client.current_chunk() {
             Some(chunk) => {
                 // Count characters in the name to avoid clipping with the name display
-                let name_len = chunk.meta().name().chars().count();
-                Text::new(chunk.meta().name())
-                    .mid_top_with_margin_on(state.ids.mmap_frame, match name_len {
-                        15..=30 => 4.0,
-                        _ => 2.0,
-                    })
-                    .font_size(self.fonts.cyri.scale(match name_len {
-                        0..=15 => 18,
-                        16..=30 => 14,
-                        _ => 14,
-                    }))
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.mmap_location, ui)
+                if let Some(name) = chunk.meta().name() {
+                    let name_len = name.chars().count();
+                    Text::new(name)
+                        .mid_top_with_margin_on(state.ids.mmap_frame, match name_len {
+                            15..=30 => 4.0,
+                            _ => 2.0,
+                        })
+                        .font_size(self.fonts.cyri.scale(match name_len {
+                            0..=15 => 18,
+                            16..=30 => 14,
+                            _ => 14,
+                        }))
+                        .font_id(self.fonts.cyri.conrod_id)
+                        .color(TEXT_COLOR)
+                        .set(state.ids.mmap_location, ui)
+                }
             },
             None => Text::new(" ")
                 .mid_top_with_margin_on(state.ids.mmap_frame, 0.0)

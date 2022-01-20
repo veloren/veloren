@@ -414,6 +414,7 @@ image_ids! {
         mmap_site_tree: "voxygen.element.ui.map.buttons.tree",
         mmap_site_tree_hover: "voxygen.element.ui.map.buttons.tree_hover",
         mmap_poi_peak: "voxygen.element.ui.map.buttons.peak",
+        mmap_poi_biome: "voxygen.element.ui.map.buttons.biome",
         mmap_poi_peak_hover: "voxygen.element.ui.map.buttons.peak_hover",
 
         // Window Parts
