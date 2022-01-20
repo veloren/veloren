@@ -5,7 +5,7 @@
     ),
     map: {
       "Green0": (
-          vox_spec: ("lantern.green-0", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.green-0", (-2.5, -2.0, -9.0)),
           color: None
       ),
       "Magic": (
@@ -13,7 +13,7 @@
           color: None
       ),
       "Black0": (
-          vox_spec: ("lantern.black-0", (-2.0, -2.0, -8.5)),
+          vox_spec: ("lantern.black-0", (-2.5, -2.0, -8.5)),
           color: None
       ),
       "Red0": (
@@ -21,7 +21,7 @@
           color: None
       ),
       "Blue0": (
-          vox_spec: ("lantern.blue-0", (-2.0, -2.0, -7.0)),
+          vox_spec: ("lantern.blue-0", (-2.5, -2.0, -8.0)),
           color: None
       ),
       "GeodePurp": (
@@ -29,11 +29,11 @@
           color: None
       ),
       "PumpkinLantern": (
-          vox_spec: ("lantern.pumpkin", (-3.5, -4.0, -8.5)),
+          vox_spec: ("lantern.pumpkin", (-4.0, -4.0, -8.5)),
           color: None
       ),
       "PolarisLantern": (
-          vox_spec: ("lantern.polaris", (-3.0, -4.0, -9.5)),
+          vox_spec: ("lantern.polaris", (-3.5, -4.0, -8.5)),
           color: None
       ),
     },

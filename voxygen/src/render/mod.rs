@@ -280,16 +280,16 @@ pub enum BloomFactor {
 }
 
 impl Default for BloomFactor {
-    fn default() -> Self { Self::Low }
+    fn default() -> Self { Self::Medium }
 }
 
 impl BloomFactor {
     /// Fraction of output image luminosity that is blurred bloom
     pub fn fraction(self) -> f32 {
         match self {
-            Self::Low => 0.05,
-            Self::Medium => 0.10,
-            Self::High => 0.25,
+            Self::Low => 0.1,
+            Self::Medium => 0.2,
+            Self::High => 0.3,
             Self::Custom(val) => val.max(0.0).min(1.0),
         }
     }
@@ -300,7 +300,7 @@ impl BloomFactor {
 pub struct BloomConfig {
     /// Controls fraction of output image luminosity that is blurred bloom
     ///
-    /// Defaults to `Low`
+    /// Defaults to `Medium`
     pub factor: BloomFactor,
     /// Turning this on make the bloom blur less sharply concentrated around the
     /// high intensity phenomena (removes adding in less blurred layers to the
@@ -391,6 +391,10 @@ struct OtherModes {
     profiler_enabled: bool,
 }
 
+/// Experimental shader modes.
+///
+/// You can enable these using Voxygen's `settings.ron`. See
+/// [here](https://book.veloren.net/players/voxygen.html#experimental-shaders) for more information.
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ExperimentalShader {
     /// Add brick-like normal mapping to the world.
@@ -399,4 +403,9 @@ pub enum ExperimentalShader {
     NoNoise,
     /// Simulated a curved world.
     CurvedWorld,
+    /// Remove the glow effect around point lights (this is *not* the same thing
+    /// as bloom).
+    NoPointGlow,
+    /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.
+    ProceduralLodDetail,
 }

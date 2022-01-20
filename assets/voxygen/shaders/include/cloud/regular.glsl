@@ -1,5 +1,6 @@
 #include <constants.glsl>
 #include <random.glsl>
+#include <light.glsl>
 #include <lod.glsl>
 
 float falloff(float x) {
@@ -200,6 +201,10 @@ float dist_to_step(float dist, float quality) {
     return pow(dist / STEP_SCALE * quality, 0.5);
 }
 
+// This *MUST* go here: when clouds are enabled, it relies on the declaration of `clouds_at` above. Sadly, GLSL doesn't
+// consistently support forward declarations (not surprising, it's designed for single-pass compilers).
+#include <point_glow.glsl>
+
 vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of_day, float max_dist, const float quality) {
     // Limit the marching distance to reduce maximum jumps
     max_dist = min(max_dist, DIST_CAP);
@@ -258,6 +263,11 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             sky_light * (1.0 - global_darken) * not_underground +
             emission * density_integrals.y * step;
     }
+
+    // Apply point glow
+    #ifdef BLOOM_FACTOR
+        surf_color = apply_point_glow(origin, dir, max_dist, surf_color, BLOOM_FACTOR);
+    #endif
 
     return surf_color;
 }

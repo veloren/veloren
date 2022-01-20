@@ -1,3 +1,6 @@
+#ifndef LIGHT_GLSL
+#define LIGHT_GLSL
+
 #include <srgb.glsl>
 #include <shadows.glsl>
 
@@ -26,6 +29,11 @@ float attenuation_strength(vec3 rpos) {
     // This is not how light attenuation works at all, but it produces visually pleasing and mechanically useful properties
     float d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
     return max(2.0 / pow(d2 + 10, 0.35) - pow(d2 / 50000.0, 0.8), 0.0);
+}
+
+float attenuation_strength_real(vec3 rpos) {
+    float d2 = rpos.x * rpos.x + rpos.y * rpos.y + rpos.z * rpos.z;
+    return 1.0 / (0.025 + d2);
 }
 
 // // Compute attenuation due to light passing through a substance that fills an area below a horizontal plane
@@ -243,3 +251,5 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
 float lights_at(vec3 wpos, vec3 wnorm, vec3 view_dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, inout vec3 emitted_light, inout vec3 reflected_light) {
     return lights_at(wpos, wnorm, view_dir, vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, wnorm, 1.0, emitted_light, reflected_light);
 }
+
+#endif

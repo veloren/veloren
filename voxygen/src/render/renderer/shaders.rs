@@ -37,6 +37,7 @@ impl assets::Compound for Shaders {
             "include.random",
             "include.lod",
             "include.shadows",
+            "include.point_glow",
             "antialias.none",
             "antialias.fxaa",
             "antialias.msaa-x4",

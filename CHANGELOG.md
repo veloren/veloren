@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Players can now mount and ride pets
 - Experimental shaders, that can be enabled in Voxygen's settings (see the book for more information)
 - Added arthropods
+- A 'point light glow' effect, making lanterns and other point lights more visually pronounced
 
 ### Changed
 
