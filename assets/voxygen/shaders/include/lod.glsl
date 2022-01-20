@@ -318,9 +318,13 @@ vec3 lod_norm(vec2 f_pos/*vec3 pos*/) {
     #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
         vec2 wpos = f_pos + focus_off.xy;
         norm.xy += vec2(
-            textureLod(sampler2D(t_noise, s_noise), wpos / 200, 0).x - 0.5,
-            textureLod(sampler2D(t_noise, s_noise), wpos / 200 + 0.5, 0).x - 0.5
-        ) * 0.35;
+            textureLod(sampler2D(t_noise, s_noise), wpos / 250, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), wpos / 250 + 0.5, 0).x - 0.5
+        ) * 0.25 / pow(norm.z + 0.1, 3);
+        norm.xy += vec2(
+            textureLod(sampler2D(t_noise, s_noise), wpos / 100, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), wpos / 100 + 0.5, 0).x - 0.5
+        ) * 0.15 / pow(norm.z + 0.1, 3);
         norm = normalize(norm);
     #endif
 
@@ -356,7 +360,10 @@ vec3 lod_col(vec2 pos) {
         vec2 shift = vec2(
             textureLod(sampler2D(t_noise, s_noise), wpos / 200, 0).x - 0.5,
             textureLod(sampler2D(t_noise, s_noise), wpos / 200 + 0.5, 0).x - 0.5
-        ) * 64;
+        ) * 64 + vec2(
+            textureLod(sampler2D(t_noise, s_noise), wpos / 50, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), wpos / 50 + 0.5, 0).x - 0.5
+        ) * 48;
         pos += shift;
         wpos += shift;
     #endif
@@ -365,10 +372,10 @@ vec3 lod_col(vec2 pos) {
 
     #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
         col *= pow(vec3(
-            textureLod(sampler2D(t_noise, s_noise), wpos / 40, 0).x,
-            textureLod(sampler2D(t_noise, s_noise), wpos / 50 + 0.5, 0).x,
-            textureLod(sampler2D(t_noise, s_noise), wpos / 45 + 0.75, 0).x
-        ), vec3(0.5));
+            textureLod(sampler2D(t_noise, s_noise), wpos / 40, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), wpos / 50 + 0.5, 0).x - 0.5,
+            textureLod(sampler2D(t_noise, s_noise), wpos / 45 + 0.75, 0).x - 0.5
+        ) + 1.0, vec3(0.5));
     #endif
 
     return col;

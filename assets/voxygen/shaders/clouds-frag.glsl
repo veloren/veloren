@@ -70,9 +70,7 @@ void main() {
     #if (CLOUD_MODE != CLOUD_MODE_NONE)
         color.rgb = get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
     #else
-        #ifdef BLOOM_FACTOR
-            color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb, BLOOM_FACTOR);
-        #endif
+        color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb, BLOOM_FACTOR);
     #endif
 
     tgt_color = vec4(color.rgb, 1);

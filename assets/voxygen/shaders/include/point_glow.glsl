@@ -1,7 +1,7 @@
 #ifndef POINT_GLOW_GLSL
 #define POINT_GLOW_GLSL
 
-vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color, const float factor) {
+vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
     #ifndef POINT_GLOW_FACTOR
         return color;
     #else
@@ -36,7 +36,6 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color, const flo
             color += light_color
                 * 0.05
                 // Constant, *should* const fold
-                * pow(factor, 0.65)
                 * POINT_GLOW_FACTOR;
         }
     #endif

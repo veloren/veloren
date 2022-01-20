@@ -265,9 +265,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     }
 
     // Apply point glow
-    #ifdef BLOOM_FACTOR
-        surf_color = apply_point_glow(origin, dir, max_dist, surf_color, BLOOM_FACTOR);
-    #endif
+    surf_color = apply_point_glow(origin, dir, max_dist, surf_color);
 
     return surf_color;
 }
