@@ -592,25 +592,22 @@ impl Civs {
                         .choose(&mut ctx.rng)
                         .unwrap()
                 )),
-                common::terrain::BiomeKind::Mountain if biome.1.len() as u32 > 750 => {
-                    Some(format!(
-                        "{} {}",
-                        NameGen::location(&mut ctx.rng).generate_biome(),
-                        [
-                            "Swamp",
-                            "Swamps",
-                            "Swamplands",
-                            "Marsh",
-                            "Marshlands",
-                            "Morass",
-                            "Mire",
-                            "Bog",
-                            "Snowlands"
-                        ]
-                        .choose(&mut ctx.rng)
-                        .unwrap()
-                    ))
-                },
+                common::terrain::BiomeKind::Swamp if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    [
+                        "Swamp",
+                        "Swamps",
+                        "Swamplands",
+                        "Marsh",
+                        "Marshlands",
+                        "Morass",
+                        "Mire",
+                        "Bog"
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap()
+                )),
                 common::terrain::BiomeKind::Jungle if biome.1.len() as u32 > 750 => Some(format!(
                     "{} {}",
                     NameGen::location(&mut ctx.rng).generate_biome(),
