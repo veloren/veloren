@@ -1692,7 +1692,7 @@ impl<'a> AgentData<'a> {
             ToolKind::Hammer => Tactic::Hammer,
             ToolKind::Sword | ToolKind::Spear | ToolKind::Blowgun => Tactic::Sword,
             ToolKind::Axe => Tactic::Axe,
-            _ => Tactic::Melee,
+            _ => Tactic::SimpleMelee,
         };
 
         let tactic = self
@@ -1742,21 +1742,22 @@ impl<'a> AgentData<'a> {
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
                             "Tidal Warrior" => Tactic::TidalWarrior,
-                            "Tidal Totem" => Tactic::RadialTurret,
+                            "Tidal Totem" | "Tornado" => Tactic::RadialTurret,
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
-                            "Gnarling Dagger" => Tactic::Backstab,
-                            _ => Tactic::Melee,
+                            "Gnarling Dagger" => Tactic::SimpleBackstab,
+                            "Gnarling Blowgun" => Tactic::ElevatedRanged,
+                            _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
                     }
                 } else if let ItemKind::Tool(tool) = &item.kind() {
                     tool_tactic(tool.kind)
                 } else {
-                    Tactic::Melee
+                    Tactic::SimpleMelee
                 }
             })
-            .unwrap_or(Tactic::Melee);
+            .unwrap_or(Tactic::SimpleMelee);
 
         // Wield the weapon as running towards the target
         controller.push_action(ControlAction::Wield);
@@ -1769,6 +1770,12 @@ impl<'a> AgentData<'a> {
             .ori
             .look_vec()
             .angle_between(tgt_data.pos.0 - self.pos.0)
+            .to_degrees();
+        let angle_xy = self
+            .ori
+            .look_vec()
+            .xy()
+            .angle_between((tgt_data.pos.0 - self.pos.0).xy())
             .to_degrees();
 
         let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
@@ -1911,13 +1918,14 @@ impl<'a> AgentData<'a> {
             min_attack_dist,
             dist_sqrd,
             angle,
+            angle_xy,
         };
 
         // Match on tactic. Each tactic has different controls
         // depending on the distance from the agent to the target
         match tactic {
-            Tactic::Melee => {
-                self.handle_melee_attack(agent, controller, &attack_data, tgt_data, read_data, rng)
+            Tactic::SimpleMelee => {
+                self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
             Tactic::Axe => {
                 self.handle_axe_attack(agent, controller, &attack_data, tgt_data, read_data, rng)
@@ -2052,7 +2060,6 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
-            Tactic::Tornado => self.handle_tornado_attack(controller),
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,
                 controller,
@@ -2111,14 +2118,12 @@ impl<'a> AgentData<'a> {
             Tactic::Harvester => {
                 self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::Backstab => self.handle_backstab_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-                rng,
-            ),
+            Tactic::SimpleBackstab => {
+                self.handle_simple_backstab(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::ElevatedRanged => {
+                self.handle_elevated_ranged(agent, controller, &attack_data, tgt_data, read_data)
+            },
         }
     }
 

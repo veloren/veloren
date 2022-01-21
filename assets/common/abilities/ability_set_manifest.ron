@@ -74,6 +74,11 @@
         secondary: "common.abilities.gnarling.dagger.stab",
         abilities: [],
     ),
+    Custom("Gnarling Blowgun"): (
+        primary: "common.abilities.gnarling.blowgun.dart",
+        secondary: "common.abilities.gnarling.blowgun.dart",
+        abilities: [],
+    ),
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",
@@ -87,12 +92,6 @@
     Custom("Bow Simple"): (
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
-        abilities: [
-        ],
-    ),
-    Tool(Blowgun): (
-        primary: "common.abilities.blowgun.basic",
-        secondary: "common.abilities.blowgun.basic",
         abilities: [
         ],
     ),

@@ -21,7 +21,7 @@ use vek::*;
 impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
     // and the agent is able to freely walk around
-    pub fn handle_melee_attack(
+    pub fn handle_simple_melee(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
@@ -50,14 +50,13 @@ impl<'a> AgentData<'a> {
     // Intended for any agent that has one attack, that attack is a melee attack,
     // the agent is able to freely walk around, and the agent is trying to attack
     // from behind its target
-    pub fn handle_backstab_attack(
+    pub fn handle_simple_backstab(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
         attack_data: &AttackData,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        rng: &mut impl Rng,
     ) {
         // Handle attacking of agent
         if attack_data.in_min_range() && attack_data.angle < 30.0 {
@@ -105,6 +104,72 @@ impl<'a> AgentData<'a> {
                 controller.inputs.move_dir = (move_target - self.pos.0)
                     .try_normalized()
                     .unwrap_or_default();
+            }
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
+        }
+    }
+
+    pub fn handle_elevated_ranged(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        let elevation = self.pos.0.z - tgt_data.pos.0.z;
+        const PREF_DIST: f32 = 30_f32;
+        if attack_data.angle_xy < 30.0
+            && (elevation > 10.0 || attack_data.dist_sqrd > PREF_DIST.powi(2))
+            && can_see_tgt(
+                &read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            )
+        {
+            controller.push_basic_input(InputKind::Primary);
+        } else if attack_data.dist_sqrd < (PREF_DIST / 2.).powi(2) {
+            // Attempt to move quickly away from target if too close
+            if let Some((bearing, _)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
+                if !self.char_state.is_attack() {
+                    controller.inputs.look_dir = -controller.inputs.look_dir;
+                }
+            }
+        } else if attack_data.dist_sqrd < PREF_DIST.powi(2) {
+            // Attempt to move away from target if too close, while still attacking
+            if let Some((bearing, _)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) {
+                    controller.push_basic_input(InputKind::Primary);
+                }
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
@@ -1184,10 +1249,6 @@ impl<'a> AgentData<'a> {
         ) {
             controller.push_basic_input(InputKind::Primary);
         }
-    }
-
-    pub fn handle_tornado_attack(&self, controller: &mut Controller) {
-        controller.push_basic_input(InputKind::Primary);
     }
 
     pub fn handle_mindflayer_attack(
