@@ -1743,9 +1743,13 @@ impl Hud {
                 let over_pos = pos + Vec3::unit_z() * 0.7;
 
                 // This is only done once per frame, so it's not a performance issue
-                if let Some(sprite) = block.get_sprite().filter(|s| s.is_container()) {
+                if let Some(desc) = block
+                    .get_sprite()
+                    .filter(|s| s.is_container())
+                    .and_then(|s| get_sprite_desc(s, i18n))
+                {
                     overitem::Overitem::new(
-                        format!("{:?}", sprite).into(),
+                        desc,
                         overitem::TEXT_COLOR,
                         pos.distance_squared(player_pos),
                         &self.fonts,
@@ -4333,6 +4337,14 @@ pub fn get_sprite_desc(sprite: SpriteKind, localized_strings: &Localization) -> 
         SpriteKind::SpinningWheel => "hud.crafting.spinning_wheel",
         SpriteKind::TanningRack => "hud.crafting.tanning_rack",
         SpriteKind::DismantlingBench => "hud.crafting.salvaging_station",
+        SpriteKind::ChestBuried
+        | SpriteKind::Chest
+        | SpriteKind::DungeonChest0
+        | SpriteKind::DungeonChest1
+        | SpriteKind::DungeonChest2
+        | SpriteKind::DungeonChest3
+        | SpriteKind::DungeonChest4
+        | SpriteKind::DungeonChest5 => "common.sprite.chest",
         sprite => return Some(Cow::Owned(format!("{:?}", sprite))),
     };
     Some(Cow::Borrowed(localized_strings.get(i18n_key)))
