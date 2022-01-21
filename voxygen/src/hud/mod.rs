@@ -1425,13 +1425,10 @@ impl Hud {
                         // Calculate total change
                         // Ignores healing
                         let hp_damage: f32 = floaters.iter().map(|f| f.hp_change.min(0.0)).sum();
-                        dbg!(hp_damage);
 
                         // .fold(0.0, |acc, f| f.hp_change.min(0.0) + acc);
                         let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
-                        dbg!(hp_dmg_rounded_abs);
                         let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
-                        dbg!(max_hp_frac);
                         let timer = floaters
                             .last()
                             .expect("There must be at least one floater")
@@ -1489,7 +1486,6 @@ impl Hud {
                             &mut ui_widgets.widget_id_generator(),
                         );
                         let max_hp_frac = floater.hp_change.abs() as f32 / health.maximum() as f32;
-                        dbg!(max_hp_frac);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
@@ -4522,19 +4518,10 @@ impl Hud {
                                     });
                                 },
                             }
-                        } else {
-                            dbg!("not by player/hit player");
                         }
-                    } else {
-                        dbg!("no floater list");
                     }
-                } else {
-                    dbg!("no entity from target uid");
                 }
 
-                dbg!(target);
-                dbg!(crit);
-                dbg!(amount);
             },
 
             _ => {},
