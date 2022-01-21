@@ -286,7 +286,6 @@ void main() {
     reflected_light *= f_light;
     max_light *= f_light;
 
-    #define EXPERIMENTAL_CAUSTICS
     #ifdef EXPERIMENTAL_CAUSTICS
         #if (FLUID_MODE == FLUID_MODE_SHINY)
             if (faces_fluid) {
