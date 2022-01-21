@@ -2,6 +2,7 @@ use crate::{
     hud::{BarNumbers, BuffPosition, CrosshairType, Intro, ShortcutNumbers, XpBar},
     ui::ScaleMode,
 };
+
 use serde::{Deserialize, Serialize};
 
 /// `InterfaceSettings` contains UI, HUD and Map options.

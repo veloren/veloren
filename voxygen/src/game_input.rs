@@ -146,6 +146,8 @@ pub enum GameInput {
     MapZoomIn,
     #[strum(serialize = "gameinput.mapzoomout")]
     MapZoomOut,
+    #[strum(serialize = "gameinput.map.locationmarkerbutton")]
+    MapSetMarker,
 }
 
 impl GameInput {
