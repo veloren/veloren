@@ -250,7 +250,7 @@ pub struct Skillbar<'a> {
     inventory: &'a Inventory,
     energy: &'a Energy,
     skillset: &'a SkillSet,
-    active_abilities: &'a ActiveAbilities,
+    active_abilities: Option<&'a ActiveAbilities>,
     body: &'a Body,
     // character_state: &'a CharacterState,
     // controller: &'a ControllerInputs,
@@ -279,7 +279,7 @@ impl<'a> Skillbar<'a> {
         inventory: &'a Inventory,
         energy: &'a Energy,
         skillset: &'a SkillSet,
-        active_abilities: &'a ActiveAbilities,
+        active_abilities: Option<&'a ActiveAbilities>,
         body: &'a Body,
         // character_state: &'a CharacterState,
         pulse: f32,
@@ -607,9 +607,11 @@ impl<'a> Skillbar<'a> {
                     .get_by_hash(i)
                     .map(|item| (item.name(), item.description())),
                 hotbar::SlotContents::Ability(i) => active_abilities
-                    .auxiliary_set(Some(inventory), Some(skill_set))
-                    .get(i)
-                    .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
+                    .and_then(|a| {
+                        a.auxiliary_set(Some(inventory), Some(skill_set))
+                            .get(i)
+                            .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
+                    })
                     .map(util::ability_description),
             })
         };
@@ -679,8 +681,9 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.slot5, slot_offset)
             .set(state.ids.m1_slot_bg, ui);
 
-        let primary_ability_id =
-            Ability::from(self.active_abilities.primary).ability_id(Some(self.inventory));
+        let primary_ability_id = self
+            .active_abilities
+            .and_then(|a| Ability::from(a.primary).ability_id(Some(self.inventory)));
 
         Button::image(
             primary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -694,8 +697,9 @@ impl<'a> Skillbar<'a> {
             .right_from(state.ids.m1_slot_bg, slot_offset)
             .set(state.ids.m2_slot_bg, ui);
 
-        let secondary_ability_id =
-            Ability::from(self.active_abilities.secondary).ability_id(Some(self.inventory));
+        let secondary_ability_id = self
+            .active_abilities
+            .and_then(|a| Ability::from(a.secondary).ability_id(Some(self.inventory)));
 
         Button::image(
             secondary_ability_id.map_or(self.imgs.nothing, |id| util::ability_image(self.imgs, id)),
@@ -706,12 +710,14 @@ impl<'a> Skillbar<'a> {
             if self.energy.current()
                 >= self
                     .active_abilities
-                    .activate_ability(
-                        AbilityInput::Secondary,
-                        Some(self.inventory),
-                        self.skillset,
-                        Some(self.body),
-                    )
+                    .and_then(|a| {
+                        a.activate_ability(
+                            AbilityInput::Secondary,
+                            Some(self.inventory),
+                            self.skillset,
+                            Some(self.body),
+                        )
+                    })
                     .map_or(0.0, |(a, _)| a.get_energy_cost())
             {
                 Color::Rgba(1.0, 1.0, 1.0, 1.0)

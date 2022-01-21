@@ -120,7 +120,7 @@ type HotbarSource<'a> = (
     &'a Inventory,
     &'a Energy,
     &'a SkillSet,
-    &'a ActiveAbilities,
+    Option<&'a ActiveAbilities>,
     &'a Body,
 );
 type HotbarImageSource<'a> = (&'a ItemImgs, &'a img_ids::Imgs);
@@ -142,21 +142,24 @@ impl<'a> SlotKey<HotbarSource<'a>, HotbarImageSource<'a>> for HotbarSlot {
                 }
             },
             hotbar::SlotContents::Ability(i) => {
-                let ability_id = active_abilities
-                    .auxiliary_set(Some(inventory), Some(skillset))
-                    .get(i)
-                    .and_then(|a| Ability::from(*a).ability_id(Some(inventory)));
+                let ability_id = active_abilities.and_then(|a| {
+                    a.auxiliary_set(Some(inventory), Some(skillset))
+                        .get(i)
+                        .and_then(|a| Ability::from(*a).ability_id(Some(inventory)))
+                });
 
                 ability_id
                     .map(|id| HotbarImage::Ability(id.to_string()))
                     .and_then(|image| {
                         active_abilities
-                            .activate_ability(
-                                AbilityInput::Auxiliary(i),
-                                Some(inventory),
-                                skillset,
-                                Some(body),
-                            )
+                            .and_then(|a| {
+                                a.activate_ability(
+                                    AbilityInput::Auxiliary(i),
+                                    Some(inventory),
+                                    skillset,
+                                    Some(body),
+                                )
+                            })
                             .map(|(ability, _)| {
                                 (
                                     image,

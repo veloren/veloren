@@ -132,10 +132,10 @@ impl<'a> System<'a> for Sys {
             (
                 &read_data.stats,
                 &read_data.skill_sets,
-                &read_data.active_abilities,
+                read_data.active_abilities.maybe(),
                 read_data.is_riders.maybe(),
             ),
-            &read_data.combos,
+            read_data.combos.maybe(),
         )
             .join()
         {
