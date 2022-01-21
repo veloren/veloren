@@ -229,39 +229,58 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     vec3 sun_color = get_sun_color();
     vec3 moon_color = get_moon_color();
 
-    float cdist = max_dist;
-    float ldist = cdist;
-    // i is an emergency brake
-    float min_dist = clamp(max_dist / 4, 0.25, 24);
-    int i;
-    for (i = 0; cdist > min_dist && i < 250; i ++) {
-        ldist = cdist;
-        cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
+    // Clouds aren't visible underwater
+    #ifdef IS_POSTPROCESS
+        if (medium.x != 1) {
+    #endif
+        float cdist = max_dist;
+        float ldist = cdist;
+        // i is an emergency brake
+        float min_dist = clamp(max_dist / 4, 0.25, 24);
+        int i;
+        for (i = 0; cdist > min_dist && i < 250; i ++) {
+            ldist = cdist;
+            cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
 
-        vec3 emission;
-        float not_underground; // Used to prevent sunlight leaking underground
-        // `sample` is a reserved keyword
-        vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, emission, not_underground);
+            vec3 emission;
+            float not_underground; // Used to prevent sunlight leaking underground
+            // `sample` is a reserved keyword
+            vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, emission, not_underground);
 
-        vec2 density_integrals = max(sample_.zw, vec2(0));
+            vec2 density_integrals = max(sample_.zw, vec2(0));
 
-        float sun_access = max(sample_.x, 0);
-        float moon_access = max(sample_.y, 0);
-        float cloud_scatter_factor = density_integrals.x;
-        float global_scatter_factor = density_integrals.y;
+            float sun_access = max(sample_.x, 0);
+            float moon_access = max(sample_.y, 0);
+            float cloud_scatter_factor = density_integrals.x;
+            float global_scatter_factor = density_integrals.y;
 
-        float step = (ldist - cdist) * 0.01;
-        float cloud_darken = pow(1.0 / (1.0 + cloud_scatter_factor), step);
-        float global_darken = pow(1.0 / (1.0 + global_scatter_factor), step);
+            float step = (ldist - cdist) * 0.01;
+            float cloud_darken = pow(1.0 / (1.0 + cloud_scatter_factor), step);
+            float global_darken = pow(1.0 / (1.0 + global_scatter_factor), step);
 
-        surf_color =
-            // Attenuate light passing through the clouds
-            surf_color * cloud_darken * global_darken +
-            // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
-            sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
-            moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
-            sky_light * (1.0 - global_darken) * not_underground +
-            emission * density_integrals.y * step;
+            surf_color =
+                // Attenuate light passing through the clouds
+                surf_color * cloud_darken * global_darken +
+                // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
+                sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
+                moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
+                sky_light * (1.0 - global_darken) * not_underground +
+                emission * density_integrals.y * step;
+        }
+    #ifdef IS_POSTPROCESS
+        }
+    #endif
+
+    if (medium.x == 1) {
+        float f_alt = alt_at(cam_pos.xy);
+        float fluid_alt = max(cam_pos.z + 1, floor(f_alt + 1));
+
+        float water_dist = clamp((fluid_alt - cam_pos.z) / max(dir.z, 0), 0, max_dist);
+
+        //float fade = 1.0 - clamp(water_dist * 0.01, 0, 1);//pow(0.97, water_dist);
+        float fade = pow(0.98, water_dist);
+
+        surf_color.rgb = mix(vec3(0, 0.5, 1) * get_sun_brightness() / max(1.0, (fluid_alt - cam_pos.z) * 0.5 - dir.z * 5), surf_color.rgb, fade/*pow(fade, 4)*/);
     }
 
     // Apply point glow

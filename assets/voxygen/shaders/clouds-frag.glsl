@@ -16,6 +16,9 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
+// Must come before includes
+#define IS_POSTPROCESS
+
 #include <globals.glsl>
 // Note: The sampler uniform is declared here because it differs for MSAA
 #include <anti-aliasing.glsl>

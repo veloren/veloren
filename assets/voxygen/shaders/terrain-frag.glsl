@@ -275,7 +275,9 @@ void main() {
 
     emitted_light = vec3(1.0);
     reflected_light = vec3(1.0);
-    max_light += get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    float sun_diffuse = get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += sun_diffuse;
 
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     // reflected_light *= f_light * point_shadow * shade_frac;
@@ -283,6 +285,20 @@ void main() {
     emitted_light *= f_light;
     reflected_light *= f_light;
     max_light *= f_light;
+
+    #define EXPERIMENTAL_CAUSTICS
+    #ifdef EXPERIMENTAL_CAUSTICS
+        #if (FLUID_MODE == FLUID_MODE_SHINY)
+            if (faces_fluid) {
+                vec3 wpos = f_pos + focus_off.xyz;
+                vec3 spos = (wpos + wpos.z * vec3(sun_dir.xy, 0)) * 0.05;
+                reflected_light += max(1.0 - pow(abs(noise_3d(vec3(spos.xy, tick.x * 0.1 + dot(sin(wpos.xy * 0.2), vec2(1)) * 0.1)) - 0.5) * 10, 0.001), 0)
+                    * 500
+                    * cam_attenuation
+                    * sun_diffuse;
+            }
+        #endif
+    #endif
 
     // TODO: Apply AO after this
     vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2);

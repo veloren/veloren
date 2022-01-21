@@ -191,6 +191,13 @@ void main() {
     //     return;
     // }
 
+    #ifdef EXPERIMENTAL_UNDERWARPER
+        vec2 uv = uv;
+        if (medium.x == 1) {
+            uv += sin(uv.yx * 30 + tick.xx * 1.0) * 0.005;
+        }
+    #endif
+
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Bloom
