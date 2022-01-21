@@ -271,11 +271,12 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         }
     #endif
 
+    // Underwater light attenuation
     if (medium.x == 1) {
         float f_alt = alt_at(cam_pos.xy);
         float fluid_alt = max(cam_pos.z + 1, floor(f_alt + 1));
 
-        float water_dist = clamp((fluid_alt - cam_pos.z) / max(dir.z, 0), 0, max_dist);
+        float water_dist = clamp((fluid_alt - cam_pos.z) / pow(max(dir.z, 0), 10), 0, max_dist);
 
         //float fade = 1.0 - clamp(water_dist * 0.01, 0, 1);//pow(0.97, water_dist);
         float fade = pow(0.98, water_dist);
