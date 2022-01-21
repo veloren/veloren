@@ -272,7 +272,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
     #endif
 
     // Underwater light attenuation
-    surf_color.rgb = water_diffuse(surf_color.rgb, dir, max_dist);
+    surf_color = water_diffuse(surf_color, dir, max_dist);
 
     // Apply point glow
     surf_color = apply_point_glow(origin, dir, max_dist, surf_color);
