@@ -4,6 +4,14 @@ use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
 use vek::*;
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct DamageInfo {
+    pub amount: f32,
+    pub crit: bool,
+    pub target: Uid,
+    pub by: Option<Uid>,
+}
+
 /// An outcome represents the final result of an instantaneous event. It implies
 /// that said event has already occurred. It is not a request for that event to
 /// occur, nor is it something that may be cancelled or otherwise altered. Its
@@ -60,11 +68,7 @@ pub enum Outcome {
     },
     Damage {
         pos: Vec3<f32>,
-        amount: f32,
-        target: Uid,
-        by: Option<Uid>,
-        // TODO: Maybe seperate attack data/info into seperate struct?
-        crit: bool,
+        info: DamageInfo,
     },
     Death {
         pos: Vec3<f32>,

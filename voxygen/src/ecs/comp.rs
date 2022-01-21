@@ -1,4 +1,4 @@
-use common::comp::Ori;
+use common::{comp::Ori, outcome::DamageInfo};
 use specs::Component;
 use specs_idvs::IdvStorage;
 use vek::*;
@@ -8,8 +8,7 @@ use vek::*;
 #[derive(Copy, Clone, Debug)]
 pub struct HpFloater {
     pub timer: f32,
-    // Numbers of times significant damage has been dealt
-    pub hp_change: f32,
+    pub info: DamageInfo,
     // Used for randomly offsetting
     pub rand: f32,
 }

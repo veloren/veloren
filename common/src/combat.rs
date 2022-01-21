@@ -11,7 +11,7 @@ use crate::{
         Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::ServerEvent,
-    outcome::Outcome,
+    outcome::{DamageInfo, Outcome},
     states::utils::StageSection,
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -239,14 +239,17 @@ impl Attack {
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
 
-            // Could also check this when handling outcomes and display 0.0 damage differently?
+            // Could also check this when handling outcomes and display 0.0 damage
+            // differently?
             if applied_damage != 0.0 {
                 emit_outcome(Outcome::Damage {
                     pos: target.pos,
-                    target: target.uid,
-                    by: attacker.map(|a| a.uid),
-                    amount: applied_damage,
-                    crit: is_crit,
+                    info: DamageInfo {
+                        target: target.uid,
+                        by: attacker.map(|a| a.uid),
+                        amount: change.amount,
+                        crit: is_crit,
+                    },
                 });
             }
             if change.amount.abs() > Health::HEALTH_EPSILON {
