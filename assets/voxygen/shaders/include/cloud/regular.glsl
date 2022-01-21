@@ -281,7 +281,9 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         //float fade = 1.0 - clamp(water_dist * 0.01, 0, 1);//pow(0.97, water_dist);
         float fade = pow(0.98, water_dist);
 
-        surf_color.rgb = mix(vec3(0, 0.5, 1) * get_sun_brightness() / max(1.0, (fluid_alt - cam_pos.z) * 0.5 - dir.z * 5), surf_color.rgb, fade/*pow(fade, 4)*/);
+        surf_color.rgb = mix(vec3(0, 0.5, 1)
+            * (get_sun_brightness() * get_sun_color() + get_moon_brightness() * get_moon_color())
+            / max(1.0, (fluid_alt - cam_pos.z) * 0.5 - dir.z * 5), surf_color.rgb, fade/*pow(fade, 4)*/);
     }
 
     // Apply point glow
