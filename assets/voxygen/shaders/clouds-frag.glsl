@@ -70,9 +70,8 @@ void main() {
     vec3 dir = (wpos - cam_pos.xyz) / dist;
 
     // Apply clouds
-    #if (CLOUD_MODE != CLOUD_MODE_NONE)
-        color.rgb = get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
-    #else
+    color.rgb = get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #endif
 

@@ -286,7 +286,13 @@ void main() {
     reflected_light *= f_light;
     max_light *= f_light;
 
-    #ifdef EXPERIMENTAL_CAUSTICS
+    // TODO: Apply AO after this
+    vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2);
+    reflected_light += glow * pow(max(dot(face_norm, f_norm), 0), 2);
+
+    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    #ifndef EXPERIMENTAL_NOCAUSTICS
         #if (FLUID_MODE == FLUID_MODE_SHINY)
             if (faces_fluid) {
                 vec3 wpos = f_pos + focus_off.xyz;
@@ -294,16 +300,12 @@ void main() {
                 reflected_light += max(1.0 - pow(abs(noise_3d(vec3(spos.xy, tick.x * 0.1 + dot(sin(wpos.xy * 0.8), vec2(1)) * 0.05)) - 0.5) * 10, 0.001), 0)
                     * 500
                     * cam_attenuation
-                    * sun_diffuse;
+                    * max(dot(f_norm, -sun_dir.xyz), 0)
+                    * sun_diffuse
+                    * sun_info.shadow;
             }
         #endif
     #endif
-
-    // TODO: Apply AO after this
-    vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2);
-    reflected_light += glow * pow(max(dot(face_norm, f_norm), 0), 2);
-
-    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     // float f_ao = 1.0;
 
