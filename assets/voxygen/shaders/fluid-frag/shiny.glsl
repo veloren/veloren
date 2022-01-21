@@ -176,13 +176,14 @@ void main() {
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     // Squared to account for prior saturation.
     float f_light = 1.0;// pow(f_light, 1.5);
-    vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/beam_view_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
     vec3 ray_dir;
     if (medium.x == 1) {
         ray_dir = (cam_to_frag + norm) / 2;
     } else {
         ray_dir = reflect_ray_dir;
     }
+
+    vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
     reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
     reflect_color *= f_light;
 
