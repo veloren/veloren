@@ -188,6 +188,7 @@ impl ControlSettings {
             GameInput::DeclineGroupInvite => KeyMouse::Key(VirtualKeyCode::N),
             GameInput::MapZoomIn => KeyMouse::Key(VirtualKeyCode::Plus),
             GameInput::MapZoomOut => KeyMouse::Key(VirtualKeyCode::Minus),
+            GameInput::MapSetMarker => KeyMouse::Mouse(MouseButton::Middle),
         }
     }
 }

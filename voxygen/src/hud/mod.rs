@@ -4037,7 +4037,6 @@ impl Hud {
                 self.show.want_grab = false;
                 true
             },
-
             _ => false,
         };
         // Handle cursor grab.

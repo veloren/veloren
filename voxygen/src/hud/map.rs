@@ -4,21 +4,26 @@ use super::{
     TEXT_BG, TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
+    game_input::GameInput,
     session::settings_change::{Interface as InterfaceChange, Interface::*},
     ui::{fonts::Fonts, img_ids, ImageFrame, Tooltip, TooltipManager, Tooltipable},
+    window::KeyMouse,
     GlobalState,
 };
 use client::{self, Client, SiteInfoRich};
 use common::{comp, comp::group::Role, terrain::TerrainChunkSize, trade::Good, vol::RectVolSize};
 use common_net::msg::world_msg::{PoiKind, SiteId, SiteKind};
 use conrod_core::{
-    color, position,
+    color,
+    input::MouseButton as ConrodMouseButton,
+    position,
     widget::{self, Button, Image, Rectangle, Text},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use i18n::Localization;
 use specs::{saveload::MarkerAllocator, WorldExt};
 use vek::*;
+use winit::event::MouseButton;
 
 widget_ids! {
     struct Ids {
@@ -79,7 +84,7 @@ widget_ids! {
         drag_ico,
         zoom_txt,
         zoom_ico,
-        waypoint_ico,
+        waypoint_binding_txt,
         waypoint_txt,
         map_mode_btn,
         map_mode_overlay,
@@ -215,6 +220,16 @@ impl<'a> Widget for Map<'a> {
         let show_biomes = self.global_state.settings.interface.map_show_biomes;
         let show_voxel_map = self.global_state.settings.interface.map_show_voxel_map;
         let show_topo_map = self.global_state.settings.interface.map_show_topo_map;
+        let location_marker_binding = self
+            .global_state
+            .settings
+            .controls
+            .keybindings
+            .get(&GameInput::MapSetMarker)
+            .cloned()
+            .flatten()
+            .unwrap_or(KeyMouse::Mouse(MouseButton::Middle));
+        let key_layout = &self.global_state.window.key_layout;
         let mut events = Vec::new();
         let i18n = &self.localized_strings;
         // Tooltips
@@ -327,13 +342,34 @@ impl<'a> Widget for Map<'a> {
         let max_drag = player_pos_chunks;
         let drag = self.map_drag.clamped(min_drag, max_drag);
 
+        impl From<KeyMouse> for ConrodMouseButton {
+            fn from(key: KeyMouse) -> Self {
+                match key {
+                    KeyMouse::Mouse(MouseButton::Left) => ConrodMouseButton::Left,
+                    KeyMouse::Mouse(MouseButton::Right) => ConrodMouseButton::Right,
+                    KeyMouse::Mouse(MouseButton::Middle) => ConrodMouseButton::Middle,
+                    KeyMouse::Mouse(MouseButton::Other(0)) => ConrodMouseButton::X1,
+                    KeyMouse::Mouse(MouseButton::Other(1)) => ConrodMouseButton::X2,
+                    KeyMouse::Mouse(MouseButton::Other(2)) => ConrodMouseButton::Button6,
+                    KeyMouse::Mouse(MouseButton::Other(3)) => ConrodMouseButton::Button7,
+                    KeyMouse::Mouse(MouseButton::Other(4)) => ConrodMouseButton::Button8,
+                    _ => conrod_core::input::MouseButton::Unknown,
+                }
+            }
+        }
+
         let handle_widget_mouse_events = |widget,
                                           wpos: Option<Vec2<f32>>,
                                           ui: &mut UiCell,
                                           events: &mut Vec<Event>,
                                           map_widget| {
             // Handle Location Marking
-            if let Some(click) = ui.widget_input(widget).clicks().middle().next() {
+            if let Some(click) = ui
+                .widget_input(widget)
+                .clicks()
+                .button(ConrodMouseButton::from(location_marker_binding))
+                .next()
+            {
                 match wpos {
                     Some(ref wpos) => events.push(Event::SetLocationMarker(*wpos)),
                     None => {
@@ -1306,13 +1342,21 @@ impl<'a> Widget for Map<'a> {
             .graphics_for(state.ids.map_layers[0])
             .color(TEXT_COLOR)
             .set(state.ids.zoom_txt, ui);
-        Image::new(self.imgs.m_click_ico)
-            .right_from(state.ids.zoom_txt, 5.0)
-            .w_h(icon_size.x, icon_size.y)
-            .color(Some(UI_HIGHLIGHT_0))
-            .set(state.ids.waypoint_ico, ui);
+
+        Text::new(
+            &location_marker_binding
+                .display_shortened(key_layout)
+                .unwrap_or_default(),
+        )
+        .right_from(state.ids.zoom_txt, 15.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .graphics_for(state.ids.map_layers[0])
+        .color(TEXT_COLOR)
+        .set(state.ids.waypoint_binding_txt, ui);
+
         Text::new(i18n.get("hud.map.mid_click"))
-            .right_from(state.ids.waypoint_ico, 5.0)
+            .right_from(state.ids.waypoint_binding_txt, 5.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .graphics_for(state.ids.map_layers[0])
