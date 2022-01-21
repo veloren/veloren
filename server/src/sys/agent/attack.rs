@@ -71,20 +71,23 @@ impl<'a> AgentData<'a> {
             .and_then(|t| read_data.orientations.get(t.target))
             .map(|ori| ori.look_vec())
             .unwrap_or_default();
-        let vec_to_target = (tgt_data.pos.0 - self.pos.0).xy();
+        let dist = attack_data.dist_sqrd.sqrt();
+
         let in_front_of_target = target_ori.dot(self.pos.0 - tgt_data.pos.0) > 0.0;
         if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // If in front of the target, circle to try and get behind, else just make a
             // beeline for the back of the agent
+            let vec_to_target = (tgt_data.pos.0 - self.pos.0).xy();
             if in_front_of_target {
+                let theta = (PI / 2. - dist * 0.1).max(0.0);
                 // Checks both CW and CCW rotation
                 let potential_move_dirs = [
                     vec_to_target
-                        .rotated_z(PI / 2.)
+                        .rotated_z(theta)
                         .try_normalized()
                         .unwrap_or_default(),
                     vec_to_target
-                        .rotated_z(-PI / 2.)
+                        .rotated_z(-theta)
                         .try_normalized()
                         .unwrap_or_default(),
                 ];
@@ -96,7 +99,12 @@ impl<'a> AgentData<'a> {
                     controller.inputs.move_dir = *move_dir;
                 }
             } else {
-                controller.inputs.move_dir = vec_to_target.try_normalized().unwrap_or_default();
+                // Aim for a point a given distance behind the target to prevent sideways
+                // movement
+                let move_target = tgt_data.pos.0.xy() - dist / 2. * target_ori.xy();
+                controller.inputs.move_dir = (move_target - self.pos.0)
+                    .try_normalized()
+                    .unwrap_or_default();
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);

@@ -1963,6 +1963,7 @@ fn harvester_boss<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
         .with_asset_expect("common.entity.dungeon.gnarling.harvester", rng)
 }
 
+#[allow(clippy::type_complexity)]
 fn rrt<F>(
     start: Vec3<i32>,
     end: Vec3<i32>,
