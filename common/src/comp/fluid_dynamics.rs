@@ -274,7 +274,8 @@ impl Body {
                 | object::Body::FireworkRed
                 | object::Body::FireworkWhite
                 | object::Body::FireworkYellow
-                | object::Body::MultiArrow => {
+                | object::Body::MultiArrow
+                | object::Body::Dart => {
                     let dim = self.dimensions().map(|a| a * 0.5);
                     const CD: f32 = 0.02;
                     CD * PI * dim.x * dim.z

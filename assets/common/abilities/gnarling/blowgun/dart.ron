@@ -7,7 +7,7 @@ BasicRanged(
         knockback: 0,
         energy_regen: 0,
     ),
-    projectile_body: Object(Arrow),
+    projectile_body: Object(Dart),
     projectile_light: None,
     projectile_speed: 80.0,
     num_projectiles: 1,
