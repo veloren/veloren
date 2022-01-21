@@ -559,9 +559,14 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         vec3 sky_color = get_sky_light(dir, time_of_day, true);
     #else
-        vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
-        float star = is_star_at(star_dir);
-        vec3 sky_color = vec3(0) + star;
+        vec3 sky_color;
+        if (medium.x == 1) {
+            sky_color = get_sky_light(dir, time_of_day, true);
+        } else {
+            vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
+            float star = is_star_at(star_dir);
+            sky_color = vec3(0) + star;
+        }
     #endif
 
     return sky_color + sun_light + moon_light;

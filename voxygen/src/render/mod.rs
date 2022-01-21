@@ -427,4 +427,8 @@ pub enum ExperimentalShader {
     CurvedWorld,
     /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.
     ProceduralLodDetail,
+    /// Add a warping effect when underwater.
+    Underwarper,
+    /// Add caustics to underwater terrain.
+    Caustics,
 }
