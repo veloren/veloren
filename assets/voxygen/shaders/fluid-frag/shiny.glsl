@@ -177,7 +177,7 @@ void main() {
     float f_light = 1.0;// pow(f_light, 1.5);
     vec3 ray_dir;
     if (medium.x == 1) {
-        ray_dir = (cam_to_frag + norm) / 2;
+        ray_dir = refract(cam_to_frag, -norm, 1.33);
     } else {
         ray_dir = reflect_ray_dir;
     }
