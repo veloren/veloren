@@ -115,6 +115,8 @@ Is the client up to date?"#,
         "common.material.stone": "Stone",
         "common.material.cloth": "Cloth",
         "common.material.hide": "Hide",
+
+        "common.sprite.chest": "Chest",
     },
 
 
