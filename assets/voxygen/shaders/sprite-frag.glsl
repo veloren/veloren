@@ -82,6 +82,21 @@ void main() {
     float max_light = 0.0;
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
+    emitted_light *= sun_info.block;
+    reflected_light *= sun_info.block;
+
+    #if (FLUID_MODE == FLUID_MODE_SHINY)
+        // Attenuate sunlight
+        if (medium.x == 1) {
+            float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
+            vec3 cam_attenuation = compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, f_pos);
+
+            vec3 attenuate = pow(vec3(0.0, 0.98, 0.99), vec3(max(fluid_alt - cam_pos.z, 0)));
+            emitted_light *= attenuate;
+            reflected_light *= attenuate;
+        }
+    #endif
+
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
     vec3 glow = pow(f_inst_light.y, 3) * 4 * glow_light(f_pos);
