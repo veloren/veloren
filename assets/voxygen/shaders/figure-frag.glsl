@@ -191,6 +191,18 @@ void main() {
     // emitted_light *= point_shadow;
     // max_light *= point_shadow;
 
+    #if (FLUID_MODE == FLUID_MODE_SHINY)
+        // Attenuate sunlight
+        if (medium.x == 1) {
+            float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
+            vec3 cam_attenuation = compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, f_pos);
+
+            vec3 attenuate = pow(vec3(0.0, 0.98, 0.99), vec3(max(fluid_alt - cam_pos.z, 0)));
+            emitted_light *= attenuate;
+            reflected_light *= attenuate;
+        }
+    #endif
+
     max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
