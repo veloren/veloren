@@ -223,15 +223,15 @@ impl Block {
 
     // minimum block, attenuation
     #[inline]
-    pub fn get_max_sunlight(&self) -> (u8, u8) {
+    pub fn get_max_sunlight(&self) -> (u8, f32) {
         match self.kind() {
-            BlockKind::Water => (1, 1),
-            BlockKind::Leaves => (9, 255),
-            BlockKind::Wood => (6, 2),
-            BlockKind::Snow => (6, 2),
-            BlockKind::Ice => (4, 2),
-            _ if self.is_opaque() => (0, 255),
-            _ => (0, 0),
+            BlockKind::Water => (0, 0.4),
+            BlockKind::Leaves => (9, 255.0),
+            BlockKind::Wood => (6, 2.0),
+            BlockKind::Snow => (6, 2.0),
+            BlockKind::Ice => (4, 2.0),
+            _ if self.is_opaque() => (0, 255.0),
+            _ => (0, 0.0),
         }
     }
 

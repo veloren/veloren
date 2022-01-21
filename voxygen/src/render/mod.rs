@@ -429,6 +429,6 @@ pub enum ExperimentalShader {
     ProceduralLodDetail,
     /// Add a warping effect when underwater.
     Underwarper,
-    /// Add caustics to underwater terrain.
-    Caustics,
+    /// Remove caustics from underwater terrain when shiny water is enabled.
+    NoCaustics,
 }

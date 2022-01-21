@@ -194,7 +194,7 @@ void main() {
     #ifdef EXPERIMENTAL_UNDERWARPER
         vec2 uv = uv;
         if (medium.x == 1) {
-            uv += sin(uv.yx * 30 + tick.xx * 1.0) * 0.005;
+            uv += sin(uv.yx * 40 + tick.xx * 1.0) * 0.003;
         }
     #endif
 

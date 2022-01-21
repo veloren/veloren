@@ -170,7 +170,6 @@ void main() {
     vec3 refract_ray_dir = refract(cam_to_frag/*-view_dir*/, norm, 1.0 / n2);
     vec3 sun_view_dir = view_dir;///*sign(cam_pos.z - fluid_alt) * view_dir;*/cam_pos.z <= fluid_alt ? -view_dir : view_dir;
     // vec3 sun_view_dir = cam_pos.z <= fluid_alt ? -view_dir : view_dir;
-    vec3 beam_view_dir = reflect_ray_dir;//cam_pos.z <= fluid_alt ? -refract_ray_dir : reflect_ray_dir;
     /* vec4 reflect_ray_dir4 = view_mat * vec4(reflect_ray_dir, 1.0);
     reflect_ray_dir = normalize(vec3(reflect_ray_dir4) / reflect_ray_dir4.w); */
     // vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
