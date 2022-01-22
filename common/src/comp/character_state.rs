@@ -245,8 +245,8 @@ impl CharacterState {
             self,
             CharacterState::Idle(_)
                 | CharacterState::Sit
+                | CharacterState::Dance
                 | CharacterState::Talk
-                | CharacterState::GlideWield(_)
                 | CharacterState::Stunned(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::Equipping(_)

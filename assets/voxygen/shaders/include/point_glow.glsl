@@ -1,8 +1,10 @@
 #ifndef POINT_GLOW_GLSL
 #define POINT_GLOW_GLSL
 
-vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color, const float factor) {
-    #ifndef EXPERIMENTAL_NOPOINTGLOW
+vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
+    #ifndef POINT_GLOW_FACTOR
+        return color;
+    #else
         for (uint i = 0u; i < light_shadow_count.x; i ++) {
             // Only access the array once
             Light L = lights[i];
@@ -32,9 +34,9 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color, const flo
 
             const float LIGHT_AMBIANCE = 0.025;
             color += light_color
-                * 0.025
+                * 0.05
                 // Constant, *should* const fold
-                * pow(factor, 0.65);
+                * POINT_GLOW_FACTOR;
         }
     #endif
     return color;
