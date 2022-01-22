@@ -839,12 +839,7 @@ impl Item {
         self.slots.iter_mut().filter_map(mem::take)
     }
 
-    pub fn item_definition_id(&self) -> &str {
-        match &self.item_base {
-            ItemBase::Raw(item_def) => &item_def.item_definition_id,
-            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
-        }
-    }
+    pub fn item_definition_id(&self) -> &str { self.item_base.item_definition_id() }
 
     pub fn is_same_item_def(&self, item_def: &ItemDef) -> bool {
         if let ItemBase::Raw(self_def) = &self.item_base {
