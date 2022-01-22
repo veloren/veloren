@@ -5,6 +5,7 @@ compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at on
 
 mod admin;
 mod character_states;
+mod experimental_shaders;
 mod widgets;
 
 use client::{Client, Join, World, WorldExt};
@@ -21,7 +22,7 @@ use egui::{
 
 use crate::{
     admin::draw_admin_commands_window, character_states::draw_char_state_group,
-    widgets::two_col_row,
+    experimental_shaders::draw_experimental_shaders_window, widgets::two_col_row,
 };
 use common::{
     cmd::ChatCommand,
@@ -100,6 +101,7 @@ pub struct EguiWindows {
     egui_memory: bool,
     frame_time: bool,
     ecs_entities: bool,
+    experimental_shaders: bool,
 }
 
 impl Default for EguiInnerState {
@@ -131,6 +133,7 @@ pub enum EguiDebugShapeAction {
 pub enum EguiAction {
     ChatCommand { cmd: ChatCommand, args: Vec<String> },
     DebugShape(EguiDebugShapeAction),
+    SetExperimentalShader(String, bool),
 }
 
 #[derive(Default)]
@@ -147,6 +150,7 @@ pub fn maintain(
     client: &Client,
     debug_info: Option<EguiDebugInfo>,
     added_cylinder_shape_id: Option<u64>,
+    experimental_shaders: Vec<(String, bool)>,
 ) -> EguiActions {
     #[cfg(not(feature = "use-dyn-lib"))]
     {
@@ -156,6 +160,7 @@ pub fn maintain(
             client,
             debug_info,
             added_cylinder_shape_id,
+            experimental_shaders,
         )
     }
 
@@ -171,6 +176,7 @@ pub fn maintain(
                 &Client,
                 Option<EguiDebugInfo>,
                 Option<u64>,
+                Vec<(String, bool)>,
             ) -> EguiActions,
         > = unsafe { lib.get(MAINTAIN_EGUI_FN) }.unwrap_or_else(|e| {
             panic!(
@@ -189,6 +195,7 @@ pub fn maintain(
             client,
             debug_info,
             added_cylinder_shape_id,
+            experimental_shaders,
         )
     }
 }
@@ -200,6 +207,7 @@ pub fn maintain_egui_inner(
     client: &Client,
     debug_info: Option<EguiDebugInfo>,
     added_cylinder_shape_id: Option<u64>,
+    experimental_shaders: Vec<(String, bool)>,
 ) -> EguiActions {
     platform.begin_frame();
     let ctx = &platform.context();
@@ -244,6 +252,7 @@ pub fn maintain_egui_inner(
                     ui.checkbox(&mut windows.admin_commands, "Admin Commands");
                     ui.checkbox(&mut windows.ecs_entities, "ECS Entities");
                     ui.checkbox(&mut windows.frame_time, "Frame Time");
+                    ui.checkbox(&mut windows.experimental_shaders, "Experimental Shaders");
                 });
             });
 
@@ -412,7 +421,6 @@ pub fn maintain_egui_inner(
                                 ui.end_row();
                             }
                         });
-
                     let margin = ui.visuals().clip_rect_margin;
 
                     let current_scroll = ui.clip_rect().top() - ui.min_rect().top() + margin;
@@ -434,8 +442,15 @@ pub fn maintain_egui_inner(
     draw_admin_commands_window(
         ctx,
         &mut egui_state.admin_command_state,
-        &mut windows,
+        &mut windows.admin_commands,
         &mut egui_actions,
+    );
+
+    draw_experimental_shaders_window(
+        ctx,
+        &mut windows.experimental_shaders,
+        &mut egui_actions,
+        &experimental_shaders,
     );
 
     if let Some(previous) = previous_selected_entity {

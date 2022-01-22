@@ -1,4 +1,4 @@
-use crate::{AdminCommandState, EguiAction, EguiActions, EguiWindows};
+use crate::{AdminCommandState, EguiAction, EguiActions};
 use common::cmd::ChatCommand;
 use egui::{CollapsingHeader, CtxRef, Resize, Slider, Ui, Vec2, Window};
 use lazy_static::lazy_static;
@@ -17,11 +17,11 @@ lazy_static! {
 pub fn draw_admin_commands_window(
     ctx: &CtxRef,
     state: &mut AdminCommandState,
-    windows: &mut EguiWindows,
+    open: &mut bool,
     egui_actions: &mut EguiActions,
 ) {
     Window::new("Admin Commands")
-        .open(&mut windows.admin_commands)
+        .open(open)
         .default_width(400.0)
         .default_height(600.0)
         .show(ctx, |ui| {
