@@ -239,20 +239,8 @@ impl Attack {
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
 
-            // Could also check this when handling outcomes and display 0.0 damage
-            // differently?
-            if applied_damage != 0.0 {
-                emit_outcome(Outcome::Damage {
-                    pos: target.pos,
-                    info: DamageInfo {
-                        target: target.uid,
-                        by: attacker.map(|a| a.uid),
-                        amount: change.amount,
-                        crit: is_crit,
-                    },
-                });
-            }
             if change.amount.abs() > Health::HEALTH_EPSILON {
+
                 emit(ServerEvent::HealthChange {
                     entity: target.entity,
                     change,
@@ -270,6 +258,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
+                                    crit: None,
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -367,6 +356,7 @@ impl Attack {
                                     by: attacker.map(|a| a.into()),
                                     cause: None,
                                     time,
+                                    crit: None,
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
                                     emit(ServerEvent::HealthChange {
@@ -399,6 +389,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
+                                crit: None,
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -510,6 +501,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
+                                crit: None,
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -542,6 +534,7 @@ impl Attack {
                             by: attacker.map(|a| a.into()),
                             cause: None,
                             time,
+                            crit: None,
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
                             emit(ServerEvent::HealthChange {
@@ -854,6 +847,7 @@ impl Damage {
                     by: damage_contributor,
                     cause: Some(self.source),
                     time,
+                    crit: Some(is_crit),
                 }
             },
             DamageSource::Falling => {
@@ -866,6 +860,7 @@ impl Damage {
                     by: None,
                     cause: Some(self.source),
                     time,
+                    crit: None,
                 }
             },
             DamageSource::Buff(_) | DamageSource::Other => HealthChange {
@@ -873,6 +868,7 @@ impl Damage {
                 by: None,
                 cause: Some(self.source),
                 time,
+                crit: None,
             },
         }
     }

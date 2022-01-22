@@ -1,4 +1,4 @@
-use crate::{comp, uid::Uid};
+use crate::{comp, uid::Uid, combat::DamageContributor};
 use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
@@ -7,9 +7,9 @@ use vek::*;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct DamageInfo {
     pub amount: f32,
-    pub crit: bool,
+    pub crit: Option<bool>,
     pub target: Uid,
-    pub by: Option<Uid>,
+    pub by: Option<DamageContributor>,
 }
 
 /// An outcome represents the final result of an instantaneous event. It implies

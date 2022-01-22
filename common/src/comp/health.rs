@@ -24,6 +24,8 @@ pub struct HealthChange {
     pub cause: Option<DamageSource>,
     /// The time that the health change occurred at
     pub time: Time,
+    /// Whether or not the health change was caused by a crit (None if it couldn't have been a crit)
+    pub crit: Option<bool>,
 }
 
 impl HealthChange {
@@ -132,6 +134,7 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
+                crit: None,
                 time: Time(0.0),
             },
             is_dead: false,
@@ -210,6 +213,7 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
+                crit: None,
                 time: Time(0.0),
             },
             is_dead: false,
@@ -244,6 +248,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
+            crit: None,
         };
 
         health.change_by(health_change);
@@ -269,6 +274,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
+            crit: None,
         };
 
         health.change_by(health_change);
@@ -288,6 +294,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
+            crit: None,
         };
         health.change_by(health_change);
         health.change_by(health_change);
@@ -313,6 +320,7 @@ mod tests {
             time: Time(10.0),
             by: Some(damage_contrib1),
             cause: None,
+            crit: None,
         };
         health.change_by(health_change);
 
@@ -322,6 +330,7 @@ mod tests {
             time: Time(100.0),
             by: Some(damage_contrib2),
             cause: None,
+            crit: None,
         };
         health.change_by(health_change);
 
@@ -335,6 +344,7 @@ mod tests {
             time: Time(620.0),
             by: Some(damage_contrib2),
             cause: None,
+            crit: None,
         };
         health.change_by(health_change);
 

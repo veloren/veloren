@@ -274,6 +274,7 @@ impl<'a> System<'a> for Sys {
                                             by: damage_contributor,
                                             cause,
                                             time: *read_data.time,
+                                            crit: None,
                                         },
                                     });
                                     *accumulated = 0.0;

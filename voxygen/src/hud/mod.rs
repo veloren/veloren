@@ -1437,7 +1437,8 @@ impl Hud {
                             .last()
                             .expect("There must be at least one floater")
                             .info
-                            .crit;
+                            .crit
+                            .map_or(false, |c| c);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
@@ -1496,13 +1497,14 @@ impl Hud {
                         );
                         let max_hp_frac =
                             floater.info.amount.abs() as f32 / health.maximum() as f32;
+                        let crit = floater.info.crit.map_or(false, |c| c);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         // TODO: example
                         let font_size = 30
                             + ((max_hp_frac * 10.0) as u32)
                                 * 3
-                                * if floater.info.crit { 2 } else { 1 }
+                                * if crit { 2 } else { 1 }
                             + if floater.timer < 0.1 {
                                 // TODO: Maybe change font size wrt crits here?
                                 FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
@@ -1547,7 +1549,7 @@ impl Hud {
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.info.amount < 0.0 {
                                     // TODO: example
-                                    if floater.info.crit {
+                                    if crit {
                                         Color::Rgba(1.0, 0.9, 0.1, hp_fade)
                                     } else {
                                         Color::Rgba(1.0, 0.1, 0.0, hp_fade)
@@ -1569,7 +1571,7 @@ impl Hud {
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.info.amount < 0.0 {
                                     // TODO: example
-                                    if floater.info.crit {
+                                    if crit {
                                         Color::Rgba(1.0, 0.9, 0.1, hp_fade)
                                     } else {
                                         Color::Rgba(1.0, 0.1, 0.0, hp_fade)
@@ -2203,8 +2205,7 @@ impl Hud {
                     let floaters = &hpfl.floaters;
 
                     // Colors
-                    // TODO: Add for crits as well?
-                    // Maybe decrease increase blue for lighter colour?
+                    // TODO: The crit colors and their names are pretty bad as it stands
                     const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
                     const LIGHT_OR: Rgb<f32> = Rgb::new(1.0, 0.925, 0.749);
                     const LIGHT_MED_OR: Rgb<f32> = Rgb::new(1.0, 0.85, 0.498);
@@ -2268,7 +2269,8 @@ impl Hud {
                             .last()
                             .expect("There must be at least one floater")
                             .info
-                            .crit;
+                            .crit
+                            .map_or(false, |c| c);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
@@ -2337,18 +2339,19 @@ impl Hud {
                             // Calculate total change
                             let max_hp_frac = floater.info.amount.abs() as f32
                                 / health.map_or(1.0, |h| h.maximum() as f32);
+                            let crit = floater.info.crit.map_or(false, |c| c);
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
                                 + ((max_hp_frac * 10.0) as u32)
                                     * 3
-                                    * if floater.info.crit { 2 } else { 1 }
+                                    * if crit { 2 } else { 1 }
                                 + if floater.timer < 0.1 {
                                     FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                                 } else {
                                     0
                                 };
-                            let font_col = font_col(font_size, floater.info.crit);
+                            let font_col = font_col(font_size, crit);
                             // Timer sets the widget offset
                             let y = (floater.timer as f64
                                 / crate::ecs::sys::floater::HP_SHOWTIME as f64
@@ -4537,24 +4540,31 @@ impl Hud {
 
                 if let Some(entity) = ecs.entity_from_uid(info.target.0) {
                     if let Some(floater_list) = hp_floater_lists.get_mut(entity) {
+                        let hit_me = my_uid.map_or(false, |&uid| info.target == uid);
                         if match info.by {
                             Some(by) => {
-                                let by_me = my_uid.map_or(false, |&uid| by == uid);
+                                let by_me = my_uid.map_or(false, |&uid| by.uid() == uid);
                                 // If the attack was by me also reset this timer
                                 if by_me {
                                     floater_list.time_since_last_dmg_by_me = Some(0.0);
                                 }
-                                my_uid.map_or(false, |&uid| info.target == uid) || by_me
+                                hit_me || by_me
                             },
-                            None => false,
+                            None => {
+                                hit_me
+                            },
                         } {
+                            // TODO: This will currently fuck up with healing
                             let last_floater = floater_list.floaters.last_mut();
                             match last_floater {
                                 Some(f) if f.timer < floater::HP_ACCUMULATETIME => {
                                     //TODO: Add "jumping" animation on floater when it changes its
                                     // value
                                     f.info.amount += info.amount;
-                                    f.info.crit = info.crit;
+                                    // Only change the crit value if it's not None
+                                    if info.crit.is_some() {
+                                        f.info.crit = info.crit;
+                                    }
                                 },
                                 _ => {
                                     floater_list.floaters.push(HpFloater {

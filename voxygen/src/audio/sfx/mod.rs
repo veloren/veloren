@@ -96,7 +96,7 @@ use common::{
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType,
-        InventoryUpdateEvent, UtteranceKind,
+        InventoryUpdateEvent, UtteranceKind, Health,
     },
     outcome::Outcome,
     terrain::{BlockKind, TerrainChunk},
@@ -514,9 +514,11 @@ impl SfxMgr {
                     false,
                 );
             },
-            Outcome::Damage { pos, .. } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
+            Outcome::Damage { pos, info, .. } => {
+                if info.amount < Health::HEALTH_EPSILON {
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Damage);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.5), false);
+                }
             },
             Outcome::Death { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Death);

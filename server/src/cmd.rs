@@ -1056,6 +1056,7 @@ fn handle_health(
                 amount: hp - health.current(),
                 by: None,
                 cause: None,
+                crit: None,
                 time: *time,
             };
             health.change_by(change);
