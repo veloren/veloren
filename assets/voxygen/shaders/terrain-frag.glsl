@@ -293,8 +293,8 @@ void main() {
     #ifndef EXPERIMENTAL_NOCAUSTICS
         #if (FLUID_MODE == FLUID_MODE_SHINY)
             if (faces_fluid) {
-                vec3 wpos = f_pos + focus_off.xyz;
-                vec3 spos = (wpos + wpos.z * vec3(sun_dir.xy, 0)) * 0.05;
+                vec3 wpos = f_pos + vec3(focus_off.xy, 0);
+                vec3 spos = (wpos + (fluid_alt - wpos.z) * vec3(sun_dir.xy, 0)) * 0.05;
                 reflected_light += max(1.0 - pow(abs(noise_3d(vec3(spos.xy, tick.x * 0.1 + dot(sin(wpos.xy * 0.8), vec2(1)) * 0.05)) - 0.5) * 10, 0.001), 0)
                     * 1000
                     * cam_attenuation
