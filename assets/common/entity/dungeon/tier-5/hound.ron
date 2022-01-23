@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Name("Tamed Darkhound"),
     body: RandomWith("darkhound"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-5.minion"),
-
-    hands: Uninit,
-
     meta: [],
 )

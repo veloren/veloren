@@ -1,11 +1,11 @@
-EntityConfig (
+(
     name: Name("Forest Fox"),
-    body: Exact(QuadrupedSmall(Body(species: Fox, body_type: Male))),
+    body: Exact(QuadrupedSmall((
+        species: Fox,
+        body_type: Male,
+    ))),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.generic"),
-
-    hands: Uninit,
-
     meta: [],
 )

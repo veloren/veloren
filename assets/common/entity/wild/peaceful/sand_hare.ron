@@ -1,11 +1,11 @@
-EntityConfig (
+(
     name: Name("Sand Hare"),
-    body: Exact(QuadrupedSmall(Body(species: Hare, body_type: Male))),
+    body: Exact(QuadrupedSmall((
+        species: Hare,
+        body_type: Male,
+    ))),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.fur"),
-
-    hands: Uninit,
-
     meta: [],
 )

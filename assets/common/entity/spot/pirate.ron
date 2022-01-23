@@ -1,14 +1,14 @@
-EntityConfig (
+(
     name: Name("Pirate"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-
+    loadout: Extended(
+        hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
+        base_asset: Loadout("common.loadout.spots.pirate"),
+        inventory: [],
+    ),
     loot: LootTable("common.loot_tables.spots.pirate"),
-
-    hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
-
     meta: [
         SkillSetAsset("common.skillset.preset.rank2.fullskill"),
-        LoadoutAsset("common.loadout.spots.pirate"),
     ],
 )

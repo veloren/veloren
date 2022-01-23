@@ -1,22 +1,22 @@
-EntityConfig (
+(
     name: Name("Cultist"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-
+    loadout: Extended(
+        hands: TwoHanded(Choice([
+            (2, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
+            (4, Some(Item("common.items.weapons.sword.cultist"))),
+            (2, Some(Item("common.items.weapons.staff.cultist_staff"))),
+            (2, Some(Item("common.items.weapons.hammer.cultist_purp_2h-0"))),
+            (2, Some(Item("common.items.weapons.hammer_1h.orichalcum-0"))),
+            (2, Some(Item("common.items.weapons.bow.velorite"))),
+            (1, Some(Item("common.items.weapons.sceptre.sceptre_velorite_0"))),
+        ])),
+        base_asset: Loadout("common.loadout.dungeon.tier-5.cultist"),
+        inventory: [],
+    ),
     loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
-
-    hands: TwoHanded(Choice([
-        (2.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
-        (4.0, Some(Item("common.items.weapons.sword.cultist"))),
-        (2.0, Some(Item("common.items.weapons.staff.cultist_staff"))),
-        (2.0, Some(Item("common.items.weapons.hammer.cultist_purp_2h-0"))),
-        (2.0, Some(Item("common.items.weapons.hammer_1h.orichalcum-0"))),
-        (2.0, Some(Item("common.items.weapons.bow.velorite"))),
-        (1.0, Some(Item("common.items.weapons.sceptre.sceptre_velorite_0"))),
-    ])),
-
     meta: [
-        LoadoutAsset("common.loadout.dungeon.tier-5.cultist"),
         SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],
 )

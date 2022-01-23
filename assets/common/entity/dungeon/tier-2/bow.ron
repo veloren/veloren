@@ -1,14 +1,14 @@
-EntityConfig (
+(
     name: Name("Sahagin Sniper"),
     body: RandomWith("sahagin"),
     alignment: Alignment(Enemy),
-
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.sahagin.adlet_bow")),
+        base_asset: Loadout("common.loadout.dungeon.tier-2.sahagin"),
+        inventory: [],
+    ),
     loot: LootTable("common.loot_tables.dungeon.tier-2.enemy"),
-
-    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.sahagin.adlet_bow")),
-
     meta: [
-        LoadoutAsset("common.loadout.dungeon.tier-2.sahagin"),
         SkillSetAsset("common.skillset.preset.rank2.fullskill"),
     ],
 )

@@ -1,14 +1,14 @@
-EntityConfig (
+(
     name: Name("Witch"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
+        base_asset: Loadout("common.loadout.spots.witch"),
+        inventory: [],
+    ),
     loot: LootTable("common.loot_tables.spots.witch"),
-
-    hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
-
     meta: [
-        LoadoutAsset("common.loadout.spots.witch"),
         SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],
 )
