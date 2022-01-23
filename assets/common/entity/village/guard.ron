@@ -2,11 +2,19 @@
     name: Name("Guard"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
-    loadout: Hands(TwoHanded(Choice([
-        (1, Some(Item("common.items.weapons.sword.cobalt-0"))),
-        (2, Some(Item("common.items.weapons.bow.metal-2"))),
-        (1, Some(Item("common.items.weapons.axe.cobalt_axe-0"))),
-    ]))),
+
+    loadout: Extended(
+        hands: TwoHanded(Choice([
+            (1, Some(Item("common.items.weapons.sword.cobalt-0"))),
+            (2, Some(Item("common.items.weapons.bow.metal-2"))),
+            (1, Some(Item("common.items.weapons.axe.cobalt_axe-0"))),
+        ])),
+        base_asset: Loadout("common.loadout.village.guard"),
+        inventory: [
+            (25, "common.items.consumable.potion_big"),
+        ],
+    ),
+
     loot: LootTable("common.loot_tables.creature.humanoid"),
     meta: [
         SkillSetAsset("common.skillset.preset.rank3.fullskill"),
