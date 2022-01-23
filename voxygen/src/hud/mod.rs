@@ -1801,6 +1801,48 @@ impl Hud {
                     .position_ingame(over_pos)
                     .set(overitem_id, ui_widgets);
                 }
+            } else if let Some(Interactable::Entity(e)) = interactable {
+                // show hud for campfire
+                if client
+                    .state()
+                    .ecs()
+                    .read_storage::<comp::Body>()
+                    .get(e)
+                    .map_or(false, |b| b.is_campfire())
+                {
+                    let overitem_id = overitem_walker.next(
+                        &mut self.ids.overitems,
+                        &mut ui_widgets.widget_id_generator(),
+                    );
+
+                    let overitem_properties = overitem::OveritemProperties {
+                        active: true,
+                        pickup_failed_pulse: None,
+                    };
+                    let pos = client
+                        .state()
+                        .ecs()
+                        .read_storage::<comp::Pos>()
+                        .get(e)
+                        .map_or(Vec3::zero(), |e| e.0);
+                    let over_pos = pos + Vec3::unit_z() * 1.5;
+
+                    overitem::Overitem::new(
+                        i18n.get("hud.crafting.campfire").into(),
+                        overitem::TEXT_COLOR,
+                        pos.distance_squared(player_pos),
+                        &self.fonts,
+                        i18n,
+                        &global_state.settings.controls,
+                        overitem_properties,
+                        self.pulse,
+                        &global_state.window.key_layout,
+                        vec![(GameInput::Interact, i18n.get("hud.sit").to_string())],
+                    )
+                    .x_y(0.0, 100.0)
+                    .position_ingame(over_pos)
+                    .set(overitem_id, ui_widgets);
+                }
             }
 
             let speech_bubbles = &self.speech_bubbles;
