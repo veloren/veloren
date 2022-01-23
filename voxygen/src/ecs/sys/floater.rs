@@ -34,18 +34,18 @@ impl<'a> System<'a> for Sys {
     ) {
         // Add hp floater lists to all entities with health and a position
         // Note: necessary in order to know last_hp
-        for (entity, last_hp) in (&entities, &healths, &pos, !&hp_floater_lists)
+        for entity in (&entities, &healths, &pos, !&hp_floater_lists)
             .join()
-            .map(|(e, h, _, _)| (e, h.current()))
+            .map(|(e, _, _, _)| e)
             .collect::<Vec<_>>()
         {
             let _ = hp_floater_lists.insert(entity, HpFloaterList {
                 floaters: Vec::new(),
-                last_hp,
                 time_since_last_dmg_by_me: None,
             });
         }
 
+        // TODO: avoid join??
         for hp_floater_list in (&mut hp_floater_lists).join() {
             // Increment timer for time since last damaged by me
             hp_floater_list
@@ -74,9 +74,7 @@ impl<'a> System<'a> for Sys {
         for (
             entity,
             HpFloaterList {
-                ref mut floaters,
-                ref last_hp,
-                ..
+                ref mut floaters, ..
             },
         ) in (&entities, &mut hp_floater_lists).join()
         {
@@ -92,7 +90,7 @@ impl<'a> System<'a> for Sys {
                     } else {
                         MY_HP_SHOWTIME
                     }
-                    || last_hp.abs() < Health::HEALTH_EPSILON
+                //|| last_hp.abs() < Health::HEALTH_EPSILON;
             }) {
                 floaters.clear();
             }

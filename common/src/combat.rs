@@ -11,7 +11,7 @@ use crate::{
         Player, Poise, PoiseChange, SkillSet, Stats,
     },
     event::ServerEvent,
-    outcome::{DamageInfo, Outcome},
+    outcome::Outcome,
     states::utils::StageSection,
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -240,7 +240,6 @@ impl Attack {
             accumulated_damage += applied_damage;
 
             if change.amount.abs() > Health::HEALTH_EPSILON {
-
                 emit(ServerEvent::HealthChange {
                     entity: target.entity,
                     change,
@@ -258,7 +257,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
-                                    crit: None,
+                                    crit: Some(is_crit),
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,

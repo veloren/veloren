@@ -91,7 +91,7 @@ use common::{
         loot_owner::LootOwnerKind,
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind},
-        BuffData, BuffKind, Item, MapMarkerChange,
+        BuffData, BuffKind, Health, Item, MapMarkerChange,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -1422,61 +1422,69 @@ impl Hud {
                             &mut ui_widgets.widget_id_generator(),
                         );
 
-                        // Calculate total change
-                        // Ignores healing
-                        let hp_damage: f32 = floaters.iter().map(|f| f.info.amount.min(0.0)).sum();
+                        // Because only the Damage HpFloaters are batched
+                        // and would result in the wrong timers/crit info being used
+                        let damage_floaters: Vec<&HpFloater> =
+                            floaters.iter().filter(|f| f.info.amount < 0.0).collect();
 
-                        // .fold(0.0, |acc, f| f.info.amount.min(0.0) + acc);
-                        let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
-                        let max_hp_frac = hp_damage.abs() as f32 / health.maximum() as f32;
-                        let timer = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .timer;
-                        let crit = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .info
-                            .crit
-                            .map_or(false, |c| c);
-                        // Increase font size based on fraction of maximum health
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + ((max_hp_frac * 10.0) as u32) * 3 * if crit { 2 } else { 1 }
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
-                            } else {
-                                0
-                            };
-                        // Timer sets the widget offset
-                        let y = timer as f64 * number_speed * -1.0;
-                        // Timer sets text transparency
-                        let hp_fade =
-                            ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        Text::new(&format!("{}", hp_dmg_rounded_abs))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(if hp_damage < 0.0 {
-                                Color::Rgba(0.0, 0.0, 0.0, hp_fade)
-                            } else {
-                                Color::Rgba(0.0, 0.0, 0.0, 0.0)
-                            })
-                            .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
-                            .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{}", hp_dmg_rounded_abs))
-                            .font_size(font_size)
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(if hp_damage < 0.0 {
-                                if crit {
-                                    Color::Rgba(1.0, 0.9, 0.1, hp_fade)
+                        if !damage_floaters.is_empty() {
+                            // Calculate total change
+                            // Ignores healing
+                            let hp_damage: f32 =
+                                damage_floaters.iter().map(|fl| fl.info.amount).sum();
+
+                            // .fold(0.0, |acc, f| f.info.amount.min(0.0) + acc);
+                            let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
+                            let max_hp_frac = hp_damage.abs() / health.maximum();
+
+                            let timer = damage_floaters
+                                .last()
+                                .expect("There must be at least one floater")
+                                .timer;
+                            let crit = damage_floaters
+                                .last()
+                                .and_then(|f| f.info.crit)
+                                .unwrap_or(false);
+
+                            // Increase font size based on fraction of maximum health
+                            // "flashes" by having a larger size in the first 100ms
+                            let font_size = 30
+                                + ((max_hp_frac * 10.0) as u32) * 3 * if crit { 2 } else { 1 }
+                                + if timer < 0.1 {
+                                    FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                                 } else {
-                                    Color::Rgba(1.0, 0.1, 0.0, hp_fade)
-                                }
-                            } else {
-                                Color::Rgba(0.0, 0.0, 0.0, 0.0)
-                            })
-                            .mid_bottom_with_margin_on(ui_widgets.window, 300.0 + y)
-                            .set(player_sct_id, ui_widgets);
+                                    0
+                                };
+                            // Timer sets the widget offset
+                            let y = timer as f64 * number_speed * -1.0;
+                            // Timer sets text transparency
+                            let hp_fade =
+                                ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
+                            Text::new(&format!("{}", hp_dmg_rounded_abs))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(if hp_damage < 0.0 {
+                                    Color::Rgba(0.0, 0.0, 0.0, hp_fade)
+                                } else {
+                                    Color::Rgba(0.0, 0.0, 0.0, 0.0)
+                                })
+                                .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
+                                .set(player_sct_bg_id, ui_widgets);
+                            Text::new(&format!("{}", hp_dmg_rounded_abs))
+                                .font_size(font_size)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .color(if hp_damage < 0.0 {
+                                    if crit {
+                                        Color::Rgba(1.0, 0.9, 0.1, hp_fade)
+                                    } else {
+                                        Color::Rgba(1.0, 0.1, 0.0, hp_fade)
+                                    }
+                                } else {
+                                    Color::Rgba(0.0, 0.0, 0.0, 0.0)
+                                })
+                                .mid_bottom_with_margin_on(ui_widgets.window, 300.0 + y)
+                                .set(player_sct_id, ui_widgets);
+                        }
                     };
                     for floater in floaters {
                         // Healing always single numbers so just skip damage when in batch mode
@@ -1495,16 +1503,13 @@ impl Hud {
                             &mut self.ids.player_scts,
                             &mut ui_widgets.widget_id_generator(),
                         );
-                        let max_hp_frac =
-                            floater.info.amount.abs() as f32 / health.maximum() as f32;
+                        let max_hp_frac = floater.info.amount.abs() / health.maximum();
                         let crit = floater.info.crit.map_or(false, |c| c);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         // TODO: example
                         let font_size = 30
-                            + ((max_hp_frac * 10.0) as u32)
-                                * 3
-                                * if crit { 2 } else { 1 }
+                            + ((max_hp_frac * 10.0) as u32) * 3 * if crit { 2 } else { 1 }
                             + if floater.timer < 0.1 {
                                 // TODO: Maybe change font size wrt crits here?
                                 FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
@@ -1618,7 +1623,7 @@ impl Hud {
                         //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
                         // text transparency
                         let fade = if floater.timer < 1.0 {
-                            floater.timer as f32
+                            floater.timer
                         } else {
                             1.0
                         };
@@ -1680,9 +1685,9 @@ impl Hud {
                         .find(|d| d.owner == *uid)
                     {
                         let fade = if display.timer < 3.0 {
-                            display.timer as f32 * 0.33
+                            display.timer * 0.33
                         } else if display.timer < 2.0 {
-                            display.timer as f32 * 0.33 * 0.1
+                            display.timer * 0.33 * 0.1
                         } else {
                             1.0
                         };
@@ -1794,7 +1799,7 @@ impl Hud {
                         let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
                         // text transparency
                         let fade = if floater.timer < 0.25 {
-                            floater.timer as f32 / 0.25
+                            floater.timer / 0.25
                         } else {
                             1.0
                         };
@@ -2244,91 +2249,94 @@ impl Hud {
                         }
                     };
 
+                    // TODO: Might have to change something here as well
                     if global_state.settings.interface.sct_damage_batch {
                         let number_speed = 50.0; // Damage number speed
                         let sct_id = sct_walker
                             .next(&mut self.ids.scts, &mut ui_widgets.widget_id_generator());
                         let sct_bg_id = sct_bg_walker
                             .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
-                        // Calculate total change
-                        // Ignores healing
-                        let hp_damage = floaters.iter().fold(0.0, |acc, f| {
-                            if f.info.amount < 0.0 {
-                                acc + f.info.amount
-                            } else {
-                                acc
-                            }
-                        });
-                        let hp_dmg_rounded_abs = hp_damage.round().abs();
-                        let max_hp_frac = hp_damage.abs() / health.map_or(1.0, |h| h.maximum());
-                        let timer = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .timer;
-                        let crit = floaters
-                            .last()
-                            .expect("There must be at least one floater")
-                            .info
-                            .crit
-                            .map_or(false, |c| c);
-                        // Increase font size based on fraction of maximum health
-                        // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + ((max_hp_frac * 10.0) as u32) * 3 * if crit { 2 } else { 1 }
-                            + if timer < 0.1 {
-                                FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
-                            } else {
-                                0
-                            };
-                        let font_col = font_col(font_size, crit);
-                        // Timer sets the widget offset
-                        let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
-                            * number_speed)
-                            + 100.0;
-                        // Timer sets text transparency
-                        let fade = ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
-                        if hp_damage.abs() < 1.0 {
-                            // Damage and heal below 10/10 are shown as decimals
-                            Text::new(&format!("{}", hp_damage.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(0.0, y - 3.0)
-                                .position_ingame(ingame_pos)
-                                .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", hp_damage.abs()))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .x_y(0.0, y)
-                                .color(if hp_damage < 0.0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
-                                } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, fade)
-                                })
-                                .position_ingame(ingame_pos)
-                                .set(sct_id, ui_widgets);
-                        } else {
-                            // Damage and heal above 10/10 are shown rounded
-                            Text::new(&format!("{}", hp_dmg_rounded_abs))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .color(Color::Rgba(0.0, 0.0, 0.0, fade))
-                                .x_y(0.0, y - 3.0)
-                                .position_ingame(ingame_pos)
-                                .set(sct_bg_id, ui_widgets);
 
-                            Text::new(&format!("{}", hp_dmg_rounded_abs))
-                                .font_size(font_size)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .x_y(0.0, y)
-                                .color(if hp_damage < 0.0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                        let damage_floaters: Vec<&HpFloater> =
+                            floaters.iter().filter(|f| f.info.amount < 0.0).collect();
+
+                        if !damage_floaters.is_empty() {
+                            // Calculate total change
+                            // Ignores healing
+                            let hp_damage: f32 =
+                                damage_floaters.iter().map(|fl| fl.info.amount).sum();
+                            let hp_dmg_rounded_abs = hp_damage.round().abs();
+                            let max_hp_frac = hp_damage.abs() / health.map_or(1.0, |h| h.maximum());
+                            let timer = damage_floaters
+                                .last()
+                                .expect("There must be at least one floater")
+                                .timer;
+                            let crit = damage_floaters
+                                .last()
+                                .and_then(|f| f.info.crit)
+                                .unwrap_or(false);
+
+                            // Increase font size based on fraction of maximum health
+                            // "flashes" by having a larger size in the first 100ms
+                            let font_size = 30
+                                + ((max_hp_frac * 10.0) as u32) * 3 * if crit { 2 } else { 1 }
+                                + if timer < 0.1 {
+                                    FLASH_MAX * (((1.0 - timer / 0.1) * 10.0) as u32)
                                 } else {
-                                    Color::Rgba(0.1, 1.0, 0.1, fade)
-                                })
-                                .position_ingame(ingame_pos)
-                                .set(sct_id, ui_widgets);
-                        };
+                                    0
+                                };
+                            let font_col = font_col(font_size, crit);
+                            // Timer sets the widget offset
+                            let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                                * number_speed)
+                                + 100.0;
+                            // Timer sets text transparency
+                            let fade =
+                                ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
+                            // TODO: Can the Healing variant even be reached as healing is ignored?
+                            if hp_damage.abs() < 1.0 {
+                                // Damage and heal below 10/10 are shown as decimals
+                                Text::new(&format!("{}", hp_damage.abs()))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                    .x_y(0.0, y - 3.0)
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_bg_id, ui_widgets);
+                                Text::new(&format!("{}", hp_damage.abs()))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .x_y(0.0, y)
+                                    .color(if hp_damage < 0.0 {
+                                        Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                    } else {
+                                        Color::Rgba(0.1, 1.0, 0.1, fade)
+                                    })
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_id, ui_widgets);
+                            } else {
+                                // Damage and heal above 10/10 are shown rounded
+                                Text::new(&format!("{}", hp_dmg_rounded_abs))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .color(Color::Rgba(0.0, 0.0, 0.0, fade))
+                                    .x_y(0.0, y - 3.0)
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_bg_id, ui_widgets);
+
+                                Text::new(&format!("{}", hp_dmg_rounded_abs))
+                                    .font_size(font_size)
+                                    .font_id(self.fonts.cyri.conrod_id)
+                                    .x_y(0.0, y)
+                                    .color(if hp_damage < 0.0 {
+                                        Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                    } else {
+                                        Color::Rgba(0.1, 1.0, 0.1, fade)
+                                    })
+                                    .position_ingame(ingame_pos)
+                                    .set(sct_id, ui_widgets);
+                            };
+                        }
                     } else {
                         for floater in floaters {
                             let number_speed = 250.0; // Single Numbers Speed
@@ -2337,15 +2345,13 @@ impl Hud {
                             let sct_bg_id = sct_bg_walker
                                 .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
                             // Calculate total change
-                            let max_hp_frac = floater.info.amount.abs() as f32
-                                / health.map_or(1.0, |h| h.maximum() as f32);
+                            let max_hp_frac =
+                                floater.info.amount.abs() / health.map_or(1.0, |h| h.maximum());
                             let crit = floater.info.crit.map_or(false, |c| c);
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + ((max_hp_frac * 10.0) as u32)
-                                    * 3
-                                    * if crit { 2 } else { 1 }
+                                + ((max_hp_frac * 10.0) as u32) * 3 * if crit { 2 } else { 1 }
                                 + if floater.timer < 0.1 {
                                     FLASH_MAX * (((1.0 - floater.timer / 0.1) * 10.0) as u32)
                                 } else {
@@ -4550,12 +4556,21 @@ impl Hud {
                                 }
                                 hit_me || by_me
                             },
-                            None => {
-                                hit_me
-                            },
+                            None => hit_me,
                         } {
-                            // TODO: This will currently fuck up with healing
-                            let last_floater = floater_list.floaters.last_mut();
+                            let last_floater = if info.amount < Health::HEALTH_EPSILON {
+                                floater_list
+                                    .floaters
+                                    .iter_mut()
+                                    .rev()
+                                    .find(|f| f.info.amount < Health::HEALTH_EPSILON)
+                            } else {
+                                floater_list
+                                    .floaters
+                                    .iter_mut()
+                                    .rev()
+                                    .find(|f| f.info.amount > Health::HEALTH_EPSILON)
+                            };
                             match last_floater {
                                 Some(f) if f.timer < floater::HP_ACCUMULATETIME => {
                                     //TODO: Add "jumping" animation on floater when it changes its

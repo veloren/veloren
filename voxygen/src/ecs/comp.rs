@@ -16,9 +16,7 @@ pub struct HpFloater {
 pub struct HpFloaterList {
     // Order oldest to newest
     pub floaters: Vec<HpFloater>,
-    // Keep from spawning more floaters from same hp change
-    // Note: this can't detect a change if equivalent healing and damage take place simultaneously
-    pub last_hp: f32,
+
     // The time since you last damaged this entity
     // Used to display nametags outside normal range if this time is below a certain value
     pub time_since_last_dmg_by_me: Option<f32>,

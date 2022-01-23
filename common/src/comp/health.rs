@@ -24,7 +24,8 @@ pub struct HealthChange {
     pub cause: Option<DamageSource>,
     /// The time that the health change occurred at
     pub time: Time,
-    /// Whether or not the health change was caused by a crit (None if it couldn't have been a crit)
+    /// Whether or not the health change was caused by a crit (None if it
+    /// couldn't have been a crit)
     pub crit: Option<bool>,
 }
 

@@ -77,20 +77,21 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
         if let Some(agent) = ecs.write_storage::<Agent>().get_mut(entity) {
             agent.inbox.push_front(AgentEvent::Hurt);
         }
-        dbg!("hit");
-        dbg!(change);
-        // TODO: This will currently fuck up with healing
-        if let (Some(pos), Some(uid)) = (ecs.read_storage::<Pos>().get(entity), ecs.read_storage::<Uid>().get(entity)) {
-            dbg!(change.amount);
-            outcomes.push(Outcome::Damage{
-                pos: pos.0,
-                info: DamageInfo {
-                    amount: change.amount,
-                    crit: change.crit,
-                    by: change.by,
-                    target: *uid,
-                }
-            });
+        if let (Some(pos), Some(uid)) = (
+            ecs.read_storage::<Pos>().get(entity),
+            ecs.read_storage::<Uid>().get(entity),
+        ) {
+            if change.amount.abs() > Health::HEALTH_EPSILON {
+                outcomes.push(Outcome::Damage {
+                    pos: pos.0,
+                    info: DamageInfo {
+                        amount: change.amount,
+                        crit: change.crit,
+                        by: change.by,
+                        target: *uid,
+                    },
+                });
+            }
         }
     }
 }

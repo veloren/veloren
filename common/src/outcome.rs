@@ -1,4 +1,4 @@
-use crate::{comp, uid::Uid, combat::DamageContributor};
+use crate::{combat::DamageContributor, comp, uid::Uid};
 use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
