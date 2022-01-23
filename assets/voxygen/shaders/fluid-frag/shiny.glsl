@@ -176,14 +176,14 @@ void main() {
     // Squared to account for prior saturation.
     float f_light = 1.0;// pow(f_light, 1.5);
     vec3 ray_dir;
-    if (medium.x == 1) {
+    if (medium.x == MEDIUM_WATER) {
         ray_dir = refract(cam_to_frag, -norm, 1.33);
     } else {
         ray_dir = reflect_ray_dir;
     }
 
     vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-    reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
+    reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.2);
     reflect_color *= f_light;
 
     // Prevent the sky affecting light when underground
@@ -331,7 +331,7 @@ void main() {
 
     // float log_cam = log(min(cam_attenuation.r, min(cam_attenuation.g, cam_attenuation.b)));
     float min_refl = 0.0;
-    if (medium.x != 1) {
+    if (medium.x != MEDIUM_WATER) {
         min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
     }
     vec4 color = vec4(surf_color, (1.0 - passthrough) * 1.0 / (1.0 + min_refl));// * (1.0 - /*log(1.0 + cam_attenuation)*//*cam_attenuation*/1.0 / (2.0 - log_cam)));

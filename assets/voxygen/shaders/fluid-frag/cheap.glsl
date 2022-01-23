@@ -146,6 +146,7 @@ void main() {
     // vec3 surf_color = /*srgb_to_linear*/(vec3(0.4, 0.7, 2.0));
     float max_light = 0.0;
     max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, /*time_of_day.x*//*-cam_to_frag*/sun_view_dir/*view_dir*/, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, /*vec3(0.0)*/k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
     emitted_light *= not_underground;
     reflected_light *= not_underground;
 
@@ -185,9 +186,9 @@ void main() {
     // float reflected_light_point = /*length*/(diffuse_light_point.r) + f_light * point_shadow;
     // reflected_light += k_d * (diffuse_light_point + f_light * point_shadow * shade_frac) + specular_light_point;
 
-    float passthrough = clamp(dot(f_norm, -cam_to_frag), 0, 1);
+    float passthrough = max(dot(f_norm, -cam_to_frag), 0);
     float min_refl = 0.0;
-    if (medium.x != 1) {
+    if (medium.x != MEDIUM_WATER) {
         min_refl = min(emitted_light.r, min(emitted_light.g, emitted_light.b));
     }
 

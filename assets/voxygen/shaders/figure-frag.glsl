@@ -8,7 +8,11 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+    #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#elif (FLUID_MODE == FLUID_MODE_SHINY)
+    #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+#endif
 
 #define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
 
@@ -183,7 +187,6 @@ void main() {
     // vec3 light, diffuse_light, ambient_light;
     //get_sun_diffuse(f_norm, time_of_day.x, view_dir, k_a * point_shadow * (shade_frac * 0.5 + light_frac * 0.5), k_d * point_shadow * shade_frac, k_s * point_shadow * shade_frac, alpha, emitted_light, reflected_light);
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, emitted_light, reflected_light);
     // reflected_light *= point_shadow * shade_frac;
     // emitted_light *= point_shadow * max(shade_frac, MIN_SHADOW);
     // max_light *= point_shadow * shade_frac;
@@ -191,20 +194,18 @@ void main() {
     // emitted_light *= point_shadow;
     // max_light *= point_shadow;
 
+    vec3 cam_attenuation = vec3(1);
+    float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
+    vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
     #if (FLUID_MODE == FLUID_MODE_SHINY)
-        // Attenuate sunlight
-        if (medium.x == 1) {
-            float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
-
-            float water_dist = max(fluid_alt - f_pos.z, 0);
-            vec3 attenuate = pow(vec3(0.5, 0.98, 0.99), vec3(water_dist * 0.1));
-            emitted_light *= attenuate;
-            reflected_light *= attenuate;
-            surf_color *= attenuate;
-        }
+        cam_attenuation =
+            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+            : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
     #endif
 
-    max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     float ao = f_ao * sqrt(f_ao);//0.25 + f_ao * 0.75; ///*pow(f_ao, 0.5)*/f_ao * 0.85 + 0.15;
 
@@ -219,7 +220,7 @@ void main() {
         * glow_light(f_pos)
         * (max(dot(f_norm, model_glow.xyz / glow_mag) * 0.5 + 0.5, 0.0) + max(1.0 - glow_mag, 0.0));
 
-    emitted_light += glow;
+    emitted_light += glow * cam_attenuation;
 
     reflected_light *= ao;
     emitted_light *= ao;

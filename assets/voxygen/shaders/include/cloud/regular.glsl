@@ -178,7 +178,6 @@ float atan2(in float y, in float x) {
     return mix(PI/2.0 - atan(x,y), atan(y,x), s);
 }
 
-const float DIST_CAP = 50000;
 #if (CLOUD_MODE == CLOUD_MODE_ULTRA)
     const uint QUALITY = 200u;
 #elif (CLOUD_MODE == CLOUD_MODE_HIGH)
