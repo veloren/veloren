@@ -112,9 +112,9 @@ impl Recipe {
     /// ingredients needed, whose positions correspond to particular recipe
     /// inputs. If items are missing, return the missing items, and how many
     /// are missing.
-    pub fn inventory_contains_ingredients<'a>(
+    pub fn inventory_contains_ingredients(
         &self,
-        inv: &'a Inventory,
+        inv: &Inventory,
     ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&RecipeInput, u32)>> {
         // Hashmap tracking the quantity that needs to be removed from each slot (so
         // that it doesn't think a slot can provide more items than it contains)

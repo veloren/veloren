@@ -78,15 +78,15 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn talk(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
-        let mut update = StateUpdate::from(data);
-        attempt_talk(data, &mut update);
-        update
-    }
-
     fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle(Data { is_sneaking: false });
+        update
+    }
+
+    fn talk(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+        let mut update = StateUpdate::from(data);
+        attempt_talk(data, &mut update);
         update
     }
 }

@@ -476,7 +476,7 @@ fn swim_move(
         };
 
         // Autoswim to stay afloat
-        let move_z = if submersion < 1.0 && data.inputs.move_z.abs() < std::f32::EPSILON {
+        let move_z = if submersion < 1.0 && data.inputs.move_z.abs() < f32::EPSILON {
             (submersion - 0.1).max(0.0)
         } else {
             data.inputs.move_z
@@ -524,7 +524,7 @@ pub fn fly_move(data: &JoinData<'_>, update: &mut StateUpdate, efficiency: f32) 
             Body::Ship(ship) if ship.can_fly() => {
                 let regulate_density = |min: f32, max: f32, def: f32, rate: f32| -> Density {
                     // Reset to default on no input
-                    let change = if data.inputs.move_z.abs() > std::f32::EPSILON {
+                    let change = if data.inputs.move_z.abs() > f32::EPSILON {
                         -data.inputs.move_z
                     } else {
                         (def - data.density.0).max(-1.0).min(1.0)
