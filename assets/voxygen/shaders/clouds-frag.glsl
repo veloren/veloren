@@ -16,6 +16,9 @@
 
 #define LIGHTING_DISTRIBUTION LIGHTING_DISTRIBUTION_BECKMANN
 
+// Must come before includes
+#define IS_POSTPROCESS
+
 #include <globals.glsl>
 // Note: The sampler uniform is declared here because it differs for MSAA
 #include <anti-aliasing.glsl>
@@ -67,10 +70,15 @@ void main() {
     vec3 dir = (wpos - cam_pos.xyz) / dist;
 
     // Apply clouds
-    #if (CLOUD_MODE != CLOUD_MODE_NONE)
-        color.rgb = get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0);
-    #else
-        color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb, BLOOM_FACTOR);
+    float cloud_blend = 1.0;
+    if (color.a < 1.0) {
+        cloud_blend = 1.0 - color.a;
+        dist = DIST_CAP;
+    }
+    color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
+
+    #if (CLOUD_MODE == CLOUD_MODE_NONE)
+        color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #endif
 
     tgt_color = vec4(color.rgb, 1);

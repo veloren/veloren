@@ -6,7 +6,11 @@
 
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
-#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#if (FLUID_MODE == FLUID_MODE_CHEAP)
+    #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+#elif (FLUID_MODE == FLUID_MODE_SHINY)
+    #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+#endif
 
 #define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
 
@@ -73,19 +77,33 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
-    vec3 emitted_light, reflected_light;
+    vec3 emitted_light = vec3(1);
+    vec3 reflected_light = vec3(1);
 
     // Make voxel shadows block the sun and moon
     sun_info.block = f_inst_light.x;
     moon_info.block = f_inst_light.x;
 
     float max_light = 0.0;
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
 
-    max_light += lights_at(f_pos, f_norm, view_dir, k_a, k_d, k_s, alpha, emitted_light, reflected_light);
+    vec3 cam_attenuation = vec3(1);
+    float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
+    vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
+    #if (FLUID_MODE == FLUID_MODE_SHINY)
+        cam_attenuation =
+            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+            : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
+    #endif
+
+    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    emitted_light *= sun_info.block;
+    reflected_light *= sun_info.block;
+
+    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
 
     vec3 glow = pow(f_inst_light.y, 3) * 4 * glow_light(f_pos);
-    emitted_light += glow;
+    emitted_light += glow * cam_attenuation;
 
     float ao = f_ao;
     emitted_light *= ao;

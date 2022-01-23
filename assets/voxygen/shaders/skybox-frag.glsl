@@ -32,9 +32,9 @@ void main() {
 
     float cam_alt = alt_at(cam_pos.xy);
     // float f_alt = alt_at(f_pos.xy);
-    float fluid_alt = medium.x == 1u ? floor(cam_alt + 1) : view_distance.w;
+    float fluid_alt = medium.x == MEDIUM_WATER ? floor(cam_alt + 1) : view_distance.w;
     // float fluid_alt = max(f_pos.z + 1, floor(f_alt));
-    vec3 mu = medium.x == 1u /* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
+    vec3 mu = medium.x == MEDIUM_WATER /* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
     // vec3 sun_attenuation = compute_attenuation(wpos, -sun_dir, mu, surface_alt, wpos);
     vec3 cam_attenuation = compute_attenuation(cam_pos.xyz, -cam_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*//*f_pos*//*vec3(f_pos.xy, fluid_alt)*/cam_pos.xyz);
     // vec3 cam_attenuation = compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, cam_pos.xyz);
@@ -47,7 +47,7 @@ void main() {
 
     float dist = 100000.0;
 
-    float refractionIndex = medium.x == 1u ? 1.0 / 1.3325 : 1.0;
+    float refractionIndex = medium.x == MEDIUM_WATER ? 1.0 / 1.3325 : 1.0;
     /* if (medium.x == 1u) {
         dist = UNDERWATER_MIST_DIST;
     } */

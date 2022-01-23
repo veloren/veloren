@@ -8,9 +8,9 @@
 #define LIGHTING_REFLECTION_KIND LIGHTING_REFLECTION_KIND_GLOSSY
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
-#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
+    #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_IMPORTANCE
 #elif (FLUID_MODE == FLUID_MODE_SHINY)
-#define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
+    #define LIGHTING_TRANSPORT_MODE LIGHTING_TRANSPORT_MODE_RADIANCE
 #endif
 
 #define LIGHTING_DISTRIBUTION_SCHEME LIGHTING_DISTRIBUTION_SCHEME_MICROFACET
@@ -260,12 +260,10 @@ void main() {
     // Compute attenuation due to water from the camera.
     vec3 mu = faces_fluid/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
-    vec3 cam_attenuation =
-        medium.x == 1u ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
-        : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
-
     // Computing light attenuation from water.
-    vec3 emitted_light, reflected_light;
+    vec3 cam_attenuation =
+        medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
+        : compute_attenuation_point(f_pos, -view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
 
     // Prevent the sky affecting light when underground
     float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
@@ -273,9 +271,11 @@ void main() {
     // To account for prior saturation
     /*float */f_light = faces_fluid ? not_underground : f_light * sqrt(f_light);
 
-    emitted_light = vec3(1.0);
-    reflected_light = vec3(1.0);
-    max_light += get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    vec3 emitted_light = vec3(1.0);
+    vec3 reflected_light = vec3(1.0);
+
+    float sun_diffuse = get_sun_diffuse2(/*time_of_day.x, */sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a/* * (shade_frac * 0.5 + light_frac * 0.5)*/, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += sun_diffuse;
 
     // emitted_light *= f_light * point_shadow * max(shade_frac, MIN_SHADOW);
     // reflected_light *= f_light * point_shadow * shade_frac;
@@ -285,10 +285,26 @@ void main() {
     max_light *= f_light;
 
     // TODO: Apply AO after this
-    vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2);
-    reflected_light += glow * pow(max(dot(face_norm, f_norm), 0), 2);
+    vec3 glow = glow_light(f_pos) * (pow(f_glow, 3) * 5 + pow(f_glow, 2.0) * 2) * pow(max(dot(face_norm, f_norm), 0), 2);
+    reflected_light += glow * cam_attenuation;
 
     max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+
+    #ifndef EXPERIMENTAL_NOCAUSTICS
+        #if (FLUID_MODE == FLUID_MODE_SHINY)
+            if (faces_fluid) {
+                vec3 wpos = f_pos + vec3(focus_off.xy, 0);
+                vec3 spos = (wpos + (fluid_alt - wpos.z) * vec3(sun_dir.xy, 0)) * 0.05;
+                reflected_light += max(1.0 - pow(abs(noise_3d(vec3(spos.xy, tick.x * 0.1 + dot(sin(wpos.xy * 0.8), vec2(1)) * 0.05)) - 0.5) * 10, 0.001), 0)
+                    * 1000
+                    * cam_attenuation
+                    * max(dot(f_norm, -sun_dir.xyz), 0)
+                    * sun_diffuse
+                    * sun_info.shadow
+                    * f_light;
+            }
+        #endif
+    #endif
 
     // float f_ao = 1.0;
 

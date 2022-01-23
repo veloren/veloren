@@ -191,6 +191,13 @@ void main() {
     //     return;
     // }
 
+    #ifdef EXPERIMENTAL_UNDERWARPER
+        vec2 uv = uv;
+        if (medium.x == MEDIUM_WATER) {
+            uv += sin(uv.yx * 40 + tick.xx * 1.0) * 0.003;
+        }
+    #endif
+
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
 
     // Bloom
@@ -248,7 +255,7 @@ void main() {
     vec4 final_color = aa_color;
 
 #if (FLUID_MODE == FLUID_MODE_CHEAP)
-    if (medium.x == 1u) {
+    if (medium.x == MEDIUM_WATER) {
         final_color *= vec4(0.2, 0.2, 0.8, 1.0);
     }
 #endif

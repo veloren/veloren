@@ -68,19 +68,19 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
     if is_sunlight {
         for x in 0..outer.size().w {
             for y in 0..outer.size().h {
-                let mut light = SUNLIGHT;
+                let mut light = SUNLIGHT as f32;
                 for z in (0..outer.size().d).rev() {
                     let (min_light, attenuation) = vol_cached
                         .get(outer.min + Vec3::new(x, y, z))
-                        .map_or((0, 0), |b| b.get_max_sunlight());
+                        .map_or((0, 0.0), |b| b.get_max_sunlight());
 
-                    if light > min_light {
-                        light = light.saturating_sub(attenuation).max(min_light);
+                    if light > min_light as f32 {
+                        light = (light - attenuation).max(min_light as f32);
                     }
 
-                    light_map[lm_idx(x, y, z)] = light;
+                    light_map[lm_idx(x, y, z)] = light.floor() as u8;
 
-                    if light == 0 {
+                    if light <= 0.0 {
                         break;
                     } else {
                         prop_que.push_back((x as u8, y as u8, z as u16));
@@ -103,7 +103,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                     .ok()
                     .map_or(false, |b| b.is_fluid())
                 {
-                    *dest = src - 1;
+                    *dest = src.saturating_sub(1);
                     // Can't propagate further
                     if *dest > 1 {
                         prop_que.push_back((pos.x as u8, pos.y as u8, pos.z as u16));
@@ -111,7 +111,7 @@ fn calc_light<V: RectRasterableVol<Vox = Block> + ReadVol + Debug>(
                 } else {
                     *dest = OPAQUE;
                 }
-            } else if *dest < src - 1 {
+            } else if *dest < src.saturating_sub(1) {
                 *dest = src - 1;
                 // Can't propagate further
                 if *dest > 1 {

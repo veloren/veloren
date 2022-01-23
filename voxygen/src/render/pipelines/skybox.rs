@@ -98,7 +98,14 @@ impl SkyboxPipeline {
                 entry_point: "main",
                 targets: &[wgpu::ColorTargetState {
                     format: wgpu::TextureFormat::Rgba16Float,
-                    blend: None,
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent::REPLACE,
+                        alpha: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::Zero,
+                            dst_factor: wgpu::BlendFactor::One,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                    }),
                     write_mask: wgpu::ColorWrite::ALL,
                 }],
             }),
