@@ -2,11 +2,9 @@
 // A set of abilities is a primary, a secondary, and a vec of all extra abilities
 ({
     Tool(Sword): (
-        primary: "common.abilities.sword.triplestrike",
-        secondary: "common.abilities.sword.dash",
-        abilities: [
-            (Some(Sword(UnlockSpin)), "common.abilities.sword.spin"),
-        ],
+        primary: "common.abilities.sword.balancedstance",
+        secondary: "common.abilities.sword.balancedstance",
+        abilities: [],
     ),
     Tool(Axe): (
         primary: "common.abilities.axe.doublestrike",

@@ -91,6 +91,8 @@ pub enum CharacterState {
     /// A three-stage attack where each attack pushes player forward
     /// and successive attacks increase in damage, while player holds button.
     ComboMelee(combo_melee::Data),
+    /// A state where you progress through multiple melee attacks
+    ComboMelee2(combo_melee2::Data),
     /// A leap followed by a small aoe ground attack
     LeapMelee(leap_melee::Data),
     /// Spin around, dealing damage to enemies surrounding you
@@ -138,6 +140,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::SpinMelee(_)
@@ -186,6 +189,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::SpinMelee(_)
                 | CharacterState::ChargedMelee(_)
@@ -208,6 +212,7 @@ impl CharacterState {
                 | CharacterState::BasicRanged(_)
                 | CharacterState::DashMelee(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::BasicBlock(_)
                 | CharacterState::LeapMelee(_)
                 | CharacterState::ChargedMelee(_)
@@ -254,6 +259,7 @@ impl CharacterState {
     pub fn is_forced_movement(&self) -> bool {
         matches!(self,
             CharacterState::ComboMelee(s) if s.stage_section == StageSection::Action)
+            || matches!(self, CharacterState::ComboMelee2(s) if s.stage_section == Some(StageSection::Action))
             || matches!(self, CharacterState::DashMelee(s) if s.stage_section == StageSection::Charge)
             || matches!(self, CharacterState::LeapMelee(s) if s.stage_section == StageSection::Movement)
             || matches!(self, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Action)
@@ -274,6 +280,7 @@ impl CharacterState {
                 | CharacterState::BasicMelee(_)
                 | CharacterState::BasicRanged(_)
                 | CharacterState::ComboMelee(_)
+                | CharacterState::ComboMelee2(_)
                 | CharacterState::ChargedRanged(_)
                 | CharacterState::RepeaterRanged(_)
                 | CharacterState::BasicBeam(_)
@@ -326,6 +333,7 @@ impl CharacterState {
             CharacterState::Wielding(data) => data.behavior(j, output_events),
             CharacterState::Equipping(data) => data.behavior(j, output_events),
             CharacterState::ComboMelee(data) => data.behavior(j, output_events),
+            CharacterState::ComboMelee2(data) => data.behavior(j, output_events),
             CharacterState::BasicMelee(data) => data.behavior(j, output_events),
             CharacterState::BasicRanged(data) => data.behavior(j, output_events),
             CharacterState::Boost(data) => data.behavior(j, output_events),
@@ -374,6 +382,7 @@ impl CharacterState {
             CharacterState::Wielding(data) => data.handle_event(j, output_events, action),
             CharacterState::Equipping(data) => data.handle_event(j, output_events, action),
             CharacterState::ComboMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::ComboMelee2(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::BasicRanged(data) => data.handle_event(j, output_events, action),
             CharacterState::Boost(data) => data.handle_event(j, output_events, action),

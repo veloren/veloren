@@ -26,28 +26,7 @@ pub enum Skill {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum SwordSkill {
-    // Sword passives
-    InterruptingAttacks,
-    // Triple strike upgrades
-    TsCombo,
-    TsDamage,
-    TsRegen,
-    TsSpeed,
-    // Dash upgrades
-    DCost,
-    DDrain,
-    DDamage,
-    DScaling,
-    DSpeed,
-    DChargeThrough,
-    // Spin upgrades
-    UnlockSpin,
-    SDamage,
-    SSpeed,
-    SCost,
-    SSpins,
-}
+pub enum SwordSkill {}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum AxeSkill {
@@ -227,7 +206,6 @@ impl Skill {
 pub const SKILL_MODIFIERS: SkillTreeModifiers = SkillTreeModifiers::get();
 
 pub struct SkillTreeModifiers {
-    pub sword_tree: SwordTreeModifiers,
     pub axe_tree: AxeTreeModifiers,
     pub hammer_tree: HammerTreeModifiers,
     pub bow_tree: BowTreeModifiers,
@@ -240,7 +218,6 @@ pub struct SkillTreeModifiers {
 impl SkillTreeModifiers {
     const fn get() -> Self {
         Self {
-            sword_tree: SwordTreeModifiers::get(),
             axe_tree: AxeTreeModifiers::get(),
             hammer_tree: HammerTreeModifiers::get(),
             bow_tree: BowTreeModifiers::get(),
@@ -248,46 +225,6 @@ impl SkillTreeModifiers {
             sceptre_tree: SceptreTreeModifiers::get(),
             mining_tree: MiningTreeModifiers::get(),
             general_tree: GeneralTreeModifiers::get(),
-        }
-    }
-}
-
-pub struct SwordTreeModifiers {
-    pub dash: SwordDashModifiers,
-    pub spin: SwordSpinModifiers,
-}
-
-pub struct SwordDashModifiers {
-    pub energy_cost: f32,
-    pub energy_drain: f32,
-    pub base_damage: f32,
-    pub scaled_damage: f32,
-    pub forward_speed: f32,
-}
-
-pub struct SwordSpinModifiers {
-    pub base_damage: f32,
-    pub swing_duration: f32,
-    pub energy_cost: f32,
-    pub num: u32,
-}
-
-impl SwordTreeModifiers {
-    const fn get() -> Self {
-        Self {
-            dash: SwordDashModifiers {
-                energy_cost: 0.95,
-                energy_drain: 0.95,
-                base_damage: 1.05,
-                scaled_damage: 1.05,
-                forward_speed: 1.025,
-            },
-            spin: SwordSpinModifiers {
-                base_damage: 1.1,
-                swing_duration: 0.95,
-                energy_cost: 0.95,
-                num: 1,
-            },
         }
     }
 }

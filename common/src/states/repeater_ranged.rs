@@ -161,7 +161,7 @@ impl CharacterBehavior for Data {
 
         // At end of state logic so an interrupt isn't overwritten
         if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_state_interrupt(data, &mut update, false);
+            handle_dodge_input(data, &mut update);
         }
 
         update

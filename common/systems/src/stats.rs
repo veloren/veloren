@@ -184,6 +184,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::LeapMelee { .. }
                 | CharacterState::SpinMelee { .. }
                 | CharacterState::ComboMelee { .. }
+                | CharacterState::ComboMelee2 { .. }
                 | CharacterState::BasicRanged { .. }
                 | CharacterState::Music { .. }
                 | CharacterState::ChargedMelee { .. }

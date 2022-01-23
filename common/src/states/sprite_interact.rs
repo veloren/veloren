@@ -121,7 +121,7 @@ impl CharacterBehavior for Data {
         handle_wield(data, &mut update);
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_state_interrupt(data, &mut update, false);
+        handle_dodge_input(data, &mut update);
 
         update
     }

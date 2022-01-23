@@ -15,25 +15,6 @@
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),
 
-        (Sword(InterruptingAttacks), 1),
-
-        (Sword(TsCombo), 1),
-        (Sword(TsDamage), 3),
-        (Sword(TsRegen), 2),
-        (Sword(TsSpeed), 3),
-
-        (Sword(DCost), 2),
-        (Sword(DDrain), 2),
-        (Sword(DDamage), 2),
-        (Sword(DScaling), 3),
-        (Sword(DSpeed), 1),
-        (Sword(DChargeThrough), 1),
-
-        (Sword(UnlockSpin), 1),
-        (Sword(SDamage), 2),
-        (Sword(SSpeed), 2),
-        (Sword(SCost), 2),
-        (Sword(SSpins), 2),
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
 
@@ -145,25 +126,6 @@
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),
 
-        (Sword(InterruptingAttacks), 1),
-
-        (Sword(TsCombo), 1),
-        (Sword(TsDamage), 2),
-        (Sword(TsRegen), 1),
-        (Sword(TsSpeed), 2),
-
-        (Sword(DCost), 1),
-        (Sword(DDrain), 2),
-        (Sword(DDamage), 2),
-        (Sword(DScaling), 2),
-        (Sword(DSpeed), 1),
-        (Sword(DChargeThrough), 1),
-
-        (Sword(UnlockSpin), 1),
-        (Sword(SDamage), 1),
-        (Sword(SSpeed), 2),
-        (Sword(SCost), 2),
-        (Sword(SSpins), 2),
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),
 
@@ -264,8 +226,6 @@
 
         // Sword
         (UnlockGroup(Weapon(Sword)), 1),
-
-        (Sword(UnlockSpin), 1),
 
         // Axe
         (UnlockGroup(Weapon(Axe)), 1),

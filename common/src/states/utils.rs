@@ -1137,17 +1137,6 @@ pub fn get_buff_strength(data: &JoinData<'_>, ai: AbilityInfo) -> f32 {
         .unwrap_or(1.0)
 }
 
-pub fn handle_state_interrupt(
-    data: &JoinData<'_>,
-    update: &mut StateUpdate,
-    attacks_interrupt: bool,
-) {
-    if attacks_interrupt {
-        handle_ability_input(data, update);
-    }
-    handle_dodge_input(data, update);
-}
-
 pub fn input_is_pressed(data: &JoinData<'_>, input: InputKind) -> bool {
     data.controller.queued_inputs.contains_key(&input)
 }

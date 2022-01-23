@@ -404,7 +404,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::UseItem(_)
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
-            | CharacterState::Wallrun(_) => Self::Other,
+            | CharacterState::Wallrun(_)
+            | CharacterState::ComboMelee2(_) => Self::Other,
         }
     }
 }
@@ -486,6 +487,9 @@ pub enum CharacterAbility {
         scales_from_combo: u32,
         is_interruptible: bool,
         ori_modifier: f32,
+    },
+    ComboMelee2 {
+        strikes: Vec<combo_melee2::Strike<f32>>,
     },
     LeapMelee {
         energy_cost: f32,
@@ -687,6 +691,7 @@ impl CharacterAbility {
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::ComboMelee { .. }
+            | CharacterAbility::ComboMelee2 { .. }
             | CharacterAbility::Boost { .. }
             | CharacterAbility::BasicBeam { .. }
             | CharacterAbility::Blink { .. }
@@ -733,7 +738,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             BasicRanged {
                 ref mut energy_cost,
@@ -798,7 +803,7 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             BasicBlock {
                 ref mut buildup_duration,
@@ -842,6 +847,12 @@ impl CharacterAbility {
                     .map(|s| s.adjusted_by_stats(stats))
                     .collect();
             },
+            ComboMelee2 { ref mut strikes } => {
+                *strikes = strikes
+                    .iter_mut()
+                    .map(|s| s.adjusted_by_stats(stats))
+                    .collect();
+            },
             LeapMelee {
                 ref mut energy_cost,
                 ref mut buildup_duration,
@@ -856,7 +867,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             SpinMelee {
                 ref mut buildup_duration,
@@ -875,7 +886,7 @@ impl CharacterAbility {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             ChargedMelee {
                 ref mut energy_cost,
@@ -891,7 +902,7 @@ impl CharacterAbility {
                 *recover_duration /= stats.speed;
                 *energy_cost /= stats.energy_efficiency;
                 *energy_drain /= stats.energy_efficiency;
-                *melee_constructor = melee_constructor.adjusted_by_stats(stats, 1.0);
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
             ChargedRanged {
                 ref mut energy_cost,
@@ -1105,6 +1116,7 @@ impl CharacterAbility {
             },
             Boost { .. }
             | ComboMelee { .. }
+            | ComboMelee2 { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1115,7 +1127,6 @@ impl CharacterAbility {
     #[must_use = "method returns new ability and doesn't mutate the original value"]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
-            Some(ToolKind::Sword) => self.adjusted_by_sword_skills(skillset),
             Some(ToolKind::Axe) => self.adjusted_by_axe_skills(skillset),
             Some(ToolKind::Hammer) => self.adjusted_by_hammer_skills(skillset),
             Some(ToolKind::Bow) => self.adjusted_by_bow_skills(skillset),
@@ -1170,103 +1181,6 @@ impl CharacterAbility {
             if let Ok(level) = skillset.skill_level(Skill::Roll(Duration)) {
                 *movement_duration *= modifiers.duration.powi(level.into());
             }
-        }
-    }
-
-    fn adjusted_by_sword_skills(&mut self, skillset: &SkillSet) {
-        use skills::{Skill::Sword, SwordSkill::*};
-
-        match self {
-            CharacterAbility::ComboMelee {
-                ref mut is_interruptible,
-                ref mut speed_increase,
-                ref mut max_speed_increase,
-                ref stage_data,
-                ref mut max_energy_gain,
-                ref mut scales_from_combo,
-                ..
-            } => {
-                *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
-
-                if skillset.has_skill(Sword(TsCombo)) {
-                    let speed_segments = f32::from(Sword(TsSpeed).max_level()) + 1.0;
-                    let speed_level = f32::from(skillset.skill_level(Sword(TsSpeed)).unwrap_or(0));
-                    *speed_increase = (speed_level + 1.0) / speed_segments;
-                    *max_speed_increase = (speed_level + 1.0) / speed_segments;
-                } else {
-                    *speed_increase = 0.0;
-                    *max_speed_increase = 0.0;
-                }
-
-                let energy_level = skillset.skill_level(Sword(TsRegen)).unwrap_or(0);
-
-                let stages = u16::try_from(stage_data.len())
-                    .expect("number of stages can't be more than u16");
-
-                *max_energy_gain *= f32::from((energy_level + 1) * stages - 1)
-                    * f32::from(stages - 1)
-                    / f32::from(Sword(TsRegen).max_level() + 1);
-                *scales_from_combo = skillset.skill_level(Sword(TsDamage)).unwrap_or(0).into();
-            },
-            CharacterAbility::DashMelee {
-                ref mut is_interruptible,
-                ref mut energy_cost,
-                ref mut energy_drain,
-                ref mut forward_speed,
-                ref mut charge_through,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.sword_tree.dash;
-                *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
-                if let Ok(level) = skillset.skill_level(Sword(DCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Sword(DDrain)) {
-                    *energy_drain *= modifiers.energy_drain.powi(level.into());
-                }
-                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
-                    if let Ok(level) = skillset.skill_level(Sword(DDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                }
-                if let Some(MeleeConstructorKind::Slash { ref mut damage, .. }) =
-                    melee_constructor.scaled
-                {
-                    if let Ok(level) = skillset.skill_level(Sword(DScaling)) {
-                        *damage *= modifiers.scaled_damage.powi(level.into());
-                    }
-                }
-                if skillset.has_skill(Sword(DSpeed)) {
-                    *forward_speed *= modifiers.forward_speed;
-                }
-                *charge_through = skillset.has_skill(Sword(DChargeThrough));
-            },
-            CharacterAbility::SpinMelee {
-                ref mut is_interruptible,
-                ref mut swing_duration,
-                ref mut energy_cost,
-                ref mut num_spins,
-                ref mut melee_constructor,
-                ..
-            } => {
-                let modifiers = SKILL_MODIFIERS.sword_tree.spin;
-                *is_interruptible = skillset.has_skill(Sword(InterruptingAttacks));
-                if let MeleeConstructorKind::Slash { ref mut damage, .. } = melee_constructor.kind {
-                    if let Ok(level) = skillset.skill_level(Sword(SDamage)) {
-                        *damage *= modifiers.base_damage.powi(level.into());
-                    }
-                }
-                if let Ok(level) = skillset.skill_level(Sword(SSpeed)) {
-                    *swing_duration *= modifiers.swing_duration.powi(level.into());
-                }
-                if let Ok(level) = skillset.skill_level(Sword(SCost)) {
-                    *energy_cost *= modifiers.energy_cost.powi(level.into());
-                }
-                let spin_level = skillset.skill_level(Sword(SSpins)).unwrap_or(0);
-                *num_spins = u32::from(spin_level) * modifiers.num + 1;
-            },
-            _ => {},
         }
     }
 
@@ -1890,6 +1804,18 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
+            CharacterAbility::ComboMelee2 { strikes } => {
+                CharacterState::ComboMelee2(combo_melee2::Data {
+                    static_data: combo_melee2::StaticData {
+                        strikes: strikes.iter().map(|s| s.to_duration()).collect(),
+                        ability_info,
+                    },
+                    exhausted: false,
+                    timer: Duration::default(),
+                    stage_section: None,
+                    completed_strikes: 0,
+                })
+            },
             CharacterAbility::LeapMelee {
                 energy_cost: _,
                 buildup_duration,

@@ -6,7 +6,7 @@ use crate::{
 use common::{
     comp::{
         buff::BuffKind,
-        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill, SwordSkill},
+        skills::{AxeSkill, BowSkill, HammerSkill, SceptreSkill, Skill, StaffSkill},
         AbilityInput, Agent, CharacterAbility, CharacterState, ControlAction, Controller,
         InputKind,
     },
@@ -410,6 +410,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
+    #[allow(unused_variables)]
     pub fn handle_sword_attack(
         &self,
         agent: &mut Agent,
@@ -419,73 +420,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        enum ActionStateTimers {
-            TimerHandleSwordAttack = 0,
-        }
-        if attack_data.in_min_range() && attack_data.angle < 45.0 {
-            controller.inputs.move_dir = Vec2::zero();
-            if self
-                .skill_set
-                .has_skill(Skill::Sword(SwordSkill::UnlockSpin))
-                && agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize]
-                    < 2.0
-                && self.energy.current() > 60.0
-            {
-                controller.push_basic_input(InputKind::Ability(0));
-                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] +=
-                    read_data.dt.0;
-            } else if agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize]
-                > 2.0
-            {
-                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] = 0.0;
-            } else {
-                controller.push_basic_input(InputKind::Primary);
-                agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] +=
-                    read_data.dt.0;
-            }
-        } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-            if self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Separate,
-                None,
-            ) && entities_have_line_of_sight(
-                self.pos,
-                self.body,
-                tgt_data.pos,
-                tgt_data.body,
-                read_data,
-            ) {
-                if agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize]
-                    > 4.0
-                    && attack_data.angle < 45.0
-                {
-                    controller.push_basic_input(InputKind::Secondary);
-                    agent.action_state.timers[ActionStateTimers::TimerHandleSwordAttack as usize] =
-                        0.0;
-                } else {
-                    agent.action_state.timers
-                        [ActionStateTimers::TimerHandleSwordAttack as usize] += read_data.dt.0;
-                }
-            }
-            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                && attack_data.dist_sqrd < 16.0f32.powi(2)
-                && rng.gen::<f32>() < 0.02
-            {
-                controller.push_basic_input(InputKind::Roll);
-            }
-        } else {
-            self.path_toward_target(
-                agent,
-                controller,
-                tgt_data.pos.0,
-                read_data,
-                Path::Partial,
-                None,
-            );
-        }
+        // Rewrite before merging
     }
 
     pub fn handle_bow_attack(

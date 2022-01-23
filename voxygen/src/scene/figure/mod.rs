@@ -1623,6 +1623,115 @@ impl FigureMgr {
                                 ),
                             }
                         },
+                        CharacterState::ComboMelee2(s) => {
+                            if let Some(stage_section) = s.stage_section {
+                                let timer = s.timer.as_secs_f32();
+                                let strike_data = s.static_data.strikes
+                                    [s.completed_strikes % s.static_data.strikes.len()];
+                                let progress = match stage_section {
+                                    StageSection::Buildup => {
+                                        timer / strike_data.buildup_duration.as_secs_f32()
+                                    },
+                                    StageSection::Action => {
+                                        timer / strike_data.swing_duration.as_secs_f32()
+                                    },
+                                    StageSection::Recover => {
+                                        timer / strike_data.recover_duration.as_secs_f32()
+                                    },
+                                    _ => 0.0,
+                                };
+                                match s.completed_strikes % s.static_data.strikes.len() {
+                                    0 => anim::character::AlphaAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            hands,
+                                            Some(stage_section),
+                                            (Some(s.static_data.ability_info), active_tool_spec),
+                                        ),
+                                        progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    ),
+                                    1 => anim::character::SpinAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            hands,
+                                            rel_vel,
+                                            time,
+                                            Some(stage_section),
+                                            Some(s.static_data.ability_info),
+                                        ),
+                                        progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    ),
+                                    _ => anim::character::BetaAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            hands,
+                                            rel_vel.magnitude(),
+                                            time,
+                                            Some(stage_section),
+                                            Some(s.static_data.ability_info),
+                                        ),
+                                        progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    ),
+                                }
+                            } else if physics.in_liquid().is_some() {
+                                anim::character::SwimWieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        active_tool_kind,
+                                        second_tool_kind,
+                                        hands,
+                                        rel_vel.magnitude(),
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else if false {
+                                // Check for sneaking here if we want combo melee 2 to be able to
+                                // sneak when not actively swinging
+                                anim::character::SneakWieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        (active_tool_kind, active_tool_spec),
+                                        second_tool_kind,
+                                        hands,
+                                        rel_vel,
+                                        // TODO: Update to use the quaternion.
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            } else {
+                                anim::character::WieldAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        (active_tool_kind, active_tool_spec),
+                                        second_tool_kind,
+                                        hands,
+                                        // TODO: Update to use the quaternion.
+                                        ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
+                                        look_dir,
+                                        rel_vel,
+                                        time,
+                                    ),
+                                    state.state_time,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
+                            }
+                        },
                         CharacterState::BasicBlock(s) => {
                             let stage_time = s.timer.as_secs_f32();
                             let stage_progress = match s.stage_section {

@@ -399,11 +399,11 @@ impl MeleeConstructor {
     }
 
     #[must_use]
-    pub fn adjusted_by_stats(mut self, stats: Stats, regen: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         self.range *= stats.range;
-        self.kind = self.kind.adjusted_by_stats(stats, regen);
+        self.kind = self.kind.adjusted_by_stats(stats);
         if let Some(ref mut scaled) = &mut self.scaled {
-            *scaled = scaled.adjusted_by_stats(stats, regen);
+            *scaled = scaled.adjusted_by_stats(stats);
         }
         if let Some(CombatEffect::Buff(CombatBuff { strength, .. })) = &mut self.damage_effect {
             *strength *= stats.buff_strength;
@@ -447,38 +447,35 @@ pub enum MeleeConstructorKind {
 
 impl MeleeConstructorKind {
     #[must_use]
-    pub fn adjusted_by_stats(mut self, stats: Stats, regen: f32) -> Self {
+    pub fn adjusted_by_stats(mut self, stats: Stats) -> Self {
         use MeleeConstructorKind::*;
         match self {
             Slash {
                 ref mut damage,
                 ref mut poise,
                 knockback: _,
-                ref mut energy_regen,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
-                *energy_regen *= regen;
             },
             Stab {
                 ref mut damage,
                 ref mut poise,
                 knockback: _,
-                ref mut energy_regen,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
-                *energy_regen *= regen;
             },
             Bash {
                 ref mut damage,
                 ref mut poise,
                 knockback: _,
-                ref mut energy_regen,
+                energy_regen: _,
             } => {
                 *damage *= stats.power;
                 *poise *= stats.effect_power;
-                *energy_regen *= regen;
             },
             NecroticVortex {
                 ref mut damage,

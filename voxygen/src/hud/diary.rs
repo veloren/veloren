@@ -1536,8 +1536,6 @@ impl<'a> Diary<'a> {
             skills_bot_r,
         );
 
-        // Skill icons and buttons
-        use skills::SwordSkill::*;
         // Sword
         Image::new(animate_by_pulse(
             &self
@@ -1549,126 +1547,7 @@ impl<'a> Diary<'a> {
         .middle_of(state.ids.content_align)
         .color(Some(Color::Rgba(1.0, 1.0, 1.0, 1.0)))
         .set(state.ids.sword_render, ui);
-        use PositionSpecifier::MidTopWithMarginOn;
-        let skill_buttons = &[
-            // Top Left skills
-            //        5 1 6
-            //        3 0 4
-            //        8 2 7
-            SkillIcon::Descriptive {
-                title: "hud-skill-sw_trip_str_title",
-                desc: "hud-skill-sw_trip_str",
-                image: self.imgs.twohsword_m1,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[0], 3.0),
-                id: state.ids.skill_sword_combo_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsCombo),
-                image: self.imgs.physical_combo_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[1], 3.0),
-                id: state.ids.skill_sword_combo_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[2], 3.0),
-                id: state.ids.skill_sword_combo_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[3], 3.0),
-                id: state.ids.skill_sword_combo_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(TsRegen),
-                image: self.imgs.physical_energy_regen_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_l[4], 3.0),
-                id: state.ids.skill_sword_combo_4,
-            },
-            // Top right skills
-            SkillIcon::Descriptive {
-                title: "hud-skill-sw_dash_title",
-                desc: "hud-skill-sw_dash",
-                image: self.imgs.twohsword_m2,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[0], 3.0),
-                id: state.ids.skill_sword_dash_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[1], 3.0),
-                id: state.ids.skill_sword_dash_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DDrain),
-                image: self.imgs.physical_energy_drain_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[2], 3.0),
-                id: state.ids.skill_sword_dash_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[3], 3.0),
-                id: state.ids.skill_sword_dash_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DSpeed),
-                image: self.imgs.physical_speed_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[4], 3.0),
-                id: state.ids.skill_sword_dash_4,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DChargeThrough),
-                image: self.imgs.physical_distance_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[5], 3.0),
-                id: state.ids.skill_sword_dash_5,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(DScaling),
-                image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.ids.skills_top_r[6], 3.0),
-                id: state.ids.skill_sword_dash_6,
-            },
-            // Bottom left skills
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(UnlockSpin),
-                image: self.imgs.sword_whirlwind,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[0], 3.0),
-                id: state.ids.skill_sword_spin_0,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SDamage),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[1], 3.0),
-                id: state.ids.skill_sword_spin_1,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SSpeed),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[2], 3.0),
-                id: state.ids.skill_sword_spin_2,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SCost),
-                image: self.imgs.physical_cost_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[3], 3.0),
-                id: state.ids.skill_sword_spin_3,
-            },
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(SSpins),
-                image: self.imgs.physical_amount_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_l[4], 3.0),
-                id: state.ids.skill_sword_spin_4,
-            },
-            // Bottom right skills
-            SkillIcon::Unlockable {
-                skill: Skill::Sword(InterruptingAttacks),
-                image: self.imgs.physical_damage_skill,
-                position: MidTopWithMarginOn(state.ids.skills_bot_r[0], 3.0),
-                id: state.ids.skill_sword_passive_0,
-            },
-        ];
+        let skill_buttons = &[];
 
         self.handle_skill_buttons(skill_buttons, ui, &mut events, diary_tooltip);
         events
@@ -2844,85 +2723,7 @@ fn unlock_skill_strings(group: SkillGroupKind) -> SkillStrings<'static> {
     }
 }
 
-fn sword_skill_strings(skill: SwordSkill) -> SkillStrings<'static> {
-    let modifiers = SKILL_MODIFIERS.sword_tree;
-    match skill {
-        // triple strike
-        SwordSkill::TsCombo => SkillStrings::plain(
-            "hud-skill-sw_trip_str_combo_title",
-            "hud-skill-sw_trip_str_combo",
-        ),
-        SwordSkill::TsDamage => SkillStrings::plain(
-            "hud-skill-sw_trip_str_dmg_title",
-            "hud-skill-sw_trip_str_dmg",
-        ),
-        SwordSkill::TsSpeed => {
-            SkillStrings::plain("hud-skill-sw_trip_str_sp_title", "hud-skill-sw_trip_str_sp")
-        },
-        SwordSkill::TsRegen => SkillStrings::plain(
-            "hud-skill-sw_trip_str_reg_title",
-            "hud-skill-sw_trip_str_reg",
-        ),
-        // dash
-        SwordSkill::DDamage => SkillStrings::with_mult(
-            "hud-skill-sw_dash_dmg_title",
-            "hud-skill-sw_dash_dmg",
-            modifiers.dash.base_damage,
-        ),
-        SwordSkill::DDrain => SkillStrings::with_mult(
-            "hud-skill-sw_dash_drain_title",
-            "hud-skill-sw_dash_drain",
-            modifiers.dash.energy_drain,
-        ),
-        SwordSkill::DCost => SkillStrings::with_mult(
-            "hud-skill-sw_dash_cost_title",
-            "hud-skill-sw_dash_cost",
-            modifiers.dash.energy_cost,
-        ),
-        SwordSkill::DSpeed => SkillStrings::with_mult(
-            "hud-skill-sw_dash_speed_title",
-            "hud-skill-sw_dash_speed",
-            modifiers.dash.forward_speed,
-        ),
-        SwordSkill::DChargeThrough => SkillStrings::plain(
-            "hud-skill-sw_dash_charge_through_title",
-            "hud-skill-sw_dash_charge_through",
-        ),
-        SwordSkill::DScaling => SkillStrings::with_mult(
-            "hud-skill-sw_dash_scale_title",
-            "hud-skill-sw_dash_scale",
-            modifiers.dash.scaled_damage,
-        ),
-        // spin
-        SwordSkill::UnlockSpin => {
-            SkillStrings::plain("hud-skill-sw_spin_title", "hud-skill-sw_spin")
-        },
-        SwordSkill::SDamage => SkillStrings::with_mult(
-            "hud-skill-sw_spin_dmg_title",
-            "hud-skill-sw_spin_dmg",
-            modifiers.spin.base_damage,
-        ),
-        SwordSkill::SSpeed => SkillStrings::with_mult(
-            "hud-skill-sw_spin_spd_title",
-            "hud-skill-sw_spin_spd",
-            modifiers.spin.swing_duration,
-        ),
-        SwordSkill::SCost => SkillStrings::with_mult(
-            "hud-skill-sw_spin_cost_title",
-            "hud-skill-sw_spin_cost",
-            modifiers.spin.energy_cost,
-        ),
-        SwordSkill::SSpins => SkillStrings::with_const(
-            "hud-skill-sw_spin_spins_title",
-            "hud-skill-sw_spin_spins",
-            modifiers.spin.num,
-        ),
-        // independent skills
-        SwordSkill::InterruptingAttacks => {
-            SkillStrings::plain("hud-skill-sw_interrupt_title", "hud-skill-sw_interrupt")
-        },
-    }
-}
+fn sword_skill_strings(_skill: SwordSkill) -> SkillStrings<'static> { SkillStrings::plain("", "") }
 
 fn axe_skill_strings(skill: AxeSkill) -> SkillStrings<'static> {
     let modifiers = SKILL_MODIFIERS.axe_tree;

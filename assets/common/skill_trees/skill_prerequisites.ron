@@ -1,8 +1,4 @@
 ({
-    Sword(SDamage): {Sword(UnlockSpin): 1},
-    Sword(SSpeed): {Sword(UnlockSpin): 1},
-    Sword(SCost): {Sword(UnlockSpin): 1},
-    Sword(SSpins): {Sword(UnlockSpin): 1},
     Axe(LDamage): {Axe(UnlockLeap): 1},
     Axe(LKnockback): {Axe(UnlockLeap): 1},
     Axe(LCost): {Axe(UnlockLeap): 1},

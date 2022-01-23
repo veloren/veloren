@@ -144,7 +144,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        handle_state_interrupt(data, &mut update, false);
+        handle_dodge_input(data, &mut update);
 
         if matches!(update.character, CharacterState::Roll(_)) {
             // Remove potion/saturation effect if left the use item state early by rolling
