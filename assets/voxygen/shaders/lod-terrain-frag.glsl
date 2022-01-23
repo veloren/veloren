@@ -565,12 +565,12 @@ void main() {
     const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
     const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
     float cam_alt = alt_at(cam_pos.xy);
-    float fluid_alt = medium.x == 1u ? max(cam_alt + 1, floor(shadow_alt)) : view_distance.w;
+    float fluid_alt = medium.x == MEDIUM_WATER ? max(cam_alt + 1, floor(shadow_alt)) : view_distance.w;
     float R_s = (f_pos.z < my_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
 
     vec3 emitted_light, reflected_light;
 
-    vec3 mu = medium.x == 1u/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
+    vec3 mu = medium.x == MEDIUM_WATER/* && f_pos.z <= fluid_alt*/ ? MU_WATER : vec3(0.0);
     // NOTE: Default intersection point is camera position, meaning if we fail to intersect we assume the whole camera is in water.
     vec3 cam_attenuation = compute_attenuation_point(cam_pos.xyz, view_dir, mu, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos);
     // Use f_norm here for better shadows.

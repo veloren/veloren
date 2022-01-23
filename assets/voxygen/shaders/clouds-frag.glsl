@@ -73,7 +73,7 @@ void main() {
     float cloud_blend = 1.0;
     if (color.a < 1.0) {
         cloud_blend = 1.0 - color.a;
-        dist = 50000;
+        dist = DIST_CAP;
     }
     color.rgb = mix(color.rgb, get_cloud_color(color.rgb, dir, cam_pos.xyz, time_of_day.x, dist, 1.0), cloud_blend);
 

@@ -492,7 +492,7 @@ vec3 compute_attenuation(vec3 wpos, vec3 ray_dir, vec3 mu, float surface_alt, ve
     return vec3(1.0);
 #elif (LIGHTING_TRANSPORT_MODE == LIGHTING_TRANSPORT_MODE_RADIANCE)
     #if (LIGHTING_TYPE & LIGHTING_TYPE_TRANSMISSION) != 0
-    return vec3(1.0);
+        return vec3(1.0);
     #else
     // return vec3(1.0);
     /*if (mu == vec3(0.0)) {

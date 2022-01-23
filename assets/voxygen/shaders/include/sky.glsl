@@ -418,14 +418,6 @@ float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, ve
     return rel_luminance(emitted_light + reflected_light);//rel_luminance(emitted_light + reflected_light);//sun_chroma + moon_chroma + PERSISTENT_AMBIANCE;
 }
 
-float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, vec3 voxel_norm, float voxel_lighting, out vec3 emitted_light, out vec3 reflected_light) {
-    return get_sun_diffuse2(sun_info, moon_info, norm, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, voxel_norm, voxel_lighting, emitted_light, reflected_light);
-}
-
-float get_sun_diffuse2(DirectionalLight sun_info, DirectionalLight moon_info, vec3 norm, vec3 dir, vec3 k_a, vec3 k_d, vec3 k_s, float alpha, out vec3 emitted_light, out vec3 reflected_light) {
-    return get_sun_diffuse2(sun_info, moon_info, norm, dir, vec3(0.0), vec3(0.0), vec3(1.0), 0.0, k_a, k_d, k_s, alpha, norm, 1.0, emitted_light, reflected_light);
-}
-
 // This has been extracted into a function to allow quick exit when detecting a star.
 float is_star_at(vec3 dir) {
 
@@ -560,7 +552,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
         vec3 sky_color = get_sky_light(dir, time_of_day, true);
     #else
         vec3 sky_color;
-        if (medium.x == 1) {
+        if (medium.x == MEDIUM_WATER) {
             sky_color = get_sky_light(dir, time_of_day, true);
         } else {
             vec3 star_dir = normalize(sun_dir.xyz * dir.z + cross(sun_dir.xyz, vec3(0, 1, 0)) * dir.x + vec3(0, 1, 0) * dir.y);
@@ -585,7 +577,7 @@ float fog(vec3 f_pos, vec3 focus_pos, uint medium) {
     // float min_fog = 0.5;
     // float max_fog = 1.0;
 
-    // if (medium == 1u) {
+    // if (medium == MEDIUM_WATER) {
     //     mist_radius = UNDERWATER_MIST_DIST;
     //     min_fog = 0.0;
     // }

@@ -44,6 +44,13 @@
 #define LIGHTING_DISTRIBUTION_BECKMANN 0
 #define LIGHTING_DISTRIBUTION_TROWBRIDGE 1
 
+#define MEDIUM_AIR 0
+#define MEDIUM_WATER 1
+
+// An arbitrary value that represents a very far distance (at least as far as the player should be able to see) without
+// being too far that we end up with precision issues (used in clouds and elsewhere).
+#define DIST_CAP 50000
+
 /* Constants expected to be defined automatically by configuration: */
 
 /*
