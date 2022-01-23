@@ -50,7 +50,7 @@ impl assets::Asset for LoadoutSpec {
     const EXTENSION: &'static str = "ron";
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum ItemSpec {
     /// One specific item.
     /// Example:
