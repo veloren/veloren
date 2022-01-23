@@ -32,7 +32,6 @@ use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
-use rand::Rng;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
@@ -239,8 +238,7 @@ impl<'a> System<'a> for Sys {
                     "Chunk spawned entity that wasn't nearby",
                 );
 
-                let rng = &mut rand::thread_rng();
-                let data = NpcData::from_entity_info(entity, rng);
+                let data = NpcData::from_entity_info(entity);
                 match data {
                     NpcData::Waypoint(pos) => {
                         server_emitter.emit(ServerEvent::CreateWaypoint(pos));
@@ -403,7 +401,7 @@ pub enum NpcData {
 }
 
 impl NpcData {
-    pub fn from_entity_info(entity: EntityInfo, _loadout_rng: &mut impl Rng) -> Self {
+    pub fn from_entity_info(entity: EntityInfo) -> Self {
         let EntityInfo {
             // flags
             is_waypoint,

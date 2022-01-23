@@ -1,7 +1,3 @@
-// TODO:
-// Reviewers, bonk me if I forgot to remove every thread_rng() here.
-// Rng should be passed outside.
-
 use crate::{
     assets::{self, AssetExt, Error},
     comp::{
@@ -223,14 +219,34 @@ impl EntityInfo {
     /// Helper function for applying config from asset
     #[must_use]
     pub fn with_asset_expect(self, asset_specifier: &str) -> Self {
+        let loadout_rng = rand::thread_rng();
+
+        self.with_asset_expect_and_rng(asset_specifier, loadout_rng)
+    }
+
+    /// Helper function for applying config from asset
+    /// with specified Rng for managing loadout.
+    #[must_use]
+    pub fn with_asset_expect_and_rng<R>(self, asset_specifier: &str, loadout_rng: R) -> Self
+    where
+        R: rand::Rng,
+    {
         let config = EntityConfig::load_expect_cloned(asset_specifier);
 
-        self.with_entity_config(config, Some(asset_specifier))
+        self.with_entity_config(config, Some(asset_specifier), loadout_rng)
     }
 
     /// Evaluate and apply EntityConfig
     #[must_use]
-    pub fn with_entity_config(mut self, config: EntityConfig, config_asset: Option<&str>) -> Self {
+    pub fn with_entity_config<R>(
+        mut self,
+        config: EntityConfig,
+        config_asset: Option<&str>,
+        loadout_rng: R,
+    ) -> Self
+    where
+        R: rand::Rng,
+    {
         let EntityConfig {
             name,
             body,
@@ -273,7 +289,7 @@ impl EntityInfo {
         self = self.with_loot_drop(loot);
 
         // NOTE: set loadout after body, as it's used with default equipement
-        self = self.with_loadout(loadout, config_asset);
+        self = self.with_loadout(loadout, config_asset, loadout_rng);
 
         for field in meta {
             match field {
@@ -289,24 +305,32 @@ impl EntityInfo {
     #[must_use]
     /// Return EntityInfo with LoadoutBuilder overwritten
     // NOTE: helpder function, think twice before exposing it
-    fn with_loadout(mut self, loadout: LoadoutKind, config_asset: Option<&str>) -> Self {
+    fn with_loadout<R>(
+        mut self,
+        loadout: LoadoutKind,
+        config_asset: Option<&str>,
+        mut rng: R,
+    ) -> Self
+    where
+        R: rand::Rng,
+    {
         match loadout {
             LoadoutKind::FromBody => {
                 self = self.with_default_equip();
             },
             LoadoutKind::Asset(loadout) => {
-                self = self.with_loadout_asset(loadout);
+                self = self.with_loadout_asset(loadout, &mut rng);
             },
             LoadoutKind::Hands(hands) => {
-                self = self.with_hands(hands, config_asset);
+                self = self.with_hands(hands, config_asset, &mut rng);
             },
             LoadoutKind::Extended {
                 hands,
                 base_asset,
                 inventory,
             } => {
-                self = self.with_loadout_asset(base_asset);
-                self = self.with_hands(hands, config_asset);
+                self = self.with_loadout_asset(base_asset, &mut rng);
+                self = self.with_hands(hands, config_asset, &mut rng);
                 self.inventory = inventory
                     .into_iter()
                     .map(|(num, i)| (num, Item::new_from_asset_expect(&i)))
@@ -330,20 +354,21 @@ impl EntityInfo {
     #[must_use]
     /// Return EntityInfo with LoadoutBuilder overwritten
     // NOTE: helpder function, think twice before exposing it
-    fn with_loadout_asset(mut self, loadout: LoadoutAsset) -> Self {
+    fn with_loadout_asset<R>(mut self, loadout: LoadoutAsset, rng: &mut R) -> Self
+    where
+        R: rand::Rng,
+    {
         match loadout {
             LoadoutAsset::Loadout(asset) => {
-                let mut rng = rand::thread_rng();
-                let loadout = LoadoutBuilder::from_asset_expect(&asset, Some(&mut rng));
+                let loadout = LoadoutBuilder::from_asset_expect(&asset, Some(rng));
                 self.loadout = loadout;
             },
             LoadoutAsset::Choice(assets) => {
-                let mut rng = rand::thread_rng();
                 let (_p, asset) = assets
-                    .choose_weighted(&mut rng, |(p, _asset)| *p)
+                    .choose_weighted(rng, |(p, _asset)| *p)
                     .expect("rng error");
 
-                let loadout = LoadoutBuilder::from_asset_expect(asset, Some(&mut rng));
+                let loadout = LoadoutBuilder::from_asset_expect(asset, Some(rng));
                 self.loadout = loadout;
             },
         }
@@ -354,9 +379,10 @@ impl EntityInfo {
     #[must_use]
     /// Return EntityInfo with weapons applied to LoadoutBuilder
     // NOTE: helpder function, think twice before exposing it
-    fn with_hands(mut self, hands: Hands, config_asset: Option<&str>) -> Self {
-        let rng = &mut rand::thread_rng();
-
+    fn with_hands<R>(mut self, hands: Hands, config_asset: Option<&str>, rng: &mut R) -> Self
+    where
+        R: rand::Rng,
+    {
         match hands {
             Hands::TwoHanded(main_tool) => {
                 let tool = main_tool.try_to_item(config_asset.unwrap_or("??"), rng);

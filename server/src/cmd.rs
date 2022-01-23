@@ -621,12 +621,16 @@ fn handle_make_npc(
         Err(_err) => return Err(format!("Failed to load entity config: {}", entity_config)),
     };
 
-    let rng = &mut rand::thread_rng();
     for _ in 0..number {
         let comp::Pos(pos) = position(server, target, "target")?;
-        let entity_info =
-            EntityInfo::at(pos).with_entity_config(config.clone(), Some(&entity_config));
-        match NpcData::from_entity_info(entity_info, rng) {
+        let loadout_rng = rand::thread_rng();
+        let entity_info = EntityInfo::at(pos).with_entity_config(
+            config.clone(),
+            Some(&entity_config),
+            loadout_rng,
+        );
+
+        match NpcData::from_entity_info(entity_info) {
             NpcData::Waypoint(_) => {
                 return Err("Waypoint spawning is not implemented".to_owned());
             },
