@@ -18,9 +18,7 @@ use common::{
     comp::{
         self, agent, bird_medium,
         inventory::{
-            loadout_builder::{make_potion_bag, LoadoutBuilder},
-            slot::ArmorSlot,
-            trade_pricing::TradePricing,
+            loadout_builder::LoadoutBuilder, slot::ArmorSlot, trade_pricing::TradePricing,
         },
         quadruped_small, Item,
     },
@@ -1012,8 +1010,7 @@ fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rn
             .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
             .with_asset_expect("common.entity.village.merchant"),
-        _ => entity
-            .with_asset_expect("common.entity.village.villager"),
+        _ => entity.with_asset_expect("common.entity.village.villager"),
     }
 }
 
