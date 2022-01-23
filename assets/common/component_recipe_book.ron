@@ -2369,10 +2369,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.bow",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: None,
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -2477,10 +2477,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.composite",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.sharp_fang"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -2585,10 +2585,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.greatbow",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.large_horn"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -2693,10 +2693,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.longbow",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.long_tusk"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -2801,10 +2801,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.ornate",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.elegant_crest"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -2909,10 +2909,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.shortbow",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.claw"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -3017,10 +3017,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.bow.warbow",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.strong_pincer"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.sticky_thread"), 3),
@@ -3126,10 +3126,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.brand",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.claw"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3234,10 +3234,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.large_horn"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3342,10 +3342,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.longpole",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.long_tusk"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3450,10 +3450,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.ornate",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.elegant_crest"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3558,10 +3558,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.pole",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.sharp_fang"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3666,10 +3666,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.rod",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.strong_pincer"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3774,10 +3774,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.staff.staff",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: None,
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3883,10 +3883,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.long_tusk"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -3991,10 +3991,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.cane",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.strong_pincer"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -4099,10 +4099,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.crook",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.sharp_fang"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -4207,10 +4207,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.claw"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -4315,10 +4315,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.large_horn"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -4423,10 +4423,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: Some((Item("common.items.crafting_ing.animal_misc.elegant_crest"), 50)),
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
@@ -4531,10 +4531,10 @@
         output: ItemComponents(
             item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
             components: [
-                "common.items.log.frostwood"
+                "common.items.log.eldwood"
             ],
         ),
-        material: (Item("common.items.log.frostwood"), 5),
+        material: (Item("common.items.log.eldwood"), 5),
         modifier: None,
         additional_inputs: [
             (Item("common.items.crafting_ing.leather.leather_strips"), 2),
