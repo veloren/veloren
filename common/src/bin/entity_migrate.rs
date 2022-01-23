@@ -272,7 +272,7 @@ fn convert_loop(from: &str, to: &str, old_ver: &str, new_ver: &str) {
     let root = Path::new(from);
     let files = Walk::Dir {
         path: Path::new("").to_owned(),
-        content: walk_tree(&root, &root).unwrap(),
+        content: walk_tree(root, root).unwrap(),
     };
     if old_ver == "v1" && new_ver == "v2" {
         walk_with_migrate::<v1::EntityConfig, v2::EntityConfig>(

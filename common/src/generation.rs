@@ -185,7 +185,7 @@ pub struct EntityInfo {
     pub loot: LootSpec<String>,
     // Loadout
     pub inventory: Vec<(u32, Item)>,
-    pub loadout: Option<LoadoutBuilder>,
+    pub loadout: LoadoutBuilder,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
     // Skills
     pub skillset_asset: Option<String>,
@@ -212,7 +212,7 @@ impl EntityInfo {
             scale: 1.0,
             loot: LootSpec::Nothing,
             inventory: vec![],
-            loadout: None,
+            loadout: LoadoutBuilder::empty(),
             make_loadout: None,
             skillset_asset: None,
             pet: None,
@@ -322,7 +322,7 @@ impl EntityInfo {
     // NOTE: helpder function, think twice before exposing it
     fn with_default_equip(mut self) -> Self {
         let loadout_builder = LoadoutBuilder::from_default(&self.body);
-        self.loadout = Some(loadout_builder);
+        self.loadout = loadout_builder;
 
         self
     }
@@ -335,7 +335,7 @@ impl EntityInfo {
             LoadoutAsset::Loadout(asset) => {
                 let mut rng = rand::thread_rng();
                 let loadout = LoadoutBuilder::from_asset_expect(&asset, Some(&mut rng));
-                self.loadout = Some(loadout);
+                self.loadout = loadout;
             },
             LoadoutAsset::Choice(assets) => {
                 let mut rng = rand::thread_rng();
@@ -343,8 +343,8 @@ impl EntityInfo {
                     .choose_weighted(&mut rng, |(p, _asset)| *p)
                     .expect("rng error");
 
-                let loadout = LoadoutBuilder::from_asset_expect(&asset, Some(&mut rng));
-                self.loadout = Some(loadout);
+                let loadout = LoadoutBuilder::from_asset_expect(asset, Some(&mut rng));
+                self.loadout = loadout;
             },
         }
 
@@ -352,20 +352,16 @@ impl EntityInfo {
     }
 
     #[must_use]
-    /// Return EntityInfo, create new loadout if needed
+    /// Return EntityInfo with weapons applied to LoadoutBuilder
     // NOTE: helpder function, think twice before exposing it
     fn with_hands(mut self, hands: Hands, config_asset: Option<&str>) -> Self {
         let rng = &mut rand::thread_rng();
-
-        if self.loadout.is_none() {
-            self.loadout = Some(LoadoutBuilder::empty());
-        }
 
         match hands {
             Hands::TwoHanded(main_tool) => {
                 let tool = main_tool.try_to_item(config_asset.unwrap_or("??"), rng);
                 if let Some(tool) = tool {
-                    self.loadout = self.loadout.map(|l| l.active_mainhand(Some(tool)));
+                    self.loadout = self.loadout.active_mainhand(Some(tool));
                 }
             },
             Hands::Paired(tool) => {
@@ -375,20 +371,21 @@ impl EntityInfo {
                 let second_tool = tool.try_to_item(config_asset.unwrap_or("??"), rng);
 
                 if let Some(main_tool) = main_tool {
-                    self.loadout = self.loadout.map(|l| l.active_mainhand(Some(main_tool)));
+                    self.loadout = self.loadout.active_mainhand(Some(main_tool));
                 }
                 if let Some(second_tool) = second_tool {
-                    self.loadout = self.loadout.map(|l| l.active_offhand(Some(second_tool)));
+                    self.loadout = self.loadout.active_offhand(Some(second_tool));
                 }
             },
             Hands::Mix { mainhand, offhand } => {
                 let main_tool = mainhand.try_to_item(config_asset.unwrap_or("??"), rng);
                 let second_tool = offhand.try_to_item(config_asset.unwrap_or("??"), rng);
+
                 if let Some(main_tool) = main_tool {
-                    self.loadout = self.loadout.map(|l| l.active_mainhand(Some(main_tool)));
+                    self.loadout = self.loadout.active_mainhand(Some(main_tool));
                 }
                 if let Some(second_tool) = second_tool {
-                    self.loadout = self.loadout.map(|l| l.active_offhand(Some(second_tool)));
+                    self.loadout = self.loadout.active_offhand(Some(second_tool));
                 }
             },
         }

@@ -631,7 +631,7 @@ fn handle_make_npc(
                 return Err("Waypoint spawning is not implemented".to_owned());
             },
             NpcData::Data {
-                loadout,
+                inventory,
                 pos,
                 stats,
                 skill_set,
@@ -643,8 +643,6 @@ fn handle_make_npc(
                 scale,
                 loot,
             } => {
-                let inventory = Inventory::new_with_loadout(loadout);
-
                 let mut entity_builder = server
                     .state
                     .create_npc(pos, stats, skill_set, health, poise, inventory, body)
