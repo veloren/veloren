@@ -186,7 +186,7 @@ impl Debug {
             if let Some(model) = renderer.create_model(&shape.mesh()) {
                 let locals = renderer.create_debug_bound_locals(&[DebugLocals {
                     pos: [0.0; 4],
-                    color: [1.0, 0.0, 0.0, 1.0],
+                    color: [1.0 * 1.0, 0.0, 0.0, 0.0],
                     ori: [0.0, 0.0, 0.0, 1.0],
                 }]);
                 self.models.insert(id, (model, locals));
@@ -202,7 +202,7 @@ impl Debug {
                 let lc = srgba_to_linear(color.into());
                 let new_locals = [DebugLocals {
                     pos,
-                    color: [lc.r, lc.g, lc.b, lc.a],
+                    color: [lc.a * lc.r, lc.a * lc.g, lc.a * lc.b, 0.0],
                     ori,
                 }];
                 renderer.update_consts(locals, &new_locals);
