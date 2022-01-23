@@ -1,0 +1,125 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Bulgarian (Bulgaria)
+(
+    string_map: {
+        // Texts used in multiple locations with the same formatting
+        "common.username": "username",
+        "common.singleplayer": "Самостоятелна Игра",
+        "common.multiplayer": "Multiplayer",
+        "common.servers": "Сървъри",
+        "common.quit": "Напусни",
+        "common.settings": "Настройки",
+        "common.languages": "Езици",
+        "common.interface": "Интерфейс",
+        "common.gameplay": "Gameplay",
+        "common.controls": "Контроли",
+        "common.video": "Graphics",
+        "common.sound": "Звук",
+        "common.chat": "Chat",
+        "common.resume": "Resume",
+        "common.characters": "Герои",
+        "common.close": "Затваряне",
+        "common.yes": "Да",
+        "common.no": "Не",
+        "common.back": "Назад",
+        "common.create": "Създаване",
+        "common.okay": "Okay",
+        "common.add": "Добави",
+        "common.accept": "Приемане",
+        "common.decline": "Отказване",
+        "common.disclaimer": "Disclaimer",
+        "common.cancel": "Отмяна",
+        "common.none": "None",
+        "common.error": "Грешка",
+        "common.fatal_error": "Критична Грешка",
+        "common.you": "Вие",
+        "common.automatic": "Автоматично",
+        "common.random": "Случаен",
+        "common.empty": "Празно",
+        "common.confirm": "Потвърди",
+
+        // Settings Window title
+        "common.interface_settings": "Настройки на интерфейса",
+        "common.gameplay_settings": "Настройки за игра",
+        "common.controls_settings": "Настройки на контролите",
+        "common.video_settings": "Графични настройки",
+        "common.sound_settings": "Настройки на Звука",
+        "common.language_settings": "Настройки на Езика",
+        "common.chat_settings": "Настройки на чата",
+
+        // Message when connection to the server is lost
+        "common.connection_lost": r#"Connection lost!
+Did the server restart?
+Is the client up to date?"#,
+
+
+        "common.species.orc": "Орк",
+        "common.species.human": "Човек",
+        "common.species.dwarf": "Джудже",
+        "common.species.elf": "Елф",
+        "common.species.undead": "Undead",
+        "common.species.danari": "Danari",
+
+        "common.weapons.axe": "Брадва",
+        "common.weapons.dagger": "Dagger",
+        "common.weapons.greatsword": "Greatsword",
+        "common.weapons.shortswords": "Shortswords",
+        "common.weapons.sword": "Меч",
+        "common.weapons.staff": "Огнен жезъл",
+        "common.weapons.bow": "Лък",
+        "common.weapons.hammer": "Чук",
+        "common.weapons.general": "General Combat",
+        "common.weapons.sceptre": "Healing Sceptre",
+        "common.weapons.shield": "Шит",
+        "common.weapons.spear": "Копие",
+        "common.weapons.hammer_simple": "Simple Hammer",
+        "common.weapons.sword_simple": "Simple Sword",
+        "common.weapons.staff_simple": "Simple Staff",
+        "common.weapons.axe_simple": "Simple Axe",
+        "common.weapons.bow_simple": "Simple Bow",
+        "common.weapons.unique": "Unique",
+        "common.tool.debug": "Debug",
+        "common.tool.farming": "Farming Tool",
+        "common.tool.pick": "Кирка",
+        "common.tool.mining": "Mining",
+        "common.kind.modular_component": "Modular Component",
+        "common.kind.glider": "Glider",
+        "common.kind.consumable": "Consumable",
+        "common.kind.throwable": "Може да бъде хвърлен",
+        "common.kind.utility": "Utility",
+        "common.kind.ingredient": "Съставка",
+        "common.kind.lantern": "Фенер",
+        "common.hands.one": "One-Handed",
+        "common.hands.two": "Two-Handed",
+
+        "common.rand_appearance": "Random appearance",
+        "common.rand_name": "Произволно име",
+
+        "common.stats.combat_rating": "CR",
+        "common.stats.power": "Power",
+        "common.stats.speed": "Speed",
+        "common.stats.poise": "Poise",
+        "common.stats.crit_chance": "Crit Chance",
+        "common.stats.crit_mult": "Crit Mult",
+        "common.stats.armor": "Броня",
+        "common.stats.poise_res":"Stun Res",
+        "common.stats.energy_max": "Max Energy",
+        "common.stats.energy_reward": "Energy Reward",
+        "common.stats.crit_power": "Crit Power",
+        "common.stats.stealth": "Stealth",
+        "common.stats.slots": "Slots",
+
+        "common.material.metal": "Метал",
+        "common.material.wood": "Дърво",
+        "common.material.stone": "Камък",
+        "common.material.cloth": "Плат",
+        "common.material.hide": "Кожа",
+
+        "common.sprite.chest": "Chest",
+    },
+
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,41 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Bulgarian (Bulgaria)
+(
+    string_map: {
+        "hud.crafting": "Crafting",
+        "hud.crafting.recipes": "Рецепти",
+        "hud.crafting.ingredients": "Ingredients:",
+        "hud.crafting.craft": "Craft",
+        "hud.crafting.tool_cata": "Requires:",
+        // Crafting Stations
+        "hud.crafting.req_crafting_station": "Requires:",
+        "hud.crafting.anvil": "Наковалня",
+        "hud.crafting.cauldron": "Cauldron",
+        "hud.crafting.cooking_pot": "Cooking Pot",
+        "hud.crafting.crafting_bench": "Crafting Bench",
+        "hud.crafting.forge": "Forge",
+        "hud.crafting.loom": "Loom",
+        "hud.crafting.spinning_wheel": "Spinning Wheel",
+        "hud.crafting.tanning_rack": "Tanning Rack",
+        "hud.crafting.salvaging_station": "Salvaging Bench",
+        // Tabs
+        "hud.crafting.tabs.all": "All",
+        "hud.crafting.tabs.armor": "Armor",
+        "hud.crafting.tabs.dismantle": "Dismantle",
+        "hud.crafting.tabs.food": "Храна",
+        "hud.crafting.tabs.glider": "Gliders",
+        "hud.crafting.tabs.potion": "Potions",
+        "hud.crafting.tabs.tool": "Иструменти",
+        "hud.crafting.tabs.utility": "Utility",
+        "hud.crafting.tabs.weapon": "Оръжия",
+        "hud.crafting.tabs.bag": "Bags",
+        "hud.crafting.tabs.processed_material": "Материали",
+        "hud.crafting.dismantle_title": "Dismantling",
+        "hud.crafting.dismantle_explanation" : "Hover items in your bag to see what\nyou can salvage.\n\nDouble-Click them to start dismantling.",
+    },
+
+
+    vector_map: {
+    }
+)

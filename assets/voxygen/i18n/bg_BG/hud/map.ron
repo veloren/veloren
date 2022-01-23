@@ -1,0 +1,39 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Bulgarian (Bulgaria)
+(
+    string_map: {
+        // Map and Questlog
+        "hud.map.map_title": "Карта",
+        "hud.map.qlog_title": "Мисии",
+        "hud.map.topo_map": "Topographic",
+        "hud.map.difficulty": "Трудност",
+        "hud.map.towns": "Градове",
+        "hud.map.castles": "Замъци",
+        "hud.map.dungeons": "Dungeons",
+        "hud.map.caves": "Пещери",
+        "hud.map.cave": "Пещера",
+        "hud.map.peaks": "Планини",
+        "hud.map.biomes": "Biomes",
+        "hud.map.voxel_map": "Voxel map",
+        "hud.map.trees": "Гигантски дървета",
+        "hud.map.tree": "Гигантско дърво",
+        "hud.map.town": "Град",
+        "hud.map.castle": "Замък",
+        "hud.map.dungeon": "Dungeon",
+        "hud.map.difficulty_dungeon": "Dungeon\n\nDifficulty: {difficulty}",
+        "hud.map.drag": "Drag",
+        "hud.map.zoom": "Zoom",
+        "hud.map.mid_click": "Set Waypoint",
+        "hud.map.recenter": "Recenter",
+        "hud.map.marked_location": "Marked Location",
+        "hud.map.marked_location_remove": "Click to remove",
+        "hud.map.change_map_mode": "Change Map Mode",
+        "hud.map.toggle_minimap_voxel": "Toggle Minimap Voxel View",
+        "hud.map.zoom_minimap_explanation": "Zoom in the Minimap to see\nthe area around you in higher detail",
+    },
+
+
+    vector_map: {
+    }
+)
