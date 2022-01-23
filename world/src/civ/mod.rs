@@ -112,7 +112,7 @@ impl Civs {
                     29..=31 => (SiteKind::Tree, 4),
                     _ => (SiteKind::Dungeon, 0),
                 };
-                let loc = find_site_loc(&mut ctx, None, size)?;
+                let loc = find_site_loc(&mut ctx, None, size, kind)?;
                 Some(this.establish_site(&mut ctx.reseed(), loc, |place| Site {
                     kind,
                     center: loc,
@@ -437,7 +437,7 @@ impl Civs {
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
         let site = attempt(5, || {
-            let loc = find_site_loc(ctx, None, 1)?;
+            let loc = find_site_loc(ctx, None, 1, SiteKind::Settlement)?;
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind: SiteKind::Settlement,
                 site_tmp: None,
@@ -905,14 +905,26 @@ fn loc_suitable_for_walking(sim: &WorldSim, loc: Vec2<i32>) -> bool {
 
 /// Return true if a site could be constructed between a location and a chunk
 /// next to it is permitted (TODO: by whom?)
-fn site_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>) -> bool {
-    loc_suitable_for_site(sim, a) && loc_suitable_for_site(sim, a + dir)
+fn site_in_dir(sim: &WorldSim, a: Vec2<i32>, dir: Vec2<i32>, site_kind: SiteKind) -> bool {
+    loc_suitable_for_site(sim, a, site_kind) && loc_suitable_for_site(sim, a + dir, site_kind)
 }
 
 /// Return true if a position is suitable for site construction (TODO:
 /// criteria?)
-fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
-    if let Some(chunk) = sim.get(loc) {
+fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) -> bool {
+    fn check_chunk_occupation(sim: &WorldSim, loc: Vec2<i32>, radius: i32) -> bool {
+        for x in (-radius)..radius {
+            for y in (-radius)..radius {
+                let check_loc =
+                    loc + Vec2::new(x, y).map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32);
+                if sim.get(check_loc).map_or(true, |c| !c.sites.is_empty()) {
+                    return false;
+                }
+            }
+        }
+        true
+    }
+    (if let Some(chunk) = sim.get(loc) {
         !chunk.river.is_ocean()
             && !chunk.river.is_lake()
             && !chunk.river.is_river()
@@ -922,7 +934,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>) -> bool {
                 .unwrap_or(false)
     } else {
         false
-    }
+    }) && check_chunk_occupation(sim, loc, site_kind.exclusion_radius())
 }
 
 /// Attempt to search for a location that's suitable for site construction
@@ -930,6 +942,7 @@ fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
     near: Option<(Vec2<i32>, f32)>,
     size: i32,
+    site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 100;
     let mut loc = None;
@@ -951,7 +964,7 @@ fn find_site_loc(
         });
 
         for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
-            if loc_suitable_for_site(ctx.sim, test_loc + offset) {
+            if loc_suitable_for_site(ctx.sim, test_loc + offset, site_kind) {
                 return Some(test_loc);
             }
         }
@@ -1009,13 +1022,23 @@ impl fmt::Display for Site {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum SiteKind {
     Settlement,
     Dungeon,
     Castle,
     Refactor,
     Tree,
+}
+
+impl SiteKind {
+    pub fn exclusion_radius(&self) -> i32 {
+        // FIXME: Provide specific values for each individual SiteKind
+        match self {
+            SiteKind::Dungeon => 4,
+            _ => 2, // This is just an arbitrary value
+        }
+    }
 }
 
 impl Site {
