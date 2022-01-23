@@ -1,3 +1,7 @@
+// TODO:
+// Reviewers, bonk me if I forgot to remove every thread_rng() here.
+// Rng should be passed outside.
+
 use crate::{
     assets::{self, AssetExt, Error},
     comp::{
@@ -10,17 +14,18 @@ use crate::{
     trade,
     trade::SiteInformation,
 };
+use rand::prelude::SliceRandom;
 use serde::Deserialize;
 use vek::*;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 pub enum NameKind {
     Name(String),
     Automatic,
     Uninit,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Clone, PartialEq)]
 pub enum BodyBuilder {
     RandomWith(String),
     Exact(Body),
@@ -45,16 +50,28 @@ pub enum Hands {
         mainhand: ItemSpec,
         offhand: ItemSpec,
     },
-    Uninit,
 }
 
-impl Default for Hands {
-    fn default() -> Self { Self::Uninit }
+#[derive(Debug, Deserialize, Clone)]
+pub enum LoadoutAsset {
+    Loadout(String),
+    Choice(Vec<(f32, String)>),
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub enum LoadoutKind {
+    FromBody,
+    Asset(LoadoutAsset),
+    Hands(Hands),
+    Extended {
+        hands: Hands,
+        base_asset: LoadoutAsset,
+        inventory: Vec<(u32, String)>,
+    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
 pub enum Meta {
-    LoadoutAsset(String),
     SkillSetAsset(String),
 }
 
@@ -74,6 +91,8 @@ pub enum Meta {
 ///
 /// Intended to use with .ron files as base definion or
 /// in rare cases as extension manifest.
+/// Pure data struct, doesn't do anything until evaluated with EntityInfo.
+///
 /// Check assets/common/entity/template.ron or other examples.
 ///
 /// # Example
@@ -108,21 +127,17 @@ pub struct EntityConfig {
     /// See LootSpec in lottery
     pub loot: LootSpec<String>,
 
-    /// Hands:
-    /// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
-    /// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
-    /// - Mix { mainhand: ItemSpec, offhand: ItemSpec, }
-    ///  for two different 1h weapons,
-    /// - Uninit which means that tool should be specified somewhere in code,
-    /// Where ItemSpec is taken from loadout_builder module
-    // TODO: better name for this?
-    // wielding? equipped? what do you think Tigers are wielding?
-    // should we use this field for animals without visible weapons at all?
-    pub hands: Hands,
+    /// Loadout & Inventory
+    /// Variants:
+    /// `FromBody` - will get default equipement for entity body.
+    /// `Asset` - will get loadout from loadout asset.
+    /// `Hands` - naked character with weapons.
+    /// `Extended` - combination of Asset and Hands with ability to specify
+    /// inventory of entity.
+    pub loadout: LoadoutKind,
 
     /// Meta Info for optional fields
     /// Possible fields:
-    /// LoadoutAsset(String) with asset_specifier for loadout
     /// SkillSetAsset(String) with asset_specifier for skillset
     #[serde(default)]
     pub meta: Vec<Meta>,
@@ -158,19 +173,27 @@ pub fn try_all_entity_configs() -> Result<Vec<String>, Error> {
 pub struct EntityInfo {
     pub pos: Vec3<f32>,
     pub is_waypoint: bool, // Edge case, overrides everything else
+    // Agent
     pub has_agency: bool,
     pub alignment: Alignment,
     pub agent_mark: Option<agent::Mark>,
+    // Stats
     pub body: Body,
     pub name: Option<String>,
-    pub main_tool: Option<Item>,
-    pub second_tool: Option<Item>,
     pub scale: f32,
+    // Loot
     pub loot: LootSpec<String>,
-    pub loadout_asset: Option<String>,
+    // Loadout
+    pub inventory: Vec<(u32, Item)>,
+    pub loadout: Option<LoadoutBuilder>,
     pub make_loadout: Option<fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder>,
+    // Skills
     pub skillset_asset: Option<String>,
+
+    // Not implemented
     pub pet: Option<Box<EntityInfo>>,
+
+    // Economy
     // we can't use DHashMap, do we want to move that into common?
     pub trading_information: Option<trade::SiteInformation>,
     //Option<hashbrown::HashMap<crate::trade::Good, (f32, f32)>>, /* price and available amount */
@@ -186,11 +209,10 @@ impl EntityInfo {
             agent_mark: None,
             body: Body::Humanoid(humanoid::Body::random()),
             name: None,
-            main_tool: None,
-            second_tool: None,
             scale: 1.0,
             loot: LootSpec::Nothing,
-            loadout_asset: None,
+            inventory: vec![],
+            loadout: None,
             make_loadout: None,
             skillset_asset: None,
             pet: None,
@@ -213,8 +235,8 @@ impl EntityInfo {
             name,
             body,
             alignment,
+            loadout,
             loot,
-            hands,
             meta,
         } = config;
 
@@ -250,12 +272,100 @@ impl EntityInfo {
 
         self = self.with_loot_drop(loot);
 
+        // NOTE: set loadout after body, as it's used with default equipement
+        self = self.with_loadout(loadout, config_asset);
+
+        for field in meta {
+            match field {
+                Meta::SkillSetAsset(asset) => {
+                    self = self.with_skillset_asset(asset);
+                },
+            }
+        }
+
+        self
+    }
+
+    #[must_use]
+    /// Return EntityInfo with LoadoutBuilder overwritten
+    // NOTE: helpder function, think twice before exposing it
+    fn with_loadout(mut self, loadout: LoadoutKind, config_asset: Option<&str>) -> Self {
+        match loadout {
+            LoadoutKind::FromBody => {
+                self = self.with_default_equip();
+            },
+            LoadoutKind::Asset(loadout) => {
+                self = self.with_loadout_asset(loadout);
+            },
+            LoadoutKind::Hands(hands) => {
+                self = self.with_hands(hands, config_asset);
+            },
+            LoadoutKind::Extended {
+                hands,
+                base_asset,
+                inventory,
+            } => {
+                self = self.with_loadout_asset(base_asset);
+                self = self.with_hands(hands, config_asset);
+                self.inventory = inventory
+                    .into_iter()
+                    .map(|(num, i)| (num, Item::new_from_asset_expect(&i)))
+                    .collect();
+            },
+        }
+
+        self
+    }
+
+    #[must_use]
+    /// Return EntityInfo with LoadoutBuilder overwritten
+    // NOTE: helpder function, think twice before exposing it
+    fn with_default_equip(mut self) -> Self {
+        let loadout_builder = LoadoutBuilder::from_default(&self.body);
+        self.loadout = Some(loadout_builder);
+
+        self
+    }
+
+    #[must_use]
+    /// Return EntityInfo with LoadoutBuilder overwritten
+    // NOTE: helpder function, think twice before exposing it
+    fn with_loadout_asset(mut self, loadout: LoadoutAsset) -> Self {
+        match loadout {
+            LoadoutAsset::Loadout(asset) => {
+                let mut rng = rand::thread_rng();
+                let loadout = LoadoutBuilder::from_asset_expect(&asset, Some(&mut rng));
+                self.loadout = Some(loadout);
+            },
+            LoadoutAsset::Choice(assets) => {
+                let mut rng = rand::thread_rng();
+                let (_p, asset) = assets
+                    .choose_weighted(&mut rng, |(p, _asset)| *p)
+                    .expect("rng error");
+
+                let loadout = LoadoutBuilder::from_asset_expect(&asset, Some(&mut rng));
+                self.loadout = Some(loadout);
+            },
+        }
+
+        self
+    }
+
+    #[must_use]
+    /// Return EntityInfo, create new loadout if needed
+    // NOTE: helpder function, think twice before exposing it
+    fn with_hands(mut self, hands: Hands, config_asset: Option<&str>) -> Self {
         let rng = &mut rand::thread_rng();
+
+        if self.loadout.is_none() {
+            self.loadout = Some(LoadoutBuilder::empty());
+        }
+
         match hands {
             Hands::TwoHanded(main_tool) => {
                 let tool = main_tool.try_to_item(config_asset.unwrap_or("??"), rng);
                 if let Some(tool) = tool {
-                    self = self.with_main_tool(tool);
+                    self.loadout = self.loadout.map(|l| l.active_mainhand(Some(tool)));
                 }
             },
             Hands::Paired(tool) => {
@@ -263,35 +373,24 @@ impl EntityInfo {
                 //figure out reasonable way to clone item
                 let main_tool = tool.try_to_item(config_asset.unwrap_or("??"), rng);
                 let second_tool = tool.try_to_item(config_asset.unwrap_or("??"), rng);
+
                 if let Some(main_tool) = main_tool {
-                    self = self.with_main_tool(main_tool);
+                    self.loadout = self.loadout.map(|l| l.active_mainhand(Some(main_tool)));
                 }
                 if let Some(second_tool) = second_tool {
-                    self = self.with_second_tool(second_tool);
+                    self.loadout = self.loadout.map(|l| l.active_offhand(Some(second_tool)));
                 }
             },
             Hands::Mix { mainhand, offhand } => {
                 let main_tool = mainhand.try_to_item(config_asset.unwrap_or("??"), rng);
                 let second_tool = offhand.try_to_item(config_asset.unwrap_or("??"), rng);
                 if let Some(main_tool) = main_tool {
-                    self = self.with_main_tool(main_tool);
+                    self.loadout = self.loadout.map(|l| l.active_mainhand(Some(main_tool)));
                 }
                 if let Some(second_tool) = second_tool {
-                    self = self.with_second_tool(second_tool);
+                    self.loadout = self.loadout.map(|l| l.active_offhand(Some(second_tool)));
                 }
             },
-            Hands::Uninit => {},
-        }
-
-        for field in meta {
-            match field {
-                Meta::LoadoutAsset(asset) => {
-                    self = self.with_loadout_asset(asset);
-                },
-                Meta::SkillSetAsset(asset) => {
-                    self = self.with_skillset_asset(asset);
-                },
-            }
         }
 
         self
@@ -342,18 +441,6 @@ impl EntityInfo {
     }
 
     #[must_use]
-    pub fn with_main_tool(mut self, main_tool: Item) -> Self {
-        self.main_tool = Some(main_tool);
-        self
-    }
-
-    #[must_use]
-    pub fn with_second_tool(mut self, second_tool: Item) -> Self {
-        self.second_tool = Some(second_tool);
-        self
-    }
-
-    #[must_use]
     pub fn with_loot_drop(mut self, loot_drop: LootSpec<String>) -> Self {
         self.loot = loot_drop;
         self
@@ -362,12 +449,6 @@ impl EntityInfo {
     #[must_use]
     pub fn with_scale(mut self, scale: f32) -> Self {
         self.scale = scale;
-        self
-    }
-
-    #[must_use]
-    pub fn with_loadout_asset(mut self, asset: String) -> Self {
-        self.loadout_asset = Some(asset);
         self
     }
 
@@ -449,16 +530,96 @@ mod tests {
 
     #[derive(Debug, Eq, Hash, PartialEq)]
     enum MetaId {
-        LoadoutAsset,
         SkillSetAsset,
     }
 
     impl Meta {
         fn id(&self) -> MetaId {
             match self {
-                Meta::LoadoutAsset(_) => MetaId::LoadoutAsset,
                 Meta::SkillSetAsset(_) => MetaId::SkillSetAsset,
             }
+        }
+    }
+
+    #[cfg(test)]
+    fn validate_body(body: &BodyBuilder, config_asset: &str) {
+        match body {
+            BodyBuilder::RandomWith(string) => {
+                let npc::NpcBody(_body_kind, mut body_creator) =
+                    string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
+                        panic!(
+                            "failed to parse body {:?} in {}. Err: {:?}",
+                            &string, config_asset, err
+                        )
+                    });
+                let _ = body_creator();
+            },
+            BodyBuilder::Uninit | BodyBuilder::Exact { .. } => {},
+        }
+    }
+
+    #[cfg(test)]
+    fn validate_loadout(loadout: LoadoutKind, body: &BodyBuilder, config_asset: &str) {
+        match loadout {
+            LoadoutKind::FromBody => {
+                if body.clone() == BodyBuilder::Uninit {
+                    // there is a big chance to call automatic name
+                    // when body is yet undefined
+                    //
+                    // use .with_automatic_name() in code explicitly
+                    panic!("Used FromBody loadout with Uninit body in {}", config_asset);
+                }
+            },
+            LoadoutKind::Asset(loadout) => {
+                validate_loadout_asset(loadout, config_asset);
+            },
+            LoadoutKind::Hands(hands) => {
+                validate_hands(hands, config_asset);
+            },
+            LoadoutKind::Extended {
+                hands,
+                base_asset,
+                inventory,
+            } => {
+                validate_hands(hands, config_asset);
+                validate_loadout_asset(base_asset, config_asset);
+                for (num, item_str) in inventory {
+                    let item = Item::new_from_asset(&item_str);
+                    let mut item = item.unwrap_or_else(|err| {
+                        panic!("can't load {} in {}: {:?}", item_str, config_asset, err);
+                    });
+                    item.set_amount(num).unwrap_or_else(|err| {
+                        panic!(
+                            "can't set amount {} for {} in {}: {:?}",
+                            num, item_str, config_asset, err
+                        );
+                    });
+                }
+            },
+        }
+    }
+
+    #[cfg(test)]
+    fn validate_loadout_asset(loadout: LoadoutAsset, config_asset: &str) {
+        match loadout {
+            LoadoutAsset::Loadout(asset) => {
+                let rng = &mut rand::thread_rng();
+                // loadout is tested in loadout_builder
+                // we just try to load it and check that it exists
+                std::mem::drop(LoadoutBuilder::from_asset_expect(&asset, Some(rng)));
+            },
+            LoadoutAsset::Choice(assets) => {
+                for (p, asset) in assets {
+                    if p <= 0.0 {
+                        #[rustfmt::skip]
+                        panic!(
+                            "Weight of asset is less or equal to 0.0 in {}",
+                            config_asset
+                        );
+                    }
+                    validate_loadout_asset(LoadoutAsset::Loadout(asset), config_asset);
+                }
+            },
         }
     }
 
@@ -476,33 +637,17 @@ mod tests {
                 mainhand.validate(EquipSlot::ActiveMainhand);
                 offhand.validate(EquipSlot::ActiveOffhand);
             },
-            Hands::Uninit => {},
         }
     }
 
     #[cfg(test)]
-    fn validate_body_and_name(body: BodyBuilder, name: NameKind, config_asset: &str) {
-        match body {
-            BodyBuilder::RandomWith(string) => {
-                let npc::NpcBody(_body_kind, mut body_creator) =
-                    string.parse::<npc::NpcBody>().unwrap_or_else(|err| {
-                        panic!(
-                            "failed to parse body {:?} in {}. Err: {:?}",
-                            &string, config_asset, err
-                        )
-                    });
-                let _ = body_creator();
-            },
-            BodyBuilder::Uninit => {
-                if let NameKind::Automatic = name {
-                    // there is a big chance to call automatic name
-                    // when body is yet undefined
-                    //
-                    // use .with_automatic_name() in code explicitly
-                    panic!("Used Automatic name with Uninit body in {}", config_asset);
-                }
-            },
-            BodyBuilder::Exact { .. } => {},
+    fn validate_name(name: NameKind, body: BodyBuilder, config_asset: &str) {
+        if name == NameKind::Automatic && body == BodyBuilder::Uninit {
+            // there is a big chance to call automatic name
+            // when body is yet undefined
+            //
+            // use .with_automatic_name() in code explicitly
+            panic!("Used Automatic name with Uninit body in {}", config_asset);
         }
     }
 
@@ -520,14 +665,8 @@ mod tests {
                 .entry(field.id())
                 .and_modify(|c| *c += 1)
                 .or_insert(1);
+
             match field {
-                Meta::LoadoutAsset(asset) => {
-                    let rng = &mut rand::thread_rng();
-                    let builder = LoadoutBuilder::empty();
-                    // we need to just load it check if it exists,
-                    // because all loadouts are tested in LoadoutBuilder module
-                    std::mem::drop(builder.with_asset_expect(&asset, rng));
-                },
                 Meta::SkillSetAsset(asset) => {
                     std::mem::drop(SkillSetBuilder::from_asset_expect(&asset));
                 },
@@ -559,16 +698,19 @@ mod tests {
             println!("{}:", &config_asset);
 
             let EntityConfig {
-                hands,
                 body,
+                loadout,
                 name,
                 loot,
                 meta,
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
             } = EntityConfig::from_asset_expect(&config_asset);
 
-            validate_hands(hands, &config_asset);
-            validate_body_and_name(body, name, &config_asset);
+            validate_body(&body, &config_asset);
+            // body dependent stuff
+            validate_loadout(loadout, &body, &config_asset);
+            validate_name(name, body, &config_asset);
+            // misc
             validate_loot(loot, &config_asset);
             validate_meta(meta, &config_asset);
         }
