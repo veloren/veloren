@@ -1640,45 +1640,21 @@ impl FigureMgr {
                                     },
                                     _ => 0.0,
                                 };
-                                match s.completed_strikes % s.static_data.strikes.len() {
-                                    0 => anim::character::AlphaAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            hands,
-                                            Some(stage_section),
-                                            (Some(s.static_data.ability_info), active_tool_spec),
-                                        ),
-                                        progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
+                                let current_strike =
+                                    s.completed_strikes % s.static_data.strikes.len();
+
+                                anim::character::ComboAnimation::update_skeleton(
+                                    &target_base,
+                                    (
+                                        hands,
+                                        Some(stage_section),
+                                        Some(s.static_data.ability_info),
+                                        current_strike,
                                     ),
-                                    1 => anim::character::SpinAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            hands,
-                                            rel_vel,
-                                            time,
-                                            Some(stage_section),
-                                            Some(s.static_data.ability_info),
-                                        ),
-                                        progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    ),
-                                    _ => anim::character::BetaAnimation::update_skeleton(
-                                        &target_base,
-                                        (
-                                            hands,
-                                            rel_vel.magnitude(),
-                                            time,
-                                            Some(stage_section),
-                                            Some(s.static_data.ability_info),
-                                        ),
-                                        progress,
-                                        &mut state_animation_rate,
-                                        skeleton_attr,
-                                    ),
-                                }
+                                    progress,
+                                    &mut state_animation_rate,
+                                    skeleton_attr,
+                                )
                             } else if physics.in_liquid().is_some() {
                                 anim::character::SwimWieldAnimation::update_skeleton(
                                     &target_base,

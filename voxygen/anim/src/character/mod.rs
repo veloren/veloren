@@ -5,6 +5,7 @@ pub mod block;
 pub mod chargeswing;
 pub mod climb;
 pub mod collect;
+pub mod combomelee;
 pub mod consume;
 pub mod dance;
 pub mod dash;
@@ -40,15 +41,16 @@ pub mod wield;
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, beta::BetaAnimation, block::BlockAnimation,
     chargeswing::ChargeswingAnimation, climb::ClimbAnimation, collect::CollectAnimation,
-    consume::ConsumeAnimation, dance::DanceAnimation, dash::DashAnimation, equip::EquipAnimation,
-    glidewield::GlideWieldAnimation, gliding::GlidingAnimation, idle::IdleAnimation,
-    jump::JumpAnimation, leapmelee::LeapAnimation, mount::MountAnimation, music::MusicAnimation,
-    repeater::RepeaterAnimation, roll::RollAnimation, run::RunAnimation,
-    shockwave::ShockwaveAnimation, shoot::ShootAnimation, sit::SitAnimation, sneak::SneakAnimation,
-    sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation, spin::SpinAnimation,
-    spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation, stand::StandAnimation,
-    stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
-    talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
+    combomelee::ComboAnimation, consume::ConsumeAnimation, dance::DanceAnimation,
+    dash::DashAnimation, equip::EquipAnimation, glidewield::GlideWieldAnimation,
+    gliding::GlidingAnimation, idle::IdleAnimation, jump::JumpAnimation, leapmelee::LeapAnimation,
+    mount::MountAnimation, music::MusicAnimation, repeater::RepeaterAnimation, roll::RollAnimation,
+    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation, sit::SitAnimation,
+    sneak::SneakAnimation, sneakequip::SneakEquipAnimation, sneakwield::SneakWieldAnimation,
+    spin::SpinAnimation, spinmelee::SpinMeleeAnimation, staggered::StaggeredAnimation,
+    stand::StandAnimation, stunned::StunnedAnimation, swim::SwimAnimation,
+    swimwield::SwimWieldAnimation, talk::TalkAnimation, wallrun::WallrunAnimation,
+    wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp;

@@ -1811,6 +1811,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                         ability_info,
                     },
                     exhausted: false,
+                    skip_recover: false,
                     timer: Duration::default(),
                     stage_section: None,
                     completed_strikes: 0,

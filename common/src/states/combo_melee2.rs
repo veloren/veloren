@@ -77,6 +77,8 @@ pub struct Data {
     pub static_data: StaticData,
     /// Whether the attack was executed already
     pub exhausted: bool,
+    /// Whether the strike should skip recover
+    pub skip_recover: bool,
     /// Timer for each stage
     pub timer: Duration,
     /// Checks what section a strike is in, if a strike is currently being
@@ -120,6 +122,13 @@ impl CharacterBehavior for Data {
                 }
             },
             Some(StageSection::Action) => {
+                if input_is_pressed(data, InputKind::Primary) {
+                    update.character = CharacterState::ComboMelee2(Data {
+                        static_data: self.static_data.clone(),
+                        skip_recover: true,
+                        ..*self
+                    });
+                }
                 if self.timer.as_secs_f32()
                     > strike_data.hit_timing * strike_data.swing_duration.as_secs_f32()
                     && !self.exhausted
@@ -128,6 +137,8 @@ impl CharacterBehavior for Data {
                         static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, None),
                         exhausted: true,
+                        skip_recover: self.skip_recover
+                            || input_is_pressed(data, InputKind::Primary),
                         ..*self
                     });
 
@@ -145,8 +156,12 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ComboMelee2(Data {
                         static_data: self.static_data.clone(),
                         timer: tick_attack_or_default(data, self.timer, None),
+                        skip_recover: self.skip_recover
+                            || input_is_pressed(data, InputKind::Primary),
                         ..*self
                     });
+                } else if self.skip_recover {
+                    next_strike(&mut update)
                 } else {
                     // Transitions to recover section of stage
                     update.character = CharacterState::ComboMelee2(Data {
@@ -170,7 +185,6 @@ impl CharacterBehavior for Data {
                     update.character = CharacterState::ComboMelee2(Data {
                         static_data: self.static_data.clone(),
                         timer: Duration::default(),
-                        completed_strikes: self.completed_strikes + 1,
                         stage_section: None,
                         ..*self
                     });
@@ -214,7 +228,9 @@ impl CharacterBehavior for Data {
 fn next_strike(update: &mut StateUpdate) {
     if let CharacterState::ComboMelee2(c) = &mut update.character {
         c.exhausted = false;
+        c.skip_recover = false;
         c.timer = Duration::default();
         c.stage_section = Some(StageSection::Buildup);
+        c.completed_strikes += 1;
     }
 }
