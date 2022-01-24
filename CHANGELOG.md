@@ -71,7 +71,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made the hotbar link to items by item definition id and component composition instead of specific inventory slots.
 - Made loot boxes drop items instead of doing nothing in order to loot forcing
 - Refactored agent code file structure
-- Changed the way light strength is rendered by moving processing from shader code (GPU) to CPU code
 
 ### Removed
 

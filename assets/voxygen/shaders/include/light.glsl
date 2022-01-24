@@ -84,7 +84,8 @@ vec3 light_at(vec3 wpos, vec3 wnorm) {
 
         float strength = attenuation_strength(difference);
 
-        vec3 color = srgb_to_linear(L.light_col.rgb);
+        // Multiply the vec3 only once
+        vec3 color = srgb_to_linear(L.light_col.rgb) * (strength * L.light_col.a);
 
         light += color * (max(0, max(dot(normalize(difference), wnorm), 0.15)) + LIGHT_AMBIANCE);
     }
@@ -193,12 +194,12 @@ float lights_at(vec3 wpos, vec3 wnorm, vec3 /*cam_to_frag*/view_dir, vec3 mu, ve
         is_direct = true;
 #endif
         vec3 lrf = light_reflection_factor(/*direct_norm_dir*/wnorm, /*cam_to_frag*/view_dir, direct_light_dir, k_d, k_s, alpha, voxel_norm, voxel_lighting);
-        vec3 direct_light = PI * color * square_factor * lrf;
+        vec3 direct_light = PI * color * strength * square_factor * lrf;
         /* is_direct = true; */
         float computed_shadow = ShadowCalculationPoint(i, -difference, wnorm, wpos/*, light_distance*/);
         // directed_light += is_direct ? max(computed_shadow, /*LIGHT_AMBIANCE*/0.0) * direct_light * square_factor : vec3(0.0);
         // Non-physically emulate ambient light nearby
-        float ambiance = (dot(-wnorm, direct_light_dir) * 0.5 + 0.5) * square_factor;
+        float ambiance = (dot(-wnorm, direct_light_dir) * 0.5 + 0.5) * strength * square_factor;
         #ifdef FIGURE_SHADER
             // Non-physical hack. Subtle, but allows lanterns to glow nicely
             // TODO: Make lanterns use glowing cells instead
