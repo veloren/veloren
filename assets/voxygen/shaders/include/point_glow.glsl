@@ -30,11 +30,11 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
 
             float strength = pow(attenuation_strength_real(difference), spread);
 
-            vec3 light_color = srgb_to_linear(L.light_col.rgb) * strength * L.light_col.a;
+            vec3 light_color = srgb_to_linear(L.light_col.rgb) * strength;
 
             const float LIGHT_AMBIANCE = 0.025;
             color += light_color
-                * 0.05
+                * 0.002
                 // Constant, *should* const fold
                 * POINT_GLOW_FACTOR;
         }
