@@ -207,6 +207,7 @@ pub enum VoiceKind {
     Adlet,
     Antelope,
     Alligator,
+    SeaCrocodile,
     Saurok,
     Cat,
     Goat,
@@ -225,6 +226,7 @@ fn body_to_voice(body: &Body) -> Option<VoiceKind> {
         Body::QuadrupedLow(body) => match body.species {
             quadruped_low::Species::Maneater => VoiceKind::Maneater,
             quadruped_low::Species::Alligator => VoiceKind::Alligator,
+            quadruped_low::Species::SeaCrocodile => VoiceKind::SeaCrocodile,
             quadruped_low::Species::Asp => VoiceKind::Asp,
             _ => return None,
         },

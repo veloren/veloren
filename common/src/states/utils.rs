@@ -113,6 +113,7 @@ impl Body {
             Body::Theropod(_) => 135.0,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 130.0,
+                quadruped_low::Species::SeaCrocodile => 120.0,
                 quadruped_low::Species::Alligator => 110.0,
                 quadruped_low::Species::Salamander => 85.0,
                 quadruped_low::Species::Monitor => 160.0,

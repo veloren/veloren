@@ -999,6 +999,13 @@
             ],
             threshold: 1.0,
         ),
+        Utterance(Angry, SeaCrocodile): (
+            files: [
+                "voxygen.audio.sfx.utterance.sea_crocodile_angry1",
+                "voxygen.audio.sfx.utterance.sea_crocodile_angry2",
+            ],
+            threshold: 1.0,
+        ),
         Utterance(Angry, Saurok): (
             files: [
                 "voxygen.audio.sfx.utterance.saurok_angry1",

@@ -54,6 +54,7 @@ make_case_elim!(
         Basilisk = 12,
         Deadwood = 13,
         Icedrake = 14,
+        SeaCrocodile = 15,
     }
 );
 
@@ -63,6 +64,7 @@ make_case_elim!(
 #[derive(Clone, Debug, Deserialize)]
 pub struct AllSpecies<SpeciesMeta> {
     pub crocodile: SpeciesMeta,
+    pub sea_crocodile: SpeciesMeta,
     pub alligator: SpeciesMeta,
     pub salamander: SpeciesMeta,
     pub monitor: SpeciesMeta,
@@ -86,6 +88,7 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     fn index(&self, &index: &'a Species) -> &Self::Output {
         match index {
             Species::Crocodile => &self.crocodile,
+            Species::SeaCrocodile => &self.sea_crocodile,
             Species::Alligator => &self.alligator,
             Species::Salamander => &self.salamander,
             Species::Monitor => &self.monitor,
@@ -104,8 +107,9 @@ impl<'a, SpeciesMeta> core::ops::Index<&'a Species> for AllSpecies<SpeciesMeta> 
     }
 }
 
-pub const ALL_SPECIES: [Species; 15] = [
+pub const ALL_SPECIES: [Species; 16] = [
     Species::Crocodile,
+    Species::SeaCrocodile,
     Species::Alligator,
     Species::Salamander,
     Species::Monitor,
