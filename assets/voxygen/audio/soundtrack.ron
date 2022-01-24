@@ -1,11 +1,11 @@
 // TODO: Add an ambient-soundtrack that runs independently from the musical soundtrack
 // Times: Some(Day), Some(Night), None [both]
-// Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle
-//          planned biomes: Savannah, Swamp
+// Biomes: Grassland, Forest, Desert, Snowland, Lake, Mountain, Ocean, Jungle, Savannah, Taiga
+//          planned biomes: Swamp
 // Number after biome indicates weighting
 // Sites: Some(Settlement), Some(Cave), Some(Dungeon), Some(Void) [none]
 // Music states: Activity(Explore), Activity(Combat)
-// Combat music is looped. Needs three files: start, loop, and end. Start also contains one run of the loop.
+// Combat music is looped. Needs three files: start, loop, and end. Start contains leadup to the loop.
 
 (
     tracks: [
@@ -35,7 +35,8 @@
             length: 120.0,
             timing: Some(Night),
             biomes: [
-                (Desert, 1)
+                (Desert, 1),
+                (Savannah, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -107,7 +108,7 @@
             length: 101.0,
             timing: Some(Day),
             biomes: [
-                (Mountain, 1)
+                (Mountain, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -221,6 +222,7 @@
             timing: Some(Day),
             biomes: [
                 (Desert, 1),
+                (Savannah, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -245,6 +247,7 @@
             timing: Some(Night),
             biomes: [
                 (Grassland, 1),
+                (Savannah, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -270,6 +273,7 @@
             timing: Some(Day),
             biomes: [
                 (Snowland, 1),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -358,6 +362,7 @@
             timing: Some(Day),
             biomes: [
                 (Snowland, 1),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -380,6 +385,7 @@
             timing: Some(Night),
             biomes: [
                 (Snowland, 1),
+                (Taiga, 1),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
