@@ -1004,7 +1004,7 @@ impl FigureMgr {
                     let target_bones = match &character {
                         CharacterState::Roll(s) => {
                             let stage_time = s.timer.as_secs_f32();
-
+                            let wield_status = s.was_wielded;
                             let stage_progress = match s.stage_section {
                                 StageSection::Buildup => {
                                     stage_time / s.static_data.buildup_duration.as_secs_f32()
@@ -1022,6 +1022,8 @@ impl FigureMgr {
                                 (
                                     active_tool_kind,
                                     second_tool_kind,
+                                    hands,
+                                    wield_status,
                                     // TODO: Update to use the quaternion.
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
                                     state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
