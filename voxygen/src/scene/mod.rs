@@ -1188,11 +1188,11 @@ impl Scene {
                         });
                         let hb_pos = [pos.0.x, pos.0.y, pos.0.z + *z_min, 0.0];
                         let color = if group == Some(&comp::group::ENEMY) {
-                            [0.5 * 1.0, 0.0, 0.0, 0.0]
+                            [1.0, 0.0, 0.0, 0.5]
                         } else if group == Some(&comp::group::NPC) {
-                            [0.0, 0.0, 1.0 * 0.5, 0.0]
+                            [0.0, 0.0, 1.0, 0.5]
                         } else {
-                            [0.0, 1.0 * 0.5, 0.0, 0.0]
+                            [0.0, 1.0, 0.0, 0.5]
                         };
                         let ori = ori.to_quat();
                         let hb_ori = [ori.x, ori.y, ori.z, ori.w];
