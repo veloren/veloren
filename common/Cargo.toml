@@ -11,7 +11,7 @@ simd = ["vek/platform_intrinsics"]
 bin_csv = ["ron", "csv", "structopt"]
 bin_graphviz = ["petgraph"]
 bin_cmd_doc_gen = []
-bin_entity_migrate = ["ron"]
+bin_asset_migrate = ["ron"]
 rrt_pathfinding = ["kiddo"]
 calendar_events = []
 
@@ -108,8 +108,8 @@ name = "csv_import"
 required-features = ["bin_csv"]
 
 [[bin]]
-name = "entity_migrate"
-required-features = ["bin_entity_migrate"]
+name = "asset_migrate"
+required-features = ["bin_asset_migrate"]
 
 [[bin]]
 name = "recipe_graphviz"
