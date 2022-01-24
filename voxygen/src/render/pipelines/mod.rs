@@ -204,7 +204,7 @@ impl Light {
     pub fn new(pos: Vec3<f32>, col: Rgb<f32>, strength: f32) -> Self {
         Self {
             pos: Vec4::from(pos).into_array(),
-            col: Rgba::new(col.r, col.g, col.b, strength).into_array(),
+            col: (Rgba::new(col.r, col.g, col.b, 0.0) * strength).into_array(),
         }
     }
 
