@@ -1,7 +1,7 @@
 use super::super::pipelines::blit;
 use tracing::error;
 
-pub type ScreenshotFn = Box<dyn FnOnce(image::DynamicImage) + Send>;
+pub type ScreenshotFn = Box<dyn FnOnce(Result<image::DynamicImage, String>) + Send>;
 
 pub struct TakeScreenshot {
     bind_group: blit::BindGroup,
@@ -13,6 +13,8 @@ pub struct TakeScreenshot {
     width: u32,
     height: u32,
     bytes_per_pixel: u8,
+    // Texture format
+    tex_format: wgpu::TextureFormat,
 }
 
 impl TakeScreenshot {
@@ -74,6 +76,7 @@ impl TakeScreenshot {
             width: sc_desc.width,
             height: sc_desc.height,
             bytes_per_pixel,
+            tex_format: sc_desc.format,
         }
     }
 
@@ -162,14 +165,40 @@ impl TakeScreenshot {
         };
 
         // Construct image
-        // TODO: support other formats
-        let image = image::ImageBuffer::<image::Bgra<u8>, Vec<u8>>::from_vec(
-            self.width,
-            self.height,
-            pixel_bytes,
-        )
-        .expect("Failed to create ImageBuffer! Buffer was not large enough. This should not occur");
-        let image = image::DynamicImage::ImageBgra8(image);
+        let image = match self.tex_format {
+            wgpu::TextureFormat::Bgra8UnormSrgb => {
+                let image = image::ImageBuffer::<image::Bgra<u8>, Vec<u8>>::from_vec(
+                    self.width,
+                    self.height,
+                    pixel_bytes,
+                )
+                .expect(
+                    "Failed to create ImageBuffer! Buffer was not large enough. This should not \
+                     occur",
+                );
+                let image = image::DynamicImage::ImageBgra8(image);
+
+                Ok(image)
+            },
+            wgpu::TextureFormat::Rgba8UnormSrgb => {
+                let image = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(
+                    self.width,
+                    self.height,
+                    pixel_bytes,
+                )
+                .expect(
+                    "Failed to create ImageBuffer! Buffer was not large enough. This should not \
+                     occur",
+                );
+                let image = image::DynamicImage::ImageRgba8(image);
+
+                Ok(image)
+            },
+            format => Err(format!(
+                "Unhandled format for screenshot texture: {:?}",
+                format,
+            )),
+        };
 
         // Call supplied handler
         (self.screenshot_fn)(image);

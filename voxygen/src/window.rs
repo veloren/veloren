@@ -1262,6 +1262,17 @@ impl Window {
         let mut path = settings.screenshots_path.clone();
         self.renderer.create_screenshot(move |image| {
             use std::time::SystemTime;
+
+            // Handle any error if there was one when generating the image.
+            let image = match image {
+                Ok(i) => i,
+                Err(e) => {
+                    warn!(?e, "Couldn't generate screenshot");
+                    let _result = sender.send(format!("Error when generating screenshot: {}", e));
+                    return;
+                },
+            };
+
             // Check if folder exists and create it if it does not
             if !path.exists() {
                 if let Err(e) = std::fs::create_dir_all(&path) {
