@@ -1057,6 +1057,7 @@ fn handle_health(
                 by: None,
                 cause: None,
                 crit: None,
+                crit_mult: 1.0,
                 time: *time,
             };
             health.change_by(change);

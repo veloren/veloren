@@ -89,6 +89,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
                         crit: change.crit,
                         by: change.by,
                         target: *uid,
+                        crit_mult: change.crit_mult,
                     },
                 });
             }

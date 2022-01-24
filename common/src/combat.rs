@@ -258,6 +258,7 @@ impl Attack {
                                     cause: Some(damage.damage.source),
                                     time,
                                     crit: Some(is_crit),
+                                    crit_mult: self.crit_multiplier,
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -356,6 +357,7 @@ impl Attack {
                                     cause: None,
                                     time,
                                     crit: None,
+                                    crit_mult: self.crit_multiplier,
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
                                     emit(ServerEvent::HealthChange {
@@ -389,6 +391,7 @@ impl Attack {
                                 cause: None,
                                 time,
                                 crit: None,
+                                crit_mult: self.crit_multiplier,
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -501,6 +504,7 @@ impl Attack {
                                 cause: None,
                                 time,
                                 crit: None,
+                                crit_mult: self.crit_multiplier,
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -534,6 +538,7 @@ impl Attack {
                             cause: None,
                             time,
                             crit: None,
+                            crit_mult: self.crit_multiplier,
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
                             emit(ServerEvent::HealthChange {
@@ -847,6 +852,7 @@ impl Damage {
                     cause: Some(self.source),
                     time,
                     crit: Some(is_crit),
+                    crit_mult,
                 }
             },
             DamageSource::Falling => {
@@ -860,6 +866,7 @@ impl Damage {
                     cause: Some(self.source),
                     time,
                     crit: None,
+                    crit_mult,
                 }
             },
             DamageSource::Buff(_) | DamageSource::Other => HealthChange {
@@ -868,6 +875,7 @@ impl Damage {
                 cause: Some(self.source),
                 time,
                 crit: None,
+                crit_mult,
             },
         }
     }

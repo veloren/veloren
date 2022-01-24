@@ -8,8 +8,10 @@ use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 // How long floaters last (in seconds)
 pub const HP_SHOWTIME: f32 = 3.0;
+pub const CRIT_SHOWTIME: f32 = 0.7;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
 pub const HP_ACCUMULATETIME: f32 = 1.0;
+pub const CRIT_ACCUMULATETIME: f32 = 0.25;
 
 #[derive(Default)]
 pub struct Sys;
@@ -82,6 +84,10 @@ impl<'a> System<'a> for Sys {
                 // Increment timer
                 floater.timer += dt.0;
             }
+            // // TODO: For popping effect
+            // floaters.retain(|f| !f.info.crit || (f.info.crit && f.timer <
+            // CRIT_SHOWTIME));
+
             // Clear floaters if newest floater is past show time or health runs out
             if floaters.last().map_or(false, |f| {
                 f.timer

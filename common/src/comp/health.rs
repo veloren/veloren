@@ -27,6 +27,7 @@ pub struct HealthChange {
     /// Whether or not the health change was caused by a crit (None if it
     /// couldn't have been a crit)
     pub crit: Option<bool>,
+    pub crit_mult: f32,
 }
 
 impl HealthChange {
@@ -136,6 +137,7 @@ impl Health {
                 by: None,
                 cause: None,
                 crit: None,
+                crit_mult: 1.0,
                 time: Time(0.0),
             },
             is_dead: false,
@@ -215,6 +217,7 @@ impl Health {
                 by: None,
                 cause: None,
                 crit: None,
+                crit_mult: 1.0,
                 time: Time(0.0),
             },
             is_dead: false,
@@ -250,6 +253,7 @@ mod tests {
             by: Some(damage_contrib),
             cause: None,
             crit: None,
+            crit_mult: 1.0,
         };
 
         health.change_by(health_change);
@@ -276,6 +280,7 @@ mod tests {
             by: Some(damage_contrib),
             cause: None,
             crit: None,
+            crit_mult: 1.0,
         };
 
         health.change_by(health_change);
@@ -296,6 +301,7 @@ mod tests {
             by: Some(damage_contrib),
             cause: None,
             crit: None,
+            crit_mult: 1.0,
         };
         health.change_by(health_change);
         health.change_by(health_change);
@@ -322,6 +328,7 @@ mod tests {
             by: Some(damage_contrib1),
             cause: None,
             crit: None,
+            crit_mult: 1.0,
         };
         health.change_by(health_change);
 
@@ -332,6 +339,7 @@ mod tests {
             by: Some(damage_contrib2),
             cause: None,
             crit: None,
+            crit_mult: 1.0,
         };
         health.change_by(health_change);
 
@@ -346,6 +354,7 @@ mod tests {
             by: Some(damage_contrib2),
             cause: None,
             crit: None,
+            crit_mult: 1.0,
         };
         health.change_by(health_change);
 

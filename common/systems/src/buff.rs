@@ -275,6 +275,7 @@ impl<'a> System<'a> for Sys {
                                             cause,
                                             time: *read_data.time,
                                             crit: None,
+                                            crit_mult: 1.0,
                                         },
                                     });
                                     *accumulated = 0.0;
