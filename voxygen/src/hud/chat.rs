@@ -135,7 +135,7 @@ impl<'a> Chat<'a> {
             .widget(state.ids.message_box)
             .and_then(|widget| widget.maybe_y_scroll_state)
         {
-            scroll.offset >= scroll.offset_bounds.start
+            scroll.offset + 50.0 >= scroll.offset_bounds.start
         } else {
             false
         }
