@@ -417,13 +417,29 @@ struct OtherModes {
 ///
 /// You can enable these using Voxygen's `settings.ron`. See
 /// [here](https://book.veloren.net/players/voxygen.html#experimental-shaders) for more information.
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::EnumIter,
+    strum::Display,
+    strum::EnumString,
+)]
 pub enum ExperimentalShader {
     /// Add brick-like normal mapping to the world.
     Brickloren,
     /// Remove the default procedural noise from terrain.
     NoNoise,
-    /// Simulated a curved world.
+    /// Add a sobel filter that draws lines in post-process by detecting edges
+    /// inbetween colors. This does perform 8 times more texture samples in
+    /// post-processing so there is potentially a significant performance
+    /// impact especially with anti aliasing enabled.
+    Sobel,
+    /// Simulate a curved world.
     CurvedWorld,
     /// Adds extra detail to distant LoD (Level of Detail) terrain procedurally.
     ProceduralLodDetail,

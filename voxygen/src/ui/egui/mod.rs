@@ -1,5 +1,7 @@
 use crate::{
     scene::{DebugShape, DebugShapeId, Scene},
+    session::settings_change::{Graphics, SettingsChange},
+    settings::Settings,
     window::Window,
 };
 use client::Client;
@@ -35,14 +37,33 @@ impl EguiState {
         client: &mut Client,
         scene: &mut Scene,
         debug_info: Option<EguiDebugInfo>,
-    ) {
+        settings: &Settings,
+    ) -> Option<SettingsChange> {
+        use crate::render::ExperimentalShader;
+        use strum::IntoEnumIterator;
+        let experimental_shaders = ExperimentalShader::iter()
+            .map(|s| {
+                (
+                    s.to_string(),
+                    settings
+                        .graphics
+                        .render_mode
+                        .experimental_shaders
+                        .contains(&s),
+                )
+            })
+            .collect();
+
         let egui_actions = voxygen_egui::maintain(
             &mut self.platform,
             &mut self.egui_inner_state,
             client,
             debug_info,
             self.new_debug_shape_id.take(),
+            experimental_shaders,
         );
+
+        let mut new_render_mode = None;
 
         egui_actions
             .actions
@@ -68,6 +89,23 @@ impl EguiState {
                             .set_context(DebugShapeId(id), pos, color, identity_ori);
                     },
                 },
-            })
+                EguiAction::SetExperimentalShader(shader, enabled) => {
+                    // TODO Rust 2021
+                    use core::convert::TryFrom;
+                    if let Ok(shader) = ExperimentalShader::try_from(shader.as_str()) {
+                        let shaders = &mut new_render_mode
+                            .get_or_insert_with(|| settings.graphics.render_mode.clone())
+                            .experimental_shaders;
+
+                        if enabled {
+                            shaders.insert(shader);
+                        } else {
+                            shaders.remove(&shader);
+                        }
+                    }
+                },
+            });
+
+        new_render_mode.map(|rm| SettingsChange::Graphics(Graphics::ChangeRenderMode(Box::new(rm))))
     }
 }

@@ -154,6 +154,12 @@ vec3 _illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitte
     // return /*srgb_to_linear*/(/*0.5*//*0.125 * */vec3(pow(color.x, gamma), pow(color.y, gamma), pow(color.z, gamma)));
 }
 
+#ifdef EXPERIMENTAL_SOBEL
+vec3 aa_sample(vec2 uv, vec2 off) {
+    return aa_apply(t_src_color, s_src_color, uv * screen_res.xy + off, screen_res.xy).rgb;
+}
+#endif
+
 void main() {
     /* if (medium.x == 1u) {
         uv = clamp(uv + vec2(sin(uv.y * 16.0 + tick.x), sin(uv.x * 24.0 + tick.x)) * 0.005, 0, 1);
@@ -199,6 +205,22 @@ void main() {
     #endif
 
     vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
+   
+    #ifdef EXPERIMENTAL_SOBEL
+        vec3 s[8];
+        s[0] = aa_sample(uv, vec2(-1,  1));
+        s[1] = aa_sample(uv, vec2( 0,  1));
+        s[2] = aa_sample(uv, vec2( 1,  1));
+        s[3] = aa_sample(uv, vec2(-1,  0));
+        s[4] = aa_sample(uv, vec2( 1,  0));
+        s[5] = aa_sample(uv, vec2(-1, -1));
+        s[6] = aa_sample(uv, vec2( 0, -1));
+        s[7] = aa_sample(uv, vec2( 1, -1));
+        vec3 gx = s[0] + s[3] * 2.0 + s[5] - s[2] - s[4] * 2 - s[7];
+        vec3 gy = s[0] + s[1] * 2.0 + s[2] - s[5] - s[6] * 2 - s[7];
+        float mag = length(gx) + length(gy);
+        aa_color.rgb = mix(vec3(0.9), aa_color.rgb * 0.8, clamp(1.0 - mag * 0.3, 0.0, 1.0));
+    #endif
 
     // Bloom
     #ifdef BLOOM_FACTOR
