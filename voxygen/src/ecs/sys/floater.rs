@@ -84,9 +84,6 @@ impl<'a> System<'a> for Sys {
                 // Increment timer
                 floater.timer += dt.0;
             }
-            // // TODO: For popping effect
-            // floaters.retain(|f| !f.info.crit || (f.info.crit && f.timer <
-            // CRIT_SHOWTIME));
 
             // Clear floaters if newest floater is past show time or health runs out
             if floaters.last().map_or(false, |f| {
@@ -96,7 +93,6 @@ impl<'a> System<'a> for Sys {
                     } else {
                         MY_HP_SHOWTIME
                     }
-                //|| last_hp.abs() < Health::HEALTH_EPSILON;
             }) {
                 floaters.clear();
             }

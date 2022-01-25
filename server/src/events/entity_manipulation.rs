@@ -67,8 +67,9 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChang
 pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
     let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+    let mut changed = false;
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
-        health.change_by(change);
+        changed = health.change_by(change);
     }
     // This if statement filters out anything under 5 damage, for DOT ticks
     // TODO: Find a better way to separate direct damage from DOT here
@@ -81,7 +82,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
             ecs.read_storage::<Pos>().get(entity),
             ecs.read_storage::<Uid>().get(entity),
         ) {
-            if change.amount.abs() > Health::HEALTH_EPSILON {
+            if changed {
                 outcomes.push(Outcome::Damage {
                     pos: pos.0,
                     info: DamageInfo {

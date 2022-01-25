@@ -157,7 +157,7 @@ impl Health {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    pub fn change_by(&mut self, change: HealthChange) {
+    pub fn change_by(&mut self, change: HealthChange) -> bool {
         let prev_health = i64::from(self.current);
         self.current = (((self.current() + change.amount).clamp(0.0, f32::from(Self::MAX_HEALTH))
             * Self::SCALING_FACTOR_FLOAT) as u32)
@@ -185,6 +185,8 @@ impl Health {
                 (change.time.0 - last_damage_time.0) < DAMAGE_CONTRIB_PRUNE_SECS
             });
         }
+        (self.current() - prev_health as f32 / Self::SCALING_FACTOR_FLOAT).abs()
+            > Self::HEALTH_EPSILON
     }
 
     pub fn damage_contributions(&self) -> impl Iterator<Item = (&DamageContributor, &u64)> {
