@@ -1342,7 +1342,7 @@ impl Renderer {
     /// Queue to obtain a screenshot on the next frame render
     pub fn create_screenshot(
         &mut self,
-        screenshot_handler: impl FnOnce(image::DynamicImage) + Send + 'static,
+        screenshot_handler: impl FnOnce(Result<image::DynamicImage, String>) + Send + 'static,
     ) {
         // Queue screenshot
         self.take_screenshot = Some(Box::new(screenshot_handler));
