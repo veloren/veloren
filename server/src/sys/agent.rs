@@ -857,7 +857,8 @@ impl<'a> AgentData<'a> {
                 });
 
             // Stop if we're too close to a wall
-            // NOTE: costs 1 us (imbris)
+            // or about to walk off a cliff
+            // NOTE: costs 1 us (imbris) <- before cliff raycast added
             agent.bearing *= 0.1
                 + if read_data
                     .terrain
@@ -874,6 +875,23 @@ impl<'a> AgentData<'a> {
                     .cast()
                     .1
                     .map_or(true, |b| b.is_none())
+                    && read_data
+                        .terrain
+                        .ray(
+                            self.pos.0
+                                + Vec3::from(agent.bearing)
+                                    .try_normalized()
+                                    .unwrap_or_else(Vec3::unit_y),
+                            self.pos.0
+                                + Vec3::from(agent.bearing)
+                                    .try_normalized()
+                                    .unwrap_or_else(Vec3::unit_y)
+                                - Vec3::unit_z() * 4.0,
+                        )
+                        .until(Block::is_solid)
+                        .cast()
+                        .0
+                        < 3.0
                 {
                     0.9
                 } else {
