@@ -28,6 +28,7 @@ pub use self::{
         fluid::Vertex as FluidVertex,
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
+        trail::{Instance as TrailInstance, Vertex as TrailVertex},
         postprocess::Locals as PostProcessLocals,
         shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
@@ -46,7 +47,7 @@ pub use self::{
     },
     renderer::{
         drawer::{
-            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
+            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer, TrailDrawer,
             PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer, TerrainDrawer,
             TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
         },

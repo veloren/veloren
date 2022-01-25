@@ -2,7 +2,7 @@ use super::{
     super::{
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
-            skybox, sprite, terrain, ui,
+            skybox, sprite, terrain, ui, trail,
         },
         AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
         ShadowMode,
@@ -20,6 +20,7 @@ pub struct Pipelines {
     pub fluid: fluid::FluidPipeline,
     pub lod_terrain: lod_terrain::LodTerrainPipeline,
     pub particle: particle::ParticlePipeline,
+    pub trail: trail::TrailPipeline,
     pub clouds: clouds::CloudsPipeline,
     pub bloom: Option<bloom::BloomPipelines>,
     pub postprocess: postprocess::PostProcessPipeline,
@@ -40,6 +41,7 @@ pub struct IngamePipelines {
     fluid: fluid::FluidPipeline,
     lod_terrain: lod_terrain::LodTerrainPipeline,
     particle: particle::ParticlePipeline,
+    trail: trail::TrailPipeline,
     clouds: clouds::CloudsPipeline,
     pub bloom: Option<bloom::BloomPipelines>,
     postprocess: postprocess::PostProcessPipeline,
@@ -76,6 +78,7 @@ impl Pipelines {
             fluid: ingame.fluid,
             lod_terrain: ingame.lod_terrain,
             particle: ingame.particle,
+            trail: ingame.trail,
             clouds: ingame.clouds,
             bloom: ingame.bloom,
             postprocess: ingame.postprocess,
@@ -105,6 +108,8 @@ struct ShaderModules {
     sprite_frag: wgpu::ShaderModule,
     particle_vert: wgpu::ShaderModule,
     particle_frag: wgpu::ShaderModule,
+    trail_vert: wgpu::ShaderModule,
+    trail_frag: wgpu::ShaderModule,
     ui_vert: wgpu::ShaderModule,
     ui_frag: wgpu::ShaderModule,
     lod_terrain_vert: wgpu::ShaderModule,
@@ -290,6 +295,8 @@ impl ShaderModules {
             sprite_frag: create_shader("sprite-frag", ShaderKind::Fragment)?,
             particle_vert: create_shader("particle-vert", ShaderKind::Vertex)?,
             particle_frag: create_shader("particle-frag", ShaderKind::Fragment)?,
+            trail_vert: create_shader("trail-vert", ShaderKind::Vertex)?,
+            trail_frag: create_shader("trail-frag", ShaderKind::Fragment)?,
             ui_vert: create_shader("ui-vert", ShaderKind::Vertex)?,
             ui_frag: create_shader("ui-frag", ShaderKind::Fragment)?,
             lod_terrain_vert: create_shader("lod-terrain-vert", ShaderKind::Vertex)?,
@@ -407,7 +414,7 @@ fn create_interface_pipelines(
 fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
-    tasks: [Task; 14],
+    tasks: [Task; 15],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -427,6 +434,7 @@ fn create_ingame_and_shadow_pipelines(
         fluid_task,
         sprite_task,
         particle_task,
+        trail_task,
         lod_terrain_task,
         clouds_task,
         bloom_task,
@@ -550,6 +558,21 @@ fn create_ingame_and_shadow_pipelines(
                 )
             },
             "particle pipeline creation",
+        )
+    };
+    // Pipeline for rendering weapon trails
+    let create_trail = || {
+        trail_task.run(
+            || {
+                trail::TrailPipeline::new(
+                    device,
+                    &shaders.trail_vert,
+                    &shaders.trail_frag,
+                    &layouts.global,
+                    pipeline_modes.aa,
+                )
+            },
+            "trail pipeline creation",
         )
     };
     // Pipeline for rendering terrain
@@ -695,7 +718,7 @@ fn create_ingame_and_shadow_pipelines(
 
     let j1 = || pool.join(create_debug, || pool.join(create_skybox, create_figure));
     let j2 = || pool.join(create_terrain, || pool.join(create_fluid, create_bloom));
-    let j3 = || pool.join(create_sprite, create_particle);
+    let j3 = || pool.join(create_sprite, || pool.join(create_particle, create_trail));
     let j4 = || pool.join(create_lod_terrain, create_clouds);
     let j5 = || pool.join(create_postprocess, create_point_shadow);
     let j6 = || {
@@ -709,7 +732,7 @@ fn create_ingame_and_shadow_pipelines(
     let (
         (
             ((debug, (skybox, figure)), (terrain, (fluid, bloom))),
-            ((sprite, particle), (lod_terrain, clouds)),
+            ((sprite, (particle, trail)), (lod_terrain, clouds)),
         ),
         ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
     ) = pool.join(
@@ -724,6 +747,7 @@ fn create_ingame_and_shadow_pipelines(
             fluid,
             lod_terrain,
             particle,
+            trail,
             clouds,
             bloom,
             postprocess,

@@ -11,6 +11,7 @@ pub mod shadow;
 pub mod skybox;
 pub mod sprite;
 pub mod terrain;
+pub mod trail;
 pub mod ui;
 
 use super::{Consts, Texture};

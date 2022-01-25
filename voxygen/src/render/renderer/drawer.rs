@@ -5,7 +5,7 @@ use super::{
         model::{DynamicModel, Model, SubModel},
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
-            sprite, terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            sprite, terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup, trail,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -738,6 +738,15 @@ impl<'pass> FirstPassDrawer<'pass> {
         ParticleDrawer { render_pass }
     }
 
+    pub fn draw_trails(&mut self) -> TrailDrawer<'_, 'pass> {
+        let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
+
+        render_pass.set_pipeline(&self.pipelines.trail.pipeline);
+        set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
+
+        TrailDrawer { render_pass }
+    }
+
     pub fn draw_sprites<'data: 'pass>(
         &mut self,
         globals: &'data sprite::SpriteGlobalsBindGroup,
@@ -857,6 +866,25 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             .set_vertex_buffer(1, instances.buf().slice(..));
+        self.render_pass
+            // TODO: since we cast to u32 maybe this should returned by the len/count functions?
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..instances.count() as u32);
+    }
+}
+
+pub struct TrailDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<trail::Vertex>,
+        instances: &'data Instances<trail::Instance>,
+    ) {
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass
+            .set_vertex_buffer(0, instances.buf().slice(..));
         self.render_pass
             // TODO: since we cast to u32 maybe this should returned by the len/count functions?
             .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..instances.count() as u32);

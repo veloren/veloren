@@ -6,6 +6,7 @@ pub mod math;
 pub mod particle;
 pub mod simple;
 pub mod terrain;
+pub mod trail;
 
 pub use self::{
     camera::{Camera, CameraMode},
@@ -13,6 +14,7 @@ pub use self::{
     figure::FigureMgr,
     lod::Lod,
     particle::ParticleMgr,
+    trail::TrailMgr,
     terrain::{SpriteRenderContextLazy, Terrain},
 };
 use crate::{
@@ -95,6 +97,7 @@ pub struct Scene {
     light_data: Vec<Light>,
 
     particle_mgr: ParticleMgr,
+    trail_mgr: TrailMgr,
     figure_mgr: FigureMgr,
     pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
@@ -115,6 +118,7 @@ pub struct SceneData<'a> {
     pub mouse_smoothing: bool,
     pub sprite_render_distance: f32,
     pub particles_enabled: bool,
+    pub trails_enabled: bool,
     pub figure_lod_render_distance: f32,
     pub is_aiming: bool,
 }
@@ -305,6 +309,7 @@ impl Scene {
             select_pos: None,
             light_data: Vec::new(),
             particle_mgr: ParticleMgr::new(renderer),
+            trail_mgr: TrailMgr::new(renderer),
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::default(),
@@ -326,6 +331,9 @@ impl Scene {
 
     /// Get a reference to the scene's particle manager.
     pub fn particle_mgr(&self) -> &ParticleMgr { &self.particle_mgr }
+
+    /// Get a reference to the scene's trail manager.
+    pub fn trail_mgr(&self) -> &TrailMgr { &self.trail_mgr }
 
     /// Get a reference to the scene's figure manager.
     pub fn figure_mgr(&self) -> &FigureMgr { &self.figure_mgr }
@@ -546,6 +554,10 @@ impl Scene {
         // Maintain the particles.
         self.particle_mgr
             .maintain(renderer, scene_data, &self.terrain, lights);
+
+            // Maintain the trails.
+            self.trail_mgr
+                .maintain(renderer, scene_data, &self.terrain);
 
         // Update light constants
         lights.extend(
