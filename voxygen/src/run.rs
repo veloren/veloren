@@ -33,9 +33,15 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
 
         #[cfg(feature = "egui-ui")]
         {
-            global_state.egui_state.platform.handle_event(&event);
-            if global_state.egui_state.platform.captures_event(&event) {
-                return;
+            let enabled_for_current_state =
+                states.last().map_or(false, |state| state.egui_enabled());
+
+            // Only send events to the egui UI when it is being displayed.
+            if enabled_for_current_state && global_state.settings.interface.egui_enabled() {
+                global_state.egui_state.platform.handle_event(&event);
+                if global_state.egui_state.platform.captures_event(&event) {
+                    return;
+                }
             }
         }
 
