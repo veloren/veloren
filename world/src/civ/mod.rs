@@ -776,13 +776,19 @@ impl Civs {
         let mut nearby = self
             .sites
             .iter()
-            .filter(|(_, p)| matches!(p.kind, SiteKind::Settlement | SiteKind::Castle))
+            .filter(|(_, p)| {
+                matches!(
+                    p.kind,
+                    SiteKind::Refactor | SiteKind::Settlement | SiteKind::Castle
+                )
+            })
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
             .filter(|(_, dist)| *dist < MAX_NEIGHBOR_DISTANCE)
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        if let SiteKind::Settlement | SiteKind::Castle = self.sites[site].kind {
+        if let SiteKind::Refactor | SiteKind::Settlement | SiteKind::Castle = self.sites[site].kind
+        {
             for (nearby, _) in nearby.into_iter().take(5) {
                 // Find a novel path
                 if let Some((path, cost)) = find_path(ctx, loc, self.sites.get(nearby).center) {

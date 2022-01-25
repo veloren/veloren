@@ -205,7 +205,7 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
                 SiteKind::Settlement(_) => towns += site.economy.pop,
                 SiteKind::Castle(_) => castles += site.economy.pop,
                 SiteKind::Tree(_) => (),
-                SiteKind::Refactor(_) => (),
+                SiteKind::Refactor(_) => towns += site.economy.pop,
             }
         }
         if towns.valid() {
@@ -1224,6 +1224,9 @@ mod tests {
                         },
                         crate::site::SiteKind::Castle(_) => {
                             common::terrain::site::SitesKind::Castle
+                        },
+                        crate::site::SiteKind::Refactor(_) => {
+                            common::terrain::site::SitesKind::Settlement
                         },
                         _ => common::terrain::site::SitesKind::Void,
                     },
