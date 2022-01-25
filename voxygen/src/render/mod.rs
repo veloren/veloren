@@ -36,7 +36,7 @@ pub use self::{
             Vertex as SpriteVertex, VERT_PAGE_SIZE as SPRITE_VERT_PAGE_SIZE,
         },
         terrain::{Locals as TerrainLocals, TerrainLayout, Vertex as TerrainVertex},
-        trail::{Instance as TrailInstance, Vertex as TrailVertex},
+        trail::Vertex as TrailVertex,
         ui::{
             create_quad as create_ui_quad,
             create_quad_vert_gradient as create_ui_quad_vert_gradient, create_tri as create_ui_tri,

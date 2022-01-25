@@ -1,7 +1,6 @@
 use super::super::{AaMode, GlobalsLayouts, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
-use vek::*;
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
@@ -24,49 +23,6 @@ impl Vertex {
 impl VertexTrait for Vertex {
     const QUADS_INDEX: Option<wgpu::IndexFormat> = Some(wgpu::IndexFormat::Uint16);
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
-}
-
-#[repr(C)]
-#[derive(Copy, Clone, Debug, Zeroable, Pod)]
-pub struct Instance {
-    // created_at time, so we can calculate time relativity, needed for relative animation.
-    // can save 32 bits per instance, for trails that are not relatively animated.
-    inst_time: f32,
-
-    // The lifespan in seconds of the trail
-    inst_lifespan: f32,
-
-    // The two positions that define where the line of the object making the trail, e.g. sword tip
-    // and sword hilt
-    inner_pos: [f32; 3],
-    outer_pos: [f32; 3],
-}
-
-impl Instance {
-    pub fn new(inst_time: f64, lifespan: f32, inner_pos: Vec3<f32>, outer_pos: Vec3<f32>) -> Self {
-        Self {
-            inst_time: inst_time as f32,
-            inst_lifespan: lifespan,
-            inner_pos: inner_pos.into_array(),
-            outer_pos: outer_pos.into_array(),
-        }
-    }
-
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 4] =
-            wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32x3, 5 => Float32x3];
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
-            step_mode: wgpu::InputStepMode::Instance,
-            attributes: &ATTRIBUTES,
-        }
-    }
-
-    pub fn points(&self) -> ([f32; 3], [f32; 3]) { (self.inner_pos, self.outer_pos) }
-}
-
-impl Default for Instance {
-    fn default() -> Self { Self::new(0.0, 0.0, Vec3::zero(), Vec3::zero()) }
 }
 
 pub struct TrailPipeline {
@@ -102,7 +58,7 @@ impl TrailPipeline {
             vertex: wgpu::VertexState {
                 module: vs_module,
                 entry_point: "main",
-                buffers: &[Vertex::desc(), Instance::desc()],
+                buffers: &[Vertex::desc()],
             },
             primitive: wgpu::PrimitiveState {
                 topology: wgpu::PrimitiveTopology::TriangleList,
