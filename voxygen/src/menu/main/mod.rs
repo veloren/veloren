@@ -353,6 +353,14 @@ impl PlayState for MainMenuState {
                         .client()
                         .map(|init| init.auth_trust(auth_server, trust));
                 },
+                MainMenuEvent::DeleteServer { server_index } => {
+                    let net_settings = &mut global_state.settings.networking;
+                    net_settings.servers.remove(server_index);
+
+                    global_state
+                        .settings
+                        .save_to_file_warn(&global_state.config_dir);
+                },
             }
         }
 
