@@ -181,5 +181,7 @@ impl Site {
         }
     }
 
-    pub fn do_economic_simulation(&self) -> bool { matches!(self.kind, SiteKind::Settlement(_)) }
+    pub fn do_economic_simulation(&self) -> bool {
+        matches!(self.kind, SiteKind::Refactor(_) | SiteKind::Settlement(_))
+    }
 }
