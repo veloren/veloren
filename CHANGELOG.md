@@ -89,6 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bodies of water no longer contain black chunks on the voxel minimap.
 - Agents can flee once again, and more appropriately
 - Items in hotbar no longer change when sorting inventory
+- Lantern color changes when swapping lanterns
 
 ## [0.11.0] - 2021-09-11
 
