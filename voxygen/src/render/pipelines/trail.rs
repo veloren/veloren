@@ -7,31 +7,9 @@ use vek::*;
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {
     pub pos: [f32; 3],
-    // ____BBBBBBBBGGGGGGGGRRRRRRRR
-    // col: u32 = "v_col",
-    // ...AANNN
-    // A = AO
-    // N = Normal
-    norm_ao: u32,
 }
 
 impl Vertex {
-    #[allow(clippy::collapsible_else_if)]
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>) -> Self {
-        let norm_bits = if norm.x != 0.0 {
-            if norm.x < 0.0 { 0 } else { 1 }
-        } else if norm.y != 0.0 {
-            if norm.y < 0.0 { 2 } else { 3 }
-        } else {
-            if norm.z < 0.0 { 4 } else { 5 }
-        };
-
-        Self {
-            pos: pos.into_array(),
-            norm_ao: norm_bits,
-        }
-    }
-
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
         const ATTRIBUTES: [wgpu::VertexAttribute; 2] =
             wgpu::vertex_attr_array![0 => Float32x3, 1 => Uint32];
@@ -58,18 +36,14 @@ pub struct Instance {
     // The lifespan in seconds of the trail
     inst_lifespan: f32,
 
-    // The two positions that define where the line of the object making the trail, e.g. sword tip and sword hilt
+    // The two positions that define where the line of the object making the trail, e.g. sword tip
+    // and sword hilt
     inner_pos: [f32; 3],
     outer_pos: [f32; 3],
 }
 
 impl Instance {
-    pub fn new(
-        inst_time: f64,
-        lifespan: f32,
-        inner_pos: Vec3<f32>,
-        outer_pos: Vec3<f32>,
-    ) -> Self {
+    pub fn new(inst_time: f64, lifespan: f32, inner_pos: Vec3<f32>, outer_pos: Vec3<f32>) -> Self {
         Self {
             inst_time: inst_time as f32,
             inst_lifespan: lifespan,
@@ -79,13 +53,16 @@ impl Instance {
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 4] = wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32x3, 5 => Float32x3];
+        const ATTRIBUTES: [wgpu::VertexAttribute; 4] =
+            wgpu::vertex_attr_array![2 => Float32, 3 => Float32, 4 => Float32x3, 5 => Float32x3];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,
             step_mode: wgpu::InputStepMode::Instance,
             attributes: &ATTRIBUTES,
         }
     }
+
+    pub fn points(&self) -> ([f32; 3], [f32; 3]) { (self.inner_pos, self.outer_pos) }
 }
 
 impl Default for Instance {

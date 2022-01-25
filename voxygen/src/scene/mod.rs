@@ -14,8 +14,8 @@ pub use self::{
     figure::FigureMgr,
     lod::Lod,
     particle::ParticleMgr,
-    trail::TrailMgr,
     terrain::{SpriteRenderContextLazy, Terrain},
+    trail::TrailMgr,
 };
 use crate::{
     audio::{ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
@@ -555,9 +555,8 @@ impl Scene {
         self.particle_mgr
             .maintain(renderer, scene_data, &self.terrain, lights);
 
-            // Maintain the trails.
-            self.trail_mgr
-                .maintain(renderer, scene_data, &self.terrain);
+        // Maintain the trails.
+        self.trail_mgr.maintain(renderer, scene_data);
 
         // Update light constants
         lights.extend(

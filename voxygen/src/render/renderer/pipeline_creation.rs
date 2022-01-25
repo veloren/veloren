@@ -2,7 +2,7 @@ use super::{
     super::{
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
-            skybox, sprite, terrain, ui, trail,
+            skybox, sprite, terrain, trail, ui,
         },
         AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
         ShadowMode,

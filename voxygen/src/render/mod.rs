@@ -28,7 +28,6 @@ pub use self::{
         fluid::Vertex as FluidVertex,
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
-        trail::{Instance as TrailInstance, Vertex as TrailVertex},
         postprocess::Locals as PostProcessLocals,
         shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
@@ -37,6 +36,7 @@ pub use self::{
             Vertex as SpriteVertex, VERT_PAGE_SIZE as SPRITE_VERT_PAGE_SIZE,
         },
         terrain::{Locals as TerrainLocals, TerrainLayout, Vertex as TerrainVertex},
+        trail::{Instance as TrailInstance, Vertex as TrailVertex},
         ui::{
             create_quad as create_ui_quad,
             create_quad_vert_gradient as create_ui_quad_vert_gradient, create_tri as create_ui_tri,
@@ -47,9 +47,9 @@ pub use self::{
     },
     renderer::{
         drawer::{
-            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer, TrailDrawer,
+            DebugDrawer, Drawer, FigureDrawer, FigureShadowDrawer, FirstPassDrawer, ParticleDrawer,
             PreparedUiDrawer, SecondPassDrawer, ShadowPassDrawer, SpriteDrawer, TerrainDrawer,
-            TerrainShadowDrawer, ThirdPassDrawer, UiDrawer,
+            TerrainShadowDrawer, ThirdPassDrawer, TrailDrawer, UiDrawer,
         },
         ColLightInfo, Renderer,
     },

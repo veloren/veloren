@@ -5,7 +5,7 @@ use super::{
         model::{DynamicModel, Model, SubModel},
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
-            sprite, terrain, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup, trail,
+            sprite, terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -879,7 +879,7 @@ pub struct TrailDrawer<'pass_ref, 'pass: 'pass_ref> {
 impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
     pub fn draw<'data: 'pass>(
         &mut self,
-        model: &'data Model<trail::Vertex>,
+        model: &'data DynamicModel<trail::Vertex>,
         instances: &'data Instances<trail::Instance>,
     ) {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));

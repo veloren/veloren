@@ -1,12 +1,6 @@
-use super::{SceneData, Terrain};
-use crate::{
-    render::{
-        Instances, TrailDrawer,
-        TrailInstance, Renderer,
-    },
-};
-use common::{
-    terrain::TerrainChunk,
+use super::SceneData;
+use crate::render::{
+    DynamicModel, Instances, Mesh, Quad, Renderer, TrailDrawer, TrailInstance, TrailVertex,
 };
 use common_base::span;
 use std::time::Duration;
@@ -18,6 +12,9 @@ pub struct TrailMgr {
 
     /// GPU Instance Buffer
     instances: Instances<TrailInstance>,
+
+    /// GPU vertex buffers
+    dynamic_model: DynamicModel<TrailVertex>,
 }
 
 impl TrailMgr {
@@ -25,15 +22,11 @@ impl TrailMgr {
         Self {
             trails: Vec::new(),
             instances: default_instances(renderer),
+            dynamic_model: renderer.create_dynamic_model(120),
         }
     }
 
-    pub fn maintain(
-        &mut self,
-        renderer: &mut Renderer,
-        scene_data: &SceneData,
-        terrain: &Terrain<TerrainChunk>,
-    ) {
+    pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
         span!(_guard, "maintain", "TrailMgr::maintain");
         if scene_data.trails_enabled {
             // remove dead Trails
@@ -57,7 +50,7 @@ impl TrailMgr {
         let all_cpu_instances = self
             .trails
             .iter()
-            .map(|p| p.instance)
+            .map(|t| t.instance)
             .collect::<Vec<TrailInstance>>();
 
         // TODO: optimise buffer writes
@@ -66,12 +59,30 @@ impl TrailMgr {
             .expect("Failed to upload trail instances to the GPU!");
 
         self.instances = gpu_instances;
+
+        for (i, trail) in self.trails.iter().enumerate() {
+            if i > 0 {
+                if let Some((inner1, outer1)) = self.trails.get(i - 1).map(|t| t.instance.points())
+                {
+                    let (inner2, outer2) = trail.instance.points();
+                    let point = |pos| TrailVertex { pos };
+                    let mut mesh = Mesh::new();
+                    mesh.push_quad(Quad::new(
+                        point(inner1),
+                        point(outer1),
+                        point(inner2),
+                        point(outer2),
+                    ));
+                    renderer.update_model(&self.dynamic_model, &mesh, 4 * i)
+                }
+            }
+        }
     }
 
     pub fn render<'a>(&'a self, drawer: &mut TrailDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "TrailMgr::render");
         if scene_data.trails_enabled {
-            drawer.draw(&self.instances);
+            drawer.draw(&self.dynamic_model, &self.instances);
         }
     }
 
@@ -95,7 +106,7 @@ struct Trail {
 }
 
 impl Trail {
-    fn new(lifespan: Duration, time: f64, inner_pos: Vec3<f32>, outer_pos: Vec3<f32>)-> Self {
+    fn new(lifespan: Duration, time: f64, inner_pos: Vec3<f32>, outer_pos: Vec3<f32>) -> Self {
         Trail {
             alive_until: time + lifespan.as_secs_f64(),
             instance: TrailInstance::new(time, lifespan.as_secs_f32(), inner_pos, outer_pos),
