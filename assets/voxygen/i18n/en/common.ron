@@ -38,6 +38,7 @@
         "common.random": "Random",
         "common.empty": "Empty",
         "common.confirm": "Confirm",
+        "common.delete_server": "Delete Server",
 
         // Settings Window title
         "common.interface_settings": "Interface Settings",
