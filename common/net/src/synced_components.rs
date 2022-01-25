@@ -223,6 +223,11 @@ impl NetSync for Combo {
 }
 
 impl NetSync for ActiveAbilities {
+    // When in debug, sync from all entities. This allows animation work to be done
+    // when possessing entities
+    #[cfg(debug_assertions)]
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+    #[cfg(not(debug_assertions))]
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
 }
 
