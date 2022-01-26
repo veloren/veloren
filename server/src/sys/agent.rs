@@ -1173,12 +1173,11 @@ impl<'a> AgentData<'a> {
                             agent.target =
                                 Some(Target::new(target, false, read_data.time.0, false));
                         }
-                        controller.push_event(ControlEvent::InviteResponse(InviteResponse::Accept));
+                        controller.push_invite_response(InviteResponse::Accept);
                         agent.behavior.unset(BehaviorState::TRADING_ISSUER);
                         agent.behavior.set(BehaviorState::TRADING);
                     } else {
-                        controller
-                            .push_event(ControlEvent::InviteResponse(InviteResponse::Decline));
+                        controller.push_invite_response(InviteResponse::Decline);
                         self.chat_npc_if_allowed_to_speak(
                             "npc.speech.merchant_busy",
                             agent,
@@ -1187,7 +1186,7 @@ impl<'a> AgentData<'a> {
                     }
                 } else {
                     // TODO: Provide a hint where to find the closest merchant?
-                    controller.push_event(ControlEvent::InviteResponse(InviteResponse::Decline));
+                    controller.push_invite_response(InviteResponse::Decline);
                     self.chat_npc_if_allowed_to_speak(
                         "npc.speech.villager_decline_trade",
                         agent,

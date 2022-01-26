@@ -284,6 +284,10 @@ impl Controller {
         self.push_event(ControlEvent::Utterance(utterance));
     }
 
+    pub fn push_invite_response(&mut self, invite_response: InviteResponse) {
+        self.push_event(ControlEvent::InviteResponse(invite_response));
+    }
+
     pub fn push_action(&mut self, action: ControlAction) { self.actions.push(action); }
 
     pub fn push_basic_input(&mut self, input: InputKind) {
