@@ -1015,10 +1015,7 @@ impl<'a> AgentData<'a> {
                                         self.chat_npc(msg, event_emitter);
                                     } else if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.push_event(ControlEvent::InitiateInvite(
-                                                by,
-                                                InviteKind::Trade,
-                                            ));
+                                            controller.push_initiate_invite(by, InviteKind::Trade);
                                             self.chat_npc(
                                                 "npc.speech.merchant_advertisement",
                                                 event_emitter,
@@ -1036,10 +1033,7 @@ impl<'a> AgentData<'a> {
                                 Subject::Trade => {
                                     if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.push_event(ControlEvent::InitiateInvite(
-                                                by,
-                                                InviteKind::Trade,
-                                            ));
+                                            controller.push_initiate_invite(by, InviteKind::Trade);
                                             self.chat_npc(
                                                 "npc.speech.merchant_advertisement",
                                                 event_emitter,

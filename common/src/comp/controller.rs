@@ -288,6 +288,10 @@ impl Controller {
         self.push_event(ControlEvent::InviteResponse(invite_response));
     }
 
+    pub fn push_initiate_invite(&mut self, uid: Uid, invite: InviteKind) {
+        self.push_event(ControlEvent::InitiateInvite(uid, invite));
+    }
+
     pub fn push_action(&mut self, action: ControlAction) { self.actions.push(action); }
 
     pub fn push_basic_input(&mut self, input: InputKind) {
