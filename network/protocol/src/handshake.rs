@@ -172,6 +172,7 @@ mod tests {
         let [mut p1, p2] = ac_bound(10, None);
         let r1 = tokio::spawn(async move { p1.initialize(true, Pid::fake(2), 1337).await });
         let r2 = tokio::spawn(async move {
+            let _ = &p2;
             let _ = p2;
         });
         let (r1, _) = tokio::join!(r1, r2);

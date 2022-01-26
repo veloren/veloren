@@ -90,8 +90,6 @@ impl EguiState {
                     },
                 },
                 EguiAction::SetExperimentalShader(shader, enabled) => {
-                    // TODO Rust 2021
-                    use core::convert::TryFrom;
                     if let Ok(shader) = ExperimentalShader::try_from(shader.as_str()) {
                         let shaders = &mut new_render_mode
                             .get_or_insert_with(|| settings.graphics.render_mode.clone())

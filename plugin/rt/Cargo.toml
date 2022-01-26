@@ -2,7 +2,7 @@
 name = "veloren-plugin-rt"
 version = "0.1.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 plugin-api = { package = "veloren-plugin-api", path = "../api" }

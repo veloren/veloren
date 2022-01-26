@@ -1,6 +1,6 @@
 [package]
 authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2018"
+edition = "2021"
 name = "veloren-common-assets"
 description = "Crate for game loading assets for veloren."
 version = "0.10.0"

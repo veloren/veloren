@@ -2,7 +2,7 @@
 name = "veloren-server-cli"
 version = "0.11.0"
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [package.metadata.nix]
 build = true
