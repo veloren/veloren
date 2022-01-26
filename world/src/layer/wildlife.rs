@@ -262,6 +262,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                     0.0
                 }
         }),
+        // Ocean animals
+        ("world.wildlife.spawn.tropical.ocean", |_c, col| {
+            close(col.temp, CONFIG.tropical_temp, 0.1) / 10.0
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false) && col.tree_density == 0.0 {
+                    0.001
+                } else {
+                    0.0
+                }
+        }),
         // Rainforest area animals
         ("world.wildlife.spawn.tropical.rainforest", |c, _col| {
             close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)

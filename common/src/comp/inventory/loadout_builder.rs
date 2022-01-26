@@ -229,6 +229,7 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.asp",
             )),
             quadruped_low::Species::Crocodile
+            | quadruped_low::Species::SeaCrocodile
             | quadruped_low::Species::Alligator
             | quadruped_low::Species::Salamander => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.quadlowtail",

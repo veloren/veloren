@@ -35,6 +35,42 @@
             lateral: ("npc.crocodile.male.foot_br", false),
         ),
     ),
+    (SeaCrocodile, Male): (
+        front_left: (
+            offset: (-7.0, -0.0, -4.0),//full x dimension, 0 y dimension, full z dimension
+            lateral: ("npc.sea_crocodile.male.foot_fr", false),
+        ),
+    front_right: (
+            offset: (0.0, -0.0, -4.0),//0 x dimension, 0 y dimension, full z dimension
+            lateral: ("npc.sea_crocodile.male.foot_fr", false),
+        ),
+    back_left: (
+            offset: (-8.0, -0.0, -4.0),//full x dimension, 0 y dimension, full z dimension
+            lateral: ("npc.sea_crocodile.male.foot_br", false),
+        ),
+    back_right: (
+            offset: (0.0, -0.0, -4.0),//0 x dimension, 0 y dimension, full z dimension
+            lateral: ("npc.sea_crocodile.male.foot_br", false),
+        ),
+    ),
+    (SeaCrocodile, Female): (
+        front_left: (
+            offset: (-7.0, -0.0, -4.0),
+            lateral: ("npc.sea_crocodile.male.foot_fr", false),
+            ),
+        front_right: (
+            offset: (0.0, -0.0, -4.0),
+            lateral: ("npc.sea_crocodile.male.foot_fr", false),
+        ),
+        back_left: (
+            offset: (-8.0, -0.0, -4.0),
+            lateral: ("npc.sea_crocodile.male.foot_br", false),
+        ),
+        back_right: (
+            offset: (0.0, -0.0, -4.0),
+            lateral: ("npc.sea_crocodile.male.foot_br", false),
+        ),
+    ),
     (Alligator, Male): (
         front_left: (
             offset: (-7.0, 0.0, -4.0),

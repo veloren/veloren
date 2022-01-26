@@ -150,6 +150,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
         Self {
             head_upper: match (body.species, body.body_type) {
                 (Crocodile, _) => (1.5, 2.0),
+                (SeaCrocodile, _) => (1.5, 2.0),
                 (Alligator, _) => (0.5, 2.0),
                 (Salamander, Male) => (0.5, 2.5),
                 (Salamander, Female) => (0.5, 1.0),
@@ -168,6 +169,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             head_lower: match (body.species, body.body_type) {
                 (Crocodile, _) => (8.0, 0.0),
+                (SeaCrocodile, _) => (8.0, 0.0),
                 (Alligator, _) => (9.0, 0.25),
                 (Salamander, Male) => (9.0, 0.0),
                 (Salamander, Female) => (9.0, 0.0),
@@ -186,6 +188,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             jaw: match (body.species, body.body_type) {
                 (Crocodile, _) => (2.5, -3.0),
+                (SeaCrocodile, _) => (2.5, -3.0),
                 (Alligator, _) => (2.5, -2.0),
                 (Salamander, Male) => (0.0, -2.0),
                 (Salamander, Female) => (0.5, -1.0),
@@ -204,6 +207,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             chest: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.0, 5.0),
+                (SeaCrocodile, _) => (0.0, 5.0),
                 (Alligator, _) => (0.0, 5.0),
                 (Salamander, Male) => (0.0, 5.0),
                 (Salamander, Female) => (0.0, 5.0),
@@ -222,6 +226,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             tail_rear: match (body.species, body.body_type) {
                 (Crocodile, _) => (-12.5, -1.0),
+                (SeaCrocodile, _) => (-12.5, -1.0),
                 (Alligator, _) => (-13.0, -1.0),
                 (Salamander, Male) => (-8.0, 0.0),
                 (Salamander, Female) => (-6.5, 0.0),
@@ -240,6 +245,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             tail_front: match (body.species, body.body_type) {
                 (Crocodile, _) => (-6.0, 0.0),
+                (SeaCrocodile, _) => (-6.0, 0.0),
                 (Alligator, _) => (-5.0, 0.0),
                 (Salamander, Male) => (-7.5, 0.0),
                 (Salamander, Female) => (-7.0, 0.0),
@@ -258,6 +264,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             feet_f: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, 6.0, -1.0),
+                (SeaCrocodile, _) => (3.5, 6.0, -1.0),
                 (Alligator, _) => (4.5, 4.25, -1.0),
                 (Salamander, Male) => (5.0, 5.0, -2.0),
                 (Salamander, Female) => (5.0, 4.5, -2.0),
@@ -276,6 +283,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             feet_b: match (body.species, body.body_type) {
                 (Crocodile, _) => (3.5, -6.0, -1.0),
+                (SeaCrocodile, _) => (3.5, -6.0, -1.0),
                 (Alligator, _) => (4.5, -5.5, -1.0),
                 (Salamander, Male) => (4.0, -6.0, -2.0),
                 (Salamander, Female) => (3.0, -6.0, -2.0),
@@ -298,6 +306,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             scaler: match (body.species, body.body_type) {
                 (Crocodile, _) => (1.05),
+                (SeaCrocodile, _) => (1.05),
                 (Alligator, _) => (1.12),
                 (Salamander, _) => (1.12),
                 (Monitor, _) => (0.9),
@@ -313,6 +322,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
             },
             tempo: match (body.species, body.body_type) {
                 (Crocodile, _) => (0.7),
+                (SeaCrocodile, _) => (0.7),
                 (Alligator, _) => (0.7),
                 (Salamander, _) => (0.85),
                 (Monitor, _) => (1.4),
@@ -333,6 +343,7 @@ fn mount_point(body: &Body) -> Vec3<f32> {
     use comp::quadruped_low::{BodyType::*, Species::*};
     match (body.species, body.body_type) {
         (Crocodile, _) => (0.0, 4.5, -2.0),
+        (SeaCrocodile, _) => (0.0, 4.5, -2.0),
         (Alligator, _) => (0.0, 4.25, -2.0),
         (Salamander, Male) => (0.0, 5.0, -1.0),
         (Salamander, Female) => (0.0, 5.0, -1.0),

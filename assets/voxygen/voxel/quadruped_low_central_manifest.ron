@@ -51,6 +51,58 @@
             central: ("npc.crocodile.male.tail_front"),
         ),
     ),
+    (SeaCrocodile, Male): (
+        upper: (
+            offset: (-3.0, 5.0, -1.0),
+            central: ("npc.sea_crocodile.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.0, 1.5, -3.0),
+            central: ("npc.sea_crocodile.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 2.5, -1.5),
+            central: ("npc.sea_crocodile.male.jaw"),
+        ),
+        chest: (
+            offset: (-6.0, -7.5, -3.0),
+            central: ("npc.sea_crocodile.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.0, -14.0, -1.0),
+            central: ("npc.sea_crocodile.male.tail_rear"),
+        ),
+        tail_front: (
+            offset: (-2.0, -11.0, -3.0),
+            central: ("npc.sea_crocodile.male.tail_front"),
+        ),
+    ),
+    (SeaCrocodile, Female): (
+        upper: (
+            offset: (-3.0, 5.0, -1.0),
+            central: ("npc.sea_crocodile.male.head_upper"),
+        ),
+        lower: (
+            offset: (-4.0, 1.5, -3.0),
+            central: ("npc.sea_crocodile.male.head_lower"),
+        ),
+        jaw: (
+            offset: (-4.0, 2.5, -1.5),
+            central: ("npc.sea_crocodile.male.jaw"),
+        ),
+        chest: (
+            offset: (-6.0, -7.5, -3.0),
+            central: ("npc.sea_crocodile.male.chest"),
+        ),
+        tail_rear: (
+            offset: (-1.0, -14.0, -1.0),//full length of y dimension
+            central: ("npc.sea_crocodile.male.tail_rear"),
+        ),
+        tail_front: (
+            offset: (-2.0, -11.0, -3.0),//full length of y dimension
+            central: ("npc.sea_crocodile.male.tail_front"),
+        ),
+    ),
     (Alligator, Male): (
         upper: (
             offset: (-4.0, -0.0, -2.5),

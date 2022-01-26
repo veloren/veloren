@@ -1150,6 +1150,10 @@
                 keyword: "crocodile",
                 generic: "Crocodile"
             ),
+            sea_crocodile: (
+                keyword: "sea_crocodile",
+                generic: "SeaCrocodile"
+            ),
             alligator: (
                 keyword: "alligator",
                 generic: "Alligator"

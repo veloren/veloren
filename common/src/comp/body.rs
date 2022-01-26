@@ -230,6 +230,7 @@ impl Body {
                 // saltwater crocodiles can weigh around 1 ton, but our version is the size of an
                 // alligator or smaller, so whatever
                 quadruped_low::Species::Crocodile => 360.0,
+                quadruped_low::Species::SeaCrocodile => 410.0,
                 quadruped_low::Species::Deadwood => 400.0,
                 quadruped_low::Species::Lavadrake => 500.0,
                 quadruped_low::Species::Monitor => 100.0,
@@ -645,6 +646,7 @@ impl Body {
             },
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
                 quadruped_low::Species::Crocodile => 80,
+                quadruped_low::Species::SeaCrocodile => 110,
                 quadruped_low::Species::Alligator => 90,
                 quadruped_low::Species::Monitor => 60,
                 quadruped_low::Species::Asp => 75,
