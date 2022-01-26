@@ -106,7 +106,7 @@ impl Skeleton for BirdLargeSkeleton {
                     .into(),
                 ..Default::default()
             },
-            trail_points: None,
+            relative_trail_points: None,
         }
     }
 }

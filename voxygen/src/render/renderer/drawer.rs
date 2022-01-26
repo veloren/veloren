@@ -881,7 +881,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             // TODO: since we cast to u32 maybe this should returned by the len/count functions?
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..0);
+            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
     }
 }
 

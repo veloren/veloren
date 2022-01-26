@@ -53,7 +53,7 @@ impl Skeleton for ShipSkeleton {
                 ),
                 ..Default::default()
             },
-            trail_points: None,
+            relative_trail_points: None,
         }
     }
 }

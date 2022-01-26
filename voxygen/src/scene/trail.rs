@@ -1,5 +1,7 @@
 use super::SceneData;
-use crate::render::{DynamicModel, Renderer, TrailDrawer, TrailVertex};
+use crate::render::{
+    pipelines::trail, DynamicModel, Mesh, Quad, Renderer, TrailDrawer, TrailVertex,
+};
 use common::comp::CharacterState;
 use common_base::span;
 use specs::{Entity as EcsEntity, Join, WorldExt};
@@ -44,10 +46,17 @@ impl TrailMgr {
             for (entity, _char_state) in
                 (&ecs.entities(), &ecs.read_storage::<CharacterState>()).join()
             {
-                let _ = self.dynamic_models.try_insert(
+                if let Ok(model) = self.dynamic_models.try_insert(
                     entity,
                     renderer.create_dynamic_model(TRAIL_DYNAMIC_MODEL_SIZE * 4),
-                );
+                ) {
+                    let mut mesh = Mesh::new();
+                    let zero = trail::Vertex { pos: [0.0; 3] };
+                    for _ in 0..TRAIL_DYNAMIC_MODEL_SIZE {
+                        mesh.push_quad(Quad::new(zero, zero, zero, zero));
+                    }
+                    renderer.update_model(model, &mesh, 0);
+                }
             }
 
             // Clear dynamic models for entities that no longer exist (is this even

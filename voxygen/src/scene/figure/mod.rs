@@ -6189,7 +6189,7 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: Option<anim::vek::Vec3<f32>>,
-    trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Animation to be applied to rider of this entity
     mount_transform: anim::vek::Transform<f32, f32, f32>,
     // Contains the position of this figure or if it is a rider it will contain the mount's
@@ -6266,7 +6266,9 @@ impl<S: Skeleton> FigureState<S> {
         Self {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
-                trail_points: offsets.trail_points,
+                abs_trail_points: offsets.relative_trail_points, /* No position to add and make
+                                                                  * absolute, also doesn't matter
+                                                                  * here */
                 mount_transform: offsets.mount_bone,
                 mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
@@ -6435,24 +6437,30 @@ impl<S: Skeleton> FigureState<S> {
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
         // Handle weapon trails
+        let offsets_abs_trail_points = offsets
+            .relative_trail_points
+            .map(|(a, b)| (a + pos, b + pos));
         if let Some(trail_mgr) = trail_mgr {
             if let Some(dynamic_model) = entity
                 .as_ref()
                 .and_then(|e| trail_mgr.dynamic_models.get(e))
             {
-                if let (Some((p1, p2)), Some((p3, p4))) = (self.trail_points, offsets.trail_points)
+                let mut quad_mesh = Mesh::new();
+                if let (Some((p1, p2)), Some((p4, p3))) =
+                    (self.abs_trail_points, offsets_abs_trail_points)
                 {
                     let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
-                        pos: (p + pos).into_array(),
+                        pos: p.into_array(),
                     };
-                    let mut quad_mesh = Mesh::new();
-                    // TODO: Figure out how to get
                     quad_mesh.push_quad(Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4)));
-                    renderer.update_model(dynamic_model, &quad_mesh, trail_mgr.offset * 4);
+                } else {
+                    let zero = trail::Vertex { pos: [0.0; 3] };
+                    quad_mesh.push_quad(Quad::new(zero, zero, zero, zero));
                 }
+                renderer.update_model(dynamic_model, &quad_mesh, trail_mgr.offset * 4);
             }
         }
-        self.trail_points = offsets.trail_points;
+        self.abs_trail_points = offsets_abs_trail_points;
 
         // TODO: compute the mount bone only when it is needed
         self.mount_transform = offsets.mount_bone;

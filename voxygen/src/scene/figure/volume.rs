@@ -49,7 +49,7 @@ impl anim::Skeleton for VolumeKey {
         anim::Offsets {
             lantern: None,
             mount_bone: anim::vek::Transform::default(),
-            trail_points: None,
+            relative_trail_points: None,
         }
     }
 

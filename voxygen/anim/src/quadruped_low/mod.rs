@@ -97,7 +97,7 @@ impl Skeleton for QuadrupedLowSkeleton {
                 orientation: mount_orientation,
                 scale: Vec3::one(),
             },
-            trail_points: None,
+            relative_trail_points: None,
         }
     }
 }
