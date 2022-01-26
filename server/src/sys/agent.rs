@@ -208,7 +208,7 @@ impl<'a> System<'a> for Sys {
                         //
                         // TODO: look into `controller.reset()` line above
                         // and see if it fixes it
-                        controller.push_action(ControlAction::basic_input(InputKind::Fly));
+                        controller.push_basic_input(InputKind::Fly);
                     }
 
                     // Package all this agent's data into a convenient struct
@@ -682,7 +682,7 @@ impl<'a> AgentData<'a> {
     }
 
     fn fly_upward(&self, controller: &mut Controller) {
-        controller.push_action(ControlAction::basic_input(InputKind::Fly));
+        controller.push_basic_input(InputKind::Fly);
         controller.inputs.move_z = 1.0;
     }
 
@@ -737,7 +737,7 @@ impl<'a> AgentData<'a> {
                     .1
                     .map_or(true, |b| b.is_some())
             {
-                controller.push_action(ControlAction::basic_input(InputKind::Fly));
+                controller.push_basic_input(InputKind::Fly);
             } else {
                 controller.push_action(ControlAction::CancelInput(InputKind::Fly))
             }
@@ -2274,7 +2274,7 @@ impl<'a> AgentData<'a> {
 
     fn jump_if(&self, controller: &mut Controller, condition: bool) {
         if condition {
-            controller.push_action(ControlAction::basic_input(InputKind::Jump));
+            controller.push_basic_input(InputKind::Jump);
         } else {
             controller.push_action(ControlAction::CancelInput(InputKind::Jump))
         }

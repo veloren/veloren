@@ -281,6 +281,10 @@ impl Controller {
     pub fn push_event(&mut self, event: ControlEvent) { self.events.push(event); }
 
     pub fn push_action(&mut self, action: ControlAction) { self.actions.push(action); }
+
+    pub fn push_basic_input(&mut self, input: InputKind) {
+        self.push_action(ControlAction::basic_input(input));
+    }
 }
 
 impl Component for Controller {
