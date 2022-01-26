@@ -58,7 +58,6 @@ use crate::{
     ecs::{
         comp as vcomp,
         comp::{HpFloater, HpFloaterList},
-        sys::floater,
     },
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
@@ -1581,14 +1580,15 @@ impl Hud {
                             ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer) * 0.25)
                                 + 0.2
                         };
+                        // TODO: Add options for these as well
                         if floater.info.amount.abs() > 1.0 {
-                            Text::new(&format!("{:.0}", floater.info.amount.abs()))
+                            Text::new(&format!("{:.1}", floater.info.amount.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                                 .x_y(x, y - 3.0)
                                 .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{:.0}", floater.info.amount.abs()))
+                            Text::new(&format!("{:.1}", floater.info.amount.abs()))
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.info.amount < 0.0 {
@@ -2485,7 +2485,7 @@ impl Hud {
                                 // Damage and heal below 10/10 are shown as decimals
                                 // TODO: this is not true right now, but we might want to add an
                                 // option for this
-                                Text::new(&format!("{:.0}", floater.info.amount.abs()))
+                                Text::new(&format!("{:.1}", floater.info.amount.abs()))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
                                     .color(if floater.info.amount < 0.0 {
@@ -2496,7 +2496,7 @@ impl Hud {
                                     .x_y(x, y - 3.0)
                                     .position_ingame(ingame_pos)
                                     .set(sct_bg_id, ui_widgets);
-                                Text::new(&format!("{:.0}", floater.info.amount.abs()))
+                                Text::new(&format!("{:.1}", floater.info.amount.abs()))
                                     .font_size(font_size)
                                     .font_id(self.fonts.cyri.conrod_id)
                                     .x_y(x, y)
@@ -4676,6 +4676,30 @@ impl Hud {
                             },
                             None => hit_me,
                         } {
+                            let mut merged = false;
+                            // Or maybe something like this
+                            for floater in floater_list.floaters.iter_mut().rev() {
+                                if floater.timer > 0.0 {
+                                    break;
+                                }
+                                if floater.info.instance == info.instance {
+                                    dbg!(floater.info.instance);
+                                    dbg!(floater.timer);
+                                    floater.info.amount += info.amount;
+                                    floater.info.crit_mult = info.crit_mult;
+                                    floater.info.crit = Some(
+                                        floater.info.crit.unwrap_or(false)
+                                        || info.crit.unwrap_or(false)
+                                    );
+                                    merged = true;
+                                }
+                            }
+                            
+                            if merged {
+                                return;
+                            }
+
+                            // To separate healing and damage floaters
                             let last_floater = if info.amount < Health::HEALTH_EPSILON {
                                 floater_list
                                     .floaters
@@ -4691,22 +4715,21 @@ impl Hud {
                             };
 
                             match last_floater {
-                                // TODO: This system is currently only in place because some damage
-                                // sources create multiple HpChange events, which leads to multiple
-                                // damage Outcomes. Will need to figure this out (perhaps storing an
-                                // instance number for the hpchanges somehow?)
                                 Some(f)
-                                    if (info.crit.unwrap_or(false)
-                                        && f.timer < floater::CRIT_ACCUMULATETIME
-                                        && info.crit.unwrap_or(false))
+                                    // TODO: Change later so it's based on options
+                                    if /*(info.crit.unwrap_or(false)
                                         || (f.timer < floater::HP_ACCUMULATETIME
                                             && !f.info.crit.unwrap_or(false)
-                                            && !info.crit.unwrap_or(false)) =>
+                                            && !info.crit.unwrap_or(false)) */ false =>
                                 {
+                                    dbg!(f.info.instance);
+                                    dbg!(f.timer);
                                     //TODO: Add "jumping" animation on floater when it changes its
                                     // value
                                     f.info.amount += info.amount;
                                     f.info.crit_mult = info.crit_mult;
+                                    // TODO: Temporary ofc.
+                                    f.info.crit = Some(f.info.crit.unwrap_or(false) || info.crit.unwrap_or(false));
                                 },
                                 _ => {
                                     floater_list.floaters.push(HpFloater {

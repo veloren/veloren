@@ -11,6 +11,7 @@ pub struct DamageInfo {
     pub target: Uid,
     pub by: Option<DamageContributor>,
     pub crit_mult: f32,
+    pub instance: u64,
 }
 
 /// An outcome represents the final result of an instantaneous event. It implies

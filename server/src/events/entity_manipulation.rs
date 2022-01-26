@@ -91,6 +91,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
                         by: change.by,
                         target: *uid,
                         crit_mult: change.crit_mult,
+                        instance: change.instance,
                     },
                 });
             }
@@ -593,7 +594,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 &msm,
             );
             let change =
-                damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time);
+                damage.calculate_health_change(damage_reduction, None, false, 0.0, 1.0, *time, rand::random());
             health.change_by(change);
             let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
             server_eventbus.emit_now(ServerEvent::HealthChange {
@@ -601,6 +602,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 change,
             });
         }
+
         // Handle poise change
         if let Some(mut poise) = ecs.write_storage::<comp::Poise>().get_mut(entity) {
             let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
@@ -861,6 +863,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Attack(attack) => {
+                // TODO: Join counter later?
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
                 let inventories = &ecs.read_storage::<comp::Inventory>();

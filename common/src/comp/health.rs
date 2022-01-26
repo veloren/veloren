@@ -2,6 +2,7 @@ use crate::DamageSource;
 #[cfg(not(target_arch = "wasm32"))]
 use crate::{comp, consts::HP_PER_LEVEL};
 use hashbrown::HashMap;
+use rand;
 use serde::{Deserialize, Serialize};
 use std::convert::TryFrom;
 
@@ -28,6 +29,11 @@ pub struct HealthChange {
     /// couldn't have been a crit)
     pub crit: Option<bool>,
     pub crit_mult: f32,
+    /// A random instance ID given to every health change
+    /// Note: Two or more changes could have the same instance number, if they
+    /// came from the same attack (for example - the extra damage caused by
+    /// slashing weapons)
+    pub instance: u64,
 }
 
 impl HealthChange {
@@ -139,6 +145,7 @@ impl Health {
                 crit: None,
                 crit_mult: 1.0,
                 time: Time(0.0),
+                instance: rand::random(),
             },
             is_dead: false,
             damage_contributors: HashMap::new(),
@@ -221,6 +228,7 @@ impl Health {
                 crit: None,
                 crit_mult: 1.0,
                 time: Time(0.0),
+                instance: rand::random(),
             },
             is_dead: false,
             damage_contributors: HashMap::new(),
@@ -256,6 +264,7 @@ mod tests {
             cause: None,
             crit: None,
             crit_mult: 1.0,
+            instance: rand::random(),
         };
 
         health.change_by(health_change);
@@ -283,6 +292,7 @@ mod tests {
             cause: None,
             crit: None,
             crit_mult: 1.0,
+            instance: rand::random(),
         };
 
         health.change_by(health_change);
@@ -304,6 +314,7 @@ mod tests {
             cause: None,
             crit: None,
             crit_mult: 1.0,
+            instance: rand::random(),
         };
         health.change_by(health_change);
         health.change_by(health_change);
@@ -331,6 +342,7 @@ mod tests {
             cause: None,
             crit: None,
             crit_mult: 1.0,
+            instance: rand::random(),
         };
         health.change_by(health_change);
 
@@ -342,6 +354,7 @@ mod tests {
             cause: None,
             crit: None,
             crit_mult: 1.0,
+            instance: rand::random(),
         };
         health.change_by(health_change);
 
@@ -357,6 +370,7 @@ mod tests {
             cause: None,
             crit: None,
             crit_mult: 1.0,
+            instance: rand::random(),
         };
         health.change_by(health_change);
 

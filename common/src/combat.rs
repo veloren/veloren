@@ -212,6 +212,7 @@ impl Attack {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
+        let instance = rand::random();
         for damage in self
             .damages
             .iter()
@@ -235,6 +236,7 @@ impl Attack {
                 self.crit_multiplier,
                 strength_modifier,
                 time,
+                instance,
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
@@ -259,6 +261,7 @@ impl Attack {
                                     time,
                                     crit: Some(is_crit),
                                     crit_mult: self.crit_multiplier,
+                                    instance,
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -358,6 +361,7 @@ impl Attack {
                                     time,
                                     crit: None,
                                     crit_mult: self.crit_multiplier,
+                                    instance: rand::random(),
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
                                     emit(ServerEvent::HealthChange {
@@ -392,6 +396,7 @@ impl Attack {
                                 time,
                                 crit: None,
                                 crit_mult: self.crit_multiplier,
+                                instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -505,6 +510,7 @@ impl Attack {
                                 time,
                                 crit: None,
                                 crit_mult: self.crit_multiplier,
+                                instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
                                 emit(ServerEvent::HealthChange {
@@ -539,6 +545,7 @@ impl Attack {
                             time,
                             crit: None,
                             crit_mult: self.crit_multiplier,
+                            instance: rand::random(),
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
                             emit(ServerEvent::HealthChange {
@@ -731,6 +738,7 @@ impl From<AttackerInfo<'_>> for DamageContributor {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DamageSource {
+    // Could be used to separate DOTs?
     Buff(BuffKind),
     Melee,
     Projectile,
@@ -828,6 +836,7 @@ impl Damage {
         crit_mult: f32,
         damage_modifier: f32,
         time: Time,
+        instance: u64,
     ) -> HealthChange {
         let mut damage = self.value * damage_modifier;
         let critdamage = if is_crit {
@@ -853,6 +862,7 @@ impl Damage {
                     time,
                     crit: Some(is_crit),
                     crit_mult,
+                    instance,
                 }
             },
             DamageSource::Falling => {
@@ -867,6 +877,7 @@ impl Damage {
                     time,
                     crit: None,
                     crit_mult,
+                    instance,
                 }
             },
             DamageSource::Buff(_) | DamageSource::Other => HealthChange {
@@ -876,6 +887,7 @@ impl Damage {
                 time,
                 crit: None,
                 crit_mult,
+                instance,
             },
         }
     }

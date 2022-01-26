@@ -1059,6 +1059,7 @@ fn handle_health(
                 crit: None,
                 crit_mult: 1.0,
                 time: *time,
+                instance: rand::random(),
             };
             health.change_by(change);
             Ok(())
