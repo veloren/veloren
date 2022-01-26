@@ -739,7 +739,7 @@ impl<'a> AgentData<'a> {
             {
                 controller.push_basic_input(InputKind::Fly);
             } else {
-                controller.push_action(ControlAction::CancelInput(InputKind::Fly))
+                controller.push_cancel_input(InputKind::Fly)
             }
 
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -2276,7 +2276,7 @@ impl<'a> AgentData<'a> {
         if condition {
             controller.push_basic_input(InputKind::Jump);
         } else {
-            controller.push_action(ControlAction::CancelInput(InputKind::Jump))
+            controller.push_cancel_input(InputKind::Jump)
         }
     }
 
