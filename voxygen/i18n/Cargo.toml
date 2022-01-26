@@ -1,6 +1,6 @@
 [package]
 authors = ["juliancoffee <lightdarkdaughter@gmail.com>", "Rémy Phelipot"]
-edition = "2018"
+edition = "2021"
 name = "veloren-voxygen-i18n"
 description = "Crate for internalization and diagnostic of existing localizations."
 version = "0.10.0"
