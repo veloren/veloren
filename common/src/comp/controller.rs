@@ -279,6 +279,28 @@ impl Controller {
     pub fn clear_events(&mut self) { self.events.clear(); }
 
     pub fn push_event(&mut self, event: ControlEvent) { self.events.push(event); }
+
+    pub fn push_utterance(&mut self, utterance: UtteranceKind) {
+        self.push_event(ControlEvent::Utterance(utterance));
+    }
+
+    pub fn push_invite_response(&mut self, invite_response: InviteResponse) {
+        self.push_event(ControlEvent::InviteResponse(invite_response));
+    }
+
+    pub fn push_initiate_invite(&mut self, uid: Uid, invite: InviteKind) {
+        self.push_event(ControlEvent::InitiateInvite(uid, invite));
+    }
+
+    pub fn push_action(&mut self, action: ControlAction) { self.actions.push(action); }
+
+    pub fn push_basic_input(&mut self, input: InputKind) {
+        self.push_action(ControlAction::basic_input(input));
+    }
+
+    pub fn push_cancel_input(&mut self, input: InputKind) {
+        self.push_action(ControlAction::CancelInput(input));
+    }
 }
 
 impl Component for Controller {

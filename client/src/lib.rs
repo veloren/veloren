@@ -1301,7 +1301,7 @@ impl Client {
             .write_storage::<Controller>()
             .get_mut(self.entity())
         {
-            controller.actions.push(control_action);
+            controller.push_action(control_action);
         }
         self.send_msg(ClientGeneral::ControlAction(control_action));
     }

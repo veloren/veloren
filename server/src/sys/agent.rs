@@ -208,9 +208,7 @@ impl<'a> System<'a> for Sys {
                         //
                         // TODO: look into `controller.reset()` line above
                         // and see if it fixes it
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Fly));
+                        controller.push_basic_input(InputKind::Fly);
                     }
 
                     // Package all this agent's data into a convenient struct
@@ -515,7 +513,7 @@ impl<'a> AgentData<'a> {
                     Some(AgentEvent::Hurt) => {
                         // Hurt utterances at random upon receiving damage
                         if rng.gen::<f32>() < 0.4 {
-                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Hurt));
+                            controller.push_utterance(UtteranceKind::Hurt);
                         }
                     },
                     //Note: this should be unreachable
@@ -547,13 +545,13 @@ impl<'a> AgentData<'a> {
                 // Look toward the interacting entity for a while
                 if let Some(Target { target, .. }) = &agent.target {
                     self.look_toward(controller, read_data, *target);
-                    controller.actions.push(ControlAction::Talk);
+                    controller.push_action(ControlAction::Talk);
                 }
             },
             Some(just_ended) => {
                 if just_ended {
                     agent.target = None;
-                    controller.actions.push(ControlAction::Stand);
+                    controller.push_action(ControlAction::Stand);
                 }
 
                 if rng.gen::<f32>() < 0.1 {
@@ -583,7 +581,7 @@ impl<'a> AgentData<'a> {
         if let Some(AgentEvent::Hurt) = agent.inbox.pop_front() {
             // Hurt utterances at random upon receiving damage
             if rng.gen::<f32>() < 0.4 {
-                controller.push_event(ControlEvent::Utterance(UtteranceKind::Hurt));
+                controller.push_utterance(UtteranceKind::Hurt);
             }
         }
 
@@ -666,7 +664,7 @@ impl<'a> AgentData<'a> {
     ////////////////////////////////////////
 
     fn glider_fall(&self, controller: &mut Controller) {
-        controller.actions.push(ControlAction::GlideWield);
+        controller.push_action(ControlAction::GlideWield);
 
         let flight_direction =
             Vec3::from(self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero));
@@ -684,9 +682,7 @@ impl<'a> AgentData<'a> {
     }
 
     fn fly_upward(&self, controller: &mut Controller) {
-        controller
-            .actions
-            .push(ControlAction::basic_input(InputKind::Fly));
+        controller.push_basic_input(InputKind::Fly);
         controller.inputs.move_z = 1.0;
     }
 
@@ -715,11 +711,11 @@ impl<'a> AgentData<'a> {
                 // nighttime and keep them on
                 // Only emit event for agents that sill need to
                 // turn on their lantern
-                controller.events.push(ControlEvent::EnableLantern)
+                controller.push_event(ControlEvent::EnableLantern)
             } else if lantern_turned_on && day_period.is_light() {
                 // agents with turned on lanterns turn them off randomly once it's
                 // daytime and keep them off
-                controller.events.push(ControlEvent::DisableLantern)
+                controller.push_event(ControlEvent::DisableLantern)
             }
         };
 
@@ -741,13 +737,9 @@ impl<'a> AgentData<'a> {
                     .1
                     .map_or(true, |b| b.is_some())
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Fly));
+                controller.push_basic_input(InputKind::Fly);
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Fly))
+                controller.push_cancel_input(InputKind::Fly)
             }
 
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -846,7 +838,7 @@ impl<'a> AgentData<'a> {
                         Some(CharacterState::Wielding(_))
                     )
                 {
-                    controller.actions.push(ControlAction::Unwield);
+                    controller.push_action(ControlAction::Unwield);
                 }
             }
         } else {
@@ -909,16 +901,16 @@ impl<'a> AgentData<'a> {
                     Some(CharacterState::Wielding(_))
                 )
             {
-                controller.actions.push(ControlAction::Unwield);
+                controller.push_action(ControlAction::Unwield);
             }
 
             if rng.gen::<f32>() < 0.0015 {
-                controller.push_event(ControlEvent::Utterance(UtteranceKind::Calm));
+                controller.push_utterance(UtteranceKind::Calm);
             }
 
             // Sit
             if rng.gen::<f32>() < 0.0035 {
-                controller.actions.push(ControlAction::Sit);
+                controller.push_action(ControlAction::Sit);
             }
         }
     }
@@ -962,12 +954,10 @@ impl<'a> AgentData<'a> {
         //     // Clear agent comp
         //     //*agent = Agent::default();
         //     controller
-        //         .events
-        //         .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+        //         .push_event(ControlEvent::InviteResponse(InviteResponse::Accept));
         // } else {
         //     controller
-        //         .events
-        //         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+        //         .push_event(ControlEvent::InviteResponse(InviteResponse::Decline));
         // }
         agent.action_state.timer += read_data.dt.0;
 
@@ -979,9 +969,9 @@ impl<'a> AgentData<'a> {
                         agent.target = Some(Target::new(target, false, read_data.time.0, false));
 
                         if self.look_toward(controller, read_data, target) {
-                            controller.actions.push(ControlAction::Stand);
-                            controller.actions.push(ControlAction::Talk);
-                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Greeting));
+                            controller.push_action(ControlAction::Stand);
+                            controller.push_action(ControlAction::Talk);
+                            controller.push_utterance(UtteranceKind::Greeting);
 
                             match subject {
                                 Subject::Regular => {
@@ -1025,10 +1015,7 @@ impl<'a> AgentData<'a> {
                                         self.chat_npc(msg, event_emitter);
                                     } else if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.events.push(ControlEvent::InitiateInvite(
-                                                by,
-                                                InviteKind::Trade,
-                                            ));
+                                            controller.push_initiate_invite(by, InviteKind::Trade);
                                             self.chat_npc(
                                                 "npc.speech.merchant_advertisement",
                                                 event_emitter,
@@ -1046,10 +1033,7 @@ impl<'a> AgentData<'a> {
                                 Subject::Trade => {
                                     if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.events.push(ControlEvent::InitiateInvite(
-                                                by,
-                                                InviteKind::Trade,
-                                            ));
+                                            controller.push_initiate_invite(by, InviteKind::Trade);
                                             self.chat_npc(
                                                 "npc.speech.merchant_advertisement",
                                                 event_emitter,
@@ -1177,21 +1161,17 @@ impl<'a> AgentData<'a> {
                 if agent.behavior.can_trade() {
                     if !agent.behavior.is(BehaviorState::TRADING) {
                         // stand still and looking towards the trading player
-                        controller.actions.push(ControlAction::Stand);
-                        controller.actions.push(ControlAction::Talk);
+                        controller.push_action(ControlAction::Stand);
+                        controller.push_action(ControlAction::Talk);
                         if let Some(target) = get_entity_by_id(with.id(), read_data) {
                             agent.target =
                                 Some(Target::new(target, false, read_data.time.0, false));
                         }
-                        controller
-                            .events
-                            .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+                        controller.push_invite_response(InviteResponse::Accept);
                         agent.behavior.unset(BehaviorState::TRADING_ISSUER);
                         agent.behavior.set(BehaviorState::TRADING);
                     } else {
-                        controller
-                            .events
-                            .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                        controller.push_invite_response(InviteResponse::Decline);
                         self.chat_npc_if_allowed_to_speak(
                             "npc.speech.merchant_busy",
                             agent,
@@ -1200,9 +1180,7 @@ impl<'a> AgentData<'a> {
                     }
                 } else {
                     // TODO: Provide a hint where to find the closest merchant?
-                    controller
-                        .events
-                        .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                    controller.push_invite_response(InviteResponse::Decline);
                     self.chat_npc_if_allowed_to_speak(
                         "npc.speech.villager_decline_trade",
                         agent,
@@ -1335,7 +1313,7 @@ impl<'a> AgentData<'a> {
         let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
 
         self.look_toward(controller, read_data, target);
-        controller.actions.push(ControlAction::Wield);
+        controller.push_action(ControlAction::Wield);
 
         if move_dir_mag > max_move {
             controller.inputs.move_dir = max_move * move_dir / move_dir_mag;
@@ -1343,7 +1321,7 @@ impl<'a> AgentData<'a> {
 
         if small_chance {
             self.chat_npc_if_allowed_to_speak("npc.speech.menacing", agent, event_emitter);
-            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+            controller.push_utterance(UtteranceKind::Angry);
         }
     }
 
@@ -1356,7 +1334,7 @@ impl<'a> AgentData<'a> {
     ) {
         if let Some(body) = self.body {
             if body.can_strafe() && !self.is_gliding {
-                controller.actions.push(ControlAction::Unwield);
+                controller.push_action(ControlAction::Unwield);
             }
         }
         if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1430,11 +1408,9 @@ impl<'a> AgentData<'a> {
 
         if let Some((id, _)) = item {
             use comp::inventory::slot::Slot;
-            controller
-                .actions
-                .push(ControlAction::InventoryAction(InventoryAction::Use(
-                    Slot::Inventory(id),
-                )));
+            controller.push_action(ControlAction::InventoryAction(InventoryAction::Use(
+                Slot::Inventory(id),
+            )));
             true
         } else {
             false
@@ -1651,7 +1627,7 @@ impl<'a> AgentData<'a> {
             .map(|(e, _)| e);
 
         if agent.target.is_none() && target.is_some() {
-            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+            controller.push_utterance(UtteranceKind::Angry);
         }
 
         agent.target = target.map(|target| Target {
@@ -1743,7 +1719,7 @@ impl<'a> AgentData<'a> {
             .unwrap_or(Tactic::Melee);
 
         // Wield the weapon as running towards the target
-        controller.actions.push(ControlAction::Wield);
+        controller.push_action(ControlAction::Wield);
 
         let min_attack_dist = (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE)
             * self.scale
@@ -2164,7 +2140,7 @@ impl<'a> AgentData<'a> {
                 if let Some(by) = tgt_health.last_change.damage_by() {
                     if let Some(attacker) = get_entity_by_id(by.uid().0, read_data) {
                         if agent.target.is_none() {
-                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+                            controller.push_utterance(UtteranceKind::Angry);
                         }
 
                         agent.target = Some(Target::new(attacker, true, read_data.time.0, true));
@@ -2291,13 +2267,9 @@ impl<'a> AgentData<'a> {
 
     fn jump_if(&self, controller: &mut Controller, condition: bool) {
         if condition {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Jump));
+            controller.push_basic_input(InputKind::Jump);
         } else {
-            controller
-                .actions
-                .push(ControlAction::CancelInput(InputKind::Jump))
+            controller.push_cancel_input(InputKind::Jump)
         }
     }
 

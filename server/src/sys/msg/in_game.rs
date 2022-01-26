@@ -100,14 +100,14 @@ impl Sys {
                         }
                     }
                     if let Some(controller) = controllers.get_mut(entity) {
-                        controller.events.push(event);
+                        controller.push_event(event);
                     }
                 }
             },
             ClientGeneral::ControlAction(event) => {
                 if matches!(presence.kind, PresenceKind::Character(_)) {
                     if let Some(controller) = controllers.get_mut(entity) {
-                        controller.actions.push(event);
+                        controller.push_action(event);
                     }
                 }
             },
