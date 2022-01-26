@@ -9,7 +9,7 @@ pub use self::{
     plot::{Plot, PlotKind},
 };
 use crate::{
-    site::SpawnRules,
+    site::{namegen::NameGen, SpawnRules},
     util::{attempt, DHashSet, Grid, CARDINALS, SQUARE_4, SQUARE_9},
     Canvas, Land,
 };
@@ -353,7 +353,7 @@ impl Site {
 
         let mut site = Site {
             origin,
-            name: "Town".into(),
+            name: NameGen::location(&mut rng).generate(),
             ..Site::default()
         };
 

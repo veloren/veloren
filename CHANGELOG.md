@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Keybinding customization to set waypoint on Map
 - Added arthropods
 - A 'point light glow' effect, making lanterns and other point lights more visually pronounced
+- Generate random name for site2 sites
 
 ### Changed
 
