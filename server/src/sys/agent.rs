@@ -513,7 +513,7 @@ impl<'a> AgentData<'a> {
                     Some(AgentEvent::Hurt) => {
                         // Hurt utterances at random upon receiving damage
                         if rng.gen::<f32>() < 0.4 {
-                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Hurt));
+                            controller.push_utterance(UtteranceKind::Hurt);
                         }
                     },
                     //Note: this should be unreachable
@@ -581,7 +581,7 @@ impl<'a> AgentData<'a> {
         if let Some(AgentEvent::Hurt) = agent.inbox.pop_front() {
             // Hurt utterances at random upon receiving damage
             if rng.gen::<f32>() < 0.4 {
-                controller.push_event(ControlEvent::Utterance(UtteranceKind::Hurt));
+                controller.push_utterance(UtteranceKind::Hurt);
             }
         }
 
@@ -905,7 +905,7 @@ impl<'a> AgentData<'a> {
             }
 
             if rng.gen::<f32>() < 0.0015 {
-                controller.push_event(ControlEvent::Utterance(UtteranceKind::Calm));
+                controller.push_utterance(UtteranceKind::Calm);
             }
 
             // Sit
@@ -971,7 +971,7 @@ impl<'a> AgentData<'a> {
                         if self.look_toward(controller, read_data, target) {
                             controller.push_action(ControlAction::Stand);
                             controller.push_action(ControlAction::Talk);
-                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Greeting));
+                            controller.push_utterance(UtteranceKind::Greeting);
 
                             match subject {
                                 Subject::Regular => {
@@ -1328,7 +1328,7 @@ impl<'a> AgentData<'a> {
 
         if small_chance {
             self.chat_npc_if_allowed_to_speak("npc.speech.menacing", agent, event_emitter);
-            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+            controller.push_utterance(UtteranceKind::Angry);
         }
     }
 
@@ -1634,7 +1634,7 @@ impl<'a> AgentData<'a> {
             .map(|(e, _)| e);
 
         if agent.target.is_none() && target.is_some() {
-            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+            controller.push_utterance(UtteranceKind::Angry);
         }
 
         agent.target = target.map(|target| Target {
@@ -2147,7 +2147,7 @@ impl<'a> AgentData<'a> {
                 if let Some(by) = tgt_health.last_change.damage_by() {
                     if let Some(attacker) = get_entity_by_id(by.uid().0, read_data) {
                         if agent.target.is_none() {
-                            controller.push_event(ControlEvent::Utterance(UtteranceKind::Angry));
+                            controller.push_utterance(UtteranceKind::Angry);
                         }
 
                         agent.target = Some(Target::new(attacker, true, read_data.time.0, true));

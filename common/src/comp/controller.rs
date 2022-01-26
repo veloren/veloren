@@ -280,6 +280,10 @@ impl Controller {
 
     pub fn push_event(&mut self, event: ControlEvent) { self.events.push(event); }
 
+    pub fn push_utterance(&mut self, utterance: UtteranceKind) {
+        self.push_event(ControlEvent::Utterance(utterance));
+    }
+
     pub fn push_action(&mut self, action: ControlAction) { self.actions.push(action); }
 
     pub fn push_basic_input(&mut self, input: InputKind) {
