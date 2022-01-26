@@ -64,7 +64,7 @@ impl<'a> AgentData<'a> {
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 5.0 {
-                controller.push_action(ControlAction::CancelInput(InputKind::Secondary));
+                controller.push_cancel_input(InputKind::Secondary);
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 2.5 && has_energy(10.0) {
                 controller.push_basic_input(InputKind::Secondary);
@@ -124,7 +124,7 @@ impl<'a> AgentData<'a> {
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 4.0 {
-                controller.push_action(ControlAction::CancelInput(InputKind::Secondary));
+                controller.push_cancel_input(InputKind::Secondary);
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 3.0 {
                 controller.push_basic_input(InputKind::Secondary);
@@ -830,7 +830,7 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             if agent.action_state.timer > 4.0 {
-                controller.push_action(ControlAction::CancelInput(InputKind::Primary));
+                controller.push_cancel_input(InputKind::Primary);
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 1.0 {
                 controller.push_basic_input(InputKind::Primary);
@@ -1335,7 +1335,7 @@ impl<'a> AgentData<'a> {
         rng: &mut impl Rng,
     ) {
         // Set fly to false
-        controller.push_action(ControlAction::CancelInput(InputKind::Fly));
+        controller.push_cancel_input(InputKind::Fly);
         if attack_data.dist_sqrd > 30.0_f32.powi(2) {
             if rng.gen_bool(0.05)
                 && can_see_tgt(

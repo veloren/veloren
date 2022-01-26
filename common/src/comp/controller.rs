@@ -285,6 +285,10 @@ impl Controller {
     pub fn push_basic_input(&mut self, input: InputKind) {
         self.push_action(ControlAction::basic_input(input));
     }
+
+    pub fn push_cancel_input(&mut self, input: InputKind) {
+        self.push_action(ControlAction::CancelInput(input));
+    }
 }
 
 impl Component for Controller {

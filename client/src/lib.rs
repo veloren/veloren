@@ -1290,7 +1290,7 @@ impl Client {
                 select_pos,
             });
         } else {
-            self.control_action(ControlAction::CancelInput(input));
+            self.push_cancel_input(input);
         }
     }
 
