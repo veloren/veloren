@@ -87,6 +87,9 @@ pub enum Event {
     // Note: Keeping in case we re-add the disclaimer
     //DisclaimerAccepted,
     AuthServerTrust(String, bool),
+    DeleteServer {
+        server_index: usize,
+    },
 }
 
 pub struct LoginInfo {
@@ -164,6 +167,7 @@ enum Message {
     TrustPromptAdd,
     TrustPromptCancel,
     CloseError,
+    DeleteServer,
     /* Note: Keeping in case we re-add the disclaimer
      *AcceptDisclaimer, */
 }
@@ -422,6 +426,11 @@ impl Controls {
                 if let Screen::Login { error, .. } = &mut self.screen {
                     *error = None;
                 }
+            },
+            Message::DeleteServer => {
+                events.push(Event::DeleteServer {
+                    server_index: self.selected_server_index.unwrap(),
+                });
             },
             /* Note: Keeping in case we re-add the disclaimer */
             /*Message::AcceptDisclaimer => {

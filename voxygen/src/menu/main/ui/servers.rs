@@ -10,6 +10,7 @@ use iced::{
 
 pub struct Screen {
     back_button: button::State,
+    delete_button: button::State,
     server_buttons: Vec<button::State>,
     servers_list: scrollable::State,
 }
@@ -18,6 +19,7 @@ impl Screen {
     pub fn new() -> Self {
         Self {
             back_button: Default::default(),
+            delete_button: Default::default(),
             server_buttons: vec![],
             servers_list: Default::default(),
         }
@@ -44,6 +46,19 @@ impl Screen {
                 FILL_FRAC_ONE,
                 button_style,
                 Some(Message::Back),
+            ))
+            .max_width(200),
+        )
+        .width(Length::Fill)
+        .align_x(Align::Center);
+
+        let delete_button = Container::new(
+            Container::new(neat_button(
+                &mut self.delete_button,
+                i18n.get("common.delete_server"),
+                FILL_FRAC_ONE,
+                button_style,
+                Some(Message::DeleteServer),
             ))
             .max_width(200),
         )
@@ -104,11 +119,17 @@ impl Screen {
 
         Container::new(
             Container::new(
-                Column::with_children(vec![title.into(), list.into(), back_button.into()])
-                    .width(Length::Fill)
-                    .height(Length::Fill)
-                    .spacing(10)
-                    .padding(20),
+                Column::with_children(vec![
+                    title.into(),
+                    list.into(),
+                    Row::with_children(vec![delete_button.into(), back_button.into()])
+                        .width(Length::Fill)
+                        .into(),
+                ])
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .spacing(10)
+                .padding(20),
             )
             .style(
                 style::container::Style::color_with_double_cornerless_border(
