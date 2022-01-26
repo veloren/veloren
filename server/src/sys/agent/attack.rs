@@ -29,9 +29,7 @@ impl<'a> AgentData<'a> {
         rng: &mut impl Rng,
     ) {
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
             controller.inputs.move_dir = Vec2::zero();
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, true, None);
@@ -40,9 +38,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.02
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
@@ -63,31 +59,21 @@ impl<'a> AgentData<'a> {
         let has_energy = |need| self.energy.current() > need;
 
         let use_leap = |controller: &mut Controller| {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         };
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 5.0 {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Secondary));
+                controller.push_action(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 2.5 && has_energy(10.0) {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
             } else if has_leap() && has_energy(45.0) && rng.gen_bool(0.5) {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                 agent.action_state.timer += read_data.dt.0;
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -108,9 +94,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.02
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
@@ -134,30 +118,22 @@ impl<'a> AgentData<'a> {
         let has_energy = |need| self.energy.current() > need;
 
         let use_leap = |controller: &mut Controller| {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         };
 
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer > 4.0 {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Secondary));
+                controller.push_action(ControlAction::CancelInput(InputKind::Secondary));
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 3.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
             } else if has_leap() && has_energy(50.0) && rng.gen_bool(0.9) {
                 use_leap(controller);
                 agent.action_state.timer += read_data.dt.0;
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -178,9 +154,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.02
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
@@ -204,16 +178,12 @@ impl<'a> AgentData<'a> {
                 && agent.action_state.timer < 2.0
                 && self.energy.current() > 60.0
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                 agent.action_state.timer += read_data.dt.0;
             } else if agent.action_state.timer > 2.0 {
                 agent.action_state.timer = 0.0;
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -226,9 +196,7 @@ impl<'a> AgentData<'a> {
                 )
             {
                 if agent.action_state.timer > 4.0 && attack_data.angle < 45.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                     agent.action_state.timer = 0.0;
                 } else {
                     agent.action_state.timer += read_data.dt.0;
@@ -238,9 +206,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.02
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
@@ -274,9 +240,7 @@ impl<'a> AgentData<'a> {
                 {
                     // If haven't charged to desired level, or target is moving too fast and haven't
                     // fully charged, keep charging
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 }
                 // Else don't send primary input to release the shot
             }
@@ -293,9 +257,7 @@ impl<'a> AgentData<'a> {
                 )
             {
                 // Only keep firing if not in melee range or if can see target
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self
@@ -305,24 +267,18 @@ impl<'a> AgentData<'a> {
                 && rng.gen_bool(0.5)
             {
                 // Use shotgun if target close and have sufficient energy
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             } else if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && self.energy.current() > CharacterAbility::default_roll().get_energy_cost()
                 && !matches!(self.char_state, CharacterState::BasicRanged(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Else roll away if can roll and have enough energy, and not using shotgun
                 // (other 2 attacks have interrupt handled above) unless in recover
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             } else {
                 self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
                 if attack_data.angle < 15.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 }
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
@@ -336,14 +292,10 @@ impl<'a> AgentData<'a> {
             // If not really far, and can see target, attempt to shoot bow
             if self.energy.current() < DESIRED_ENERGY_LEVEL {
                 // If low on energy, use primary to attempt to regen energy
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             } else {
                 // Else we have enough energy, use repeater
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             }
         }
         // Logic to move. Intentionally kept separate from ability logic so duplicated
@@ -401,9 +353,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.01
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             // If too far, move towards target
@@ -442,17 +392,13 @@ impl<'a> AgentData<'a> {
         {
             // if a humanoid, have enough stamina, not in shockwave, and in melee range,
             // emergency roll
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Roll));
+            controller.push_action(ControlAction::basic_input(InputKind::Roll));
         } else if matches!(self.char_state, CharacterState::Shockwave(_)) {
             agent.action_state.condition = false;
         } else if agent.action_state.condition
             && matches!(self.char_state, CharacterState::Wielding(_))
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         } else if !matches!(self.char_state, CharacterState::Shockwave(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // only try to use another ability unless in shockwave or recover
@@ -470,9 +416,7 @@ impl<'a> AgentData<'a> {
             {
                 // if enemy is closing distance quickly, use shockwave to knock back
                 if matches!(self.char_state, CharacterState::Wielding(_)) {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                    controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                 } else {
                     agent.action_state.condition = true;
                 }
@@ -480,13 +424,9 @@ impl<'a> AgentData<'a> {
                 > shockwave_cost + CharacterAbility::default_roll().get_energy_cost()
                 && attack_data.dist_sqrd < flamethrower_range.powi(2)
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
         }
         // Logic to move. Intentionally kept separate from ability logic so duplicated
@@ -545,9 +485,7 @@ impl<'a> AgentData<'a> {
                 && !matches!(self.char_state, CharacterState::Shockwave(_))
                 && rng.gen::<f32>() < 0.02
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             // If too far, move towards target
@@ -590,9 +528,7 @@ impl<'a> AgentData<'a> {
                 })
             {
                 // If have enough energy and combo to use healing aura, do so
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             } else if self
                 .skill_set
                 .has_skill(Skill::Sceptre(SceptreSkill::UnlockAura))
@@ -606,15 +542,11 @@ impl<'a> AgentData<'a> {
             {
                 // Use ward if target is far enough away, self is not buffed, and have
                 // sufficient energy
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             } else {
                 // If low on energy, use primary to attempt to regen energy
                 // Or if at desired energy level but not able/willing to ward, just attack
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
         } else if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             if self.body.map_or(false, |b| b.is_humanoid())
@@ -623,13 +555,9 @@ impl<'a> AgentData<'a> {
             {
                 // Else roll away if can roll and have enough energy, and not using aura or in
                 // recover
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             } else if attack_data.angle < 15.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
         }
         // Logic to move. Intentionally kept separate from ability logic where possible
@@ -688,9 +616,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.01
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Roll));
+                controller.push_action(ControlAction::basic_input(InputKind::Roll));
             }
         } else {
             // If too far, move towards target
@@ -708,15 +634,11 @@ impl<'a> AgentData<'a> {
     ) {
         if attack_data.in_min_range() && attack_data.angle < 90.0 {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
             //controller.inputs.primary.set_state(true);
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if self.vel.0.is_approx_zero() {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             }
             if self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None)
                 && can_see_tgt(
@@ -728,9 +650,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.angle < 90.0
             {
                 if agent.action_state.timer > 5.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                     agent.action_state.timer = 0.0;
                 } else {
                     agent.action_state.timer += read_data.dt.0;
@@ -755,9 +675,7 @@ impl<'a> AgentData<'a> {
     ) {
         if agent.action_state.counter >= circle_time as f32 {
             // if circle charge is in progress and time hasn't expired, continue charging
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         }
         if attack_data.in_min_range() {
             if agent.action_state.counter > 0.0 {
@@ -766,9 +684,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.int_counter = 0;
             } else {
                 // melee attack
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 controller.inputs.move_dir = Vec2::zero();
             }
         } else if attack_data.dist_sqrd < (radius as f32 + attack_data.min_attack_dist).powi(2) {
@@ -846,9 +762,7 @@ impl<'a> AgentData<'a> {
                 .xy()
                 .try_normalized()
                 .unwrap_or_else(Vec2::unit_y);
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
@@ -887,9 +801,7 @@ impl<'a> AgentData<'a> {
                             * speed;
                         agent.action_state.timer += read_data.dt.0;
                     }
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                     self.jump_if(controller, bearing.z > 1.5);
                     controller.inputs.move_z = bearing.z;
                 } else {
@@ -918,19 +830,13 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             if agent.action_state.timer > 4.0 {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Primary));
+                controller.push_action(ControlAction::CancelInput(InputKind::Primary));
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 1.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
             }
             controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
@@ -957,16 +863,12 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         } else if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
             && attack_data.dist_sqrd > (2.0 * attack_data.min_attack_dist).powi(2)
             && attack_data.angle < 90.0
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
             controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
                 .xy()
                 .rotated_z(-0.47 * PI)
@@ -994,14 +896,10 @@ impl<'a> AgentData<'a> {
             if agent.action_state.timer > 5.0 {
                 agent.action_state.timer = 0.0;
             } else if agent.action_state.timer > 2.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             }
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -1023,15 +921,11 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         } else if attack_data.angle < 15.0
             && attack_data.dist_sqrd < (5.0 * attack_data.min_attack_dist).powi(2)
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None)
                 && attack_data.angle < 15.0
@@ -1042,9 +936,7 @@ impl<'a> AgentData<'a> {
                     attack_data.dist_sqrd,
                 )
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
@@ -1062,14 +954,10 @@ impl<'a> AgentData<'a> {
         if attack_data.angle < 90.0 && attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer < 2.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.timer += read_data.dt.0;
             } else if agent.action_state.timer < 3.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             } else {
                 agent.action_state.timer = 0.0;
@@ -1093,9 +981,7 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (2.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         } else if attack_data.dist_sqrd < (7.0 * attack_data.min_attack_dist).powi(2)
             && attack_data.angle < 15.0
         {
@@ -1105,9 +991,7 @@ impl<'a> AgentData<'a> {
                     .rotated_z(0.47 * PI)
                     .try_normalized()
                     .unwrap_or_else(Vec2::unit_y);
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             } else if agent.action_state.timer < 4.0 && attack_data.angle < 15.0 {
                 controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
@@ -1115,14 +999,10 @@ impl<'a> AgentData<'a> {
                     .rotated_z(-0.47 * PI)
                     .try_normalized()
                     .unwrap_or_else(Vec2::unit_y);
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.timer += read_data.dt.0;
             } else if agent.action_state.timer < 6.0 && attack_data.angle < 15.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                 agent.action_state.timer += read_data.dt.0;
             } else {
                 agent.action_state.timer = 0.0;
@@ -1144,9 +1024,7 @@ impl<'a> AgentData<'a> {
     ) {
         if attack_data.angle < 90.0 && attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
         } else {
@@ -1169,9 +1047,7 @@ impl<'a> AgentData<'a> {
             attack_data.dist_sqrd,
         ) && attack_data.angle < 15.0
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else {
             agent.target = None;
         }
@@ -1193,9 +1069,7 @@ impl<'a> AgentData<'a> {
             attack_data.dist_sqrd,
         ) && attack_data.angle < 15.0
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else {
             agent.target = None;
         }
@@ -1222,9 +1096,7 @@ impl<'a> AgentData<'a> {
             tgt_data.pos,
             attack_data.dist_sqrd,
         ) {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else {
             agent.target = None;
         }
@@ -1244,16 +1116,12 @@ impl<'a> AgentData<'a> {
             tgt_data.pos,
             attack_data.dist_sqrd,
         ) {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         }
     }
 
     pub fn handle_tornado_attack(&self, controller: &mut Controller) {
-        controller
-            .actions
-            .push(ControlAction::basic_input(InputKind::Primary));
+        controller.push_action(ControlAction::basic_input(InputKind::Primary));
     }
 
     pub fn handle_mindflayer_attack(
@@ -1277,9 +1145,7 @@ impl<'a> AgentData<'a> {
 
         if agent.action_state.counter > health_fraction {
             // Summon minions at particular thresholds of health
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(2)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(2)));
 
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
@@ -1296,26 +1162,18 @@ impl<'a> AgentData<'a> {
                 if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(10) && !matches!(c.stage_section, StageSection::Recover))
                 {
                     // If already using primary, keep using primary until 10 consecutive seconds
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 } else if matches!(self.char_state, CharacterState::SpinMelee(c) if c.consecutive_spins < 50 && !matches!(c.stage_section, StageSection::Recover))
                 {
                     // If already using secondary, keep using secondary until 10 consecutive
                     // seconds
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 } else if rng.gen_bool(health_fraction.into()) {
                     // Else if at high health, use primary
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 } else {
                     // Else use secondary
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Secondary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 }
             } else {
                 self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
@@ -1325,7 +1183,7 @@ impl<'a> AgentData<'a> {
             // then blink to them.
             let num_fireballs = &mut agent.action_state.int_counter;
             if *num_fireballs == 0 {
-                controller.actions.push(ControlAction::StartInput {
+                controller.push_action(ControlAction::StartInput {
                     input: InputKind::Ability(0),
                     target_entity: agent
                         .target
@@ -1339,7 +1197,7 @@ impl<'a> AgentData<'a> {
                 }
             } else if matches!(self.char_state, CharacterState::Wielding(_)) {
                 *num_fireballs -= 1;
-                controller.actions.push(ControlAction::StartInput {
+                controller.push_action(ControlAction::StartInput {
                     input: InputKind::Ability(1),
                     target_entity: agent
                         .target
@@ -1377,9 +1235,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.angle < 15.0
             {
                 // Fireball
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
             // If some target
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1398,9 +1254,7 @@ impl<'a> AgentData<'a> {
                 // If less than 20 blocks higher than target
                 if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
                     // Fly upward
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Fly));
+                    controller.push_action(ControlAction::basic_input(InputKind::Fly));
                     controller.inputs.move_z = 1.0;
                 } else {
                     // Jump
@@ -1422,9 +1276,7 @@ impl<'a> AgentData<'a> {
             // The next stage shouldn't trigger until the entity
             // is on the ground
             // Fly to target
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Fly));
+            controller.push_action(ControlAction::basic_input(InputKind::Fly));
             let move_dir = tgt_data.pos.0 - self.pos.0;
             controller.inputs.move_dir =
                 move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
@@ -1435,9 +1287,7 @@ impl<'a> AgentData<'a> {
                 && attack_data.angle < 15.0
             {
                 // Fireball
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
         }
         // If further than 4 blocks and random chance
@@ -1446,9 +1296,7 @@ impl<'a> AgentData<'a> {
             && attack_data.angle < 15.0
         {
             // Fireball
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         }
         // If random chance and less than 20 blocks higher than target and further than 4
         // blocks
@@ -1456,9 +1304,7 @@ impl<'a> AgentData<'a> {
             && (self.pos.0.z - tgt_data.pos.0.z) < 15.0
             && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Fly));
+            controller.push_action(ControlAction::basic_input(InputKind::Fly));
             controller.inputs.move_z = 1.0;
         }
         // If further than 2.5 blocks and random chance
@@ -1469,14 +1315,10 @@ impl<'a> AgentData<'a> {
         // If energy higher than 600 and random chance
         else if self.energy.current() > 60.0 && rng.gen_bool(0.4) {
             // Shockwave
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         } else if attack_data.angle < 90.0 {
             // Triple strike
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         } else {
             // Target is behind us. Turn around and chase target
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
@@ -1493,9 +1335,7 @@ impl<'a> AgentData<'a> {
         rng: &mut impl Rng,
     ) {
         // Set fly to false
-        controller
-            .actions
-            .push(ControlAction::CancelInput(InputKind::Fly));
+        controller.push_action(ControlAction::CancelInput(InputKind::Fly));
         if attack_data.dist_sqrd > 30.0_f32.powi(2) {
             if rng.gen_bool(0.05)
                 && can_see_tgt(
@@ -1506,9 +1346,7 @@ impl<'a> AgentData<'a> {
                 )
                 && attack_data.angle < 15.0
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
@@ -1523,9 +1361,7 @@ impl<'a> AgentData<'a> {
                 controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
                 if (self.pos.0.z - tgt_data.pos.0.z) < 20.0 {
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Fly));
+                    controller.push_action(ControlAction::basic_input(InputKind::Fly));
                     controller.inputs.move_z = 1.0;
                 } else {
                     self.jump_if(controller, bearing.z > 1.5);
@@ -1543,9 +1379,7 @@ impl<'a> AgentData<'a> {
             // Do not increment the timer during this movement
             // The next stage shouldn't trigger until the entity
             // is on the ground
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Fly));
+            controller.push_action(ControlAction::basic_input(InputKind::Fly));
             let move_dir = tgt_data.pos.0 - self.pos.0;
             controller.inputs.move_dir =
                 move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
@@ -1554,24 +1388,18 @@ impl<'a> AgentData<'a> {
                 && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
                 && attack_data.angle < 15.0
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             }
         } else if rng.gen_bool(0.05)
             && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
             && attack_data.angle < 15.0
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if rng.gen_bool(0.5)
             && (self.pos.0.z - tgt_data.pos.0.z) < 15.0
             && attack_data.dist_sqrd > (4.0 * attack_data.min_attack_dist).powi(2)
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Fly));
+            controller.push_action(ControlAction::basic_input(InputKind::Fly));
             controller.inputs.move_z = 1.0;
         } else if attack_data.dist_sqrd > (3.0 * attack_data.min_attack_dist).powi(2) {
             self.path_toward_target(agent, controller, tgt_data, read_data, true, false, None);
@@ -1580,9 +1408,7 @@ impl<'a> AgentData<'a> {
             && attack_data.angle < 15.0
         {
             // Fire breath attack
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             // Move towards the target slowly
             self.path_toward_target(
                 agent,
@@ -1599,9 +1425,7 @@ impl<'a> AgentData<'a> {
             && attack_data.in_min_range()
         {
             // Triplestrike
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             agent.action_state.timer += read_data.dt.0;
         } else {
             // Reset timer
@@ -1634,18 +1458,14 @@ impl<'a> AgentData<'a> {
             .map_or(true, |b| b.is_some())
         {
             // Fly to target and land
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Fly));
+            controller.push_action(ControlAction::basic_input(InputKind::Fly));
             let move_dir = tgt_data.pos.0 - self.pos.0;
             controller.inputs.move_dir =
                 move_dir.xy().try_normalized().unwrap_or_else(Vec2::zero) * 2.0;
             controller.inputs.move_z = move_dir.z - 0.5;
         } else if agent.action_state.timer > 8.0 {
             // If action timer higher than 8, make bird summon tornadoes
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 // Reset timer
@@ -1654,27 +1474,19 @@ impl<'a> AgentData<'a> {
         } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // If already in dash, keep dashing if not in recover
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         } else if matches!(self.char_state, CharacterState::ComboMelee(c) if matches!(c.stage_section, StageSection::Recover))
         {
             // If already in combo keep comboing if not in recover
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if attack_data.dist_sqrd > BIRD_CHARGE_DISTANCE.powi(2) {
             // Charges at target if they are far enough away
             if attack_data.angle < 60.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             }
         } else if attack_data.dist_sqrd < bird_attack_distance.powi(2) {
             // Combo melee target
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
             agent.action_state.condition = true;
         }
         // Make bird move towards target
@@ -1694,9 +1506,7 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             // Reset timer
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
@@ -1706,9 +1516,7 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
@@ -1727,9 +1535,7 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             // Reset timer
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
@@ -1742,9 +1548,7 @@ impl<'a> AgentData<'a> {
                 .xy()
                 .try_normalized()
                 .unwrap_or_else(Vec2::unit_y);
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             if let Some((bearing, speed)) = agent.chaser.chase(
                 &*read_data.terrain,
@@ -1783,9 +1587,7 @@ impl<'a> AgentData<'a> {
                             * speed;
                         agent.action_state.timer += read_data.dt.0;
                     }
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                    controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                     self.jump_if(controller, bearing.z > 1.5);
                     controller.inputs.move_z = bearing.z;
                 } else {
@@ -1816,9 +1618,7 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             // Reset timer
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
@@ -1828,16 +1628,12 @@ impl<'a> AgentData<'a> {
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if rng.gen_bool(0.01)
             && attack_data.angle < 15.0
             && attack_data.dist_sqrd < (6.0 * attack_data.min_attack_dist).powi(2)
         {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
@@ -1855,23 +1651,17 @@ impl<'a> AgentData<'a> {
         if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // If already charging, keep charging if not in recover
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         } else if attack_data.dist_sqrd > (5.0 * attack_data.min_attack_dist).powi(2) {
             // Charges at target if they are far enough away
             if attack_data.angle < 60.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             }
         } else if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
             controller.inputs.move_dir = Vec2::zero();
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
@@ -1899,9 +1689,7 @@ impl<'a> AgentData<'a> {
         }
         if health_fraction < agent.action_state.counter {
             // Makes minotaur buff itself with frenzy
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(1)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(1)));
             if matches!(self.char_state, CharacterState::SelfBuff(c) if matches!(c.stage_section, StageSection::Recover))
             {
                 agent.action_state.counter = 0.0;
@@ -1909,34 +1697,24 @@ impl<'a> AgentData<'a> {
         } else if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
         {
             // If already charging, keep charging if not in recover
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
         } else if matches!(self.char_state, CharacterState::ChargedMelee(c) if matches!(c.stage_section, StageSection::Charge) && c.timer < c.static_data.charge_duration)
         {
             // If already charging a melee attack, keep charging it if charging
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Primary));
+            controller.push_action(ControlAction::basic_input(InputKind::Primary));
         } else if attack_data.dist_sqrd > MINOTAUR_CHARGE_DISTANCE.powi(2) {
             // Charges at target if they are far enough away
             if attack_data.angle < 60.0 {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             }
         } else if attack_data.dist_sqrd < minotaur_attack_distance.powi(2) {
             if agent.action_state.condition && !self.char_state.is_attack() {
                 // Cripple target if not just used cripple
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
                 agent.action_state.condition = false;
             } else if !self.char_state.is_attack() {
                 // Cleave target if not just used cleave
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.condition = true;
             }
         }
@@ -1970,15 +1748,11 @@ impl<'a> AgentData<'a> {
         if attack_data.dist_sqrd < golem_melee_range.powi(2) {
             if agent.action_state.counter < 7.5 {
                 // If target is close, whack them
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 agent.action_state.counter += read_data.dt.0;
             } else {
                 // If whacked for too long, nuke them
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(1)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(1)));
                 if matches!(self.char_state, CharacterState::BasicRanged(c) if matches!(c.stage_section, StageSection::Recover))
                 {
                     agent.action_state.counter = 0.0;
@@ -1997,15 +1771,11 @@ impl<'a> AgentData<'a> {
             {
                 // If target in range threshold and haven't been lasering for more than 5
                 // seconds already or if target is moving slow-ish, laser them
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             } else if health_fraction < 0.7 {
                 // Else target moving too fast for laser, shockwave time.
                 // But only if damaged enough
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             }
         } else if attack_data.dist_sqrd < GOLEM_LONG_RANGE.powi(2) {
             if target_speed_cross_sqd < GOLEM_TARGET_SPEED.powi(2)
@@ -2017,15 +1787,11 @@ impl<'a> AgentData<'a> {
                 )
             {
                 // If target is far-ish and moving slow-ish, rocket them
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(1)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(1)));
             } else if health_fraction < 0.7 {
                 // Else target moving too fast for laser, shockwave time.
                 // But only if damaged enough
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             }
         }
         // Make clay golem move towards target
@@ -2053,9 +1819,7 @@ impl<'a> AgentData<'a> {
 
         if agent.action_state.counter > health_fraction {
             // Summon minions at particular thresholds of health
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(1)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(1)));
 
             if matches!(self.char_state, CharacterState::BasicSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
@@ -2065,22 +1829,16 @@ impl<'a> AgentData<'a> {
             if matches!(self.char_state, CharacterState::DashMelee(c) if !matches!(c.stage_section, StageSection::Recover))
             {
                 // Keep scuttling if already in dash melee and not in recover
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             } else if attack_data.dist_sqrd < BUBBLE_RANGE.powi(2) {
                 if matches!(self.char_state, CharacterState::BasicBeam(c) if !matches!(c.stage_section, StageSection::Recover) && c.timer < Duration::from_secs(10))
                 {
                     // Keep shooting bubbles at them if already in basic beam and not in recover and
                     // have not been bubbling too long
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                    controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                 } else if attack_data.in_min_range() && attack_data.angle < 60.0 {
                     // Pincer them if they're in range and angle
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Primary));
+                    controller.push_action(ControlAction::basic_input(InputKind::Primary));
                 } else if attack_data.angle < 30.0
                     && can_see_tgt(
                         &*read_data.terrain,
@@ -2091,9 +1849,7 @@ impl<'a> AgentData<'a> {
                 {
                     // Start bubbling them if not close enough to do something else and in angle and
                     // can see target
-                    controller
-                        .actions
-                        .push(ControlAction::basic_input(InputKind::Ability(0)));
+                    controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
                 }
             } else if attack_data.angle < 90.0
                 && can_see_tgt(
@@ -2105,9 +1861,7 @@ impl<'a> AgentData<'a> {
             {
                 // Start scuttling if not close enough to do something else and in angle and can
                 // see target
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             }
         }
         // Always attempt to path towards target
@@ -2133,14 +1887,10 @@ impl<'a> AgentData<'a> {
             if matches!(self.char_state, CharacterState::BasicBeam(c) if c.timer < Duration::from_secs(2))
             {
                 // Keep using ice breath for 2 second
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
             } else if agent.action_state.counter > ICE_BREATH_TIMER {
                 // Use ice breath if timer has gone for long enough
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Ability(0)));
+                controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
 
                 if matches!(self.char_state, CharacterState::BasicBeam(_)) {
                     // Resets action counter when using beam
@@ -2148,25 +1898,17 @@ impl<'a> AgentData<'a> {
                 }
             } else if attack_data.in_min_range() {
                 // Basic attack if on top of them
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             } else {
                 // Use ice spikes if too far for other abilities
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             }
         } else if attack_data.dist_sqrd < ICE_SPIKES_RANGE.powi(2) && attack_data.angle < 60.0 {
             // Use ice spikes if in range
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Secondary));
+            controller.push_action(ControlAction::basic_input(InputKind::Secondary));
         } else if attack_data.dist_sqrd < SNOWBALL_MAX_RANGE.powi(2) && attack_data.angle < 60.0 {
             // Otherwise, chuck all the snowballs
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(1)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(1)));
         }
 
         // Always attempt to path towards target
@@ -2188,9 +1930,7 @@ impl<'a> AgentData<'a> {
 
         if health_fraction < VINE_CREATION_THRESHOLD && !agent.action_state.condition {
             // Summon vines when reach threshold of health
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(0)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(0)));
 
             if matches!(self.char_state, CharacterState::SpriteSummon(c) if matches!(c.stage_section, StageSection::Recover))
             {
@@ -2207,14 +1947,10 @@ impl<'a> AgentData<'a> {
             {
                 // Keep breathing fire if close enough, can see target, and have not been
                 // breathing for more than 5 seconds
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             } else if attack_data.in_min_range() && attack_data.angle < 60.0 {
                 // Scythe them if they're in range and angle
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Primary));
+                controller.push_action(ControlAction::basic_input(InputKind::Primary));
             } else if attack_data.angle < 30.0
                 && can_see_tgt(
                     &*read_data.terrain,
@@ -2224,9 +1960,7 @@ impl<'a> AgentData<'a> {
                 )
             {
                 // Start breathing fire at them if close enough, in angle, and can see target
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Secondary));
+                controller.push_action(ControlAction::basic_input(InputKind::Secondary));
             }
         } else if attack_data.dist_sqrd < MAX_PUMPKIN_RANGE.powi(2)
             && can_see_tgt(
@@ -2237,9 +1971,7 @@ impl<'a> AgentData<'a> {
             )
         {
             // Throw a pumpkin at them if close enough and can see them
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Ability(1)));
+            controller.push_action(ControlAction::basic_input(InputKind::Ability(1)));
         }
         // Always attempt to path towards target
         self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);

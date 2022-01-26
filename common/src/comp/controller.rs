@@ -279,6 +279,8 @@ impl Controller {
     pub fn clear_events(&mut self) { self.events.clear(); }
 
     pub fn push_event(&mut self, event: ControlEvent) { self.events.push(event); }
+
+    pub fn push_action(&mut self, action: ControlAction) { self.actions.push(action); }
 }
 
 impl Component for Controller {

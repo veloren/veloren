@@ -208,9 +208,7 @@ impl<'a> System<'a> for Sys {
                         //
                         // TODO: look into `controller.reset()` line above
                         // and see if it fixes it
-                        controller
-                            .actions
-                            .push(ControlAction::basic_input(InputKind::Fly));
+                        controller.push_action(ControlAction::basic_input(InputKind::Fly));
                     }
 
                     // Package all this agent's data into a convenient struct
@@ -547,13 +545,13 @@ impl<'a> AgentData<'a> {
                 // Look toward the interacting entity for a while
                 if let Some(Target { target, .. }) = &agent.target {
                     self.look_toward(controller, read_data, *target);
-                    controller.actions.push(ControlAction::Talk);
+                    controller.push_action(ControlAction::Talk);
                 }
             },
             Some(just_ended) => {
                 if just_ended {
                     agent.target = None;
-                    controller.actions.push(ControlAction::Stand);
+                    controller.push_action(ControlAction::Stand);
                 }
 
                 if rng.gen::<f32>() < 0.1 {
@@ -666,7 +664,7 @@ impl<'a> AgentData<'a> {
     ////////////////////////////////////////
 
     fn glider_fall(&self, controller: &mut Controller) {
-        controller.actions.push(ControlAction::GlideWield);
+        controller.push_action(ControlAction::GlideWield);
 
         let flight_direction =
             Vec3::from(self.vel.0.xy().try_normalized().unwrap_or_else(Vec2::zero));
@@ -684,9 +682,7 @@ impl<'a> AgentData<'a> {
     }
 
     fn fly_upward(&self, controller: &mut Controller) {
-        controller
-            .actions
-            .push(ControlAction::basic_input(InputKind::Fly));
+        controller.push_action(ControlAction::basic_input(InputKind::Fly));
         controller.inputs.move_z = 1.0;
     }
 
@@ -741,13 +737,9 @@ impl<'a> AgentData<'a> {
                     .1
                     .map_or(true, |b| b.is_some())
             {
-                controller
-                    .actions
-                    .push(ControlAction::basic_input(InputKind::Fly));
+                controller.push_action(ControlAction::basic_input(InputKind::Fly));
             } else {
-                controller
-                    .actions
-                    .push(ControlAction::CancelInput(InputKind::Fly))
+                controller.push_action(ControlAction::CancelInput(InputKind::Fly))
             }
 
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -846,7 +838,7 @@ impl<'a> AgentData<'a> {
                         Some(CharacterState::Wielding(_))
                     )
                 {
-                    controller.actions.push(ControlAction::Unwield);
+                    controller.push_action(ControlAction::Unwield);
                 }
             }
         } else {
@@ -909,7 +901,7 @@ impl<'a> AgentData<'a> {
                     Some(CharacterState::Wielding(_))
                 )
             {
-                controller.actions.push(ControlAction::Unwield);
+                controller.push_action(ControlAction::Unwield);
             }
 
             if rng.gen::<f32>() < 0.0015 {
@@ -918,7 +910,7 @@ impl<'a> AgentData<'a> {
 
             // Sit
             if rng.gen::<f32>() < 0.0035 {
-                controller.actions.push(ControlAction::Sit);
+                controller.push_action(ControlAction::Sit);
             }
         }
     }
@@ -977,8 +969,8 @@ impl<'a> AgentData<'a> {
                         agent.target = Some(Target::new(target, false, read_data.time.0, false));
 
                         if self.look_toward(controller, read_data, target) {
-                            controller.actions.push(ControlAction::Stand);
-                            controller.actions.push(ControlAction::Talk);
+                            controller.push_action(ControlAction::Stand);
+                            controller.push_action(ControlAction::Talk);
                             controller.push_event(ControlEvent::Utterance(UtteranceKind::Greeting));
 
                             match subject {
@@ -1175,8 +1167,8 @@ impl<'a> AgentData<'a> {
                 if agent.behavior.can_trade() {
                     if !agent.behavior.is(BehaviorState::TRADING) {
                         // stand still and looking towards the trading player
-                        controller.actions.push(ControlAction::Stand);
-                        controller.actions.push(ControlAction::Talk);
+                        controller.push_action(ControlAction::Stand);
+                        controller.push_action(ControlAction::Talk);
                         if let Some(target) = get_entity_by_id(with.id(), read_data) {
                             agent.target =
                                 Some(Target::new(target, false, read_data.time.0, false));
@@ -1328,7 +1320,7 @@ impl<'a> AgentData<'a> {
         let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
 
         self.look_toward(controller, read_data, target);
-        controller.actions.push(ControlAction::Wield);
+        controller.push_action(ControlAction::Wield);
 
         if move_dir_mag > max_move {
             controller.inputs.move_dir = max_move * move_dir / move_dir_mag;
@@ -1349,7 +1341,7 @@ impl<'a> AgentData<'a> {
     ) {
         if let Some(body) = self.body {
             if body.can_strafe() && !self.is_gliding {
-                controller.actions.push(ControlAction::Unwield);
+                controller.push_action(ControlAction::Unwield);
             }
         }
         if let Some((bearing, speed)) = agent.chaser.chase(
@@ -1423,11 +1415,9 @@ impl<'a> AgentData<'a> {
 
         if let Some((id, _)) = item {
             use comp::inventory::slot::Slot;
-            controller
-                .actions
-                .push(ControlAction::InventoryAction(InventoryAction::Use(
-                    Slot::Inventory(id),
-                )));
+            controller.push_action(ControlAction::InventoryAction(InventoryAction::Use(
+                Slot::Inventory(id),
+            )));
             true
         } else {
             false
@@ -1736,7 +1726,7 @@ impl<'a> AgentData<'a> {
             .unwrap_or(Tactic::Melee);
 
         // Wield the weapon as running towards the target
-        controller.actions.push(ControlAction::Wield);
+        controller.push_action(ControlAction::Wield);
 
         let min_attack_dist = (self.body.map_or(0.5, |b| b.max_radius()) + DEFAULT_ATTACK_RANGE)
             * self.scale
@@ -2284,13 +2274,9 @@ impl<'a> AgentData<'a> {
 
     fn jump_if(&self, controller: &mut Controller, condition: bool) {
         if condition {
-            controller
-                .actions
-                .push(ControlAction::basic_input(InputKind::Jump));
+            controller.push_action(ControlAction::basic_input(InputKind::Jump));
         } else {
-            controller
-                .actions
-                .push(ControlAction::CancelInput(InputKind::Jump))
+            controller.push_action(ControlAction::CancelInput(InputKind::Jump))
         }
     }
 
