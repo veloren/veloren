@@ -100,7 +100,7 @@ impl Sys {
                         }
                     }
                     if let Some(controller) = controllers.get_mut(entity) {
-                        controller.events.push(event);
+                        controller.push_event(event);
                     }
                 }
             },

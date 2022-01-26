@@ -715,11 +715,11 @@ impl<'a> AgentData<'a> {
                 // nighttime and keep them on
                 // Only emit event for agents that sill need to
                 // turn on their lantern
-                controller.events.push(ControlEvent::EnableLantern)
+                controller.push_event(ControlEvent::EnableLantern)
             } else if lantern_turned_on && day_period.is_light() {
                 // agents with turned on lanterns turn them off randomly once it's
                 // daytime and keep them off
-                controller.events.push(ControlEvent::DisableLantern)
+                controller.push_event(ControlEvent::DisableLantern)
             }
         };
 
@@ -962,12 +962,10 @@ impl<'a> AgentData<'a> {
         //     // Clear agent comp
         //     //*agent = Agent::default();
         //     controller
-        //         .events
-        //         .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+        //         .push_event(ControlEvent::InviteResponse(InviteResponse::Accept));
         // } else {
         //     controller
-        //         .events
-        //         .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+        //         .push_event(ControlEvent::InviteResponse(InviteResponse::Decline));
         // }
         agent.action_state.timer += read_data.dt.0;
 
@@ -1025,7 +1023,7 @@ impl<'a> AgentData<'a> {
                                         self.chat_npc(msg, event_emitter);
                                     } else if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.events.push(ControlEvent::InitiateInvite(
+                                            controller.push_event(ControlEvent::InitiateInvite(
                                                 by,
                                                 InviteKind::Trade,
                                             ));
@@ -1046,7 +1044,7 @@ impl<'a> AgentData<'a> {
                                 Subject::Trade => {
                                     if agent.behavior.can_trade() {
                                         if !agent.behavior.is(BehaviorState::TRADING) {
-                                            controller.events.push(ControlEvent::InitiateInvite(
+                                            controller.push_event(ControlEvent::InitiateInvite(
                                                 by,
                                                 InviteKind::Trade,
                                             ));
@@ -1183,15 +1181,12 @@ impl<'a> AgentData<'a> {
                             agent.target =
                                 Some(Target::new(target, false, read_data.time.0, false));
                         }
-                        controller
-                            .events
-                            .push(ControlEvent::InviteResponse(InviteResponse::Accept));
+                        controller.push_event(ControlEvent::InviteResponse(InviteResponse::Accept));
                         agent.behavior.unset(BehaviorState::TRADING_ISSUER);
                         agent.behavior.set(BehaviorState::TRADING);
                     } else {
                         controller
-                            .events
-                            .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                            .push_event(ControlEvent::InviteResponse(InviteResponse::Decline));
                         self.chat_npc_if_allowed_to_speak(
                             "npc.speech.merchant_busy",
                             agent,
@@ -1200,9 +1195,7 @@ impl<'a> AgentData<'a> {
                     }
                 } else {
                     // TODO: Provide a hint where to find the closest merchant?
-                    controller
-                        .events
-                        .push(ControlEvent::InviteResponse(InviteResponse::Decline));
+                    controller.push_event(ControlEvent::InviteResponse(InviteResponse::Decline));
                     self.chat_npc_if_allowed_to_speak(
                         "npc.speech.villager_decline_trade",
                         agent,
