@@ -1037,7 +1037,7 @@ impl Hud {
             show: Show {
                 help: false,
                 intro: false,
-                debug: false,
+                debug: global_state.settings.interface.toggle_debug,
                 bag: false,
                 bag_inv: false,
                 trade: false,
