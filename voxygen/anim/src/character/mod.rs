@@ -158,7 +158,7 @@ impl Skeleton for CharacterSkeleton {
             },
             trail_points: Some((
                 (main_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz(),
-                (main_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz(),
+                (main_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz() + Vec3::unit_z(),
             )),
         }
     }

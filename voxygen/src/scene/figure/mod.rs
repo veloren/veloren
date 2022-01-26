@@ -6443,7 +6443,7 @@ impl<S: Skeleton> FigureState<S> {
                 if let (Some((p1, p2)), Some((p3, p4))) = (self.trail_points, offsets.trail_points)
                 {
                     let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
-                        pos: p.into_array(),
+                        pos: (p + pos).into_array(),
                     };
                     let mut quad_mesh = Mesh::new();
                     // TODO: Figure out how to get
