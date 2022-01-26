@@ -1,7 +1,7 @@
 [package]
 authors = ["Joshua Barretto <joshua.s.barretto@gmail.com>", "Imbris <imbrisf@gmail.com>"]
 default-run = "veloren-voxygen"
-edition = "2018"
+edition = "2021"
 name = "veloren-voxygen"
 version = "0.11.0"
 # Cargo thinks it should build the voxygen binary even when a specific bench is specified for building

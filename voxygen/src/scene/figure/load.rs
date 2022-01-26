@@ -117,7 +117,7 @@ macro_rules! make_vox_spec {
     (
         $body:ty,
         struct $Spec:ident { $( $(+)? $field:ident: $ty:ty = $asset_path:literal),* $(,)? },
-        |$self_pat:pat, $spec_pat:pat| $bone_meshes:block $(,)?
+        |$self_pat:pat, $spec_pat:pat_param| $bone_meshes:block $(,)?
     ) => {
         #[derive(Clone)]
         pub struct $Spec {
