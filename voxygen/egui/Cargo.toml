@@ -1,7 +1,7 @@
 [package]
 authors = ["Ben Wallis <atomyc@gmail.com>"]
 name = "veloren-voxygen-egui"
-edition = "2018"
+edition = "2021"
 version = "0.9.0"
 
 [features]

@@ -2,7 +2,7 @@
 name = "veloren-plugin-api"
 version = "0.1.0"
 authors = ["ccgauche <gaucheron.laurent@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.118", features = ["derive"] }

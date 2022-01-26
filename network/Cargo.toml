@@ -2,7 +2,7 @@
 name = "veloren-network"
 version = "0.3.0"
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

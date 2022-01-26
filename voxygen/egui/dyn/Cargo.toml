@@ -1,6 +1,6 @@
 [package]
 authors = ["Imbris <imbrisf@gmail.com>"]
-edition = "2018"
+edition = "2021"
 name = "veloren-voxygen-egui-dyn"
 version = "0.9.0"
 
