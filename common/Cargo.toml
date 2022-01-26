@@ -87,7 +87,7 @@ specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "8be2abc
 criterion = "0.3"
 
 #test
-tracing-subscriber = { version = "0.3.2", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
+tracing-subscriber = { version = "0.3.7", default-features = false, features = ["fmt", "time", "ansi", "smallvec", "env-filter"] }
 petgraph = "0.5.1"
 
 [[bench]]

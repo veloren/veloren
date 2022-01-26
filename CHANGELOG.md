@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made loot boxes drop items instead of doing nothing in order to loot forcing
 - Refactored agent code file structure
 - Changed the way light strength is rendered by moving processing from shader code (GPU) to CPU code
+- Bumped tracing-subscriber to resolve [RUSTSEC-2022-0006](https://rustsec.org/advisories/RUSTSEC-2022-0006)
 
 ### Removed
 
