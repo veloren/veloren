@@ -60,6 +60,7 @@ impl Skeleton for BirdMediumSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

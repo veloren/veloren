@@ -51,6 +51,7 @@ impl Skeleton for FishSmallSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

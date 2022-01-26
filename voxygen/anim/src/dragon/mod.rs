@@ -81,6 +81,7 @@ impl Skeleton for DragonSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

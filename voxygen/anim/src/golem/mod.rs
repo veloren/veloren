@@ -83,6 +83,7 @@ impl Skeleton for GolemSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

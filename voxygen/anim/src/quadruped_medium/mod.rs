@@ -109,6 +109,7 @@ impl Skeleton for QuadrupedMediumSkeleton {
                 orientation: mount_orientation,
                 scale: Vec3::one(),
             },
+            trail_points: None,
         }
     }
 }

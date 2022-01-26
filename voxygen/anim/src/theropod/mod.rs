@@ -84,6 +84,7 @@ impl Skeleton for TheropodSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

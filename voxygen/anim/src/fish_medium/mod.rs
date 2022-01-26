@@ -60,6 +60,7 @@ impl Skeleton for FishMediumSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

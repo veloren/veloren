@@ -83,6 +83,7 @@ impl Skeleton for BipedSmallSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

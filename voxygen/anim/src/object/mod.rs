@@ -49,6 +49,7 @@ impl Skeleton for ObjectSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }

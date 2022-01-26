@@ -125,6 +125,7 @@ impl Skeleton for CharacterSkeleton {
         } else {
             shorts_mat
         } * Mat4::<f32>::from(self.lantern);
+        let main_mat = control_l_mat * Mat4::<f32>::from(self.main);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -139,7 +140,7 @@ impl Skeleton for CharacterSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_l)),
             make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_r)),
             make_bone(chest_mat * Mat4::<f32>::from(self.glider)),
-            make_bone(control_l_mat * Mat4::<f32>::from(self.main)),
+            make_bone(main_mat),
             make_bone(control_r_mat * Mat4::<f32>::from(self.second)),
             make_bone(lantern_mat),
             // FIXME: Should this be control_l_mat?
@@ -155,6 +156,10 @@ impl Skeleton for CharacterSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: Some((
+                (main_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz(),
+                (main_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz(),
+            )),
         }
     }
 }

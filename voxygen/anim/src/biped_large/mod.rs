@@ -137,6 +137,7 @@ impl Skeleton for BipedLargeSkeleton {
                     .into(),
                 ..Default::default()
             },
+            trail_points: None,
         }
     }
 }
