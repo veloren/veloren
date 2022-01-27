@@ -197,15 +197,15 @@ void main() {
     //     return;
     // }
 
+    vec2 sample_uv = uv;
     #ifdef EXPERIMENTAL_UNDERWARPER
-        vec2 uv = uv;
         if (medium.x == MEDIUM_WATER) {
-            uv += sin(uv.yx * 40 + tick.xx * 1.0) * 0.003;
+            sample_uv += sin(uv.yx * 40 + tick.xx * 1.0) * 0.003;
         }
     #endif
 
-    vec4 aa_color = aa_apply(t_src_color, s_src_color, uv * screen_res.xy, screen_res.xy);
-   
+    vec4 aa_color = aa_apply(t_src_color, s_src_color, sample_uv * screen_res.xy, screen_res.xy);
+
     #ifdef EXPERIMENTAL_SOBEL
         vec3 s[8];
         s[0] = aa_sample(uv, vec2(-1,  1));
@@ -281,6 +281,10 @@ void main() {
         final_color *= vec4(0.2, 0.2, 0.8, 1.0);
     }
 #endif
+
+    // Add a small amount of very cheap dithering noise to remove banding from gradients
+    // TODO: Instead of 256, detect the colour resolution of the display
+    final_color.rgb = max(vec3(0), final_color.rgb - hash_two(uvec2(uv * screen_res.xy)) / 256.0);
 
     tgt_color = vec4(final_color.rgb, 1);
 }
