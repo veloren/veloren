@@ -1,11 +1,11 @@
-EntityConfig (
+(
     name: Automatic,
-    body: Exact(QuadrupedMedium(Body(species: Roshwalr, body_type: Female))),
+    body: Exact(QuadrupedMedium((
+        species: Roshwalr,
+        body_type: Female,
+    ))),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_medium.ice"),
-
-    hands: Uninit,
-
     meta: [],
 )

@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("gecko"),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.ooze"),
-
-    hands: Uninit,
-
     meta: [],
 )

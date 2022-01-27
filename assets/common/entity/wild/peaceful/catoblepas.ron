@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("catoblepas"),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_medium.catoblepas"),
-
-    hands: Uninit,
-
     meta: [],
 )

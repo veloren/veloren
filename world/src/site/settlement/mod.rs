@@ -18,9 +18,7 @@ use common::{
     comp::{
         self, agent, bird_medium,
         inventory::{
-            loadout_builder::{make_potion_bag, LoadoutBuilder},
-            slot::ArmorSlot,
-            trade_pricing::TradePricing,
+            loadout_builder::LoadoutBuilder, slot::ArmorSlot, trade_pricing::TradePricing,
         },
         quadruped_small, Item,
     },
@@ -901,7 +899,7 @@ impl Settlement {
                     let entity = if is_dummy {
                         EntityInfo::at(entity_wpos)
                             .with_agency(false)
-                            .with_asset_expect("common.entity.village.dummy")
+                            .with_asset_expect("common.entity.village.dummy", dynamic_rng)
                     } else {
                         match dynamic_rng.gen_range(0..=4) {
                             0 => barnyard(entity_wpos, dynamic_rng),
@@ -1006,16 +1004,13 @@ fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rn
     match dynamic_rng.gen_range(0..8) {
         0 | 1 => entity
             .with_agent_mark(agent::Mark::Guard)
-            .with_lazy_loadout(guard_loadout)
-            .with_asset_expect("common.entity.village.guard"),
+            .with_asset_expect("common.entity.village.guard", dynamic_rng),
         2 => entity
             .with_agent_mark(agent::Mark::Merchant)
             .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
-            .with_asset_expect("common.entity.village.merchant"),
-        _ => entity
-            .with_lazy_loadout(villager_loadout)
-            .with_asset_expect("common.entity.village.villager"),
+            .with_asset_expect("common.entity.village.merchant", dynamic_rng),
+        _ => entity.with_asset_expect("common.entity.village.villager", dynamic_rng),
     }
 }
 
@@ -1255,28 +1250,6 @@ fn gather_merged_goods(
     }
 
     good_map
-}
-
-fn guard_loadout(
-    loadout_builder: LoadoutBuilder,
-    _economy: Option<&trade::SiteInformation>,
-) -> LoadoutBuilder {
-    let rng = &mut rand::thread_rng();
-
-    loadout_builder
-        .with_asset_expect("common.loadout.village.guard", rng)
-        .bag(ArmorSlot::Bag1, Some(make_potion_bag(25)))
-}
-
-fn villager_loadout(
-    loadout_builder: LoadoutBuilder,
-    _economy: Option<&trade::SiteInformation>,
-) -> LoadoutBuilder {
-    let rng = &mut rand::thread_rng();
-
-    loadout_builder
-        .with_asset_expect("common.loadout.village.villager", rng)
-        .bag(ArmorSlot::Bag1, Some(make_potion_bag(10)))
 }
 
 #[derive(Copy, Clone, PartialEq)]

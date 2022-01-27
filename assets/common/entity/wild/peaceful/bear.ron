@@ -1,12 +1,9 @@
-EntityConfig (
+(
     // FIXME: move this boi to spot directory
     name: Name("Well-fed Bear"),
     body: RandomWith("bear"),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_medium.clawed"),
-
-    hands: Uninit,
-
     meta: [],
 )

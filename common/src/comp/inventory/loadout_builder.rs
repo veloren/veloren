@@ -50,7 +50,7 @@ impl assets::Asset for LoadoutSpec {
     const EXTENSION: &'static str = "ron";
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum ItemSpec {
     /// One specific item.
     /// Example:
@@ -492,7 +492,6 @@ impl LoadoutBuilder {
             _ => None,
         };
 
-        // closures can't be used here, because it moves value
         if let Some(chest) = chest {
             self.chest(Some(Item::new_from_asset_expect(chest)))
         } else {

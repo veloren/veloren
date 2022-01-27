@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("marlin"),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.fish"),
-
-    hands: Uninit,
-
     meta: [],
 )

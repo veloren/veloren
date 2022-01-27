@@ -1,14 +1,14 @@
-EntityConfig (
+(
     name: Name("Grave Robber"),
     body: RandomWith("dwarf"),
     alignment: Alignment(Enemy),
-
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-3")),
+        base_asset: Loadout("common.loadout.spots.dwarf_graverobber"),
+        inventory: [],
+    ),
     loot: LootTable("common.loot_tables.spots.bandit"),
-
-    hands: TwoHanded(Item("common.items.weapons.hammer.steel_hammer-3")),
-
     meta: [
-        LoadoutAsset("common.loadout.spots.dwarf_graverobber"),
         SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],
 )

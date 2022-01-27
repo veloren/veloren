@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("phoenix"),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.bird_large.phoenix"),
-
-    hands: Uninit,
-
     meta: [],
 )

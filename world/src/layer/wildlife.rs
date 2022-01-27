@@ -119,7 +119,7 @@ impl Pack {
             .groups
             .choose_weighted(dynamic_rng, |(p, _group)| *p)
             .expect("Failed to choose group");
-        let entity = EntityInfo::at(pos).with_asset_expect(entity_asset);
+        let entity = EntityInfo::at(pos).with_asset_expect(entity_asset, dynamic_rng);
         let group_size = dynamic_rng.gen_range(*from..=*to);
 
         (entity, group_size)
@@ -479,7 +479,8 @@ mod tests {
                     println!("{}:", entry);
                     let (_, (_, _, asset)) = group;
                     let dummy_pos = Vec3::new(0.0, 0.0, 0.0);
-                    let entity = EntityInfo::at(dummy_pos).with_asset_expect(asset);
+                    let mut dummy_rng = rand::thread_rng();
+                    let entity = EntityInfo::at(dummy_pos).with_asset_expect(asset, &mut dummy_rng);
                     std::mem::drop(entity);
                 }
             }

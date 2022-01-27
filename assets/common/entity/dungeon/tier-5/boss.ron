@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Name("Mindflayer"),
     body: RandomWith("mindflayer"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-5.boss"),
-
-    hands: Uninit,
-
     meta: [],
 )

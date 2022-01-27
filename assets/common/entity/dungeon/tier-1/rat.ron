@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Name("Rat"),
     body: RandomWith("rat"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.generic"),
-
-    hands: Uninit,
-
     meta: [],
 )

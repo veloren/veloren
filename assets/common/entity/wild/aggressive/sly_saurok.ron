@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("saurok_sly"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.biped_large.saurok"),
-
-    hands: Uninit,
-
     meta: [],
 )

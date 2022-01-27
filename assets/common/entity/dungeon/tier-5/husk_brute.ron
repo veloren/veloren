@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Name("Husk Brute"),
     body: RandomWith("husk_brute"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-5.miniboss"),
-
-    hands: Uninit,
-
     meta: [],
 )

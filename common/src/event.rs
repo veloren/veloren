@@ -128,7 +128,7 @@ pub enum ServerEvent {
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
         poise: comp::Poise,
-        loadout: comp::inventory::loadout::Loadout,
+        inventory: comp::inventory::Inventory,
         body: comp::Body,
         agent: Option<comp::Agent>,
         alignment: comp::Alignment,

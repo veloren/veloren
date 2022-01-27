@@ -1,11 +1,11 @@
-EntityConfig (
+(
     name: Name("River Salamander"),
-    body: Exact(QuadrupedLow(Body(species: Salamander, body_type: Female))),
+    body: Exact(QuadrupedLow((
+        species: Salamander,
+        body_type: Female,
+    ))),
     alignment: Alignment(Wild),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_low.salamander"),
-
-    hands: Uninit,
-
     meta: [],
 )

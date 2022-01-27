@@ -7,7 +7,6 @@ use common::{
         aura::{Aura, AuraKind, AuraTarget},
         beam,
         buff::{BuffCategory, BuffData, BuffKind, BuffSource},
-        inventory::loadout::Loadout,
         shockwave, Agent, Alignment, Anchor, Body, Health, Inventory, ItemDrop, LightEmitter,
         Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
         WaypointArea,
@@ -51,7 +50,7 @@ pub fn handle_create_npc(
     skill_set: SkillSet,
     health: Option<Health>,
     poise: Poise,
-    loadout: Loadout,
+    inventory: Inventory,
     body: Body,
     agent: impl Into<Option<Agent>>,
     alignment: Alignment,
@@ -61,8 +60,6 @@ pub fn handle_create_npc(
     rtsim_entity: Option<RtSimEntity>,
     projectile: Option<Projectile>,
 ) {
-    let inventory = Inventory::new_with_loadout(loadout);
-
     let entity = server
         .state
         .create_npc(pos, stats, skill_set, health, poise, inventory, body)

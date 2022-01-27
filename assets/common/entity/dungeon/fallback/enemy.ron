@@ -1,19 +1,16 @@
-EntityConfig (
+(
     name: Name("Yan Hus"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-
+    loadout: Hands(TwoHanded(Choice([
+        (1, Some(Item("common.items.weapons.tool.broom"))),
+        (1, Some(Item("common.items.weapons.tool.hoe"))),
+        (1, Some(Item("common.items.weapons.tool.pickaxe"))),
+        (1, Some(Item("common.items.weapons.tool.rake"))),
+        (1, Some(Item("common.items.weapons.tool.shovel-0"))),
+        (1, Some(Item("common.items.weapons.tool.shovel-1"))),
+        (1, Some(Item("common.items.weapons.bow.bone-1"))),
+    ]))),
     loot: LootTable("common.loot_tables.fallback"),
-
-    hands: TwoHanded(Choice([
-        (1.0, Some(Item("common.items.weapons.tool.broom"))),
-        (1.0, Some(Item("common.items.weapons.tool.hoe"))),
-        (1.0, Some(Item("common.items.weapons.tool.pickaxe"))),
-        (1.0, Some(Item("common.items.weapons.tool.rake"))),
-        (1.0, Some(Item("common.items.weapons.tool.shovel-0"))),
-        (1.0, Some(Item("common.items.weapons.tool.shovel-1"))),
-        (1.0, Some(Item("common.items.weapons.bow.bone-1"))),
-    ])),
-
     meta: [],
 )

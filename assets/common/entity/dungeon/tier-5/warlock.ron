@@ -1,14 +1,15 @@
-EntityConfig (
+(
     name: Name("Cultist Warlock"),
     body: RandomWith("cultist_warlock"),
     alignment: Alignment(Enemy),
-
+    loadout: Extended(
+        hands: TwoHanded(Choice([
+            (1.5, Some(Item("common.items.npc_weapons.staff.bipedlarge-cultist"))),
+            (1, Some(Item("common.items.npc_weapons.bow.bipedlarge-velorite"))),
+        ])),
+        base_asset: Loadout("common.loadout.dungeon.tier-5.warlock"),
+        inventory: [],
+    ),
     loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
-
-    hands: TwoHanded(Choice([
-        (1.5, Some(Item("common.items.npc_weapons.staff.bipedlarge-cultist"))),
-        (1.0, Some(Item("common.items.npc_weapons.bow.bipedlarge-velorite"))),
-    ])),
-
     meta: [],
 )

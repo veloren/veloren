@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("troll_mountain"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.biped_large.troll"),
-
-    hands: Uninit,
-
     meta: [],
 )

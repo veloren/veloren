@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Name("Deadwood"),
     body: RandomWith("deadwood"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-0.miniboss"),
-
-    hands: Uninit,
-
     meta: [],
 )

@@ -1,11 +1,8 @@
-EntityConfig (
+(
     name: Automatic,
     body: RandomWith("cockatrice"),
     alignment: Alignment(Enemy),
-
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.bird_large.cockatrice"),
-
-    hands: Uninit,
-
     meta: [],
 )

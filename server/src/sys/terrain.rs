@@ -25,13 +25,13 @@ use common::{
     resources::{Time, TimeOfDay},
     slowjob::SlowJobPool,
     terrain::TerrainGrid,
-    LoadoutBuilder, SkillSetBuilder,
+    SkillSetBuilder,
 };
+
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use common_state::TerrainChanges;
 use comp::Behavior;
-use rand::Rng;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
 use std::sync::Arc;
 use vek::*;
@@ -238,8 +238,7 @@ impl<'a> System<'a> for Sys {
                     "Chunk spawned entity that wasn't nearby",
                 );
 
-                let rng = &mut rand::thread_rng();
-                let data = NpcData::from_entity_info(entity, rng);
+                let data = NpcData::from_entity_info(entity);
                 match data {
                     NpcData::Waypoint(pos) => {
                         server_emitter.emit(ServerEvent::CreateWaypoint(pos));
@@ -250,7 +249,7 @@ impl<'a> System<'a> for Sys {
                         skill_set,
                         health,
                         poise,
-                        loadout,
+                        inventory,
                         agent,
                         body,
                         alignment,
@@ -263,7 +262,7 @@ impl<'a> System<'a> for Sys {
                             skill_set,
                             health,
                             poise,
-                            loadout,
+                            inventory,
                             agent,
                             body,
                             alignment,
@@ -391,7 +390,7 @@ pub enum NpcData {
         skill_set: comp::SkillSet,
         health: Option<comp::Health>,
         poise: comp::Poise,
-        loadout: comp::inventory::loadout::Loadout,
+        inventory: comp::inventory::Inventory,
         agent: Option<comp::Agent>,
         body: comp::Body,
         alignment: comp::Alignment,
@@ -402,7 +401,7 @@ pub enum NpcData {
 }
 
 impl NpcData {
-    pub fn from_entity_info(entity: EntityInfo, loadout_rng: &mut impl Rng) -> Self {
+    pub fn from_entity_info(entity: EntityInfo) -> Self {
         let EntityInfo {
             // flags
             is_waypoint,
@@ -417,9 +416,8 @@ impl NpcData {
             loot,
             // tools and skills
             skillset_asset,
-            main_tool,
-            second_tool,
-            loadout_asset,
+            loadout: mut loadout_builder,
+            inventory: items,
             make_loadout,
             trading_information: economy,
             // unused
@@ -442,34 +440,29 @@ impl NpcData {
             }
         };
 
-        let loadout = {
-            let mut loadout_builder = LoadoutBuilder::empty();
-
-            // If main tool is passed, use it. Otherwise fallback to default tool
-            if let Some(main_tool) = main_tool {
-                loadout_builder = loadout_builder.active_mainhand(Some(main_tool));
-            } else {
-                loadout_builder = loadout_builder.with_default_maintool(&body);
-            }
-
-            // If second tool is passed, use it as well
-            if let Some(second_tool) = second_tool {
-                loadout_builder = loadout_builder.active_offhand(Some(second_tool));
-            }
-
-            // If there is config, apply it.
-            // If not, use default equipement for this body.
-            if let Some(asset) = loadout_asset {
-                loadout_builder = loadout_builder.with_asset_expect(&asset, loadout_rng);
-            } else {
-                loadout_builder = loadout_builder.with_default_equipment(&body);
-            }
-
+        let inventory = {
             // Evaluate lazy function for loadout creation
             if let Some(make_loadout) = make_loadout {
                 loadout_builder = loadout_builder.with_creator(make_loadout, economy.as_ref());
             }
-            loadout_builder.build()
+            let loadout = loadout_builder.build();
+            let mut inventory = comp::inventory::Inventory::new_with_loadout(loadout);
+            for (num, mut item) in items {
+                if let Err(e) = item.set_amount(num) {
+                    tracing::warn!(
+                        "error during creating inventory for {name} at {pos}: {e:?}",
+                        name = &stats.name,
+                    );
+                }
+                if let Err(e) = inventory.push(item) {
+                    tracing::warn!(
+                        "error during creating inventory for {name} at {pos}: {e:?}",
+                        name = &stats.name,
+                    );
+                }
+            }
+
+            inventory
         };
 
         let health_level = skill_set
@@ -519,7 +512,7 @@ impl NpcData {
             skill_set,
             health,
             poise,
-            loadout,
+            inventory,
             agent,
             body,
             alignment,
