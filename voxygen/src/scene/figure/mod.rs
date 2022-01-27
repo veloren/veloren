@@ -6445,9 +6445,10 @@ impl<S: Skeleton> FigureState<S> {
         // Handle weapon trails
         let weapon_offsets = offsets.weapon_trail_mat.map(|mat| {
             let (trail_start, trail_end) = match tools.0 {
-                Some(ToolKind::Sword) => (29.0, 30.0),
-                Some(ToolKind::Axe) => (19.0, 20.0),
-                Some(ToolKind::Hammer) => (19.0, 20.0),
+                Some(ToolKind::Sword) => (29.0, 29.25),
+                // TODO: Make sure these are good positions, only did tweaking on sword
+                Some(ToolKind::Axe) => (19.0, 19.25),
+                Some(ToolKind::Hammer) => (19.0, 19.25),
                 _ => (0.0, 0.0),
             };
             (
@@ -6465,13 +6466,13 @@ impl<S: Skeleton> FigureState<S> {
                 let quad = if let (Some((p1, p2)), Some((p4, p3))) =
                     (self.abs_trail_points, offsets_abs_trail_points)
                 {
-                    use StageSection::{Action, Charge, Movement, Recover};
+                    use StageSection::{Action, Movement, Recover};
                     if matches!(
                         char_ability,
                         Some(
                             CharacterAbilityType::BasicMelee(Action)
                                 | CharacterAbilityType::ChargedMelee(Action)
-                                | CharacterAbilityType::DashMelee(Charge | Action)
+                                | CharacterAbilityType::DashMelee(Action)
                                 | CharacterAbilityType::ComboMelee(Action | Recover, _)
                                 | CharacterAbilityType::LeapMelee(Movement | Action)
                                 | CharacterAbilityType::SpinMelee(Action)

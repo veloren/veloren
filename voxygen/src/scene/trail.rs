@@ -19,7 +19,7 @@ pub struct TrailMgr {
     pub offset: usize,
 }
 
-const TRAIL_DYNAMIC_MODEL_SIZE: usize = 30;
+const TRAIL_DYNAMIC_MODEL_SIZE: usize = 15;
 
 impl TrailMgr {
     pub fn new(_renderer: &mut Renderer) -> Self {
