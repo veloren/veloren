@@ -3,9 +3,8 @@ EntityConfig (
     body: RandomWith("sea_crocodile"),
     alignment: Alignment(Enemy),
 
+    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_low.generic"),
-
-    hands: Uninit,
 
     meta: [],
 )
