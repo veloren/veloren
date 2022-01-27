@@ -40,9 +40,21 @@ pub enum Primitive {
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
+    Ellipsoid(Aabb<i32>),
+    /// An Aabb with rounded corners. The degree relates to how rounded the
+    /// corners are. A value less than 1.0 results in concave faces. A value
+    /// of 2.0 results in an ellipsoid. Values greater than 2.0 result in a
+    /// rounded aabb. Values less than 0.0 are clamped to 0.0 as negative values
+    /// would theoretically yield shapes extending to infinity.
+    RoundedAabb {
+        aabb: Aabb<i32>,
+        degree: f32,
+    },
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
     /// A line segment from start to finish point with a given radius
-    Segment(LineSegment3<f32>, f32),
+    Segment(LineSegment3<i32>, f32),
+    /// A 2d line segment with a given radius, z-coord, and height
+    SegmentPrism(LineSegment3<i32>, f32, f32),
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
@@ -99,6 +111,7 @@ impl Primitive {
 #[derive(Clone)]
 pub enum Fill {
     Sprite(SpriteKind),
+    RotatedSprite(SpriteKind, u8),
     Block(Block),
     Brick(BlockKind, Rgb<u8>, u8),
     Gradient(util::gradient::Gradient, BlockKind),
@@ -209,6 +222,28 @@ impl Fill {
                     && pos.as_().distance_squared(aabb.as_().center() - 0.5)
                         < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
             },
+            Primitive::Ellipsoid(aabb) => {
+                let center = aabb.center().map(|e| e as f32);
+                let a: f32 = aabb.max.x as f32 - center.x;
+                let b: f32 = aabb.max.y as f32 - center.y;
+                let c: f32 = aabb.max.z as f32 - center.z;
+                let rpos = pos.as_::<f32>() - center;
+                aabb_contains(*aabb, pos)
+                    && (rpos.x / a).powi(2) + (rpos.y / b).powi(2) + (rpos.z / c).powi(2) < 1.0
+            },
+            Primitive::RoundedAabb { aabb, degree } => {
+                let degree = degree.max(0.0);
+                let center = aabb.center().map(|e| e as f32);
+                let a: f32 = aabb.max.x as f32 - center.x;
+                let b: f32 = aabb.max.y as f32 - center.y;
+                let c: f32 = aabb.max.z as f32 - center.z;
+                let rpos = pos.as_::<f32>() - center;
+                aabb_contains(*aabb, pos)
+                    && (rpos.x / a).abs().powf(*degree)
+                        + (rpos.y / b).abs().powf(*degree)
+                        + (rpos.z / c).abs().powf(*degree)
+                        < 1.0
+            },
             Primitive::Plane(aabr, origin, gradient) => {
                 // Maybe <= instead of ==
                 (aabr.min.x..aabr.max.x).contains(&pos.x)
@@ -221,11 +256,34 @@ impl Fill {
                                 .dot(*gradient) as i32)
             },
             Primitive::Segment(segment, radius) => {
-                /*(segment.start.x..segment.end.x).contains(&pos.x)
-                && (segment.start.y..segment.end.y).contains(&pos.y)
-                && (segment.start.z..segment.end.z).contains(&pos.z)
-                &&*/
                 segment.distance_to_point(pos.map(|e| e as f32)) < radius - 0.25
+            },
+            Primitive::SegmentPrism(segment, radius, height) => {
+                let segment_2d = LineSegment2 {
+                    start: segment.start.xy(),
+                    end: segment.end.xy(),
+                };
+                let projected_point_2d: Vec2<f32> =
+                    segment_2d.as_().projected_point(pos.xy().as_());
+                let xy_check = projected_point_2d.distance(pos.xy().as_()) < radius - 0.25;
+                let projected_z = {
+                    let len_sq: f32 = segment_2d
+                        .start
+                        .as_()
+                        .distance_squared(segment_2d.end.as_());
+                    if len_sq < 0.1 {
+                        segment.start.z as f32
+                    } else {
+                        let frac = ((projected_point_2d - segment_2d.start.as_())
+                            .dot(segment_2d.end.as_() - segment_2d.start.as_())
+                            / len_sq)
+                            .clamp(0.0, 1.0);
+                        (segment.end.z as f32 - segment.start.z as f32) * frac
+                            + segment.start.z as f32
+                    }
+                };
+                let z_check = (projected_z..=(projected_z + height)).contains(&(pos.z as f32));
+                xy_check && z_check
             },
             Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
@@ -284,6 +342,16 @@ impl Fill {
                 } else {
                     old_block.with_sprite(*sprite)
                 }),
+                Fill::RotatedSprite(sprite, ori) => Some(if old_block.is_filled() {
+                    Block::air(*sprite)
+                        .with_ori(*ori)
+                        .unwrap_or(Block::air(*sprite))
+                } else {
+                    old_block
+                        .with_sprite(*sprite)
+                        .with_ori(*ori)
+                        .unwrap_or(old_block.with_sprite(*sprite))
+                }),
                 Fill::Brick(bk, col, range) => Some(Block::new(
                     *bk,
                     *col + (RandomField::new(13)
@@ -329,6 +397,8 @@ impl Fill {
             Primitive::Cylinder(aabb) => *aabb,
             Primitive::Cone(aabb) => *aabb,
             Primitive::Sphere(aabb) => *aabb,
+            Primitive::Ellipsoid(aabb) => *aabb,
+            Primitive::RoundedAabb { aabb, .. } => *aabb,
             Primitive::Plane(aabr, origin, gradient) => {
                 let half_size = aabr.half_size().reduce_max();
                 let longest_dist = ((aabr.center() - origin.xy()).map(|x| x.abs())
@@ -346,9 +416,32 @@ impl Fill {
                 };
                 aabb.made_valid()
             },
-            Primitive::Segment(segment, radius) => Aabb {
-                min: (segment.start - *radius).floor().as_(),
-                max: (segment.end + *radius).ceil().as_(),
+            Primitive::Segment(segment, radius) => {
+                let aabb = Aabb {
+                    min: segment.start,
+                    max: segment.end,
+                }
+                .made_valid();
+                Aabb {
+                    min: aabb.min - radius.floor() as i32,
+                    max: aabb.max + radius.ceil() as i32,
+                }
+            },
+            Primitive::SegmentPrism(segment, radius, height) => {
+                let aabb = Aabb {
+                    min: segment.start,
+                    max: segment.end,
+                }
+                .made_valid();
+                let min = {
+                    let xy = aabb.min.xy() - radius.floor() as i32;
+                    xy.with_z(aabb.min.z)
+                };
+                let max = {
+                    let xy = aabb.max.xy() + radius.ceil() as i32;
+                    xy.with_z(aabb.max.z + height.ceil() as i32)
+                };
+                Aabb { min, max }
             },
             Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Prefab(p) => p.get_bounds(),
@@ -409,7 +502,30 @@ pub struct Painter {
 }
 
 impl Painter {
-    pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef { self.prim(Primitive::Aabb(aabb)) }
+    pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        self.prim(Primitive::Aabb(aabb.made_valid()))
+    }
+
+    pub fn sphere(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        self.prim(Primitive::Sphere(aabb.made_valid()))
+    }
+
+    pub fn ellipsoid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        self.prim(Primitive::Ellipsoid(aabb.made_valid()))
+    }
+
+    pub fn rounded_aabb(&self, aabb: Aabb<i32>, degree: f32) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::RoundedAabb { aabb, degree })
+    }
+
+    pub fn cylinder(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        self.prim(Primitive::Cylinder(aabb.made_valid()))
+    }
+
+    pub fn cone(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        self.prim(Primitive::Cone(aabb.made_valid()))
+    }
 
     pub fn line(
         &self,
@@ -426,6 +542,32 @@ impl Painter {
         ))
     }
 
+    pub fn segment_prism(
+        &self,
+        a: Vec3<i32>,
+        b: Vec3<i32>,
+        radius: f32,
+        height: f32,
+    ) -> PrimitiveRef {
+        let segment = LineSegment3 { start: a, end: b };
+        self.prim(Primitive::SegmentPrism(segment, radius, height))
+    }
+
+    pub fn plane(&self, aabr: Aabr<i32>, origin: Vec3<i32>, gradient: Vec2<f32>) -> PrimitiveRef {
+        let aabr = aabr.made_valid();
+        self.prim(Primitive::Plane(aabr, origin, gradient))
+    }
+
+    pub fn ramp(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::Ramp { aabb, inset, dir })
+    }
+
+    pub fn gable(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::Gable { aabb, inset, dir })
+    }
+
     pub fn sprite(&self, pos: Vec3<i32>, sprite: SpriteKind) {
         self.aabb(Aabb {
             min: pos,
@@ -434,8 +576,17 @@ impl Painter {
         .fill(Fill::Sprite(sprite))
     }
 
+    pub fn rotated_sprite(&self, pos: Vec3<i32>, sprite: SpriteKind, ori: u8) {
+        self.aabb(Aabb {
+            min: pos,
+            max: pos + 1,
+        })
+        .fill(Fill::RotatedSprite(sprite, ori))
+    }
+
     pub fn pyramid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         let inset = 0;
+        let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp {
             aabb,
             inset,
@@ -465,6 +616,8 @@ impl Painter {
         }
     }
 
+    pub fn empty(&self) -> PrimitiveRef { self.prim(Primitive::Empty) }
+
     pub fn fill(&self, prim: impl Into<Id<Primitive>>, fill: Fill) {
         self.fills.borrow_mut().push((prim.into(), fill));
     }
@@ -491,6 +644,18 @@ impl<'a> PrimitiveRef<'a> {
 
     pub fn without(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::without(self, other))
+    }
+
+    pub fn translate(self, trans: Vec3<i32>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::translate(self, trans))
+    }
+
+    pub fn rotate(self, rot: Mat3<i32>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::rotate(self, rot))
+    }
+
+    pub fn scale(self, scale: Vec3<f32>) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::scale(self, scale))
     }
 
     pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
