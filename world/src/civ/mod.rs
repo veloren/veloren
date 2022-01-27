@@ -627,7 +627,7 @@ impl Civs {
                 common::terrain::BiomeKind::Savannah if biome.1.len() as u32 > 750 => {
                     Some(format!(
                         "{} {}",
-                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        NameGen::location(&mut ctx.rng).generate_savannah(),
                         ["Savannah", "Shrubland", "Sierra", "Prairie", "Lowlands"]
                             .choose(&mut ctx.rng)
                             .unwrap()
@@ -635,7 +635,7 @@ impl Civs {
                 },
                 common::terrain::BiomeKind::Taiga if biome.1.len() as u32 > 750 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    NameGen::location(&mut ctx.rng).generate_taiga(),
                     ["Taiga", "Timberlands", "Uplands", "Highlands"]
                         .choose(&mut ctx.rng)
                         .unwrap()

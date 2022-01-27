@@ -91,22 +91,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
             .collect()
     }
 
-    pub fn generate_temp_forest(self) -> String {
-        let cons = vec![
-            "green", "moss", "ever", "briar", "thorn", "oak", "deep", "moon", "star", "sun",
-            "bright", "glare", "fair", "calm", "mistral", "whisper", "clover", "hollow", "spring",
-            "morrow", "dim", "dusk", "dawn", "night", "shimmer", "silver", "gold", "whisper",
-            "fern", "quiet", "still", "gleam", "wild", "blind", "swift", "gnarl", "flutter",
-            "silent", "honey", "bramble", "rose",
-        ];
-        let start = cons.clone();
-        let end = vec![
-            "root", "bark", "log", "brook", "well", "shire", "leaf", "more", "bole", "heart",
-            "song", "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "vale",
-            "glen", "rest", "shade", "fall", "sward", "thicket", "shrub", "bush", "grasp", "grip",
-            "gale", "crawl", "run", "shadow", "rise", "glow", "wish", "will", "walk", "wander",
-            "wake", "eye", "blossom", "sprout", "barb",
-        ];
+    fn generate_from_parts(&mut self, start: &[&str], end: &[&str]) -> String {
         let mut name = String::new();
         name += start.choose(self.rng).unwrap();
         name += end.choose(self.rng).unwrap();
@@ -117,29 +102,74 @@ impl<'a, R: Rng> NameGen<'a, R> {
             .collect()
     }
 
-    pub fn generate_grassland(self) -> String {
-        let cons = vec![
+    pub fn generate_temp_forest(&mut self) -> String {
+        let start = [
+            "green", "moss", "ever", "briar", "thorn", "oak", "deep", "moon", "star", "sun",
+            "bright", "glare", "fair", "calm", "mistral", "whisper", "clover", "hollow", "spring",
+            "morrow", "dim", "dusk", "dawn", "night", "shimmer", "silver", "gold", "fern", "quiet",
+            "still", "gleam", "wild", "blind", "swift", "gnarl", "flutter", "silent", "honey",
+            "bramble", "rose", "aspen",
+        ];
+        let end = [
+            "root", "bark", "log", "brook", "well", "shire", "leaf", "more", "bole", "heart",
+            "song", "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "vale",
+            "glen", "rest", "shade", "fall", "sward", "shrub", "bush", "grasp", "grip", "gale",
+            "crawl", "run", "shadow", "rise", "glow", "wish", "will", "walk", "wander", "wake",
+            "eye", "blossom", "sprout", "barb",
+        ];
+        self.generate_from_parts(&start, &end)
+    }
+
+    pub fn generate_grassland(&mut self) -> String {
+        let start = [
             "green", "heather", "flower", "blue", "yellow", "vast", "moon", "star", "sun",
             "bright", "fair", "calm", "mistral", "whisper", "clover", "sooth", "spring", "morrow",
             "dim", "dusk", "dawn", "night", "shimmer", "silver", "gold", "amber", "quiet", "still",
-            "gleam", "wild", "corm", "mint", "feather", "silent", "bronze", "bister", "thistle",
-            "bristle", "dew", "bramble", "sorrel", "broad", "petal",
+            "gleam", "wild", "corm", "mint", "petal", "feather", "silent", "bronze", "bistre",
+            "thistle", "bristle", "dew", "bramble", "sorrel", "broad",
         ];
-        let start = cons.clone();
-        let end = vec![
+        let end = [
             "brook", "well", "flight", "more", "heart", "song", "barb", "wort", "hoof", "foot",
             "herd", "path", "wind", "breeze", "light", "bloom", "rest", "balm", "reach", "flow",
-            "graze", "trail", "fall", "thicket", "shrub", "bush", "gale", "run", "stem", "glare",
-            "gaze", "rove", "brew", "rise", "glow", "wish", "will", "walk", "wander", "wake",
-            "sky", "burrow", "cross", "roam",
+            "graze", "trail", "fall", "shrub", "bush", "gale", "run", "stem", "glare", "gaze",
+            "rove", "brew", "rise", "glow", "wish", "will", "walk", "wander", "wake", "sky",
+            "burrow", "cross", "roam",
         ];
-        let mut name = String::new();
-        name += start.choose(self.rng).unwrap();
-        name += end.choose(self.rng).unwrap();
+        self.generate_from_parts(&start, &end)
+    }
 
-        name.chars()
-            .enumerate()
-            .map(|(i, c)| if i == 0 { c.to_ascii_uppercase() } else { c })
-            .collect()
+    pub fn generate_savannah(&mut self) -> String {
+        let start = [
+            "red", "pride", "dry", "copper", "vast", "war", "star", "sun", "bright", "blood",
+            "dawn", "shimmer", "gold", "amber", "gleam", "wild", "rust", "fire", "earth", "spirit",
+            "bronze", "broad", "scorch", "sear", "gold", "prowl", "marl", "gleam", "rage", "ghost",
+            "soul", "specter", "scald", "singe", "heat", "torch", "rite", "bone", "petal",
+        ];
+        let end = [
+            "dust", "grass", "swarm", "more", "heart", "song", "claw", "fang", "hoof", "foot",
+            "herd", "path", "wind", "breeze", "howl", "sway", "rest", "reach", "flow", "graze",
+            "trail", "sting", "fall", "growl", "mane", "bush", "gale", "run", "field", "glare",
+            "gaze", "wallow", "brew", "rise", "glow", "wade", "wander", "wake", "sky", "roam",
+            "breath", "shard", "scar", "lurk", "hill", "blaze", "fury", "hunt",
+        ];
+        self.generate_from_parts(&start, &end)
+    }
+
+    pub fn generate_taiga(&mut self) -> String {
+        let start = [
+            "green", "blue", "ever", "pale", "needle", "cold", "moon", "star", "chill", "shiver",
+            "bitter", "fair", "calm", "mistral", "whisper", "grey", "hollow", "morrow", "dim",
+            "dusk", "dawn", "night", "shimmer", "silver", "iron", "quill", "grizzle", "quiet",
+            "still", "wild", "blind", "silent", "somber", "sleet", "silent", "sharp", "somber",
+            "sleet", "silent", "sharp", "rime", "drizzle", "resin",
+        ];
+        let end = [
+            "root", "bark", "log", "brook", "well", "shire", "more", "bole", "heart", "song",
+            "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "pine", "spruce",
+            "rest", "shade", "fall", "fir", "grasp", "grip", "gale", "hunt", "run", "shadow",
+            "hill", "shadow", "larch", "rise", "bite", "wish", "will", "walk", "wander", "wake",
+            "stone", "howl", "moss",
+        ];
+        self.generate_from_parts(&start, &end)
     }
 }
