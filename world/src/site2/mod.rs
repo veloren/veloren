@@ -60,13 +60,26 @@ impl Site {
     }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
-        let not_near_things = SQUARE_9.iter().all(|&rpos| {
-            self.wpos_tile(wpos + rpos * tile::TILE_SIZE as i32)
-                .is_empty()
-        });
+        let tile_pos = self.wpos_tile_pos(wpos);
+        let max_warp = SQUARE_9
+            .iter()
+            .filter_map(|rpos| {
+                let tile_pos = tile_pos + rpos;
+                if self.tiles.get(tile_pos).is_natural() {
+                    None
+                } else {
+                    let clamped =
+                        wpos.clamped(self.tile_wpos(tile_pos), self.tile_wpos(tile_pos + 1) - 1);
+                    Some(clamped.distance_squared(wpos) as f32)
+                }
+            })
+            .min_by_key(|d2| *d2 as i32)
+            .map(|d2| d2.sqrt() as f32 / TILE_SIZE as f32)
+            .unwrap_or(1.0);
         SpawnRules {
-            trees: not_near_things,
-            max_warp: if not_near_things { 1.0 } else { 0.0 },
+            trees: max_warp == 1.0,
+            max_warp,
+            paths: max_warp > std::f32::EPSILON,
         }
     }
 
@@ -698,14 +711,10 @@ impl Site {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
                         (-8..6).for_each(|z| {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
-                                if z >= 0 {
-                                    if b.is_filled() {
-                                        Block::empty()
-                                    } else {
-                                        b.with_sprite(SpriteKind::Empty)
-                                    }
-                                } else {
+                                if b.is_filled() {
                                     Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                } else {
+                                    b.into_vacant()
                                 }
                             })
                         });
@@ -761,21 +770,19 @@ impl Site {
 
             if min_dist.is_some() {
                 let alt = /*avg_hard_alt.map(|(sum, weight)| sum / weight).unwrap_or_else(||*/ canvas.col(wpos2d).map_or(0.0, |col| col.alt)/*)*/ as i32;
+                let mut underground = true;
                 (-6..4).for_each(|z| canvas.map(
                     Vec3::new(wpos2d.x, wpos2d.y, alt + z),
-                    |b| if z > 0 {
-                        let sprite = if z == 1 && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
+                    |b| if b.is_filled() {
+                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                    } else {
+                        let sprite = if underground && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
                             SpriteKind::StreetLamp
                         } else {
                             SpriteKind::Empty
                         };
-                        if b.is_filled() {
-                            Block::air(sprite)
-                        } else {
-                            b.with_sprite(sprite)
-                        }
-                    } else {
-                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                        underground = false;
+                        b.with_sprite(sprite)
                     },
                 ));
             }

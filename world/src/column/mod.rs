@@ -1,6 +1,7 @@
 use crate::{
     all::ForestKind,
     sim::{local_cells, Cave, Path, RiverKind, SimChunk, WorldSim},
+    site::SpawnRules,
     util::{RandomField, Sampler},
     IndexRef, CONFIG,
 };
@@ -109,6 +110,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 let neighbor_chunk = sim.get(neighbor_pos)?;
                 Some((neighbor_pos, neighbor_chunk, &neighbor_chunk.river))
             });
+        let spawn_rules = sim_chunk
+            .sites
+            .iter()
+            .map(|site| index.sites[*site].spawn_rules(wpos))
+            .fold(SpawnRules::default(), |a, b| a.combine(b));
 
         let gradient = sim.get_gradient_approx(chunk_pos);
 
@@ -829,12 +835,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
 
-        let warp_factor = warp_factor
-            * sim_chunk
-                .sites
-                .iter()
-                .map(|site| index.sites[*site].spawn_rules(wpos).max_warp)
-                .fold(1.0f32, |a, b| a.min(b));
+        let warp_factor = warp_factor * spawn_rules.max_warp;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt + riverless_alt_delta;
@@ -1120,7 +1121,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         // dirt
         let ground = Lerp::lerp(ground, sub_surface_color, marble_mid * tree_density);
 
-        let path = sim.get_nearest_path(wpos);
+        let path = if spawn_rules.paths {
+            sim.get_nearest_path(wpos)
+        } else {
+            None
+        };
         let cave = sim.get_nearest_cave(wpos);
 
         let ice_depth = if snow_factor < -0.25
@@ -1168,11 +1173,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             // No growing directly on bedrock.
             // And, no growing on sites that don't want them TODO: More precise than this when we
             // apply trees as a post-processing layer
-            tree_density: if sim_chunk
-                .sites
-                .iter()
-                .all(|site| index.sites[*site].spawn_rules(wpos).trees)
-            {
+            tree_density: if spawn_rules.trees {
                 Lerp::lerp(0.0, tree_density, alt.sub(2.0).sub(basement).mul(0.5))
             } else {
                 0.0
