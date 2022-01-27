@@ -103,7 +103,10 @@ pub enum Meta {
 /// // create new EntityInfo at dummy position
 /// // and fill it with template config
 /// let dummy_position = Vec3::new(0.0, 0.0, 0.0);
-/// let entity = EntityInfo::at(dummy_position).with_asset_expect("common.entity.template");
+/// // rng is required because some elements may be randomly generated
+/// let mut dummy_rng = rand::thread_rng();
+/// let entity =
+///     EntityInfo::at(dummy_position).with_asset_expect("common.entity.template", &mut dummy_rng);
 /// ```
 #[derive(Debug, Deserialize, Clone)]
 pub struct EntityConfig {
