@@ -110,7 +110,6 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "still", "gleam", "wild", "blind", "swift", "gnarl", "flutter", "silent", "honey",
             "bramble", "rose", "aspen",
         ];
-        //let start = cons.clone();
         let end = [
             "root", "bark", "log", "brook", "well", "shire", "leaf", "more", "bole", "heart",
             "song", "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "vale",
@@ -129,7 +128,6 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "gleam", "wild", "corm", "mint", "petal", "feather", "silent", "bronze", "bistre",
             "thistle", "bristle", "dew", "bramble", "sorrel", "broad",
         ];
-        //let start = cons.clone();
         let end = [
             "brook", "well", "flight", "more", "heart", "song", "barb", "wort", "hoof", "foot",
             "herd", "path", "wind", "breeze", "light", "bloom", "rest", "balm", "reach", "flow",
@@ -147,7 +145,6 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "bronze", "broad", "scorch", "sear", "gold", "prowl", "marl", "gleam", "rage", "ghost",
             "soul", "specter", "scald", "singe", "heat", "torch", "rite", "bone", "petal",
         ];
-        //let start = cons.clone();
         let end = [
             "dust", "grass", "swarm", "more", "heart", "song", "claw", "fang", "hoof", "foot",
             "herd", "path", "wind", "breeze", "howl", "sway", "rest", "reach", "flow", "graze",
@@ -166,7 +163,6 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "still", "wild", "blind", "silent", "somber", "sleet", "silent", "sharp", "somber",
             "sleet", "silent", "sharp", "rime", "drizzle", "resin",
         ];
-        //let start = cons.clone();
         let end = [
             "root", "bark", "log", "brook", "well", "shire", "more", "bole", "heart", "song",
             "dew", "bough", "path", "wind", "breeze", "light", "branch", "bloom", "pine", "spruce",
