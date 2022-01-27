@@ -1,3 +1,5 @@
+/// Template file for EntityConfig, check documentation in code for more
+/// By the time of writing this comment it lives in common/src/generation.rs
 (
     name: Name("Paddy"),
     body: RandomWith("humanoid"),

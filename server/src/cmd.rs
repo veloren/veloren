@@ -621,13 +621,13 @@ fn handle_make_npc(
         Err(_err) => return Err(format!("Failed to load entity config: {}", entity_config)),
     };
 
+    let mut loadout_rng = rand::thread_rng();
     for _ in 0..number {
         let comp::Pos(pos) = position(server, target, "target")?;
-        let loadout_rng = rand::thread_rng();
         let entity_info = EntityInfo::at(pos).with_entity_config(
             config.clone(),
             Some(&entity_config),
-            loadout_rng,
+            &mut loadout_rng,
         );
 
         match NpcData::from_entity_info(entity_info) {

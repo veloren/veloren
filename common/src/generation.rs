@@ -38,6 +38,10 @@ impl Default for AlignmentMark {
     fn default() -> Self { Self::Alignment(Alignment::Wild) }
 }
 
+/// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
+/// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
+/// - Mix { mainhand: ItemSpec, offhand: ItemSpec, }
+///  for two different 1h weapons.
 #[derive(Debug, Deserialize, Clone)]
 pub enum Hands {
     TwoHanded(ItemSpec),
@@ -51,7 +55,7 @@ pub enum Hands {
 #[derive(Debug, Deserialize, Clone)]
 pub enum LoadoutAsset {
     Loadout(String),
-    Choice(Vec<(f32, String)>),
+    Choice(Vec<(u32, String)>),
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -207,7 +211,7 @@ impl EntityInfo {
             name: None,
             scale: 1.0,
             loot: LootSpec::Nothing,
-            inventory: vec![],
+            inventory: Vec::new(),
             loadout: LoadoutBuilder::empty(),
             make_loadout: None,
             skillset_asset: None,
@@ -302,9 +306,9 @@ impl EntityInfo {
         self
     }
 
-    #[must_use]
     /// Return EntityInfo with LoadoutBuilder overwritten
-    // NOTE: helpder function, think twice before exposing it
+    // NOTE: helper function, think twice before exposing it
+    #[must_use]
     fn with_loadout<R>(
         mut self,
         loadout: LoadoutKind,
@@ -331,6 +335,9 @@ impl EntityInfo {
             } => {
                 self = self.with_loadout_asset(base_asset, &mut rng);
                 self = self.with_hands(hands, config_asset, &mut rng);
+                // FIXME: this shouldn't always overwrite
+                // inventory. Think about this when we get to
+                // entity config inheritance.
                 self.inventory = inventory
                     .into_iter()
                     .map(|(num, i)| (num, Item::new_from_asset_expect(&i)))
@@ -341,9 +348,9 @@ impl EntityInfo {
         self
     }
 
-    #[must_use]
     /// Return EntityInfo with LoadoutBuilder overwritten
-    // NOTE: helpder function, think twice before exposing it
+    // NOTE: helper function, think twice before exposing it
+    #[must_use]
     fn with_default_equip(mut self) -> Self {
         let loadout_builder = LoadoutBuilder::from_default(&self.body);
         self.loadout = loadout_builder;
@@ -351,9 +358,9 @@ impl EntityInfo {
         self
     }
 
-    #[must_use]
     /// Return EntityInfo with LoadoutBuilder overwritten
-    // NOTE: helpder function, think twice before exposing it
+    // NOTE: helper function, think twice before exposing it
+    #[must_use]
     fn with_loadout_asset<R>(mut self, loadout: LoadoutAsset, rng: &mut R) -> Self
     where
         R: rand::Rng,
@@ -364,6 +371,9 @@ impl EntityInfo {
                 self.loadout = loadout;
             },
             LoadoutAsset::Choice(assets) => {
+                // TODO:
+                // choose_weighted allocates WeightedIndex,
+                // possible optimizaiton with using Lottery
                 let (_p, asset) = assets
                     .choose_weighted(rng, |(p, _asset)| *p)
                     .expect("rng error");
@@ -376,9 +386,9 @@ impl EntityInfo {
         self
     }
 
-    #[must_use]
     /// Return EntityInfo with weapons applied to LoadoutBuilder
-    // NOTE: helpder function, think twice before exposing it
+    // NOTE: helper function, think twice before exposing it
+    #[must_use]
     fn with_hands<R>(mut self, hands: Hands, config_asset: Option<&str>, rng: &mut R) -> Self
     where
         R: rand::Rng,
@@ -633,12 +643,8 @@ mod tests {
             },
             LoadoutAsset::Choice(assets) => {
                 for (p, asset) in assets {
-                    if p <= 0.0 {
-                        #[rustfmt::skip]
-                        panic!(
-                            "Weight of asset is less or equal to 0.0 in {}",
-                            config_asset
-                        );
+                    if p == 0 {
+                        panic!("Weight of loadout asset is zero in {config_asset}");
                     }
                     validate_loadout_asset(LoadoutAsset::Loadout(asset), config_asset);
                 }
