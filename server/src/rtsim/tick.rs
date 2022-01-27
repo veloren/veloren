@@ -128,15 +128,15 @@ impl<'a> System<'a> for Sys {
                 }
             } else {
                 let entity_config_path = entity.get_entity_config();
-                let loadout_rng = entity.loadout_rng();
+                let mut loadout_rng = entity.loadout_rng();
                 let ad_hoc_loadout = entity.get_adhoc_loadout();
                 // Body is rewritten so that body parameters
                 // are consistent between reifications
-                let entity_config = EntityConfig::from_asset_expect(entity_config_path)
+                let entity_config = EntityConfig::from_asset_expect_owned(entity_config_path)
                     .with_body(BodyBuilder::Exact(body));
 
                 let mut entity_info = EntityInfo::at(pos.0)
-                    .with_entity_config(entity_config, Some(entity_config_path), loadout_rng)
+                    .with_entity_config(entity_config, Some(entity_config_path), &mut loadout_rng)
                     .with_lazy_loadout(ad_hoc_loadout);
                 // Merchants can be traded with
                 if let Some(economy) = entity.get_trade_info(&world, &index) {

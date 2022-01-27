@@ -899,7 +899,7 @@ impl Settlement {
                     let entity = if is_dummy {
                         EntityInfo::at(entity_wpos)
                             .with_agency(false)
-                            .with_asset_expect("common.entity.village.dummy")
+                            .with_asset_expect("common.entity.village.dummy", dynamic_rng)
                     } else {
                         match dynamic_rng.gen_range(0..=4) {
                             0 => barnyard(entity_wpos, dynamic_rng),
@@ -1004,13 +1004,13 @@ fn humanoid(pos: Vec3<f32>, economy: &SiteInformation, dynamic_rng: &mut impl Rn
     match dynamic_rng.gen_range(0..8) {
         0 | 1 => entity
             .with_agent_mark(agent::Mark::Guard)
-            .with_asset_expect("common.entity.village.guard"),
+            .with_asset_expect("common.entity.village.guard", dynamic_rng),
         2 => entity
             .with_agent_mark(agent::Mark::Merchant)
             .with_economy(economy)
             .with_lazy_loadout(merchant_loadout)
-            .with_asset_expect("common.entity.village.merchant"),
-        _ => entity.with_asset_expect("common.entity.village.villager"),
+            .with_asset_expect("common.entity.village.merchant", dynamic_rng),
+        _ => entity.with_asset_expect("common.entity.village.villager", dynamic_rng),
     }
 }
 

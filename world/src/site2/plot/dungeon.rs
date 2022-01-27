@@ -254,11 +254,11 @@ impl Room {
                         .map(|e| e as f32 / 16.0);
                 match self.difficulty {
                     3 => {
-                        let turret = turret_3(pos);
+                        let turret = turret_3(dynamic_rng, pos);
                         supplement.add_entity(turret);
                     },
                     5 => {
-                        let turret = turret_5(pos);
+                        let turret = turret_5(dynamic_rng, pos);
                         supplement.add_entity(turret);
                     },
                     _ => {},
@@ -286,13 +286,13 @@ impl Room {
 
         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
             let entities = match self.difficulty {
-                0 => mini_boss_0(tile_wcenter),
-                1 => mini_boss_1(tile_wcenter),
-                2 => mini_boss_2(tile_wcenter),
-                3 => mini_boss_3(tile_wcenter),
-                4 => mini_boss_4(tile_wcenter),
+                0 => mini_boss_0(dynamic_rng, tile_wcenter),
+                1 => mini_boss_1(dynamic_rng, tile_wcenter),
+                2 => mini_boss_2(dynamic_rng, tile_wcenter),
+                3 => mini_boss_3(dynamic_rng, tile_wcenter),
+                4 => mini_boss_4(dynamic_rng, tile_wcenter),
                 5 => mini_boss_5(dynamic_rng, tile_wcenter),
-                _ => mini_boss_fallback(tile_wcenter),
+                _ => mini_boss_fallback(dynamic_rng, tile_wcenter),
             };
 
             for entity in entities {
@@ -304,6 +304,7 @@ impl Room {
     fn fill_boss_cell(
         &self,
         supplement: &mut ChunkSupplement,
+        dynamic_rng: &mut impl Rng,
         tile_wcenter: Vec3<i32>,
         wpos2d: Vec2<i32>,
         tile_pos: Vec2<i32>,
@@ -319,13 +320,13 @@ impl Room {
 
         if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {
-                0 => boss_0(tile_wcenter),
-                1 => boss_1(tile_wcenter),
-                2 => boss_2(tile_wcenter),
-                3 => boss_3(tile_wcenter),
-                4 => boss_4(tile_wcenter),
-                5 => boss_5(tile_wcenter),
-                _ => boss_fallback(tile_wcenter),
+                0 => boss_0(dynamic_rng, tile_wcenter),
+                1 => boss_1(dynamic_rng, tile_wcenter),
+                2 => boss_2(dynamic_rng, tile_wcenter),
+                3 => boss_3(dynamic_rng, tile_wcenter),
+                4 => boss_4(dynamic_rng, tile_wcenter),
+                5 => boss_5(dynamic_rng, tile_wcenter),
+                _ => boss_fallback(dynamic_rng, tile_wcenter),
             };
 
             for entity in entities {
@@ -646,9 +647,13 @@ impl Floor {
                             wpos2d,
                             tile_pos,
                         ),
-                        RoomKind::Boss => {
-                            room.fill_boss_cell(supplement, tile_wcenter, wpos2d, tile_pos)
-                        },
+                        RoomKind::Boss => room.fill_boss_cell(
+                            supplement,
+                            dynamic_rng,
+                            tile_wcenter,
+                            wpos2d,
+                            tile_pos,
+                        ),
                         RoomKind::Peaceful | RoomKind::LavaPlatforming => {},
                     }
                 }
@@ -676,9 +681,9 @@ fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.mugger"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.stalker"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.logger"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.mugger", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.stalker", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.logger", dynamic_rng),
         }
     });
 
@@ -692,9 +697,9 @@ fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-1.spear"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-1.spear", dynamic_rng),
         }
     });
 
@@ -708,9 +713,9 @@ fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spear"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spear", dynamic_rng),
         }
     });
 
@@ -724,9 +729,9 @@ fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-3.spear"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-3.spear", dynamic_rng),
         }
     });
 
@@ -740,9 +745,9 @@ fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-4.spear"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-4.spear", dynamic_rng),
         }
     });
 
@@ -756,9 +761,9 @@ fn enemy_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock"),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord"),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-5.cultist"),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlock", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-5.warlord", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-5.cultist", dynamic_rng),
         }
     });
 
@@ -770,109 +775,109 @@ fn enemy_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<En
     let mut entities = Vec::new();
     entities.resize_with(number, || {
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
-        entity.with_asset_expect("common.entity.dungeon.fallback.enemy")
+        entity.with_asset_expect("common.entity.dungeon.fallback.enemy", dynamic_rng)
     });
 
     entities
 }
 
-fn turret_3(pos: Vec3<f32>) -> EntityInfo {
-    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-3.sentry")
+fn turret_3(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
+    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-3.sentry", dynamic_rng)
 }
 
-fn turret_5(pos: Vec3<f32>) -> EntityInfo {
-    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-5.turret")
+fn turret_5(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
+    EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-5.turret", dynamic_rng)
 }
 
-fn boss_0(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-0.boss"),
+            .with_asset_expect("common.entity.dungeon.tier-0.boss", dynamic_rng),
     ]
 }
 
-fn boss_1(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-1.boss"),
+            .with_asset_expect("common.entity.dungeon.tier-1.boss", dynamic_rng),
     ]
 }
 
-fn boss_2(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-2.boss"),
+            .with_asset_expect("common.entity.dungeon.tier-2.boss", dynamic_rng),
     ]
 }
-fn boss_3(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(2, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-3.boss")
+            .with_asset_expect("common.entity.dungeon.tier-3.boss", dynamic_rng)
     });
 
     entities
 }
 
-fn boss_4(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-4.boss"),
+            .with_asset_expect("common.entity.dungeon.tier-4.boss", dynamic_rng),
     ]
 }
 
-fn boss_5(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-5.boss"),
+            .with_asset_expect("common.entity.dungeon.tier-5.boss", dynamic_rng),
     ]
 }
 
-fn boss_fallback(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.fallback.boss"),
+            .with_asset_expect("common.entity.dungeon.fallback.boss", dynamic_rng),
     ]
 }
 
-fn mini_boss_0(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-0.miniboss"),
+            .with_asset_expect("common.entity.dungeon.tier-0.miniboss", dynamic_rng),
     ]
 }
 
-fn mini_boss_1(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(8, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-1.rat")
+            .with_asset_expect("common.entity.dungeon.tier-1.rat", dynamic_rng)
     });
     entities
 }
 
-fn mini_boss_2(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(6, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-2.hakulaq")
+            .with_asset_expect("common.entity.dungeon.tier-2.hakulaq", dynamic_rng)
     });
     entities
 }
 
-fn mini_boss_3(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let mut entities = Vec::new();
     entities.resize_with(3, || {
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-3.bonerattler")
+            .with_asset_expect("common.entity.dungeon.tier-3.bonerattler", dynamic_rng)
     });
     entities
 }
 
-fn mini_boss_4(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-4.miniboss"),
+            .with_asset_expect("common.entity.dungeon.tier-4.miniboss", dynamic_rng),
     ]
 }
 
@@ -882,33 +887,33 @@ fn mini_boss_5(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Entit
         0 => {
             entities.push(
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster"),
+                    .with_asset_expect("common.entity.dungeon.tier-5.beastmaster", dynamic_rng),
             );
             entities.resize_with(entities.len() + 4, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.hound")
+                    .with_asset_expect("common.entity.dungeon.tier-5.hound", dynamic_rng)
             });
         },
         1 => {
             entities.resize_with(2, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.husk_brute")
+                    .with_asset_expect("common.entity.dungeon.tier-5.husk_brute", dynamic_rng)
             });
         },
         _ => {
             entities.resize_with(10, || {
                 EntityInfo::at(tile_wcenter.map(|e| e as f32))
-                    .with_asset_expect("common.entity.dungeon.tier-5.husk")
+                    .with_asset_expect("common.entity.dungeon.tier-5.husk", dynamic_rng)
             });
         },
     }
     entities
 }
 
-fn mini_boss_fallback(tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
+fn mini_boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.fallback.miniboss"),
+            .with_asset_expect("common.entity.dungeon.fallback.miniboss", dynamic_rng),
     ]
 }
 
@@ -1450,14 +1455,15 @@ mod tests {
 
     #[test]
     fn test_creating_bosses() {
+        let mut dynamic_rng = rand::thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
-        boss_0(tile_wcenter);
-        boss_1(tile_wcenter);
-        boss_2(tile_wcenter);
-        boss_3(tile_wcenter);
-        boss_4(tile_wcenter);
-        boss_5(tile_wcenter);
-        boss_fallback(tile_wcenter);
+        boss_0(&mut dynamic_rng, tile_wcenter);
+        boss_1(&mut dynamic_rng, tile_wcenter);
+        boss_2(&mut dynamic_rng, tile_wcenter);
+        boss_3(&mut dynamic_rng, tile_wcenter);
+        boss_4(&mut dynamic_rng, tile_wcenter);
+        boss_5(&mut dynamic_rng, tile_wcenter);
+        boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
 
     #[test]
@@ -1479,19 +1485,20 @@ mod tests {
     fn test_creating_minibosses() {
         let mut dynamic_rng = rand::thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
-        mini_boss_0(tile_wcenter);
-        mini_boss_1(tile_wcenter);
-        mini_boss_2(tile_wcenter);
-        mini_boss_3(tile_wcenter);
-        mini_boss_4(tile_wcenter);
+        mini_boss_0(&mut dynamic_rng, tile_wcenter);
+        mini_boss_1(&mut dynamic_rng, tile_wcenter);
+        mini_boss_2(&mut dynamic_rng, tile_wcenter);
+        mini_boss_3(&mut dynamic_rng, tile_wcenter);
+        mini_boss_4(&mut dynamic_rng, tile_wcenter);
         mini_boss_5(&mut dynamic_rng, tile_wcenter);
-        mini_boss_fallback(tile_wcenter);
+        mini_boss_fallback(&mut dynamic_rng, tile_wcenter);
     }
 
     #[test]
     fn test_creating_turrets() {
+        let mut dynamic_rng = rand::thread_rng();
         let pos = Vec3::new(0.0, 0.0, 0.0);
-        turret_3(pos);
-        turret_5(pos);
+        turret_3(&mut dynamic_rng, pos);
+        turret_5(&mut dynamic_rng, pos);
     }
 }

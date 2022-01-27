@@ -75,15 +75,21 @@ impl Tree {
                     if above && dynamic_rng.gen_bool(0.0005) {
                         canvas.spawn(
                             EntityInfo::at(wpos.map(|e| e as f32) + Vec3::unit_z())
-                                .with_asset_expect(match dynamic_rng.gen_range(0..2) {
-                                    0 => "common.entity.wild.aggressive.deadwood",
-                                    _ => "common.entity.wild.aggressive.maneater",
-                                }),
+                                .with_asset_expect(
+                                    match dynamic_rng.gen_range(0..2) {
+                                        0 => "common.entity.wild.aggressive.deadwood",
+                                        _ => "common.entity.wild.aggressive.maneater",
+                                    },
+                                    dynamic_rng,
+                                ),
                         );
                     } else if above && dynamic_rng.gen_bool(0.0001) {
                         canvas.spawn(
                             EntityInfo::at(wpos.map(|e| e as f32) + Vec3::unit_z())
-                                .with_asset_expect("common.entity.wild.aggressive.swamp_troll"),
+                                .with_asset_expect(
+                                    "common.entity.wild.aggressive.swamp_troll",
+                                    dynamic_rng,
+                                ),
                         );
                     }
 

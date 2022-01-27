@@ -840,6 +840,7 @@ mod tests {
     #[test]
     fn test_entity_configs() {
         let dummy_pos = Vec3::new(0.0, 0.0, 0.0);
+        let mut dummy_rng = rand::thread_rng();
         // Bird Large test
         for bird_large_species in BIRD_LARGE_ROSTER {
             let female_body = comp::bird_large::Body {
@@ -852,9 +853,13 @@ mod tests {
             };
 
             let female_config = bird_large_config(female_body);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(female_config));
+            std::mem::drop(
+                EntityInfo::at(dummy_pos).with_asset_expect(female_config, &mut dummy_rng),
+            );
             let male_config = bird_large_config(male_body);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(male_config));
+            std::mem::drop(
+                EntityInfo::at(dummy_pos).with_asset_expect(male_config, &mut dummy_rng),
+            );
         }
         // Bird Medium test
         for bird_med_species in BIRD_MEDIUM_ROSTER {
@@ -868,14 +873,18 @@ mod tests {
             };
 
             let female_config = bird_medium_config(female_body);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(female_config));
+            std::mem::drop(
+                EntityInfo::at(dummy_pos).with_asset_expect(female_config, &mut dummy_rng),
+            );
             let male_config = bird_medium_config(male_body);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(male_config));
+            std::mem::drop(
+                EntityInfo::at(dummy_pos).with_asset_expect(male_config, &mut dummy_rng),
+            );
         }
         // Humanoid test
         for kind in RtSimEntityKind::iter() {
             let config = humanoid_config(kind);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config));
+            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config, &mut dummy_rng));
         }
     }
 }

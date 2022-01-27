@@ -150,7 +150,7 @@ impl assets::Asset for EntityConfig {
 }
 
 impl EntityConfig {
-    pub fn from_asset_expect(asset_specifier: &str) -> Self {
+    pub fn from_asset_expect_owned(asset_specifier: &str) -> Self {
         Self::load_owned(asset_specifier)
             .unwrap_or_else(|e| panic!("Failed to load {}. Error: {:?}", asset_specifier, e))
     }
@@ -221,17 +221,9 @@ impl EntityInfo {
     }
 
     /// Helper function for applying config from asset
-    #[must_use]
-    pub fn with_asset_expect(self, asset_specifier: &str) -> Self {
-        let loadout_rng = rand::thread_rng();
-
-        self.with_asset_expect_and_rng(asset_specifier, loadout_rng)
-    }
-
-    /// Helper function for applying config from asset
     /// with specified Rng for managing loadout.
     #[must_use]
-    pub fn with_asset_expect_and_rng<R>(self, asset_specifier: &str, loadout_rng: R) -> Self
+    pub fn with_asset_expect<R>(self, asset_specifier: &str, loadout_rng: &mut R) -> Self
     where
         R: rand::Rng,
     {
@@ -246,7 +238,7 @@ impl EntityInfo {
         mut self,
         config: EntityConfig,
         config_asset: Option<&str>,
-        loadout_rng: R,
+        loadout_rng: &mut R,
     ) -> Self
     where
         R: rand::Rng,
@@ -313,7 +305,7 @@ impl EntityInfo {
         mut self,
         loadout: LoadoutKind,
         config_asset: Option<&str>,
-        mut rng: R,
+        rng: &mut R,
     ) -> Self
     where
         R: rand::Rng,
@@ -323,18 +315,18 @@ impl EntityInfo {
                 self = self.with_default_equip();
             },
             LoadoutKind::Asset(loadout) => {
-                self = self.with_loadout_asset(loadout, &mut rng);
+                self = self.with_loadout_asset(loadout, rng);
             },
             LoadoutKind::Hands(hands) => {
-                self = self.with_hands(hands, config_asset, &mut rng);
+                self = self.with_hands(hands, config_asset, rng);
             },
             LoadoutKind::Extended {
                 hands,
                 base_asset,
                 inventory,
             } => {
-                self = self.with_loadout_asset(base_asset, &mut rng);
-                self = self.with_hands(hands, config_asset, &mut rng);
+                self = self.with_loadout_asset(base_asset, rng);
+                self = self.with_hands(hands, config_asset, rng);
                 // FIXME: this shouldn't always overwrite
                 // inventory. Think about this when we get to
                 // entity config inheritance.
@@ -733,7 +725,7 @@ mod tests {
                 loot,
                 meta,
                 alignment: _alignment, // can't fail if serialized, it's a boring enum
-            } = EntityConfig::from_asset_expect(&config_asset);
+            } = EntityConfig::from_asset_expect_owned(&config_asset);
 
             validate_body(&body, &config_asset);
             // body dependent stuff
