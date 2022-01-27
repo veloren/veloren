@@ -91,7 +91,7 @@ fn maps_basic_melee() {
                 ability_info: empty_ability_info(),
             },
             timer: Duration::default(),
-            stage_section: states::utils::StageSection::Buildup,
+            stage_section: states::utils::StageSection::Action,
             exhausted: false,
         }),
         &PreviousEntityState {
@@ -104,7 +104,10 @@ fn maps_basic_melee() {
 
     assert_eq!(
         result,
-        SfxEvent::Attack(CharacterAbilityType::BasicMelee, ToolKind::Axe)
+        SfxEvent::Attack(
+            CharacterAbilityType::BasicMelee(states::utils::StageSection::Action),
+            ToolKind::Axe
+        )
     );
 }
 
