@@ -448,16 +448,18 @@ impl NpcData {
             let loadout = loadout_builder.build();
             let mut inventory = comp::inventory::Inventory::new_with_loadout(loadout);
             for (num, mut item) in items {
-                tracing::warn!(
-                    "error during creating inventory for {name} at {pos}: {e:?}",
-                    name = &stats.name,
-                    e = item.set_amount(num)
-                );
-                tracing::warn!(
-                    "error during creating inventory for {name} at {pos}: {e:?}",
-                    name = &stats.name,
-                    e = inventory.push(item)
-                );
+                if let Err(e) = item.set_amount(num) {
+                    tracing::warn!(
+                        "error during creating inventory for {name} at {pos}: {e:?}",
+                        name = &stats.name,
+                    );
+                }
+                if let Err(e) = inventory.push(item) {
+                    tracing::warn!(
+                        "error during creating inventory for {name} at {pos}: {e:?}",
+                        name = &stats.name,
+                    );
+                }
             }
 
             inventory
