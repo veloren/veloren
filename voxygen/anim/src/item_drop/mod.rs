@@ -43,6 +43,7 @@ impl Skeleton for ItemDropSkeleton {
                     .into(),
                 ..Default::default()
             },
+            weapon_trail_mat: None,
         }
     }
 }

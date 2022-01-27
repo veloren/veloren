@@ -517,7 +517,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Dagger): (
+        Attack(BasicMelee(Action), Dagger): (
             files: [
                 "voxygen.audio.sfx.abilities.swing_sword",
             ],
@@ -551,7 +551,7 @@
             ],
             threshold: 0.5,
         ),
-        Attack(BasicMelee, Shield): (
+        Attack(BasicMelee(Action), Shield): (
             files: [
                 "voxygen.audio.sfx.abilities.swing",
             ],

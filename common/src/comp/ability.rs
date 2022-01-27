@@ -345,8 +345,12 @@ impl From<AuxiliaryAbility> for Ability {
 }
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+/// A lighter form of character state to pass around as needed for frontend
+/// purposes
+// Only add to this enum as needed for frontends, not necessary to immediately
+// add a variant here when adding a new character state
 pub enum CharacterAbilityType {
-    BasicMelee,
+    BasicMelee(StageSection),
     BasicRanged,
     Boost,
     ChargedMelee(StageSection),
@@ -361,12 +365,13 @@ pub enum CharacterAbilityType {
     RepeaterRanged,
     BasicAura,
     SelfBuff,
+    Other,
 }
 
 impl From<&CharacterState> for CharacterAbilityType {
     fn from(state: &CharacterState) -> Self {
         match state {
-            CharacterState::BasicMelee(_) => Self::BasicMelee,
+            CharacterState::BasicMelee(data) => Self::BasicMelee(data.stage_section),
             CharacterState::BasicRanged(_) => Self::BasicRanged,
             CharacterState::Boost(_) => Self::Boost,
             CharacterState::DashMelee(data) => Self::DashMelee(data.stage_section),
@@ -381,7 +386,23 @@ impl From<&CharacterState> for CharacterAbilityType {
             CharacterState::RepeaterRanged(_) => Self::RepeaterRanged,
             CharacterState::BasicAura(_) => Self::BasicAura,
             CharacterState::SelfBuff(_) => Self::SelfBuff,
-            _ => Self::BasicMelee,
+            CharacterState::Idle(_)
+            | CharacterState::Climb(_)
+            | CharacterState::Sit
+            | CharacterState::Dance
+            | CharacterState::Talk
+            | CharacterState::Glide(_)
+            | CharacterState::GlideWield(_)
+            | CharacterState::Stunned(_)
+            | CharacterState::Equipping(_)
+            | CharacterState::Wielding(_)
+            | CharacterState::Roll(_)
+            | CharacterState::Blink(_)
+            | CharacterState::BasicSummon(_)
+            | CharacterState::SpriteSummon(_)
+            | CharacterState::UseItem(_)
+            | CharacterState::SpriteInteract(_)
+            | CharacterState::Wallrun(_) => Self::Other,
         }
     }
 }

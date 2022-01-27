@@ -51,7 +51,7 @@ impl Skeleton for FishSmallSkeleton {
                     .into(),
                 ..Default::default()
             },
-            relative_trail_points: None,
+            weapon_trail_mat: None,
         }
     }
 }

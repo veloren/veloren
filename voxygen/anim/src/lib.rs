@@ -103,7 +103,7 @@ pub fn init() { lazy_static::initialize(&LIB); }
 pub struct Offsets {
     pub lantern: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
-    pub relative_trail_points: Option<(Vec3<f32>, Vec3<f32>)>,
+    pub weapon_trail_mat: Option<Mat4<f32>>,
 }
 
 pub trait Skeleton: Send + Sync + 'static {

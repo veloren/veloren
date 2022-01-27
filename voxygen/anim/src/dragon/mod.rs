@@ -81,7 +81,7 @@ impl Skeleton for DragonSkeleton {
                     .into(),
                 ..Default::default()
             },
-            relative_trail_points: None,
+            weapon_trail_mat: None,
         }
     }
 }

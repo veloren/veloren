@@ -113,7 +113,7 @@ impl Skeleton for ArthropodSkeleton {
                 orientation: mount_orientation,
                 scale: Vec3::one(),
             },
-            relative_trail_points: None,
+            weapon_trail_mat: None,
         }
     }
 }

@@ -33,8 +33,9 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
-        Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
-        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        Body, CharacterAbilityType, CharacterState, Collider, Controller, Health, Inventory, Item,
+        ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale,
+        Vel,
     },
     link::Is,
     mounting::Rider,
@@ -862,6 +863,8 @@ impl FigureMgr {
                 scale,
                 mount_transform_pos,
                 body: Some(body),
+                tools: (active_tool_kind, second_tool_kind),
+                char_ability: character.map(|c| c.into()),
                 col,
                 dt,
                 _lpindex: lpindex,
@@ -5368,6 +5371,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        Some(trail_mgr),
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -6244,6 +6248,8 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub scale: f32,
     pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
     pub body: Option<Body>,
+    pub tools: (Option<ToolKind>, Option<ToolKind>),
+    pub char_ability: Option<CharacterAbilityType>,
     pub col: vek::Rgba<f32>,
     pub dt: f32,
     // TODO: evaluate unused variable
@@ -6266,9 +6272,7 @@ impl<S: Skeleton> FigureState<S> {
         Self {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
-                abs_trail_points: offsets.relative_trail_points, /* No position to add and make
-                                                                  * absolute, also doesn't matter
-                                                                  * here */
+                abs_trail_points: None,
                 mount_transform: offsets.mount_bone,
                 mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
@@ -6299,6 +6303,8 @@ impl<S: Skeleton> FigureState<S> {
             scale,
             mount_transform_pos,
             body,
+            tools,
+            char_ability,
             col,
             dt,
             _lpindex,
@@ -6437,26 +6443,53 @@ impl<S: Skeleton> FigureState<S> {
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
         // Handle weapon trails
-        let offsets_abs_trail_points = offsets
-            .relative_trail_points
-            .map(|(a, b)| (a + pos, b + pos));
+        let weapon_offsets = offsets.weapon_trail_mat.map(|mat| {
+            let (trail_start, trail_end) = match tools.0 {
+                Some(ToolKind::Sword) => (29.0, 30.0),
+                Some(ToolKind::Axe) => (19.0, 20.0),
+                Some(ToolKind::Hammer) => (19.0, 20.0),
+                _ => (0.0, 0.0),
+            };
+            (
+                (mat * anim::vek::Vec4::new(0.0, 0.0, trail_start, 1.0)).xyz(),
+                (mat * anim::vek::Vec4::new(0.0, 0.0, trail_end, 1.0)).xyz(),
+            )
+        });
+        let offsets_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
         if let Some(trail_mgr) = trail_mgr {
             if let Some(dynamic_model) = entity
                 .as_ref()
                 .and_then(|e| trail_mgr.dynamic_models.get(e))
             {
                 let mut quad_mesh = Mesh::new();
-                if let (Some((p1, p2)), Some((p4, p3))) =
+                let quad = if let (Some((p1, p2)), Some((p4, p3))) =
                     (self.abs_trail_points, offsets_abs_trail_points)
                 {
-                    let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
-                        pos: p.into_array(),
-                    };
-                    quad_mesh.push_quad(Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4)));
+                    use StageSection::{Action, Charge, Movement, Recover};
+                    if matches!(
+                        char_ability,
+                        Some(
+                            CharacterAbilityType::BasicMelee(Action)
+                                | CharacterAbilityType::ChargedMelee(Action)
+                                | CharacterAbilityType::DashMelee(Charge | Action)
+                                | CharacterAbilityType::ComboMelee(Action | Recover, _)
+                                | CharacterAbilityType::LeapMelee(Movement | Action)
+                                | CharacterAbilityType::SpinMelee(Action)
+                        )
+                    ) {
+                        let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
+                            pos: p.into_array(),
+                        };
+                        Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4))
+                    } else {
+                        let zero = trail::Vertex { pos: [0.0; 3] };
+                        Quad::new(zero, zero, zero, zero)
+                    }
                 } else {
                     let zero = trail::Vertex { pos: [0.0; 3] };
-                    quad_mesh.push_quad(Quad::new(zero, zero, zero, zero));
-                }
+                    Quad::new(zero, zero, zero, zero)
+                };
+                quad_mesh.push_quad(quad);
                 renderer.update_model(dynamic_model, &quad_mesh, trail_mgr.offset * 4);
             }
         }
