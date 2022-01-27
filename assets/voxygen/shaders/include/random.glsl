@@ -10,13 +10,20 @@ float hash(vec4 p) {
     return (fract(p.x * p.y * (1.0 - p.z) * p.w * (p.x + p.y + p.z + p.w)) - 0.5) * 2.0;
 }
 
-#define M1 1597334677U  //1719413*929
-#define M2 3812015801U  //140473*2467*11
-#define M3 2741598923U
+#define M1 2047667443U
+#define M2 3883706873U
+#define M3 3961281721U
 
 float hash_one(uint q) {
     uint n = ((M3 * q) ^ M2) * M1;
 
+    return float(n) * (1.0 / float(0xffffffffU));
+}
+
+float hash_two(uvec2 q) {
+    q *= uvec2(M1, M2);
+    uint n = q.x ^ q.y;
+    n = n * (n ^ (n >> 15));
     return float(n) * (1.0 / float(0xffffffffU));
 }
 
