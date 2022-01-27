@@ -58,6 +58,7 @@ use crate::{
     ecs::{
         comp as vcomp,
         comp::{HpFloater, HpFloaterList},
+        sys::floater,
     },
     game_input::GameInput,
     hud::{img_ids::ImgsRot, prompt_dialog::DialogOutcomeEvent},
@@ -2416,15 +2417,7 @@ impl Hud {
                                 + (max_hp_frac
                                     * 10.0
                                     * if crit {
-                                        // FIXME: later
                                         1.25 * floater.info.crit_mult
-                                        // if floater.timer <
-                                        // crate::ecs::sys::floater::
-                                        // CRIT_SHOWTIME {
-                                        //     15.0 * (floater.timer + 0.1)
-                                        // } else {
-                                        //     1.0
-                                        // }
                                     } else {
                                         1.0
                                     }) as u32
@@ -2459,7 +2452,7 @@ impl Hud {
                             let x = if !crit {
                                 0.0
                             } else {
-                                (floater.rand as f64 - 0.5) * 0.1 * ui_widgets.win_w
+                                (floater.rand as f64 - 0.5) * 0.075 * ui_widgets.win_w
                                     + (0.03
                                         * ui_widgets.win_w
                                         * (floater.rand as f64 - 0.5).signum())
@@ -2467,16 +2460,8 @@ impl Hud {
 
                             // Timer sets text transparency
                             let fade = if crit {
-                                // FIXME: later
-                                // TODO: A setting for popping?
                                 ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75)
                                     + 0.5
-                                // if floater.timer <
-                                // crate::ecs::sys::floater::CRIT_SHOWTIME {
-                                //     1.0
-                                // } else {
-                                //     0.0
-                                // }
                             } else {
                                 ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25)
                                     + 0.2
@@ -4676,59 +4661,53 @@ impl Hud {
                             },
                             None => hit_me,
                         } {
-                            let mut merged = false;
-                            // Or maybe something like this
+                            // Group up damage from the same tick, with the same instance number and
+                            // has the same crit value
                             for floater in floater_list.floaters.iter_mut().rev() {
                                 if floater.timer > 0.0 {
                                     break;
                                 }
-                                if floater.info.instance == info.instance {
-                                    dbg!(floater.info.instance);
-                                    dbg!(floater.timer);
+                                if floater.info.instance == info.instance
+                                    && floater.info.crit.unwrap_or(false)
+                                        == info.crit.unwrap_or(false)
+                                {
                                     floater.info.amount += info.amount;
                                     floater.info.crit_mult = info.crit_mult;
                                     floater.info.crit = Some(
                                         floater.info.crit.unwrap_or(false)
-                                        || info.crit.unwrap_or(false)
+                                            || info.crit.unwrap_or(false),
                                     );
-                                    merged = true;
+                                    return;
                                 }
                             }
-                            
-                            if merged {
-                                return;
-                            }
 
-                            // To separate healing and damage floaters
+                            // To separate healing and damage floaters alongside the crit and
+                            // non-crit ones
                             let last_floater = if info.amount < Health::HEALTH_EPSILON {
-                                floater_list
-                                    .floaters
-                                    .iter_mut()
-                                    .rev()
-                                    .find(|f| f.info.amount < Health::HEALTH_EPSILON)
+                                floater_list.floaters.iter_mut().rev().find(|f| {
+                                    f.info.amount < Health::HEALTH_EPSILON
+                                        && info.crit.map_or(f.info.crit.unwrap_or(false), |_| {
+                                            !f.info.crit.unwrap_or(false)
+                                        })
+                                })
                             } else {
-                                floater_list
-                                    .floaters
-                                    .iter_mut()
-                                    .rev()
-                                    .find(|f| f.info.amount > Health::HEALTH_EPSILON)
+                                floater_list.floaters.iter_mut().rev().find(|f| {
+                                    f.info.amount > Health::HEALTH_EPSILON
+                                        && info.crit.map_or(f.info.crit.unwrap_or(false), |_| {
+                                            !f.info.crit.unwrap_or(false)
+                                        })
+                                })
                             };
 
                             match last_floater {
                                 Some(f)
                                     // TODO: Change later so it's based on options
-                                    if /*(info.crit.unwrap_or(false)
-                                        || (f.timer < floater::HP_ACCUMULATETIME
-                                            && !f.info.crit.unwrap_or(false)
-                                            && !info.crit.unwrap_or(false)) */ false =>
+                                    if (f.timer < floater::HP_ACCUMULATETIME && !f.info.crit.unwrap_or(false)) =>
                                 {
-                                    dbg!(f.info.instance);
-                                    dbg!(f.timer);
                                     //TODO: Add "jumping" animation on floater when it changes its
                                     // value
                                     f.info.amount += info.amount;
                                     f.info.crit_mult = info.crit_mult;
-                                    // TODO: Temporary ofc.
                                     f.info.crit = Some(f.info.crit.unwrap_or(false) || info.crit.unwrap_or(false));
                                 },
                                 _ => {

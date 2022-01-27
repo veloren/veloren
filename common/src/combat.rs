@@ -212,7 +212,8 @@ impl Attack {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
-        let instance = rand::random();
+        // TODO: Issue with shotgun ability
+        // TODO: Add instance number to AttackDamage?
         for damage in self
             .damages
             .iter()
@@ -236,7 +237,7 @@ impl Attack {
                 self.crit_multiplier,
                 strength_modifier,
                 time,
-                instance,
+                damage.instance,
             );
             let applied_damage = -change.amount;
             accumulated_damage += applied_damage;
@@ -261,7 +262,7 @@ impl Attack {
                                     time,
                                     crit: Some(is_crit),
                                     crit_mult: self.crit_multiplier,
-                                    instance,
+                                    instance: damage.instance,
                                 };
                                 emit(ServerEvent::HealthChange {
                                     entity: target.entity,
@@ -635,15 +636,17 @@ pub struct AttackDamage {
     damage: Damage,
     target: Option<GroupTarget>,
     effects: Vec<CombatEffect>,
+    instance: u64,
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl AttackDamage {
-    pub fn new(damage: Damage, target: Option<GroupTarget>) -> Self {
+    pub fn new(damage: Damage, target: Option<GroupTarget>, instance: u64) -> Self {
         Self {
             damage,
             target,
             effects: Vec::new(),
+            instance,
         }
     }
 

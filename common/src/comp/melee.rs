@@ -80,6 +80,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    rand::random(),
                 )
                 .with_effect(buff);
 
@@ -128,6 +129,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    rand::random(),
                 )
                 .with_effect(buff);
 
@@ -170,6 +172,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    rand::random(),
                 );
 
                 if let Some(damage_effect) = self.damage_effect {
@@ -210,6 +213,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     None,
+                    rand::random(),
                 )
                 .with_effect(lifesteal);
 
