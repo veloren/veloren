@@ -33,7 +33,7 @@ impl TrailMgr {
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
         span!(_guard, "maintain", "TrailMgr::maintain");
 
-        if scene_data.particles_enabled {
+        if scene_data.weapon_trails_enabled {
             // remove dead Trails
             // self.trails
             //     .retain(|t| t.alive_until > scene_data.state.get_time());
@@ -72,7 +72,7 @@ impl TrailMgr {
 
     pub fn render<'a>(&'a self, drawer: &mut TrailDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "TrailMgr::render");
-        if scene_data.trails_enabled {
+        if scene_data.weapon_trails_enabled {
             for dynamic_model in self.dynamic_models.values() {
                 drawer.draw(dynamic_model);
             }

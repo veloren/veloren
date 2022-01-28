@@ -89,6 +89,7 @@
         "hud.settings.gpu_profiler": "Enable GPU timing (not supported everywhere)",
         "hud.settings.particles": "Particles",
         "hud.settings.lossy_terrain_compression": "Lossy terrain compression",
+        "hud.settings.weapon_trails": "Weapon trails",
         "hud.settings.resolution": "Resolution",
         "hud.settings.bit_depth": "Bit Depth",
         "hud.settings.refresh_rate": "Refresh Rate",

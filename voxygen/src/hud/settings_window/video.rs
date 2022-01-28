@@ -101,6 +101,8 @@ widget_ids! {
         particles_label,
         lossy_terrain_compression_button,
         lossy_terrain_compression_label,
+        weapon_trails_button,
+        weapon_trails_label,
         //
         fullscreen_button,
         fullscreen_label,
@@ -1161,6 +1163,31 @@ impl<'a> Widget for Video<'a> {
         {
             events.push(GraphicsChange::ToggleLossyTerrainCompression(
                 lossy_terrain_compression,
+            ));
+        }
+
+        // Weapon trails
+        Text::new(self.localized_strings.get("hud.settings.weapon_trails"))
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .right_from(state.ids.lossy_terrain_compression_label, 64.0)
+            .color(TEXT_COLOR)
+            .set(state.ids.weapon_trails_label, ui);
+
+        let weapon_trails_enabled = ToggleButton::new(
+            self.global_state.settings.graphics.weapon_trails_enabled,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .right_from(state.ids.weapon_trails_label, 10.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.weapon_trails_button, ui);
+
+        if self.global_state.settings.graphics.weapon_trails_enabled != weapon_trails_enabled {
+            events.push(GraphicsChange::ToggleWeaponTrailsEnabled(
+                weapon_trails_enabled,
             ));
         }
 

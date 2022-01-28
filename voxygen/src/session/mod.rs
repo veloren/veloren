@@ -1474,7 +1474,7 @@ impl PlayState for SessionState {
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
                         as f32,
                     particles_enabled: global_state.settings.graphics.particles_enabled,
-                    trails_enabled: global_state.settings.graphics.trails_enabled,
+                    weapon_trails_enabled: global_state.settings.graphics.weapon_trails_enabled,
                     figure_lod_render_distance: global_state
                         .settings
                         .graphics
@@ -1548,7 +1548,7 @@ impl PlayState for SessionState {
                 sprite_render_distance: settings.graphics.sprite_render_distance as f32,
                 figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
                 particles_enabled: settings.graphics.particles_enabled,
-                trails_enabled: settings.graphics.trails_enabled,
+                weapon_trails_enabled: settings.graphics.weapon_trails_enabled,
                 is_aiming: self.is_aiming,
             };
 
