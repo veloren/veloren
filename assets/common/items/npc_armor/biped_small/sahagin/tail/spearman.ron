@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Sahagin Spearman",
+    description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Belt("SahaginSpearman"),
+        stats: (
+            protection: Some(Normal(5.0)),
+            poise_resilience: Some(Normal(4.0)),
+            energy_max: Some(3.4),
+            energy_reward: Some(0.015),
+            crit_power: Some(0.012),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

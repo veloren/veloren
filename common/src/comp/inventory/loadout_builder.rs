@@ -372,7 +372,7 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.husk",
             )),
             _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.adlet.wooden_spear",
+                "common.items.npc_weapons.biped_small.adlet.hunter",
             )),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {

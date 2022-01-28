@@ -6,14 +6,23 @@
         "Gnome": (
             vox_spec: ("npc.gnome.male.chest", (-5.0, -3.0, -2.5)),
         ),
-        "Sahagin": (
-            vox_spec: ("npc.sahagin.male.chest", (-4.5, -8.0, -8.0)),
+        "SahaginSpearman": (
+            vox_spec: ("npc.sahagin.spearman.chest", (-4.5, -8.0, -8.0)),
         ),
-        "AdletSpear": (
-            vox_spec: ("npc.adlet.male.spear.chest", (-5.0, -3.5, -2.0)),
+        "SahaginSorcerer": (
+            vox_spec: ("npc.sahagin.sorcerer.chest", (-4.5, -8.0, -8.0)),
         ),
-        "AdletBow": (
-            vox_spec: ("npc.adlet.male.bow.chest", (-5.0, -3.5, -2.0)),
+        "SahaginSniper": (
+            vox_spec: ("npc.sahagin.sniper.chest", (-4.5, -8.0, -8.0)),
+        ),
+        "AdletHunter": (
+            vox_spec: ("npc.adlet.hunter.chest", (-5.0, -3.5, -2.0)),
+        ),
+        "AdletIcepicker": (
+            vox_spec: ("npc.adlet.icepicker.chest", (-5.0, -3.5, -2.0)),
+        ),
+        "AdletTracker": (
+            vox_spec: ("npc.adlet.tracker.chest", (-5.0, -3.5, -2.0)),
         ),
         "GnarlingMugger": (
             vox_spec: ("npc.gnarling.mugger.chest", (-4.5, -3.5, -2.5)),
@@ -36,14 +45,32 @@
         "Cactid": (
             vox_spec: ("npc.cactid.male.chest", (-3.0, -3.0, -2.5)),
         ),
-        "Gnoll": (
-            vox_spec: ("npc.gnoll.male.chest", (-5.0, -4.5, -6.0)),
+        "GnollShaman": (
+            vox_spec: ("npc.gnoll.shaman.chest", (-5.0, -4.5, -6.0)),
         ),
-        "Haniwa": (
-            vox_spec: ("npc.haniwa.male.chest", (-6.5, -4.0, -3.0)),
+        "GnollRogue": (
+            vox_spec: ("npc.gnoll.rogue.chest", (-5.0, -4.5, -6.0)),
         ),
-        "Myrmidon": (
-            vox_spec: ("npc.myrmidon.male.chest", (-5.5, -4.0, -3.0)),
+        "GnollTrapper": (
+            vox_spec: ("npc.gnoll.trapper.chest", (-5.0, -4.5, -6.0)),
+        ),
+        "HaniwaGuard": (
+            vox_spec: ("npc.haniwa.guard.chest", (-6.5, -4.0, -3.0)),
+        ),
+        "HaniwaArcher": (
+            vox_spec: ("npc.haniwa.archer.chest", (-6.5, -4.0, -3.0)),
+        ),
+        "HaniwaSoldier": (
+            vox_spec: ("npc.haniwa.solier.chest", (-6.5, -4.0, -3.0)),
+        ),
+        "MyrmidonHoplite": (
+            vox_spec: ("npc.myrmidon.hoplite.chest", (-5.5, -4.0, -3.0)),
+        ),
+        "MyrmidonStrategian": (
+            vox_spec: ("npc.myrmidon.strategian.chest", (-5.5, -4.0, -3.0)),
+        ),
+        "MyrmidonMarksman": (
+            vox_spec: ("npc.myrmidon.marksman.chest", (-5.5, -4.0, -3.0)),
         ),
         "Husk": (
             vox_spec: ("npc.husk.male.chest", (-6.0, -4.5, -4.0)),

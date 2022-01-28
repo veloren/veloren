@@ -456,9 +456,9 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots_general.igloo"),
                 entity_radius: 2.0,
                 entities: &[
-                    (3..5, "common.entity.dungeon.tier-1.spear"),
-                    (3..5, "common.entity.dungeon.tier-1.bow"),
-                    (2..3, "common.entity.dungeon.tier-1.staff"),
+                    (3..5, "common.entity.dungeon.tier-1.hunter"),
+                    (3..5, "common.entity.dungeon.tier-1.icepicker"),
+                    (2..3, "common.entity.dungeon.tier-1.tracker"),
                 ],
             },
             Spot::PirateHideout => SpotConfig {

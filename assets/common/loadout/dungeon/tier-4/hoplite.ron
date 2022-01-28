@@ -1,0 +1,8 @@
+({
+    Armor(Head): Item("common.items.npc_armor.biped_small.myrmidon.head.hoplite"),
+    Armor(Feet): Item("common.items.npc_armor.biped_small.myrmidon.foot.hoplite"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.myrmidon.hand.hoplite"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.myrmidon.chest.hoplite"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.myrmidon.pants.hoplite"),
+    Armor(Belt): Item("common.items.npc_armor.biped_small.myrmidon.tail.hoplite"),
+})

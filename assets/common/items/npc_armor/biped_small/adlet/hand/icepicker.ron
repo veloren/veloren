@@ -1,0 +1,14 @@
+ItemDef(
+    name: "Adlet Icepicker",
+    description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Hand("AdletIcepicker"),
+        stats: (
+            protection: Some(Normal(6.0)),
+            poise_resilience: Some(Normal(3.0)),
+            crit_power: Some(0.016),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

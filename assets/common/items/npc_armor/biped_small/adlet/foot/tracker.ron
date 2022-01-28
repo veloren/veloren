@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Adlet Tracker",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Foot("AdletTracker"),
+        stats: (
+            protection: Some(Normal(4.0)),
+            poise_resilience: Some(Normal(2.0)),
+            energy_max: Some(1.8),
+            energy_reward: Some(0.018),
+            crit_power: Some(0.016),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

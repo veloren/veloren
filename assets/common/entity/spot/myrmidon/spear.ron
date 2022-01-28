@@ -8,5 +8,16 @@
         inventory: [],
     ),
     loot: LootTable("common.loot_tables.dungeon.tier-4.enemy"),
+<<<<<<< HEAD
     meta: [],
 )
+=======
+
+    hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.hoplite")),
+
+    meta: [
+        LoadoutAsset("common.loadout.dungeon.tier-4.hoplite"),
+
+    ],
+)
+>>>>>>> new mobs
