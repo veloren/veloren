@@ -715,8 +715,11 @@ impl Site {
                         let mut underground = true;
                         for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
-                                if b.is_filled() {
-                                    if underground && b.is_terrain() {
+                                if b.kind() == BlockKind::Snow {
+                                    underground = false;
+                                    b.into_vacant()
+                                } else if b.is_filled() {
+                                    if b.is_terrain() {
                                         Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
                                     } else {
                                         b
@@ -783,20 +786,25 @@ impl Site {
                 for z in -6..4 {
                     canvas.map(
                         Vec3::new(wpos2d.x, wpos2d.y, alt + z),
-                        |b| if b.is_filled() {
-                            if underground && b.is_terrain() {
-                                Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
-                            } else {
-                                b
-                            }
-                        } else {
+                        |b| {
                             let sprite = if underground && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
                                 SpriteKind::StreetLamp
                             } else {
                                 SpriteKind::Empty
                             };
-                            underground = false;
-                            b.with_sprite(sprite)
+                            if b.kind() == BlockKind::Snow {
+                                underground = false;
+                                b.into_vacant().with_sprite(sprite)
+                            } else if b.is_filled() {
+                                if b.is_terrain() {
+                                    Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                } else {
+                                    b
+                                }
+                            } else {
+                                underground = false;
+                                b.into_vacant().with_sprite(sprite)
+                            }
                         },
                     );
                 }
