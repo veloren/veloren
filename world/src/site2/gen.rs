@@ -12,6 +12,7 @@ use common::{
     },
     vol::ReadVol,
 };
+use num::cast::AsPrimitive;
 use std::{cell::RefCell, sync::Arc};
 use vek::*;
 
@@ -41,7 +42,7 @@ pub enum Primitive {
     Sphere(Aabb<i32>),
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
     /// A line segment from start to finish point with a given radius
-    Segment(LineSegment3<i32>, f32),
+    Segment(LineSegment3<f32>, f32),
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
@@ -56,6 +57,9 @@ pub enum Primitive {
     Rotate(Id<Primitive>, Mat3<i32>),
     Translate(Id<Primitive>, Vec3<i32>),
     Scale(Id<Primitive>, Vec3<f32>),
+    /// Repeat a primitive a number of times in a given direction, overlapping
+    /// between repeats are unspecified.
+    Repeat(Id<Primitive>, Vec3<i32>, i32),
 }
 
 impl Primitive {
@@ -85,6 +89,10 @@ impl Primitive {
 
     pub fn scale(a: impl Into<Id<Primitive>>, scale: Vec3<f32>) -> Self {
         Self::Scale(a.into(), scale)
+    }
+
+    pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: i32) -> Self {
+        Self::Repeat(a.into(), offset, count)
     }
 }
 
@@ -217,7 +225,7 @@ impl Fill {
                 && (segment.start.y..segment.end.y).contains(&pos.y)
                 && (segment.start.z..segment.end.z).contains(&pos.z)
                 &&*/
-                segment.as_().distance_to_point(pos.map(|e| e as f32)) < radius - 0.25
+                segment.distance_to_point(pos.map(|e| e as f32)) < radius - 0.25
             },
             Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
@@ -246,6 +254,16 @@ impl Fill {
                     .map(|x| x.round())
                     .as_::<i32>();
                 self.contains_at(tree, *prim, spos)
+            },
+            Primitive::Repeat(prim, offset, count) => {
+                let aabb = self.get_bounds(tree, *prim);
+                let diff = pos - aabb.min;
+                let min = diff
+                    .map2(*offset, |a, b| if b == 0 { i32::MAX } else { a / b })
+                    .reduce_min()
+                    .min(*count);
+                let pos = aabb.min + diff - offset * min;
+                self.contains_at(tree, *prim, pos)
             },
         }
     }
@@ -329,8 +347,8 @@ impl Fill {
                 aabb.made_valid()
             },
             Primitive::Segment(segment, radius) => Aabb {
-                min: segment.start - radius.floor() as i32,
-                max: segment.end + radius.ceil() as i32,
+                min: (segment.start - *radius).floor().as_(),
+                max: (segment.end + *radius).ceil().as_(),
             },
             Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
             Primitive::Prefab(p) => p.get_bounds(),
@@ -369,6 +387,13 @@ impl Fill {
                     max: center + ((aabb.max - center).as_::<f32>() * vec).as_::<i32>(),
                 }
             },
+            Primitive::Repeat(prim, offset, count) => {
+                let aabb = self.get_bounds_inner(tree, *prim)?;
+                Aabb {
+                    min: aabb.min.map2(aabb.min + offset * count, |a, b| a.min(b)),
+                    max: aabb.max.map2(aabb.max + offset * count, |a, b| a.max(b)),
+                }
+            },
         })
     }
 
@@ -386,9 +411,17 @@ pub struct Painter {
 impl Painter {
     pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef { self.prim(Primitive::Aabb(aabb)) }
 
-    pub fn line(&self, a: Vec3<i32>, b: Vec3<i32>, radius: f32) -> PrimitiveRef {
+    pub fn line(
+        &self,
+        a: Vec3<impl AsPrimitive<f32>>,
+        b: Vec3<impl AsPrimitive<f32>>,
+        radius: f32,
+    ) -> PrimitiveRef {
         self.prim(Primitive::Segment(
-            LineSegment3 { start: a, end: b },
+            LineSegment3 {
+                start: a.as_(),
+                end: b.as_(),
+            },
             radius,
         ))
     }
@@ -467,6 +500,10 @@ impl<'a> PrimitiveRef<'a> {
     pub fn sample(self, sampling: impl Fn(Vec3<i32>) -> bool + 'static) -> PrimitiveRef<'a> {
         self.painter
             .prim(Primitive::sampling(self, Box::new(sampling)))
+    }
+
+    pub fn repeat(self, offset: Vec3<i32>, count: i32) -> PrimitiveRef<'a> {
+        self.painter.prim(Primitive::repeat(self, offset, count))
     }
 }
 

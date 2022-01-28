@@ -619,21 +619,19 @@ impl Structure for House {
                         // something to do with AABBs with min and max not smaller in the right
                         // order. The same thing is true for orientation 3.
                         let support = match self.front {
-                            0 => painter.prim(Primitive::Segment(
-                                LineSegment3 {
-                                    start: Vec2::new(
-                                        temp.x,
-                                        self.bounds.max.y + storey_increase - self.overhang + 1,
-                                    )
-                                    .with_z(alt + previous_height - 3),
-                                    end: Vec2::new(
-                                        temp.x,
-                                        self.bounds.max.y + storey_increase - self.overhang + 2,
-                                    )
-                                    .with_z(alt + previous_height),
-                                },
+                            0 => painter.line(
+                                Vec2::new(
+                                    temp.x,
+                                    self.bounds.max.y + storey_increase - self.overhang + 1,
+                                )
+                                .with_z(alt + previous_height - 3),
+                                Vec2::new(
+                                    temp.x,
+                                    self.bounds.max.y + storey_increase - self.overhang + 2,
+                                )
+                                .with_z(alt + previous_height),
                                 0.75,
-                            )),
+                            ),
                             //2 => {
                             //    painter.prim(Primitive::Segment(LineSegment3 {
                             //        start: Vec2::new(temp.x, self.bounds.min.y - storey_increase -
@@ -669,37 +667,33 @@ impl Structure for House {
                         };
                         let support = match self.front {
                             0 => painter.prim(Primitive::Empty),
-                            1 => painter.prim(Primitive::Segment(
-                                LineSegment3 {
-                                    start: Vec2::new(
-                                        self.bounds.max.x + storey_increase - self.overhang + 1,
-                                        temp.y,
-                                    )
-                                    .with_z(alt + previous_height - 3),
-                                    end: Vec2::new(
-                                        self.bounds.max.x + storey_increase - self.overhang + 2,
-                                        temp.y,
-                                    )
-                                    .with_z(alt + previous_height),
-                                },
+                            1 => painter.line(
+                                Vec2::new(
+                                    self.bounds.max.x + storey_increase - self.overhang + 1,
+                                    temp.y,
+                                )
+                                .with_z(alt + previous_height - 3),
+                                Vec2::new(
+                                    self.bounds.max.x + storey_increase - self.overhang + 2,
+                                    temp.y,
+                                )
+                                .with_z(alt + previous_height),
                                 0.75,
-                            )),
+                            ),
                             2 => painter.prim(Primitive::Empty),
-                            _ => painter.prim(Primitive::Segment(
-                                LineSegment3 {
-                                    start: Vec2::new(
-                                        self.bounds.min.x - storey_increase + self.overhang - 1,
-                                        temp.y,
-                                    )
-                                    .with_z(alt + previous_height - 3),
-                                    end: Vec2::new(
-                                        self.bounds.min.x - storey_increase + self.overhang - 2,
-                                        temp.y,
-                                    )
-                                    .with_z(alt + previous_height),
-                                },
+                            _ => painter.line(
+                                Vec2::new(
+                                    self.bounds.min.x - storey_increase + self.overhang - 1,
+                                    temp.y,
+                                )
+                                .with_z(alt + previous_height - 3),
+                                Vec2::new(
+                                    self.bounds.min.x - storey_increase + self.overhang - 2,
+                                    temp.y,
+                                )
+                                .with_z(alt + previous_height),
                                 0.75,
-                            )),
+                            ),
                         };
                         if temp.y <= self.bounds.max.y && temp.y >= self.bounds.min.y {
                             overhang_supports =
