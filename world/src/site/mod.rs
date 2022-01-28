@@ -30,6 +30,7 @@ pub struct SpawnRules {
 }
 
 impl SpawnRules {
+    #[must_use]
     pub fn combine(self, other: Self) -> Self {
         // Should be commutative
         Self {

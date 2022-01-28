@@ -222,7 +222,7 @@ impl Site {
 
     pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Id<Plot> {
         let plaza_radius = rng.gen_range(1..4);
-        let plaza_dist = 10.0 + plaza_radius as f32 * 5.0;
+        let plaza_dist = 6.5 + plaza_radius as f32 * 4.0;
         let pos = attempt(32, || {
             self.plazas
                 .choose(rng)
@@ -382,7 +382,7 @@ impl Site {
             match *build_chance.choose_seeded(rng.gen()) {
                 // House
                 1 => {
-                    let size = (2.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -713,7 +713,7 @@ impl Site {
                         for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
                                 if b.is_filled() {
-                                    if underground {
+                                    if underground && b.is_terrain() {
                                         Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
                                     } else {
                                         b
@@ -781,7 +781,7 @@ impl Site {
                     canvas.map(
                         Vec3::new(wpos2d.x, wpos2d.y, alt + z),
                         |b| if b.is_filled() {
-                            if underground {
+                            if underground && b.is_terrain() {
                                 Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
                             } else {
                                 b

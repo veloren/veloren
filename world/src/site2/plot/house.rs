@@ -856,6 +856,40 @@ impl Structure for House {
                     painter.prim(Primitive::intersect(walls, windows)),
                     Fill::Block(Block::air(SpriteKind::Window1).with_ori(2).unwrap()),
                 );
+                // Wall lamps
+                if i == 1 {
+                    let mut torches_min = painter.prim(Primitive::Empty);
+                    let mut torches_max = painter.prim(Primitive::Empty);
+                    for y in self.tile_aabr.min.y..self.tile_aabr.max.y {
+                        let pos = site
+                            .tile_wpos(Vec2::new(self.tile_aabr.min.x, y))
+                            .with_z(alt + previous_height + 3)
+                            + Vec3::new(-1, 0, 0);
+                        let torch = painter.prim(Primitive::Aabb(Aabb {
+                            min: pos,
+                            max: pos + 1,
+                        }));
+                        torches_min = painter.prim(Primitive::union(torches_min, torch));
+
+                        let pos = site
+                            .tile_wpos(Vec2::new(self.tile_aabr.max.x, y + 1))
+                            .with_z(alt + previous_height + 3)
+                            + Vec3::new(1, 0, 0);
+                        let torch = painter.prim(Primitive::Aabb(Aabb {
+                            min: pos,
+                            max: pos + 1,
+                        }));
+                        torches_max = painter.prim(Primitive::union(torches_max, torch));
+                    }
+                    painter.fill(
+                        torches_min,
+                        Fill::Block(Block::air(SpriteKind::WallLampSmall).with_ori(6).unwrap()),
+                    );
+                    painter.fill(
+                        torches_max,
+                        Fill::Block(Block::air(SpriteKind::WallLampSmall).with_ori(2).unwrap()),
+                    );
+                }
             }
             // Windows y axis
             {
@@ -886,6 +920,40 @@ impl Structure for House {
                     painter.prim(Primitive::intersect(walls, windows)),
                     Fill::Block(Block::air(SpriteKind::Window1).with_ori(0).unwrap()),
                 );
+                // Wall lamps
+                if i == 1 {
+                    let mut torches_min = painter.prim(Primitive::Empty);
+                    let mut torches_max = painter.prim(Primitive::Empty);
+                    for x in self.tile_aabr.min.x..self.tile_aabr.max.x {
+                        let pos = site
+                            .tile_wpos(Vec2::new(x + 1, self.tile_aabr.min.y))
+                            .with_z(alt + previous_height + 3)
+                            + Vec3::new(0, -1, 0);
+                        let torch = painter.prim(Primitive::Aabb(Aabb {
+                            min: pos,
+                            max: pos + 1,
+                        }));
+                        torches_min = painter.prim(Primitive::union(torches_min, torch));
+
+                        let pos = site
+                            .tile_wpos(Vec2::new(x, self.tile_aabr.max.y))
+                            .with_z(alt + previous_height + 3)
+                            + Vec3::new(0, 1, 0);
+                        let torch = painter.prim(Primitive::Aabb(Aabb {
+                            min: pos,
+                            max: pos + 1,
+                        }));
+                        torches_max = painter.prim(Primitive::union(torches_max, torch));
+                    }
+                    painter.fill(
+                        torches_min,
+                        Fill::Block(Block::air(SpriteKind::WallLampSmall).with_ori(0).unwrap()),
+                    );
+                    painter.fill(
+                        torches_max,
+                        Fill::Block(Block::air(SpriteKind::WallLampSmall).with_ori(4).unwrap()),
+                    );
+                }
             }
 
             // Shed roof on negative overhangs
