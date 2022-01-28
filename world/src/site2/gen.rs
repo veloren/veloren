@@ -40,21 +40,28 @@ pub enum Primitive {
     Cylinder(Aabb<i32>),
     Cone(Aabb<i32>),
     Sphere(Aabb<i32>),
-    Ellipsoid(Aabb<i32>),
     /// An Aabb with rounded corners. The degree relates to how rounded the
     /// corners are. A value less than 1.0 results in concave faces. A value
     /// of 2.0 results in an ellipsoid. Values greater than 2.0 result in a
     /// rounded aabb. Values less than 0.0 are clamped to 0.0 as negative values
     /// would theoretically yield shapes extending to infinity.
-    RoundedAabb {
+    Superquadric {
         aabb: Aabb<i32>,
         degree: f32,
     },
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
     /// A line segment from start to finish point with a given radius
-    Segment(LineSegment3<i32>, f32),
-    /// A 2d line segment with a given radius, z-coord, and height
-    SegmentPrism(LineSegment3<i32>, f32, f32),
+    Segment {
+        segment: LineSegment3<i32>,
+        radius: f32,
+    },
+    /// A prism created by projecting a line segment with a given radius along
+    /// the z axis up to a provided height
+    SegmentPrism {
+        segment: LineSegment3<i32>,
+        radius: f32,
+        height: f32,
+    },
     /// A sampling function is always a subset of another primitive to avoid
     /// needing infinite bounds
     Sampling(Id<Primitive>, Box<dyn Fn(Vec3<i32>) -> bool>),
@@ -222,26 +229,17 @@ impl Fill {
                     && pos.as_().distance_squared(aabb.as_().center() - 0.5)
                         < (aabb.size().w.min(aabb.size().h) as f32 / 2.0).powi(2)
             },
-            Primitive::Ellipsoid(aabb) => {
-                let center = aabb.center().map(|e| e as f32);
-                let a: f32 = aabb.max.x as f32 - center.x;
-                let b: f32 = aabb.max.y as f32 - center.y;
-                let c: f32 = aabb.max.z as f32 - center.z;
-                let rpos = pos.as_::<f32>() - center;
-                aabb_contains(*aabb, pos)
-                    && (rpos.x / a).powi(2) + (rpos.y / b).powi(2) + (rpos.z / c).powi(2) < 1.0
-            },
-            Primitive::RoundedAabb { aabb, degree } => {
+            Primitive::Superquadric { aabb, degree } => {
                 let degree = degree.max(0.0);
                 let center = aabb.center().map(|e| e as f32);
-                let a: f32 = aabb.max.x as f32 - center.x;
-                let b: f32 = aabb.max.y as f32 - center.y;
-                let c: f32 = aabb.max.z as f32 - center.z;
+                let a: f32 = aabb.max.x as f32 - center.x - 0.5;
+                let b: f32 = aabb.max.y as f32 - center.y - 0.5;
+                let c: f32 = aabb.max.z as f32 - center.z - 0.5;
                 let rpos = pos.as_::<f32>() - center;
                 aabb_contains(*aabb, pos)
-                    && (rpos.x / a).abs().powf(*degree)
-                        + (rpos.y / b).abs().powf(*degree)
-                        + (rpos.z / c).abs().powf(*degree)
+                    && (rpos.x / a).abs().powf(degree)
+                        + (rpos.y / b).abs().powf(degree)
+                        + (rpos.z / c).abs().powf(degree)
                         < 1.0
             },
             Primitive::Plane(aabr, origin, gradient) => {
@@ -255,10 +253,14 @@ impl Fill {
                                 .as_()
                                 .dot(*gradient) as i32)
             },
-            Primitive::Segment(segment, radius) => {
+            Primitive::Segment { segment, radius } => {
                 segment.distance_to_point(pos.map(|e| e as f32)) < radius - 0.25
             },
-            Primitive::SegmentPrism(segment, radius, height) => {
+            Primitive::SegmentPrism {
+                segment,
+                radius,
+                height,
+            } => {
                 let segment_2d = LineSegment2 {
                     start: segment.start.xy(),
                     end: segment.end.xy(),
@@ -397,8 +399,7 @@ impl Fill {
             Primitive::Cylinder(aabb) => *aabb,
             Primitive::Cone(aabb) => *aabb,
             Primitive::Sphere(aabb) => *aabb,
-            Primitive::Ellipsoid(aabb) => *aabb,
-            Primitive::RoundedAabb { aabb, .. } => *aabb,
+            Primitive::Superquadric { aabb, .. } => *aabb,
             Primitive::Plane(aabr, origin, gradient) => {
                 let half_size = aabr.half_size().reduce_max();
                 let longest_dist = ((aabr.center() - origin.xy()).map(|x| x.abs())
@@ -416,7 +417,7 @@ impl Fill {
                 };
                 aabb.made_valid()
             },
-            Primitive::Segment(segment, radius) => {
+            Primitive::Segment { segment, radius } => {
                 let aabb = Aabb {
                     min: segment.start,
                     max: segment.end,
@@ -427,7 +428,11 @@ impl Fill {
                     max: aabb.max + radius.ceil() as i32,
                 }
             },
-            Primitive::SegmentPrism(segment, radius, height) => {
+            Primitive::SegmentPrism {
+                segment,
+                radius,
+                height,
+            } => {
                 let aabb = Aabb {
                     min: segment.start,
                     max: segment.end,
@@ -510,13 +515,31 @@ impl Painter {
         self.prim(Primitive::Sphere(aabb.made_valid()))
     }
 
-    pub fn ellipsoid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
-        self.prim(Primitive::Ellipsoid(aabb.made_valid()))
+    pub fn sphere2(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        let radius = aabb.size().w.min(aabb.size().h) / 2;
+        let aabb = Aabb {
+            min: aabb.center() - radius,
+            max: aabb.center() + radius,
+        };
+        let degree = 2.0;
+        self.prim(Primitive::Superquadric { aabb, degree })
     }
 
-    pub fn rounded_aabb(&self, aabb: Aabb<i32>, degree: f32) -> PrimitiveRef {
+    pub fn ellipsoid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         let aabb = aabb.made_valid();
-        self.prim(Primitive::RoundedAabb { aabb, degree })
+        let degree = 2.0;
+        self.prim(Primitive::Superquadric { aabb, degree })
+    }
+
+    pub fn superquadric(&self, aabb: Aabb<i32>, degree: f32) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::Superquadric { aabb, degree })
+    }
+
+    pub fn rounded_aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
+        let aabb = aabb.made_valid();
+        self.prim(Primitive::Superquadric { aabb, degree: 3.0 })
     }
 
     pub fn cylinder(&self, aabb: Aabb<i32>) -> PrimitiveRef {
@@ -533,13 +556,13 @@ impl Painter {
         b: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
     ) -> PrimitiveRef {
-        self.prim(Primitive::Segment(
-            LineSegment3 {
+        self.prim(Primitive::Segment {
+            segment: LineSegment3 {
                 start: a.as_(),
                 end: b.as_(),
             },
             radius,
-        ))
+        })
     }
 
     pub fn segment_prism(
@@ -550,7 +573,49 @@ impl Painter {
         height: f32,
     ) -> PrimitiveRef {
         let segment = LineSegment3 { start: a, end: b };
-        self.prim(Primitive::SegmentPrism(segment, radius, height))
+        self.prim(Primitive::SegmentPrism {
+            segment,
+            radius,
+            height,
+        })
+    }
+
+    pub fn cubic_bezier(
+        &self,
+        start: Vec3<i32>,
+        ctrl0: Vec3<i32>,
+        ctrl1: Vec3<i32>,
+        end: Vec3<i32>,
+        radius: f32,
+    ) -> PrimitiveRef {
+        let bezier = CubicBezier3 {
+            start: start.as_::<f32>(),
+            ctrl0: ctrl0.as_::<f32>(),
+            ctrl1: ctrl1.as_::<f32>(),
+            end: end.as_::<f32>(),
+        };
+        let p0 = start;
+        let p1 = bezier.evaluate(0.1).map(|e| e.floor() as i32);
+        let p2 = bezier.evaluate(0.2).map(|e| e.floor() as i32);
+        let p3 = bezier.evaluate(0.3).map(|e| e.floor() as i32);
+        let p4 = bezier.evaluate(0.4).map(|e| e.floor() as i32);
+        let p5 = bezier.evaluate(0.5).map(|e| e.floor() as i32);
+        let p6 = bezier.evaluate(0.6).map(|e| e.floor() as i32);
+        let p7 = bezier.evaluate(0.7).map(|e| e.floor() as i32);
+        let p8 = bezier.evaluate(0.8).map(|e| e.floor() as i32);
+        let p9 = bezier.evaluate(0.9).map(|e| e.floor() as i32);
+        let p10 = end;
+
+        self.line(p0, p1, radius)
+            .union(self.line(p1, p2, radius))
+            .union(self.line(p2, p3, radius))
+            .union(self.line(p3, p4, radius))
+            .union(self.line(p4, p5, radius))
+            .union(self.line(p5, p6, radius))
+            .union(self.line(p6, p7, radius))
+            .union(self.line(p7, p8, radius))
+            .union(self.line(p8, p9, radius))
+            .union(self.line(p9, p10, radius))
     }
 
     pub fn plane(&self, aabr: Aabr<i32>, origin: Vec3<i32>, gradient: Vec2<f32>) -> PrimitiveRef {
