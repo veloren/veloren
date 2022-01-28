@@ -301,7 +301,10 @@ impl Site {
         Spiral2d::new()
             .take((SEARCH_RADIUS * 2 + 1).pow(2) as usize)
             .for_each(|tile| {
-                if let Some(kind) = wpos_is_hazard(land, self.tile_wpos(tile)) {
+                if let Some(kind) = Spiral2d::new()
+                    .take(9)
+                    .find_map(|rpos| wpos_is_hazard(land, self.tile_center_wpos(tile) + rpos))
+                {
                     for &rpos in &SQUARE_4 {
                         // `get_mut` doesn't increase generation bounds
                         self.tiles
@@ -935,7 +938,7 @@ pub fn test_site() -> Site { Site::generate_city(&Land::empty(), &mut thread_rng
 
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
     if land
-        .get_chunk_at(wpos)
+        .get_chunk_wpos(wpos)
         .map_or(true, |c| c.river.near_water())
     {
         Some(HazardKind::Water)
