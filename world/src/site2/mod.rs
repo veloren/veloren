@@ -709,15 +709,21 @@ impl Site {
 
                     if dist.map_or(false, |d| d <= 1.5) {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
-                        (-8..6).for_each(|z| {
+                        let mut underground = true;
+                        for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
                                 if b.is_filled() {
-                                    Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                    if underground {
+                                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                    } else {
+                                        b
+                                    }
                                 } else {
+                                    underground = false;
                                     b.into_vacant()
                                 }
                             })
-                        });
+                        }
                     }
                 });
             },
@@ -771,20 +777,26 @@ impl Site {
             if min_dist.is_some() {
                 let alt = /*avg_hard_alt.map(|(sum, weight)| sum / weight).unwrap_or_else(||*/ canvas.col(wpos2d).map_or(0.0, |col| col.alt)/*)*/ as i32;
                 let mut underground = true;
-                (-6..4).for_each(|z| canvas.map(
-                    Vec3::new(wpos2d.x, wpos2d.y, alt + z),
-                    |b| if b.is_filled() {
-                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
-                    } else {
-                        let sprite = if underground && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
-                            SpriteKind::StreetLamp
+                for z in -6..4 {
+                    canvas.map(
+                        Vec3::new(wpos2d.x, wpos2d.y, alt + z),
+                        |b| if b.is_filled() {
+                            if underground {
+                                Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                            } else {
+                                b
+                            }
                         } else {
-                            SpriteKind::Empty
-                        };
-                        underground = false;
-                        b.with_sprite(sprite)
-                    },
-                ));
+                            let sprite = if underground && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
+                                SpriteKind::StreetLamp
+                            } else {
+                                SpriteKind::Empty
+                            };
+                            underground = false;
+                            b.with_sprite(sprite)
+                        },
+                    );
+                }
             }
 
             let tile = self.wpos_tile(wpos2d);
