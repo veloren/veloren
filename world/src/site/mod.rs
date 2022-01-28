@@ -26,6 +26,19 @@ pub struct Colors {
 pub struct SpawnRules {
     pub trees: bool,
     pub max_warp: f32,
+    pub paths: bool,
+}
+
+impl SpawnRules {
+    #[must_use]
+    pub fn combine(self, other: Self) -> Self {
+        // Should be commutative
+        Self {
+            trees: self.trees && other.trees,
+            max_warp: self.max_warp.min(other.max_warp),
+            paths: self.paths && other.paths,
+        }
+    }
 }
 
 impl Default for SpawnRules {
@@ -33,6 +46,7 @@ impl Default for SpawnRules {
         Self {
             trees: true,
             max_warp: 1.0,
+            paths: true,
         }
     }
 }

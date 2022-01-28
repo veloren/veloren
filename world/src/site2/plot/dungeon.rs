@@ -1423,7 +1423,7 @@ impl SiteStructure for Dungeon {
         }
 
         let biome = land
-            .get_chunk_at(self.origin)
+            .get_chunk_wpos(self.origin)
             .map_or(BiomeKind::Void, |c| c.get_biome());
         let entrances = match biome {
             BiomeKind::Jungle => *JUNGLE,

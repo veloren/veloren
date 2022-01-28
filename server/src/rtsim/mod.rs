@@ -198,7 +198,7 @@ pub fn init(
                     _ => {},
                 },
                 SiteKind::Refactor(site2) => {
-                    for _ in 0..(site.economy.pop as usize).min(site2.plots().len() * 3) {
+                    for _ in 0..site.economy.pop.min(site2.plots().len() as f32 * 1.5) as usize {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2
@@ -217,7 +217,7 @@ pub fn init(
                         });
                     }
 
-                    for _ in 0..site2.plazas().len() * 3 {
+                    for _ in 0..(site2.plazas().len() as f32 * 1.5) as usize {
                         rtsim.entities.insert(Entity {
                             is_loaded: false,
                             pos: site2

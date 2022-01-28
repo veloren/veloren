@@ -90,6 +90,24 @@ impl BlockKind {
     /// fields.
     #[inline]
     pub const fn has_color(&self) -> bool { self.is_filled() }
+
+    /// Determine whether the block is 'terrain-like'. This definition is
+    /// arbitrary, but includes things like rocks, soils, sands, grass, and
+    /// other blocks that might be expected to the landscape. Plant matter and
+    /// snow are *not* included.
+    #[inline]
+    pub const fn is_terrain(&self) -> bool {
+        matches!(
+            self,
+            BlockKind::Rock
+                | BlockKind::WeakRock
+                | BlockKind::GlowingRock
+                | BlockKind::GlowingWeakRock
+                | BlockKind::Grass
+                | BlockKind::Earth
+                | BlockKind::Sand
+        )
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]

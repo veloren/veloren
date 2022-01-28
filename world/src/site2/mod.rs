@@ -60,13 +60,26 @@ impl Site {
     }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
-        let not_near_things = SQUARE_9.iter().all(|&rpos| {
-            self.wpos_tile(wpos + rpos * tile::TILE_SIZE as i32)
-                .is_empty()
-        });
+        let tile_pos = self.wpos_tile_pos(wpos);
+        let max_warp = SQUARE_9
+            .iter()
+            .filter_map(|rpos| {
+                let tile_pos = tile_pos + rpos;
+                if self.tiles.get(tile_pos).is_natural() {
+                    None
+                } else {
+                    let clamped =
+                        wpos.clamped(self.tile_wpos(tile_pos), self.tile_wpos(tile_pos + 1) - 1);
+                    Some(clamped.distance_squared(wpos) as f32)
+                }
+            })
+            .min_by_key(|d2| *d2 as i32)
+            .map(|d2| d2.sqrt() as f32 / TILE_SIZE as f32)
+            .unwrap_or(1.0);
         SpawnRules {
-            trees: not_near_things,
-            max_warp: if not_near_things { 1.0 } else { 0.0 },
+            trees: max_warp == 1.0,
+            max_warp,
+            paths: max_warp > std::f32::EPSILON,
         }
     }
 
@@ -209,7 +222,7 @@ impl Site {
 
     pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Id<Plot> {
         let plaza_radius = rng.gen_range(1..4);
-        let plaza_dist = 10.0 + plaza_radius as f32 * 5.0;
+        let plaza_dist = 6.5 + plaza_radius as f32 * 4.0;
         let pos = attempt(32, || {
             self.plazas
                 .choose(rng)
@@ -288,7 +301,10 @@ impl Site {
         Spiral2d::new()
             .take((SEARCH_RADIUS * 2 + 1).pow(2) as usize)
             .for_each(|tile| {
-                if let Some(kind) = wpos_is_hazard(land, self.tile_wpos(tile)) {
+                if let Some(kind) = Spiral2d::new()
+                    .take(9)
+                    .find_map(|rpos| wpos_is_hazard(land, self.tile_center_wpos(tile) + rpos))
+                {
                     for &rpos in &SQUARE_4 {
                         // `get_mut` doesn't increase generation bounds
                         self.tiles
@@ -369,7 +385,7 @@ impl Site {
             match *build_chance.choose_seeded(rng.gen()) {
                 // House
                 1 => {
-                    let size = (2.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (1.5 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
@@ -696,19 +712,24 @@ impl Site {
 
                     if dist.map_or(false, |d| d <= 1.5) {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
-                        (-8..6).for_each(|z| {
+                        let mut underground = true;
+                        for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
-                                if z >= 0 {
-                                    if b.is_filled() {
-                                        Block::empty()
+                                if b.kind() == BlockKind::Snow {
+                                    underground = false;
+                                    b.into_vacant()
+                                } else if b.is_filled() {
+                                    if b.is_terrain() {
+                                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
                                     } else {
-                                        b.with_sprite(SpriteKind::Empty)
+                                        b
                                     }
                                 } else {
-                                    Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                    underground = false;
+                                    b.into_vacant()
                                 }
                             })
-                        });
+                        }
                     }
                 });
             },
@@ -761,23 +782,32 @@ impl Site {
 
             if min_dist.is_some() {
                 let alt = /*avg_hard_alt.map(|(sum, weight)| sum / weight).unwrap_or_else(||*/ canvas.col(wpos2d).map_or(0.0, |col| col.alt)/*)*/ as i32;
-                (-6..4).for_each(|z| canvas.map(
-                    Vec3::new(wpos2d.x, wpos2d.y, alt + z),
-                    |b| if z > 0 {
-                        let sprite = if z == 1 && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
-                            SpriteKind::StreetLamp
-                        } else {
-                            SpriteKind::Empty
-                        };
-                        if b.is_filled() {
-                            Block::air(sprite)
-                        } else {
-                            b.with_sprite(sprite)
-                        }
-                    } else {
-                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
-                    },
-                ));
+                let mut underground = true;
+                for z in -6..4 {
+                    canvas.map(
+                        Vec3::new(wpos2d.x, wpos2d.y, alt + z),
+                        |b| {
+                            let sprite = if underground && self.tile_wpos(tpos) == wpos2d && (tpos + tpos.yx() / 2) % 2 == Vec2::zero() {
+                                SpriteKind::StreetLamp
+                            } else {
+                                SpriteKind::Empty
+                            };
+                            if b.kind() == BlockKind::Snow {
+                                underground = false;
+                                b.into_vacant().with_sprite(sprite)
+                            } else if b.is_filled() {
+                                if b.is_terrain() {
+                                    Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                } else {
+                                    b
+                                }
+                            } else {
+                                underground = false;
+                                b.into_vacant().with_sprite(sprite)
+                            }
+                        },
+                    );
+                }
             }
 
             let tile = self.wpos_tile(wpos2d);
@@ -916,7 +946,7 @@ pub fn test_site() -> Site { Site::generate_city(&Land::empty(), &mut thread_rng
 
 fn wpos_is_hazard(land: &Land, wpos: Vec2<i32>) -> Option<HazardKind> {
     if land
-        .get_chunk_at(wpos)
+        .get_chunk_wpos(wpos)
         .map_or(true, |c| c.river.near_water())
     {
         Some(HazardKind::Water)

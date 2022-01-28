@@ -52,8 +52,8 @@ impl Structure for Workshop {
 
         painter
             .aabb(Aabb {
-                min: self.bounds.min.with_z(base),
-                max: self.bounds.max.with_z(roof),
+                min: (self.bounds.min + 2).with_z(base),
+                max: (self.bounds.max - 2).with_z(roof),
             })
             .clear();
 
