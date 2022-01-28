@@ -153,6 +153,69 @@ impl<
 }
 
 impl Body {
+    pub fn is_same_species_as(&self, other: &Body) -> bool {
+        match self {
+            Body::Humanoid(b1) => match other {
+                Body::Humanoid(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::QuadrupedSmall(b1) => match other {
+                Body::QuadrupedSmall(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::QuadrupedMedium(b1) => match other {
+                Body::QuadrupedMedium(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::BirdMedium(b1) => match other {
+                Body::BirdMedium(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::BirdLarge(b1) => match other {
+                Body::BirdLarge(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::FishMedium(b1) => match other {
+                Body::FishMedium(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::Dragon(b1) => match other {
+                Body::Dragon(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::FishSmall(b1) => match other {
+                Body::FishSmall(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::BipedLarge(b1) => match other {
+                Body::BipedLarge(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::BipedSmall(b1) => match other {
+                Body::BipedSmall(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::Object(_) => false,
+            Body::Golem(b1) => match other {
+                Body::Golem(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::Theropod(b1) => match other {
+                Body::Theropod(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::QuadrupedLow(b1) => match other {
+                Body::QuadrupedLow(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::Arthropod(b1) => match other {
+                Body::Arthropod(b2) => b1.species == b2.species,
+                _ => false,
+            },
+            Body::Ship(_) => false,
+        }
+    }
+
     pub fn is_humanoid(&self) -> bool { matches!(self, Body::Humanoid(_)) }
 
     pub fn is_campfire(&self) -> bool { matches!(self, Body::Object(object::Body::CampfireLit)) }
