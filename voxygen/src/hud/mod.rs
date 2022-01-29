@@ -4686,18 +4686,17 @@ impl Hud {
                             let last_floater = if info.amount < Health::HEALTH_EPSILON {
                                 floater_list.floaters.iter_mut().rev().find(|f| {
                                     f.info.amount < Health::HEALTH_EPSILON
-                                        && info.crit.map_or(f.info.crit.unwrap_or(false), |_| {
-                                            !f.info.crit.unwrap_or(false)
-                                        })
+                                        && info.crit.unwrap_or(false)
+                                            == f.info.crit.unwrap_or(false)
                                 })
                             } else {
                                 floater_list.floaters.iter_mut().rev().find(|f| {
                                     f.info.amount > Health::HEALTH_EPSILON
-                                        && info.crit.map_or(f.info.crit.unwrap_or(false), |_| {
-                                            !f.info.crit.unwrap_or(false)
-                                        })
+                                        && info.crit.unwrap_or(false)
+                                            == f.info.crit.unwrap_or(false)
                                 })
                             };
+                            dbg!(&last_floater);
 
                             match last_floater {
                                 Some(f)
@@ -4711,6 +4710,7 @@ impl Hud {
                                     f.info.crit = Some(f.info.crit.unwrap_or(false) || info.crit.unwrap_or(false));
                                 },
                                 _ => {
+                                    dbg!(&info.amount);
                                     floater_list.floaters.push(HpFloater {
                                         timer: 0.0,
                                         info: *info,

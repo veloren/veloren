@@ -29,10 +29,10 @@ pub struct HealthChange {
     /// couldn't have been a crit)
     pub crit: Option<bool>,
     pub crit_mult: f32,
-    /// A random instance ID given to every health change
-    /// Note: Two or more changes could have the same instance number, if they
-    /// came from the same attack (for example - the extra damage caused by
-    /// slashing weapons)
+    /// A random ID, used to group up health changes
+    // Note: Two or more changes could have the same instance number, if they
+    // came from the same attack (for example - the extra damage caused by
+    // slashing weapons)
     pub instance: u64,
 }
 

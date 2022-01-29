@@ -82,6 +82,8 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
             ecs.read_storage::<Pos>().get(entity),
             ecs.read_storage::<Uid>().get(entity),
         ) {
+            // If the absolute health change amount was greater than the health epsilon,
+            // push a new Damage outcome
             if changed {
                 outcomes.push(Outcome::Damage {
                     pos: pos.0,
@@ -863,7 +865,6 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                 }
             },
             RadiusEffect::Attack(attack) => {
-                // TODO: Join counter later?
                 let energies = &ecs.read_storage::<comp::Energy>();
                 let combos = &ecs.read_storage::<comp::Combo>();
                 let inventories = &ecs.read_storage::<comp::Inventory>();

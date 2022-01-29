@@ -212,8 +212,6 @@ impl Attack {
         let is_crit = thread_rng().gen::<f32>() < self.crit_chance;
         let mut is_applied = false;
         let mut accumulated_damage = 0.0;
-        // TODO: Issue with shotgun ability
-        // TODO: Add instance number to AttackDamage?
         for damage in self
             .damages
             .iter()
@@ -636,6 +634,7 @@ pub struct AttackDamage {
     damage: Damage,
     target: Option<GroupTarget>,
     effects: Vec<CombatEffect>,
+    /// A random ID, used to group up attacks
     instance: u64,
 }
 
@@ -741,7 +740,6 @@ impl From<AttackerInfo<'_>> for DamageContributor {
 
 #[derive(Copy, Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum DamageSource {
-    // Could be used to separate DOTs?
     Buff(BuffKind),
     Melee,
     Projectile,

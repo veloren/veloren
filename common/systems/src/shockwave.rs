@@ -128,7 +128,6 @@ impl<'a> System<'a> for Sys {
             // Might make this more nuanced if shockwaves are used for non damage effects
             let group = shockwave_owner.and_then(|e| read_data.groups.get(e));
 
-            // TODO: Join counter later?
             // Go through all other effectable entities
             for (target, uid_b, pos_b, health_b, body_b, physics_state_b) in (
                 &read_data.entities,
