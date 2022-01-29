@@ -164,89 +164,91 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             return;
         }
 
-        if ecs.read_storage::<Client>().get(possesse).is_some() {
-            error!("can't possess other players");
+        let mut clients = ecs.write_storage::<Client>();
+        let mut players = ecs.write_storage::<comp::Player>();
+
+        if clients.contains(possesse) || players.contains(possesse) {
+            error!("Can't possess other players!");
             return;
         }
 
-        match (|| -> Option<Result<(), specs::error::Error>> {
-            let mut clients = ecs.write_storage::<Client>();
-            let c = clients.remove(possessor)?;
-            clients.insert(possesse, c).ok()?;
-            let playerlist_messages = if let Some(client) = clients.get(possesse) {
-                client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
-                // If a player is posessing non player, add possesse to playerlist as player and
-                // remove old player
-                if let Some(possessor_player) = ecs.read_storage::<comp::Player>().get(possessor) {
-                    let admins = ecs.read_storage::<comp::Admin>();
-                    let entity_possession_msg = ServerGeneral::PlayerListUpdate(
-                        common_net::msg::server::PlayerListUpdate::Add(
-                            possesse_uid,
-                            common_net::msg::server::PlayerInfo {
-                                player_alias: possessor_player.alias.clone(),
-                                is_online: true,
-                                is_moderator: admins.get(possessor).is_some(),
-                                character: ecs.read_storage::<comp::Stats>().get(possesse).map(
-                                    |s| common_net::msg::CharacterInfo {
-                                        name: s.name.clone(),
-                                    },
-                                ),
-                            },
-                        ),
-                    );
-                    let remove_old_player_msg = ServerGeneral::PlayerListUpdate(
-                        common_net::msg::server::PlayerListUpdate::Remove(possessor_uid),
-                    );
+        // Transfer client component. Note: we require this component for possession.
+        if let Some(client) = clients.remove(possessor) {
+            client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
+            // Note: we check that the `possessor` and `possesse` entities exist above, so
+            // this should never panic.
+            clients
+                .insert(possesse, client)
+                .expect("Checked entity was alive!");
+        } else {
+            error!("Error posessing, no `Client` component on the possessor!");
+            return;
+        };
 
-                    // Send msg to new possesse client now because it is not yet considered a player
-                    // and will be missed by notify_players
-                    client.send_fallible(entity_possession_msg.clone());
-                    client.send_fallible(remove_old_player_msg.clone());
-                    Some((remove_old_player_msg, entity_possession_msg))
-                } else {
-                    None
-                }
-            } else {
-                None
-            };
-            drop(clients);
-            if let Some((remove_player, possess_entity)) = playerlist_messages {
-                server.state().notify_players(possess_entity);
-                server.state().notify_players(remove_player);
+        // Other components to transfer if they exist.
+        // TODO: don't transfer character id, TODO: consider how this could relate to
+        // database duplications, might need to model this like the player
+        // logging out. Note: logging back in is delayed because it would
+        // re-load from the database before old information is saved, if you are
+        // able to reposess the same entity, this should not be an issue,
+        // although the logout save being duplicated with the batch save may need to be
+        // considered, the logout save would be outdated. If you could cause
+        // your old entity to drop items while possessing another entity that
+        // would cause duplication in the database (on the other hand this ability
+        // should be strictly limited to admins, and not intended to be a normal
+        // gameplay ability).
+        fn transfer_component<C: specs::Component>(
+            storage: &mut specs::WriteStorage<'_, C>,
+            possessor: EcsEntity,
+            possesse: EcsEntity,
+        ) {
+            if let Some(c) = storage.remove(possessor) {
+                // Note: we check that the `possessor` and `possesse` entities exist above, so
+                // this should never panic.
+                storage
+                    .insert(possesse, c)
+                    .expect("Checked entity was alive!");
             }
-            //optional entities
-            let mut players = ecs.write_storage::<comp::Player>();
-            let mut presence = ecs.write_storage::<Presence>();
-            let mut subscriptions = ecs.write_storage::<RegionSubscription>();
-            let mut admins = ecs.write_storage::<comp::Admin>();
-            let mut waypoints = ecs.write_storage::<comp::Waypoint>();
-            players
-                .remove(possessor)
-                .map(|p| players.insert(possesse, p).ok()?);
-            presence
-                .remove(possessor)
-                .map(|p| presence.insert(possesse, p).ok()?);
-            subscriptions
-                .remove(possessor)
-                .map(|s| subscriptions.insert(possesse, s).ok()?);
-            admins
-                .remove(possessor)
-                .map(|a| admins.insert(possesse, a).ok()?);
-            waypoints
-                .remove(possessor)
-                .map(|w| waypoints.insert(possesse, w).ok()?);
+        }
 
-            Some(Ok(()))
-        })() {
-            Some(Ok(())) => (),
-            Some(Err(e)) => {
-                error!(?e, ?possesse, "Error inserting component during possession");
-                return;
-            },
-            None => {
-                error!(?possessor, "Error removing component during possession");
-                return;
-            },
+        transfer_component(&mut players, possessor, possesse);
+
+        let mut presence = ecs.write_storage::<Presence>();
+        let mut subscriptions = ecs.write_storage::<RegionSubscription>();
+        let mut admins = ecs.write_storage::<comp::Admin>();
+        let mut waypoints = ecs.write_storage::<comp::Waypoint>();
+
+        transfer_component(&mut presence, possessor, possesse);
+        transfer_component(&mut subscriptions, possessor, possesse);
+        transfer_component(&mut admins, possessor, possesse);
+        transfer_component(&mut waypoints, possessor, possesse);
+
+        // If a player is posessing, add possesse to playerlist as player and remove old
+        // player.
+        // Fetches from possesse entity here since we have transferred over the `Player`
+        // component.
+        if let Some(player) = players.get(possesse) {
+            use common_net::msg;
+
+            let add_player_msg = ServerGeneral::PlayerListUpdate(
+                msg::server::PlayerListUpdate::Add(possesse_uid, msg::server::PlayerInfo {
+                    player_alias: player.alias.clone(),
+                    is_online: true,
+                    is_moderator: admins.contains(possesse),
+                    character: ecs.read_storage::<comp::Stats>().get(possesse).map(|s| {
+                        msg::CharacterInfo {
+                            name: s.name.clone(),
+                        }
+                    }),
+                }),
+            );
+            let remove_player_msg = ServerGeneral::PlayerListUpdate(
+                msg::server::PlayerListUpdate::Remove(possessor_uid),
+            );
+
+            drop((clients, players)); // need to drop so we can use `notify_players` below
+            server.state().notify_players(remove_player_msg);
+            server.state().notify_players(add_player_msg);
         }
 
         // Put possess item into loadout
@@ -258,26 +260,33 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
 
         let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
         if let item::ItemKind::Tool(_) = debug_item.kind() {
-            assert!(
-                inventory
-                    .swap(
-                        Slot::Equip(EquipSlot::ActiveMainhand),
-                        Slot::Equip(EquipSlot::InactiveMainhand),
-                    )
-                    .first()
-                    .is_none(),
-                "Swapping active and inactive mainhands never results in leftover items",
+            let leftover_items = inventory.swap(
+                Slot::Equip(EquipSlot::ActiveMainhand),
+                Slot::Equip(EquipSlot::InactiveMainhand),
             );
-
+            assert!(
+                leftover_items.is_empty(),
+                "Swapping active and inactive mainhands never results in leftover items"
+            );
             inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
         }
 
         // Remove will of the entity
         ecs.write_storage::<comp::Agent>().remove(possesse);
         // Reset controller of former shell
-        ecs.write_storage::<comp::Controller>()
-            .get_mut(possessor)
-            .map(|c| c.reset());
+        // TODO: client needs to do this on their side as well since we don't sync
+        // controllers.
+        if let Some(c) = ecs.write_storage::<comp::Controller>().get_mut(possessor) {
+            c.reset();
+        }
+
+        let clients = ecs.read_storage::<Client>();
+        let client = clients
+            .get(possesse)
+            .expect("We insert this component above and have exclusive access to the world.");
+        // TODO: send client new `SyncFrom::ClientEntity` components
+        // TODO: also make sure the client deletes the ones on the old entity
+        // when `SetPlayerEntity` is recieved.
     }
 }
 
