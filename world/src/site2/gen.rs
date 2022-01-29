@@ -52,13 +52,13 @@ pub enum Primitive {
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
     /// A line segment from start to finish point with a given radius
     Segment {
-        segment: LineSegment3<i32>,
+        segment: LineSegment3<f32>,
         radius: f32,
     },
     /// A prism created by projecting a line segment with a given radius along
     /// the z axis up to a provided height
     SegmentPrism {
-        segment: LineSegment3<i32>,
+        segment: LineSegment3<f32>,
         radius: f32,
         height: f32,
     },
@@ -347,12 +347,12 @@ impl Fill {
                 Fill::RotatedSprite(sprite, ori) => Some(if old_block.is_filled() {
                     Block::air(*sprite)
                         .with_ori(*ori)
-                        .unwrap_or(Block::air(*sprite))
+                        .unwrap_or_else(|| Block::air(*sprite))
                 } else {
                     old_block
                         .with_sprite(*sprite)
                         .with_ori(*ori)
-                        .unwrap_or(old_block.with_sprite(*sprite))
+                        .unwrap_or_else(|| old_block.with_sprite(*sprite))
                 }),
                 Fill::Brick(bk, col, range) => Some(Block::new(
                     *bk,
@@ -424,8 +424,8 @@ impl Fill {
                 }
                 .made_valid();
                 Aabb {
-                    min: aabb.min - radius.floor() as i32,
-                    max: aabb.max + radius.ceil() as i32,
+                    min: (aabb.min - *radius).floor().as_(),
+                    max: (aabb.max + *radius).ceil().as_(),
                 }
             },
             Primitive::SegmentPrism {
@@ -439,12 +439,12 @@ impl Fill {
                 }
                 .made_valid();
                 let min = {
-                    let xy = aabb.min.xy() - radius.floor() as i32;
-                    xy.with_z(aabb.min.z)
+                    let xy = (aabb.min.xy() - *radius).floor();
+                    xy.with_z(aabb.min.z).as_()
                 };
                 let max = {
-                    let xy = aabb.max.xy() + radius.ceil() as i32;
-                    xy.with_z(aabb.max.z + height.ceil() as i32)
+                    let xy = (aabb.max.xy() + *radius).ceil();
+                    xy.with_z((aabb.max.z + *height).ceil()).as_()
                 };
                 Aabb { min, max }
             },
@@ -567,12 +567,15 @@ impl Painter {
 
     pub fn segment_prism(
         &self,
-        a: Vec3<i32>,
-        b: Vec3<i32>,
+        a: Vec3<impl AsPrimitive<f32>>,
+        b: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
         height: f32,
     ) -> PrimitiveRef {
-        let segment = LineSegment3 { start: a, end: b };
+        let segment = LineSegment3 {
+            start: a.as_(),
+            end: b.as_(),
+        };
         self.prim(Primitive::SegmentPrism {
             segment,
             radius,
@@ -582,40 +585,77 @@ impl Painter {
 
     pub fn cubic_bezier(
         &self,
-        start: Vec3<i32>,
-        ctrl0: Vec3<i32>,
-        ctrl1: Vec3<i32>,
-        end: Vec3<i32>,
+        start: Vec3<impl AsPrimitive<f32>>,
+        ctrl0: Vec3<impl AsPrimitive<f32>>,
+        ctrl1: Vec3<impl AsPrimitive<f32>>,
+        end: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
     ) -> PrimitiveRef {
-        let bezier = CubicBezier3 {
-            start: start.as_::<f32>(),
-            ctrl0: ctrl0.as_::<f32>(),
-            ctrl1: ctrl1.as_::<f32>(),
-            end: end.as_::<f32>(),
-        };
-        let p0 = start;
-        let p1 = bezier.evaluate(0.1).map(|e| e.floor() as i32);
-        let p2 = bezier.evaluate(0.2).map(|e| e.floor() as i32);
-        let p3 = bezier.evaluate(0.3).map(|e| e.floor() as i32);
-        let p4 = bezier.evaluate(0.4).map(|e| e.floor() as i32);
-        let p5 = bezier.evaluate(0.5).map(|e| e.floor() as i32);
-        let p6 = bezier.evaluate(0.6).map(|e| e.floor() as i32);
-        let p7 = bezier.evaluate(0.7).map(|e| e.floor() as i32);
-        let p8 = bezier.evaluate(0.8).map(|e| e.floor() as i32);
-        let p9 = bezier.evaluate(0.9).map(|e| e.floor() as i32);
-        let p10 = end;
+        self.cubic_bezier_with_num_segments(start, ctrl0, ctrl1, end, radius, 10)
+    }
 
-        self.line(p0, p1, radius)
-            .union(self.line(p1, p2, radius))
-            .union(self.line(p2, p3, radius))
-            .union(self.line(p3, p4, radius))
-            .union(self.line(p4, p5, radius))
-            .union(self.line(p5, p6, radius))
-            .union(self.line(p6, p7, radius))
-            .union(self.line(p7, p8, radius))
-            .union(self.line(p8, p9, radius))
-            .union(self.line(p9, p10, radius))
+    pub fn cubic_bezier_with_num_segments(
+        &self,
+        start: Vec3<impl AsPrimitive<f32>>,
+        ctrl0: Vec3<impl AsPrimitive<f32>>,
+        ctrl1: Vec3<impl AsPrimitive<f32>>,
+        end: Vec3<impl AsPrimitive<f32>>,
+        radius: f32,
+        num_segments: usize,
+    ) -> PrimitiveRef {
+        let bezier = CubicBezier3 {
+            start: start.as_(),
+            ctrl0: ctrl0.as_(),
+            ctrl1: ctrl1.as_(),
+            end: end.as_(),
+        };
+        let mut bezier_prim = self.empty();
+        let range: Vec<_> = (0..=num_segments).collect();
+        range.windows(2).for_each(|w| {
+            let segment_start = bezier.evaluate(w[0] as f32 / num_segments as f32);
+            let segment_end = bezier.evaluate(w[1] as f32 / num_segments as f32);
+            bezier_prim = bezier_prim.union(self.line(segment_start, segment_end, radius));
+        });
+        bezier_prim
+    }
+
+    pub fn cubic_bezier_prism(
+        &self,
+        start: Vec3<impl AsPrimitive<f32>>,
+        ctrl0: Vec3<impl AsPrimitive<f32>>,
+        ctrl1: Vec3<impl AsPrimitive<f32>>,
+        end: Vec3<impl AsPrimitive<f32>>,
+        radius: f32,
+        height: f32,
+    ) -> PrimitiveRef {
+        self.cubic_bezier_prism_with_num_segments(start, ctrl0, ctrl1, end, radius, height, 10)
+    }
+
+    pub fn cubic_bezier_prism_with_num_segments(
+        &self,
+        start: Vec3<impl AsPrimitive<f32>>,
+        ctrl0: Vec3<impl AsPrimitive<f32>>,
+        ctrl1: Vec3<impl AsPrimitive<f32>>,
+        end: Vec3<impl AsPrimitive<f32>>,
+        radius: f32,
+        height: f32,
+        num_segments: usize,
+    ) -> PrimitiveRef {
+        let bezier = CubicBezier3 {
+            start: start.as_(),
+            ctrl0: ctrl0.as_(),
+            ctrl1: ctrl1.as_(),
+            end: end.as_(),
+        };
+        let mut bezier_prim = self.empty();
+        let range: Vec<_> = (0..=num_segments).collect();
+        range.windows(2).for_each(|w| {
+            let segment_start = bezier.evaluate(w[0] as f32 / num_segments as f32);
+            let segment_end = bezier.evaluate(w[1] as f32 / num_segments as f32);
+            bezier_prim =
+                bezier_prim.union(self.segment_prism(segment_start, segment_end, radius, height));
+        });
+        bezier_prim
     }
 
     pub fn plane(&self, aabr: Aabr<i32>, origin: Vec3<i32>, gradient: Vec2<f32>) -> PrimitiveRef {
