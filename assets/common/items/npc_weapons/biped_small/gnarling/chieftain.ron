@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Gnarling Blowgun",
-    description: "testing123",
+    name: "Chieftain Staff",
+    description: "",
     kind: Tool((
-        kind: Blowgun,
+        kind: Staff,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.0,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: None,
+    ability_spec: Some(Custom("Staff Simple")),
 )

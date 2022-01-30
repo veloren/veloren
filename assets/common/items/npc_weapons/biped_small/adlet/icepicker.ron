@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Gnoll Staff",
-    description: "eekum bokum",
+    name: "Icepicker Axe",
+    description: "",
     kind: Tool((
-        kind: Staff,
+        kind: Axe,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.0,

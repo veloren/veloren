@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Adlet Bow",
-    description: "Strips of leather are wrapped around the handle.",
+    name: "Sniper Bow",
+    description: "",
     kind: Tool((
         kind: Bow,
         hands: Two,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Moderate,
     tags: [],
-    ability_spec: None,
+    ability_spec: Some(Custom("Bow Simple")),
 )

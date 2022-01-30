@@ -1,8 +1,8 @@
 ItemDef(
-    name: "Gnarling Mugger Dagger",
-    description: "Testing",
+    name: "Logger Axe",
+    description: "",
     kind: Tool((
-        kind: Dagger,
+        kind: Axe,
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.0,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: Some(Custom("Dagger Simple")),
+    ability_spec: Some(Custom("Axe Simple")),
 )

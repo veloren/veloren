@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Wooden Spear",
-    description: "Testing",
+    name: "Hoplite Spear",
+    description: "",
     kind: Tool((
         kind: Spear,
         hands: Two,

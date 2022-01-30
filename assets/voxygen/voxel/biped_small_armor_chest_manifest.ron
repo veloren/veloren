@@ -61,7 +61,7 @@
             vox_spec: ("npc.haniwa.archer.chest", (-6.5, -4.0, -3.0)),
         ),
         "HaniwaSoldier": (
-            vox_spec: ("npc.haniwa.solier.chest", (-6.5, -4.0, -3.0)),
+            vox_spec: ("npc.haniwa.soldier.chest", (-6.5, -4.0, -3.0)),
         ),
         "MyrmidonHoplite": (
             vox_spec: ("npc.myrmidon.hoplite.chest", (-5.5, -4.0, -3.0)),

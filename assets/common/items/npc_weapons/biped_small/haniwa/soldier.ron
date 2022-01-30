@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Gnoll Staff",
-    description: "eekum bokum",
+    name: "Soldier Sword",
+    description: "",
     kind: Tool((
         kind: Dagger,
         hands: Two,
