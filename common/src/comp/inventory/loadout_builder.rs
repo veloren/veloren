@@ -241,7 +241,7 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.quadlowbreathe",
             )),
             quadruped_low::Species::Deadwood => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadlowbeam",
+                "common.items.npc_weapons.unique.deadwood",
             )),
             quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.basilisk",

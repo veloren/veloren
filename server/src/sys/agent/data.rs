@@ -114,6 +114,7 @@ pub enum Tactic {
     Yeti,
     Harvester,
     StoneGolem,
+    Deadwood,
 }
 
 #[derive(SystemData)]

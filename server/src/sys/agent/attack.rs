@@ -2103,4 +2103,45 @@ impl<'a> AgentData<'a> {
         // Always attempt to path towards target
         self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
     }
+
+    pub fn handle_deadwood(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const BEAM_RANGE: f32 = 20.0;
+        const BEAM_TIME: Duration = Duration::from_secs(3);
+        // action_state.condition controls whether or not deadwood should beam or dash
+        if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
+        {
+            // If already dashing, keep dashing and have move_dir set to forward
+            controller.push_basic_input(InputKind::Secondary);
+            controller.inputs.move_dir = self.ori.look_vec().xy();
+        } else if attack_data.in_min_range() && attack_data.angle < 10.0 {
+            // If near target, dash at them and through them to get away
+            controller.push_basic_input(InputKind::Secondary);
+        } else if matches!(self.char_state, CharacterState::BasicBeam(s) if s.stage_section != StageSection::Recover && s.timer < BEAM_TIME)
+        {
+            // If already beaming, keep beaming if not beaming for over 5 seconds
+            controller.push_basic_input(InputKind::Primary);
+        } else if attack_data.dist_sqrd < BEAM_RANGE.powi(2) {
+            // Else if in beam range, beam them
+            if attack_data.angle < 5.0 {
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                // If not in angle, apply slight movement so deadwood orients itself correctly
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::zero)
+                    * 0.01;
+            }
+        } else {
+            // Otherwise too far, move towards target
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
 }

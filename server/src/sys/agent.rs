@@ -1747,6 +1747,7 @@ impl<'a> AgentData<'a> {
                             "Harvester" => Tactic::Harvester,
                             "Gnarling Dagger" => Tactic::SimpleBackstab,
                             "Gnarling Blowgun" => Tactic::ElevatedRanged,
+                            "Deadwood" => Tactic::Deadwood,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -2123,6 +2124,9 @@ impl<'a> AgentData<'a> {
             },
             Tactic::ElevatedRanged => {
                 self.handle_elevated_ranged(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Deadwood => {
+                self.handle_deadwood(agent, controller, &attack_data, tgt_data, read_data)
             },
         }
     }

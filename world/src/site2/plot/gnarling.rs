@@ -2177,7 +2177,7 @@ fn gnarling_chieftain<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 
 fn deadwood<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     EntityInfo::at(pos.map(|x| x as f32))
-        .with_asset_expect("common.entity.dungeon.gnarling.deadwood", rng)
+        .with_asset_expect("common.entity.wild.aggressive.deadwood", rng)
 }
 
 fn mandragora<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
@@ -2303,4 +2303,23 @@ where
         .collect::<Vec<(Vec3<i32>, Vec3<i32>)>>();
 
     Some((branches, terminals))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_creating_entities() {
+        let pos = Vec3::zero();
+
+        gnarling_mugger(pos);
+        gnarling_stalker(pos);
+        gnarling_logger(pos);
+        gnarling_chieftain(pos);
+        deadwood(pos);
+        mandragora(pos);
+        wood_golem(pos);
+        harvester_boss(pos);
+    }
 }

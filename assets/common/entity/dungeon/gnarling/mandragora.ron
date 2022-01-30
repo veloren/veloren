@@ -2,12 +2,7 @@ EntityConfig (
     name: Name("Mandragora"),
     body: RandomWith("mandragora"),
     alignment: Alignment(Enemy),
-
+    loadout: Asset(Loadout("common.loadout.dungeon.gnarling.mandragora")),
     loot: LootTable("common.loot_tables.dungeon.tier-0.miniboss"),
-
-    hands: Uninit,
-
-    meta: [
-        LoadoutAsset("common.loadout.dungeon.gnarling.mandragora"),
-    ],
+    meta: [],
 )

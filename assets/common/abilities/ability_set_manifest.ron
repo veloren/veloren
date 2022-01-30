@@ -79,6 +79,11 @@
         secondary: "common.abilities.gnarling.blowgun.dart",
         abilities: [],
     ),
+    Custom("Deadwood"): (
+        primary: "common.abilities.custom.deadwood.lifestealbeam",
+        secondary: "common.abilities.custom.deadwood.dash",
+        abilities: [],
+    ),
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",
