@@ -2,32 +2,32 @@
 loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
     // Weapons
-    (32.0, true, "common.loot_tables.weapons.starter"),
-    (0.025, false, "common.loot_tables.weapons.cultist"),
-    (0.025, false, "common.loot_tables.weapons.cave"),
-    (0.02, false, "common.loot_tables.weapons.legendary"),
+    (192.0, true, "common.loot_tables.weapons.starter"),
+    (0.075, false, "common.loot_tables.weapons.cultist"),
+    (0.075, false, "common.loot_tables.weapons.cave"),
+    (0.04, false, "common.loot_tables.weapons.legendary"),
 
     // Weapons sets
-    (16.0, true, "common.loot_tables.weapons.tier-0"),
-    (8.0, true, "common.loot_tables.weapons.tier-1"),
-    (1.0, true, "common.loot_tables.weapons.tier-2"),
-    (0.125, true, "common.loot_tables.weapons.tier-3"),
-    (0.0625, false, "common.loot_tables.weapons.tier-4"),
-    (0.03, false, "common.loot_tables.weapons.tier-5"),
+    (80.0, true, "common.loot_tables.weapons.tier-0"),
+    (48.0, true, "common.loot_tables.weapons.tier-1"),
+    (6.0, true, "common.loot_tables.weapons.tier-2"),
+    (0.75, true, "common.loot_tables.weapons.tier-3"),
+    (0.375, false, "common.loot_tables.weapons.tier-4"),
+    (0.18, false, "common.loot_tables.weapons.tier-5"),
 
     // Non-craftable Armor
-    (20.0, true, "common.loot_tables.armor.cloth"),
-    (1.0, true, "common.loot_tables.armor.twigs"),
-    (1.0, true, "common.loot_tables.armor.twigsflowers"),
-    (1.0, true, "common.loot_tables.armor.twigsleaves"),
-    (0.01, false, "common.trading.jewellery"),
+    (640, true, "common.loot_tables.armor.cloth"),
+    (6.0, true, "common.loot_tables.armor.twigs"),
+    (6.0, true, "common.loot_tables.armor.twigsflowers"),
+    (6.0, true, "common.loot_tables.armor.twigsleaves"),
+    (0.02, false, "common.trading.jewellery"),
 
     // Ingredients
-    (1.0, true, "common.trading.sellable_materials"),
-    (1.0, false, "common.trading.unsellable_materials"),
+    (72.5, true, "common.trading.sellable_materials"),
+    (1.7205, false, "common.trading.unsellable_materials"),
 
     // Food Ingredients
-    (1.0, true, "common.trading.food"),
+    (20.375, true, "common.trading.food"),
 
     // Potions
     //
@@ -39,9 +39,9 @@ loot_tables: [
     // and economy.
     //
     // Collections
-    (0.00001, false, "common.trading.collection"),
+    (0.00026, false, "common.trading.collection"),
     // Manual balance
-    (1.0, false, "common.trading.balance"),
+    (81.0, false, "common.trading.balance"),
 ],
 
 // this is the amount of that good the most common item represents

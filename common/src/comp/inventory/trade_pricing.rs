@@ -13,7 +13,7 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use tracing::{info, warn};
 
-const PRICING_DEBUG: bool = true;
+const PRICING_DEBUG: bool = false;
 
 #[derive(Default, Debug)]
 pub struct TradePricing {
@@ -358,11 +358,12 @@ impl TradePricing {
             }
             let (frequency, can_sell, asset_path) = table;
             let loot = ProbabilityFile::load_expect(asset_path);
+            let new_scale = frequency / loot.read().content.iter().fold(0.0, |s, i| s+i.0);
             for (p, item_asset) in &loot.read().content {
                 result.get_list_by_path_mut(item_asset).add(
                     &eqset,
                     item_asset,
-                    frequency * p,
+                    new_scale * p,
                     *can_sell,
                 );
             }
