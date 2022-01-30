@@ -266,7 +266,15 @@ fn multiple_try_recv() {
 /// If we listen on a IPv6 UNSPECIFIED address, on linux it will automatically
 /// listen on the respective IPv4 address. This must not be as we should behave
 /// similar under windows and linux.
+///
+/// As most CI servers don't have IPv6 configured, this would return
+/// ConnectFailed(Io(Os { code: 99, kind: AddrNotAvailable, message: "Cannot
+/// assign requested address" })) we have to disable this test in CI, but it was
+/// manually tested on linux and windows
+///
+/// On Windows this test must be executed as root to listen on IPv6::UNSPECIFIED
 #[test]
+#[ignore]
 fn listen_on_ipv6_doesnt_block_ipv4() {
     let (_, _) = helper::setup(false, 0);
     let tcpv4 = tcp();
