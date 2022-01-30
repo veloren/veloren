@@ -601,6 +601,7 @@ impl TradePricing {
 }
 
 /// hierarchically combine and scale this loot table
+#[must_use]
 pub fn lootspec_to_vec_item(probability_sum: f32, loot: &LootSpec<String>) -> Vec<(f32, String)> {
     ProbabilityFile::from(vec![(probability_sum, loot.clone())]).content
 }
