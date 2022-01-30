@@ -3,7 +3,7 @@
 
 use crate::{
     assets::{self, AssetExt},
-    lottery::{LootSpec, Lottery},
+    lottery::{LootSpec},
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
 };
@@ -13,7 +13,7 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 use tracing::{info, warn};
 
-const PRICING_DEBUG: bool = false;
+const PRICING_DEBUG: bool = true;
 
 #[derive(Default, Debug)]
 pub struct TradePricing {
@@ -81,7 +81,7 @@ lazy_static! {
 }
 
 #[derive(Clone)]
-struct ProbabilityFile {
+pub struct ProbabilityFile {
     pub content: Vec<(f32, String)>,
 }
 
@@ -103,13 +103,12 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         vec![(p0 * (a + b) as f32 / 2.0, asset)].into_iter()
                     },
                     LootSpec::LootTable(table_asset) => {
-                        let total = Lottery::<LootSpec<String>>::load_expect(&table_asset)
-                            .read()
-                            .total();
-                        Self::load_expect_cloned(&table_asset)
-                            .content
-                            .into_iter()
-                            .map(|(p1, asset)| (p0 * p1 / total, asset))
+                        let unscaled = &Self::load_expect(&table_asset).read().content;
+                        let total = unscaled.iter().fold(0.0, |s, i| s + i.0);
+                        let scale = if total == 0.0 { 1.0 } else { p0 / total };
+                        unscaled
+                            .iter()
+                            .map(|(p1, asset)| (*p1 * scale, asset.clone()))
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
@@ -600,11 +599,23 @@ impl TradePricing {
     }
 }
 
+/// hierarchically combine and scale this loot table
+pub fn lootspec_to_vec_item(
+    probability_sum: f32,
+    loot: &LootSpec<String>,
+) -> Vec<(f32, String)> {
+    ProbabilityFile::from(vec![(probability_sum, loot.clone())]).content
+}
+
 // if you want to take a look at the calculated values run:
 // cd common && cargo test trade_pricing -- --nocapture
 #[cfg(test)]
 mod tests {
-    use crate::{comp::inventory::trade_pricing::TradePricing, trade::Good};
+    use crate::{
+        comp::inventory::trade_pricing::{TradePricing, lootspec_to_vec_item},
+        lottery::LootSpec,
+        trade::Good,
+    };
     use tracing::{info, Level};
     use tracing_subscriber::{
         filter::{EnvFilter, LevelFilter},
@@ -616,6 +627,34 @@ mod tests {
             .with_max_level(Level::ERROR)
             .with_env_filter(EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into()))
             .init();
+    }
+
+    #[test]
+    fn test_loot_table() {
+        init();
+        info!("init");
+
+        let loot = lootspec_to_vec_item(
+            100.0,
+            &LootSpec::LootTable("common.loot_tables.creature.quad_medium.gentle".into()),
+        );
+        let lootsum = loot.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum - 100.0).abs() < 1e-3);
+        // hierarchical
+        let loot2 = lootspec_to_vec_item(
+            100.0,
+            &LootSpec::LootTable("common.loot_tables.creature.quad_medium.catoblepas".into()),
+        );
+        let lootsum2 = loot2.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum2 - 100.0).abs() < 1e-3);
+
+        // highly nested
+        let loot3 = lootspec_to_vec_item(
+            100.0,
+            &LootSpec::LootTable("common.loot_tables.creature.biped_large.wendigo".into()),
+        );
+        let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum3 - 100.0).abs() < 1e-3);
     }
 
     #[test]
