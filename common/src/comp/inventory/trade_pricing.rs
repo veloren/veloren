@@ -3,7 +3,7 @@
 
 use crate::{
     assets::{self, AssetExt},
-    lottery::{LootSpec},
+    lottery::LootSpec,
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
 };
@@ -358,7 +358,7 @@ impl TradePricing {
             }
             let (frequency, can_sell, asset_path) = table;
             let loot = ProbabilityFile::load_expect(asset_path);
-            let new_scale = frequency / loot.read().content.iter().fold(0.0, |s, i| s+i.0);
+            let new_scale = frequency / loot.read().content.iter().fold(0.0, |s, i| s + i.0);
             for (p, item_asset) in &loot.read().content {
                 result.get_list_by_path_mut(item_asset).add(
                     &eqset,
@@ -601,10 +601,7 @@ impl TradePricing {
 }
 
 /// hierarchically combine and scale this loot table
-pub fn lootspec_to_vec_item(
-    probability_sum: f32,
-    loot: &LootSpec<String>,
-) -> Vec<(f32, String)> {
+pub fn lootspec_to_vec_item(probability_sum: f32, loot: &LootSpec<String>) -> Vec<(f32, String)> {
     ProbabilityFile::from(vec![(probability_sum, loot.clone())]).content
 }
 
@@ -613,7 +610,7 @@ pub fn lootspec_to_vec_item(
 #[cfg(test)]
 mod tests {
     use crate::{
-        comp::inventory::trade_pricing::{TradePricing, lootspec_to_vec_item},
+        comp::inventory::trade_pricing::{lootspec_to_vec_item, TradePricing},
         lottery::LootSpec,
         trade::Good,
     };
