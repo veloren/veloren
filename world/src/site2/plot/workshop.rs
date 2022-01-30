@@ -38,12 +38,12 @@ impl Structure for Workshop {
         let brick = Fill::Brick(BlockKind::Rock, Rgb::new(80, 75, 85), 24);
 
         let base = self.alt + 1;
-        let center = (self.bounds.min + self.bounds.max) / 2;
+        let center = self.bounds.center();
 
         // Base
         painter
             .aabb(Aabb {
-                min: self.bounds.min.with_z(base - 16),
+                min: (self.bounds.min + 1).with_z(base - 16),
                 max: self.bounds.max.with_z(base),
             })
             .fill(brick.clone());
@@ -53,15 +53,15 @@ impl Structure for Workshop {
         painter
             .aabb(Aabb {
                 min: (self.bounds.min + 2).with_z(base),
-                max: (self.bounds.max - 2).with_z(roof),
+                max: (self.bounds.max - 1).with_z(roof),
             })
             .clear();
 
         // Supports
         for pos in [
-            Vec2::new(self.bounds.min.x + 2, self.bounds.min.y + 2),
-            Vec2::new(self.bounds.max.x - 3, self.bounds.min.y + 2),
-            Vec2::new(self.bounds.min.x + 2, self.bounds.max.y - 3),
+            Vec2::new(self.bounds.min.x + 3, self.bounds.min.y + 3),
+            Vec2::new(self.bounds.max.x - 3, self.bounds.min.y + 3),
+            Vec2::new(self.bounds.min.x + 3, self.bounds.max.y - 3),
             Vec2::new(self.bounds.max.x - 3, self.bounds.max.y - 3),
         ] {
             painter
@@ -77,7 +77,7 @@ impl Structure for Workshop {
         // Roof
         painter
             .pyramid(Aabb {
-                min: (self.bounds.min + 1).with_z(roof),
+                min: (self.bounds.min + 2).with_z(roof),
                 max: (self.bounds.max - 1).with_z(roof_top),
             })
             .fill(Fill::Brick(BlockKind::Rock, Rgb::new(45, 28, 21), 24));
