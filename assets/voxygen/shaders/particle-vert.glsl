@@ -392,12 +392,13 @@ void main() {
             break;
         case LIFESTEAL_BEAM:
             f_reflect = 0.0;
-            float green_col = 0.2 + 1.4 * sin(tick.x * 5 + lifetime * 5);
-            float purple_col = 1.2 + 0.1 * sin(tick.x * 3 - lifetime * 3) - max(green_col, 1) + 1;
+            float green_col = 1.6 * sin(tick.x * 5 + lifetime * 5);
+            float purple_col = 0.6 + 0.5 * sin(tick.x * 4 - lifetime * 4) - min(max(green_col - 1, 0), 0.3);
+            float red_col = 1.15 + 0.1 * sin(tick.x * 3 - lifetime * 3) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
             attr = Attr(
                 spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
                 vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-                vec4(vec3(purple_col, green_col, 0.75 * purple_col), 1),
+                vec4(vec3(red_col + purple_col * 0.6, green_col + purple_col * 0.35, purple_col), 1),
                 spin_in_axis(inst_dir, tick.z)
             );
             break;
