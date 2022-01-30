@@ -151,7 +151,6 @@ pub struct DebugShapeId(pub u64);
 pub struct Debug {
     next_shape_id: DebugShapeId,
     pending_shapes: HashMap<DebugShapeId, DebugShape>,
-    #[allow(clippy::type_complexity)]
     pending_locals: HashMap<DebugShapeId, ([f32; 4], [f32; 4], [f32; 4])>,
     pending_deletes: HashSet<DebugShapeId>,
     models: HashMap<DebugShapeId, (Model<DebugVertex>, Bound<Consts<DebugLocals>>)>,

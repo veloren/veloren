@@ -1,0 +1,22 @@
+# TODO: do we want to use `#[deny(clippy::disallowed_method)]` to disallow all unwraps (possibly only in non-test code)?
+#disallowed-methods = [
+#    "std::option::Option::unwrap",
+#    "std::result::Result::unwrap",
+#]
+
+# The `too_many_arguments`, `many_single_char_names`, and `type_complexity` 
+# lints give sufficiently many false positives that they're worth disabling 
+# globally via raising their thresholds.
+
+# `too_many_arguments` often flags `new` methods on structs that legitimately 
+# ought to have many parameters
+too-many-arguments-threshold = 15
+
+# `many_single_char_names` often triggers for geometry or physics code with an
+# associated diagram, where the short names are points in the diagram.
+single-char-binding-names-threshold = 8
+
+# `type_complexity` often triggers for the RHS of an associated type: it's 
+# telling you that a type is complicated enough to need a name, at the point 
+# where you're giving it a name.
+type-complexity-threshold = 750

@@ -11,7 +11,6 @@ use core::f32::consts::PI;
 pub struct DashAnimation;
 
 impl Animation for DashAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         (Option<ToolKind>, Option<&'a AbilitySpec>),

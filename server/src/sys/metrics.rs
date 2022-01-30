@@ -11,7 +11,6 @@ use std::time::Instant;
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Option<Entities<'a>>,
         ReadExpect<'a, HwStats>,

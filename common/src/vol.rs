@@ -98,7 +98,6 @@ pub trait ReadVol: BaseVol {
     /// Get a reference to the voxel at the provided position in the volume.
     fn get(&self, pos: Vec3<i32>) -> Result<&Self::Vox, Self::Error>;
 
-    #[allow(clippy::type_complexity)] // TODO: Pending review in #587
     /// NOTE: By default, this ray will simply run from `from` to `to` without
     /// stopping.  To make something interesting happen, call `until` or
     /// `for_each`.

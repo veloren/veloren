@@ -8,7 +8,6 @@ use core::{f32::consts::PI, ops::Mul};
 pub struct WieldAnimation;
 
 impl Animation for WieldAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         (Option<ToolKind>, Option<&'a AbilitySpec>),
         (Option<ToolKind>, Option<&'a AbilitySpec>),

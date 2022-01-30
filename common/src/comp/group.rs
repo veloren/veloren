@@ -155,7 +155,6 @@ impl GroupManager {
 
     // Add someone to a group
     // Also used to create new groups
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn add_group_member(
         &mut self,
         leader: specs::Entity,
@@ -257,7 +256,6 @@ impl GroupManager {
         });
     }
 
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new_pet(
         &mut self,
         pet: specs::Entity,
@@ -336,7 +334,6 @@ impl GroupManager {
     // Remove someone from a group if they are in one
     // Don't need to check if they are in a group before calling this
     // Also removes pets (ie call this if the pet no longer exists)
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn remove_from_group(
         &mut self,
         member: specs::Entity,

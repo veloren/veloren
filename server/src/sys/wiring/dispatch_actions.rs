@@ -68,7 +68,6 @@ pub fn dispatch_actions(system_data: &mut WiringData) {
         )
 }
 
-#[allow(clippy::too_many_arguments)]
 fn dispatch_action(
     entity: Entity,
     inputs: &HashMap<String, f32>,
@@ -123,7 +122,6 @@ fn dispatch_action_spawn_projectile(
     });
 }
 
-#[allow(clippy::too_many_arguments)]
 fn dispatch_action_set_light(
     inputs: &HashMap<String, f32>,
     r: &OutputFormula,

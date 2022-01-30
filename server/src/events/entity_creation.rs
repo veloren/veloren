@@ -30,7 +30,6 @@ pub fn handle_initialize_character(
     server.state.initialize_character_data(entity, character_id);
 }
 
-#[allow(clippy::type_complexity)]
 pub fn handle_loaded_character_data(
     server: &mut Server,
     entity: EcsEntity,
@@ -42,7 +41,6 @@ pub fn handle_loaded_character_data(
     sys::subscription::initialize_region_subscription(server.state.ecs(), entity);
 }
 
-#[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
 pub fn handle_create_npc(
     server: &mut Server,
     pos: Pos,
@@ -161,7 +159,6 @@ pub fn handle_create_ship(
     entity.build();
 }
 
-#[allow(clippy::too_many_arguments)]
 pub fn handle_shoot(
     server: &mut Server,
     entity: EcsEntity,

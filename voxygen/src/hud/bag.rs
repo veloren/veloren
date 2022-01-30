@@ -583,7 +583,7 @@ pub struct Bag<'a> {
 }
 
 impl<'a> Bag<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         client: &'a Client,
         global_state: &'a GlobalState,

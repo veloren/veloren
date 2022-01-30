@@ -39,7 +39,6 @@ pub struct CaveInfo {
     pub name: String,
 }
 
-#[allow(clippy::type_complexity)] // TODO: Pending review in #587
 #[derive(Default)]
 pub struct Civs {
     pub civs: Store<Civ>,

@@ -98,7 +98,6 @@ struct Shadow {
 /// 1. Only interface pipelines created
 /// 2. All of the pipelines have been created
 #[allow(clippy::large_enum_variant)] // They are both pretty large
-#[allow(clippy::type_complexity)]
 enum State {
     // NOTE: this is used as a transient placeholder for moving things out of State temporarily
     Nothing,

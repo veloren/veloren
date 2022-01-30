@@ -15,8 +15,8 @@ impl<V: Vertex> Clone for Mesh<V> {
 }
 
 impl<V: Vertex> Mesh<V> {
+    #[allow(clippy::new_without_default)]
     /// Create a new `Mesh`.
-    #[allow(clippy::new_without_default)] // TODO: Pending review in #587
     pub fn new() -> Self { Self { verts: Vec::new() } }
 
     /// Clear vertices, allows reusing allocated memory of the underlying Vec.

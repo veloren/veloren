@@ -11,7 +11,6 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    #[allow(clippy::identity_op)] // TODO: Pending review in #587
     /// NOTE: meta is true when the terrain vertex is touching water.
     pub fn new(atlas_pos: Vec2<u16>, pos: Vec3<f32>, norm: Vec3<f32>, meta: bool) -> Self {
         const EXTRA_NEG_Z: f32 = 32768.0;
@@ -97,7 +96,6 @@ impl Vertex {
         ]
     }
 
-    #[allow(clippy::identity_op)]
     pub fn make_col_light_figure(
         // 0 to 31
         light: u8,

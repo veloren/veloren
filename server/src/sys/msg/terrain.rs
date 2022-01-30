@@ -15,7 +15,6 @@ use tracing::{debug, trace};
 #[derive(Default)]
 pub struct Sys;
 impl<'a> System<'a> for Sys {
-    #[allow(clippy::type_complexity)]
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, TerrainGrid>,

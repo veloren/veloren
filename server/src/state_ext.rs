@@ -42,7 +42,6 @@ pub trait StateExt {
     /// Updates a component associated with the entity based on the `Effect`
     fn apply_effect(&self, entity: EcsEntity, effect: Effect, source: Option<Uid>);
     /// Build a non-player character
-    #[allow(clippy::too_many_arguments)]
     fn create_npc(
         &mut self,
         pos: comp::Pos,

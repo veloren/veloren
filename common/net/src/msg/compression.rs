@@ -190,7 +190,6 @@ pub struct QuadPngEncoding<const RESOLUTION_DIVIDER: u32>();
 
 impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
     type Output = CompressedData<(Vec<u8>, [usize; 3])>;
-    #[allow(clippy::type_complexity)]
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
@@ -464,9 +463,7 @@ impl<const N: u32> VoxelImageDecoding for QuadPngEncoding<N> {
 pub struct TriPngEncoding<const AVERAGE_PALETTE: bool>();
 
 impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_PALETTE> {
-    #[allow(clippy::type_complexity)]
     type Output = CompressedData<(Vec<u8>, Vec<Rgb<u8>>, [usize; 3])>;
-    #[allow(clippy::type_complexity)]
     type Workspace = (
         ImageBuffer<image::Luma<u8>, Vec<u8>>,
         ImageBuffer<image::Luma<u8>, Vec<u8>>,

@@ -14,7 +14,6 @@ pub(crate) struct LocalizationStats {
     pub(crate) errors: usize,
 }
 
-#[allow(clippy::type_complexity)]
 pub(crate) struct LocalizationAnalysis {
     language_identifier: String,
     pub(crate) data: HashMap<Option<LocalizationState>, Vec<(PathBuf, String, Option<git2::Oid>)>>,

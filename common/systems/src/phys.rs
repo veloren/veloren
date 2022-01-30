@@ -41,7 +41,6 @@ fn fluid_density(height: f32, fluid: &Fluid) -> Density {
     Density(fluid.density().0 * immersion + AIR_DENSITY * (1.0 - immersion))
 }
 
-#[allow(clippy::too_many_arguments)]
 fn integrate_forces(
     dt: &DeltaTime,
     mut vel: Vel,
@@ -1319,7 +1318,7 @@ impl<'a> System<'a> for Sys {
     }
 }
 
-#[allow(clippy::too_many_arguments, clippy::too_many_lines)]
+#[allow(clippy::too_many_lines)]
 fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     cylinder: (f32, f32, f32), // effective collision cylinder
     terrain: &'a T,
@@ -1944,8 +1943,6 @@ fn projection_between(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f
 /// unspecified pair of points that sit on the line segments will be chosen.
 fn closest_points(n: LineSegment2<f32>, m: LineSegment2<f32>) -> (Vec2<f32>, Vec2<f32>) {
     // TODO: Rewrite this to something reasonable, if you have faith
-    #![allow(clippy::many_single_char_names)]
-
     let a = n.start;
     let b = n.end - n.start;
     let c = m.start;

@@ -107,7 +107,6 @@ pub enum ServerEvent {
     },
     UpdateCharacterData {
         entity: EcsEntity,
-        #[allow(clippy::type_complexity)]
         components: (
             comp::Body,
             comp::Stats,

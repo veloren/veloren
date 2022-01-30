@@ -9,7 +9,6 @@ use std::ops::Mul;
 pub struct StandAnimation;
 
 impl Animation for StandAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,

@@ -9,7 +9,6 @@ use std::ops::Mul;
 pub struct IdleAnimation;
 
 impl Animation for IdleAnimation {
-    #[allow(clippy::type_complexity)]
     type Dependency<'a> = (
         Option<ToolKind>,
         Option<ToolKind>,

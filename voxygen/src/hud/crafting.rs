@@ -105,7 +105,7 @@ pub struct Crafting<'a> {
     tooltip_manager: &'a mut TooltipManager,
     show: &'a mut Show,
 }
-#[allow(clippy::too_many_arguments)]
+
 impl<'a> Crafting<'a> {
     pub fn new(
         client: &'a Client,

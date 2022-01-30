@@ -65,7 +65,6 @@ pub struct LootScroller<'a> {
     common: widget::CommonBuilder,
 }
 impl<'a> LootScroller<'a> {
-    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     pub fn new(
         new_messages: &'a mut VecDeque<LootMessage>,
         client: &'a Client,

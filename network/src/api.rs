@@ -760,7 +760,6 @@ impl Participant {
 }
 
 impl Stream {
-    #[allow(clippy::too_many_arguments)]
     pub(crate) fn new(
         local_pid: Pid,
         remote_pid: Pid,

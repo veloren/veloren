@@ -85,7 +85,6 @@ impl BParticipant {
     const TICK_TIME: Duration = Duration::from_millis(Self::TICK_TIME_MS);
     const TICK_TIME_MS: u64 = 5;
 
-    #[allow(clippy::type_complexity)]
     pub(crate) fn new(
         local_pid: Pid,
         remote_pid: Pid,
@@ -223,7 +222,6 @@ impl BParticipant {
     }
 
     //TODO: local stream_cid: HashMap<Sid, Cid> to know the respective protocol
-    #[allow(clippy::too_many_arguments)]
     async fn send_mgr(
         &self,
         mut a2b_open_stream_r: mpsc::UnboundedReceiver<A2bStreamOpen>,
@@ -781,7 +779,6 @@ mod tests {
         task::JoinHandle,
     };
 
-    #[allow(clippy::type_complexity)]
     fn mock_bparticipant() -> (
         Arc<Runtime>,
         mpsc::UnboundedSender<A2bStreamOpen>,
