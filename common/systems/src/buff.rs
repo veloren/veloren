@@ -274,8 +274,7 @@ impl<'a> System<'a> for Sys {
                                             by: damage_contributor,
                                             cause,
                                             time: *read_data.time,
-                                            crit: None,
-                                            crit_mult: 1.0,
+                                            crit_mult: None,
                                             instance: rand::random(),
                                         },
                                     });

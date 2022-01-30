@@ -85,7 +85,7 @@ impl<'a> System<'a> for Sys {
                 floater.timer += dt.0;
             }
 
-            // Clear floaters if newest floater is past show time or health runs out
+            // Clear floaters if newest floater is past show time
             if floaters.last().map_or(false, |f| {
                 f.timer
                     > if Some(entity) != my_entity.0 {

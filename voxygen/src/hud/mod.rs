@@ -1449,10 +1449,11 @@ impl Hud {
                             let crit = damage_floaters
                                 .iter()
                                 .rev()
-                                .find(|f| f.info.crit != None)
-                                .map_or(false, |f| f.info.crit.unwrap_or(false));
-                            let crit_mult =
-                                damage_floaters.last().map_or(1.0, |f| f.info.crit_mult);
+                                .find(|f| f.info.crit_mult.is_some())
+                                .map_or(false, |f| f.info.crit_mult.is_some());
+                            let crit_mult = damage_floaters
+                                .last()
+                                .map_or(1.0, |f| f.info.crit_mult.unwrap_or(1.0));
 
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
@@ -1523,28 +1524,21 @@ impl Hud {
                             .abs()
                             .clamp(Health::HEALTH_EPSILON, health.maximum())
                             / health.maximum();
-                        let crit = floater.info.crit.unwrap_or(false);
+                        let crit = floater.info.crit_mult.is_some();
+                        let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         // TODO: example
                         let font_size = 30
-                            + (max_hp_frac
-                                * 10.0
-                                * if crit {
-                                    1.25 * floater.info.crit_mult
-                                } else {
-                                    1.0
-                                }) as u32
+                            + (max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
+                                as u32
                                 * 3
                             + if floater.timer < 0.1 {
                                 FLASH_MAX
                                     * (((1.0 - floater.timer / 0.1)
                                         * 10.0
-                                        * if crit {
-                                            1.25 * floater.info.crit_mult
-                                        } else {
-                                            1.0
-                                        }) as u32)
+                                        * if crit { 1.25 * crit_mult } else { 1.0 })
+                                        as u32)
                             } else {
                                 0
                             };
@@ -2323,10 +2317,11 @@ impl Hud {
                             let crit = damage_floaters
                                 .iter()
                                 .rev()
-                                .find(|f| f.info.crit != None)
-                                .map_or(false, |f| f.info.crit.unwrap_or(false));
-                            let crit_mult =
-                                damage_floaters.last().map_or(1.0, |f| f.info.crit_mult);
+                                .find(|f| f.info.crit_mult.is_some())
+                                .map_or(false, |f| f.info.crit_mult.is_some());
+                            let crit_mult = damage_floaters
+                                .last()
+                                .map_or(1.0, |f| f.info.crit_mult.unwrap_or(1.0));
 
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
@@ -2410,29 +2405,20 @@ impl Hud {
                                     Health::HEALTH_EPSILON,
                                     health.map_or(1.0, |h| h.maximum()),
                                 ) / health.map_or(1.0, |h| h.maximum());
-                            let crit = floater.info.crit.map_or(false, |c| c);
+                            let crit = floater.info.crit_mult.is_some();
+                            let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + (max_hp_frac
-                                    * 10.0
-                                    * if crit {
-                                        1.25 * floater.info.crit_mult
-                                    } else {
-                                        1.0
-                                    }) as u32
+                                + (max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
+                                    as u32
                                     * 3
                                 + if floater.timer < 0.1 {
                                     FLASH_MAX
                                         * (((1.0 - floater.timer / 0.1)
                                             * 10.0
-                                            * if crit {
-                                                // FIXME: later
-                                                1.25 * floater.info.crit_mult
-                                                //1.0
-                                            } else {
-                                                1.0
-                                            }) as u32)
+                                            * if crit { 1.25 * crit_mult } else { 1.0 })
+                                            as u32)
                                 } else {
                                     0
                                 };
@@ -4668,15 +4654,16 @@ impl Hud {
                                     break;
                                 }
                                 if floater.info.instance == info.instance
-                                    && floater.info.crit.unwrap_or(false)
-                                        == info.crit.unwrap_or(false)
+                                    && floater.info.crit_mult.is_some() == info.crit_mult.is_some()
                                 {
                                     floater.info.amount += info.amount;
                                     floater.info.crit_mult = info.crit_mult;
-                                    floater.info.crit = Some(
-                                        floater.info.crit.unwrap_or(false)
-                                            || info.crit.unwrap_or(false),
-                                    );
+                                    floater.info.crit_mult = if info.crit_mult.is_some() {
+                                        info.crit_mult
+                                    } else {
+                                        floater.info.crit_mult
+                                    };
+                                    dbg!(&floater.info.crit_mult);
                                     return;
                                 }
                             }
@@ -4686,14 +4673,12 @@ impl Hud {
                             let last_floater = if info.amount < Health::HEALTH_EPSILON {
                                 floater_list.floaters.iter_mut().rev().find(|f| {
                                     f.info.amount < Health::HEALTH_EPSILON
-                                        && info.crit.unwrap_or(false)
-                                            == f.info.crit.unwrap_or(false)
+                                        && info.crit_mult.is_some() == f.info.crit_mult.is_some()
                                 })
                             } else {
                                 floater_list.floaters.iter_mut().rev().find(|f| {
                                     f.info.amount > Health::HEALTH_EPSILON
-                                        && info.crit.unwrap_or(false)
-                                            == f.info.crit.unwrap_or(false)
+                                        && info.crit_mult.is_some() == f.info.crit_mult.is_some()
                                 })
                             };
                             dbg!(&last_floater);
@@ -4701,16 +4686,19 @@ impl Hud {
                             match last_floater {
                                 Some(f)
                                     // TODO: Change later so it's based on options
-                                    if (f.timer < floater::HP_ACCUMULATETIME && !f.info.crit.unwrap_or(false)) =>
+                                    if f.timer < floater::HP_ACCUMULATETIME && !f.info.crit_mult.is_some() =>
                                 {
                                     //TODO: Add "jumping" animation on floater when it changes its
                                     // value
                                     f.info.amount += info.amount;
                                     f.info.crit_mult = info.crit_mult;
-                                    f.info.crit = Some(f.info.crit.unwrap_or(false) || info.crit.unwrap_or(false));
+                                    f.info.crit_mult = if info.crit_mult.is_some() {
+                                        info.crit_mult
+                                    } else {
+                                        f.info.crit_mult
+                                    };
                                 },
                                 _ => {
-                                    dbg!(&info.amount);
                                     floater_list.floaters.push(HpFloater {
                                         timer: 0.0,
                                         info: *info,

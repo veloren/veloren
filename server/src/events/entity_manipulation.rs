@@ -89,7 +89,6 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
                     pos: pos.0,
                     info: DamageInfo {
                         amount: change.amount,
-                        crit: change.crit,
                         by: change.by,
                         target: *uid,
                         crit_mult: change.crit_mult,

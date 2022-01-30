@@ -84,7 +84,6 @@ impl CharacterBehavior for Data {
                         crit_chance,
                         crit_mult,
                         buff_strength,
-                        rand::random(),
                     );
                     // Shoots all projectiles simultaneously
                     for i in 0..self.static_data.num_projectiles {

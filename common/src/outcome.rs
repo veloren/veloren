@@ -7,10 +7,9 @@ use vek::*;
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct DamageInfo {
     pub amount: f32,
-    pub crit: Option<bool>,
+    pub crit_mult: Option<f32>,
     pub target: Uid,
     pub by: Option<DamageContributor>,
-    pub crit_mult: f32,
     pub instance: u64,
 }
 

@@ -25,10 +25,8 @@ pub struct HealthChange {
     pub cause: Option<DamageSource>,
     /// The time that the health change occurred at
     pub time: Time,
-    /// Whether or not the health change was caused by a crit (None if it
-    /// couldn't have been a crit)
-    pub crit: Option<bool>,
-    pub crit_mult: f32,
+    /// The crit multiplier (None if it isn't a crit)
+    pub crit_mult: Option<f32>,
     /// A random ID, used to group up health changes
     // Note: Two or more changes could have the same instance number, if they
     // came from the same attack (for example - the extra damage caused by
@@ -142,8 +140,7 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
-                crit: None,
-                crit_mult: 1.0,
+                crit_mult: None,
                 time: Time(0.0),
                 instance: rand::random(),
             },
@@ -225,8 +222,7 @@ impl Health {
                 amount: 0.0,
                 by: None,
                 cause: None,
-                crit: None,
-                crit_mult: 1.0,
+                crit_mult: None,
                 time: Time(0.0),
                 instance: rand::random(),
             },
@@ -262,8 +258,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
-            crit: None,
-            crit_mult: 1.0,
+            crit_mult: None,
             instance: rand::random(),
         };
 
@@ -290,8 +285,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
-            crit: None,
-            crit_mult: 1.0,
+            crit_mult: None,
             instance: rand::random(),
         };
 
@@ -312,8 +306,7 @@ mod tests {
             time: Time(123.0),
             by: Some(damage_contrib),
             cause: None,
-            crit: None,
-            crit_mult: 1.0,
+            crit_mult: None,
             instance: rand::random(),
         };
         health.change_by(health_change);
@@ -340,8 +333,7 @@ mod tests {
             time: Time(10.0),
             by: Some(damage_contrib1),
             cause: None,
-            crit: None,
-            crit_mult: 1.0,
+            crit_mult: None,
             instance: rand::random(),
         };
         health.change_by(health_change);
@@ -352,8 +344,7 @@ mod tests {
             time: Time(100.0),
             by: Some(damage_contrib2),
             cause: None,
-            crit: None,
-            crit_mult: 1.0,
+            crit_mult: None,
             instance: rand::random(),
         };
         health.change_by(health_change);
@@ -368,8 +359,7 @@ mod tests {
             time: Time(620.0),
             by: Some(damage_contrib2),
             cause: None,
-            crit: None,
-            crit_mult: 1.0,
+            crit_mult: None,
             instance: rand::random(),
         };
         health.change_by(health_change);

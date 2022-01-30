@@ -98,7 +98,6 @@ impl ProjectileConstructor {
         crit_chance: f32,
         crit_mult: f32,
         buff_strength: f32,
-        instance: u64,
     ) -> Projectile {
         use ProjectileConstructor::*;
         match self {
@@ -123,6 +122,7 @@ impl ProjectileConstructor {
                     strength: CombatBuffStrength::DamageFraction(0.1 * buff_strength),
                     chance: 0.1,
                 });
+                let instance = rand::random();
                 let damage = AttackDamage::new(
                     Damage {
                         source: DamageSource::Projectile,

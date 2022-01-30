@@ -100,7 +100,6 @@ impl CharacterBehavior for Data {
                         crit_chance,
                         crit_mult,
                         buff_strength,
-                        rand::random(),
                     );
                     output_events.emit_server(ServerEvent::Shoot {
                         entity: data.entity,
