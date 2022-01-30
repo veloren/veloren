@@ -611,7 +611,7 @@ pub fn lootspec_to_vec_item(probability_sum: f32, loot: &LootSpec<String>) -> Ve
 #[cfg(test)]
 mod tests {
     use crate::{
-        comp::inventory::trade_pricing::{lootspec_to_vec_item, TradePricing},
+        comp::inventory::trade_pricing::{lootspec_to_vec_item, ProbabilityFile, TradePricing},
         lottery::LootSpec,
         trade::Good,
     };
@@ -667,5 +667,52 @@ mod tests {
                 info!("Armor 5 {}", item_id);
             }
         }
+    }
+
+    fn normalized(probability: &ProbabilityFile) -> bool {
+        let sum = probability.content.iter().map(|(p, _)| p).sum::<f32>();
+        (dbg!(sum) - 1.0).abs() < 1e-3
+    }
+
+    #[test]
+    fn test_normalizing_table1() {
+        let item = |asset: &str| LootSpec::Item(asset.to_owned());
+        let loot_table = vec![(1.0, item("wow")), (1.0, item("nice"))];
+
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability))
+    }
+
+    #[test]
+    fn test_normalizing_table2() {
+        let table = |asset: &str| LootSpec::LootTable(asset.to_owned());
+        let loot_table = vec![(
+            1.0,
+            table("common.loot_tables.creature.quad_medium.catoblepas"),
+        )];
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability))
+    }
+
+    #[test]
+    fn test_normalizing_table3() {
+        let table = |asset: &str| LootSpec::LootTable(asset.to_owned());
+        let loot_table = vec![
+            (
+                1.0,
+                table("common.loot_tables.creature.quad_medium.catoblepas"),
+            ),
+            (1.0, table("common.loot_tables.creature.quad_medium.gentle")),
+        ];
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability))
+    }
+
+    #[test]
+    fn test_normalizing_table4() {
+        let quantity = |asset: &str, a, b| LootSpec::ItemQuantity(asset.to_owned(), a, b);
+        let loot_table = vec![(1.0, quantity("such", 3, 5)), (1.0, quantity("much", 5, 9))];
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability))
     }
 }
