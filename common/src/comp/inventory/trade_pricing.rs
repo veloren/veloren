@@ -81,6 +81,8 @@ lazy_static! {
 }
 
 #[derive(Clone)]
+/// A collection of items with probabilty (normalized to one), created
+/// hierarchically from `LootSpec`s
 pub struct ProbabilityFile {
     pub content: Vec<(f32, String)>,
 }
@@ -94,18 +96,27 @@ impl assets::Asset for ProbabilityFile {
 impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
     #[allow(clippy::cast_precision_loss)]
     fn from(content: Vec<(f32, LootSpec<String>)>) -> Self {
+        let rescale = if content.is_empty() {
+            1.0
+        } else {
+            1.0 / content.iter().fold(0.0, |s, e| s + e.0)
+        };
         Self {
             content: content
                 .into_iter()
                 .flat_map(|(p0, loot)| match loot {
-                    LootSpec::Item(asset) => vec![(p0, asset)].into_iter(),
+                    LootSpec::Item(asset) => vec![(p0 * rescale, asset)].into_iter(),
                     LootSpec::ItemQuantity(asset, a, b) => {
-                        vec![(p0 * (a + b) as f32 / 2.0, asset)].into_iter()
+                        vec![(p0 * rescale * (a + b) as f32 / 2.0, asset)].into_iter()
                     },
                     LootSpec::LootTable(table_asset) => {
                         let unscaled = &Self::load_expect(&table_asset).read().content;
                         let total = unscaled.iter().fold(0.0, |s, i| s + i.0);
-                        let scale = if total == 0.0 { 1.0 } else { p0 / total };
+                        let scale = if total == 0.0 {
+                            1.0
+                        } else {
+                            p0 * rescale / total
+                        };
                         unscaled
                             .iter()
                             .map(|(p1, asset)| (*p1 * scale, asset.clone()))
