@@ -464,16 +464,20 @@ impl<'a> PhysicsData<'a> {
                                         // entity we colliding with
                                         *other,
                                         // symetrical collider context
-                                        pos,
-                                        pos_other,
-                                        previous_cache,
-                                        previous_cache_other,
-                                        z_limits,
-                                        z_limits_other,
-                                        collider,
-                                        collider_other,
-                                        *mass,
-                                        *mass_other,
+                                        ColliderData {
+                                            pos,
+                                            previous_cache,
+                                            z_limits,
+                                            collider,
+                                            mass: *mass,
+                                        },
+                                        ColliderData {
+                                            pos: pos_other,
+                                            previous_cache: previous_cache_other,
+                                            z_limits: z_limits_other,
+                                            collider: collider_other,
+                                            mass: *mass_other,
+                                        },
                                         vel,
                                         is_riding.is_some() || other_is_riding_maybe.is_some(),
                                     );
@@ -1764,6 +1768,14 @@ fn voxel_collider_bounding_sphere(
     }
 }
 
+struct ColliderData<'a> {
+    pos: &'a Pos,
+    previous_cache: &'a PreviousPhysCache,
+    z_limits: (f32, f32),
+    collider: &'a Collider,
+    mass: Mass,
+}
+
 /// Returns whether interesction between entities occured
 #[allow(clippy::too_many_arguments)]
 fn resolve_e2e_collision(
@@ -1782,16 +1794,8 @@ fn resolve_e2e_collision(
     // entity we colliding with
     other: Uid,
     // symetrical collider context
-    pos: &Pos,
-    pos_other: &Pos,
-    previous_cache: &PreviousPhysCache,
-    previous_cache_other: &PreviousPhysCache,
-    z_limits: (f32, f32),
-    z_limits_other: (f32, f32),
-    collider: &Collider,
-    collider_other: &Collider,
-    mass: Mass,
-    mass_other: Mass,
+    our_data: ColliderData,
+    other_data: ColliderData,
     vel: &Vel,
     is_riding: bool,
 ) -> bool {
@@ -1801,17 +1805,17 @@ fn resolve_e2e_collision(
     // If we aren't colliding, just skip step.
 
     // Get positions
-    let pos = pos.0 + previous_cache.velocity_dt * factor;
-    let pos_other = pos_other.0 + previous_cache_other.velocity_dt * factor;
+    let pos = our_data.pos.0 + our_data.previous_cache.velocity_dt * factor;
+    let pos_other = other_data.pos.0 + other_data.previous_cache.velocity_dt * factor;
 
     // Compare Z ranges
-    let (z_min, z_max) = z_limits;
-    let ceiling = pos.z + z_max * previous_cache.scale;
-    let floor = pos.z + z_min * previous_cache.scale;
+    let (z_min, z_max) = our_data.z_limits;
+    let ceiling = pos.z + z_max * our_data.previous_cache.scale;
+    let floor = pos.z + z_min * our_data.previous_cache.scale;
 
-    let (z_min_other, z_max_other) = z_limits_other;
-    let ceiling_other = pos_other.z + z_max_other * previous_cache_other.scale;
-    let floor_other = pos_other.z + z_min_other * previous_cache_other.scale;
+    let (z_min_other, z_max_other) = other_data.z_limits;
+    let ceiling_other = pos_other.z + z_max_other * other_data.previous_cache.scale;
+    let floor_other = pos_other.z + z_min_other * other_data.previous_cache.scale;
 
     let in_z_range = ceiling >= floor_other && floor <= ceiling_other;
 
@@ -1821,11 +1825,11 @@ fn resolve_e2e_collision(
 
     let ours = ColliderContext {
         pos,
-        previous_cache,
+        previous_cache: our_data.previous_cache,
     };
     let theirs = ColliderContext {
         pos: pos_other,
-        previous_cache: previous_cache_other,
+        previous_cache: other_data.previous_cache,
     };
     let (diff, collision_dist) = projection_between(ours, theirs);
     let in_collision_range = diff.magnitude_squared() <= collision_dist.powi(2);
@@ -1864,11 +1868,11 @@ fn resolve_e2e_collision(
         && (!is_sticky || is_mid_air)
         && diff.magnitude_squared() > 0.0
         && !is_projectile
-        && !collider_other.is_voxel()
-        && !collider.is_voxel()
+        && !other_data.collider.is_voxel()
+        && !our_data.collider.is_voxel()
     {
         const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
-        let mass_coefficient = mass_other.0 / (mass.0 + mass_other.0);
+        let mass_coefficient = our_data.mass.0 / (our_data.mass.0 + our_data.mass.0);
         let distance_coefficient = collision_dist - diff.magnitude();
         let force = ELASTIC_FORCE_COEFFICIENT * distance_coefficient * mass_coefficient;
 
