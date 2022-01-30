@@ -250,6 +250,7 @@ const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [
 type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Arc<ItemDef>, Option<Hands>)>>;
 type SecondaryComponentPool = HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>>;
 
+// TODO: Fix this. It broke when changes were made to component recipes
 lazy_static! {
     static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
         let mut component_pool = HashMap::new();
