@@ -392,7 +392,7 @@ void main() {
             break;
         case LIFESTEAL_BEAM:
             f_reflect = 0.0;
-            float green_col = 1.6 * sin(tick.x * 5 + lifetime * 5);
+            float green_col = 0.8 + 0.8 * sin(tick.x * 5 + lifetime * 5);
             float purple_col = 0.6 + 0.5 * sin(tick.x * 4 - lifetime * 4) - min(max(green_col - 1, 0), 0.3);
             float red_col = 1.15 + 0.1 * sin(tick.x * 3 - lifetime * 3) - min(max(green_col - 1, 0), 0.3) - max(purple_col - 0.5, 0);
             attr = Attr(
