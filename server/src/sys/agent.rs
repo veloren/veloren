@@ -1425,6 +1425,7 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
         agent.action_state.timer = 0.0;
+        let mut aggro_on = false;
 
         let worth_choosing = |entity| {
             read_data
@@ -1508,11 +1509,10 @@ impl<'a> AgentData<'a> {
                 .get(*self.entity)
                 .map_or(false, |stats| stats.name == "Guard");
             let other_is_a_villager = matches!(e_alignment, Some(Alignment::Npc));
-            let villager_has_taken_damage = e_health.last_change.time.0 < 5.0;
+            let villager_has_taken_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
             let attacker_of = |health: &Health| health.last_change.damage_by();
 
             let i_should_defend = i_am_a_guard && other_is_a_villager && villager_has_taken_damage;
-
             i_should_defend
                 .then(|| {
                     attacker_of(e_health)
@@ -1604,6 +1604,7 @@ impl<'a> AgentData<'a> {
                 } else if is_owner_hostile(e_alignment) {
                     Some((entity, *e_pos))
                 } else if let Some(villain_info) = guard_defending_villager(e_health, e_alignment) {
+                    aggro_on = true;
                     Some(villain_info)
                 } else if rtsim_remember(e_stats, agent, event_emitter)
                     || npc_sees_cultist(e_stats, e_inventory, agent, event_emitter)
@@ -1627,14 +1628,18 @@ impl<'a> AgentData<'a> {
             .map(|(e, _)| e);
 
         if agent.target.is_none() && target.is_some() {
-            controller.push_utterance(UtteranceKind::Angry);
+            if aggro_on {
+                controller.push_utterance(UtteranceKind::Angry);
+            } else {
+                controller.push_utterance(UtteranceKind::Surprised);
+            }
         }
 
         agent.target = target.map(|target| Target {
             target,
             hostile: true,
             selected_at: read_data.time.0,
-            aggro_on: false,
+            aggro_on,
         });
     }
 
