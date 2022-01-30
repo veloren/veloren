@@ -83,8 +83,9 @@ lazy_static! {
 #[derive(Clone)]
 /// A collection of items with probabilty (normalized to one), created
 /// hierarchically from `LootSpec`s
+/// (probability, item id, average amount)
 pub struct ProbabilityFile {
-    pub content: Vec<(f32, String)>,
+    pub content: Vec<(f32, String, f32)>,
 }
 
 impl assets::Asset for ProbabilityFile {
@@ -105,9 +106,9 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
             content: content
                 .into_iter()
                 .flat_map(|(p0, loot)| match loot {
-                    LootSpec::Item(asset) => vec![(p0 * rescale, asset)].into_iter(),
+                    LootSpec::Item(asset) => vec![(p0 * rescale, asset, 1.0)].into_iter(),
                     LootSpec::ItemQuantity(asset, a, b) => {
-                        vec![(p0 * rescale * (a + b) as f32 / 2.0, asset)].into_iter()
+                        vec![(p0 * rescale, asset, (a + b) as f32 * 0.5)].into_iter()
                     },
                     LootSpec::LootTable(table_asset) => {
                         let unscaled = &Self::load_expect(&table_asset).read().content;
@@ -119,7 +120,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                         };
                         unscaled
                             .iter()
-                            .map(|(p1, asset)| (*p1 * scale, asset.clone()))
+                            .map(|(p1, asset, amount)| (*p1 * scale, asset.clone(), *amount))
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
@@ -181,7 +182,7 @@ impl assets::Compound for EqualitySet {
                 EqualitySpec::LootTable(table) => {
                     let acc = &ProbabilityFile::load_expect(table).read().content;
 
-                    acc.iter().map(|(_p, item)| item).cloned().collect()
+                    acc.iter().map(|(_p, item, _)| item).cloned().collect()
                 },
                 EqualitySpec::Set(xs) => xs.clone(),
             };
@@ -370,11 +371,11 @@ impl TradePricing {
             let (frequency, can_sell, asset_path) = table;
             let loot = ProbabilityFile::load_expect(asset_path);
             let new_scale = frequency / loot.read().content.iter().fold(0.0, |s, i| s + i.0);
-            for (p, item_asset) in &loot.read().content {
+            for (p, item_asset, amount) in &loot.read().content {
                 result.get_list_by_path_mut(item_asset).add(
                     &eqset,
                     item_asset,
-                    new_scale * p,
+                    new_scale * p * *amount,
                     *can_sell,
                 );
             }
@@ -613,8 +614,8 @@ impl TradePricing {
 
 /// hierarchically combine and scale this loot table
 #[must_use]
-pub fn lootspec_to_vec_item(probability_sum: f32, loot: &LootSpec<String>) -> Vec<(f32, String)> {
-    ProbabilityFile::from(vec![(probability_sum, loot.clone())]).content
+pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, String, f32)> {
+    ProbabilityFile::from(vec![(1.0, LootSpec::LootTable(loot_table.into()))]).content
 }
 
 // if you want to take a look at the calculated values run:
@@ -622,7 +623,7 @@ pub fn lootspec_to_vec_item(probability_sum: f32, loot: &LootSpec<String>) -> Ve
 #[cfg(test)]
 mod tests {
     use crate::{
-        comp::inventory::trade_pricing::{lootspec_to_vec_item, ProbabilityFile, TradePricing},
+        comp::inventory::trade_pricing::{expand_loot_table, ProbabilityFile, TradePricing},
         lottery::LootSpec,
         trade::Good,
     };
@@ -644,27 +645,18 @@ mod tests {
         init();
         info!("init");
 
-        let loot = lootspec_to_vec_item(
-            100.0,
-            &LootSpec::LootTable("common.loot_tables.creature.quad_medium.gentle".into()),
-        );
+        let loot = expand_loot_table("common.loot_tables.creature.quad_medium.gentle");
         let lootsum = loot.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum - 100.0).abs() < 1e-3);
+        assert!((lootsum - 1.0).abs() < 1e-3);
         // hierarchical
-        let loot2 = lootspec_to_vec_item(
-            100.0,
-            &LootSpec::LootTable("common.loot_tables.creature.quad_medium.catoblepas".into()),
-        );
+        let loot2 = expand_loot_table("common.loot_tables.creature.quad_medium.catoblepas");
         let lootsum2 = loot2.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum2 - 100.0).abs() < 1e-3);
+        assert!((lootsum2 - 1.0).abs() < 1e-4);
 
         // highly nested
-        let loot3 = lootspec_to_vec_item(
-            100.0,
-            &LootSpec::LootTable("common.loot_tables.creature.biped_large.wendigo".into()),
-        );
+        let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
         let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
-        assert!((lootsum3 - 100.0).abs() < 1e-3);
+        assert!((lootsum3 - 1.0).abs() < 1e-5);
     }
 
     #[test]
@@ -681,7 +673,7 @@ mod tests {
     }
 
     fn normalized(probability: &ProbabilityFile) -> bool {
-        let sum = probability.content.iter().map(|(p, _)| p).sum::<f32>();
+        let sum = probability.content.iter().map(|(p, _, _)| p).sum::<f32>();
         (dbg!(sum) - 1.0).abs() < 1e-3
     }
 
