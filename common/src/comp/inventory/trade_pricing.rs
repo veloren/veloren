@@ -513,93 +513,113 @@ impl TradePricing {
         use crate::comp::item::{armor, tool, Item, ItemKind};
 
         // we pass the item and the inverse of the price to the closure
-        fn printvec<F>(good_kind: &str, entries: &[(String, f32, bool)], f: F)
+        fn printvec<F>(good_kind: &str, entries: &[(String, f32, bool)], f: F, unit: &str)
         where
             F: Fn(&Item, f32) -> String,
         {
-            println!("\n======{:^15}======", good_kind);
             for (item_id, p, can_sell) in entries.iter() {
                 let it = Item::new_from_asset_expect(item_id);
                 let price = 1.0 / p;
                 println!(
-                    "<{}> {}\n{:>4.2}  {:?}  {}",
+                    "{}, {}, {:>4.2}, {}, {:?}, {}, {},",
                     item_id,
-                    if *can_sell { "+" } else { "-" },
+                    if *can_sell { "yes" } else { "no" },
                     price,
+                    good_kind,
                     it.quality,
-                    f(&it, *p)
+                    f(&it, *p),
+                    unit,
                 );
             }
         }
 
-        printvec("Armor", &self.armor.entries, |i, p| {
-            if let ItemKind::Armor(a) = &i.kind {
-                match a.protection() {
-                    Some(armor::Protection::Invincible) => "Invincible".into(),
-                    Some(armor::Protection::Normal(x)) => format!("{:.4} prot/val", x * p),
-                    None => "0.0 prot/val".into(),
+        println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
+
+        printvec(
+            "Armor",
+            &self.armor.entries,
+            |i, p| {
+                if let ItemKind::Armor(a) = &i.kind {
+                    match a.protection() {
+                        Some(armor::Protection::Invincible) => "Invincible".into(),
+                        Some(armor::Protection::Normal(x)) => format!("{:.4}", x * p),
+                        None => "0.0".into(),
+                    }
+                } else {
+                    format!("{:?}", i.kind)
                 }
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Tools", &self.tools.entries, |i, p| {
-            if let ItemKind::Tool(t) = &i.kind {
-                match &t.stats {
-                    tool::StatKind::Direct(d) => {
-                        format!("{:.4} dps/val", d.power * d.speed * p)
-                    },
-                    tool::StatKind::Modular => "Modular".into(),
+            },
+            "prot/val",
+        );
+        printvec(
+            "Tools",
+            &self.tools.entries,
+            |i, p| {
+                if let ItemKind::Tool(t) = &i.kind {
+                    match &t.stats {
+                        tool::StatKind::Direct(d) => {
+                            format!("{:.4}", d.power * d.speed * p)
+                        },
+                        tool::StatKind::Modular => "Modular".into(),
+                    }
+                } else {
+                    format!("{:?}", i.kind)
                 }
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Potions", &self.potions.entries, |i, p| {
-            if let ItemKind::Consumable { kind: _, effects } = &i.kind {
-                effects
-                    .iter()
-                    .map(|e| {
-                        if let crate::effect::Effect::Buff(b) = e {
-                            format!("{:.2} str/val", b.data.strength * p)
-                        } else {
-                            format!("{:?}", e)
-                        }
-                    })
-                    .collect::<Vec<String>>()
-                    .join(" ")
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Food", &self.food.entries, |i, p| {
-            if let ItemKind::Consumable { kind: _, effects } = &i.kind {
-                effects
-                    .iter()
-                    .map(|e| {
-                        if let crate::effect::Effect::Buff(b) = e {
-                            format!("{:.2} str/val", b.data.strength * p)
-                        } else {
-                            format!("{:?}", e)
-                        }
-                    })
-                    .collect::<Vec<String>>()
-                    .join(" ")
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Ingredients", &self.ingredients.entries, |i, _p| {
-            if let ItemKind::Ingredient { kind } = &i.kind {
-                kind.clone()
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Other", &self.other.entries, |i, _p| {
-            format!("{:?}", i.kind)
-        });
-        println!("<{}>\n{}", Self::COIN_ITEM, self.coin_scale);
+            },
+            "dps/val",
+        );
+        printvec(
+            "Potions",
+            &self.potions.entries,
+            |i, p| {
+                if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                    effects
+                        .iter()
+                        .map(|e| {
+                            if let crate::effect::Effect::Buff(b) = e {
+                                format!("{:.2}", b.data.strength * p)
+                            } else {
+                                format!("{:?}", e)
+                            }
+                        })
+                        .collect::<Vec<String>>()
+                        .join(" ")
+                } else {
+                    format!("{:?}", i.kind)
+                }
+            },
+            "str/val",
+        );
+        printvec(
+            "Food",
+            &self.food.entries,
+            |i, p| {
+                if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                    effects
+                        .iter()
+                        .map(|e| {
+                            if let crate::effect::Effect::Buff(b) = e {
+                                format!("{:.2}", b.data.strength * p)
+                            } else {
+                                format!("{:?}", e)
+                            }
+                        })
+                        .collect::<Vec<String>>()
+                        .join(" ")
+                } else {
+                    format!("{:?}", i.kind)
+                }
+            },
+            "str/val",
+        );
+        printvec(
+            "Ingredients",
+            &self.ingredients.entries,
+            |_i, _p| String::new(),
+            "",
+        );
+        printvec("Other", &self.other.entries, |_i, _p| String::new(), "");
+        println!("{}, yes, {}, Coin, ,,,", Self::COIN_ITEM, self.coin_scale);
     }
 }
 
@@ -619,15 +639,12 @@ mod tests {
         trade::Good,
     };
     use tracing::{info, Level};
-    use tracing_subscriber::{
-        filter::{EnvFilter, LevelFilter},
-        FmtSubscriber,
-    };
+    use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
     fn init() {
         FmtSubscriber::builder()
             .with_max_level(Level::ERROR)
-            .with_env_filter(EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into()))
+            .with_env_filter(EnvFilter::from_default_env())
             .init();
     }
 
@@ -651,11 +668,18 @@ mod tests {
     }
 
     #[test]
-    fn test_prices() {
+    fn test_prices1() {
         init();
         info!("init");
 
         TradePricing::instance().print_sorted();
+    }
+
+    #[test]
+    fn test_prices2() {
+        init();
+        info!("init");
+
         for _ in 0..5 {
             if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0, false) {
                 info!("Armor 5 {}", item_id);
