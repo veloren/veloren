@@ -1,0 +1,14 @@
+(
+    name: Name("Sahagin Sniper"),
+    body: RandomWith("sahagin"),
+    alignment: Alignment(Enemy),
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.sahagin.sniper")),
+        base_asset: Loadout("common.loadout.dungeon.tier-2.sniper"),
+        inventory: [],
+    ),
+    loot: LootTable("common.loot_tables.dungeon.tier-2.enemy"),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank2.fullskill"),
+    ],
+)

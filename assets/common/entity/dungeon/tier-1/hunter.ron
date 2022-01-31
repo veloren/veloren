@@ -1,0 +1,14 @@
+(
+    name: Name("Adlet Hunter"),
+    body: RandomWith("adlet"),
+    alignment: Alignment(Enemy),
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.adlet.hunter")),
+        base_asset: Loadout("common.loadout.dungeon.tier-1.hunter"),
+        inventory: [],
+    ),
+    loot: LootTable("common.loot_tables.dungeon.tier-1.enemy"),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank1.fullskill"),
+    ],
+)

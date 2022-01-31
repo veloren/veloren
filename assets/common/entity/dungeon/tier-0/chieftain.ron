@@ -3,7 +3,7 @@
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
     loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.chieftain_staff")),
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.chieftain")),
         base_asset: Loadout("common.loadout.dungeon.tier-0.gnarling_chieftain"),
         inventory: [],
     ),

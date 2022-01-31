@@ -697,9 +697,9 @@ fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-1.bow", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-1.staff", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-1.spear", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-1.tracker", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-1.icepicker", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-1.hunter", dynamic_rng),
         }
     });
 
@@ -713,9 +713,9 @@ fn enemy_2(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-2.bow", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-2.staff", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spear", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-2.sniper", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-2.sorcerer", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-2.spearman", dynamic_rng),
         }
     });
 
@@ -729,9 +729,9 @@ fn enemy_3(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-3.bow", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-3.staff", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-3.spear", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-3.archer", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-3.soldier", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-3.guard", dynamic_rng),
         }
     });
 
@@ -745,9 +745,9 @@ fn enemy_4(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInf
         // TODO: give enemies health skills?
         let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
         match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-4.bow", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-4.staff", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-4.spear", dynamic_rng),
+            0 => entity.with_asset_expect("common.entity.dungeon.tier-4.marksman", dynamic_rng),
+            1 => entity.with_asset_expect("common.entity.dungeon.tier-4.strategian", dynamic_rng),
+            _ => entity.with_asset_expect("common.entity.dungeon.tier-4.hoplite", dynamic_rng),
         }
     });
 

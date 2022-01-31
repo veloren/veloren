@@ -1,0 +1,14 @@
+(
+    name: Name("Sahagin Sorcerer"),
+    body: RandomWith("sahagin"),
+    alignment: Alignment(Enemy),
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.sahagin.sorcerer")),
+        base_asset: Loadout("common.loadout.dungeon.tier-2.sorcerer"),
+        inventory: [],
+    ),
+    loot: LootTable("common.loot_tables.dungeon.tier-2.enemy"),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank2.fullskill"),
+    ],
+)

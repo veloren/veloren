@@ -1,0 +1,8 @@
+({
+    Armor(Head): Item("common.items.npc_armor.biped_small.sahagin.head.sniper"),
+    Armor(Feet): Item("common.items.npc_armor.biped_small.sahagin.foot.sniper"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.sahagin.hand.sniper"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.sahagin.chest.sniper"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.sahagin.pants.sniper"),
+    Armor(Belt): Item("common.items.npc_armor.biped_small.sahagin.tail.sniper"),
+})

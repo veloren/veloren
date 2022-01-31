@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Haniwa Soldier",
+    description: "Ceremonial attire used by members.",
+    kind: Armor((
+        kind: Chest("HaniwaSoldier"),
+        stats: (
+            protection: Some(Normal(38.0)),
+            poise_resilience: Some(Normal(5.0)),
+            energy_max: Some(5.0),
+            energy_reward: Some(0.108),
+            crit_power: Some(0.1),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)

@@ -3,7 +3,7 @@
     body: RandomWith("gnome"),
     alignment: Alignment(Wild),
     loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.wooden_spear")),
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.hoplite")),
         base_asset: Loadout("common.loadout.spots.gnome"),
         inventory: [],
     ),

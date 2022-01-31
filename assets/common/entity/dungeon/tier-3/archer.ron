@@ -1,0 +1,14 @@
+(
+    name: Name("Haniwa Archer"),
+    body: RandomWith("haniwa"),
+    alignment: Alignment(Enemy),
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.haniwa.archer")),
+        base_asset: Loadout("common.loadout.dungeon.tier-3.archer"),
+        inventory: [],
+    ),
+    loot: LootTable("common.loot_tables.dungeon.tier-3.enemy"),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank3.fullskill"),
+    ],
+)

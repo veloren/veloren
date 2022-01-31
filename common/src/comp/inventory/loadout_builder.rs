@@ -366,13 +366,13 @@ fn default_main_tool(body: &Body) -> Item {
         },
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {
             (biped_small::Species::Gnome, _) => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.adlet.gnoll_staff",
+                "common.items.npc_weapons.biped_small.adlet.tracker",
             )),
             (biped_small::Species::Husk, _) => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.husk",
             )),
             _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.biped_small.adlet.wooden_spear",
+                "common.items.npc_weapons.biped_small.adlet.hunter",
             )),
         },
         Body::BirdLarge(bird_large) => match (bird_large.species, bird_large.body_type) {

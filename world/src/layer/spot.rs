@@ -441,7 +441,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             Spot::MyrmidonTemple => SpotConfig {
                 base_structures: Some("spots.myrmidon-temple"),
                 entity_radius: 10.0,
-                entities: &[(8..10, "common.entity.spot.myrmidon.spear")],
+                entities: &[
+                    (3..5, "common.entity.dungeon.tier-4.hoplite"),
+                    (3..5, "common.entity.dungeon.tier-4.strategian"),
+                    (2..3, "common.entity.dungeon.tier-4.marksman"),
+                ],
             },
             Spot::WitchHouse => SpotConfig {
                 base_structures: Some("spots_general.witch_hut"),
@@ -456,9 +460,9 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                 base_structures: Some("spots_general.igloo"),
                 entity_radius: 2.0,
                 entities: &[
-                    (3..5, "common.entity.dungeon.tier-1.spear"),
-                    (3..5, "common.entity.dungeon.tier-1.bow"),
-                    (2..3, "common.entity.dungeon.tier-1.staff"),
+                    (3..5, "common.entity.dungeon.tier-1.hunter"),
+                    (3..5, "common.entity.dungeon.tier-1.icepicker"),
+                    (2..3, "common.entity.dungeon.tier-1.tracker"),
                 ],
             },
             Spot::PirateHideout => SpotConfig {

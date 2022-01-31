@@ -16,28 +16,52 @@
                 vox_spec: ("npc.gnome.male.hand_r", (0.0, -2.0, -5.0)),
             )
         ),
-        "Sahagin": (
+        "SahaginSpearman": (
             left: (
-                vox_spec: ("npc.sahagin.male.hand_r", (-7.0, -4.0, -13.0)),
+                vox_spec: ("npc.sahagin.spearman.hand_r", (-7.0, -4.0, -13.0)),
             ),
             right: (
-                vox_spec: ("npc.sahagin.male.hand_r", (0.0, -4.0, -13.0)),
+                vox_spec: ("npc.sahagin.spearman.hand_r", (0.0, -4.0, -13.0)),
             )
         ),
-        "AdletSpear": (
+        "SahaginSorcerer": (
             left: (
-                vox_spec: ("npc.adlet.male.spear.hand_r", (-4.0, -2.0, -7.0)),
+                vox_spec: ("npc.sahagin.sorcerer.hand_r", (-7.0, -4.0, -13.0)),
             ),
             right: (
-                vox_spec: ("npc.adlet.male.spear.hand_r", (0.0, -2.0, -7.0)),
+                vox_spec: ("npc.sahagin.sorcerer.hand_r", (0.0, -4.0, -13.0)),
             )
         ),
-        "AdletBow": (
+        "SahaginSniper": (
             left: (
-                vox_spec: ("npc.adlet.male.bow.hand_r", (-4.0, -2.0, -7.0)),
+                vox_spec: ("npc.sahagin.sniper.hand_r", (-7.0, -4.0, -13.0)),
             ),
             right: (
-                vox_spec: ("npc.adlet.male.bow.hand_r", (0.0, -2.0, -7.0)),
+                vox_spec: ("npc.sahagin.sniper.hand_r", (0.0, -4.0, -13.0)),
+            )
+        ),
+        "AdletTracker": (
+            left: (
+                vox_spec: ("npc.adlet.tracker.hand_r", (-4.0, -2.0, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.adlet.tracker.hand_r", (0.0, -2.0, -7.0)),
+            )
+        ),
+        "AdletHunter": (
+            left: (
+                vox_spec: ("npc.adlet.hunter.hand_r", (-4.0, -2.0, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.adlet.hunter.hand_r", (0.0, -2.0, -7.0)),
+            )
+        ),
+        "AdletIcepicker": (
+            left: (
+                vox_spec: ("npc.adlet.icepicker.hand_r", (-4.0, -2.0, -7.0)),
+            ),
+            right: (
+                vox_spec: ("npc.adlet.icepicker.hand_r", (0.0, -2.0, -7.0)),
             )
         ),
         "GnarlingMugger": (
@@ -96,28 +120,76 @@
                 vox_spec: ("npc.cactid.male.hand_r", (0.0, -1.5, -2.5)),
             )
         ),
-        "Gnoll": (
+        "GnollRogue": (
             left: (
-                vox_spec: ("npc.gnoll.male.hand_r", (-6.0, -2.0, -9.0)),
+                vox_spec: ("npc.gnoll.rogue.hand_r", (-6.0, -2.0, -9.0)),
             ),
             right: (
-                 vox_spec: ("npc.gnoll.male.hand_r", (0.0, -2.0, -9.0)),
+                 vox_spec: ("npc.gnoll.rogue.hand_r", (0.0, -2.0, -9.0)),
             )
         ),
-        "Haniwa": (
+        "GnollTrapper": (
             left: (
-                vox_spec: ("npc.haniwa.male.hand_r", (-4.0, -2.0, -8.0)),
+                vox_spec: ("npc.gnoll.trapper.hand_r", (-6.0, -2.0, -9.0)),
             ),
             right: (
-                 vox_spec: ("npc.haniwa.male.hand_r", (0.0, -2.0, -8.0)),
+                 vox_spec: ("npc.gnoll.trapper.hand_r", (0.0, -2.0, -9.0)),
             )
         ),
-        "Myrmidon": (
+        "GnollShaman": (
             left: (
-                vox_spec: ("npc.myrmidon.male.hand_r", (-5.0, -2.0, -9.0)),
+                vox_spec: ("npc.gnoll.shaman.hand_r", (-6.0, -2.0, -9.0)),
             ),
             right: (
-                 vox_spec: ("npc.myrmidon.male.hand_r", (0.0, -2.0, -9.0)),
+                 vox_spec: ("npc.gnoll.shaman.hand_r", (0.0, -2.0, -9.0)),
+            )
+        ),
+        "HaniwaGuard": (
+            left: (
+                vox_spec: ("npc.haniwa.guard.hand_r", (-4.0, -2.0, -8.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.haniwa.guard.hand_r", (0.0, -2.0, -8.0)),
+            )
+        ),
+        "HaniwaArcher": (
+            left: (
+                vox_spec: ("npc.haniwa.archer.hand_r", (-4.0, -2.0, -8.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.haniwa.archer.hand_r", (0.0, -2.0, -8.0)),
+            )
+        ),
+        "HaniwaSoldier": (
+            left: (
+                vox_spec: ("npc.haniwa.soldier.hand_r", (-4.0, -2.0, -8.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.haniwa.soldier.hand_r", (0.0, -2.0, -8.0)),
+            )
+        ),
+        "MyrmidonHoplite": (
+            left: (
+                vox_spec: ("npc.myrmidon.hoplite.hand_r", (-5.0, -2.0, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.myrmidon.hoplite.hand_r", (0.0, -2.0, -9.0)),
+            )
+        ),
+        "MyrmidonMarksman": (
+            left: (
+                vox_spec: ("npc.myrmidon.marksman.hand_r", (-5.0, -2.0, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.myrmidon.marksman.hand_r", (0.0, -2.0, -9.0)),
+            )
+        ),
+        "MyrmidonStrategian": (
+            left: (
+                vox_spec: ("npc.myrmidon.strategian.hand_r", (-5.0, -2.0, -9.0)),
+            ),
+            right: (
+                 vox_spec: ("npc.myrmidon.strategian.hand_r", (0.0, -2.0, -9.0)),
             )
         ),
         "Husk": (

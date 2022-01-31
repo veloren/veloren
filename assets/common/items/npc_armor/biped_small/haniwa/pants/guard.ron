@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Haniwa Guard",
+    description: "Ceremonial attire used by members..",
+    kind: Armor((
+        kind: Pants("HaniwaGuard"),
+        stats: (
+            protection: Some(Normal(19.0)),
+            poise_resilience: Some(Normal(5.0)),
+            energy_max: Some(5.0),
+            energy_reward: Some(0.08),
+            crit_power: Some(0.064),
+        ),
+    )),
+    quality: Low,
+    tags: [],
+)
