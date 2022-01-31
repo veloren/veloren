@@ -10,6 +10,7 @@ use assets::AssetGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
+use std::cmp::Ordering;
 use tracing::{info, warn};
 
 const PRICING_DEBUG: bool = false;
@@ -204,7 +205,11 @@ struct RememberedRecipe {
 
 fn sort_and_normalize(entryvec: &mut [Entry], scale: f32) {
     if !entryvec.is_empty() {
-        entryvec.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        entryvec.sort_by(|a, b| {
+            a.1.partial_cmp(&b.1)
+                .unwrap_or(Ordering::Equal)
+                .then_with(|| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal))
+        });
         if let Some((_, max_scale, _)) = entryvec.last() {
             // most common item has frequency max_scale.  avoid NaN
             let rescale = scale / max_scale;
