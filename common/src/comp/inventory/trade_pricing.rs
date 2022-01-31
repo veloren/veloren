@@ -1,5 +1,4 @@
 #![warn(clippy::pedantic)]
-//#![warn(clippy::nursery)]
 
 use crate::{
     assets::{self, AssetExt},
@@ -27,7 +26,6 @@ pub struct TradePricing {
 
     // good_scaling of coins
     coin_scale: f32,
-    //    rng: ChaChaRng,
 
     // get amount of material per item
     material_cache: HashMap<String, (Good, f32)>,
@@ -112,12 +110,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
                     },
                     LootSpec::LootTable(table_asset) => {
                         let unscaled = &Self::load_expect(&table_asset).read().content;
-                        let total = unscaled.iter().fold(0.0, |s, i| s + i.0);
-                        let scale = if total == 0.0 {
-                            1.0
-                        } else {
-                            p0 * rescale / total
-                        };
+                        let scale = p0 * rescale;
                         unscaled
                             .iter()
                             .map(|(p1, asset, amount)| (*p1 * scale, asset.clone(), *amount))
@@ -370,12 +363,11 @@ impl TradePricing {
             }
             let (frequency, can_sell, asset_path) = table;
             let loot = ProbabilityFile::load_expect(asset_path);
-            let new_scale = frequency / loot.read().content.iter().fold(0.0, |s, i| s + i.0);
             for (p, item_asset, amount) in &loot.read().content {
                 result.get_list_by_path_mut(item_asset).add(
                     &eqset,
                     item_asset,
-                    new_scale * p * *amount,
+                    frequency * p * *amount,
                     *can_sell,
                 );
             }
@@ -487,7 +479,6 @@ impl TradePricing {
             loop {
                 let index =
                     (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
-                //.gen_range(lower..upper);
                 if table.get(index).map_or(false, |i| !selling || i.2) {
                     break table.get(index).map(|i| i.0.clone());
                 }
