@@ -685,7 +685,6 @@ impl FigureMgr {
             // Velocity relative to the current ground
             let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
 
-            let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
             let is_player = scene_data.player_entity == entity;
             let player_camera_mode = if is_player {
                 camera_mode
@@ -705,6 +704,12 @@ impl FigureMgr {
                     (anim::vek::Vec3::<f32>::from(pos.0),),
                     anim::vek::Quaternion::<f32>::default(),
                 ));
+
+            // TODO: Maintain look dir state separate from the controller and sync it for
+            // all entities. Then read from that instead of the controller here.
+            let look_dir = controller
+                .map(|c| c.inputs.look_dir)
+                .unwrap_or_else(|| Ori::new(ori.into_vec4().into()).look_dir());
 
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
