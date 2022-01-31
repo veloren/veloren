@@ -645,7 +645,8 @@ mod tests {
         FmtSubscriber::builder()
             .with_max_level(Level::ERROR)
             .with_env_filter(EnvFilter::from_default_env())
-            .init();
+            .try_init()
+            .unwrap_or_else(|_| ());
     }
 
     #[test]
