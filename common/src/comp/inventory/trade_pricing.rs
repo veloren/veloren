@@ -99,7 +99,7 @@ impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
         let rescale = if content.is_empty() {
             1.0
         } else {
-            1.0 / content.iter().fold(0.0, |s, e| s + e.0)
+            1.0 / content.iter().map(|e| e.0).sum::<f32>()
         };
         Self {
             content: content
