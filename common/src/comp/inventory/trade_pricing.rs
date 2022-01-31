@@ -1,5 +1,3 @@
-#![warn(clippy::pedantic)]
-
 use crate::{
     assets::{self, AssetExt},
     lottery::LootSpec,
@@ -651,7 +649,7 @@ mod tests {
             .with_max_level(Level::ERROR)
             .with_env_filter(EnvFilter::from_default_env())
             .try_init()
-            .unwrap_or_else(|_| ());
+            .unwrap_or(());
     }
 
     #[test]
@@ -704,7 +702,7 @@ mod tests {
         let loot_table = vec![(1.0, item("wow")), (1.0, item("nice"))];
 
         let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability))
+        assert!(normalized(&probability));
     }
 
     #[test]
@@ -715,7 +713,7 @@ mod tests {
             table("common.loot_tables.creature.quad_medium.catoblepas"),
         )];
         let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability))
+        assert!(normalized(&probability));
     }
 
     #[test]
@@ -729,7 +727,7 @@ mod tests {
             (1.0, table("common.loot_tables.creature.quad_medium.gentle")),
         ];
         let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability))
+        assert!(normalized(&probability));
     }
 
     #[test]
@@ -737,6 +735,6 @@ mod tests {
         let quantity = |asset: &str, a, b| LootSpec::ItemQuantity(asset.to_owned(), a, b);
         let loot_table = vec![(1.0, quantity("such", 3, 5)), (1.0, quantity("much", 5, 9))];
         let probability: ProbabilityFile = loot_table.into();
-        assert!(normalized(&probability))
+        assert!(normalized(&probability));
     }
 }
