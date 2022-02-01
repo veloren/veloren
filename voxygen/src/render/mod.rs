@@ -447,4 +447,10 @@ pub enum ExperimentalShader {
     Underwarper,
     /// Remove caustics from underwater terrain when shiny water is enabled.
     NoCaustics,
+    /// Don't dither color in post-processing.
+    NoDither,
+    /// Don't use the nonlinear srgb space for dithering color.
+    NonSrgbDither,
+    /// Use triangle PDF noise for dithering instead of uniform noise.
+    TriangleNoiseDither,
 }

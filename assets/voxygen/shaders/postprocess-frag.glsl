@@ -282,9 +282,26 @@ void main() {
     }
 #endif
 
+#ifndef EXPERIMENTAL_NODITHER
     // Add a small amount of very cheap dithering noise to remove banding from gradients
-    // TODO: Instead of 256, detect the colour resolution of the display
-    final_color.rgb = max(vec3(0), final_color.rgb - hash_two(uvec2(uv * screen_res.xy)) / 256.0);
+    // TODO: Consider dithering each color channel independently.
+    // TODO: Consider varying dither over time.
+    // TODO: Instead of 255, detect the colour resolution of the color attachment
+    float noise = hash_two(uvec2(uv * screen_res.xy));
+    #ifndef EXPERIMENTAL_NONSRGBDITHER
+        #ifndef EXPERIMENTAL_TRIANGLENOISEDITHER
+            noise = noise - 0.5;
+        #else
+            // TODO: there is something special we have to do to remove bias
+            // on the bounds when using triangle distribution
+            noise = 2.0 * norm2tri(noise) - 1.0;
+        #endif
+        final_color.rgb = srgb_to_linear(linear_to_srgb(final_color.rgb) + noise / 255.0);
+    #else
+        // NOTE: GPU will clamp value
+        final_color.rgb = final_color.rgb - noise / 255.0;
+    #endif
+#endif
 
     tgt_color = vec4(final_color.rgb, 1);
 }

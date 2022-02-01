@@ -109,4 +109,14 @@ vec3 smooth_rand(vec3 pos, float lerp_axis) {
     vec3 r1 = rand_perm_3(vec3(pos.x, pos.y, pos.z) + floor(lerp_axis + 1.0));
     return r0 + (r1 - r0) * fract(lerp_axis);
 }
+
+// Transform normal distribution to triangle distribution.
+float norm2tri(float n) {
+   // TODO: compare perf with adding two normal noise distributions
+   bool flip = n > 0.5;
+   n = flip ? 1.0 - n : n;
+   n = sqrt(n / 2.0);
+   n = flip ? 1.0 - n : n;
+   return n;
+}
 #endif
