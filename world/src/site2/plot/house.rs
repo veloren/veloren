@@ -633,11 +633,11 @@ impl Structure for House {
                                 0.75,
                             ),
                             //2 => {
-                            //    painter.prim(Primitive::Segment(LineSegment3 {
-                            //        start: Vec2::new(temp.x, self.bounds.min.y - storey_increase -
+                            //    painter.line(
+                            //    Vec2::new(temp.x, self.bounds.min.y - storey_increase -
                             // 6).with_z(alt + previous_height + 30),
-                            //        end: Vec2::new(temp.x + 1, self.bounds.min.y - storey_increase
-                            // - 3).with_z(alt + previous_height - 3), }, 1.0))
+                            //    Vec2::new(temp.x + 1, self.bounds.min.y - storey_increase
+                            // - 3).with_z(alt + previous_height - 3), 1.0)
                             //},
                             _ => painter.prim(Primitive::Empty),
                         };
