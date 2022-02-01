@@ -108,5 +108,62 @@ impl Structure for Workshop {
                 );
             }
         }
+        let (
+            crafting_bench_pos,
+            forge_pos,
+            spinning_wheel_pos,
+            cauldron_pos,
+            cooking_pot_pos,
+            tanning_rack_pos,
+            loom_pos,
+            anvil_pos,
+            dismantling_bench_pos,
+        ) = (
+            Vec2::new(center.x + 3, center.y - 2).with_z(base),
+            Vec2::new(center.x + 3, center.y + 2).with_z(base),
+            Vec2::new(center.x - 3, center.y).with_z(base),
+            Vec2::new(center.x, center.y + 3).with_z(base),
+            Vec2::new(center.x, center.y - 3).with_z(base),
+            Vec2::new(center.x + 6, center.y).with_z(base),
+            Vec2::new(center.x - 6, center.y).with_z(base),
+            Vec2::new(center.x, center.y - 6).with_z(base),
+            Vec2::new(center.x, center.y + 6).with_z(base),
+        );
+        /*
+        //painter-rng to randomize distribution
+        let (
+            crafting_bench_pos,
+            forge_pos,
+            spinning_wheel_pos,
+            cauldron_pos,
+            cooking_pot_pos,
+            tanning_rack_pos,
+            loom_pos,
+            anvil_pos,
+            dismantling_bench_pos,
+        ) = [
+            Vec2::new(center.x + 3, center.y - 2).with_z(base),
+            Vec2::new(center.x + 3, center.y + 2).with_z(base),
+            Vec2::new(center.x - 3, center.y).with_z(base),
+            Vec2::new(center.x, center.y + 3).with_z(base),
+            Vec2::new(center.x, center.y - 3).with_z(base),
+            Vec2::new(center.x + 6, center.y).with_z(base),
+            Vec2::new(center.x - 6, center.y).with_z(base),
+            Vec2::new(center.x, center.y - 6).with_z(base),
+            Vec2::new(center.x, center.y + 6).with_z(base),
+        ]
+            .choose_multiple(&mut rng, 9)
+            .collect_tuple()
+            .unwrap();
+         */
+        painter.sprite(crafting_bench_pos, SpriteKind::CraftingBench);
+        painter.sprite(forge_pos, SpriteKind::Forge);
+        painter.sprite(spinning_wheel_pos, SpriteKind::SpinningWheel);
+        painter.sprite(tanning_rack_pos, SpriteKind::TanningRack);
+        painter.sprite(cooking_pot_pos, SpriteKind::CookingPot);
+        painter.sprite(cauldron_pos, SpriteKind::Cauldron);
+        painter.sprite(loom_pos, SpriteKind::Loom);
+        painter.sprite(anvil_pos, SpriteKind::Anvil);
+        painter.sprite(dismantling_bench_pos, SpriteKind::DismantlingBench);
     }
 }
