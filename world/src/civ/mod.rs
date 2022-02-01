@@ -7,7 +7,7 @@ use crate::{
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
-    util::{attempt, seed_expan, NEIGHBORS},
+    util::{attempt, seed_expan, DHashMap, DHashSet, NEIGHBORS},
     Index, Land,
 };
 use common::{
@@ -20,7 +20,6 @@ use common::{
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
-use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
@@ -50,11 +49,7 @@ pub struct Civs {
     /// (1) we don't care about DDOS attacks (ruling out SipHash);
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
-    pub track_map: HashMap<
-        Id<Site>,
-        HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher64>>,
-        BuildHasherDefault<FxHasher64>,
-    >,
+    pub track_map: DHashMap<Id<Site>, DHashMap<Id<Site>, Id<Track>>>,
 
     pub sites: Store<Site>,
     pub caves: Store<CaveInfo>,
@@ -470,9 +465,9 @@ impl Civs {
     fn name_biomes(&mut self, ctx: &mut GenCtx<impl Rng>) {
         let map_size_lg = ctx.sim.map_size_lg();
         let mut biomes: Vec<(common::terrain::BiomeKind, Vec<usize>)> = Vec::new();
-        let mut explored = HashSet::new();
-        let mut to_explore = HashSet::new();
-        let mut to_floodfill = HashSet::new();
+        let mut explored = DHashSet::default();
+        let mut to_explore = DHashSet::default();
+        let mut to_floodfill = DHashSet::default();
         // TODO: have start point in center and ignore ocean?
         let start_point = 0;
         to_explore.insert(start_point);
