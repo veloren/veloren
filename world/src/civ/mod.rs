@@ -7,7 +7,7 @@ use crate::{
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
-    util::{attempt, seed_expan, DHashSet, NEIGHBORS},
+    util::{attempt, seed_expan, DHashMap, DHashSet, NEIGHBORS},
     Index, Land,
 };
 use common::{
@@ -20,7 +20,6 @@ use common::{
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
 use fxhash::FxHasher64;
-use hashbrown::HashMap;
 use rand::prelude::*;
 use rand_chacha::ChaChaRng;
 use tracing::{debug, info, warn};
@@ -50,11 +49,7 @@ pub struct Civs {
     /// (1) we don't care about DDOS attacks (ruling out SipHash);
     /// (2) we care about determinism across computers (ruling out AAHash);
     /// (3) we have 8-byte keys (for which FxHash is fastest).
-    pub track_map: HashMap<
-        Id<Site>,
-        HashMap<Id<Site>, Id<Track>, BuildHasherDefault<FxHasher64>>,
-        BuildHasherDefault<FxHasher64>,
-    >,
+    pub track_map: DHashMap<Id<Site>, DHashMap<Id<Site>, Id<Track>>>,
 
     pub sites: Store<Site>,
     pub caves: Store<CaveInfo>,
