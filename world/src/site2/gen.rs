@@ -507,14 +507,20 @@ pub struct Painter {
 }
 
 impl Painter {
+    /// Returns a `PrimitiveRef` of an axis aligned bounding box. The geometric
+    /// name of this shape is a "right rectangular prism."
     pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         self.prim(Primitive::Aabb(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of a sphere using a radius check.
     pub fn sphere(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         self.prim(Primitive::Sphere(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of a sphere by returning an ellipsoid with
+    /// congruent legs. The voxel artifacts are slightly different from the
+    /// radius check `sphere()` method.
     pub fn sphere2(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         let radius = aabb.size().w.min(aabb.size().h) / 2;
@@ -526,30 +532,49 @@ impl Painter {
         self.prim(Primitive::Superquadric { aabb, degree })
     }
 
+    /// Returns a `PrimitiveRef` of an ellipsoid by constructing a superquadric
+    /// with a degree value of 2.0.
     pub fn ellipsoid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         let degree = 2.0;
         self.prim(Primitive::Superquadric { aabb, degree })
     }
 
+    /// Returns a `PrimitiveRef` of a superquadric. A superquadric can be
+    /// thought of as a rounded Aabb where the degree determines how rounded
+    /// the corners are. Values from 0.0 to 1.0 produce concave faces or
+    /// "inverse rounded corners." A value of 1.0 produces a stretched
+    /// octahedron (or a non-stretched octahedron if the provided Aabb is a
+    /// cube). Values from 1.0 to 2.0 produce an octahedron with convex
+    /// faces. A degree of 2.0 produces an ellipsoid. Values larger than 2.0
+    /// produce a rounded Aabb. The degree cannot be less than 0.0 without
+    /// the shape extending to infinity.
     pub fn superquadric(&self, aabb: Aabb<i32>, degree: f32) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Superquadric { aabb, degree })
     }
 
+    /// Returns a `PrimitiveRef` of a rounded Aabb by producing a superquadric
+    /// with a degree value of 3.0.
     pub fn rounded_aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Superquadric { aabb, degree: 3.0 })
     }
 
+    /// Returns a `PrimitiveRef` of the largest cylinder that fits in the
+    /// provided Aabb.
     pub fn cylinder(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         self.prim(Primitive::Cylinder(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of the largest cone that fits in the
+    /// provided Aabb.
     pub fn cone(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         self.prim(Primitive::Cone(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of a 3-dimensional line segment with a provided
+    /// radius.
     pub fn line(
         &self,
         a: Vec3<impl AsPrimitive<f32>>,
@@ -565,6 +590,11 @@ impl Painter {
         })
     }
 
+    /// Returns a `PrimitiveRef` of a 3-dimensional line segment where the
+    /// provided radius only affects the width of the shape. The height of
+    /// the shape is determined by the `height` parameter. The height of the
+    /// shape is extended upwards along the z axis from the line. The top and
+    /// bottom of the shape are planar and parallel to each other and the line.
     pub fn segment_prism(
         &self,
         a: Vec3<impl AsPrimitive<f32>>,
@@ -583,6 +613,9 @@ impl Painter {
         })
     }
 
+    /// Returns a `PrimitiveRef` of a 3-dimensional cubic bezier curve by
+    /// dividing the curve into line segments with one segment approximately
+    /// every length of 5 blocks.
     pub fn cubic_bezier(
         &self,
         start: Vec3<impl AsPrimitive<f32>>,
@@ -591,24 +624,25 @@ impl Painter {
         end: Vec3<impl AsPrimitive<f32>>,
         radius: f32,
     ) -> PrimitiveRef {
-        self.cubic_bezier_with_num_segments(start, ctrl0, ctrl1, end, radius, 10)
-    }
-
-    pub fn cubic_bezier_with_num_segments(
-        &self,
-        start: Vec3<impl AsPrimitive<f32>>,
-        ctrl0: Vec3<impl AsPrimitive<f32>>,
-        ctrl1: Vec3<impl AsPrimitive<f32>>,
-        end: Vec3<impl AsPrimitive<f32>>,
-        radius: f32,
-        num_segments: usize,
-    ) -> PrimitiveRef {
         let bezier = CubicBezier3 {
             start: start.as_(),
             ctrl0: ctrl0.as_(),
             ctrl1: ctrl1.as_(),
             end: end.as_(),
         };
+        let length = bezier.length_by_discretization(10);
+        let num_segments = (0.2 * length).ceil() as u16;
+        self.cubic_bezier_with_num_segments(bezier, radius, num_segments)
+    }
+
+    /// Returns a `PrimitiveRef` of a 3-dimensional cubic bezier curve by
+    /// dividing the curve into `num_segments` line segments.
+    pub fn cubic_bezier_with_num_segments(
+        &self,
+        bezier: CubicBezier3<f32>,
+        radius: f32,
+        num_segments: u16,
+    ) -> PrimitiveRef {
         let mut bezier_prim = self.empty();
         let range: Vec<_> = (0..=num_segments).collect();
         range.windows(2).for_each(|w| {
@@ -619,6 +653,12 @@ impl Painter {
         bezier_prim
     }
 
+    /// Returns a `PrimitiveRef` of a 3-dimensional cubic bezier curve where the
+    /// radius only governs the width of the curve. The height is governed
+    /// by the `height` parameter where the shape extends upwards from the
+    /// bezier curve by the value of `height`. The shape is constructed by
+    /// dividing the curve into line segment prisms with one segment prism
+    /// approximately every length of 5 blocks.
     pub fn cubic_bezier_prism(
         &self,
         start: Vec3<impl AsPrimitive<f32>>,
@@ -628,25 +668,29 @@ impl Painter {
         radius: f32,
         height: f32,
     ) -> PrimitiveRef {
-        self.cubic_bezier_prism_with_num_segments(start, ctrl0, ctrl1, end, radius, height, 10)
-    }
-
-    pub fn cubic_bezier_prism_with_num_segments(
-        &self,
-        start: Vec3<impl AsPrimitive<f32>>,
-        ctrl0: Vec3<impl AsPrimitive<f32>>,
-        ctrl1: Vec3<impl AsPrimitive<f32>>,
-        end: Vec3<impl AsPrimitive<f32>>,
-        radius: f32,
-        height: f32,
-        num_segments: usize,
-    ) -> PrimitiveRef {
         let bezier = CubicBezier3 {
             start: start.as_(),
             ctrl0: ctrl0.as_(),
             ctrl1: ctrl1.as_(),
             end: end.as_(),
         };
+        let length = bezier.length_by_discretization(10);
+        let num_segments = (0.2 * length).ceil() as u16;
+        self.cubic_bezier_prism_with_num_segments(bezier, radius, height, num_segments)
+    }
+
+    /// Returns a `PrimitiveRef` of a 3-dimensional cubic bezier curve where the
+    /// radius only governs the width of the curve. The height is governed
+    /// by the `height` parameter where the shape extends upwards from the
+    /// bezier curve by the value of `height`. The shape is constructed by
+    /// dividing the curve into `num_segments` line segment prisms.
+    pub fn cubic_bezier_prism_with_num_segments(
+        &self,
+        bezier: CubicBezier3<f32>,
+        radius: f32,
+        height: f32,
+        num_segments: u16,
+    ) -> PrimitiveRef {
         let mut bezier_prim = self.empty();
         let range: Vec<_> = (0..=num_segments).collect();
         range.windows(2).for_each(|w| {
@@ -658,21 +702,32 @@ impl Painter {
         bezier_prim
     }
 
+    /// Returns a `PrimitiveRef` of a plane. The Aabr provides the bounds for
+    /// the plane in the xy plane and the gradient determines its slope through
+    /// the dot product. A gradient of <1.0, 0.0> creates a plane with a
+    /// slope of 1.0 in the xz plane.
     pub fn plane(&self, aabr: Aabr<i32>, origin: Vec3<i32>, gradient: Vec2<f32>) -> PrimitiveRef {
         let aabr = aabr.made_valid();
         self.prim(Primitive::Plane(aabr, origin, gradient))
     }
 
+    /// Returns a `PrimitiveRef` of an Aabb with a slope cut into it. The
+    /// `inset` governs the slope. The `dir` determines which direction the
+    /// ramp points.
     pub fn ramp(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Ramp { aabb, inset, dir })
     }
 
+    /// Returns a `PrimitiveRef` of a triangular prism with the base being
+    /// vertical. A gable is a tent shape. The `inset` governs the slope of
+    /// the gable. The `dir` determines which way the gable points.
     pub fn gable(&self, aabb: Aabb<i32>, inset: i32, dir: Dir) -> PrimitiveRef {
         let aabb = aabb.made_valid();
         self.prim(Primitive::Gable { aabb, inset, dir })
     }
 
+    /// Places a sprite at the provided location with the default rotation.
     pub fn sprite(&self, pos: Vec3<i32>, sprite: SpriteKind) {
         self.aabb(Aabb {
             min: pos,
@@ -681,6 +736,7 @@ impl Painter {
         .fill(Fill::Sprite(sprite))
     }
 
+    /// Places a sprite at the provided location with the provided orientation.
     pub fn rotated_sprite(&self, pos: Vec3<i32>, sprite: SpriteKind, ori: u8) {
         self.aabb(Aabb {
             min: pos,
@@ -689,6 +745,8 @@ impl Painter {
         .fill(Fill::RotatedSprite(sprite, ori))
     }
 
+    /// Returns a `PrimitiveRef` of the largest pyramid with a slope of 1 that
+    /// fits in the provided Aabb.
     pub fn pyramid(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         let inset = 0;
         let aabb = aabb.made_valid();
@@ -714,6 +772,8 @@ impl Painter {
         }))
     }
 
+    /// Used to create a new `PrimitiveRef`. Requires the desired `Primitive` to
+    /// be supplied.
     pub fn prim(&self, prim: Primitive) -> PrimitiveRef {
         PrimitiveRef {
             id: self.prims.borrow_mut().insert(prim),
@@ -721,8 +781,11 @@ impl Painter {
         }
     }
 
+    /// Returns a `PrimitiveRef` of an empty primitive. Useful when additional
+    /// primitives are unioned within a loop.
     pub fn empty(&self) -> PrimitiveRef { self.prim(Primitive::Empty) }
 
+    /// Fills the supplied primitive with the provided `Fill`.
     pub fn fill(&self, prim: impl Into<Id<Primitive>>, fill: Fill) {
         self.fills.borrow_mut().push((prim.into(), fill));
     }
@@ -739,39 +802,59 @@ impl<'a> From<PrimitiveRef<'a>> for Id<Primitive> {
 }
 
 impl<'a> PrimitiveRef<'a> {
+    /// Joins two primitives together by returning the total of the blocks of
+    /// both primitives. In boolean logic this is an `OR` operation.
     pub fn union(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::union(self, other))
     }
 
+    /// Joins two primitives together by returning only overlapping blocks. In
+    /// boolean logic this is an `AND` operation.
     pub fn intersect(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::intersect(self, other))
     }
 
+    /// Subtracts the blocks of the `other` primitive from `self`. In boolean
+    /// logic this is a `NOT` operation.
     pub fn without(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::without(self, other))
     }
 
+    /// Translates the primitive along the vector `trans`.
     pub fn translate(self, trans: Vec3<i32>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::translate(self, trans))
     }
 
+    /// Rotates the primitive about the minimum position of the primitive by
+    /// multiplying each block position by the provided rotation matrix.
     pub fn rotate(self, rot: Mat3<i32>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::rotate(self, rot))
     }
 
+    /// Scales the primitive along each axis by the x, y, and z components of
+    /// the `scale` vector respectively.
     pub fn scale(self, scale: Vec3<f32>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::scale(self, scale))
     }
 
+    /// Fills the primitive with `fill` and paints it into the world.
     pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
 
+    /// Fills the primitive with empty blocks. This will subtract any
+    /// blocks in the world that inhabit the same positions as the blocks in
+    /// this primitive.
     pub fn clear(self) { self.painter.fill(self, Fill::Block(Block::empty())); }
 
+    /// Returns a `PrimitiveRef` that conforms to the provided sampling
+    /// function.
     pub fn sample(self, sampling: impl Fn(Vec3<i32>) -> bool + 'static) -> PrimitiveRef<'a> {
         self.painter
             .prim(Primitive::sampling(self, Box::new(sampling)))
     }
 
+    /// Returns a `PrimitiveRef` of the primitive in addition to the same
+    /// primitive translated by `offset` and repeated `count` times, each time
+    /// translated by an additional offset.
     pub fn repeat(self, offset: Vec3<i32>, count: i32) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::repeat(self, offset, count))
     }
