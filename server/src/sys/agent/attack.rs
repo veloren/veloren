@@ -2144,4 +2144,52 @@ impl<'a> AgentData<'a> {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
     }
+
+    pub fn handle_mandragora(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const SCREAM_RANGE: f32 = 10.0;
+
+        if !agent.action_state.initialized {
+            agent.action_state.counter = self.health.map_or(0.0, |h| h.maximum());
+            agent.action_state.initialized = true;
+        }
+
+        if !agent.action_state.condition {
+            // If mandragora is still "sleeping" and hasn't screamed yet, do nothing until
+            // target in range or until it's taken damage
+            if self
+                .health
+                .map_or(false, |h| h.current() < agent.action_state.counter)
+                || attack_data.dist_sqrd < SCREAM_RANGE.powi(2)
+            {
+                agent.action_state.condition = true;
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else {
+            // Once mandragora has woken, move towards target and attack
+            if attack_data.in_min_range() {
+                controller.push_basic_input(InputKind::Primary);
+            } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
+                && can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                // If in pathing range and can see target, move towards them
+                self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+            } else {
+                // Otherwise, go back to sleep
+                agent.action_state.condition = false;
+                agent.action_state.counter = self.health.map_or(0.0, |h| h.maximum());
+            }
+        }
+    }
 }

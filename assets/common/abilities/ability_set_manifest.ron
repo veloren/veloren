@@ -84,6 +84,11 @@
         secondary: "common.abilities.custom.deadwood.dash",
         abilities: [],
     ),
+    Custom("Mandragora"): (
+        primary: "common.abilities.custom.mandragora.basic",
+        secondary: "common.abilities.custom.mandragora.scream",
+        abilities: [],
+    ),
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",

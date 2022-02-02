@@ -232,6 +232,43 @@ impl MeleeConstructor {
                     .with_effect(knockback)
                     .with_combo_increment()
             },
+            SonicWave {
+                damage,
+                poise,
+                knockback,
+            } => {
+                let mut damage = AttackDamage::new(
+                    Damage {
+                        source: DamageSource::Melee,
+                        kind: DamageKind::Energy,
+                        value: damage,
+                    },
+                    Some(GroupTarget::OutOfGroup),
+                );
+
+                if let Some(damage_effect) = self.damage_effect {
+                    damage = damage.with_effect(damage_effect);
+                }
+
+                let poise =
+                    AttackEffect::new(Some(GroupTarget::OutOfGroup), CombatEffect::Poise(poise))
+                        .with_requirement(CombatRequirement::AnyDamage);
+                let knockback = AttackEffect::new(
+                    Some(GroupTarget::OutOfGroup),
+                    CombatEffect::Knockback(Knockback {
+                        strength: knockback,
+                        direction: KnockbackDir::Away,
+                    }),
+                )
+                .with_requirement(CombatRequirement::AnyDamage);
+
+                Attack::default()
+                    .with_damage(damage)
+                    .with_crit(crit_chance, crit_mult)
+                    .with_effect(poise)
+                    .with_effect(knockback)
+                    .with_combo_increment()
+            },
         };
 
         Melee {
@@ -324,6 +361,22 @@ impl MeleeConstructor {
                     pull: scale_values(a_pull, b_pull),
                     lifesteal: scale_values(a_lifesteal, b_lifesteal),
                 },
+                (
+                    SonicWave {
+                        damage: a_damage,
+                        poise: a_poise,
+                        knockback: a_knockback,
+                    },
+                    SonicWave {
+                        damage: b_damage,
+                        poise: b_poise,
+                        knockback: b_knockback,
+                    },
+                ) => SonicWave {
+                    damage: scale_values(a_damage, b_damage),
+                    poise: scale_values(a_poise, b_poise),
+                    knockback: scale_values(a_knockback, b_knockback),
+                },
                 _ => {
                     dev_panic!(
                         "Attempted to scale on a melee attack between two different kinds of \
@@ -382,6 +435,11 @@ pub enum MeleeConstructorKind {
         pull: f32,
         lifesteal: f32,
     },
+    SonicWave {
+        damage: f32,
+        poise: f32,
+        knockback: f32,
+    },
 }
 
 impl MeleeConstructorKind {
@@ -425,6 +483,14 @@ impl MeleeConstructorKind {
                 lifesteal: _,
             } => {
                 *damage *= stats.power;
+            },
+            SonicWave {
+                ref mut damage,
+                ref mut poise,
+                knockback: _,
+            } => {
+                *damage *= stats.power;
+                *poise *= stats.effect_power;
             },
         }
         self
