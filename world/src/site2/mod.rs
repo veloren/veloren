@@ -55,7 +55,19 @@ impl Site {
             .map(|e| e.abs())
             .reduce_max()
             .max(self.tiles.bounds.max.map(|e| e.abs()).reduce_max())
-            + 1)
+            // Temporary solution for giving giant_tree's leaves enough space to be painted correctly
+            // TODO: This will have to be replaced by a system as described on discord :
+            // https://discord.com/channels/449602562165833758/450064928720814081/937044837461536808
+            + if self
+                .plots
+                .values()
+                .any(|p| matches!(&p.kind, PlotKind::GiantTree(_)))
+            {
+                // 25 Seems to be big enough for the current scale of 4.0
+                25
+            } else {
+                1
+            })
             * tile::TILE_SIZE as i32) as f32
     }
 
@@ -357,6 +369,40 @@ impl Site {
 
         site.blit_aabr(aabr, Tile {
             kind: TileKind::Empty,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+
+        site
+    }
+
+    pub fn generate_giant_tree(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
+
+        site.demarcate_obstacles(land);
+        let giant_tree = plot::GiantTree::generate(&site, Vec2::zero(), land, &mut rng);
+        site.name = giant_tree.name().to_string();
+        let size = (giant_tree.radius() / tile::TILE_SIZE as f32).ceil() as i32;
+
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size) + 1,
+        };
+
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::GiantTree(giant_tree),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::Building,
             plot: Some(plot),
             hard_alt: None,
         });
@@ -875,6 +921,13 @@ impl Site {
             }
         }
 
+        // TODO: Solve the 'trees are too big' problem and remove this
+        for (id, plot) in self.plots.iter() {
+            if matches!(&plot.kind, PlotKind::GiantTree(_)) {
+                plots.insert(id);
+            }
+        }
+
         let mut plots_to_render = plots.into_iter().collect::<Vec<_>>();
         plots_to_render.sort_unstable();
 
@@ -888,10 +941,11 @@ impl Site {
 
         for plot in plots_to_render {
             let (prim_tree, fills) = match &self.plots[plot].kind {
-                PlotKind::House(house) => house.render_collect(self, &canvas.land()),
-                PlotKind::Workshop(workshop) => workshop.render_collect(self, &canvas.land()),
-                PlotKind::Castle(castle) => castle.render_collect(self, &canvas.land()),
-                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, &canvas.land()),
+                PlotKind::House(house) => house.render_collect(self, canvas),
+                PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
+                PlotKind::Castle(castle) => castle.render_collect(self, canvas),
+                PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
+                PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 _ => continue,
             };
 

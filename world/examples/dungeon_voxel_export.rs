@@ -44,7 +44,7 @@ fn main() -> Result {
     CanvasInfo::with_mock_canvas_info(index.as_index_ref(), world.sim(), |canvas| {
         for plot in site.plots() {
             if let PlotKind::Dungeon(dungeon) = plot.kind() {
-                let (prim_tree, fills) = dungeon.render_collect(&site, &canvas.land());
+                let (prim_tree, fills) = dungeon.render_collect(&site, canvas);
 
                 for (prim, fill) in fills {
                     let aabb = fill.get_bounds(&prim_tree, prim);

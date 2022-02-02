@@ -3,6 +3,7 @@ use crate::{
     block::block_from_structure,
     site2::util::Dir,
     util::{RandomField, Sampler},
+    CanvasInfo,
 };
 use common::{
     store::{Id, Store},
@@ -504,6 +505,7 @@ impl Fill {
 pub struct Painter {
     prims: RefCell<Store<Primitive>>,
     fills: RefCell<Vec<(Id<Primitive>, Fill)>>,
+    render_area: Aabr<i32>,
 }
 
 impl Painter {
@@ -789,6 +791,8 @@ impl Painter {
     pub fn fill(&self, prim: impl Into<Id<Primitive>>, fill: Fill) {
         self.fills.borrow_mut().push((prim.into(), fill));
     }
+
+    pub fn render_aabr(&self) -> Aabr<i32> { self.render_area }
 }
 
 #[derive(Copy, Clone)]
@@ -867,14 +871,18 @@ pub trait Structure {
     fn render_collect(
         &self,
         site: &Site,
-        land: &Land,
+        canvas: &CanvasInfo,
     ) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
         let painter = Painter {
             prims: RefCell::new(Store::default()),
             fills: RefCell::new(Vec::new()),
+            render_area: Aabr {
+                min: canvas.wpos,
+                max: canvas.wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
+            },
         };
 
-        self.render(site, land, &painter);
+        self.render(site, &canvas.land(), &painter);
         (painter.prims.into_inner(), painter.fills.into_inner())
     }
 }

@@ -275,8 +275,8 @@ pub fn apply_trees_to(
                         && dynamic_rng.gen_range(0..256) == 0
                     {
                         canvas.set(wpos + Vec3::unit_z(), Block::air(SpriteKind::Lantern));
-                    // Add a snow covering to the block above under certain
-                    // circumstances
+                        // Add a snow covering to the block above under certain
+                        // circumstances
                     } else if col.snow_cover
                         && ((block.kind() == BlockKind::Leaves && is_leaf_top)
                             || (is_top && block.is_filled()))
@@ -803,47 +803,54 @@ impl ProceduralTree {
     }
 
     // Recursively search for branches or leaves by walking the tree's branch graph.
-    fn is_branch_or_leaves_at_inner(
+    fn walk_inner(
         &self,
-        pos: Vec3<f32>,
+        descend: &mut impl FnMut(&Branch, &Branch) -> bool,
         parent: &Branch,
         branch_idx: usize,
-    ) -> (bool, bool, bool, bool) {
+    ) {
         let branch = &self.branches[branch_idx];
-        // Always probe the sibling branch, since our AABB doesn't include its bounds
-        // (it's not one of our children)
-        let branch_or_leaves = branch
+        // Always probe the sibling branch, since it's not a child of the current
+        // branch.
+        let _branch_or_leaves = branch
             .sibling_idx
-            .map(|idx| Vec4::<bool>::from(self.is_branch_or_leaves_at_inner(pos, parent, idx)))
-            .unwrap_or_default();
+            .map(|idx| self.walk_inner(descend, parent, idx));
 
-        // Only continue probing this sub-graph of the tree if the sample position falls
-        // within its AABB
-        if branch.aabb.contains_point(pos) {
-            // Probe this branch
-            let (this, _d2) = branch.is_branch_or_leaves_at(&self.config, pos, parent);
-
-            let siblings = branch_or_leaves | Vec4::from(this);
-
+        // Only continue probing this sub-graph of the tree if the branch maches a
+        // criteria (usually that it falls within the region we care about
+        // sampling)
+        if descend(branch, parent) {
             // Probe the children of this branch
-            let children = branch
+            let _children = branch
                 .child_idx
-                .map(|idx| Vec4::<bool>::from(self.is_branch_or_leaves_at_inner(pos, branch, idx)))
-                .unwrap_or_default();
-
-            // Only allow empties for children if there is no solid at the current depth
-            (siblings | children).into_tuple()
-        } else {
-            branch_or_leaves.into_tuple()
+                .map(|idx| self.walk_inner(descend, branch, idx));
         }
+    }
+
+    /// Recursively walk the tree's branches, calling the current closure with
+    /// the branch and its parent. If the closure returns `false`, recursion
+    /// into the child branches is skipped.
+    pub fn walk<F: FnMut(&Branch, &Branch) -> bool>(&self, mut f: F) {
+        self.walk_inner(&mut f, &self.branches[self.trunk_idx], self.trunk_idx);
     }
 
     /// Determine whether there are either branches or leaves at the given
     /// position in the tree.
     #[inline(always)]
     pub fn is_branch_or_leaves_at(&self, pos: Vec3<f32>) -> (bool, bool, bool, bool) {
-        let (log, leaf, platform, air) =
-            self.is_branch_or_leaves_at_inner(pos, &self.branches[self.trunk_idx], self.trunk_idx);
+        let mut flags = Vec4::broadcast(false);
+        self.walk(|branch, parent| {
+            if branch.aabb.contains_point(pos) {
+                flags |=
+                    Vec4::<bool>::from(branch.is_branch_or_leaves_at(&self.config, pos, parent).0);
+                true
+            } else {
+                false
+            }
+        });
+
+        let (log, leaf, platform, air) = flags.into_tuple();
+
         let root = if self.root_aabb.contains_point(pos) {
             self.roots.iter().any(|root| {
                 let p = root.line.projected_point(pos);
@@ -867,7 +874,7 @@ impl ProceduralTree {
 // associated with the parent. This means that the entire tree is laid out in a
 // walkable graph where each branch refers only to two other branches. As a
 // result, walking the tree is simply a case of performing double recursion.
-struct Branch {
+pub struct Branch {
     line: LineSegment3<f32>,
     wood_radius: f32,
     leaf_radius: f32,
@@ -969,6 +976,16 @@ impl Branch {
 
         (mask, d2)
     }
+
+    /// This returns an AABB of both the branch and all of the children of that
+    /// branch
+    pub fn get_aabb(&self) -> Aabb<f32> { self.aabb }
+
+    pub fn get_line(&self) -> LineSegment3<f32> { self.line }
+
+    pub fn get_wood_radius(&self) -> f32 { self.wood_radius }
+
+    pub fn get_leaf_radius(&self) -> f32 { self.leaf_radius }
 }
 
 struct Root {

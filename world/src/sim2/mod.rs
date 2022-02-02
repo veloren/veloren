@@ -198,6 +198,7 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
         let mut castles = EconStatistics::default();
         let mut towns = EconStatistics::default();
         let mut dungeons = EconStatistics::default();
+        let giant_trees = EconStatistics::default();
         for site in index.sites.ids() {
             let site = &index.sites[site];
             match site.kind {
@@ -206,6 +207,7 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
                 SiteKind::Castle(_) => castles += site.economy.pop,
                 SiteKind::Tree(_) => (),
                 SiteKind::Refactor(_) => towns += site.economy.pop,
+                SiteKind::GiantTree(_) => (),
             }
         }
         if towns.valid() {
@@ -231,6 +233,14 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
                 dungeons.max,
                 dungeons.sum / (dungeons.count as f32)
             );
+        }
+        if giant_trees.valid() {
+            info!(
+                "Giant Trees {:.0}-{:.0} avg {:.0}",
+                giant_trees.min,
+                giant_trees.max,
+                giant_trees.sum / (giant_trees.count as f32)
+            )
         }
         check_money(index);
     }

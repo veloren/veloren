@@ -103,7 +103,13 @@ impl Civs {
                 let (kind, size) = match ctx.rng.gen_range(0..64) {
                     0..=4 => (SiteKind::Castle, 3),
                     5..=28 if index.features().site2 => (SiteKind::Refactor, 6),
-                    29..=31 => (SiteKind::Tree, 4),
+                    29..=31 => {
+                        if index.features().site2 {
+                            (SiteKind::GiantTree, 4)
+                        } else {
+                            (SiteKind::Tree, 4)
+                        }
+                    },
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size, kind)?;
@@ -129,6 +135,7 @@ impl Civs {
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (0i32, 0.0),
                 SiteKind::Tree => (12i32, 8.0),
+                SiteKind::GiantTree => (12i32, 8.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -207,6 +214,11 @@ impl Civs {
                 SiteKind::Tree => {
                     WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
                 },
+                SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
+                    &Land::from_sim(ctx.sim),
+                    &mut rng,
+                    wpos,
+                )),
             });
             sim_site.site_tmp = Some(site);
             let site_ref = &index.sites[site];
@@ -1029,6 +1041,7 @@ pub enum SiteKind {
     Castle,
     Refactor,
     Tree,
+    GiantTree,
 }
 
 impl SiteKind {
