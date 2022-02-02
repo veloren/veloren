@@ -402,7 +402,7 @@ impl ChatCommand {
                     Enum("item", ITEM_SPECS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
-                "Give yourself some items",
+                "Give yourself some items.\nFor an example or to auto complete use Tab.",
                 Some(Admin),
             ),
             ChatCommand::Goto => cmd(
@@ -441,7 +441,7 @@ impl ChatCommand {
                 "Display information about commands",
                 None,
             ),
-            ChatCommand::Home => cmd(vec![], "Return to the home town", None),
+            ChatCommand::Home => cmd(vec![], "Return to the home town", Some(Moderator)),
             ChatCommand::JoinFaction => ChatCommandData::new(
                 vec![Any("faction", Optional)],
                 "Join/leave the specified faction",
@@ -506,7 +506,7 @@ impl ChatCommand {
                     Enum("entity_config", ENTITY_CONFIGS.clone(), Required),
                     Integer("num", 1, Optional),
                 ],
-                "Spawn entity from config near you",
+                "Spawn entity from config near you.\nFor an example or to auto complete use Tab.",
                 Some(Admin),
             ),
             ChatCommand::MakeSprite => cmd(
