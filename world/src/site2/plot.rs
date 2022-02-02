@@ -1,9 +1,12 @@
 mod castle;
 pub mod dungeon;
+mod giant_tree;
 mod house;
 mod workshop;
 
-pub use self::{castle::Castle, dungeon::Dungeon, house::House, workshop::Workshop};
+pub use self::{
+    castle::Castle, dungeon::Dungeon, giant_tree::GiantTree, house::House, workshop::Workshop,
+};
 
 use super::*;
 use crate::util::DHashSet;
@@ -45,4 +48,5 @@ pub enum PlotKind {
     Castle(Castle),
     Road(Path<Vec2<i32>>),
     Dungeon(Dungeon),
+    GiantTree(GiantTree),
 }

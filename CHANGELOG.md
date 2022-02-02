@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A 'point light glow' effect, making lanterns and other point lights more visually pronounced
 - Generate random name for site2 sites
 - Shader dithering to remove banding from scenes with large colour gradients
+- Convert giant trees to site2
 
 ### Changed
 

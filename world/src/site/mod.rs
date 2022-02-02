@@ -62,6 +62,7 @@ pub enum SiteKind {
     Castle(Castle),
     Refactor(site2::Site),
     Tree(tree::Tree),
+    GiantTree(site2::Site),
 }
 
 impl Site {
@@ -100,6 +101,13 @@ impl Site {
         }
     }
 
+    pub fn giant_tree(gt: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::GiantTree(gt),
+            economy: Economy::default(),
+        }
+    }
+
     pub fn radius(&self) -> f32 {
         match &self.kind {
             SiteKind::Settlement(s) => s.radius(),
@@ -107,6 +115,7 @@ impl Site {
             SiteKind::Castle(c) => c.radius(),
             SiteKind::Refactor(s) => s.radius(),
             SiteKind::Tree(t) => t.radius(),
+            SiteKind::GiantTree(gt) => gt.radius(),
         }
     }
 
@@ -117,6 +126,7 @@ impl Site {
             SiteKind::Castle(c) => c.get_origin(),
             SiteKind::Refactor(s) => s.origin,
             SiteKind::Tree(t) => t.origin,
+            SiteKind::GiantTree(gt) => gt.origin,
         }
     }
 
@@ -127,6 +137,7 @@ impl Site {
             SiteKind::Castle(c) => c.spawn_rules(wpos),
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
             SiteKind::Tree(t) => t.spawn_rules(wpos),
+            SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
         }
     }
 
@@ -137,6 +148,7 @@ impl Site {
             SiteKind::Castle(c) => c.name(),
             SiteKind::Refactor(s) => s.name(),
             SiteKind::Tree(_) => "Giant Tree",
+            SiteKind::GiantTree(gt) => gt.name(),
         }
     }
 
@@ -169,6 +181,7 @@ impl Site {
             SiteKind::Castle(c) => c.apply_to(canvas.index, canvas.wpos, get_col, canvas.chunk),
             SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
             SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
+            SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
         }
     }
 
@@ -192,6 +205,7 @@ impl Site {
             SiteKind::Castle(c) => c.apply_supplement(dynamic_rng, wpos2d, get_column, supplement),
             SiteKind::Refactor(_) => {},
             SiteKind::Tree(_) => {},
+            SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 

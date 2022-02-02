@@ -155,7 +155,7 @@ impl World {
                                 },
                                 civ::SiteKind::Castle => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Refactor => world_msg::SiteKind::Town,
-                                civ::SiteKind::Tree => world_msg::SiteKind::Tree,
+                                civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }
