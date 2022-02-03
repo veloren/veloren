@@ -685,6 +685,7 @@ impl FigureMgr {
             // Velocity relative to the current ground
             let rel_vel = anim::vek::Vec3::<f32>::from(vel.0 - physics.ground_vel);
 
+            let look_dir = controller.map(|c| c.inputs.look_dir).unwrap_or_default();
             let is_player = scene_data.player_entity == entity;
             let player_camera_mode = if is_player {
                 camera_mode
@@ -704,13 +705,7 @@ impl FigureMgr {
                     (anim::vek::Vec3::<f32>::from(pos.0),),
                     anim::vek::Quaternion::<f32>::default(),
                 ));
-
-            // TODO: Maintain look dir state separate from the controller and sync it for
-            // all entities. Then read from that instead of the controller here.
-            let look_dir = controller
-                .map(|c| c.inputs.look_dir)
-                .unwrap_or_else(|| Ori::new(ori.into_vec4().into()).look_dir());
-
+            let wall_dir = physics.on_wall.map(|v| anim::vek::Vec3::from(v));
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
             // as possible, so we make the assumption that players don't care so
@@ -906,8 +901,8 @@ impl FigureMgr {
 
                     let target_base = match (
                         physics.on_ground.is_some(),
-                        rel_vel.magnitude_squared() > MOVING_THRESHOLD_SQR, // Moving
-                        physics.in_liquid().is_some(),                      // In water
+                        rel_vel.magnitude_squared() > 0.01, // Moving
+                        physics.in_liquid().is_some(),      // In water
                         is_rider.is_some(),
                     ) {
                         // Standing
@@ -944,6 +939,7 @@ impl FigureMgr {
                                     time,
                                     rel_avg_vel,
                                     state.acc_vel,
+                                    wall_dir,
                                 ),
                                 state.state_time,
                                 &mut state_animation_rate,
@@ -5412,6 +5408,7 @@ impl FigureMgr {
         }
     }
 
+    #[allow(clippy::too_many_arguments)] // TODO: Pending review in #587
     fn get_model_for_render(
         &self,
         tick: u64,

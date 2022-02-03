@@ -312,11 +312,11 @@
         ),
         "Iron": (
             left: (
-                vox_spec: ("armor.mail.iron.hand", (-2.5, -1.0, -3.0)),
+                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.5, -3.0)),
                 color: None
             ),
             right: (
-                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.0, -3.0)),
+                vox_spec: ("armor.mail.iron.hand", (-1.5, -1.5, -3.0)),
                 color: None
             )
         ),

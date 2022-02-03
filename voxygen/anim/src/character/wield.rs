@@ -45,7 +45,7 @@ impl Animation for WieldAnimation {
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         *rate = 1.0;
-        let lab: f32 = 1.0;
+        let lab: f32 = 0.8;
         let speed = Vec2::<f32>::from(velocity).magnitude();
         let speednorm = speed / 9.5;
         let mut next = (*skeleton).clone();
@@ -209,13 +209,10 @@ impl Animation for WieldAnimation {
                         * Quaternion::rotation_y(s_a.hhr.4)
                         * Quaternion::rotation_z(s_a.hhr.5);
 
-                    next.control.position = Vec3::new(
-                        s_a.hc.0,
-                        s_a.hc.1 + speed * 0.2,
-                        s_a.hc.2 + speed * 0.8 + direction * -5.0,
-                    );
+                    next.control.position =
+                        Vec3::new(s_a.hc.0, s_a.hc.1, s_a.hc.2 + direction * -5.0);
                     next.control.orientation = Quaternion::rotation_x(s_a.hc.3 + u_slow * 0.15)
-                        * Quaternion::rotation_y(s_a.hc.4 + speed * -0.04)
+                        * Quaternion::rotation_y(s_a.hc.4)
                         * Quaternion::rotation_z(s_a.hc.5 + u_slowalt * 0.07);
                 },
                 Some(ToolKind::Staff) | Some(ToolKind::Sceptre) => {

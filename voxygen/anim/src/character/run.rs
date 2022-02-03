@@ -17,6 +17,7 @@ type RunAnimationDependency = (
     f32,
     Vec3<f32>,
     f32,
+    Option<Vec3<f32>>,
 );
 
 impl Animation for RunAnimation {
@@ -40,6 +41,7 @@ impl Animation for RunAnimation {
             global_time,
             avg_vel,
             acc_vel,
+            wall,
         ): Self::Dependency<'a>,
         anim_time: f32,
         rate: &mut f32,
@@ -52,7 +54,7 @@ impl Animation for RunAnimation {
         let impact = (avg_vel.z).max(-8.0);
         let speednorm = (speed / 9.4).powf(0.6);
 
-        let lab: f32 = 1.0;
+        let lab: f32 = 0.8;
 
         let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
@@ -68,8 +70,6 @@ impl Animation for RunAnimation {
         let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
 
-        let shortalter = (acc_vel * lab * 1.6 + PI / -2.0).sin();
-
         let foothoril = (acc_vel * 1.6 * lab + PI * 1.45).sin();
         let foothorir = (acc_vel * 1.6 * lab + PI * (0.45)).sin();
         let footstrafel = (acc_vel * 1.6 * lab + PI * 1.45).sin();
@@ -80,7 +80,8 @@ impl Animation for RunAnimation {
         let footvertsl = (acc_vel * 1.6 * lab).sin();
         let footvertsr = (acc_vel * 1.6 * lab + PI * 0.5).sin();
 
-        let shortalt = (acc_vel * lab * 1.6 + PI / 2.0).sin();
+        let shortalt = (acc_vel * lab * 3.2 + PI / 1.0).sin();
+        let shortalt2 = (acc_vel * lab * 3.2).sin();
 
         let short = ((5.0 / (1.5 + 3.5 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
             * ((acc_vel * lab * 1.6).sin());
@@ -108,21 +109,21 @@ impl Animation for RunAnimation {
             (global_time + anim_time / 18.0).floor().mul(1337.0).sin() * 0.1,
         );
 
-        next.head.position = Vec3::new(0.0, 1.0 * speednorm + s_a.head.0, s_a.head.1 + short * 0.1);
+        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1 + short * 0.1);
         next.head.orientation =
-            Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 - short * 0.02)
-                * Quaternion::rotation_x(head_look.y + 0.45 * speednorm);
+            Quaternion::rotation_z(tilt * -2.5 + head_look.x * 0.2 + short * -0.06)
+                * Quaternion::rotation_x(head_look.y + 0.45 * speednorm + shortalt2 * -0.05);
         next.head.scale = Vec3::one() * s_a.head_scale;
 
         next.chest.position = Vec3::new(
             0.0,
             s_a.chest.0,
-            s_a.chest.1 + 1.0 * speednorm + shortalt * -0.8,
+            s_a.chest.1 + 1.0 * speednorm + shortalt * -0.2,
         );
-        next.chest.orientation = Quaternion::rotation_z(short * 0.06 + tilt * -0.6)
+        next.chest.orientation = Quaternion::rotation_z(short * 0.16 + tilt * -0.6)
             * Quaternion::rotation_y(tilt * 1.6)
             * Quaternion::rotation_x(
-                impact * 0.06 + shortalter * 0.035 + speednorm * -0.5 + (tilt.abs()),
+                impact * 0.06 + shortalt2 * 0.03 + speednorm * -0.5 + (tilt.abs()),
             );
 
         next.belt.position = Vec3::new(0.0, 0.25 + s_a.belt.0, 0.25 + s_a.belt.1);
@@ -161,10 +162,10 @@ impl Animation for RunAnimation {
         next.foot_l.position = Vec3::new(
             -s_a.foot.0 + footstrafel * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -7.5 * speednorm)
+                + (1.0 - sideabs) * (-0.5 * speednorm + foothoril * -10.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
-                + (1.0 - sideabs) * (2.0 * speednorm + ((footvertl * -2.1 * speednorm).max(-1.0)))
+                + (1.0 - sideabs) * (2.0 * speednorm + ((footvertl * -2.5 * speednorm).max(-1.0)))
                 + side * ((footvertsl * 1.5).max(-1.0)),
         );
         next.foot_l.orientation = Quaternion::rotation_x(
@@ -176,10 +177,10 @@ impl Animation for RunAnimation {
         next.foot_r.position = Vec3::new(
             s_a.foot.0 + footstrafer * sideabs * 3.0 + tilt * -2.0,
             s_a.foot.1
-                + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -7.5 * speednorm)
+                + (1.0 - sideabs) * (-0.5 * speednorm + foothorir * -10.5 * speednorm)
                 + (direction * 5.0).max(0.0),
             s_a.foot.2
-                + (1.0 - sideabs) * (2.0 * speednorm + ((footvertr * -2.1 * speednorm).max(-1.0)))
+                + (1.0 - sideabs) * (2.0 * speednorm + ((footvertr * -2.5 * speednorm).max(-1.0)))
                 + side * ((footvertsr * -1.5).max(-1.0)),
         );
         next.foot_r.orientation = Quaternion::rotation_x(
@@ -309,6 +310,95 @@ impl Animation for RunAnimation {
         if let (None, Some(Hands::Two)) = hands {
             next.second = next.main;
         }
+        if wall.map_or(false, |e| e.y > 0.5) {
+            let push = (1.0 - orientation.x.abs()).powi(2);
+            let right_sub = -(orientation.x).min(0.0);
+            let left_sub = (orientation.x).max(0.0);
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * left_sub,
+            );
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * right_sub,
+            );
+            next.hand_l.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotr * -0.2 * right_sub)
+                    * Quaternion::rotation_y(1.0 * left_sub)
+                    * Quaternion::rotation_z(2.5 * left_sub + 1.0 * right_sub);
+            next.hand_r.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
+                    * Quaternion::rotation_y(-1.0 * right_sub)
+                    * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
+        } else if wall.map_or(false, |e| e.y < -0.5) {
+            let push = (1.0 - orientation.x.abs()).powi(2);
+            let right_sub = (orientation.x).max(0.0);
+            let left_sub = -(orientation.x).min(0.0);
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * left_sub,
+            );
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * right_sub,
+            );
+            next.hand_l.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotr * -0.2 * right_sub)
+                    * Quaternion::rotation_y(1.0 * left_sub)
+                    * Quaternion::rotation_z(2.5 * left_sub + 1.0 * right_sub);
+            next.hand_r.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
+                    * Quaternion::rotation_y(-1.0 * right_sub)
+                    * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
+        } else if wall.map_or(false, |e| e.x < -0.5) {
+            let push = (1.0 - orientation.y.abs()).powi(2);
+            let right_sub = -(orientation.y).min(0.0);
+            let left_sub = (orientation.y).max(0.0);
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * left_sub,
+            );
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * right_sub,
+            );
+            next.hand_l.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotr * -0.2 * right_sub)
+                    * Quaternion::rotation_y(1.0 * left_sub)
+                    * Quaternion::rotation_z(2.5 * left_sub + 1.0 * right_sub);
+            next.hand_r.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
+                    * Quaternion::rotation_y(-1.0 * right_sub)
+                    * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
+        } else if wall.map_or(false, |e| e.x > 0.5) {
+            let push = (1.0 - orientation.y.abs()).powi(2);
+            let right_sub = (orientation.y).max(0.0);
+            let left_sub = -(orientation.y).min(0.0);
+            next.hand_l.position = Vec3::new(
+                -s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * left_sub,
+            );
+            next.hand_r.position = Vec3::new(
+                s_a.hand.0,
+                s_a.hand.1,
+                s_a.hand.2 + push * 5.0 + 2.0 * right_sub,
+            );
+            next.hand_l.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotr * -0.2 * right_sub)
+                    * Quaternion::rotation_y(1.0 * left_sub)
+                    * Quaternion::rotation_z(2.5 * left_sub + 1.0 * right_sub);
+            next.hand_r.orientation =
+                Quaternion::rotation_x(push * 2.0 + footrotl * -0.2 * left_sub)
+                    * Quaternion::rotation_y(-1.0 * right_sub)
+                    * Quaternion::rotation_z(-2.5 * right_sub - 1.0 * left_sub);
+        };
 
         next
     }
