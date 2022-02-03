@@ -111,34 +111,26 @@ impl Structure for Workshop {
                 );
             }
         }
-        let positions = [
-            Vec2::new(center.x + 3, center.y - 2),
-            Vec2::new(center.x + 3, center.y + 2),
-            Vec2::new(center.x - 3, center.y),
-            Vec2::new(center.x, center.y + 3),
-            Vec2::new(center.x, center.y - 3),
-            Vec2::new(center.x + 6, center.y),
-            Vec2::new(center.x - 6, center.y),
-            Vec2::new(center.x, center.y - 6),
-            Vec2::new(center.x, center.y + 6),
-        ];
-        let mut stations = vec![
-            SpriteKind::CraftingBench,
-            SpriteKind::Forge,
-            SpriteKind::SpinningWheel,
-            SpriteKind::TanningRack,
-            SpriteKind::CookingPot,
-            SpriteKind::Cauldron,
-            SpriteKind::Loom,
-            SpriteKind::Anvil,
-            SpriteKind::DismantlingBench,
-        ];
-        if stations.len() == positions.len() {
-            for position in positions {
-                let cr_station = stations.swap_remove(
-                    RandomField::new(0).get(position.with_z(base)) as usize % stations.len(),
-                );
-                painter.sprite(position.with_z(base), cr_station);
+        for dir in CARDINALS {
+            for d in 0..3 {
+                let position = center + dir * (3 + d * 2);
+                let mut stations = vec![
+                    SpriteKind::CraftingBench,
+                    SpriteKind::Forge,
+                    SpriteKind::SpinningWheel,
+                    SpriteKind::TanningRack,
+                    SpriteKind::CookingPot,
+                    SpriteKind::Cauldron,
+                    SpriteKind::Loom,
+                    SpriteKind::Anvil,
+                    SpriteKind::DismantlingBench,
+                ];
+                if !stations.is_empty() {
+                    let cr_station = stations.swap_remove(
+                        RandomField::new(0).get(position.with_z(base)) as usize % stations.len(),
+                    );
+                    painter.sprite(position.with_z(base), cr_station);
+                }
             }
         }
     }
