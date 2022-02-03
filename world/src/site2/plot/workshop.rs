@@ -1,5 +1,8 @@
 use super::*;
-use crate::Land;
+use crate::{
+    util::{RandomField, Sampler},
+    Land,
+};
 use common::terrain::{Block, BlockKind, SpriteKind};
 use rand::prelude::*;
 use vek::*;
@@ -106,6 +109,28 @@ impl Structure for Workshop {
                     (center + Vec2::new(x, y)).with_z(base - 1),
                     SpriteKind::Ember,
                 );
+            }
+        }
+        for dir in CARDINALS {
+            for d in 0..3 {
+                let position = center + dir * (3 + d * 2);
+                let mut stations = vec![
+                    SpriteKind::CraftingBench,
+                    SpriteKind::Forge,
+                    SpriteKind::SpinningWheel,
+                    SpriteKind::TanningRack,
+                    SpriteKind::CookingPot,
+                    SpriteKind::Cauldron,
+                    SpriteKind::Loom,
+                    SpriteKind::Anvil,
+                    SpriteKind::DismantlingBench,
+                ];
+                if !stations.is_empty() {
+                    let cr_station = stations.swap_remove(
+                        RandomField::new(0).get(position.with_z(base)) as usize % stations.len(),
+                    );
+                    painter.sprite(position.with_z(base), cr_station);
+                }
             }
         }
     }
