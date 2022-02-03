@@ -89,6 +89,13 @@
         secondary: "common.abilities.custom.mandragora.scream",
         abilities: [],
     ),
+    Custom("Wood Golem"): (
+        primary: "common.abilities.custom.woodgolem.strike",
+        secondary: "common.abilities.custom.woodgolem.spin",
+        abilities: [
+            (None, "common.abilities.custom.woodgolem.shockwave")
+        ],
+    ),
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
         secondary: "common.abilities.swordsimple.dash",

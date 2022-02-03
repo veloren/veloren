@@ -87,6 +87,7 @@ fn maps_basic_melee() {
                     angle: 15.0,
                     damage_effect: None,
                 },
+                ori_modifier: 1.0,
                 ability_info: empty_ability_info(),
             },
             timer: Duration::default(),

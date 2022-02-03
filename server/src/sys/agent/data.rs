@@ -116,6 +116,7 @@ pub enum Tactic {
     StoneGolem,
     Deadwood,
     Mandragora,
+    WoodGolem,
 }
 
 #[derive(SystemData)]

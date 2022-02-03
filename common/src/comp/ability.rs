@@ -394,6 +394,7 @@ pub enum CharacterAbility {
         swing_duration: f32,
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
+        ori_modifier: f32,
     },
     BasicRanged {
         energy_cost: f32,
@@ -610,6 +611,7 @@ impl Default for CharacterAbility {
                 angle: 15.0,
                 damage_effect: None,
             },
+            ori_modifier: 1.0,
         }
     }
 }
@@ -697,6 +699,7 @@ impl CharacterAbility {
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut melee_constructor,
+                ori_modifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -1696,6 +1699,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 swing_duration,
                 recover_duration,
                 melee_constructor,
+                ori_modifier,
                 energy_cost: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
@@ -1703,6 +1707,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
+                    ori_modifier: *ori_modifier,
                     ability_info,
                 },
                 timer: Duration::default(),

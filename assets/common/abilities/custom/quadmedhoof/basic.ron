@@ -13,4 +13,5 @@ BasicMelee(
         range: 0.8,
         angle: 50.0,
     ),
+    ori_modifier: 1.0,
 )

@@ -1749,6 +1749,7 @@ impl<'a> AgentData<'a> {
                             "Gnarling Blowgun" => Tactic::ElevatedRanged,
                             "Deadwood" => Tactic::Deadwood,
                             "Mandragora" => Tactic::Mandragora,
+                            "Wood Golem" => Tactic::WoodGolem,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -2131,6 +2132,9 @@ impl<'a> AgentData<'a> {
             },
             Tactic::Mandragora => {
                 self.handle_mandragora(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::WoodGolem => {
+                self.handle_wood_golem(agent, controller, &attack_data, tgt_data, read_data)
             },
         }
     }

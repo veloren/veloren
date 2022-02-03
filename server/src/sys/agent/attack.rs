@@ -2192,4 +2192,58 @@ impl<'a> AgentData<'a> {
             }
         }
     }
+
+    pub fn handle_wood_golem(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const SHOCKWAVE_RANGE: f32 = 25.0;
+        const SHOCKWAVE_WAIT_TIME: f32 = 7.5;
+        const SPIN_WAIT_TIME: f32 = 3.0;
+
+        // After spinning, reset timer
+        if matches!(self.char_state, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Recover)
+        {
+            agent.action_state.timer = 0.0;
+        }
+
+        if attack_data.in_min_range() {
+            // If in minimum range
+            if agent.action_state.timer > SPIN_WAIT_TIME {
+                // If it's been too long since able to hit target, spin
+                controller.push_basic_input(InputKind::Secondary);
+            } else if attack_data.angle < 30.0 {
+                // Else if in angle to strike, strike
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                // Else increment spin timer
+                agent.action_state.timer += read_data.dt.0;
+                // If not in angle, apply slight movement so golem orients itself correctly
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::zero)
+                    * 0.01;
+            }
+        } else {
+            // Else if too far for melee
+            if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
+                // Shockwave if close enough and haven't shockwaved too recently
+                if agent.action_state.counter > SHOCKWAVE_WAIT_TIME {
+                    controller.push_basic_input(InputKind::Ability(0));
+                }
+                if matches!(self.char_state, CharacterState::Shockwave(_)) {
+                    agent.action_state.counter = 0.0;
+                } else {
+                    agent.action_state.counter += read_data.dt.0;
+                }
+            }
+            // And always try to path towards target
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
 }

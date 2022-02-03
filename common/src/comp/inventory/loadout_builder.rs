@@ -180,6 +180,9 @@ fn default_main_tool(body: &Body) -> Item {
             golem::Species::ClayGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.clay_golem_fist",
             )),
+            golem::Species::WoodGolem => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.wood_golem_fist",
+            )),
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -465,6 +468,7 @@ impl LoadoutBuilder {
             },
             Body::Golem(body) => match body.species {
                 golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
+                golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
                 _ => None,
             },
             Body::QuadrupedLow(body) => match body.species {
