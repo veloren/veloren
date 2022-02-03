@@ -19,6 +19,7 @@ impl CharacterBehavior for Data {
         handle_jump(data, output_events, &mut update, 1.0);
         handle_wield(data, &mut update);
         handle_climb(data, &mut update);
+        handle_wallrun(data, &mut update);
         handle_dodge_input(data, &mut update);
 
         // Try to Fall/Stand up/Move

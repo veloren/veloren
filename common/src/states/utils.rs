@@ -657,6 +657,22 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     }
 }
 
+pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
+    if data.physics.on_wall.is_some()
+        && data.physics.on_ground.is_none()
+        && !data
+            .physics
+            .in_liquid()
+            .map(|depth| depth > 1.0)
+            .unwrap_or(false)
+        && data.body.can_climb()
+    {
+        update.character = CharacterState::Wallrun(wallrun::Data);
+        true
+    } else {
+        false
+    }
+}
 /// Checks that player can Swap Weapons and updates `Loadout` if so
 pub fn attempt_swap_equipped_weapons(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data
