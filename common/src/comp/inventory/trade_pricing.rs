@@ -1,9 +1,6 @@
-#![warn(clippy::pedantic)]
-//#![warn(clippy::nursery)]
-
 use crate::{
     assets::{self, AssetExt},
-    lottery::{LootSpec, Lottery},
+    lottery::LootSpec,
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
 };
@@ -11,6 +8,7 @@ use assets::AssetGuard;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
+use std::cmp::Ordering;
 use tracing::{info, warn};
 
 const PRICING_DEBUG: bool = false;
@@ -27,7 +25,6 @@ pub struct TradePricing {
 
     // good_scaling of coins
     coin_scale: f32,
-    //    rng: ChaChaRng,
 
     // get amount of material per item
     material_cache: HashMap<String, (Good, f32)>,
@@ -81,8 +78,11 @@ lazy_static! {
 }
 
 #[derive(Clone)]
-struct ProbabilityFile {
-    pub content: Vec<(f32, String)>,
+/// A collection of items with probabilty (normalized to one), created
+/// hierarchically from `LootSpec`s
+/// (probability, item id, average amount)
+pub struct ProbabilityFile {
+    pub content: Vec<(f32, String, f32)>,
 }
 
 impl assets::Asset for ProbabilityFile {
@@ -94,22 +94,25 @@ impl assets::Asset for ProbabilityFile {
 impl From<Vec<(f32, LootSpec<String>)>> for ProbabilityFile {
     #[allow(clippy::cast_precision_loss)]
     fn from(content: Vec<(f32, LootSpec<String>)>) -> Self {
+        let rescale = if content.is_empty() {
+            1.0
+        } else {
+            1.0 / content.iter().map(|e| e.0).sum::<f32>()
+        };
         Self {
             content: content
                 .into_iter()
                 .flat_map(|(p0, loot)| match loot {
-                    LootSpec::Item(asset) => vec![(p0, asset)].into_iter(),
+                    LootSpec::Item(asset) => vec![(p0 * rescale, asset, 1.0)].into_iter(),
                     LootSpec::ItemQuantity(asset, a, b) => {
-                        vec![(p0 * (a + b) as f32 / 2.0, asset)].into_iter()
+                        vec![(p0 * rescale, asset, (a + b) as f32 * 0.5)].into_iter()
                     },
                     LootSpec::LootTable(table_asset) => {
-                        let total = Lottery::<LootSpec<String>>::load_expect(&table_asset)
-                            .read()
-                            .total();
-                        Self::load_expect_cloned(&table_asset)
-                            .content
-                            .into_iter()
-                            .map(|(p1, asset)| (p0 * p1 / total, asset))
+                        let unscaled = &Self::load_expect(&table_asset).read().content;
+                        let scale = p0 * rescale;
+                        unscaled
+                            .iter()
+                            .map(|(p1, asset, amount)| (*p1 * scale, asset.clone(), *amount))
                             .collect::<Vec<_>>()
                             .into_iter()
                     },
@@ -171,7 +174,7 @@ impl assets::Compound for EqualitySet {
                 EqualitySpec::LootTable(table) => {
                     let acc = &ProbabilityFile::load_expect(table).read().content;
 
-                    acc.iter().map(|(_p, item)| item).cloned().collect()
+                    acc.iter().map(|(_p, item, _)| item).cloned().collect()
                 },
                 EqualitySpec::Set(xs) => xs.clone(),
             };
@@ -200,7 +203,11 @@ struct RememberedRecipe {
 
 fn sort_and_normalize(entryvec: &mut [Entry], scale: f32) {
     if !entryvec.is_empty() {
-        entryvec.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+        entryvec.sort_by(|a, b| {
+            a.1.partial_cmp(&b.1)
+                .unwrap_or(Ordering::Equal)
+                .then_with(|| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal))
+        });
         if let Some((_, max_scale, _)) = entryvec.last() {
             // most common item has frequency max_scale.  avoid NaN
             let rescale = scale / max_scale;
@@ -359,11 +366,11 @@ impl TradePricing {
             }
             let (frequency, can_sell, asset_path) = table;
             let loot = ProbabilityFile::load_expect(asset_path);
-            for (p, item_asset) in &loot.read().content {
+            for (p, item_asset, amount) in &loot.read().content {
                 result.get_list_by_path_mut(item_asset).add(
                     &eqset,
                     item_asset,
-                    frequency * p,
+                    frequency * p * *amount,
                     *can_sell,
                 );
             }
@@ -475,7 +482,6 @@ impl TradePricing {
             loop {
                 let index =
                     (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
-                //.gen_range(lower..upper);
                 if table.get(index).map_or(false, |i| !selling || i.2) {
                     break table.get(index).map(|i| i.0.clone());
                 }
@@ -510,124 +516,225 @@ impl TradePricing {
         use crate::comp::item::{armor, tool, Item, ItemKind};
 
         // we pass the item and the inverse of the price to the closure
-        fn printvec<F>(good_kind: &str, entries: &[(String, f32, bool)], f: F)
+        fn printvec<F>(good_kind: &str, entries: &[(String, f32, bool)], f: F, unit: &str)
         where
             F: Fn(&Item, f32) -> String,
         {
-            println!("\n======{:^15}======", good_kind);
             for (item_id, p, can_sell) in entries.iter() {
                 let it = Item::new_from_asset_expect(item_id);
                 let price = 1.0 / p;
                 println!(
-                    "<{}> {}\n{:>4.2}  {:?}  {}",
+                    "{}, {}, {:>4.2}, {}, {:?}, {}, {},",
                     item_id,
-                    if *can_sell { "+" } else { "-" },
+                    if *can_sell { "yes" } else { "no" },
                     price,
+                    good_kind,
                     it.quality,
-                    f(&it, *p)
+                    f(&it, *p),
+                    unit,
                 );
             }
         }
 
-        printvec("Armor", &self.armor.entries, |i, p| {
-            if let ItemKind::Armor(a) = &i.kind {
-                match a.protection() {
-                    Some(armor::Protection::Invincible) => "Invincible".into(),
-                    Some(armor::Protection::Normal(x)) => format!("{:.4} prot/val", x * p),
-                    None => "0.0 prot/val".into(),
+        println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
+
+        printvec(
+            "Armor",
+            &self.armor.entries,
+            |i, p| {
+                if let ItemKind::Armor(a) = &i.kind {
+                    match a.protection() {
+                        Some(armor::Protection::Invincible) => "Invincible".into(),
+                        Some(armor::Protection::Normal(x)) => format!("{:.4}", x * p),
+                        None => "0.0".into(),
+                    }
+                } else {
+                    format!("{:?}", i.kind)
                 }
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Tools", &self.tools.entries, |i, p| {
-            if let ItemKind::Tool(t) = &i.kind {
-                match &t.stats {
-                    tool::StatKind::Direct(d) => {
-                        format!("{:.4} dps/val", d.power * d.speed * p)
-                    },
-                    tool::StatKind::Modular => "Modular".into(),
+            },
+            "prot/val",
+        );
+        printvec(
+            "Tools",
+            &self.tools.entries,
+            |i, p| {
+                if let ItemKind::Tool(t) = &i.kind {
+                    match &t.stats {
+                        tool::StatKind::Direct(d) => {
+                            format!("{:.4}", d.power * d.speed * p)
+                        },
+                        tool::StatKind::Modular => "Modular".into(),
+                    }
+                } else {
+                    format!("{:?}", i.kind)
                 }
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Potions", &self.potions.entries, |i, p| {
-            if let ItemKind::Consumable { kind: _, effects } = &i.kind {
-                effects
-                    .iter()
-                    .map(|e| {
-                        if let crate::effect::Effect::Buff(b) = e {
-                            format!("{:.2} str/val", b.data.strength * p)
-                        } else {
-                            format!("{:?}", e)
-                        }
-                    })
-                    .collect::<Vec<String>>()
-                    .join(" ")
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Food", &self.food.entries, |i, p| {
-            if let ItemKind::Consumable { kind: _, effects } = &i.kind {
-                effects
-                    .iter()
-                    .map(|e| {
-                        if let crate::effect::Effect::Buff(b) = e {
-                            format!("{:.2} str/val", b.data.strength * p)
-                        } else {
-                            format!("{:?}", e)
-                        }
-                    })
-                    .collect::<Vec<String>>()
-                    .join(" ")
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Ingredients", &self.ingredients.entries, |i, _p| {
-            if let ItemKind::Ingredient { kind } = &i.kind {
-                kind.clone()
-            } else {
-                format!("{:?}", i.kind)
-            }
-        });
-        printvec("Other", &self.other.entries, |i, _p| {
-            format!("{:?}", i.kind)
-        });
-        println!("<{}>\n{}", Self::COIN_ITEM, self.coin_scale);
+            },
+            "dps/val",
+        );
+        printvec(
+            "Potions",
+            &self.potions.entries,
+            |i, p| {
+                if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                    effects
+                        .iter()
+                        .map(|e| {
+                            if let crate::effect::Effect::Buff(b) = e {
+                                format!("{:.2}", b.data.strength * p)
+                            } else {
+                                format!("{:?}", e)
+                            }
+                        })
+                        .collect::<Vec<String>>()
+                        .join(" ")
+                } else {
+                    format!("{:?}", i.kind)
+                }
+            },
+            "str/val",
+        );
+        printvec(
+            "Food",
+            &self.food.entries,
+            |i, p| {
+                if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                    effects
+                        .iter()
+                        .map(|e| {
+                            if let crate::effect::Effect::Buff(b) = e {
+                                format!("{:.2}", b.data.strength * p)
+                            } else {
+                                format!("{:?}", e)
+                            }
+                        })
+                        .collect::<Vec<String>>()
+                        .join(" ")
+                } else {
+                    format!("{:?}", i.kind)
+                }
+            },
+            "str/val",
+        );
+        printvec(
+            "Ingredients",
+            &self.ingredients.entries,
+            |_i, _p| String::new(),
+            "",
+        );
+        printvec("Other", &self.other.entries, |_i, _p| String::new(), "");
+        println!("{}, yes, {}, Coin, ,,,", Self::COIN_ITEM, self.coin_scale);
     }
+}
+
+/// hierarchically combine and scale this loot table
+#[must_use]
+pub fn expand_loot_table(loot_table: &str) -> Vec<(f32, String, f32)> {
+    ProbabilityFile::from(vec![(1.0, LootSpec::LootTable(loot_table.into()))]).content
 }
 
 // if you want to take a look at the calculated values run:
 // cd common && cargo test trade_pricing -- --nocapture
 #[cfg(test)]
 mod tests {
-    use crate::{comp::inventory::trade_pricing::TradePricing, trade::Good};
-    use tracing::{info, Level};
-    use tracing_subscriber::{
-        filter::{EnvFilter, LevelFilter},
-        FmtSubscriber,
+    use crate::{
+        comp::inventory::trade_pricing::{expand_loot_table, ProbabilityFile, TradePricing},
+        lottery::LootSpec,
+        trade::Good,
     };
+    use tracing::{info, Level};
+    use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
     fn init() {
         FmtSubscriber::builder()
             .with_max_level(Level::ERROR)
-            .with_env_filter(EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into()))
-            .init();
+            .with_env_filter(EnvFilter::from_default_env())
+            .try_init()
+            .unwrap_or(());
     }
 
     #[test]
-    fn test_prices() {
+    fn test_loot_table() {
+        init();
+        info!("init");
+
+        let loot = expand_loot_table("common.loot_tables.creature.quad_medium.gentle");
+        let lootsum = loot.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum - 1.0).abs() < 1e-3);
+        // hierarchical
+        let loot2 = expand_loot_table("common.loot_tables.creature.quad_medium.catoblepas");
+        let lootsum2 = loot2.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum2 - 1.0).abs() < 1e-4);
+
+        // highly nested
+        let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
+        let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
+        assert!((lootsum3 - 1.0).abs() < 1e-5);
+    }
+
+    #[test]
+    fn test_prices1() {
         init();
         info!("init");
 
         TradePricing::instance().print_sorted();
+    }
+
+    #[test]
+    fn test_prices2() {
+        init();
+        info!("init");
+
         for _ in 0..5 {
             if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0, false) {
                 info!("Armor 5 {}", item_id);
             }
         }
+    }
+
+    fn normalized(probability: &ProbabilityFile) -> bool {
+        let sum = probability.content.iter().map(|(p, _, _)| p).sum::<f32>();
+        (dbg!(sum) - 1.0).abs() < 1e-3
+    }
+
+    #[test]
+    fn test_normalizing_table1() {
+        let item = |asset: &str| LootSpec::Item(asset.to_owned());
+        let loot_table = vec![(1.0, item("wow")), (1.0, item("nice"))];
+
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability));
+    }
+
+    #[test]
+    fn test_normalizing_table2() {
+        let table = |asset: &str| LootSpec::LootTable(asset.to_owned());
+        let loot_table = vec![(
+            1.0,
+            table("common.loot_tables.creature.quad_medium.catoblepas"),
+        )];
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability));
+    }
+
+    #[test]
+    fn test_normalizing_table3() {
+        let table = |asset: &str| LootSpec::LootTable(asset.to_owned());
+        let loot_table = vec![
+            (
+                1.0,
+                table("common.loot_tables.creature.quad_medium.catoblepas"),
+            ),
+            (1.0, table("common.loot_tables.creature.quad_medium.gentle")),
+        ];
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability));
+    }
+
+    #[test]
+    fn test_normalizing_table4() {
+        let quantity = |asset: &str, a, b| LootSpec::ItemQuantity(asset.to_owned(), a, b);
+        let loot_table = vec![(1.0, quantity("such", 3, 5)), (1.0, quantity("much", 5, 9))];
+        let probability: ProbabilityFile = loot_table.into();
+        assert!(normalized(&probability));
     }
 }
