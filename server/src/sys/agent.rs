@@ -1503,53 +1503,56 @@ impl<'a> AgentData<'a> {
             })
         };
 
-        let guard_other = |e_health: &Health,
-                           e_body: Option<&Body>,
-                           e_alignment: Option<&Alignment>| {
-            let i_am_a_guard = read_data
-                .stats
-                .get(*self.entity)
-                .map_or(false, |stats| stats.name == "Guard");
-            let other_is_a_villager = matches!(e_alignment, Some(Alignment::Npc));
-            let we_are_friendly: bool = self.alignment.map_or(false, |ma| {
-                e_alignment.map_or(false, |ea| !ea.hostile_towards(*ma))
-            });
-            let we_share_species: bool = self.body.map_or(false, |mb| {
-                e_body.map_or(false, |eb| {
-                    eb.is_same_species_as(mb) || (eb.is_humanoid() && mb.is_humanoid())
-                })
-            });
-            let other_has_taken_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
-            let attacker_of = |health: &Health| health.last_change.damage_by();
+        let guard_other =
+            |e_health: &Health, e_body: Option<&Body>, e_alignment: Option<&Alignment>| {
+                let i_am_a_guard = read_data
+                    .stats
+                    .get(*self.entity)
+                    .map_or(false, |stats| stats.name == "Guard");
+                let other_is_a_villager = matches!(e_alignment, Some(Alignment::Npc));
+                let we_are_friendly: bool = self.alignment.map_or(false, |ma| {
+                    e_alignment.map_or(false, |ea| !ea.hostile_towards(*ma))
+                });
+                let we_share_species: bool = self.body.map_or(false, |mb| {
+                    e_body.map_or(false, |eb| {
+                        eb.is_same_species_as(mb) || (eb.is_humanoid() && mb.is_humanoid())
+                    })
+                });
+                let i_own_other =
+                    matches!(e_alignment, Some(Alignment::Owned(ouid)) if self.uid == ouid);
+                let other_has_taken_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
+                let attacker_of = |health: &Health| health.last_change.damage_by();
 
-            let i_should_defend = other_has_taken_damage
-                && ((we_are_friendly && we_share_species) || (i_am_a_guard && other_is_a_villager));
+                let i_should_defend = other_has_taken_damage
+                    && ((we_are_friendly && we_share_species)
+                        || (i_am_a_guard && other_is_a_villager)
+                        || i_own_other);
 
-            i_should_defend
-                .then(|| {
-                    attacker_of(e_health)
-                        .and_then(|damage_contributor| {
-                            get_entity_by_id(damage_contributor.uid().0, read_data)
-                        })
-                        .and_then(|attacker| {
-                            read_data.alignments.get(attacker).and_then(|aa| {
-                                self.alignment.and_then({
-                                    |ma| {
-                                        if !ma.passive_towards(*aa) {
-                                            read_data
-                                                .positions
-                                                .get(attacker)
-                                                .map(|a_pos| (attacker, *a_pos))
-                                        } else {
-                                            None
+                i_should_defend
+                    .then(|| {
+                        attacker_of(e_health)
+                            .and_then(|damage_contributor| {
+                                get_entity_by_id(damage_contributor.uid().0, read_data)
+                            })
+                            .and_then(|attacker| {
+                                read_data.alignments.get(attacker).and_then(|aa| {
+                                    self.alignment.and_then({
+                                        |ma| {
+                                            if !ma.passive_towards(*aa) {
+                                                read_data
+                                                    .positions
+                                                    .get(attacker)
+                                                    .map(|a_pos| (attacker, *a_pos))
+                                            } else {
+                                                None
+                                            }
                                         }
-                                    }
+                                    })
                                 })
                             })
-                        })
-                })
-                .flatten()
-        };
+                    })
+                    .flatten()
+            };
 
         let rtsim_remember =
             |target_stats: &Stats,

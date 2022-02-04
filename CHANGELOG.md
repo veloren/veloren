@@ -79,6 +79,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bumped tracing-subscriber to resolve [RUSTSEC-2022-0006](https://rustsec.org/advisories/RUSTSEC-2022-0006)
 - Made /home command a mod+ exclusive
 - Friendly creatures will now defend each other
+- Creatures will now defend their pets
 
 ### Removed
 
