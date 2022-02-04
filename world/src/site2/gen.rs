@@ -880,14 +880,6 @@ impl<'a> PrimitiveRef<'a> {
     pub fn repeat(self, offset: Vec3<i32>, count: i32) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::repeat(self, offset, count))
     }
-
-    pub fn translate(self, trans: Vec3<i32>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::translate(self, trans))
-    }
-
-    pub fn rotate(self, rot: Mat3<i32>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::rotate(self, rot))
-    }
 }
 
 pub trait Structure {
