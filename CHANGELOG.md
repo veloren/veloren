@@ -97,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Lantern color changes when swapping lanterns
 - NPCs no longer wander off cliffs
 - Guards will defend villagers instead of simply threatening the attacker
+- Seafaring ships no longer spawn on dry land
 
 ## [0.11.0] - 2021-09-11
 

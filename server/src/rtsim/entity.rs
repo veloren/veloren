@@ -69,7 +69,9 @@ impl Entity {
             RtSimEntityKind::Random => {
                 match self.rng(PERM_GENUS).gen::<f32>() {
                     // we want 5% airships, 45% birds, 50% humans
-                    x if x < 0.05 => comp::ship::Body::random_with(&mut self.rng(PERM_BODY)).into(),
+                    x if x < 0.05 => {
+                        comp::ship::Body::random_airship_with(&mut self.rng(PERM_BODY)).into()
+                    },
                     x if x < 0.45 => {
                         let species = *BIRD_MEDIUM_ROSTER
                             .choose(&mut self.rng(PERM_SPECIES))
