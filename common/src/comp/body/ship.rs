@@ -16,6 +16,8 @@ pub const ALL_BODIES: [Body; 4] = [
     Body::Galleon,
 ];
 
+pub const ALL_AIRSHIPS: [Body; 2] = [Body::DefaultAirship, Body::AirBalloon];
+
 make_case_elim!(
     body,
     #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -40,6 +42,10 @@ impl Body {
     }
 
     pub fn random_with(rng: &mut impl rand::Rng) -> Self { *(&ALL_BODIES).choose(rng).unwrap() }
+
+    pub fn random_airship_with(rng: &mut impl rand::Rng) -> Self {
+        *(&ALL_AIRSHIPS).choose(rng).unwrap()
+    }
 
     /// Return the structure manifest that this ship uses. `None` means that it
     /// should be derived from the collider.
