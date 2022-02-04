@@ -602,7 +602,7 @@ impl Civs {
                     .choose(&mut ctx.rng)
                     .unwrap()
                 )),
-                common::terrain::BiomeKind::Swamp if biome.1.len() as u32 > 750 => Some(format!(
+                common::terrain::BiomeKind::Swamp if biome.1.len() as u32 > 200 => Some(format!(
                     "{} {}",
                     NameGen::location(&mut ctx.rng).generate_swamp_engl(),
                     [
