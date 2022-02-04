@@ -71,31 +71,31 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         changed = health.change_by(change);
     }
+    if let (Some(pos), Some(uid)) = (
+        ecs.read_storage::<Pos>().get(entity),
+        ecs.read_storage::<Uid>().get(entity),
+    ) {
+        // If the absolute health change amount was greater than the health epsilon,
+        // push a new Damage outcome
+        if changed {
+            outcomes.push(Outcome::Damage {
+                pos: pos.0,
+                info: DamageInfo {
+                    amount: change.amount,
+                    by: change.by,
+                    target: *uid,
+                    crit_mult: change.crit_mult,
+                    instance: change.instance,
+                },
+            });
+        }
+    }
     // This if statement filters out anything under 5 damage, for DOT ticks
     // TODO: Find a better way to separate direct damage from DOT here
     let damage = -change.amount;
     if damage > -5.0 {
         if let Some(agent) = ecs.write_storage::<Agent>().get_mut(entity) {
             agent.inbox.push_front(AgentEvent::Hurt);
-        }
-        if let (Some(pos), Some(uid)) = (
-            ecs.read_storage::<Pos>().get(entity),
-            ecs.read_storage::<Uid>().get(entity),
-        ) {
-            // If the absolute health change amount was greater than the health epsilon,
-            // push a new Damage outcome
-            if changed {
-                outcomes.push(Outcome::Damage {
-                    pos: pos.0,
-                    info: DamageInfo {
-                        amount: change.amount,
-                        by: change.by,
-                        target: *uid,
-                        crit_mult: change.crit_mult,
-                        instance: change.instance,
-                    },
-                });
-            }
         }
     }
 }
