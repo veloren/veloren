@@ -1,0 +1,25 @@
+(
+    name: Name("Greenhorn Traveler"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
+    loadout: Extended(
+        hands: TwoHanded(Choice([
+            (1.0, Some(Item("common.items.weapons.sword.iron-0"))),
+            (1.0, Some(Item("common.items.weapons.bow.hardwood-2"))),
+            (1.0, Some(Item("common.items.weapons.axe.iron_axe-0"))),
+            (1.0, Some(Item("common.items.weapons.staff.frostwood_torch"))),
+        ])),
+        base_asset: Choice([
+           (1, "common.loadout.world.traveler0.iron"),
+           (1, "common.loadout.world.traveler0.leather"),
+           (1, "common.loadout.world.traveler0.wool"),
+        ]),
+        inventory: [
+            (10, "common.items.consumable.potion_minor"),
+        ],
+    ),
+    loot: LootTable("common.loot_tables.creature.humanoid"),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank1.fullskill"),
+    ],
+)
