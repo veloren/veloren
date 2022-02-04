@@ -128,7 +128,12 @@ impl Entity {
 
     pub fn get_entity_config(&self) -> &str {
         match self.get_body() {
-            comp::Body::Humanoid(_) => humanoid_config(self.kind),
+            comp::Body::Humanoid(_) => {
+                let rank = match self.rng(PERM_LEVEL).gen_range(0..=0) {
+                    _ => TravelerRank::Rank0, 
+                };
+                humanoid_config(self.kind, rank)
+            },
             comp::Body::BirdMedium(b) => bird_medium_config(b),
             comp::Body::BirdLarge(b) => bird_large_config(b),
             _ => unimplemented!(),
@@ -797,10 +802,17 @@ impl Brain {
     }
 }
 
-fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
+#[derive(strum::EnumIter)]
+enum TravelerRank {
+    Rank0,
+}
+
+fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
     match kind {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
-        RtSimEntityKind::Random => "common.entity.world.traveler",
+        RtSimEntityKind::Random => match rank {
+            TravelerRank::Rank0 => "common.entity.world.traveler0",
+        },
         RtSimEntityKind::Villager => "common.entity.village.villager",
         RtSimEntityKind::Merchant => "common.entity.village.merchant",
     }
@@ -886,8 +898,10 @@ mod tests {
         }
         // Humanoid test
         for kind in RtSimEntityKind::iter() {
-            let config = humanoid_config(kind);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config, &mut dummy_rng));
+            for rank in TravelerRank::iter() {
+                let config = humanoid_config(kind, rank);
+                std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config, &mut dummy_rng));
+            }
         }
     }
 }
