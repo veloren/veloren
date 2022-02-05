@@ -125,8 +125,11 @@ impl Entity {
     pub fn get_entity_config(&self) -> &str {
         match self.get_body() {
             comp::Body::Humanoid(_) => {
-                let rank = match self.rng(PERM_LEVEL).gen_range(0..=0) {
-                    _ => TravelerRank::Rank0, 
+                let rank = match self.rng(PERM_LEVEL).gen_range::<u8, _>(0..=20) {
+                    0..=2 => TravelerRank::Rank0,
+                    3..=9 => TravelerRank::Rank1,
+                    10..=17 => TravelerRank::Rank2,
+                    18.. => TravelerRank::Rank3,
                 };
                 humanoid_config(self.kind, rank)
             },
@@ -794,6 +797,9 @@ impl Brain {
 #[derive(strum::EnumIter)]
 enum TravelerRank {
     Rank0,
+    Rank1,
+    Rank2,
+    Rank3,
 }
 
 fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
@@ -801,6 +807,9 @@ fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
         RtSimEntityKind::Wanderer => match rank {
             TravelerRank::Rank0 => "common.entity.world.traveler0",
+            TravelerRank::Rank1 => "common.entity.world.traveler1",
+            TravelerRank::Rank2 => "common.entity.world.traveler2",
+            TravelerRank::Rank3 => "common.entity.world.traveler3",
         },
         RtSimEntityKind::Villager => "common.entity.village.villager",
         RtSimEntityKind::Merchant => "common.entity.village.merchant",
