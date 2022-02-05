@@ -17,6 +17,6 @@
         (1.0, Some(Item("common.items.lantern.black_0"))),
         (1.0, Some(Item("common.items.lantern.blue_0"))),
         (1.0, Some(Item("common.items.lantern.green_0"))),
-        (1.0, Some(Item("common.items.lantern.red_0"))),
+        (1.0, Some(Item("common.items.lantern.geode_purp"))),
     ]),
 })
