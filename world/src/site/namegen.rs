@@ -328,9 +328,57 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_engl_from_parts(&start, &end)
     }
 
-    // themes / sites
-    // greek/latin inspired location names for danari
-    pub fn generate_danari(self) -> String {
+    // themes & sites
+    fn generate_theme_from_parts(
+        &mut self,
+        start: &[&str],
+        middle: &[&str],
+        vowel: &[&str],
+        end: &[&str],
+    ) -> String {
+        let mut name = String::new();
+
+        name += start.choose(self.rng).unwrap();
+        for _ in 0..self.approx_syllables.saturating_sub(2) {
+            name += vowel.choose(self.rng).unwrap();
+            name += middle.choose(self.rng).unwrap();
+        }
+        name += end.choose(self.rng).unwrap();
+
+        name.chars()
+            .enumerate()
+            .map(|(i, c)| if i == 0 { c.to_ascii_uppercase() } else { c })
+            .collect()
+    }
+
+    // towns
+    pub fn generate_town(mut self) -> String {
+        let start = vec![
+            "b", "f", "g", "d", "h", "c", "m", "l", "n", "p", "r", "s", "t", "w", "v", "z", "qu",
+            "br", "bl", "ch", "chr", "dr", "dw", "fr", "fl", "gr", "gw", "pr", "pl", "st", "sl",
+            "str", "sn", "sp", "spr", "sw", "tr", "wr", "ab", "abr", "al", "ald", "as", "ast",
+            "amm", "ach", "adr", "en", "end", "eld", "end", "es", "amr", "on", "ond", "ochr",
+            "orn", "ost", "ord",
+        ];
+        let middle = vec![
+            "b", "g", "d", "c", "m", "l", "n", "p", "r", "s", "t", "v", "br", "ch", "chr", "dr",
+            "gr", "pr", "st", "sl", "sn", "sp", "sw", "tr", "mm", "n", "nn", "nd", "ln", "lm",
+            "nr", "r", "rz", "lz", "ld", "rm", "sd", "rn", "ss", "sm", "rv", "lv",
+        ];
+        let vowel = vec!["e", "a", "i", "o"];
+        let end = vec![
+            "on", "aton", "enton", "eau", "eaux", "erg", "enberg", "enburg", "oc", "ic", "oric",
+            "aric", "eric", "aven", "elen", "andam", "endam", "estin", "ostin", "alic", "elic",
+            "alon", "elon", "arac", "erac", "eden", "elen", "owan", "owen", "iel", "ien", "alton",
+            "ing", "iling", "aling", "olm", "ulm", "ough", "ilm", "alm", "elm", "eim", "oria",
+            "aria", "eria", "elis", "alis", "amor", "emor", "en", "edge", "ard", "erd", "ord",
+            "emberg", "emburg", "org", "alton", "agrad", "ograd", "inton",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
+
+    // greek-latin inspired location names for danari
+    pub fn generate_danari(mut self) -> String {
         let start = vec![
             "d", "ph", "r", "st", "t", "s", "p", "th", "br", "tr", "m", "k", "cr", "phr", "dr",
             "pl", "ch", "l", "ap", "akr", "ak", "ar", "ath", "asp", "al", "aph", "aphr", "oph",
@@ -354,19 +402,26 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "orea", "area", "ilon", "ilos", "aelos", "yron", "iron", "adalos", "anon", "ix", "ox",
             "alea", "atheas", "eas", "eos", "yros", "ophon",
         ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
 
-        let mut name = String::new();
-
-        name += start.choose(self.rng).unwrap();
-        for _ in 0..self.approx_syllables.saturating_sub(2) {
-            name += vowel.choose(self.rng).unwrap();
-            name += middle.choose(self.rng).unwrap();
-        }
-        name += end.choose(self.rng).unwrap();
-
-        name.chars()
-            .enumerate()
-            .map(|(i, c)| if i == 0 { c.to_ascii_uppercase() } else { c })
-            .collect()
+    // primitive-orcish inspired location names for gnarling fortification
+    pub fn generate_gnarling(mut self) -> String {
+        let start = vec!["gn", "kr", "k", "r", "t", "kn", "tr", "kt", "gr"];
+        let middle = vec![
+            "t", "tt", "k", "kk", "r", "r", "rl", "lm", "km", "tm", "kn", "kr", "tr", "nk", "gn",
+            "kl", "kt", "lt", "arln", "ln", "k't", "k'n", "k'm", "g'm", "l'k", "t'n", "r'k",
+            "n'kr", "k R", "t K", "rl Gn", "rl K", "k Gn", "t M", "t N", "r K", "r N", "k M",
+            "k T", "rl T", "t Kn", "r Kn",
+        ];
+        let vowel = vec!["e", "a", "i", "o"];
+        let end = vec![
+            "arak", "orok", "arok", "orak", "attak", "akarl", "okarl", "atok", "anak", "etak",
+            "orek", "arek", "atik", "arik", "etik", "arlak", "arlek", "otek", "almek", "arlnok",
+            "arlnak", "okorl", "eknok", "ottok", "erlek", "akkat", "okkar", "attor", "ittor",
+            "aktor", "okomor", "imor", "inork", "inor", "amakkor", "ikkor", "amarl", "omarl",
+            "ikkarl", "okkarl", "emekk", "akatak", "okatak",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
 }
