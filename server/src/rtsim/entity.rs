@@ -1,9 +1,5 @@
 use super::*;
 use common::{
-    comp::inventory::{
-        loadout_builder::{make_food_bag, make_potion_bag},
-        slot::ArmorSlot,
-    },
     resources::Time,
     rtsim::{Memory, MemoryItem},
     store::Id,
@@ -31,7 +27,7 @@ pub struct Entity {
 
 #[derive(Clone, Copy, strum::EnumIter)]
 pub enum RtSimEntityKind {
-    Random,
+    Wanderer,
     Cultist,
     Villager,
     Merchant,
@@ -66,7 +62,7 @@ impl Entity {
 
     pub fn get_body(&self) -> comp::Body {
         match self.kind {
-            RtSimEntityKind::Random => {
+            RtSimEntityKind::Wanderer => {
                 match self.rng(PERM_GENUS).gen::<f32>() {
                     // we want 5% airships, 45% birds, 50% humans
                     x if x < 0.05 => {
@@ -111,7 +107,7 @@ impl Entity {
         let site = match self.kind {
             /*
             // Travelling merchants (don't work for some reason currently)
-            RtSimEntityKind::Random if self.rng(PERM_TRADE).gen_bool(0.5) => {
+            RtSimEntityKind::Wanderer if self.rng(PERM_TRADE).gen_bool(0.5) => {
                 match self.brain.route {
                     Travel::Path { target_id, .. } => Some(target_id),
                     _ => None,
@@ -146,19 +142,12 @@ impl Entity {
     pub fn get_adhoc_loadout(
         &self,
     ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {
-        let body = self.get_body();
         let kind = self.kind;
 
-        // give potions to traveler humanoids or return loadout as is otherwise
-        match (body, kind) {
-            (comp::Body::Humanoid(_), RtSimEntityKind::Random) => |l, _| {
-                l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
-                    .bag(ArmorSlot::Bag2, Some(make_food_bag(100)))
-            },
-            (_, RtSimEntityKind::Merchant) => {
-                |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
-            },
-            _ => |l, _| l,
+        if let RtSimEntityKind::Merchant = kind {
+            |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
+        } else {
+            |l, _| l
         }
     }
 
@@ -810,7 +799,7 @@ enum TravelerRank {
 fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
     match kind {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
-        RtSimEntityKind::Random => match rank {
+        RtSimEntityKind::Wanderer => match rank {
             TravelerRank::Rank0 => "common.entity.world.traveler0",
         },
         RtSimEntityKind::Villager => "common.entity.village.villager",
