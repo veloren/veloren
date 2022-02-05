@@ -1,6 +1,6 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
+    comp::{character_state::OutputEvents, CharacterState, StateUpdate},
     states::{
         behavior::{CharacterBehavior, JoinData},
         idle,
@@ -9,7 +9,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use vek::Vec2;
 
-const WALLRUN_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.90;
+const WALLRUN_ANTIGRAV: f32 = crate::consts::GRAVITY * 0.5;
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Eq, Hash)]
 pub struct Data;
@@ -20,6 +20,7 @@ impl CharacterBehavior for Data {
 
         handle_wield(data, &mut update);
         handle_jump(data, output_events, &mut update, 1.0);
+        handle_climb(data, &mut update);
 
         {
             let lift = WALLRUN_ANTIGRAV;

@@ -1712,18 +1712,11 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Wallrun(data) => {
+                        CharacterState::Wallrun { .. } => {
                             anim::character::WallrunAnimation::update_skeleton(
                                 &target_base,
                                 (
-                                    active_tool_kind,
-                                    second_tool_kind,
-                                    hands,
-                                    rel_vel,
                                     ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    state.last_ori * anim::vek::Vec3::<f32>::unit_y(),
-                                    time,
-                                    rel_avg_vel,
                                     state.acc_vel,
                                     wall_dir,
                                 ),

@@ -2,23 +2,11 @@ use super::{
     super::{vek::*, Animation},
     CharacterSkeleton, SkeletonAttr,
 };
-use common::comp::item::{Hands, ToolKind};
-use core::{f32::consts::PI, ops::Mul};
+use core::f32::consts::PI;
 
 pub struct WallrunAnimation;
 
-type WallrunAnimationDependency = (
-    Option<ToolKind>,
-    Option<ToolKind>,
-    (Option<Hands>, Option<Hands>),
-    Vec3<f32>,
-    Vec3<f32>,
-    Vec3<f32>,
-    f32,
-    Vec3<f32>,
-    f32,
-    Option<Vec3<f32>>,
-);
+type WallrunAnimationDependency = (Vec3<f32>, f32, Option<Vec3<f32>>);
 
 impl Animation for WallrunAnimation {
     type Dependency<'a> = WallrunAnimationDependency;
@@ -31,48 +19,26 @@ impl Animation for WallrunAnimation {
 
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
-        (
-            active_tool_kind,
-            second_tool_kind,
-            hands,
-            velocity,
-            orientation,
-            last_ori,
-            global_time,
-            avg_vel,
-            acc_vel,
-            wall,
-        ): Self::Dependency<'a>,
-        anim_time: f32,
+        (orientation, acc_vel, wall): Self::Dependency<'a>,
+        _anim_time: f32,
         rate: &mut f32,
         s_a: &SkeletonAttr,
     ) -> Self::Skeleton {
         let mut next = (*skeleton).clone();
 
-        let speed = Vec2::<f32>::from(velocity).magnitude();
         *rate = 1.0;
-        let speednorm = (speed / 9.4).powf(0.6);
 
         let lab: f32 = 0.8;
 
         let footrotl = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 1.4).sin()).powi(2)))
             .sqrt())
             * ((acc_vel * 1.6 * lab + PI * 1.4).sin());
-
         let footrotr = ((1.0 / (0.5 + (0.5) * ((acc_vel * 1.6 * lab + PI * 0.4).sin()).powi(2)))
             .sqrt())
             * ((acc_vel * 1.6 * lab + PI * 0.4).sin());
 
-        let shorte = ((1.0 / (0.8 + 0.2 * ((acc_vel * lab * 1.6).sin()).powi(2))).sqrt())
-            * ((acc_vel * lab * 1.6).sin());
-
         let foothoril = (acc_vel * 2.2 * lab + PI * 1.45).sin();
         let foothorir = (acc_vel * 2.2 * lab + PI * (0.45)).sin();
-
-        let footvertl = (acc_vel * 1.6 * lab).sin();
-        let footvertr = (acc_vel * 1.6 * lab + PI).sin();
-        let footvertsl = (acc_vel * 1.6 * lab).sin();
-        let footvertsr = (acc_vel * 1.6 * lab + PI * 0.5).sin();
 
         let shortalt = (acc_vel * lab * 2.2 + PI / 1.0).sin();
 
@@ -98,16 +64,10 @@ impl Animation for WallrunAnimation {
         next.belt.orientation = Quaternion::rotation_x(0.3);
         next.shorts.orientation = Quaternion::rotation_x(0.5);
 
-        next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
-
         next.chest.position = Vec3::new(0.0, s_a.chest.0, s_a.chest.1 + shortalt * 0.0);
 
-        //
-
-        next.shoulder_l.position = Vec3::new(-s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_l.orientation = Quaternion::rotation_x(short * 0.15);
 
-        next.shoulder_r.position = Vec3::new(s_a.shoulder.0, s_a.shoulder.1, s_a.shoulder.2);
         next.shoulder_r.orientation = Quaternion::rotation_x(short * -0.15);
 
         if wall.map_or(false, |e| e.y > 0.5) {
