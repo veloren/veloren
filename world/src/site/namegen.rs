@@ -331,21 +331,18 @@ impl<'a, R: Rng> NameGen<'a, R> {
     // themes / sites
     // greek/latin inspired location names for danari
     pub fn generate_danari(self) -> String {
-        let cons = vec![
+        let start = vec![
             "d", "ph", "r", "st", "t", "s", "p", "th", "br", "tr", "m", "k", "cr", "phr", "dr",
             "pl", "ch", "l", "ap", "akr", "ak", "ar", "ath", "asp", "al", "aph", "aphr", "oph",
             "or", "ok", "on", "od", "oth", "om", "ep", "er", "em", "eph", "eth", "yps", "yph",
             "ach", "amph", "yp", "ik", "is", "iph", "ith", "pr", "as", "asph", "ps", "b", "n", "z",
             "x", "kr", "kt", "cht", "chr", "thr", "dr", "pr", "pl", "h", "in", "g", "sph",
         ];
-        let mut start = cons.clone();
-        start.extend(vec![
+        let middle = vec![
             "kr", "tr", "str", "rk", "st", "n", "r", "ph", "phr", "ch", "x", "d", "l", "kt", "pr",
             "ll", "pp", "ss", "th", "mm", "s", "t", "g", "mn", "rg", "b", "p", "ps", "kl", "dr",
             "mp", "sp", "cht", "lph",
-        ]);
-        let mut middle = cons.clone();
-        middle.extend(vec!["tt"]);
+        ];
         let vowel = vec![
             "o", "e", "a", "i", "y", "eo", "ae", "ea", "oi", "io", "ia", "aeo",
         ];
