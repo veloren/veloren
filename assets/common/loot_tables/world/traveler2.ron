@@ -1,0 +1,19 @@
+[
+    //Currency
+    (3.0, ItemQuantity("common.items.utility.coins", 200, 500)),
+    (2.0, ItemQuantity("common.items.utility.coins", 2000, 5000)),
+    //Food
+    (3.0, LootTable("common.loot_tables.food.prepared")),
+    //Ores
+    (2.0, ItemQuantity("common.items.mineral.ore.coal", 5, 15)),
+    (2.0, ItemQuantity("common.items.mineral.ore.iron", 2, 7)),
+    (1.0, ItemQuantity("common.items.mineral.ore.cobalt", 2, 5)),
+    (0.1, ItemQuantity("common.items.mineral.gem.diamond", 2, 5)),
+    //Hides
+    (2.0, ItemQuantity("common.items.crafting_ing.hide.animal_hide", 5, 15)),
+    (2.0, ItemQuantity("common.items.crafting_ing.hide.scales", 5, 15)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.carapace", 3, 10)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.tough_hide", 3, 10)),
+    //Flowers, very pretty
+    (2.0, ItemQuantity("common.items.flowers.red", 5, 10)),
+]

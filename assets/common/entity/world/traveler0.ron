@@ -4,21 +4,23 @@
     alignment: Alignment(Npc),
     loadout: Extended(
         hands: TwoHanded(Choice([
-            (1.0, Some(Item("common.items.weapons.sword.iron-0"))),
-            (1.0, Some(Item("common.items.weapons.bow.hardwood-2"))),
-            (1.0, Some(Item("common.items.weapons.axe.iron_axe-0"))),
-            (1.0, Some(Item("common.items.weapons.staff.frostwood_torch"))),
+            (1.0, Some(Item("common.items.weapons.sword.bronze-0"))),
+            (1.0, Some(Item("common.items.weapons.axe.bronze_axe-0"))),
+            (1.0, Some(Item("common.items.weapons.hammer.bronze_hammer-0"))),
+            (1.0, Some(Item("common.items.weapons.bow.bone-0"))),
+            (1.0, Some(Item("common.items.weapons.staff.fiery_wishing_rod"))),
+            (1.0, Some(Item("common.items.weapons.sceptre.root_green0"))),
         ])),
         base_asset: Choice([
-           (1, "common.loadout.world.traveler0.iron"),
-           (1, "common.loadout.world.traveler0.leather"),
-           (1, "common.loadout.world.traveler0.wool"),
+           (1, "common.loadout.world.traveler0.bronze"),
+           (1, "common.loadout.world.traveler0.linen"),
+           (1, "common.loadout.world.traveler0.rawhide"),
         ]),
         inventory: [
-            (10, "common.items.consumable.potion_minor"),
+            (5, "common.items.consumable.potion_minor"),
         ],
     ),
-    loot: LootTable("common.loot_tables.creature.humanoid"),
+    loot: LootTable("common.loot_tables.world.traveler0"),
     meta: [
         SkillSetAsset("common.skillset.preset.rank1.fullskill"),
     ],

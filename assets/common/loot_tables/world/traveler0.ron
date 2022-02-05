@@ -1,0 +1,8 @@
+[
+    //Currency
+    (4.0, ItemQuantity("common.items.utility.coins", 50, 200)),
+    //Food
+    (4.0, LootTable("common.loot_tables.food.prepared")),
+    //Flowers, pretty
+    (2.0, ItemQuantity("common.items.flowers.red", 3, 6)),
+]

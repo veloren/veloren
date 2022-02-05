@@ -1,0 +1,38 @@
+(
+    name: Name("Well-versed Traveler"),
+    body: RandomWith("humanoid"),
+    alignment: Alignment(Npc),
+    loadout: Extended(
+        hands: TwoHanded(Choice([
+            // T3
+            (1.0, Some(Item("common.items.weapons.sword.steel-0"))),
+            (1.0, Some(Item("common.items.weapons.axe.steel_axe-0"))),
+            (1.0, Some(Item("common.items.weapons.hammer.steel_hammer-0"))),
+            (1.0, Some(Item("common.items.weapons.bow.metal-0"))),
+            (1.0, Some(Item("common.items.weapons.staff.golden_khakkara"))),
+            (1.0, Some(Item("common.items.weapons.sceptre.totem_green"))),
+            // T4
+            (1.0, Some(Item("common.items.weapons.sword.cobalt-0"))),
+            (1.0, Some(Item("common.items.weapons.axe.cobalt_axe-0"))),
+            (1.0, Some(Item("common.items.weapons.hammer.cobalt_hammer-0"))),
+            (1.0, Some(Item("common.items.weapons.bow.frostwood-0"))),
+            (1.0, Some(Item("common.items.weapons.staff.aurora"))),
+            (1.0, Some(Item("common.items.weapons.sceptre.loops0"))),
+        ])),
+        base_asset: Choice([
+           (1, "common.loadout.world.traveler2.steel"),
+           (1, "common.loadout.world.traveler2.silk"),
+           (1, "common.loadout.world.traveler2.scale"),
+           (1, "common.loadout.world.traveler2.cobalt"),
+           (1, "common.loadout.world.traveler2.druid"),
+           (1, "common.loadout.world.traveler2.carapace"),
+        ]),
+        inventory: [
+            (50, "common.items.consumable.potion_med"),
+        ],
+    ),
+    loot: LootTable("common.loot_tables.world.traveler2"),
+    meta: [
+        SkillSetAsset("common.skillset.preset.rank3.fullskill"),
+    ],
+)

@@ -1,0 +1,22 @@
+({
+    Armor(Chest): Item("common.items.armor.mail.orichalcum.chest"),
+    Armor(Legs): Item("common.items.armor.mail.orichalcum.pants"),
+    Armor(Shoulders): Item("common.items.armor.mail.orichalcum.shoulder"),
+    Armor(Hands): Item("common.items.armor.mail.orichalcum.hand"),
+    Armor(Feet): Item("common.items.armor.mail.orichalcum.foot"),
+    Armor(Belt): Item("common.items.armor.mail.orichalcum.belt"),
+
+    Armor(Back): Choice([
+        (1.0, Some(Item("common.items.armor.misc.back.backpack"))),
+        (1.0, Some(Item("common.items.npc_armor.back.backpack_blue"))),
+        (1.0, Some(Item("common.items.armor.mail.orichalcum.back"))),
+        (1.0, None),
+    ]),
+
+    Lantern: Choice([
+        (1.0, Some(Item("common.items.lantern.black_0"))),
+        (1.0, Some(Item("common.items.lantern.blue_0"))),
+        (1.0, Some(Item("common.items.lantern.green_0"))),
+        (1.0, Some(Item("common.items.lantern.red_0"))),
+    ]),
+})
