@@ -546,8 +546,6 @@ impl Structure for GnarlingFortification {
         // Create towers
         self.wall_towers.iter().for_each(|point| {
             let wpos = point.xy() + self.origin;
-            let darkwood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8)));
-            let darkwood2 = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(71, 33, 11)));
 
             // Tower base
             let tower_depth = 3;

@@ -4,13 +4,15 @@ pub mod dash;
 pub mod idle;
 pub mod run;
 pub mod shoot;
+pub mod spinmelee;
 pub mod stunned;
 pub mod wield;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, dash::DashAnimation, idle::IdleAnimation,
-    run::RunAnimation, shoot::ShootAnimation, stunned::StunnedAnimation, wield::WieldAnimation,
+    run::RunAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
+    stunned::StunnedAnimation, wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
@@ -141,7 +143,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sahagin, _) => (0.0, 15.0),
                 (Adlet, _) => (0.0, 11.0),
                 (Gnarling, _) => (0.0, 7.5),
-                (Mandragora, _) => (0.0, 10.5),
+                (Mandragora, _) => (0.0, 4.0),
                 (Kappa, _) => (0.0, 14.5),
                 (Cactid, _) => (0.0, 7.0),
                 (Gnoll, _) => (0.0, 15.5),
@@ -154,7 +156,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sahagin, _) => (0.5, -7.0),
                 (Adlet, _) => (0.0, -3.0),
                 (Gnarling, _) => (0.0, -3.0),
-                (Mandragora, _) => (0.0, -6.5),
+                (Mandragora, _) => (0.0, 0.0),
                 (Kappa, _) => (0.0, -3.0),
                 (Cactid, _) => (0.0, -3.0),
                 (Gnoll, _) => (0.5, -7.5),
@@ -180,7 +182,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (Sahagin, _) => (3.5, 3.5, -2.0),
                 (Adlet, _) => (4.5, -0.5, 2.0),
                 (Gnarling, _) => (4.0, 0.0, 1.5),
-                (Mandragora, _) => (4.0, -0.5, -2.5),
+                (Mandragora, _) => (4.0, -0.5, 4.0),
                 (Kappa, _) => (4.0, 3.5, -0.5),
                 (Cactid, _) => (4.0, 0.5, -1.0),
                 (Gnoll, _) => (3.5, 0.5, -1.0),

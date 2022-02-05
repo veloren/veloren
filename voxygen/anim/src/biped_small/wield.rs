@@ -213,7 +213,12 @@ impl Animation for WieldAnimation {
                     * Quaternion::rotation_y(-0.2 * speednorm)
                     * Quaternion::rotation_z(-0.3);
             },
-            _ => {},
+            _ => {
+                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_r.orientation = Quaternion::rotation_x(1.2);
+            },
         }
 
         next

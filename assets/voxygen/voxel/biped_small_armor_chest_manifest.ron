@@ -37,7 +37,7 @@
             vox_spec: ("npc.gnarling.chieftain.chest", (-4.5, -3.5, -1.0)),
         ),
         "Mandragora": (
-            vox_spec: ("npc.mandragora.male.chest", (-11.0, -11.0, -6.5)),
+            vox_spec: ("npc.mandragora.male.chest", (-11.0, -11.0, 0.0)),
         ),
         "Kappa": (
             vox_spec: ("npc.kappa.male.chest", (-6.5, -8.0, -7.0)),

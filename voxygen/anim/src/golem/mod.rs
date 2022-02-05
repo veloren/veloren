@@ -178,7 +178,7 @@ impl<'a> From<&'a Body> for SkeletonAttr {
                 (StoneGolem, _) => (3.5, 0.5, -9.5),
                 (Treant, _) => (3.5, -5.0, -8.5),
                 (ClayGolem, _) => (3.5, -1.0, -8.5),
-                (WoodGolem, _) => (2.5, -1.0, -5.5),
+                (WoodGolem, _) => (2.5, 1.0, -5.5),
             },
             scaler: match (body.species, body.body_type) {
                 (StoneGolem, _) => 1.5,

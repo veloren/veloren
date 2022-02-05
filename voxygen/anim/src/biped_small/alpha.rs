@@ -64,7 +64,8 @@ impl Animation for AlphaAnimation {
         let subtract = global_time - timer;
         let check = subtract - subtract.trunc();
         let mirror = (check - 0.5).signum();
-        let _move1 = move1base * pullback * mirror;
+        let move1 = move1base * pullback * mirror;
+        let move2 = move2base * pullback * mirror;
         let move1abs = move1base * pullback;
         let move2abs = move2base * pullback;
         next.hand_l.position = Vec3::new(s_a.grip.0 * 4.0, 0.0, s_a.grip.2);
@@ -167,7 +168,14 @@ impl Animation for AlphaAnimation {
                     * Quaternion::rotation_y(move1abs * -0.4 + move2abs * 1.0)
                     * Quaternion::rotation_z(-0.3 + move2abs * -2.2);
             },
-            _ => {},
+            _ => {
+                next.chest.orientation = Quaternion::rotation_x(move2abs * -1.0)
+                    * Quaternion::rotation_z(move1 * 1.2 + move2 * -1.8);
+                next.hand_l.position = Vec3::new(-s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_l.orientation = Quaternion::rotation_x(1.2);
+                next.hand_r.position = Vec3::new(s_a.hand.0, s_a.hand.1, s_a.hand.2);
+                next.hand_r.orientation = Quaternion::rotation_x(1.2);
+            },
         }
         next
     }
