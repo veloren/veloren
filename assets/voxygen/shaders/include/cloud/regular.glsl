@@ -256,13 +256,15 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
             float step = (ldist - cdist) * 0.01;
             float cloud_darken = pow(1.0 / (1.0 + cloud_scatter_factor), step);
             float global_darken = pow(1.0 / (1.0 + global_scatter_factor), step);
+            // Proportion of light diffusely scattered instead of absorbed
+            float cloud_diffuse = 0.25;
 
             surf_color =
                 // Attenuate light passing through the clouds
                 surf_color * cloud_darken * global_darken +
                 // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
-                sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
-                moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) /*+ sky_color * global_scatter_factor*/) +
+                sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken)  * cloud_diffuse /*+ sky_color * global_scatter_factor*/) +
+                moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) * cloud_diffuse /*+ sky_color * global_scatter_factor*/) +
                 sky_light * (1.0 - global_darken) * not_underground +
                 emission * density_integrals.y * step;
         }

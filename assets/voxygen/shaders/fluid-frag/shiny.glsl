@@ -58,7 +58,7 @@ vec3 warp_normal(vec3 norm, vec3 pos, float time) {
         + smooth_rand(pos * 0.25, time * 0.25) * 0.1);
 }
 
-float wave_height(vec3 pos) {
+float wave_height(vec3 pos, vec3 surf_norm) {
     float timer = tick.x * 0.75;
 
     pos *= 0.5;
@@ -103,7 +103,8 @@ void main() {
     uint norm_dir = ((f_pos_norm >> 29) & 0x1u) * 3u;
     // Use an array to avoid conditional branching
     // Temporarily assume all water faces up (this is incorrect but looks better)
-    vec3 f_norm = vec3(0, 0, 1);//normals[norm_axis + norm_dir];
+    vec3 surf_norm = normals[norm_axis + norm_dir];
+    vec3 f_norm = vec3(0, 0, 1);//surf_norm;
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
 
     // vec4 light_pos[2];
@@ -131,10 +132,11 @@ void main() {
     }
     vec3 c_norm = cross(f_norm, b_norm);
 
-    vec3 wave_pos = f_pos + focus_off.xyz;
-    float wave00 = wave_height(wave_pos);
-    float wave10 = wave_height(wave_pos + vec3(0.1, 0, 0));
-    float wave01 = wave_height(wave_pos + vec3(0, 0.1, 0));
+    vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(100.0));
+    float wave_sample_dist = 0.025;
+    float wave00 = wave_height(wave_pos, surf_norm);
+    float wave10 = wave_height(wave_pos + vec3(wave_sample_dist, 0, 0), surf_norm);
+    float wave01 = wave_height(wave_pos + vec3(0, wave_sample_dist, 0), surf_norm);
 
     // Possibility of div by zero when slope = 0,
     // however this only results in no water surface appearing
@@ -142,10 +144,33 @@ void main() {
     float slope = abs((wave00 - wave10) * (wave00 - wave01)) + 0.001;
 
     vec3 nmap = vec3(
-        -(wave10 - wave00) / 0.1,
-        -(wave01 - wave00) / 0.1,
-        0.1 / slope
+        -(wave10 - wave00) / wave_sample_dist,
+        -(wave01 - wave00) / wave_sample_dist,
+        wave_sample_dist / slope
     );
+
+    float rain_density = rain_density_at(cam_pos.xy + focus_off.xy);
+    if (rain_density > 0 && surf_norm.z > 0.5) {
+        vec3 drop_density = vec3(2, 2, 1);
+        vec3 drop_pos = wave_pos + vec3(0, 0, -time_of_day.x * 0.025);
+        drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;
+        vec2 cell2d = floor(drop_pos.xy * drop_density.xy);
+        drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
+        vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
+
+        if (hash(fract(vec4(cell, 0) * 0.01)) < rain_density) {
+            vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
+            vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
+
+            float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
+            float drop_rad = 0.125;
+            nmap.xy += (drop_pos - near_cell).xy
+                * max(1.0 - abs(dist - drop_rad) * 50, 0)
+                * 2500
+                * sign(dist - drop_rad)
+                * max(drop_pos.z - near_cell.z, 0);
+        }
+    }
 
     nmap = mix(f_norm, normalize(nmap), min(1.0 / pow(frag_dist, 0.75), 1));
 

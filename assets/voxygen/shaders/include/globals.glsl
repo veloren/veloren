@@ -37,4 +37,6 @@ mat4 threshold_matrix = mat4(
 float distance_divider = 2;
 float shadow_dithering = 0.5;
 
+vec2 wind_vel = vec2(0.0);
+
 #endif

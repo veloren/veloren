@@ -62,6 +62,19 @@ vec3 wpos_at(vec2 uv) {
     }
 }
 
+mat4 spin_in_axis(vec3 axis, float angle)
+{
+    axis = normalize(axis);
+    float s = sin(angle);
+    float c = cos(angle);
+    float oc = 1.0 - c;
+
+    return mat4(oc * axis.x * axis.x + c,  oc * axis.x * axis.y - axis.z * s, oc * axis.z * axis.x + axis.y * s, 0,
+        oc * axis.x * axis.y + axis.z * s, oc * axis.y * axis.y + c,          oc * axis.y * axis.z - axis.x * s, 0,
+        oc * axis.z * axis.x - axis.y * s, oc * axis.y * axis.z + axis.x * s, oc * axis.z * axis.z + c,          0,
+        0,                                 0,                                 0,                                 1);
+}
+
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
 
@@ -85,6 +98,50 @@ void main() {
     #if (CLOUD_MODE == CLOUD_MODE_NONE)
         color.rgb = apply_point_glow(cam_pos.xyz + focus_off.xyz, dir, dist, color.rgb);
     #endif
+
+    vec3 old_color = color.rgb;
+
+    float fall_rate = 20.0;
+
+    dir.xy += wind_vel * dir.z / fall_rate;
+    dir = normalize(dir);
+
+    float z = (-1 / (abs(dir.z) - 1) - 1) * sign(dir.z);
+    vec2 dir_2d = normalize(dir.xy);
+    vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
+
+    vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
+    float rain_density = rain_density_at(cam_wpos.xy);
+    if (rain_density > 0) {
+        float rain_dist = 50.0;
+        for (int i = 0; i < 5; i ++) {
+            rain_dist *= 0.3;
+
+            vec3 rpos = vec3(vec2(dir_2d), view_pos.y) * rain_dist;
+            float dist_to_rain = length(rpos);
+
+            if (dist < dist_to_rain || cam_wpos.z + rpos.z > CLOUD_AVG_ALT) {
+                continue;
+            }
+
+            float drop_density = 3;
+            vec2 drop_size = vec2(0.0025, 0.17);
+
+            vec2 rain_pos = (view_pos * rain_dist);
+            rain_pos += vec2(0, tick.x * fall_rate + cam_wpos.z);
+
+            vec2 cell = floor(rain_pos * drop_density) / drop_density;
+            if (hash(fract(vec4(cell, rain_dist, 0) * 0.01)) > rain_density) {
+                continue;
+            }
+            vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
+
+            float avg_alpha = (drop_size.x * drop_size.y) / 1;
+            float alpha = sign(max(1 - length((rain_pos - near_drop) / drop_size), 0));
+            float light = sqrt(dot(old_color, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;
+            color.rgb = mix(color.rgb, vec3(0.3, 0.4, 0.5) * light, mix(avg_alpha, alpha, min(1000 / dist_to_rain, 1)) * 0.25);
+        }
+    }
 
     tgt_color = vec4(color.rgb, 1);
 }
