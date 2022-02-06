@@ -3,7 +3,6 @@ use super::{
     BipedSmallSkeleton, SkeletonAttr,
 };
 use common::{comp::item::ToolKind, states::utils::StageSection};
-use std::f32::consts::PI;
 
 pub struct SpinMeleeAnimation;
 
@@ -32,14 +31,14 @@ impl Animation for SpinMeleeAnimation {
         skeleton: &Self::Skeleton,
         (
             active_tool_kind,
-            velocity,
+            _velocity,
             _orientation,
             _last_ori,
-            global_time,
+            _global_time,
             _avg_vel,
             _acc_vel,
             stage_section,
-            timer,
+            _timer,
         ): Self::Dependency<'a>,
         anim_time: f32,
         _rate: &mut f32,
@@ -54,9 +53,6 @@ impl Animation for SpinMeleeAnimation {
             _ => (0.0, 0.0, 0.0, 0.0),
         };
         let pullback = 1.0 - move3;
-        let subtract = global_time - timer;
-        let check = subtract - subtract.trunc();
-        let mirror = (check - 0.5).signum();
         let tension = tension * pullback;
         let move1abs = move1base * pullback;
         let move2abs = move2base * pullback;

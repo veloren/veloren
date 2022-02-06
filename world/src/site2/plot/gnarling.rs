@@ -457,6 +457,8 @@ impl Structure for GnarlingFortification {
 
                     let wall_base_thickness = 3.0;
                     let wall_base_height = 3.0;
+                    let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
+                    let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(115, 58, 26), 12);
 
                     painter
                         .segment_prism(
@@ -465,10 +467,7 @@ impl Structure for GnarlingFortification {
                             wall_base_thickness,
                             wall_base_height + wall_depth as f32,
                         )
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
 
                     // Middle of wall
                     let start = start_wpos.as_().with_z(land.get_alt_approx(start_wpos));
@@ -479,10 +478,7 @@ impl Structure for GnarlingFortification {
 
                     painter
                         .segment_prism(start, end, wall_mid_thickness, wall_mid_height)
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(115, 58, 26),
-                        )));
+                        .fill(lightwood);
 
                     // Top of wall
                     let start = start_wpos
@@ -497,10 +493,7 @@ impl Structure for GnarlingFortification {
 
                     painter
                         .segment_prism(start, end, wall_top_thickness, wall_top_height)
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
 
                     // Wall parapets
                     let parapet_z_offset = 1.0;
@@ -536,10 +529,7 @@ impl Structure for GnarlingFortification {
                             wall_par_thickness,
                             wall_par_height + parapet_z_offset as f32,
                         )
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
                 })
         }
 
@@ -557,6 +547,11 @@ impl Structure for GnarlingFortification {
             let randy = wpos.y.abs() % 10;
             let randz = (land.get_alt_approx(wpos) as i32).abs() % 10;
             //layers of rings, starting at exterior
+            let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
+            let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+            let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
+            let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
+
             let outside = painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
@@ -568,50 +563,35 @@ impl Structure for GnarlingFortification {
                     tower_radius - 1.0,
                     tower_height,
                 )));
-            outside.fill(Fill::Block(Block::new(
-                BlockKind::Wood,
-                Rgb::new(71, 33, 11),
-            )));
+            outside.fill(midwood.clone());
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
                     tower_radius - 1.0,
                     tower_height,
                 ))
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
-                )));
+                .fill(darkwood.clone());
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
                     tower_radius - 2.0,
                     tower_height,
                 ))
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(71, 33, 11),
-                )));
+                .fill(midwood.clone());
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
                     tower_radius - 3.0,
                     tower_height,
                 ))
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(55, 25, 8),
-                )));
+                .fill(darkwood.clone());
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
                     tower_radius - 4.0,
                     tower_height,
                 ))
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(71, 33, 11),
-                )));
+                .fill(midwood.clone());
             //top layer, green above the tower
             painter
                 .prim(Primitive::cylinder(
@@ -619,10 +599,7 @@ impl Structure for GnarlingFortification {
                     tower_radius,
                     2.0,
                 ))
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(22, 36, 20),
-                )));
+                .fill(moss.clone());
             //standing area one block deeper
             painter
                 .prim(Primitive::cylinder(
@@ -701,10 +678,7 @@ impl Structure for GnarlingFortification {
                         .with_z(land.get_alt_approx(wpos) as i32 + tower_height as i32 - 10),
                 })
                 .intersect(outside)
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(102, 31, 24), //red
-                )));
+                .fill(red.clone());
             painter
                 .aabb(Aabb {
                     min: Vec2::new(wpos.x - tower_radius as i32 - 1, wpos.y - 2)
@@ -713,10 +687,7 @@ impl Structure for GnarlingFortification {
                         .with_z(land.get_alt_approx(wpos) as i32 + tower_height as i32 - 10),
                 })
                 .intersect(outside)
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(102, 31, 24), //red
-                )));
+                .fill(red.clone());
             painter
                 .aabb(Aabb {
                     min: Vec2::new(wpos.x - 1, wpos.y - tower_radius as i32 - 1)
@@ -725,10 +696,7 @@ impl Structure for GnarlingFortification {
                         .with_z(land.get_alt_approx(wpos) as i32 + tower_height as i32 - 16),
                 })
                 .intersect(outside)
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(102, 31, 24), //red
-                )));
+                .fill(red.clone());
             painter
                 .aabb(Aabb {
                     min: Vec2::new(wpos.x - tower_radius as i32 - 1, wpos.y - 1)
@@ -737,10 +705,7 @@ impl Structure for GnarlingFortification {
                         .with_z(land.get_alt_approx(wpos) as i32 + tower_height as i32 - 16),
                 })
                 .intersect(outside)
-                .fill(Fill::Block(Block::new(
-                    BlockKind::Wood,
-                    Rgb::new(102, 31, 24), //red
-                )));
+                .fill(red.clone());
         });
 
         self.structure_locations
@@ -764,14 +729,16 @@ impl Structure for GnarlingFortification {
                     let randy = wpos.y.abs() % 10;
                     let randz = alt.abs() % 10;
                     let hut_wall_height = hut_wall_height + randy as f32 / 3.0;
+
+                    let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
+                    let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                    let moss = Fill::Brick(BlockKind::Leaves, Rgb::new(22, 36, 20), 24);
+
                     // Floor
                     let base = wpos.with_z(alt - 4);
                     painter
                         .prim(Primitive::cylinder(base, hut_radius + 1.0, 6.0))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
 
                     // Wall
                     let floor_pos = wpos.with_z(alt + 1);
@@ -782,40 +749,28 @@ impl Structure for GnarlingFortification {
                             hut_radius,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(71, 33, 11),
-                        )));
+                        .fill(midwood.clone());
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
                             hut_radius - 1.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
                             hut_radius - 2.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(71, 33, 11),
-                        )));
+                        .fill(midwood.clone());
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
                             hut_radius - 3.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
@@ -858,10 +813,8 @@ impl Structure for GnarlingFortification {
                             roof_radius - 1.0,
                             roof_height - 1.0,
                         ))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(22, 36, 20),
-                        )));
+                        .fill(moss.clone());
+
                     //small bits handing from huts
                     let tendril1 = painter.line(
                         Vec2::new(wpos.x - 3, wpos.y - 5).with_z(alt + 1 + hut_wall_height as i32),
@@ -879,10 +832,8 @@ impl Structure for GnarlingFortification {
                     let tendril4 = tendril1.translate(Vec3::new(7, 4, 0));
                     let tendrils = tendril1.union(tendril2).union(tendril3).union(tendril4);
 
-                    tendrils.fill(Fill::Block(Block::new(
-                        BlockKind::Leaves,
-                        Rgb::new(22, 36, 20),
-                    )));
+                    tendrils.fill(moss.clone());
+
                     //sphere to delete some hut
                     painter
                         .prim(Primitive::sphere(
@@ -904,25 +855,24 @@ impl Structure for GnarlingFortification {
                     roof_height: f32,
                     _roof_overhang: f32,
                 ) {
+                    let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
+                    let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                    let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
+                    let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
+
                     // Floor
                     let raise = 5;
                     let base = wpos.with_z(alt);
                     painter
                         .prim(Primitive::cylinder(base, hut_radius + 1.0, 2.0))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
 
                     let platform = painter.aabb(Aabb {
                         min: (wpos - 20).with_z(alt + raise),
                         max: (wpos + 20).with_z(alt + raise + 1),
                     });
 
-                    painter.fill(
-                        platform,
-                        Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
-                    );
+                    painter.fill(platform, darkwood.clone());
 
                     let support_1 = painter.line(
                         (wpos - 19).with_z(alt - 3),
@@ -949,10 +899,7 @@ impl Structure for GnarlingFortification {
                         .union(support_inner_3)
                         .union(support_inner_4);
 
-                    painter.fill(
-                        supports,
-                        Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
-                    );
+                    painter.fill(supports, darkwood.clone());
                     let height_1 = 10.0;
                     let height_2 = 12.0;
                     let rad_1 = 18.0;
@@ -962,10 +909,7 @@ impl Structure for GnarlingFortification {
                     let floor_pos = wpos.with_z(alt + 1 + raise);
                     painter
                         .prim(Primitive::cylinder(floor_pos, rad_1, height_1))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(71, 33, 11),
-                        )));
+                        .fill(midwood.clone());
                     painter
                         .prim(Primitive::cylinder(floor_pos, rad_1 - 1.0, height_1))
                         .fill(Fill::Block(Block::empty()));
@@ -973,10 +917,7 @@ impl Structure for GnarlingFortification {
                     let floor2_pos = wpos.with_z(alt + 1 + raise + height_1 as i32);
                     painter
                         .prim(Primitive::cylinder(floor2_pos, rad_2, height_2))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Wood,
-                            Rgb::new(71, 33, 11),
-                        )));
+                        .fill(midwood.clone());
 
                     // Roof
                     let roof_radius = rad_1 + 5.0;
@@ -985,10 +926,7 @@ impl Structure for GnarlingFortification {
                         roof_radius,
                         roof_height,
                     ));
-                    roof1.fill(Fill::Block(Block::new(
-                        BlockKind::Leaves,
-                        Rgb::new(22, 36, 20),
-                    )));
+                    roof1.fill(moss.clone());
                     let roof_radius = rad_2 + 1.0;
                     painter
                         .prim(Primitive::cone(
@@ -996,10 +934,7 @@ impl Structure for GnarlingFortification {
                             roof_radius,
                             roof_height,
                         ))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(22, 36, 20),
-                        )));
+                        .fill(moss.clone());
                     let centerspot = painter.line(
                         (wpos + 1).with_z(alt + raise + height_1 as i32 + 2),
                         (wpos + 1).with_z(alt + raise + height_1 as i32 + 2),
@@ -1043,10 +978,7 @@ impl Structure for GnarlingFortification {
                         .union(roof_support_3)
                         .union(roof_support_4);
 
-                    painter.fill(
-                        roof_support,
-                        Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
-                    );
+                    painter.fill(roof_support, darkwood.clone());
 
                     let spike_1 = painter.line(
                         (wpos + rad_2 as i32 - 5).with_z(alt + raise + height_1 as i32 + 2),
@@ -1063,7 +995,7 @@ impl Structure for GnarlingFortification {
 
                     painter.fill(
                         spikes,
-                        Fill::Block(Block::new(BlockKind::Wood, Rgb::new(184, 177, 134))),
+                        Fill::Brick(BlockKind::Wood, Rgb::new(184, 177, 134), 24),
                     );
                     //Open doorways (top floor)
                     painter
@@ -1143,10 +1075,7 @@ impl Structure for GnarlingFortification {
                         })
                         .intersect(roof1)
                         .translate(Vec3::new(0, 0, -1))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
                     painter
                         .aabb(Aabb {
                             min: Vec2::new(wpos.x - 23, wpos.y - 2)
@@ -1155,10 +1084,7 @@ impl Structure for GnarlingFortification {
                                 .with_z(alt + raise + height_1 as i32 + 7),
                         })
                         .intersect(roof1)
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(102, 31, 24),
-                        )));
+                        .fill(red.clone());
                     painter
                         .aabb(Aabb {
                             min: Vec2::new(wpos.x - 2, wpos.y - 23)
@@ -1168,10 +1094,7 @@ impl Structure for GnarlingFortification {
                         })
                         .intersect(roof1)
                         .translate(Vec3::new(0, 0, -1))
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        .fill(darkwood.clone());
                     painter
                         .aabb(Aabb {
                             min: Vec2::new(wpos.x - 2, wpos.y - 23)
@@ -1180,10 +1103,7 @@ impl Structure for GnarlingFortification {
                                 .with_z(alt + raise + height_1 as i32 + 7),
                         })
                         .intersect(roof1)
-                        .fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(102, 31, 24),
-                        )));
+                        .fill(red.clone());
                     painter
                         .prim(Primitive::cylinder(floor2_pos, rad_2 - 1.0, height_2))
                         .fill(Fill::Block(Block::empty()));
@@ -1216,6 +1136,9 @@ impl Structure for GnarlingFortification {
                         let length = 14;
                         let width = 6;
                         let height = alt + 12;
+                        let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
+                        let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                        let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
                         let low1 = painter.aabb(Aabb {
                             min: Vec2::new(wpos.x - width, wpos.y - length).with_z(height + 1),
                             max: Vec2::new(wpos.x + width, wpos.y + length).with_z(height + 2),
@@ -1242,26 +1165,17 @@ impl Structure for GnarlingFortification {
                         let top = top1.union(top2);
 
                         let roof = low1.union(low2).union(top1).union(top2);
-                        let moss = roof.translate(Vec3::new(0, 0, 1)).without(top).without(low);
-                        top.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(55, 25, 8),
-                        )));
-                        low.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(71, 33, 11),
-                        )));
-                        moss.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(22, 36, 20),
-                        )));
+                        let roofmoss = roof.translate(Vec3::new(0, 0, 1)).without(top).without(low);
+                        top.fill(darkwood.clone());
+                        low.fill(midwood.clone());
+                        roofmoss.fill(moss.clone());
                         painter
                             .prim(Primitive::sphere(
                                 Vec2::new(wpos.x + randy - 5, wpos.y + randz - 5)
                                     .with_z(height + 4),
                                 7.0,
                             ))
-                            .intersect(moss)
+                            .intersect(roofmoss)
                             .fill(Fill::Block(Block::empty()));
                         painter
                             .prim(Primitive::sphere(
@@ -1269,7 +1183,7 @@ impl Structure for GnarlingFortification {
                                     .with_z(height + 4),
                                 4.0,
                             ))
-                            .intersect(moss)
+                            .intersect(roofmoss)
                             .fill(Fill::Block(Block::empty()));
                         painter
                             .prim(Primitive::sphere(
@@ -1277,7 +1191,7 @@ impl Structure for GnarlingFortification {
                                     .with_z(height + 4),
                                 4.0,
                             ))
-                            .intersect(moss)
+                            .intersect(roofmoss)
                             .fill(Fill::Block(Block::empty()));
                         //outside leg
                         painter
@@ -1286,10 +1200,7 @@ impl Structure for GnarlingFortification {
                                 max: Vec2::new(wpos.x - length + 1, wpos.y - width + 1)
                                     .with_z(height + 1),
                             })
-                            .fill(Fill::Block(Block::new(
-                                BlockKind::Leaves,
-                                Rgb::new(55, 25, 8),
-                            )));
+                            .fill(darkwood.clone());
 
                         //inside leg
                         let legp1 = painter.aabb(Aabb {
@@ -1315,10 +1226,7 @@ impl Structure for GnarlingFortification {
                             .translate(Vec3::new(width * 2 + 2, width * 2 + 2, 0));
 
                         let legs = leg1.union(leg2).union(leg3).union(leg4);
-                        legs.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        legs.fill(darkwood);
 
                         let spike1 = painter.line(
                             Vec2::new(wpos.x - 12, wpos.y + 2).with_z(height + 3),
@@ -1340,10 +1248,7 @@ impl Structure for GnarlingFortification {
                             .translate(Vec3::new(16, -9, 0));
                         let spikesall = spikeshalf.union(spikesotherhalf);
 
-                        spikesall.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(184, 177, 134),
-                        )));
+                        spikesall.fill(Fill::Brick(BlockKind::Wood, Rgb::new(184, 177, 134), 24));
                         let crystal1 = painter.aabb(Aabb {
                             min: Vec2::new(wpos.x - 2, wpos.y - 3).with_z(alt),
                             max: Vec2::new(wpos.x + 2, wpos.y + 1).with_z(alt + 7),
@@ -1363,14 +1268,16 @@ impl Structure for GnarlingFortification {
                         let crystalp1 = crystal1.union(crystal3);
                         let crystalp2 = crystal2.union(crystal4);
 
-                        crystalp1.fill(Fill::Block(Block::new(
+                        crystalp1.fill(Fill::Brick(
                             BlockKind::GlowingRock,
-                            Rgb::new(50, 255, 210),
-                        )));
-                        crystalp2.fill(Fill::Block(Block::new(
+                            Rgb::new(50, 225, 210),
+                            24,
+                        ));
+                        crystalp2.fill(Fill::Brick(
                             BlockKind::GlowingRock,
                             Rgb::new(36, 187, 151),
-                        )));
+                            24,
+                        ));
                     },
                     GnarlingStructure::Totem => {
                         let totem_pos = wpos.with_z(alt);
@@ -1417,15 +1324,14 @@ impl Structure for GnarlingFortification {
                             * 10.0) as i32;
                         let randz = ((alt.abs() as f32 / 10.0 - (alt.abs() as f32 / 10.0).trunc())
                             * 10.0) as i32;
-
+                        let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
+                        let moss = Fill::Brick(BlockKind::Leaves, Rgb::new(22, 36, 20), 24);
+                        let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
                         let flag = painter.aabb(Aabb {
                             min: Vec2::new(wpos.x + 1, wpos.y - 1).with_z(alt + 8),
                             max: Vec2::new(wpos.x + 8, wpos.y).with_z(alt + 38),
                         });
-                        flag.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(102, 31, 24),
-                        )));
+                        flag.fill(red.clone());
                         //add green streaks
                         let streak1 = painter
                             .line(
@@ -1450,10 +1356,7 @@ impl Structure for GnarlingFortification {
                             )
                             .intersect(flag);
                         let streaks = streak1.union(streak2).union(streak3);
-                        streaks.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(22, 36, 20),
-                        )));
+                        streaks.fill(moss);
                         //erase from top and bottom of rectangle flag for shape
                         painter
                             .line(
@@ -1501,10 +1404,7 @@ impl Structure for GnarlingFortification {
                             0.9,
                         );
                         let flagpole = column.union(arm);
-                        flagpole.fill(Fill::Block(Block::new(
-                            BlockKind::Leaves,
-                            Rgb::new(55, 25, 8),
-                        )));
+                        flagpole.fill(darkwood.clone());
                     },
                     GnarlingStructure::WatchTower => {
                         let platform_1_height = 14;
@@ -1738,14 +1638,14 @@ impl Structure for GnarlingFortification {
                         let skirt = skirt1.union(skirt2).union(roof);
                         painter.fill(
                             skirt,
-                            Fill::Block(Block::new(BlockKind::Leaves, Rgb::new(22, 36, 20))),
+                            Fill::Brick(BlockKind::Leaves, Rgb::new(22, 36, 20), 24),
                         );
 
                         let towerplatform = platform_1.union(platform_2).union(platform_3);
 
                         painter.fill(
                             towerplatform,
-                            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(71, 33, 11))),
+                            Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 24),
                         );
                         let towervertical = supports
                             .union(platform_1_supports)
@@ -1754,14 +1654,14 @@ impl Structure for GnarlingFortification {
 
                         painter.fill(
                             towervertical,
-                            Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8))),
+                            Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 24),
                         );
                     },
                 }
             });
 
         // Create tunnels beneath the fortification
-        let wood = Fill::Block(Block::new(BlockKind::Wood, Rgb::new(55, 25, 8)));
+        let wood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 24);
         let alt = land.get_alt_approx(self.origin) as i32;
         let entrance = painter.cylinder(Aabb {
             min: Vec3::new(self.tunnels.start.x - 3, self.tunnels.start.y - 3, alt),
