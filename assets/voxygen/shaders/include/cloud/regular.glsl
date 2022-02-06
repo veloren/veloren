@@ -238,6 +238,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         float min_dist = clamp(max_dist / 4, 0.25, 24);
         int i;
 
+        // TODO: Make it a double rainbow
         float rainbow_t = (0.7 - dot(sun_dir.xyz, dir)) * 8 / 0.05;
         int rainbow_c = int(floor(rainbow_t));
         rainbow_t = fract(rainbow_t);

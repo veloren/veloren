@@ -20,7 +20,7 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(job: &mut common_ecs::Job<Self>, (sim, mut scheduler, clients): Self::SystemData) {
+    fn run(_job: &mut common_ecs::Job<Self>, (sim, mut scheduler, clients): Self::SystemData) {
         if scheduler.should_run() {
             let mut lazy_msg = None;
             for client in clients.join() {

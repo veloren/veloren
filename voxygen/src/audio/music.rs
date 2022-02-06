@@ -476,7 +476,7 @@ impl assets::Compound for SoundtrackCollection<SoundtrackItem> {
                                 path,
                                 length,
                                 timing: timing.clone(),
-                                weather: weather.clone(),
+                                weather,
                                 biomes: biomes.clone(),
                                 site,
                                 music_state,

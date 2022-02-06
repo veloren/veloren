@@ -1,24 +1,20 @@
 use common::{
     grid::Grid,
     resources::TimeOfDay,
-    terrain::{BiomeKind, TerrainChunkSize},
-    time::DayPeriod,
+    terrain::TerrainChunkSize,
     vol::RectVolSize,
     weather::{Weather, CHUNKS_PER_CELL},
 };
 use itertools::Itertools;
 use vek::*;
-use world::{
-    util::{FastNoise, Sampler},
-    World,
-};
+use world::World;
 
 #[derive(Default)]
 pub struct Constants {
-    altitude: f32,
-    water: f32,
-    temperature_day: f32,
-    temperature_night: f32,
+    alt: f32,
+    normal: Vec3<f32>,
+    humid: f32,
+    temp: f32,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -29,146 +25,117 @@ struct Cell {
     cloud: f32,
 }
 /// Used to sample weather that isn't simulated
-fn sample_cell(p: Vec2<i32>, time: f64) -> Cell {
+fn sample_cell(_p: Vec2<i32>, _time: f64) -> Cell {
     Cell {
-        wind: Vec2::new(10.0, 0.0),
-        temperature: 20.0,
-        moisture: 0.0,
+        wind: Vec2::new(20.0, 20.0),
+        temperature: 0.5,
+        moisture: 0.1,
         cloud: 0.0,
     }
 }
 
-pub struct WeatherSim {
-    cells: Grid<Cell>,          // The variables used for simulation
-    constants: Grid<Constants>, // The constants from the world used for simulation
-    weather: Grid<Weather>,     // The current weather.
+#[derive(Clone, Copy, Default)]
+pub struct WeatherInfo {
+    pub lightning_chance: f32,
 }
 
-const BASE_MOISTURE: f32 = 1.0;
-const BASE_TEMPERATURE: f32 = 20.0;
-const WATER_BOILING_POINT: f32 = 373.3;
-const MAX_WIND_SPEED: f32 = 60.0;
-const CELL_SIZE: f32 = (CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x) as f32;
+pub struct WeatherSim {
+    cells: Grid<Cell>,       // The variables used for simulation
+    consts: Grid<Constants>, // The constants from the world used for simulation
+    weather: Grid<Weather>,  // The current weather.
+    info: Grid<WeatherInfo>,
+}
+
+const WATER_BOILING_POINT: f32 = 2.5;
+const MAX_WIND_SPEED: f32 = 128.0;
+pub(crate) const CELL_SIZE: f32 = (CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x) as f32;
 pub(crate) const DT: f32 = CELL_SIZE / MAX_WIND_SPEED;
+
+fn sample_plane_normal(points: &[Vec3<f32>]) -> Option<Vec3<f32>> {
+    if points.len() < 3 {
+        return None;
+    }
+    let sum = points.iter().cloned().sum::<Vec3<f32>>();
+    let centroid = sum / (points.len() as f32);
+
+    let (xx, xy, xz, yy, yz, zz) = {
+        let (mut xx, mut xy, mut xz, mut yy, mut yz, mut zz) = (0.0, 0.0, 0.0, 0.0, 0.0, 0.0);
+        for p in points {
+            let p = *p - centroid;
+            xx += p.x * p.x;
+            xy += p.x * p.y;
+            xz += p.x * p.z;
+            yy += p.y * p.y;
+            yz += p.y * p.z;
+            zz += p.z * p.z;
+        }
+        (xx, xy, xz, yy, yz, zz)
+    };
+
+    let det_x: f32 = yy * zz - yz * yz;
+    let det_y: f32 = xx * zz - xz * xz;
+    let det_z: f32 = xx * yy - xy * xy;
+
+    let det_max = det_x.max(det_y).max(det_z);
+    if det_max <= 0.0 {
+        None
+    } else if det_max == det_x {
+        Some(Vec3::new(det_x, xz * yz - xy * zz, xy * yz - xz * yy).normalized())
+    } else if det_max == det_y {
+        Some(Vec3::new(xy * yz - xy * zz, det_y, xy * xz - yz * xx).normalized())
+    } else {
+        Some(Vec3::new(xy * yz - xz * yy, xy * xz - yz * xx, det_z).normalized())
+    }
+}
 
 impl WeatherSim {
     pub fn new(size: Vec2<u32>, world: &World) -> Self {
         let size = size.as_();
         let mut this = Self {
             cells: Grid::new(size, Cell::default()),
-            constants: Grid::from_raw(
+            consts: Grid::from_raw(
                 size,
                 (0..size.x * size.y)
-                    .map(|i| Vec2::new(i as i32 % size.x, i as i32 / size.x))
+                    .map(|i| Vec2::new(i % size.x, i / size.x))
                     .map(|p| {
-                        let add = |member: &mut f32, v| {
-                            *member += v;
-                            *member /= 2.0;
-                        };
-                        let mut temperature_night_r = 0.0;
-                        let mut temperature_night = |v| {
-                            add(&mut temperature_night_r, v);
-                        };
-                        let mut temperature_day_r = 0.0;
-                        let mut temperature_day = |v| {
-                            add(&mut temperature_day_r, v);
-                        };
-                        let mut altitude_r = 0.0;
-                        let mut altitude = |v| {
-                            add(&mut altitude_r, v);
-                        };
-                        let mut water_r = 0.0;
+                        let mut temp_sum = 0.0;
+
+                        let mut alt_sum = 0.0;
+
+                        let mut humid_sum = 1000.0;
+
+                        let mut points: Vec<Vec3<f32>> =
+                            Vec::with_capacity((CHUNKS_PER_CELL * CHUNKS_PER_CELL) as usize);
                         for y in 0..CHUNKS_PER_CELL as i32 {
                             for x in 0..CHUNKS_PER_CELL as i32 {
                                 let chunk_pos = p * CHUNKS_PER_CELL as i32 + Vec2::new(x, y);
                                 if let Some(chunk) = world.sim().get(chunk_pos) {
-                                    let a =
-                                        world.sim().get_gradient_approx(chunk_pos).unwrap_or(0.0);
-                                    altitude(a);
+                                    let wpos = chunk_pos * TerrainChunkSize::RECT_SIZE.as_();
+                                    let a = world.sim().get_alt_approx(wpos).unwrap_or(0.0);
+                                    alt_sum += a;
 
-                                    let height_p = 1.0
-                                        - world.sim().get_alt_approx(chunk_pos).unwrap_or(0.0)
-                                            / world.sim().max_height;
+                                    let wpos = wpos.as_().with_z(a);
+                                    points.push(wpos);
 
-                                    let mut water = |v| {
-                                        add(&mut water_r, v * height_p);
-                                    };
+                                    let height_p = 1.0 - a / world.sim().max_height;
 
-                                    match chunk.get_biome() {
-                                        BiomeKind::Desert => {
-                                            water(0.0);
-                                            temperature_night(11.0);
-                                            temperature_day(30.0);
-                                        },
-                                        BiomeKind::Savannah => {
-                                            water(0.02);
-                                            temperature_night(13.0);
-                                            temperature_day(26.0);
-                                        },
-                                        BiomeKind::Swamp => {
-                                            water(0.8);
-                                            temperature_night(16.0);
-                                            temperature_day(24.0);
-                                        },
-                                        BiomeKind::Mountain => {
-                                            water(0.01);
-                                            temperature_night(13.0);
-                                            temperature_day(14.0);
-                                        },
-                                        BiomeKind::Grassland => {
-                                            water(0.05);
-                                            temperature_night(15.0);
-                                            temperature_day(20.0);
-                                        },
-                                        BiomeKind::Snowland => {
-                                            water(0.005);
-                                            temperature_night(-8.0);
-                                            temperature_day(-1.0);
-                                        },
-                                        BiomeKind::Jungle => {
-                                            water(0.4);
-                                            temperature_night(20.0);
-                                            temperature_day(27.0);
-                                        },
-                                        BiomeKind::Forest => {
-                                            water(0.1);
-                                            temperature_night(16.0);
-                                            temperature_day(19.0);
-                                        },
-                                        BiomeKind::Taiga => {
-                                            water(0.02);
-                                            temperature_night(1.0);
-                                            temperature_day(10.0);
-                                        },
-                                        BiomeKind::Lake => {
-                                            water(1.0);
-                                            temperature_night(20.0);
-                                            temperature_day(18.0);
-                                        },
-                                        BiomeKind::Ocean => {
-                                            water(0.98);
-                                            temperature_night(19.0);
-                                            temperature_day(17.0);
-                                        },
-                                        BiomeKind::Void => {
-                                            water(0.0);
-                                            temperature_night(20.0);
-                                            temperature_day(20.0);
-                                        },
-                                    }
+                                    let env = chunk.get_environment();
+                                    temp_sum += env.temp;
+                                    humid_sum += (env.humid * (1.0 + env.near_water)) * height_p;
                                 }
                             }
                         }
                         Constants {
-                            altitude: altitude_r,
-                            water: water_r,
-                            temperature_day: temperature_day_r,
-                            temperature_night: temperature_day_r,
+                            alt: alt_sum / (CHUNKS_PER_CELL * CHUNKS_PER_CELL) as f32,
+                            humid: humid_sum / (CHUNKS_PER_CELL * CHUNKS_PER_CELL) as f32,
+                            temp: temp_sum / (CHUNKS_PER_CELL * CHUNKS_PER_CELL) as f32,
+                            normal: sample_plane_normal(&points).unwrap(),
                         }
                     })
                     .collect_vec(),
             ),
             weather: Grid::new(size, Weather::default()),
+            info: Grid::new(size, WeatherInfo::default()),
         };
         this.cells.iter_mut().for_each(|(point, cell)| {
             let time = 0.0;
@@ -179,17 +146,13 @@ impl WeatherSim {
 
     pub fn get_weather(&self) -> &Grid<Weather> { &self.weather }
 
-    pub fn get_weather_at(&self, chunk: Vec2<i32>) -> Option<&Weather> {
-        self.weather.get(chunk / CHUNKS_PER_CELL as i32)
-    }
-
     fn get_cell(&self, p: Vec2<i32>, time: f64) -> Cell {
         *self.cells.get(p).unwrap_or(&sample_cell(p, time))
     }
 
     // https://minds.wisconsin.edu/bitstream/handle/1793/66950/LitzauSpr2013.pdf
     // Time step is cell size / maximum wind speed
-    pub fn tick(&mut self, time_of_day: &TimeOfDay, dt: f32) {
+    pub fn tick(&mut self, time_of_day: &TimeOfDay) {
         let time = time_of_day.0;
         let mut swap = Grid::new(self.cells.size(), Cell::default());
         // Dissipate wind, humidty and pressure
@@ -241,14 +204,14 @@ impl WeatherSim {
                         match p {
                             0 => 1.0 * 1.0 / area,   // area_0 / area
                             1 => rate * 1.0 / area,  // area_1 / area
-                            _ => rate * rate / area, // area_2/ area
+                            _ => rate * rate / area, // area_2 / area
                         }
                     };
                     //  0.0 <= dissipation rate <= 1.0 because we only spread to direct neighbours.
-                    cell.wind += c.wind * factor(0.0055);
-                    cell.temperature += c.temperature * factor(0.007);
-                    cell.moisture += c.moisture * factor(0.003);
-                    cell.cloud += c.cloud * factor(0.001);
+                    cell.wind += c.wind * factor(0.009);
+                    cell.temperature += c.temperature * factor(0.01);
+                    cell.moisture += c.moisture * factor(0.008);
+                    cell.cloud += c.cloud * factor(0.005);
                 }
                 cell
             }
@@ -297,37 +260,73 @@ impl WeatherSim {
                 }
             }
         }
-        self.cells = swap.clone();
-
-        // TODO: wind curl
 
         // Evaporate moisture and condense clouds
-        for (point, cell) in self.cells.iter_mut() {
+        for (point, cell) in swap.iter() {
             let dt = 1.0 - 0.96f32.powf(DT);
-            let day_light = (1.0 - (1.0 - time_of_day.0 as f32 / 12.0 * 60.0 * 60.0).abs())
-                * self.weather[point].cloud;
-
-            cell.temperature = cell.temperature * (1.0 - dt)
-                + dt * (self.constants[point].temperature_day * day_light
-                    + self.constants[point].temperature_night * (1.0 - day_light));
-
-            // Evaporate from ground.
-            let temp_part = (cell.temperature / WATER_BOILING_POINT)
-                //.powf(2.0)
+            let day_light = ((2.0
+                * ((time_of_day.0 as f32 / (24.0 * 60.0 * 60.0)) % 1.0 - 0.5).abs())
+                * (1.0 - self.weather[point].cloud / CLOUD_MAX))
                 .clamp(0.0, 1.0);
-            cell.moisture += (self.constants[point].water / 10.0) * temp_part * DT;
+
+            self.cells[point].temperature =
+                cell.temperature * (1.0 - dt) + dt * (self.consts[point].temp + 0.1 * day_light);
+
+            let temp_part = ((cell.temperature + WATER_BOILING_POINT)
+                / (WATER_BOILING_POINT * 2.0))
+                .powf(4.0)
+                .clamp(0.0, 1.0);
+
+            // Drag wind based on pressure difference.
+            // note: pressure scales linearly with temperature in this simulation
+            self.cells[point].wind = cell.wind
+                + [
+                    Vec2::new(1, 0),
+                    Vec2::new(1, 1),
+                    Vec2::new(0, 1),
+                    Vec2::new(-1, 0),
+                    Vec2::new(-1, -1),
+                    Vec2::new(0, -1),
+                    Vec2::new(1, -1),
+                    Vec2::new(-1, 1),
+                ]
+                .iter()
+                .filter(|&&p| swap.get(p).is_some())
+                .map(|&p| {
+                    let diff =
+                        (swap.get(p).unwrap().temperature - cell.temperature) / WATER_BOILING_POINT;
+                    p.as_().normalized() * diff * DT
+                })
+                .sum::<Vec2<f32>>();
+
+            // Curve wind based on topography
+            if let Some(xy) = if self.consts[point].normal.z < 1.0 {
+                Some(self.consts[point].normal.xy().normalized())
+            } else {
+                None
+            } {
+                if self.cells[point].wind.dot(xy) > 0.0 {
+                    const WIND_CHECK_START: f32 = 500.0;
+                    const WIND_CHECK_STOP: f32 = 3000.0;
+                    let alt_m = (self.consts[point].alt - WIND_CHECK_START)
+                        / (WIND_CHECK_STOP - WIND_CHECK_START);
+                    let reflected = self.cells[point].wind.reflected(xy) * (1.0 - 0.9f32.powf(DT));
+                    if reflected.x.is_nan() || reflected.y.is_nan() {
+                        panic!("ref is nan");
+                    }
+                    if self.cells[point].wind.x.is_nan() || self.cells[point].wind.y.is_nan() {
+                        panic!("wind is nan");
+                    }
+                    let drag = (1.0 - alt_m) * self.consts[point].normal.z;
+                    self.cells[point].wind = self.cells[point].wind * drag
+                        + reflected * alt_m * (1.0 - self.consts[point].normal.z);
+                }
+            }
 
             // If positive condense moisture to clouds, if negative evaporate clouds into
             // moisture.
-            let condensation = if cell.moisture > 1.0 {
-                cell.moisture.powf(2.0 / 3.0)
-            } else {
-                cell.moisture
-            } * temp_part
-                * DT;
-
-            cell.moisture -= condensation;
-            cell.cloud += condensation;
+            let condensation = cell.moisture * (1.0 - 0.99f32.powf((1.0 - temp_part) * DT))
+                - cell.cloud * (1.0 - 0.98f32.powf(temp_part * DT)) / CLOUD_MAX;
 
             const CLOUD_MAX: f32 = 15.0;
             const RAIN_P: f32 = 0.96;
@@ -335,12 +334,20 @@ impl WeatherSim {
 
             let rain_p_t = ((cell.cloud - rain_cloud) / (CLOUD_MAX - rain_cloud)).max(0.0);
             let rain = rain_p_t * (1.0 - RAIN_P.powf(DT));
-            cell.cloud -= rain;
-            cell.cloud = cell.cloud.max(0.0);
+
+            // Evaporate from ground.
+            self.cells[point].moisture =
+                cell.moisture + (self.consts[point].humid / 100.0) * temp_part * DT - condensation;
+
+            self.cells[point].cloud = (cell.cloud + condensation - rain).max(0.0);
 
             self.weather[point].cloud = (cell.cloud / CLOUD_MAX).clamp(0.0, 1.0);
             self.weather[point].rain = rain_p_t;
             self.weather[point].wind = cell.wind;
+
+            self.info[point].lightning_chance = self.weather[point].cloud.powf(2.0)
+                * (self.weather[point].rain * 0.9 + 0.1)
+                * temp_part;
         }
 
         // Maybe moisture condenses to clouds, which if they have a certain
