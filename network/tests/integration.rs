@@ -262,3 +262,48 @@ fn multiple_try_recv() {
     assert_eq!(s1_b.try_recv::<String>(), Err(StreamError::StreamClosed));
     drop((_n_a, _n_b, _p_a, _p_b)); //clean teardown
 }
+
+/// If we listen on a IPv6 UNSPECIFIED address, on linux it will automatically
+/// listen on the respective IPv4 address. This must not be as we should behave
+/// similar under windows and linux.
+///
+/// As most CI servers don't have IPv6 configured, this would return
+/// ConnectFailed(Io(Os { code: 99, kind: AddrNotAvailable, message: "Cannot
+/// assign requested address" })) we have to disable this test in CI, but it was
+/// manually tested on linux and windows
+///
+/// On Windows this test must be executed as root to listen on IPv6::UNSPECIFIED
+#[test]
+#[ignore]
+fn listen_on_ipv6_doesnt_block_ipv4() {
+    let (_, _) = helper::setup(false, 0);
+    let tcpv4 = tcp();
+    let port = if let ListenAddr::Tcp(x) = tcpv4.0 {
+        x.port()
+    } else {
+        unreachable!()
+    };
+    let tcpv6 = (
+        ListenAddr::Tcp(std::net::SocketAddr::from((
+            std::net::Ipv6Addr::UNSPECIFIED,
+            port,
+        ))),
+        ConnectAddr::Tcp(std::net::SocketAddr::from((
+            std::net::Ipv6Addr::UNSPECIFIED,
+            port,
+        ))),
+    );
+
+    let (_r, _n_a, _p_a, mut s1_a, _n_b, _p_b, mut s1_b) = network_participant_stream(tcpv6);
+    std::thread::sleep(SLEEP_EXTERNAL);
+    let (_r2, _n_a2, _p_a2, mut s1_a2, _n_b2, _p_b2, mut s1_b2) = network_participant_stream(tcpv4);
+
+    s1_a.send(42u32).unwrap();
+    s1_a2.send(1337u32).unwrap();
+    std::thread::sleep(SLEEP_EXTERNAL);
+    assert_eq!(s1_b.try_recv::<u32>(), Ok(Some(42u32)));
+    assert_eq!(s1_b2.try_recv::<u32>(), Ok(Some(1337u32)));
+
+    drop((s1_a, s1_b, _n_a, _n_b, _p_a, _p_b));
+    drop((s1_a2, s1_b2, _n_a2, _n_b2, _p_a2, _p_b2)); //clean teardown
+}

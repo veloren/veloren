@@ -18,7 +18,7 @@ use crate::{
 use common::{clock::Clock, consts::MIN_RECOMMENDED_TOKIO_THREADS};
 use common_base::span;
 use core::sync::atomic::{AtomicUsize, Ordering};
-use server::{persistence::DatabaseSettings, Event, Input, Server};
+use server::{persistence::DatabaseSettings, settings::Protocol, Event, Input, Server};
 use std::{
     io,
     sync::{atomic::AtomicBool, mpsc, Arc},
@@ -154,7 +154,11 @@ fn main() -> io::Result<()> {
 
     info!("Starting server...");
 
-    let server_port = &server_settings.gameserver_address.port();
+    if no_auth {
+        server_settings.auth_server_address = None;
+    }
+
+    let protocols_and_addresses = server_settings.gameserver_protocols.clone();
     let metrics_port = &server_settings.metrics_address.port();
     // Create server
     let mut server = Server::new(
@@ -166,9 +170,21 @@ fn main() -> io::Result<()> {
     )
     .expect("Failed to create server instance!");
 
+    let mut gameserver_addresses = vec![];
+    for protocol in protocols_and_addresses {
+        gameserver_addresses.push(match protocol {
+            Protocol::Tcp { address } => ("TCP", address),
+            Protocol::Quic {
+                address,
+                cert_file_path: _,
+                key_file_path: _,
+            } => ("QUIC", address),
+        })
+    }
+
     info!(
-        ?server_port,
         ?metrics_port,
+        ?gameserver_addresses,
         "Server is ready to accept connections."
     );
 

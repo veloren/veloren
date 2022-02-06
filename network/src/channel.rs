@@ -94,7 +94,21 @@ impl Protocols {
         s2s_stop_listening_r: oneshot::Receiver<()>,
         c2s_protocol_s: mpsc::UnboundedSender<(Self, Cid)>,
     ) -> std::io::Result<()> {
-        let listener = net::TcpListener::bind(addr).await?;
+        use socket2::{Domain, Socket, Type};
+        let domain = Domain::for_address(addr);
+        let socket2_socket = Socket::new(domain, Type::STREAM, None)?;
+        if domain == Domain::IPV6 {
+            socket2_socket.set_only_v6(true)?
+        }
+        socket2_socket.set_nonblocking(true)?; // Needed by Tokio
+        // See https://docs.rs/tokio/latest/tokio/net/struct.TcpSocket.html
+        #[cfg(not(windows))]
+        socket2_socket.set_reuse_address(true)?;
+        let socket2_addr = addr.into();
+        socket2_socket.bind(&socket2_addr)?;
+        socket2_socket.listen(1024)?;
+        let std_listener: std::net::TcpListener = socket2_socket.into();
+        let listener = tokio::net::TcpListener::from_std(std_listener)?;
         trace!(?addr, "Tcp Listener bound");
         let mut end_receiver = s2s_stop_listening_r.fuse();
         tokio::spawn(async move {

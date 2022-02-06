@@ -115,6 +115,8 @@ use crate::{
 use hashbrown::HashMap;
 use std::sync::RwLock;
 
+use crate::settings::Protocol;
+
 #[cfg(feature = "plugins")]
 use {
     common::uid::UidAllocator,
@@ -463,51 +465,75 @@ impl Server {
             )
             .await
         });
-        runtime.block_on(network.listen(ListenAddr::Tcp(settings.gameserver_address)))?;
-        runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
-        if let Some(quic) = &settings.quic_files {
-            use rustls_pemfile::Item;
-            use std::fs;
-            match || -> Result<_, Box<dyn std::error::Error>> {
-                let key = fs::read(&quic.key)?;
-                let key = if quic.key.extension().map_or(false, |x| x == "der") {
-                    rustls::PrivateKey(key)
-                } else {
-                    debug!("convert pem key to der");
-                    let key = rustls_pemfile::read_all(&mut key.as_slice())?
-                        .into_iter()
-                        .find_map(|item| match item {
-                            Item::RSAKey(v) | Item::PKCS8Key(v) => Some(v),
-                            Item::X509Certificate(_) => None,
-                        })
-                        .ok_or("No valid pem key in file")?;
-                    rustls::PrivateKey(key)
-                };
-                let cert_chain = fs::read(&quic.cert)?;
-                let cert_chain = if quic.cert.extension().map_or(false, |x| x == "der") {
-                    vec![rustls::Certificate(cert_chain)]
-                } else {
-                    debug!("convert pem cert to der");
-                    let certs = rustls_pemfile::certs(&mut cert_chain.as_slice())?;
-                    certs.into_iter().map(rustls::Certificate).collect()
-                };
-                let server_config = quinn::ServerConfig::with_single_cert(cert_chain, key)?;
-                Ok(server_config)
-            }() {
-                Ok(server_config) => {
-                    warn!(
-                        "QUIC is enabled. This is experimental and not recommended in production"
-                    );
-                    runtime.block_on(
-                        network
-                            .listen(ListenAddr::Quic(settings.gameserver_address, server_config)),
-                    )?;
+
+        let mut printed_quic_warning = false;
+        for protocol in &settings.gameserver_protocols {
+            match protocol {
+                Protocol::Tcp { address } => {
+                    runtime.block_on(network.listen(ListenAddr::Tcp(*address)))?;
                 },
-                Err(e) => {
-                    error!(?e, ?settings.quic_files, "Failed to load Quic Certificate, run without Quic")
+                Protocol::Quic {
+                    address,
+                    cert_file_path,
+                    key_file_path,
+                } => {
+                    use rustls_pemfile::Item;
+                    use std::fs;
+
+                    match || -> Result<_, Box<dyn std::error::Error>> {
+                        let key = fs::read(&key_file_path)?;
+                        let key = if key_file_path.extension().map_or(false, |x| x == "der") {
+                            rustls::PrivateKey(key)
+                        } else {
+                            debug!("convert pem key to der");
+                            let key = rustls_pemfile::read_all(&mut key.as_slice())?
+                                .into_iter()
+                                .find_map(|item| match item {
+                                    Item::RSAKey(v) | Item::PKCS8Key(v) => Some(v),
+                                    Item::X509Certificate(_) => None,
+                                })
+                                .ok_or("No valid pem key in file")?;
+                            rustls::PrivateKey(key)
+                        };
+                        let cert_chain = fs::read(&cert_file_path)?;
+                        let cert_chain = if cert_file_path.extension().map_or(false, |x| x == "der")
+                        {
+                            vec![rustls::Certificate(cert_chain)]
+                        } else {
+                            debug!("convert pem cert to der");
+                            let certs = rustls_pemfile::certs(&mut cert_chain.as_slice())?;
+                            certs.into_iter().map(rustls::Certificate).collect()
+                        };
+                        let server_config = quinn::ServerConfig::with_single_cert(cert_chain, key)?;
+                        Ok(server_config)
+                    }() {
+                        Ok(server_config) => {
+                            runtime.block_on(
+                                network.listen(ListenAddr::Quic(*address, server_config.clone())),
+                            )?;
+
+                            if !printed_quic_warning {
+                                warn!(
+                                    "QUIC is enabled. This is experimental and not recommended in \
+                                     production"
+                                );
+                                printed_quic_warning = true;
+                            }
+                        },
+                        Err(e) => {
+                            error!(
+                                ?e,
+                                "Failed to load the TLS certificate, running without QUIC {}",
+                                *address
+                            );
+                        },
+                    }
                 },
             }
         }
+
+        runtime.block_on(network.listen(ListenAddr::Mpsc(14004)))?;
+
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation

@@ -1,6 +1,6 @@
 use lazy_static::*;
 use std::{
-    net::SocketAddr,
+    net::{Ipv4Addr, SocketAddr},
     sync::{
         atomic::{AtomicU16, AtomicU64, Ordering},
         Arc,
@@ -89,8 +89,8 @@ pub fn tcp() -> (ListenAddr, ConnectAddr) {
     }
     let port = PORTS.fetch_add(1, Ordering::Relaxed);
     (
-        ListenAddr::Tcp(SocketAddr::from(([127, 0, 0, 1], port))),
-        ConnectAddr::Tcp(SocketAddr::from(([127, 0, 0, 1], port))),
+        ListenAddr::Tcp(SocketAddr::from((Ipv4Addr::LOCALHOST, port))),
+        ConnectAddr::Tcp(SocketAddr::from((Ipv4Addr::LOCALHOST, port))),
     )
 }
 
@@ -117,7 +117,7 @@ pub fn quic() -> (ListenAddr, ConnectAddr) {
     let server_config = quinn::ServerConfig::with_single_cert(vec![cert], key)
         .expect("Server Config Cert/Key failed");
     let client_config = quinn::ClientConfig::with_root_certificates(root_store);
-    use std::net::{IpAddr, Ipv4Addr};
+    use std::net::IpAddr;
     (
         ListenAddr::Quic(
             SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), port),
