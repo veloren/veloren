@@ -16,6 +16,7 @@ pub enum ForestKind {
     Mangrove,
     Giant,
     Swamp,
+    Frostpine,
 }
 
 pub struct Environment {
@@ -34,6 +35,7 @@ impl ForestKind {
             ForestKind::Chestnut => 0.35..1.5,
             ForestKind::Cedar => 0.275..1.45,
             ForestKind::Pine => 0.2..1.4,
+            ForestKind::Frostpine => 0.2..1.4,
             ForestKind::Birch => 0.0..0.6,
             ForestKind::Mangrove => 0.5..1.3,
             ForestKind::Swamp => 0.5..1.1,
@@ -49,7 +51,8 @@ impl ForestKind {
             ForestKind::Oak => -0.35..0.45,
             ForestKind::Chestnut => -0.35..0.45,
             ForestKind::Cedar => -0.65..0.15,
-            ForestKind::Pine => -1.8..-0.2,
+            ForestKind::Pine => -0.85..-0.2,
+            ForestKind::Frostpine => -1.8..-0.8,
             ForestKind::Birch => -0.7..0.25,
             ForestKind::Mangrove => 0.35..1.6,
             ForestKind::Swamp => -0.6..0.8,
@@ -75,6 +78,7 @@ impl ForestKind {
             ForestKind::Chestnut => 0.3,
             ForestKind::Cedar => 0.3,
             ForestKind::Pine => 1.0,
+            ForestKind::Frostpine => 1.0,
             ForestKind::Birch => 0.65,
             ForestKind::Mangrove => 2.0,
             ForestKind::Swamp => 1.0,
@@ -90,7 +94,8 @@ impl ForestKind {
             ForestKind::Oak => 0.4,
             ForestKind::Chestnut => 0.3,
             ForestKind::Cedar => 0.3,
-            ForestKind::Pine => 0.4,
+            ForestKind::Pine => 0.5,
+            ForestKind::Frostpine => 0.3,
             ForestKind::Birch => 0.65,
             ForestKind::Mangrove => 1.0,
             ForestKind::Swamp => 0.4,

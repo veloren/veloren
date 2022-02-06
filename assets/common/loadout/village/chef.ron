@@ -1,0 +1,7 @@
+({
+    Armor(Chest): Item("common.items.armor.chef.chest"),
+    Armor(Hands): Item("common.items.armor.cloth.linen.hand"),
+    Armor(Legs): Item("common.items.armor.chef.pants"),
+    Armor(Belt): Item("common.items.armor.chef.belt"),
+    Armor(Feet): Item("common.items.armor.cloth.linen.foot"),
+    Armor(Head): Item("common.items.armor.chef.hat"),})

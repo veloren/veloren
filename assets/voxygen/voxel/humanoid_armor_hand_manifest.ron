@@ -240,6 +240,16 @@
                 color: None
             )
         ),
+        "Blacksmith": (
+            left: (
+                vox_spec: ("armor.blacksmith.hand", (-1.5, -2.5, -4.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.blacksmith.hand", (-1.5, -2.5, -4.0)),
+                color: None
+            )
+        ),
         "Linen": (
             left: (
                 vox_spec: ("armor.cloth.linen.hand", (-1.5, -2.0, -3.0)),

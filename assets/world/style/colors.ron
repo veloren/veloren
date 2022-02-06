@@ -25,6 +25,7 @@
                 //(start: (168, 81, 0), end: (54, 150, 31)),
             ],
             PineLeaves: [(start: (0, 60, 50), end: (30, 80, 10))],
+            FrostpineLeaves: [(start: (24, 89, 85), end: (67, 22, 82))],
             PalmLeavesInner: [(start: (70, 140, 43), end: (55, 140, 32))],
             PalmLeavesOuter: [(start: (60, 130, 38), end: (30, 130, 65))],
             Acacia: [(start: (35, 70, 0), end: (100, 120, 30))],

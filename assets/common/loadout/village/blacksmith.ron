@@ -1,0 +1,9 @@
+({
+    Armor(Chest): Item("common.items.armor.blacksmith.chest"),
+    Armor(Hands): Item("common.items.armor.blacksmith.hand"),
+    Armor(Legs): Item("common.items.armor.blacksmith.pants"),
+    Armor(Belt): Item("common.items.armor.blacksmith.belt"),
+    Armor(Feet): Item("common.items.armor.mail.iron.foot"),
+    Armor(Head): Item("common.items.armor.blacksmith.hat"),
+    Lantern: Item("common.items.lantern.black_0"),
+})

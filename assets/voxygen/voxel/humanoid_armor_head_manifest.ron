@@ -274,6 +274,153 @@
             vox_spec: ("armor.pirate.hat", (-3.0, -5.0, 5.0)),
             color: None
         ),
+        //
+        (Human, Male, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-4.0, 0.0, -3.0)),
+            color: None
+        ),
+        (Human, Female, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-4.0, 1.0, -3.0)),
+            color: None
+        ),
+        (Elf, Male, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-3.0, 0.0, -3.0)),
+            color: None
+        ),
+        (Elf, Female, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-3.0, -1.0, -3.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-5.0, 1.0, -3.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-5.0, 1.0, -3.0)),
+            color: None
+        ),
+        (Danari, Male, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-2.0, 0.0, -1.0)),
+            color: None
+        ),
+        (Danari, Female, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-2.0, 1.0, -1.0)),
+            color: None
+        ),
+        (Undead, Male, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-6.0, 0.0, -1.0)),
+            color: None
+        ),
+        (Undead, Female, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-6.0, 0.0, -2.0)),
+            color: None
+        ),
+        (Orc, Male, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-3.0, 2.0, 0.0)),
+            color: None
+        ),
+        (Orc, Female, "Blacksmith"): (
+            vox_spec: ("armor.blacksmith.hat", (-3.0, -1.0, -3.0)),
+            color: None
+        ),
+        // Alchemist Goggles
+        (Human, Male, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-4.0, 0.0, 1.0)),
+            color: None
+        ),
+        (Human, Female, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-4.0, 1.0, 1.0)),
+            color: None
+        ),
+        (Elf, Male, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-3.0, 0.0, 1.0)),
+            color: None
+        ),
+        (Elf, Female, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-3.0, -1.0, 1.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-5.0, 1.0, 1.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-5.0, 1.0, 1.0)),
+            color: None
+        ),
+        (Danari, Male, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-2.0, 0.0, 3.0)),
+            color: None
+        ),
+        (Danari, Female, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-2.0, 1.0, 3.0)),
+            color: None
+        ),
+        (Undead, Male, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-6.0, 0.0, 3.0)),
+            color: None
+        ),
+        (Undead, Female, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-6.0, 0.0, 2.0)),
+            color: None
+        ),
+        (Orc, Male, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-3.0, 2.0, 4.0)),
+            color: None
+        ),
+        (Orc, Female, "Alchemist"): (
+            vox_spec: ("armor.alchemist.hat", (-3.0, -1.0, 1.0)),
+            color: None
+        ),
+        // Chef hat
+        (Human, Male, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-4.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Human, Female, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-4.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Elf, Male, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-3.0, -5.0, 5.0)),
+            color: None
+        ),
+        (Elf, Female, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-3.0, -6.0, 5.0)),
+            color: None
+        ),
+        (Dwarf, Male, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-5.0, -4.0, 5.0)),
+            color: None
+        ),
+        (Dwarf, Female, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-5.0, -4.0, 5.0)),
+            color: None
+        ),
+        (Danari, Male, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-2.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Danari, Female, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-2.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Undead, Male, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-6.0, -5.0, 7.0)),
+            color: None
+        ),
+        (Undead, Female, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-6.0, -5.0, 6.0)),
+            color: None
+        ),
+        (Orc, Male, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-3.0, -3.0, 8.0)),
+            color: None
+        ),
+        (Orc, Female, "Chef"): (
+            vox_spec: ("armor.chef.hat", (-3.0, -6.0, 5.0)),
+            color: None
+        ),
         // Straw hat
         (Human, Male, "Straw"): (
             vox_spec: ("armor.misc.head.straw", (-4.0, -5.0, 5.0)),

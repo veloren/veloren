@@ -324,7 +324,7 @@ impl Structure for House {
         let roof_rear = painter.prim(Primitive::intersect(roof_empty, roof_rear_wall));
         painter.fill(
             roof_primitive,
-            Fill::Block(Block::new(BlockKind::Wood, self.roof_color)),
+            Fill::Brick(BlockKind::Wood, self.roof_color, 24),
         );
         painter.fill(roof_empty, Fill::Block(Block::empty()));
         let roof_walls = painter.prim(Primitive::union(roof_front, roof_rear));
@@ -1084,10 +1084,7 @@ impl Structure for House {
                         dir: Dir::X,
                     }),
                 };
-                painter.fill(
-                    shed,
-                    Fill::Block(Block::new(BlockKind::Wood, self.roof_color)),
-                );
+                painter.fill(shed, Fill::Brick(BlockKind::Wood, self.roof_color, 24));
                 painter.fill(shed_empty, Fill::Block(Block::empty()));
                 let shed_left_wall = match self.front {
                     0 => painter.prim(Primitive::Aabb(Aabb {
@@ -1435,7 +1432,7 @@ impl Structure for House {
                         );
                         painter.fill(
                             painter.prim(Primitive::without(dormer_roof, shed)),
-                            Fill::Block(Block::new(BlockKind::Wood, self.roof_color)),
+                            Fill::Brick(BlockKind::Wood, self.roof_color, 24),
                         );
                         painter.fill(window_cavity, Fill::Block(Block::empty()));
                         painter.fill(

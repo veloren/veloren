@@ -308,6 +308,7 @@ pub fn block_from_structure(
         // We interpolate all these BlockKinds as needed.
         StructureBlock::TemperateLeaves
         | StructureBlock::PineLeaves
+        | StructureBlock::FrostpineLeaves
         | StructureBlock::PalmLeavesInner
         | StructureBlock::PalmLeavesOuter
         | StructureBlock::Acacia
