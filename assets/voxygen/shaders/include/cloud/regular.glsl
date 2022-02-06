@@ -237,12 +237,18 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         // i is an emergency brake
         float min_dist = clamp(max_dist / 4, 0.25, 24);
         int i;
+
+        float rainbow_t = (0.7 - dot(sun_dir.xyz, dir)) * 8 / 0.05;
+        int rainbow_c = int(floor(rainbow_t));
+        rainbow_t = fract(rainbow_t);
+
         for (i = 0; cdist > min_dist && i < 250; i ++) {
             ldist = cdist;
             cdist = step_to_dist(trunc(dist_to_step(cdist - 0.25, quality)), quality);
 
             vec3 emission;
             float not_underground; // Used to prevent sunlight leaking underground
+            vec3 pos = origin + dir * ldist * splay;
             // `sample` is a reserved keyword
             vec4 sample_ = cloud_at(origin + dir * ldist * splay, ldist, emission, not_underground);
 
@@ -263,10 +269,27 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                 // Attenuate light passing through the clouds
                 surf_color * cloud_darken * global_darken +
                 // Add the directed light light scattered into the camera by the clouds and the atmosphere (global illumination)
-                sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken)  * cloud_diffuse /*+ sky_color * global_scatter_factor*/) +
+                sun_color * sun_scatter * get_sun_brightness() * (sun_access * (1.0 - cloud_darken) * cloud_diffuse /*+ sky_color * global_scatter_factor*/) +
                 moon_color * moon_scatter * get_moon_brightness() * (moon_access * (1.0 - cloud_darken) * cloud_diffuse /*+ sky_color * global_scatter_factor*/) +
                 sky_light * (1.0 - global_darken) * not_underground +
                 emission * density_integrals.y * step;
+
+            // Rainbow
+            if (rainbow_c >= 0 && rainbow_c < 8) {
+                float rain = rain_density_at(pos.xy);
+                vec3 colors[9] = {
+                    surf_color,
+                    vec3(0.9, 0.5, 0.9),
+                    vec3(0.25, 0.0, 0.5),
+                    vec3(0.0, 0.0, 1.0),
+                    vec3(0.0, 0.5, 0.0),
+                    vec3(1.0, 1.0, 0.0),
+                    vec3(1.0, 0.6, 0.0),
+                    vec3(1.0, 0.0, 0.0),
+                    surf_color,
+                };
+                surf_color = mix(surf_color, mix(colors[rainbow_c], colors[rainbow_c + 1], rainbow_t), rain * sun_access * sun_access * get_sun_brightness() * pow(min(cdist / 500.0, 1.0), 2.0));
+            }
         }
     #ifdef IS_POSTPROCESS
         }
