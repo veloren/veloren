@@ -459,6 +459,7 @@ impl Timer {
     }
 }
 
+/// For use with the builder pattern <https://doc.rust-lang.org/1.0.0/style/ownership/builders.html>
 #[derive(Clone, Debug)]
 pub struct Agent {
     pub rtsim_controller: RtSimController,
@@ -485,6 +486,7 @@ pub struct ActionState {
 }
 
 impl Agent {
+    /// Instantiates agent from body using the body's psyche
     pub fn from_body(body: &Body) -> Self {
         Agent {
             rtsim_controller: RtSimController::default(),
@@ -523,6 +525,8 @@ impl Agent {
         self
     }
 
+    pub fn set_no_flee(&mut self) { self.psyche.flee_health = 0.0; }
+
     // FIXME: Only one of *three* things in this method sets a location.
     #[must_use]
     pub fn with_destination(mut self, pos: Vec3<f32>) -> Self {
@@ -541,6 +545,7 @@ impl Agent {
         self
     }
 
+    /// Makes agent aggresive without warning
     #[must_use]
     pub fn with_aggro_no_warn(mut self) -> Self {
         self.psyche.aggro_dist = None;
@@ -609,7 +614,7 @@ impl Component for Agent {
 
 #[cfg(test)]
 mod tests {
-    use super::{Behavior, BehaviorCapability, BehaviorState};
+    use super::{humanoid, Agent, Behavior, BehaviorCapability, BehaviorState, Body};
 
     /// Test to verify that Behavior is working correctly at its most basic
     /// usages
@@ -631,6 +636,38 @@ mod tests {
         // test `from`
         let b = Behavior::from(BehaviorCapability::SPEAK);
         assert!(b.can(BehaviorCapability::SPEAK));
+    }
+
+    /// Makes agent flee
+    #[test]
+    pub fn enable_flee() {
+        let body = Body::Humanoid(humanoid::Body::random());
+        let mut agent = Agent::from_body(&body);
+
+        agent.psyche.flee_health = 1.0;
+        agent = agent.with_no_flee_if(false);
+        assert_eq!(agent.psyche.flee_health, 1.0);
+    }
+
+    /// Makes agent not flee
+    #[test]
+    pub fn set_no_flee() {
+        let body = Body::Humanoid(humanoid::Body::random());
+        let mut agent = Agent::from_body(&body);
+
+        agent.psyche.flee_health = 1.0;
+        agent.set_no_flee();
+        assert_eq!(agent.psyche.flee_health, 0.0);
+    }
+
+    #[test]
+    pub fn with_aggro_no_warn() {
+        let body = Body::Humanoid(humanoid::Body::random());
+        let mut agent = Agent::from_body(&body);
+
+        agent.psyche.aggro_dist = Some(1.0);
+        agent = agent.with_aggro_no_warn();
+        assert_eq!(agent.psyche.aggro_dist, None);
     }
 }
 
