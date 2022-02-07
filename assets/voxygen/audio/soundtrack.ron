@@ -8,7 +8,18 @@
 // Combat music is looped. Needs three files: start, loop, and end. Start contains leadup to the loop.
 
 (
-    tracks: [
+    tracks: 
+            [
+        Individual((
+            title: "Warmth of the Hearth",
+            path: "voxygen.audio.soundtrack.town.warmth_of_the_hearth",
+            length: 156.0,
+            timing: Some(Night),
+            biomes:[],
+            site: Some(Settlement),
+            music_state: Activity(Explore),
+            artist: "Crow",
+            )),
         Individual((
             title: "The Quiet After the Battle",
             path: "voxygen.audio.soundtrack.town.the_quiet_after_the_battle",
@@ -460,7 +471,7 @@
             site: Some(Void),
             music_state: Activity(Explore),
             artist: "badbbad",
-        )),
+       )),
 
         // Combat Music
 
