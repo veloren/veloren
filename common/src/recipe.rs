@@ -527,11 +527,10 @@ impl ComponentRecipe {
             input_slots: I,
         ) {
             let mut required = amount;
-            // Check used for recipes that have an input that is not consumed, e.g.
-            // craftsman hammer
-            let mut contains_any = false;
+            // contains_any check used for recipes that have an input that is not consumed,
+            // e.g. craftsman hammer
             // Goes through each slot and marks some amount from each slot as claimed
-            for slot in input_slots {
+            let contains_any = input_slots.into_iter().all(|slot| {
                 // Checks that the item in the slot can be used for the input
                 if let Some(item) = inv
                     .get(slot)
@@ -544,9 +543,11 @@ impl ComponentRecipe {
                     let provided = available.min(required);
                     required -= provided;
                     *claimed += provided;
-                    contains_any = true;
+                    true
+                } else {
+                    false
                 }
-            }
+            });
             // If there were not sufficient items to cover requirement between all provided
             // slots, or if non-consumed item was not present, mark input as not satisfied
             if required > 0 || !contains_any {

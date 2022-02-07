@@ -3,6 +3,7 @@ use super::{
     Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality, ToolKind,
 };
 use crate::{assets::AssetExt, recipe};
+use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use rand::{prelude::SliceRandom, thread_rng};
@@ -247,7 +248,7 @@ const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [
     ToolKind::Sceptre,
 ];
 
-type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Arc<ItemDef>, Option<Hands>)>>;
+type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Item, Option<Hands>)>>;
 type SecondaryComponentPool = HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>>;
 
 // TODO: Fix this. It broke when changes were made to component recipes
@@ -256,54 +257,23 @@ lazy_static! {
         let mut component_pool = HashMap::new();
 
         // Load recipe book (done to check that material is valid for a particular component)
-        let recipe_book = recipe::RawRecipeBook::load_expect("common.recipe_book");
-        let recipes = &recipe_book.read().0;
+        use crate::recipe::ComponentKey;
+        let recipes = recipe::default_component_recipe_book().read();
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
 
-        const ASSET_PREFIX: &str = "common.items.crafting_ing.modular.primary";
-
-        // Closure to check that an Item has a recipe that uses the provided material
-        let valid_materials = |item: &str| {
-            // Iterate over all recipes in the raw recipe book
-            recipes
-                .values()
-                // Filter by recipes that have an output of the item of interest
-                .filter(|recipe| recipe.output.0.eq(item))
-                // Check that item is composed of material, uses heuristic that assumes all modular components use the ListSameItem recipe input
-                .find_map(|recipe| {
-                    recipe
-                        .inputs
-                        .iter()
-                        .find_map(|input| {
-                            match &input.0 {
-                                recipe::RawRecipeInput::ListSameItem(items) => {
-                                    Some(recipe::ItemList::load_expect_cloned(items).0)
-                                },
-                                _ => None,
-                            }
-                        })
-                })
-        };
-
-        for toolkind in SUPPORTED_TOOLKINDS {
-            let directory = format!("{}.{}", ASSET_PREFIX, toolkind.identifier_name());
-            if let Ok(items) = Item::new_from_asset_glob(&directory) {
-                items
-                    .into_iter()
-                    .map(|comp| comp.item_definition_id().to_owned())
-                    .filter_map(|id| Arc::<ItemDef>::load_cloned(&id).ok())
-                    .for_each(|comp_def| {
-                        if let ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { hand_restriction, .. }) = comp_def.kind {
-                            if let Some(material_ids) = valid_materials(comp_def.id()) {
-                                for material in material_ids {
-                                        let entry = component_pool.entry((toolkind, material)).or_insert(Vec::new());
-                                        entry.push((Arc::clone(&comp_def), hand_restriction));
-                                    }
-                                }
-                            }
-                        }
-                    );
-            }
-        }
+        recipes
+            .iter()
+            .for_each(|(ComponentKey { toolkind, material, .. }, recipe)| {
+                let component = recipe.item_output(ability_map, msm);
+                let hand_restriction = if let ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { hand_restriction, .. }) = &*component.kind() {
+                    *hand_restriction
+                } else {
+                    return;
+                };
+                let entry = component_pool.entry((*toolkind, String::from(material))).or_insert(Vec::new());
+                entry.push((component, hand_restriction));
+            });
 
         component_pool
     };
@@ -347,65 +317,74 @@ pub fn random_weapon(
     material: Material,
     hand_restriction: Option<Hands>,
 ) -> Result<Item, ModularWeaponCreationError> {
-    if let Some(material_id) = material.asset_identifier() {
-        // Loads default ability map and material stat manifest for later use
-        let ability_map = &AbilityMap::load().read();
-        let msm = &MaterialStatManifest::load().read();
+    let result = (|| {
+        if let Some(material_id) = material.asset_identifier() {
+            // Loads default ability map and material stat manifest for later use
+            let ability_map = &AbilityMap::load().read();
+            let msm = &MaterialStatManifest::load().read();
 
-        let mut rng = thread_rng();
+            let mut rng = thread_rng();
 
-        let material = Item::new_from_asset_expect(material_id);
-        let primary_components = PRIMARY_COMPONENT_POOL
-            .get(&(tool, material_id.to_owned()))
-            .into_iter()
-            .flatten()
-            .filter(|(_def, hand)| match (hand_restriction, hand) {
-                (Some(restriction), Some(hand)) => restriction == *hand,
-                (None, _) | (_, None) => true,
-            })
-            .collect::<Vec<_>>();
+            let primary_components = PRIMARY_COMPONENT_POOL
+                .get(&(tool, material_id.to_owned()))
+                .into_iter()
+                .flatten()
+                .filter(|(_comp, hand)| match (hand_restriction, hand) {
+                    (Some(restriction), Some(hand)) => restriction == *hand,
+                    (None, _) | (_, None) => true,
+                })
+                .collect::<Vec<_>>();
 
-        let (primary_component, hand_restriction) = {
-            let (def, hand) = primary_components
-                .choose(&mut rng)
-                .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
-            let comp = Item::new_from_item_base(
-                ItemBase::Raw(Arc::clone(def)),
-                vec![material],
+            let (primary_component, hand_restriction) = {
+                let (comp, hand) = primary_components
+                    .choose(&mut rng)
+                    .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
+                let comp = comp.duplicate(ability_map, msm);
+                (comp, hand_restriction.or(*hand))
+            };
+
+            let secondary_components = SECONDARY_COMPONENT_POOL
+                .get(&tool)
+                .into_iter()
+                .flatten()
+                .filter(|(_def, hand)| match (hand_restriction, hand) {
+                    (Some(restriction), Some(hand)) => restriction == *hand,
+                    (None, _) | (_, None) => true,
+                })
+                .collect::<Vec<_>>();
+
+            let secondary_component = {
+                let def = &secondary_components
+                    .choose(&mut rng)
+                    .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
+                    .0;
+                Item::new_from_item_base(
+                    ItemBase::Raw(Arc::clone(def)),
+                    Vec::new(),
+                    ability_map,
+                    msm,
+                )
+            };
+
+            // Create modular weapon
+            Ok(Item::new_from_item_base(
+                ItemBase::Modular(ModularBase::Tool),
+                vec![primary_component, secondary_component],
                 ability_map,
                 msm,
-            );
-            (comp, hand_restriction.or(*hand))
-        };
-
-        let secondary_components = SECONDARY_COMPONENT_POOL
-            .get(&tool)
-            .into_iter()
-            .flatten()
-            .filter(|(_def, hand)| match (hand_restriction, hand) {
-                (Some(restriction), Some(hand)) => restriction == *hand,
-                (None, _) | (_, None) => true,
-            })
-            .collect::<Vec<_>>();
-
-        let secondary_component = {
-            let def = &secondary_components
-                .choose(&mut rng)
-                .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
-                .0;
-            Item::new_from_item_base(ItemBase::Raw(Arc::clone(def)), Vec::new(), ability_map, msm)
-        };
-
-        // Create modular weapon
-        Ok(Item::new_from_item_base(
-            ItemBase::Modular(ModularBase::Tool),
-            vec![primary_component, secondary_component],
-            ability_map,
-            msm,
-        ))
-    } else {
-        Err(ModularWeaponCreationError::MaterialNotFound)
+            ))
+        } else {
+            Err(ModularWeaponCreationError::MaterialNotFound)
+        }
+    })();
+    if result.is_err() {
+        let error_str = format!(
+            "Failed to synthesize a modular {tool:?} made of {material:?} that had a hand \
+             restriction of {hand_restriction:?}."
+        );
+        dev_panic!(error_str)
     }
+    result
 }
 
 pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
