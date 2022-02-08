@@ -19,7 +19,7 @@
             site: Some(Settlement),
             music_state: Activity(Explore),
             artist: "Crow",
-            )),
+        )),
         Individual((
             title: "The Quiet After the Battle",
             path: "voxygen.audio.soundtrack.town.the_quiet_after_the_battle",
@@ -127,7 +127,7 @@
         )),
         Individual((
             title: "Fiesta Del Pueblo",
-            path: "voxygen.audio.soundtrack.overworld.fiesta_del_pueblo",
+            path: "voxygen.audio.soundtrack.town.fiesta_del_pueblo",
             length: 183.0,
             timing: Some(Day),
             biomes: [
