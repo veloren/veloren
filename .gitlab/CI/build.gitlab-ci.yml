@@ -122,19 +122,23 @@ coverage:
       - libwinpthread-1.dll
     expire_in: 1 week
 
+# Use a yaml anchor to allow the same before_script to be used in both .tmacos-x86_64 and .tmacos-aarch64
+# https://docs.gitlab.com/ee/ci/yaml/yaml_optimization.html#yaml-anchors-for-scripts
+.tmacos-before-script: &tmacos-before-script
+  - source $HOME/.cargo/env
+  - cargo --version
+  - export DISABLE_GIT_LFS_CHECK=true
+  - export VELOREN_ASSETS="$(pwd)/assets"
+  - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
+  - export RUSTFLAGS="-D warnings"
+  - export CARGO_INCREMENTAL=0
+
 .tmacos:
   tags: ["veloren-macos"]
-  before_script:
-    - source $HOME/.cargo/env
-    - cargo --version
-    - export DISABLE_GIT_LFS_CHECK=true
-    - export VELOREN_ASSETS="$(pwd)/assets"
-    - echo "VELOREN_ASSETS=$VELOREN_ASSETS"
-    - export RUSTFLAGS="-D warnings"
   script:
     - export MACOSX_DEPLOYMENT_TARGET="10.13"
     - export VELOREN_USERDATA_STRATEGY=executable
-    - cargo build --release --no-default-features --features default-publish
+    - cargo build --release --no-default-features --features default-publish --target $RUST_TARGET
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
@@ -145,19 +149,19 @@ coverage:
       - LICENSE
     expire_in: 1 week
 
-# e.g. post merge and scheduled builds
-.tmacos-master-cache:
-    cache:
-      key: "macos-master-cache"
-      paths:
-        - target/
+.tmacos-x86_64:
+  extends:
+    - .tmacos
+  before_script:
+    - *tmacos-before-script
+    - export RUST_TARGET="x86_64-apple-darwin"
 
-# e.g. optional builds from MRs
-.tmacos-mr-cache:
-    cache:
-      key: "macos-mr-cache"
-      paths:
-        - target/
+.tmacos-aarch64:
+  extends:
+    - .tmacos
+  before_script:
+    - *tmacos-before-script
+    - export RUST_TARGET="aarch64-apple-darwin"
 
 # build on release or master
 linux:
@@ -174,35 +178,46 @@ windows:
 
 macos:
   extends:
-    - .tmacos
+    - .tmacos-x86_64
     - .release
-    - .tmacos-master-cache
   tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
-# build on schedule quickfix till airshipper 0.5
+macos-aarch64:
+  extends:
+    - .tmacos-aarch64
+    - .release
+  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
+
+# The air-* builds are the builds that Airshipper Server expects to find in the scheduled build webhook JSON.
+# Renaming these will break Airshipper downloads!
 air-linux:
   extends:
     - .tlinux
-    - .release-nightly-tmp-fix-airshipper
+    - .release-scheduled
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 air-linux-aarch64:
   extends:
     - .tlinux-aarch64
-    - .release-nightly-tmp-fix-airshipper
+    - .release-scheduled
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 air-windows:
   extends:
     - .twindows
-    - .release-nightly-tmp-fix-airshipper
+    - .release-scheduled
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
 air-macos:
   extends:
-    - .tmacos
-    - .release-nightly-tmp-fix-airshipper
-    - .tmacos-master-cache
+    - .tmacos-x86_64
+    - .release-scheduled
+  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
+
+air-macos-aarch64:
+  extends:
+    - .tmacos-aarch64
+    - .release-scheduled
   tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
 # if NOT release or master, allow optional builds
@@ -224,9 +239,14 @@ opt-windows:
     - .optional-release
   tags: ["veloren/veloren", "build"]
 
-opt-macos:
+opt-macos-x86_64:
   extends:
-    - .tmacos
+    - .tmacos-x86_64
     - .optional-release
-    - .tmacos-mr-cache
+  tags: ["veloren/veloren:macos", "build"]
+
+opt-macos-aarch64:
+  extends:
+    - .tmacos-aarch64
+    - .optional-release
   tags: ["veloren/veloren:macos", "build"]
