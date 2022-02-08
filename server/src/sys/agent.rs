@@ -1452,6 +1452,7 @@ impl<'a> AgentData<'a> {
                         inventory,
                         read_data.alignments.get(entity),
                         read_data.char_states.get(entity),
+                        read_data.bodies.get(entity),
                     )
                 })
         };
@@ -1502,31 +1503,56 @@ impl<'a> AgentData<'a> {
             })
         };
 
-        let guard_defending_villager = |e_health: &Health, e_alignment: Option<&Alignment>| {
-            let i_am_a_guard = read_data
-                .stats
-                .get(*self.entity)
-                .map_or(false, |stats| stats.name == "Guard");
-            let other_is_a_villager = matches!(e_alignment, Some(Alignment::Npc));
-            let villager_has_taken_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
-            let attacker_of = |health: &Health| health.last_change.damage_by();
+        let guard_other =
+            |e_health: &Health, e_body: Option<&Body>, e_alignment: Option<&Alignment>| {
+                let i_am_a_guard = read_data
+                    .stats
+                    .get(*self.entity)
+                    .map_or(false, |stats| stats.name == "Guard");
+                let other_is_a_villager = matches!(e_alignment, Some(Alignment::Npc));
+                let we_are_friendly: bool = self.alignment.map_or(false, |ma| {
+                    e_alignment.map_or(false, |ea| !ea.hostile_towards(*ma))
+                });
+                let we_share_species: bool = self.body.map_or(false, |mb| {
+                    e_body.map_or(false, |eb| {
+                        eb.is_same_species_as(mb) || (eb.is_humanoid() && mb.is_humanoid())
+                    })
+                });
+                let i_own_other =
+                    matches!(e_alignment, Some(Alignment::Owned(ouid)) if self.uid == ouid);
+                let other_has_taken_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
+                let attacker_of = |health: &Health| health.last_change.damage_by();
 
-            let i_should_defend = i_am_a_guard && other_is_a_villager && villager_has_taken_damage;
-            i_should_defend
-                .then(|| {
-                    attacker_of(e_health)
-                        .and_then(|damage_contributor| {
-                            get_entity_by_id(damage_contributor.uid().0, read_data)
-                        })
-                        .and_then(|attacker| {
-                            read_data
-                                .positions
-                                .get(attacker)
-                                .map(|a_pos| (attacker, *a_pos))
-                        })
-                })
-                .flatten()
-        };
+                let i_should_defend = other_has_taken_damage
+                    && ((we_are_friendly && we_share_species)
+                        || (i_am_a_guard && other_is_a_villager)
+                        || i_own_other);
+
+                i_should_defend
+                    .then(|| {
+                        attacker_of(e_health)
+                            .and_then(|damage_contributor| {
+                                get_entity_by_id(damage_contributor.uid().0, read_data)
+                            })
+                            .and_then(|attacker| {
+                                read_data.alignments.get(attacker).and_then(|aa| {
+                                    self.alignment.and_then({
+                                        |ma| {
+                                            if !ma.passive_towards(*aa) {
+                                                read_data
+                                                    .positions
+                                                    .get(attacker)
+                                                    .map(|a_pos| (attacker, *a_pos))
+                                            } else {
+                                                None
+                                            }
+                                        }
+                                    })
+                                })
+                            })
+                    })
+                    .flatten()
+            };
 
         let rtsim_remember =
             |target_stats: &Stats,
@@ -1583,36 +1609,45 @@ impl<'a> AgentData<'a> {
                 })
             };
 
-        let possible_target =
-            |(entity, e_pos, e_health, e_stats, e_inventory, e_alignment, e_char_state): (
-                EcsEntity,
-                &Pos,
-                &Health,
-                &Stats,
-                &Inventory,
-                Option<&Alignment>,
-                Option<&CharacterState>,
-            )| {
-                let can_target = within_reach(e_pos, e_char_state, e_inventory)
-                    && entity != *self.entity
-                    && !e_health.is_dead
-                    && !is_invulnerable(entity, read_data);
+        let possible_target = |(
+            entity,
+            e_pos,
+            e_health,
+            e_stats,
+            e_inventory,
+            e_alignment,
+            e_char_state,
+            e_body,
+        ): (
+            EcsEntity,
+            &Pos,
+            &Health,
+            &Stats,
+            &Inventory,
+            Option<&Alignment>,
+            Option<&CharacterState>,
+            Option<&Body>,
+        )| {
+            let can_target = within_reach(e_pos, e_char_state, e_inventory)
+                && entity != *self.entity
+                && !e_health.is_dead
+                && !is_invulnerable(entity, read_data);
 
-                if !can_target {
-                    None
-                } else if is_owner_hostile(e_alignment) {
-                    Some((entity, *e_pos))
-                } else if let Some(villain_info) = guard_defending_villager(e_health, e_alignment) {
-                    aggro_on = true;
-                    Some(villain_info)
-                } else if rtsim_remember(e_stats, agent, event_emitter)
-                    || npc_sees_cultist(e_stats, e_inventory, agent, event_emitter)
-                {
-                    Some((entity, *e_pos))
-                } else {
-                    None
-                }
-            };
+            if !can_target {
+                None
+            } else if is_owner_hostile(e_alignment) {
+                Some((entity, *e_pos))
+            } else if let Some(villain_info) = guard_other(e_health, e_body, e_alignment) {
+                aggro_on = true;
+                Some(villain_info)
+            } else if rtsim_remember(e_stats, agent, event_emitter)
+                || npc_sees_cultist(e_stats, e_inventory, agent, event_emitter)
+            {
+                Some((entity, *e_pos))
+            } else {
+                None
+            }
+        };
 
         // Search area
         // TODO choose target by more than just distance
