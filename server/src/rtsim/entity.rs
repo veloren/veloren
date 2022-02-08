@@ -1,9 +1,5 @@
 use super::*;
 use common::{
-    comp::inventory::{
-        loadout_builder::{make_food_bag, make_potion_bag},
-        slot::ArmorSlot,
-    },
     resources::Time,
     rtsim::{Memory, MemoryItem},
     store::Id,
@@ -31,7 +27,7 @@ pub struct Entity {
 
 #[derive(Clone, Copy, strum::EnumIter)]
 pub enum RtSimEntityKind {
-    Random,
+    Wanderer,
     Cultist,
     Villager,
     Merchant,
@@ -66,7 +62,7 @@ impl Entity {
 
     pub fn get_body(&self) -> comp::Body {
         match self.kind {
-            RtSimEntityKind::Random => {
+            RtSimEntityKind::Wanderer => {
                 match self.rng(PERM_GENUS).gen::<f32>() {
                     // we want 5% airships, 45% birds, 50% humans
                     x if x < 0.05 => {
@@ -111,7 +107,7 @@ impl Entity {
         let site = match self.kind {
             /*
             // Travelling merchants (don't work for some reason currently)
-            RtSimEntityKind::Random if self.rng(PERM_TRADE).gen_bool(0.5) => {
+            RtSimEntityKind::Wanderer if self.rng(PERM_TRADE).gen_bool(0.5) => {
                 match self.brain.route {
                     Travel::Path { target_id, .. } => Some(target_id),
                     _ => None,
@@ -128,7 +124,15 @@ impl Entity {
 
     pub fn get_entity_config(&self) -> &str {
         match self.get_body() {
-            comp::Body::Humanoid(_) => humanoid_config(self.kind),
+            comp::Body::Humanoid(_) => {
+                let rank = match self.rng(PERM_LEVEL).gen_range::<u8, _>(0..=20) {
+                    0..=2 => TravelerRank::Rank0,
+                    3..=9 => TravelerRank::Rank1,
+                    10..=17 => TravelerRank::Rank2,
+                    18.. => TravelerRank::Rank3,
+                };
+                humanoid_config(self.kind, rank)
+            },
             comp::Body::BirdMedium(b) => bird_medium_config(b),
             comp::Body::BirdLarge(b) => bird_large_config(b),
             _ => unimplemented!(),
@@ -141,19 +145,12 @@ impl Entity {
     pub fn get_adhoc_loadout(
         &self,
     ) -> fn(LoadoutBuilder, Option<&trade::SiteInformation>) -> LoadoutBuilder {
-        let body = self.get_body();
         let kind = self.kind;
 
-        // give potions to traveler humanoids or return loadout as is otherwise
-        match (body, kind) {
-            (comp::Body::Humanoid(_), RtSimEntityKind::Random) => |l, _| {
-                l.bag(ArmorSlot::Bag1, Some(make_potion_bag(100)))
-                    .bag(ArmorSlot::Bag2, Some(make_food_bag(100)))
-            },
-            (_, RtSimEntityKind::Merchant) => {
-                |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
-            },
-            _ => |l, _| l,
+        if let RtSimEntityKind::Merchant = kind {
+            |l, trade| l.with_creator(world::site::settlement::merchant_loadout, trade)
+        } else {
+            |l, _| l
         }
     }
 
@@ -797,10 +794,23 @@ impl Brain {
     }
 }
 
-fn humanoid_config(kind: RtSimEntityKind) -> &'static str {
+#[derive(strum::EnumIter)]
+enum TravelerRank {
+    Rank0,
+    Rank1,
+    Rank2,
+    Rank3,
+}
+
+fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
     match kind {
         RtSimEntityKind::Cultist => "common.entity.dungeon.tier-5.cultist",
-        RtSimEntityKind::Random => "common.entity.world.traveler",
+        RtSimEntityKind::Wanderer => match rank {
+            TravelerRank::Rank0 => "common.entity.world.traveler0",
+            TravelerRank::Rank1 => "common.entity.world.traveler1",
+            TravelerRank::Rank2 => "common.entity.world.traveler2",
+            TravelerRank::Rank3 => "common.entity.world.traveler3",
+        },
         RtSimEntityKind::Villager => "common.entity.village.villager",
         RtSimEntityKind::Merchant => "common.entity.village.merchant",
     }
@@ -886,8 +896,10 @@ mod tests {
         }
         // Humanoid test
         for kind in RtSimEntityKind::iter() {
-            let config = humanoid_config(kind);
-            std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config, &mut dummy_rng));
+            for rank in TravelerRank::iter() {
+                let config = humanoid_config(kind, rank);
+                std::mem::drop(EntityInfo::at(dummy_pos).with_asset_expect(config, &mut dummy_rng));
+            }
         }
     }
 }

@@ -133,7 +133,7 @@ pub fn init(
                 seed: thread_rng().gen(),
                 controller: RtSimController::default(),
                 last_time_ticked: 0.0,
-                kind: RtSimEntityKind::Random,
+                kind: RtSimEntityKind::Wanderer,
                 brain: Default::default(),
             });
         }

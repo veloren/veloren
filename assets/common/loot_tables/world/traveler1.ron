@@ -1,0 +1,13 @@
+[
+    //Currency
+    (3.0, ItemQuantity("common.items.utility.coins", 50, 200)),
+    (2.0, ItemQuantity("common.items.utility.coins", 200, 500)),
+    //Food
+    (3.0, LootTable("common.loot_tables.food.prepared")),
+    //Ores
+    (2.0, ItemQuantity("common.items.mineral.ore.iron", 2, 7)),
+    //Hides
+    (2.0, ItemQuantity("common.items.crafting_ing.hide.animal_hide", 5, 15)),
+    //Flowers, pretty
+    (2.0, ItemQuantity("common.items.flowers.red", 3, 6)),
+]
