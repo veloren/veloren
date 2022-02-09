@@ -47,7 +47,7 @@ void main() {
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(lod_col(f_pos.xy), 1);
+        tgt_color = vec4(lod_col(f_pos.xy) * get_sun_brightness(), 1);
         return;
     #endif
 
