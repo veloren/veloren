@@ -978,10 +978,15 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Burning,
                         ..
                     } => {
-                        let num_particles = aura.radius.powi(2) * dt / inline_tweak::tweak!(20.0);
-                        self.particles.resize_with(
-                            self.particles.len() + num_particles as usize,
-                            || {
+                        let num_particles = aura.radius.powi(2) * dt / inline_tweak::tweak!(250.0);
+                        let num_particles = num_particles.floor() as usize
+                            + if rng.gen_bool(f64::from(num_particles % 1.0)) {
+                                1
+                            } else {
+                                0
+                            };
+                        self.particles
+                            .resize_with(self.particles.len() + num_particles, || {
                                 let rand_pos = {
                                     let mut x = (rng.gen::<f32>() - 0.5) * 2.0;
                                     let mut y = (rng.gen::<f32>() - 0.5) * 2.0;
@@ -999,8 +1004,7 @@ impl ParticleMgr {
                                     rand_pos.with_z(pos.0.z),
                                     rand_pos.with_z(pos.0.z + 1.0),
                                 )
-                            },
-                        );
+                            });
                     },
                     aura::AuraKind::Buff {
                         kind: buff::BuffKind::Hastened,

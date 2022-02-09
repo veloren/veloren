@@ -489,7 +489,7 @@ impl Structure for GnarlingFortification {
 
                     let mosstop1 = root1.translate(Vec3::new(0, 0, 1));
 
-                    root1.fill(darkwood.clone());
+                    root1.fill(darkwood);
 
                     let start = (start_wpos + 3)
                         .as_()
@@ -512,10 +512,10 @@ impl Structure for GnarlingFortification {
 
                     let mosstop2 = root2.translate(Vec3::new(0, 0, 1));
 
-                    root2.fill(lightwood.clone());
+                    root2.fill(lightwood);
 
                     mosstop1.intersect(mossroot).fill(moss.clone());
-                    mosstop2.intersect(mossroot).fill(moss.clone());
+                    mosstop2.intersect(mossroot).fill(moss);
                 })
         }
 
@@ -593,7 +593,7 @@ impl Structure for GnarlingFortification {
                     tower_radius - 4.0,
                     tower_height,
                 ))
-                .fill(lightwood.clone());
+                .fill(lightwood);
             //top layer, green above the tower
             painter
                 .prim(Primitive::cylinder(
@@ -765,7 +765,7 @@ impl Structure for GnarlingFortification {
                             hut_radius - 2.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(lightwood.clone());
+                        .fill(lightwood);
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
@@ -920,7 +920,7 @@ impl Structure for GnarlingFortification {
                     let floor2_pos = wpos.with_z(alt + 1 + raise + height_1 as i32);
                     painter
                         .prim(Primitive::cylinder(floor2_pos, rad_2, height_2))
-                        .fill(lightwood.clone());
+                        .fill(lightwood);
 
                     // Roof
                     let roof_radius = rad_1 + 5.0;
@@ -1177,8 +1177,8 @@ impl Structure for GnarlingFortification {
                         let roof = low1.union(low2).union(top1).union(top2);
                         let roofmoss = roof.translate(Vec3::new(0, 0, 1)).without(top).without(low);
                         top.fill(darkwood.clone());
-                        low.fill(lightwood.clone());
-                        roofmoss.fill(moss.clone());
+                        low.fill(lightwood);
+                        roofmoss.fill(moss);
                         painter
                             .prim(Primitive::sphere(
                                 Vec2::new(wpos.x + rand.y - 5, wpos.y + rand.z - 5)
