@@ -127,6 +127,26 @@ impl<'a, R: Rng> NameGen<'a, R> {
             .collect()
     }
 
+    pub fn generate_lake_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "f", "g", "d", "h", "c", "m", "l", "n", "p", "r", "s", "t", "w", "v", "z", "qu",
+            "br", "bl", "ch", "chr", "dr", "dw", "fr", "fl", "gr", "gw", "pr", "pl", "st", "sl",
+            "str", "sn", "sp", "spr", "sw", "tr", "wr", "as", "ast", "en", "end", "eld", "es",
+            "on", "ond", "orn", "un", "und", "undr", "in", "ind",
+        ];
+        let start = cons.clone();
+        let middle = vec!["b", "g", "d", "ch", "m", "l", "n", "p", "r", "s", "t", "v"];
+        let vowel = vec!["e", "a", "i", "o", "u"];
+        let end = vec![
+            "oric", "aric", "eric", "ara", "ira", "ora", "era", "aron", "eron", "oron", "ugan",
+            "igan", "adar", "edar", "agron", "udar", "alar", "ular", "imar", "amar", "iles",
+            "ares", "odor", "odur", "azan", "uzan", "ichor", "olon", "anath", "oloth", "oroth",
+            "isor", "agun", "agon", "egon", "oroc", "orac", "essa", "amma", "emma", "oluth",
+            "anda", "onda", "ondo",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
+    }
+
     pub fn generate_grassland_engl(&mut self) -> String {
         let start = [
             "green", "heather", "flower", "blue", "yellow", "vast", "moon", "star", "sun",
@@ -145,6 +165,31 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_engl_from_parts(&start, &end)
     }
 
+    pub fn generate_grassland_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "f", "g", "d", "h", "c", "m", "l", "n", "p", "r", "s", "t", "w", "v", "z", "qu",
+            "br", "bl", "ch", "chr", "dr", "dw", "fr", "fl", "gr", "gw", "pr", "pl", "st", "sl",
+            "str", "sn", "sp", "spr", "sw", "tr", "wr", "ab", "abr", "al", "ald", "as", "ast",
+            "amm", "ach", "adr", "en", "end", "eld", "end", "es", "amr", "on", "ond", "ochr",
+            "orn", "ost", "ord",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "b", "g", "d", "c", "m", "l", "n", "p", "r", "s", "t", "v", "br", "ch", "chr", "dr",
+            "gr", "pr", "st", "sl", "sn", "sp", "sw", "tr", "ghr", "mm", "n", "nn", "nd", "ln",
+            "lm", "nr", "r", "rz", "lz", "ld", "rm", "sd", "rn", "ss", "sm", "rv", "lv",
+        ];
+        let vowel = vec!["e", "a", "i", "o", "ea", "au"];
+        let end = vec![
+            "on", "oc", "ic", "oric", "aric", "eric", "elten", "alend", "alan", "aven", "elen",
+            "estin", "ostin", "alic", "elic", "alon", "elon", "arac", "erac", "eden", "elen",
+            "owan", "owen", "iel", "ien", "ing", "olm", "ulm", "ilm", "alm", "elm", "oria", "aria",
+            "eria", "elis", "alis", "amor", "emor", "en", "ard", "erd", "ord", "org", "enara",
+            "aran",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
+    }
+
     pub fn generate_ocean_engl(&mut self) -> String {
         let start = [
             "dark", "murk", "shimmer", "glimmer", "spirit", "moon", "dead", "bane", "salt",
@@ -161,6 +206,26 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_engl_from_parts(&start, &end)
     }
 
+    pub fn generate_ocean_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "f", "g", "d", "h", "c", "m", "l", "n", "p", "r", "s", "t", "w", "v", "z", "qu",
+            "br", "bl", "ch", "chr", "dr", "dw", "fr", "fl", "gr", "gw", "pr", "pl", "st", "sl",
+            "str", "sn", "sp", "spr", "sw", "tr", "wr", "as", "ast", "en", "end", "eld", "es",
+            "on", "ond", "orn", "un", "und", "undr", "in", "ind",
+        ];
+        let start = cons.clone();
+        let middle = vec!["b", "g", "d", "ch", "m", "l", "n", "p", "r", "s", "t", "v"];
+        let vowel = vec!["e", "a", "i", "o", "u"];
+        let end = vec![
+            "oric", "aric", "eric", "ara", "ira", "ora", "era", "aron", "eron", "oron", "ugan",
+            "igan", "adar", "edar", "agron", "udar", "alar", "ular", "imar", "amar", "iles",
+            "ares", "odor", "odur", "azan", "uzan", "ichor", "olon", "anath", "oloth", "oroth",
+            "isor", "agun", "agon", "egon", "oroc", "orac", "essa", "amma", "emma", "oluth",
+            "anda", "onda", "ondo",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
+    }
+
     pub fn generate_mountain_engl(&mut self) -> String {
         let start = [
             "white", "frost", "ever", "pale", "hoar", "cold", "chill", "shiver", "bitter",
@@ -174,9 +239,32 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "scream", "draft", "path", "wind", "breeze", "wail", "crag", "bellow", "breach",
             "rift", "chasm", "climb", "fall", "rise", "grasp", "grip", "gale", "summit", "shard",
             "pierce", "crush", "shard", "clash", "wish", "will", "wake", "storm", "blade", "hold",
-            "reach", "maw", "lock", "gust", "stone", "fury", "rage", "jaw", "gorge", "clove",
+            "reach", "maw", "lock", "gust", "stone", "fury", "rage", "gorge", "clove",
         ];
         self.generate_engl_from_parts(&start, &end)
+    }
+
+    pub fn generate_mountain_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "d", "f", "g", "h", "k", "l", "m", "n", "s", "t", "w", "br", "dr", "gr", "gh",
+            "kh", "kr", "st", "str", "th", "tr", "ar", "ark", "adr", "ath", "an", "el", "elb",
+            "eldr", "estr", "ostr", "ond", "ondr", "ul", "uld", "eld", "eldr",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "br", "d", "dr", "dn", "dm", "fr", "g", "gr", "gl", "k", "kr", "l", "ll", "m", "mm",
+            "n", "nn", "nd", "st", "th", "rw", "nw", "thr", "lk", "nk", "ng", "rd", "rk", "nr",
+            "nth", "rth", "kn", "rl", "gg", "lg", "str", "nb", "lb", "ld", "rm", "sd", "sb",
+        ];
+        let vowel = vec!["o", "e", "a", "u", "ae"];
+        let end = vec![
+            "ul", "um", "un", "uth", "und", "ur", "an", "a", "ar", "a", "amar", "amur", "ath",
+            "or", "on", "oth", "omor", "omur", "omar", "ador", "odor", "en", "end", "eth", "amon",
+            "edur", "aden", "oden", "alas", "elas", "alath", "aloth", "eloth", "eres", "ond",
+            "ondor", "undor", "andor", "od", "ed", "amad", "ud", "amud", "ulud", "alud", "allen",
+            "alad", "and", "an", "as", "es",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
     }
 
     pub fn generate_snowland_engl(&mut self) -> String {
@@ -184,8 +272,8 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "white", "frost", "ever", "pale", "hoar", "cold", "chill", "shiver", "bitter",
             "glimmer", "winter", "algor", "grey", "ghost", "pearl", "pallid", "spectre", "spirit",
             "crystal", "shimmer", "silver", "grizzle", "quiet", "still", "wild", "blind", "silent",
-            "lost", "somber", "sleet", "silent", "sharp", "somber", "sleet", "sharp", "rime",
-            "ice",
+            "lost", "dire", "somber", "sleet", "silent", "sharp", "somber", "sleet", "sharp",
+            "rime", "ice",
         ];
         let end = [
             "wood", "veil", "shroud", "fang", "horn", "bite", "more", "howl", "heart", "song",
@@ -195,6 +283,29 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "hold", "reach", "maw",
         ];
         self.generate_engl_from_parts(&start, &end)
+    }
+
+    pub fn generate_snowland_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "d", "f", "g", "h", "k", "l", "m", "n", "s", "t", "w", "br", "dr", "gr", "gh",
+            "kh", "kr", "st", "str", "th", "tr", "ar", "ark", "adr", "ath", "an", "el", "elb",
+            "eldr", "estr", "ostr", "ond", "ondr", "ul", "uld", "eld", "eldr",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "br", "d", "dr", "dn", "dm", "fr", "g", "gr", "gl", "k", "kr", "l", "ll", "m", "mm",
+            "n", "nn", "nd", "st", "th", "rw", "nw", "thr", "lk", "nk", "ng", "rd", "rk", "nr",
+            "nth", "rth", "kn", "rl", "gg", "lg", "str", "nb", "lb", "ld", "rm", "sd", "sb",
+        ];
+        let vowel = vec!["o", "e", "a", "u", "ae"];
+        let end = vec![
+            "ul", "um", "un", "uth", "und", "ur", "an", "a", "ar", "a", "amar", "amur", "ath",
+            "or", "on", "oth", "omor", "omur", "omar", "ador", "odor", "en", "end", "eth", "amon",
+            "edur", "aden", "oden", "alas", "elas", "alath", "aloth", "eloth", "eres", "ond",
+            "ondor", "undor", "andor", "od", "ed", "amad", "ud", "amud", "ulud", "alud", "allen",
+            "alad", "and", "an", "as", "es",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
     }
 
     pub fn generate_desert_engl(&mut self) -> String {
@@ -215,6 +326,28 @@ impl<'a, R: Rng> NameGen<'a, R> {
         self.generate_engl_from_parts(&start, &end)
     }
 
+    pub fn generate_desert_custom(&mut self) -> String {
+        let cons = vec![
+            "j", "k", "m", "l", "n", "h", "t", "z", "f", "sh", "s", "q", "z", "y", "gh", "r", "ed",
+            "abg", "ab", "al", "b", "d", "alm",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "j", "k", "m", "l", "n", "h", "t", "w", "z", "r", "f", "sh", "s", "q", "z", "y", "gh",
+            "b", "d", "lf", "lsh", "zd", "br", "lb", "mr", "th", "bd", "db", "ks", "ksh", "nb",
+            "st", "my", "kh", "khl", "zr", "thr", "hm", "hk", "yb", "hb", "hd",
+        ];
+        let vowel = vec!["e", "a", "i", "u", "ai", "ua"];
+        let end = vec![
+            "ejaz", "adaqas", "ahrain", "emen", "ahduri", "abna", "araq", "akhm", "atafan", "alik",
+            "ajd", "uda", "ara", "asqa", "uda", "uha", "amin", "iman", "anis", "ayma", "almud",
+            "ubal", "ammad", "ammud", "amir", "anaf", "afan", "aila", "amma", "ahra", "akhla",
+            "azraj", "anu", "ouk", "aksum", "awbas", "astar", "anah", "aqah", "aryat", "alasa",
+            "athar", "aubas", "anaf", "amash", "ilmun", "uza", "irim", "izeh", "ifah", "inah",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
+    }
+
     pub fn generate_swamp_engl(&mut self) -> String {
         let start = [
             "green", "moss", "deep", "moon", "haze", "drizzle", "mizzle", "rain", "bracken",
@@ -222,6 +355,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "murk", "dim", "dusk", "night", "quiet", "dark", "brume", "rot", "drench", "sullen",
             "still", "gleam", "wild", "blind", "gnarl", "silent", "dead", "rust", "soul", "gloom",
             "bramble", "briar", "thorn", "earth", "wither", "tangle", "twist", "fear", "slither",
+            "vile",
         ];
         let end = [
             "root", "bark", "vine", "brook", "well", "veil", "mantle", "drop", "fang", "beck",
@@ -250,6 +384,30 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "flower", "snag",
         ];
         self.generate_engl_from_parts(&start, &end)
+    }
+
+    pub fn generate_jungle_custom(&mut self) -> String {
+        let cons = vec![
+            "j", "k", "m", "l", "n", "p", "h", "t", "v", "z", "s", "x", "tl", "izt", "qu", "z",
+            "y", "tz", "om", "az", "aztl", "ch", "azt", "aw", "c", "uax", "ax",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "k", "m", "l", "n", "p", "n", "h", "t", "v", "z", "s", "tl", "qu", "z", "y", "tl",
+            "ch", "c", "j", "tz", "lc", "lk", "kt", "cn", "xm", "xp", "mn", "c", "k T", "n Y",
+            "n P", "k P", "k X", "n K", "n H", "h P", "h K", "k J", "k Ch", "n J", "n Ch", "k P",
+            "h J",
+        ];
+        let vowel = vec!["e", "a", "i", "o", "u", "aa", "ui", "uu", "oa", "ai", "ua"];
+        let end = vec![
+            "ibalba", "alba", "oztoc", "ictlan", "itlan", "epetl", "opetl", "ocan", "aztlan",
+            "allan", "illan", "atz", "oyoi", "ahau", "azotz", "agual", "acna", "acan", "axtab",
+            "ixtab", "apeku", "ivo", "otec", "oyotl", "oatl", "icue", "aax", "iyalo", "aac",
+            "octli", "ipoca", "aat", "icapan", "irakan", "otzil", "aax", "iyalo", "aac", "octli",
+            "ipoca", "aat", "atec", "aya", "ulkan", "ook", "oox", "akh", "aktun", "iliw", "akal",
+            "ohil", "amna", "ucane", "aize", "itzan", "ontli", "eotl", "olotl",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
     }
 
     pub fn generate_forest_engl(&mut self) -> String {
@@ -297,7 +455,7 @@ impl<'a, R: Rng> NameGen<'a, R> {
         let start = [
             "red", "pride", "dry", "copper", "vast", "war", "star", "sun", "bright", "blood",
             "dawn", "shimmer", "gold", "amber", "gleam", "wild", "rust", "fire", "earth", "spirit",
-            "bronze", "broad", "scorch", "sear", "gold", "prowl", "marl", "rage", "ghost", "soul",
+            "bronze", "broad", "scorch", "sear", "gold", "rage", "dire", "ghost", "soul",
             "specter", "scald", "singe", "heat", "torch", "rite", "bone",
         ];
         let end = [
@@ -305,9 +463,31 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "herd", "path", "wind", "breeze", "howl", "sway", "rest", "reach", "flow", "graze",
             "trail", "sting", "fall", "growl", "mane", "bush", "gale", "run", "field", "glare",
             "gaze", "wallow", "brew", "rise", "glow", "wade", "wander", "wake", "sky", "roam",
-            "breath", "shard", "scar", "lurk", "hill", "blaze", "fury", "hunt",
+            "breath", "shard", "scar", "lurk", "hill", "blaze", "fury", "hunt", "prowl", "marl",
         ];
         self.generate_engl_from_parts(&start, &end)
+    }
+
+    pub fn generate_savannah_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "d", "nz", "g", "mb", "k", "m", "l", "n", "nt", "ng", "t", "w", "z", "sh", "zw",
+            "gb", "an", "on", "s", "nj", "x", "gb", "mp",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "b", "d", "nz", "g", "mb", "k", "m", "l", "n", "nt", "n", "ng", "t", "w", "z", "qu",
+            "sh", "ngb", "nb", "nd", "np", "gd", "k", "gn", "n", "kt", "nw", "mz", "mp", "md",
+            "kz", "ml", "ns", "j", "y", "nz",
+        ];
+        let vowel = vec!["e", "a", "i", "o", "u", "ou", "oa", "ai"];
+        let end = vec![
+            "oko", "apa", "eke", "embe", "okele", "ambi", "oubou", "abwe", "amato", "otho",
+            "iloko", "eloko", "adroa", "ansi", "umba", "ami", "ata", "uluku", "oluku", "ogbo",
+            "odudu", "iwara", "itaka", "anuka", "ukasa", "usisi", "umbe", "anga", "emba", "ambe",
+            "insu", "insi", "igbo", "ebege", "enga", "abali", "engi", "enga", "abali", "anga",
+            "unga", "izazi", "ungulu", "ombe", "ukiti", "izazi", "ombi", "engu", "aberi", "alusi",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
     }
 
     pub fn generate_taiga_engl(&mut self) -> String {
@@ -326,6 +506,31 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "stone", "howl", "moss",
         ];
         self.generate_engl_from_parts(&start, &end)
+    }
+
+    pub fn generate_taiga_custom(&mut self) -> String {
+        let cons = vec![
+            "b", "f", "g", "d", "h", "c", "m", "l", "n", "p", "r", "s", "t", "w", "v", "z", "qu",
+            "br", "bl", "ch", "chr", "dr", "dw", "fr", "fl", "gr", "gw", "pr", "pl", "st", "sl",
+            "str", "sn", "sp", "spr", "sw", "tr", "wr", "ab", "abr", "al", "ald", "as", "ast",
+            "amm", "ach", "adr", "en", "end", "eld", "end", "es", "amr", "on", "ond", "ochr",
+            "orn", "ost", "ord",
+        ];
+        let start = cons.clone();
+        let middle = vec![
+            "b", "g", "d", "c", "m", "l", "n", "p", "r", "s", "t", "v", "br", "ch", "chr", "dr",
+            "gr", "pr", "st", "sl", "sn", "sp", "sw", "tr", "ghr", "mm", "n", "nn", "nd", "ln",
+            "lm", "nr", "r", "rz", "lz", "ld", "rm", "sd", "rn", "ss", "sm", "rv", "lv",
+        ];
+        let vowel = vec!["e", "a", "i", "o", "ea", "au"];
+        let end = vec![
+            "on", "oc", "ic", "oric", "aric", "eric", "elten", "alend", "alan", "aven", "elen",
+            "estin", "ostin", "alic", "elic", "alon", "elon", "arac", "erac", "eden", "elen",
+            "owan", "owen", "iel", "ien", "ing", "olm", "ulm", "ilm", "alm", "elm", "oria", "aria",
+            "eria", "elis", "alis", "amor", "emor", "en", "ard", "erd", "ord", "org", "enara",
+            "aran",
+        ];
+        self.generate_custom_from_parts(&start, &middle, &vowel, &end)
     }
 
     // themes & sites
@@ -365,14 +570,15 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "gr", "pr", "st", "sl", "sn", "sp", "sw", "tr", "mm", "n", "nn", "nd", "ln", "lm",
             "nr", "r", "rz", "lz", "ld", "rm", "sd", "rn", "ss", "sm", "rv", "lv",
         ];
-        let vowel = vec!["e", "a", "i", "o"];
+        let vowel = vec!["e", "a", "i", "o", "ea", "au"];
         let end = vec![
             "on", "aton", "enton", "eau", "eaux", "erg", "enberg", "enburg", "oc", "ic", "oric",
-            "aric", "eric", "aven", "elen", "andam", "endam", "estin", "ostin", "alic", "elic",
-            "alon", "elon", "arac", "erac", "eden", "elen", "owan", "owen", "iel", "ien", "alton",
-            "ing", "iling", "aling", "olm", "ulm", "ough", "ilm", "alm", "elm", "eim", "oria",
-            "aria", "eria", "elis", "alis", "amor", "emor", "en", "edge", "ard", "erd", "ord",
-            "emberg", "emburg", "org", "alton", "agrad", "ograd", "inton",
+            "aric", "eric", "ach", "aven", "elen", "andam", "endam", "estin", "ostin", "alic",
+            "elic", "alon", "elon", "arac", "erac", "eden", "elen", "owan", "owen", "iel", "ien",
+            "alton", "ing", "iling", "aling", "olm", "ulm", "ough", "ilm", "alm", "elm", "eim",
+            "oria", "aria", "eria", "elis", "alis", "amor", "emor", "en", "edge", "arr", "ard",
+            "erd", "ord", "emberg", "emburg", "org", "alton", "agrad", "ograd", "inton", "imore",
+            "ale",
         ];
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
@@ -384,12 +590,17 @@ impl<'a, R: Rng> NameGen<'a, R> {
             "pl", "ch", "l", "ap", "akr", "ak", "ar", "ath", "asp", "al", "aph", "aphr", "oph",
             "or", "ok", "on", "od", "oth", "om", "ep", "er", "em", "eph", "eth", "yps", "yph",
             "ach", "amph", "yp", "ik", "is", "iph", "ith", "pr", "as", "asph", "ps", "b", "n", "z",
-            "x", "kr", "kt", "cht", "chr", "thr", "dr", "pr", "pl", "h", "in", "g", "sph",
+            "x", "kr", "kt", "cht", "chr", "thr", "dr", "pr", "pl", "h", "in", "g", "sph", "kr",
+            "tr", "str", "rk", "st", "n", "r", "ph", "phr", "ch", "x", "d", "l", "kt", "pr", "ll",
+            "pp", "ss", "th", "mm", "s", "t", "g", "mn", "rg", "b", "p", "ps", "kl", "dr", "mp",
+            "sp", "cht", "lph",
         ];
         let middle = vec![
-            "kr", "tr", "str", "rk", "st", "n", "r", "ph", "phr", "ch", "x", "d", "l", "kt", "pr",
-            "ll", "pp", "ss", "th", "mm", "s", "t", "g", "mn", "rg", "b", "p", "ps", "kl", "dr",
-            "mp", "sp", "cht", "lph",
+            "d", "ph", "r", "st", "t", "s", "p", "th", "br", "tr", "m", "k", "cr", "phr", "dr",
+            "pl", "ch", "l", "ap", "akr", "ak", "ar", "ath", "asp", "al", "aph", "aphr", "oph",
+            "or", "ok", "on", "od", "oth", "om", "ep", "er", "em", "eph", "eth", "yps", "yph",
+            "ach", "amph", "yp", "ik", "is", "iph", "ith", "pr", "as", "asph", "ps", "b", "n", "z",
+            "x", "kr", "kt", "cht", "chr", "thr", "dr", "pr", "pl", "h", "in", "g", "sph",
         ];
         let vowel = vec![
             "o", "e", "a", "i", "y", "eo", "ae", "ea", "oi", "io", "ia", "aeo",
