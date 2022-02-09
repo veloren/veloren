@@ -1,5 +1,5 @@
 (
-    name: Name("Sand Hare"),
+    name: Name("Desert Hare"),
     body: Exact(QuadrupedSmall((
         species: Hare,
         body_type: Male,

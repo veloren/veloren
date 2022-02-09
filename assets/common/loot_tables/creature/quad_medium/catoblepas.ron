@@ -1,4 +1,5 @@
 [
     (1.5, Item("common.items.crafting_ing.animal_misc.grim_eyeball")),
     (4.0, LootTable("common.loot_tables.creature.quad_medium.generic")),
+    (1.0, Item("common.items.crafting_ing.hide.rugged_hide")),
 ]

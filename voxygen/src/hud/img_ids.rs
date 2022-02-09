@@ -397,6 +397,7 @@ image_ids! {
         map_dif_4: "voxygen.element.ui.map.icons.dif_4",
         map_dif_5: "voxygen.element.ui.map.icons.dif_5",
         map_dif_6: "voxygen.element.ui.map.icons.dif_6",
+        map_dif_icon: "voxygen.element.ui.map.icons.dif_map_icon",
         map_dif_unknown: "voxygen.element.ui.map.icons.dif_unknown",
         mmap_site_town: "voxygen.element.ui.map.buttons.town",
         mmap_site_town_hover: "voxygen.element.ui.map.buttons.town_hover",

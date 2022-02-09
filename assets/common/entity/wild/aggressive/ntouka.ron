@@ -3,6 +3,6 @@
     body: RandomWith("ntouka"),
     alignment: Alignment(Enemy),
     loadout: FromBody,
-    loot: LootTable("common.loot_tables.creature.theropod.horned"),
+    loot: LootTable("common.loot_tables.creature.theropod.plate"),
     meta: [],
 )

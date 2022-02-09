@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
-    TEXT_BG, TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE, TEXT_BG,
+    TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     game_input::GameInput,
@@ -477,7 +477,7 @@ impl<'a> Widget for Map<'a> {
             .set(state.ids.map_settings_align, ui);
         // Checkboxes
         // Show difficulties
-        Image::new(self.imgs.map_dif_6)
+        Image::new(self.imgs.map_dif_icon)
             .top_left_with_margins_on(state.ids.map_settings_align, 5.0, 5.0)
             .w_h(20.0, 20.0)
             .set(state.ids.show_difficulty_img, ui);
@@ -873,11 +873,21 @@ impl<'a> Widget for Map<'a> {
             });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (None, i18n.get("hud.map.town").to_string()),
-                SiteKind::Dungeon { difficulty } => (
-                    Some(*difficulty),
-                    i18n.get("hud.map.difficulty_dungeon")
-                        .replace("{difficulty}", (difficulty + 1).to_string().as_str()),
-                ),
+                SiteKind::Dungeon { difficulty } => {
+                    if *difficulty < 5 {
+                        (
+                            Some(*difficulty),
+                            i18n.get("hud.map.difficulty_dungeon")
+                                .replace("{difficulty}", (difficulty + 1).to_string().as_str()),
+                        )
+                    } else {
+                        (
+                            Some(*difficulty),
+                            i18n.get("hud.map.difficulty_dungeon")
+                                .replace("{difficulty}", (difficulty).to_string().as_str()),
+                        )
+                    }
+                },
                 SiteKind::Castle => (None, i18n.get("hud.map.castle").to_string()),
                 SiteKind::Cave => (None, i18n.get("hud.map.cave").to_string()),
                 SiteKind::Tree => (None, i18n.get("hud.map.tree").to_string()),
@@ -917,8 +927,7 @@ impl<'a> Widget for Map<'a> {
                         Some(1) => QUALITY_COMMON,
                         Some(2) => QUALITY_MODERATE,
                         Some(3) => QUALITY_HIGH,
-                        Some(4) => QUALITY_EPIC,
-                        Some(5) => QUALITY_DEBUG,
+                        Some(4 | 5) => QUALITY_EPIC,
                         _ => TEXT_COLOR,
                     },
                     SiteKind::Cave => TEXT_COLOR,
@@ -985,8 +994,7 @@ impl<'a> Widget for Map<'a> {
                     Some(1) => QUALITY_COMMON,
                     Some(2) => QUALITY_MODERATE,
                     Some(3) => QUALITY_HIGH,
-                    Some(4) => QUALITY_EPIC,
-                    Some(5) => QUALITY_DEBUG,
+                    Some(4 | 5) => QUALITY_EPIC,
                     _ => TEXT_COLOR,
                 }));
                 match &site.kind {
