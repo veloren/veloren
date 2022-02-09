@@ -692,7 +692,7 @@ vec3 illuminate(float max_light, vec3 view_dir, /*vec3 max_light, */vec3 emitted
 vec3 simple_lighting(vec3 pos, vec3 col, float shade) {
     // Bad fake lantern so we can see in caves
     vec3 d = pos.xyz - focus_pos.xyz;
-    return col * clamp(2.5 / dot(d, d), shade * get_sun_brightness(), 1);
+    return col * clamp(2.5 / dot(d, d), shade * (get_sun_brightness() + 0.01), 1);
 }
 
 #endif

@@ -35,7 +35,7 @@ const float FADE_DIST = 32.0;
 
 void main() {
     #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(f_col.rgb, 1);
+        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col.rgb, 1.0), 1);
         return;
     #endif
 
