@@ -51,6 +51,11 @@ layout(location = 0) out vec4 tgt_color;
 #include <lod.glsl>
 
 void main() {
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(simple_lighting(f_pos.xyz, MU_SCATTER, 1.0), 0.5);
+        return;
+    #endif
+
     // tgt_color = vec4(1.0 - MU_WATER, 1.0);
     // return;
     // First 3 normals are negative, next 3 are positive
