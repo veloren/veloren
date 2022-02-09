@@ -232,7 +232,7 @@ impl Site {
         self.find_aabr(search_pos, area_range, min_dims)
     }
 
-    pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Id<Plot> {
+    pub fn make_plaza(&mut self, land: &Land, rng: &mut impl Rng) -> Option<Id<Plot>> {
         let plaza_radius = rng.gen_range(1..4);
         let plaza_dist = 6.5 + plaza_radius as f32 * 4.0;
         let pos = attempt(32, || {
@@ -245,6 +245,7 @@ impl Site {
                             * plaza_dist)
                             .map(|e| e as i32)
                 })
+                .or_else(|| Some(Vec2::zero()))
                 .filter(|tile| !self.tiles.get(*tile).is_obstacle())
                 .filter(|&tile| {
                     self.plazas.iter().all(|&p| {
@@ -252,8 +253,7 @@ impl Site {
                             > (plaza_dist * 0.85).powi(2)
                     }) && rng.gen_range(0..48) > tile.map(|e| e.abs()).reduce_max()
                 })
-        })
-        .unwrap_or_else(Vec2::zero);
+        })?;
 
         let plaza_alt = land.get_alt_approx(self.tile_center_wpos(pos)) as i32;
 
@@ -304,7 +304,7 @@ impl Site {
             }
         }
 
-        plaza
+        Some(plaza)
     }
 
     pub fn demarcate_obstacles(&mut self, land: &Land) {
