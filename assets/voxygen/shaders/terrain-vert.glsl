@@ -80,8 +80,10 @@ void main() {
     vec3 v_pos = f_pos;
 
     // Terrain 'pop-in' effect
-    v_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
-    // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
+    #ifndef EXPERIMENTAL_BAREMINIMUM
+        v_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+        // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
+    #endif
 
     #ifdef EXPERIMENTAL_CURVEDWORLD
         v_pos.z -= pow(distance(v_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);

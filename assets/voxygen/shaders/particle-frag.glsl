@@ -34,6 +34,11 @@ layout(location = 0) out vec4 tgt_color;
 const float FADE_DIST = 32.0;
 
 void main() {
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(f_col.rgb, 1);
+        return;
+    #endif
+
     vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
     vec3 view_dir = -cam_to_frag;
 

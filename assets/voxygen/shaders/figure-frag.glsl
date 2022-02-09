@@ -95,6 +95,12 @@ void main() {
     float f_ao, f_glow;
     uint material = 0xFFu;
     vec3 f_col = greedy_extract_col_light_attr(t_col_light, s_col_light, f_uv_pos, f_ao, f_glow, material);
+
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(f_col * f_ao, 1);
+        return;
+    #endif
+
     // float /*f_light*/f_ao = textureProj(t_col_light, vec3(f_uv_pos, texSize)).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
 
     // vec3 my_chunk_pos = (vec3((uvec3(f_pos_norm) >> uvec3(0, 9, 18)) & uvec3(0x1FFu)) - 256.0) / 2.0;

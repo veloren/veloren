@@ -453,4 +453,7 @@ pub enum ExperimentalShader {
     NonSrgbDither,
     /// Use triangle PDF noise for dithering instead of uniform noise.
     TriangleNoiseDither,
+    /// Removes as many effects (including lighting) as possible in the name of
+    /// performance.
+    BareMinimum,
 }
