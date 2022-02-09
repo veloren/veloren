@@ -910,6 +910,7 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
         let mut rng = thread_rng();
+        let dt = scene_data.state.get_delta_time();
 
         for (pos, auras) in (
             &ecs.read_storage::<Pos>(),
@@ -945,6 +946,16 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Regeneration,
                         ..
                     } => {
+                        if auras.auras.iter().any(|(_, aura)| {
+                            matches!(aura.aura_kind, aura::AuraKind::Buff {
+                                kind: buff::BuffKind::ProtectingWard,
+                                ..
+                            })
+                        }) {
+                            // If same entity has both protecting ward and regeneration auras, skip
+                            // particles for regeneration
+                            continue;
+                        }
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
                         self.particles.resize_with(
                             self.particles.len()
@@ -957,6 +968,56 @@ impl ParticleMgr {
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyHealing,
+                                    pos.0,
+                                    pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Burning,
+                        ..
+                    } => {
+                        let num_particles = aura.radius.powi(2) * dt / inline_tweak::tweak!(20.0);
+                        self.particles.resize_with(
+                            self.particles.len() + num_particles as usize,
+                            || {
+                                let rand_pos = {
+                                    let mut x = (rng.gen::<f32>() - 0.5) * 2.0;
+                                    let mut y = (rng.gen::<f32>() - 0.5) * 2.0;
+                                    while (x.powi(2) + y.powi(2)) > 1.0 {
+                                        x = (rng.gen::<f32>() - 0.5) * 2.0;
+                                        y = (rng.gen::<f32>() - 0.5) * 2.0;
+                                    }
+                                    Vec2::new(x, y) * aura.radius + pos.0.xy()
+                                };
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::FlameThrower,
+                                    rand_pos.with_z(pos.0.z),
+                                    rand_pos.with_z(pos.0.z + 1.0),
+                                )
+                            },
+                        );
+                    },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Hastened,
+                        ..
+                    } => {
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
+                                let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
+                                let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::EnergyBuffing,
                                     pos.0,
                                     pos.0 + init_pos,
                                 )

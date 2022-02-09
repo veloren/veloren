@@ -385,7 +385,10 @@ impl GnarlingFortification {
                         supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                     },
                     GnarlingStructure::ChieftainHut => {
-                        supplement.add_entity(gnarling_chieftain(wpos, dynamic_rng));
+                        supplement.add_entity(gnarling_chieftain(
+                            wpos.xy().with_z(wpos.z + 8),
+                            dynamic_rng,
+                        ));
                         let left_inner_guard_pos = wpos + ori.dir() * 8 + ori.cw().dir() * 2;
                         supplement.add_entity(wood_golem(left_inner_guard_pos, dynamic_rng));
                         let right_inner_guard_pos = wpos + ori.dir() * 8 + ori.ccw().dir() * 2;

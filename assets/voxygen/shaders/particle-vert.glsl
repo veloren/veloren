@@ -73,6 +73,7 @@ const int ICE_SPIKES = 31;
 const int DRIP = 32;
 const int TORNADO = 33;
 const int DEATH = 34;
+const int ENERGY_BUFFING = 35;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -566,6 +567,16 @@ void main() {
                 vec3((1.2 * (1 - slow_start(.1)))),
                 vec4(vec3(1.2 + 0.5 * percent()), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), percent() * 10 + 3 * rand9)
+            );
+            break;
+        case ENERGY_BUFFING:
+            f_reflect = 0.0;
+            spiral_radius = start_end(1 - pow(abs(rand5), 5), 1) * length(inst_dir);
+            attr = Attr(
+                spiral_motion(vec3(0, 0, rand3 + 1), spiral_radius, lifetime, abs(rand0), rand1 * 2 * PI) + vec3(0, 0, rand2),
+                vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
+                vec4(vec3(1.4), 1),
+                spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
             );
             break;
         default:

@@ -777,6 +777,14 @@ impl Body {
                 Body::Arthropod(_) => true,
                 _ => false,
             },
+            BuffKind::Regeneration | BuffKind::ProtectingWard | BuffKind::Hastened => matches!(
+                self,
+                Body::Object(
+                    object::Body::GnarlingTotemRed
+                        | object::Body::GnarlingTotemGreen
+                        | object::Body::GnarlingTotemWhite
+                )
+            ),
             _ => false,
         }
     }
