@@ -529,7 +529,7 @@ impl Structure for GnarlingFortification {
                             wall_par_thickness,
                             wall_par_height + parapet_z_offset as f32,
                         )
-                        .fill(darkwood.clone());
+                        .fill(darkwood);
                 })
         }
 
@@ -584,14 +584,14 @@ impl Structure for GnarlingFortification {
                     tower_radius - 3.0,
                     tower_height,
                 ))
-                .fill(darkwood.clone());
+                .fill(darkwood);
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
                     tower_radius - 4.0,
                     tower_height,
                 ))
-                .fill(midwood.clone());
+                .fill(midwood);
             //top layer, green above the tower
             painter
                 .prim(Primitive::cylinder(
@@ -599,7 +599,7 @@ impl Structure for GnarlingFortification {
                     tower_radius,
                     2.0,
                 ))
-                .fill(moss.clone());
+                .fill(moss);
             //standing area one block deeper
             painter
                 .prim(Primitive::cylinder(
@@ -705,7 +705,7 @@ impl Structure for GnarlingFortification {
                         .with_z(land.get_alt_approx(wpos) as i32 + tower_height as i32 - 16),
                 })
                 .intersect(outside)
-                .fill(red.clone());
+                .fill(red);
         });
 
         self.structure_locations
@@ -763,14 +763,14 @@ impl Structure for GnarlingFortification {
                             hut_radius - 2.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(midwood.clone());
+                        .fill(midwood);
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
                             hut_radius - 3.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(darkwood.clone());
+                        .fill(darkwood);
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
@@ -832,7 +832,7 @@ impl Structure for GnarlingFortification {
                     let tendril4 = tendril1.translate(Vec3::new(7, 4, 0));
                     let tendrils = tendril1.union(tendril2).union(tendril3).union(tendril4);
 
-                    tendrils.fill(moss.clone());
+                    tendrils.fill(moss);
 
                     //sphere to delete some hut
                     painter
@@ -917,7 +917,7 @@ impl Structure for GnarlingFortification {
                     let floor2_pos = wpos.with_z(alt + 1 + raise + height_1 as i32);
                     painter
                         .prim(Primitive::cylinder(floor2_pos, rad_2, height_2))
-                        .fill(midwood.clone());
+                        .fill(midwood);
 
                     // Roof
                     let roof_radius = rad_1 + 5.0;
@@ -934,7 +934,7 @@ impl Structure for GnarlingFortification {
                             roof_radius,
                             roof_height,
                         ))
-                        .fill(moss.clone());
+                        .fill(moss);
                     let centerspot = painter.line(
                         (wpos + 1).with_z(alt + raise + height_1 as i32 + 2),
                         (wpos + 1).with_z(alt + raise + height_1 as i32 + 2),
@@ -1094,7 +1094,7 @@ impl Structure for GnarlingFortification {
                         })
                         .intersect(roof1)
                         .translate(Vec3::new(0, 0, -1))
-                        .fill(darkwood.clone());
+                        .fill(darkwood);
                     painter
                         .aabb(Aabb {
                             min: Vec2::new(wpos.x - 2, wpos.y - 23)
@@ -1103,7 +1103,7 @@ impl Structure for GnarlingFortification {
                                 .with_z(alt + raise + height_1 as i32 + 7),
                         })
                         .intersect(roof1)
-                        .fill(red.clone());
+                        .fill(red);
                     painter
                         .prim(Primitive::cylinder(floor2_pos, rad_2 - 1.0, height_2))
                         .fill(Fill::Block(Block::empty()));
@@ -1167,8 +1167,8 @@ impl Structure for GnarlingFortification {
                         let roof = low1.union(low2).union(top1).union(top2);
                         let roofmoss = roof.translate(Vec3::new(0, 0, 1)).without(top).without(low);
                         top.fill(darkwood.clone());
-                        low.fill(midwood.clone());
-                        roofmoss.fill(moss.clone());
+                        low.fill(midwood);
+                        roofmoss.fill(moss);
                         painter
                             .prim(Primitive::sphere(
                                 Vec2::new(wpos.x + randy - 5, wpos.y + randz - 5)
@@ -1331,7 +1331,7 @@ impl Structure for GnarlingFortification {
                             min: Vec2::new(wpos.x + 1, wpos.y - 1).with_z(alt + 8),
                             max: Vec2::new(wpos.x + 8, wpos.y).with_z(alt + 38),
                         });
-                        flag.fill(red.clone());
+                        flag.fill(red);
                         //add green streaks
                         let streak1 = painter
                             .line(
@@ -1404,7 +1404,7 @@ impl Structure for GnarlingFortification {
                             0.9,
                         );
                         let flagpole = column.union(arm);
-                        flagpole.fill(darkwood.clone());
+                        flagpole.fill(darkwood);
                     },
                     GnarlingStructure::WatchTower => {
                         let platform_1_height = 14;

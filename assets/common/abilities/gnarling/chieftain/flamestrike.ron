@@ -1,0 +1,23 @@
+BasicMelee(
+    energy_cost: 0,
+    buildup_duration: 0.4,
+    swing_duration: 0.1,
+    recover_duration: 0.3,
+    melee_constructor: (
+        kind: Bash(
+            damage: 5,
+            poise: 10,
+            knockback: 0,
+            energy_regen: 0,
+        ),
+        range: 7.5,
+        angle: 60.0,
+        damage_effect: Some(Buff((
+            kind: Burning,
+            dur_secs: 10.0,
+            strength: DamageFraction(0.5),
+            chance: 0.5,
+        ))),
+    ),
+    ori_modifier: 0.7,
+)

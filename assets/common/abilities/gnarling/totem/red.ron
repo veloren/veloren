@@ -1,0 +1,18 @@
+BasicAura(
+    buildup_duration: 0.25,
+    cast_duration: 0.5,
+    recover_duration: 0.25,
+    targets: OutOfGroup,
+    auras: [
+        (
+            kind: Burning,
+            strength: 0.5,
+            duration: Some(5),
+            category: Magical,
+        ),
+    ],
+    aura_duration: 60,
+    range: 50,
+    energy_cost: 0,
+    scales_with_combo: false,
+)

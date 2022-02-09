@@ -79,6 +79,31 @@
         secondary: "common.abilities.gnarling.blowgun.dart",
         abilities: [],
     ),
+    Custom("Gnarling Chieftain"): (
+        primary: "common.abilities.gnarling.chieftain.flamestrike",
+        secondary: "common.abilities.gnarling.chieftain.firebarrage",
+        abilities: [
+            (None, "common.abilities.gnarling.chieftain.fireshockwave"),
+            (None, "common.abilities.gnarling.chieftain.redtotem"),
+            (None, "common.abilities.gnarling.chieftain.greentotem"),
+            (None, "common.abilities.gnarling.chieftain.whitetotem"),
+        ],
+    ),
+    Custom("Gnarling Totem Red"): (
+        primary: "common.abilities.gnarling.totem.red",
+        secondary: "common.abilities.gnarling.totem.red",
+        abilities: [],
+    ),
+    Custom("Gnarling Totem Green"): (
+        primary: "common.abilities.gnarling.totem.green",
+        secondary: "common.abilities.gnarling.totem.green",
+        abilities: [],
+    ),
+    Custom("Gnarling Totem White"): (
+        primary: "common.abilities.gnarling.totem.white",
+        secondary: "common.abilities.gnarling.totem.white",
+        abilities: [],
+    ),
     Custom("Deadwood"): (
         primary: "common.abilities.custom.deadwood.lifestealbeam",
         secondary: "common.abilities.custom.deadwood.dash",

@@ -694,6 +694,9 @@ impl Body {
                 object::Body::Crossbow => 80,
                 object::Body::HaniwaSentry => 60,
                 object::Body::SeaLantern => 100,
+                object::Body::GnarlingTotemRed
+                | object::Body::GnarlingTotemGreen
+                | object::Body::GnarlingTotemWhite => 25,
                 _ => 1000,
             },
             Body::Golem(golem) => match golem.species {

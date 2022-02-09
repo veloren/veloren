@@ -1742,7 +1742,11 @@ impl<'a> AgentData<'a> {
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
                             "Tidal Warrior" => Tactic::TidalWarrior,
-                            "Tidal Totem" | "Tornado" => Tactic::RadialTurret,
+                            "Tidal Totem"
+                            | "Tornado"
+                            | "Gnarling Totem Red"
+                            | "Gnarling Totem Green"
+                            | "Gnarling Totem White" => Tactic::RadialTurret,
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
                             "Gnarling Dagger" => Tactic::SimpleBackstab,
@@ -1750,6 +1754,7 @@ impl<'a> AgentData<'a> {
                             "Deadwood" => Tactic::Deadwood,
                             "Mandragora" => Tactic::Mandragora,
                             "Wood Golem" => Tactic::WoodGolem,
+                            "Gnarling Chieftain" => Tactic::GnarlingChieftain,
                             _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
@@ -2136,6 +2141,14 @@ impl<'a> AgentData<'a> {
             Tactic::WoodGolem => {
                 self.handle_wood_golem(agent, controller, &attack_data, tgt_data, read_data)
             },
+            Tactic::GnarlingChieftain => self.handle_gnarling_chieftain(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
         }
     }
 

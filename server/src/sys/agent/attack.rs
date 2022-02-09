@@ -1237,18 +1237,11 @@ impl<'a> AgentData<'a> {
         &self,
         _agent: &mut Agent,
         controller: &mut Controller,
-        attack_data: &AttackData,
-        tgt_data: &TargetData,
-        read_data: &ReadData,
+        _attack_data: &AttackData,
+        _tgt_data: &TargetData,
+        _read_data: &ReadData,
     ) {
-        if can_see_tgt(
-            &*read_data.terrain,
-            self.pos,
-            tgt_data.pos,
-            attack_data.dist_sqrd,
-        ) {
-            controller.push_basic_input(InputKind::Primary);
-        }
+        controller.push_basic_input(InputKind::Primary);
     }
 
     pub fn handle_mindflayer_attack(
@@ -2245,5 +2238,62 @@ impl<'a> AgentData<'a> {
             // And always try to path towards target
             self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
         }
+    }
+
+    pub fn handle_gnarling_chieftain(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const TOTEM_TIMER: f32 = 15.0;
+        const HEAVY_ATTACK_WAIT_TIME: f32 = 20.0;
+
+        // Handle timers
+        agent.action_state.timer += read_data.dt.0;
+        match self.char_state {
+            CharacterState::BasicSummon(_) => agent.action_state.timer = 0.0,
+            CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
+                agent.action_state.counter = 0.0
+            },
+            _ => {},
+        }
+
+        // If time to summon a totem, do it
+        if agent.action_state.timer > TOTEM_TIMER {
+            let input = rng.gen_range(1..=3);
+            controller.push_basic_input(InputKind::Ability(input));
+        } else if agent.action_state.counter > HEAVY_ATTACK_WAIT_TIME {
+            // Else if time for a heavy attack
+            if attack_data.in_min_range() {
+                // If in range, shockwave
+                controller.push_basic_input(InputKind::Ability(0));
+            } else if can_see_tgt(
+                &read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            ) {
+                // Else if in sight, barrage
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else if attack_data.in_min_range() {
+            // Else if not time to use anything fancy, if in range and angle, strike them
+            if attack_data.angle < 20.0 {
+                controller.push_basic_input(InputKind::Primary);
+                agent.action_state.counter += read_data.dt.0;
+            } else {
+                // If not in angle, charge heavy attack faster
+                agent.action_state.counter += read_data.dt.0 * 5.0;
+            }
+        } else {
+            // If not in range, charge heavy attack faster
+            agent.action_state.counter += read_data.dt.0 * 3.3;
+        }
+
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
     }
 }

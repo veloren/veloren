@@ -46,6 +46,10 @@ pub enum BuffKind {
     /// Strength scales the movement speed linearly. 0.5 is 150% speed, 1.0 is
     /// 200% speed. Provides regeneration at 10x the value of the strength
     Frenzied,
+    /// Increases movement and attack speed.
+    /// Strength scales strength of both effects linearly. 0.5 is a 50%
+    /// increase, 1.0 is a 100% increase.
+    Hastened,
     // Debuffs
     /// Does damage to a creature over time
     /// Strength should be the DPS of the debuff
@@ -92,7 +96,8 @@ impl BuffKind {
             | BuffKind::IncreaseMaxEnergy
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability
-            | BuffKind::ProtectingWard => true,
+            | BuffKind::ProtectingWard
+            | BuffKind::Hastened => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -345,6 +350,13 @@ impl Buff {
             ),
             BuffKind::Ensnared => (
                 vec![BuffEffect::MovementSpeed(1.0 - nn_scaling(data.strength))],
+                data.duration,
+            ),
+            BuffKind::Hastened => (
+                vec![
+                    BuffEffect::MovementSpeed(1.0 + data.strength),
+                    BuffEffect::AttackSpeed(1.0 + data.strength),
+                ],
                 data.duration,
             ),
         };

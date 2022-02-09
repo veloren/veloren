@@ -3,15 +3,17 @@ BasicAura(
     cast_duration: 0.5,
     recover_duration: 0.25,
     targets: InGroup,
-    aura: (
-        kind: Regeneration,
-        strength: 0.2,
-        duration: Some(10.0),
-        category: Magical,
-    ),
+    auras: [
+        (
+            kind: Regeneration,
+            strength: 0.2,
+            duration: Some(10.0),
+            category: Magical,
+        ),
+    ],
     aura_duration: 1.0,
     range: 25.0,
     energy_cost: 20.0,
     scales_with_combo: true,
-    specifier: HealingAura,
+    specifier: Some(HealingAura),
 )

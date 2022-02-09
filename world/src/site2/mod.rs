@@ -967,7 +967,7 @@ impl Site {
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
-                PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, &canvas),
+                PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 _ => continue,
             };

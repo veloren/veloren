@@ -365,6 +365,15 @@ fn default_main_tool(body: &Body) -> Item {
             object::Body::Tornado => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.tornado",
             )),
+            object::Body::GnarlingTotemRed => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.gnarling.redtotem",
+            )),
+            object::Body::GnarlingTotemGreen => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.gnarling.greentotem",
+            )),
+            object::Body::GnarlingTotemWhite => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.gnarling.whitetotem",
+            )),
             _ => None,
         },
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {

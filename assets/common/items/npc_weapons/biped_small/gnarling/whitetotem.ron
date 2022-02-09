@@ -1,11 +1,11 @@
 ItemDef(
-    name: "Chieftain Staff",
-    description: "",
+    name: "Gnarling White Totem",
+    description: "Yeet",
     kind: Tool((
-        kind: Staff,
+        kind: Natural,
         hands: Two,
         stats: Direct((
-            equip_time_secs: 0.0,
+            equip_time_secs: 0.01,
             power: 1.0,
             effect_power: 1.0,
             speed: 1.0,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: Some(Custom("Gnarling Chieftain")),
+    ability_spec: Some(Custom("Gnarling Totem White")),
 )

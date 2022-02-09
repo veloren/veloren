@@ -8,5 +8,8 @@
         inventory: [],
     ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
-    meta: [],
+    meta: [
+        // Done for health reasons
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
 )
