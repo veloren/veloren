@@ -34,7 +34,7 @@ struct Tunnels {
 
 enum GnarlingStructure {
     Hut,
-    Longhut,
+    VeloriteHut,
     Totem,
     ChieftainHut,
     WatchTower,
@@ -45,7 +45,7 @@ impl GnarlingStructure {
     fn required_separation(&self, other: &Self) -> i32 {
         match (self, other) {
             (Self::Hut, Self::Hut) => 13,
-            (_, Self::Longhut) | (Self::Longhut, _) => 25,
+            (_, Self::VeloriteHut) | (Self::VeloriteHut, _) => 25,
             (_, Self::Banner) | (Self::Banner, _) => 15,
 
             (Self::Hut, Self::Totem) | (Self::Totem, Self::Hut) => 20,
@@ -179,7 +179,7 @@ impl GnarlingFortification {
                 // Choose structure kind
                 let structure_kind = match rng.gen_range(0..10) {
                     0 => GnarlingStructure::Totem,
-                    1..=3 => GnarlingStructure::Longhut,
+                    1..=3 => GnarlingStructure::VeloriteHut,
                     4..=5 => GnarlingStructure::Banner,
                     _ => GnarlingStructure::Hut,
                 };
@@ -378,7 +378,7 @@ impl GnarlingFortification {
                     GnarlingStructure::Hut => {
                         supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                     },
-                    GnarlingStructure::Longhut => {
+                    GnarlingStructure::VeloriteHut => {
                         supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                     },
                     GnarlingStructure::Banner => {
@@ -431,7 +431,7 @@ impl Structure for GnarlingFortification {
         for (point, next_point) in self.wall_segments.iter() {
             // This adds additional points for the wall on the line between two points,
             // allowing the wall to better handle slopes
-            const SECTIONS_PER_WALL_SEGMENT: usize = 3;
+            const SECTIONS_PER_WALL_SEGMENT: usize = 8;
 
             (0..(SECTIONS_PER_WALL_SEGMENT as i32))
                 .into_iter()
@@ -446,90 +446,73 @@ impl Structure for GnarlingFortification {
                     let start_wpos = point + self.origin;
                     let end_wpos = next_point + self.origin;
 
-                    // Wall base
-                    let wall_depth = 3.0;
-                    let start = start_wpos
-                        .as_()
-                        .with_z(land.get_alt_approx(start_wpos) - wall_depth);
-                    let end = end_wpos
-                        .as_()
-                        .with_z(land.get_alt_approx(end_wpos) - wall_depth);
-
-                    let wall_base_thickness = 3.0;
-                    let wall_base_height = 3.0;
                     let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
-                    let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(115, 58, 26), 12);
+                    let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                    let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
 
-                    painter
-                        .segment_prism(
-                            start,
-                            end,
-                            wall_base_thickness,
-                            wall_base_height + wall_depth as f32,
-                        )
-                        .fill(darkwood.clone());
+                    let start = (start_wpos + 2)
+                        .as_()
+                        .with_z(land.get_alt_approx(start_wpos) + 0.0);
+                    let end = (end_wpos + 2)
+                        .as_()
+                        .with_z(land.get_alt_approx(end_wpos) + 0.0);
+                    let randstart = start % 10.0 - 5.;
+                    let randend = end % 10.0 - 5.0;
+                    let mid = (start + end) / 2.0;
+                    let startshift = Vec3::new(
+                        randstart.x * 5.0,
+                        randstart.y * 5.0,
+                        randstart.z * 1.0 + 5.0,
+                    );
+                    let endshift =
+                        Vec3::new(randend.x * 5.0, randend.y * 5.0, randend.z * 1.0 + 5.0);
 
-                    // Middle of wall
-                    let start = start_wpos.as_().with_z(land.get_alt_approx(start_wpos));
-                    let end = end_wpos.as_().with_z(land.get_alt_approx(end_wpos));
+                    let mossroot =
+                        painter.cubic_bezier(start, mid + startshift, mid + endshift, end, 3.0);
 
-                    let wall_mid_thickness = 1.0;
-                    let wall_mid_height = 5.0 + wall_base_height;
-
-                    painter
-                        .segment_prism(start, end, wall_mid_thickness, wall_mid_height)
-                        .fill(lightwood);
-
-                    // Top of wall
                     let start = start_wpos
                         .as_()
-                        .with_z(land.get_alt_approx(start_wpos) + wall_mid_height);
-                    let end = end_wpos
+                        .with_z(land.get_alt_approx(start_wpos) - 2.0);
+                    let end = end_wpos.as_().with_z(land.get_alt_approx(end_wpos) - 2.0);
+                    let randstart = start % 10.0 - 5.;
+                    let randend = end % 10.0 - 5.0;
+                    let mid = (start + end) / 2.0;
+                    let startshift =
+                        Vec3::new(randstart.x * 2.0, randstart.y * 2.0, randstart.z * 0.5);
+                    let endshift = Vec3::new(randend.x * 2.0, randend.y * 2.0, randend.z * 0.5);
+
+                    let root1 =
+                        painter.cubic_bezier(start, mid + startshift, mid + endshift, end, 5.0);
+
+                    let mosstop1 = root1.translate(Vec3::new(0, 0, 1));
+
+                    root1.fill(darkwood.clone());
+
+                    let start = (start_wpos + 3)
                         .as_()
-                        .with_z(land.get_alt_approx(end_wpos) + wall_mid_height);
-
-                    let wall_top_thickness = 2.0;
-                    let wall_top_height = 1.0;
-
-                    painter
-                        .segment_prism(start, end, wall_top_thickness, wall_top_height)
-                        .fill(darkwood.clone());
-
-                    // Wall parapets
-                    let parapet_z_offset = 1.0;
-
-                    let start = Vec3::new(
-                        point.x as f32 * (self.wall_radius as f32 + 1.0)
-                            / (self.wall_radius as f32)
-                            + self.origin.x as f32,
-                        point.y as f32 * (self.wall_radius as f32 + 1.0)
-                            / (self.wall_radius as f32)
-                            + self.origin.y as f32,
-                        land.get_alt_approx(start_wpos) + wall_mid_height + wall_top_height
-                            - parapet_z_offset,
+                        .with_z(land.get_alt_approx(start_wpos) + 0.0);
+                    let end = (end_wpos + 3)
+                        .as_()
+                        .with_z(land.get_alt_approx(end_wpos) + 0.0);
+                    let randstart = start % 10.0 - 5.;
+                    let randend = end % 10.0 - 5.0;
+                    let mid = (start + end) / 2.0;
+                    let startshift = Vec3::new(
+                        randstart.x * 3.0,
+                        randstart.y * 3.0,
+                        randstart.z * 2.0 + 5.0,
                     );
-                    let end = Vec3::new(
-                        next_point.x as f32 * (self.wall_radius as f32 + 1.0)
-                            / (self.wall_radius as f32)
-                            + self.origin.x as f32,
-                        next_point.y as f32 * (self.wall_radius as f32 + 1.0)
-                            / (self.wall_radius as f32)
-                            + self.origin.y as f32,
-                        land.get_alt_approx(end_wpos) + wall_mid_height + wall_top_height
-                            - parapet_z_offset,
-                    );
+                    let endshift =
+                        Vec3::new(randend.x * 3.0, randend.y * 3.0, randend.z * 2.0 + 5.0);
+                    let root2 =
+                        painter.cubic_bezier(start, mid + startshift, mid + endshift, end, 2.0);
 
-                    let wall_par_thickness = tweak!(0.8);
-                    let wall_par_height = 1.0;
+                    let mosstop2 = root2.translate(Vec3::new(0, 0, 1));
 
-                    painter
-                        .segment_prism(
-                            start,
-                            end,
-                            wall_par_thickness,
-                            wall_par_height + parapet_z_offset as f32,
-                        )
-                        .fill(darkwood);
+                    root2.fill(lightwood.clone());
+
+                    mosstop1.intersect(mossroot).fill(moss.clone());
+                    mosstop2.intersect(mossroot).fill(moss.clone());
                 })
         }
 
@@ -548,9 +531,25 @@ impl Structure for GnarlingFortification {
             let randz = (land.get_alt_approx(wpos) as i32).abs() % 10;
             //layers of rings, starting at exterior
             let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
-            let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+            let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
             let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
             let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
+
+            let twist = painter.cubic_bezier(
+                tower_base_pos + Vec3::new(4, 4, 8),
+                tower_base_pos + Vec3::new(-9, 9, 14),
+                tower_base_pos + Vec3::new(-11, -11, 16),
+                tower_base_pos + Vec3::new(4, -4, 21),
+                1.5,
+            );
+            let mosstwist = twist.translate(Vec3::new(0, 0, 1));
+            let mossarea = twist.translate(Vec3::new(1, 0, 1));
+
+            mossarea
+                .intersect(mosstwist)
+                .without(twist)
+                .fill(moss.clone());
+            twist.fill(darkwood.clone());
 
             let outside = painter
                 .prim(Primitive::cylinder(
@@ -563,7 +562,7 @@ impl Structure for GnarlingFortification {
                     tower_radius - 1.0,
                     tower_height,
                 )));
-            outside.fill(midwood.clone());
+            outside.fill(lightwood.clone());
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
@@ -577,7 +576,7 @@ impl Structure for GnarlingFortification {
                     tower_radius - 2.0,
                     tower_height,
                 ))
-                .fill(midwood.clone());
+                .fill(lightwood.clone());
             painter
                 .prim(Primitive::cylinder(
                     wpos.with_z(land.get_alt_approx(wpos) as i32),
@@ -591,7 +590,7 @@ impl Structure for GnarlingFortification {
                     tower_radius - 4.0,
                     tower_height,
                 ))
-                .fill(midwood);
+                .fill(lightwood.clone());
             //top layer, green above the tower
             painter
                 .prim(Primitive::cylinder(
@@ -728,10 +727,10 @@ impl Structure for GnarlingFortification {
                     let randx = wpos.x.abs() % 10;
                     let randy = wpos.y.abs() % 10;
                     let randz = alt.abs() % 10;
-                    let hut_wall_height = hut_wall_height + randy as f32 / 3.0;
+                    let hut_wall_height = hut_wall_height + randy as f32 * 1.5;
 
                     let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
-                    let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                    let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
                     let moss = Fill::Brick(BlockKind::Leaves, Rgb::new(22, 36, 20), 24);
 
                     // Floor
@@ -749,7 +748,7 @@ impl Structure for GnarlingFortification {
                             hut_radius,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(midwood.clone());
+                        .fill(lightwood.clone());
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
@@ -763,7 +762,7 @@ impl Structure for GnarlingFortification {
                             hut_radius - 2.0,
                             hut_wall_height + 3.0,
                         ))
-                        .fill(midwood);
+                        .fill(lightwood.clone());
                     painter
                         .prim(Primitive::cylinder(
                             floor_pos,
@@ -815,15 +814,17 @@ impl Structure for GnarlingFortification {
                         ))
                         .fill(moss.clone());
 
-                    //small bits handing from huts
+                    //small bits hanging from huts
                     let tendril1 = painter.line(
-                        Vec2::new(wpos.x - 3, wpos.y - 5).with_z(alt + 1 + hut_wall_height as i32),
+                        Vec2::new(wpos.x - 3, wpos.y - 5)
+                            .with_z(alt + (hut_wall_height * 0.75) as i32),
                         Vec2::new(wpos.x - 3, wpos.y - 5).with_z(alt + 3 + hut_wall_height as i32),
                         1.0,
                     );
 
                     let tendril2 = painter.line(
-                        Vec2::new(wpos.x + 4, wpos.y + 2).with_z(alt + 2 + hut_wall_height as i32),
+                        Vec2::new(wpos.x + 4, wpos.y + 2)
+                            .with_z(alt + 1 + (hut_wall_height * 0.75) as i32),
                         Vec2::new(wpos.x + 4, wpos.y + 2).with_z(alt + 3 + hut_wall_height as i32),
                         1.0,
                     );
@@ -844,7 +845,7 @@ impl Structure for GnarlingFortification {
                         .fill(Fill::Block(Block::empty()));
                 }
 
-                fn generate_longhut(
+                fn generate_chieftainhut(
                     painter: &Painter,
                     wpos: Vec2<i32>,
                     alt: i32,
@@ -856,7 +857,7 @@ impl Structure for GnarlingFortification {
                     _roof_overhang: f32,
                 ) {
                     let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
-                    let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                    let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
                     let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
                     let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
 
@@ -865,7 +866,7 @@ impl Structure for GnarlingFortification {
                     let base = wpos.with_z(alt);
                     painter
                         .prim(Primitive::cylinder(base, hut_radius + 1.0, 2.0))
-                        .fill(darkwood.clone());
+                        .fill(lightwood.clone());
 
                     let platform = painter.aabb(Aabb {
                         min: (wpos - 20).with_z(alt + raise),
@@ -905,11 +906,10 @@ impl Structure for GnarlingFortification {
                     let rad_1 = 18.0;
                     let rad_2 = 15.0;
 
-                    // Wall
                     let floor_pos = wpos.with_z(alt + 1 + raise);
                     painter
                         .prim(Primitive::cylinder(floor_pos, rad_1, height_1))
-                        .fill(midwood.clone());
+                        .fill(lightwood.clone());
                     painter
                         .prim(Primitive::cylinder(floor_pos, rad_1 - 1.0, height_1))
                         .fill(Fill::Block(Block::empty()));
@@ -917,7 +917,7 @@ impl Structure for GnarlingFortification {
                     let floor2_pos = wpos.with_z(alt + 1 + raise + height_1 as i32);
                     painter
                         .prim(Primitive::cylinder(floor2_pos, rad_2, height_2))
-                        .fill(midwood);
+                        .fill(lightwood.clone());
 
                     // Roof
                     let roof_radius = rad_1 + 5.0;
@@ -978,15 +978,17 @@ impl Structure for GnarlingFortification {
                         .union(roof_support_3)
                         .union(roof_support_4);
 
-                    painter.fill(roof_support, darkwood.clone());
+                    painter.fill(roof_support, red.clone());
 
-                    let spike_1 = painter.line(
+                    let spike_high = painter.cubic_bezier(
                         (wpos + rad_2 as i32 - 5).with_z(alt + raise + height_1 as i32 + 2),
-                        (wpos + rad_2 as i32 - 1).with_z(alt + raise + height_1 as i32 + 8),
+                        (wpos + rad_2 as i32 - 2).with_z(alt + raise + height_1 as i32 + 2),
+                        (wpos + rad_2 as i32 - 1).with_z(alt + raise + height_1 as i32 + 5),
+                        (wpos + rad_2 as i32).with_z(alt + raise + height_1 as i32 + 8),
                         1.3,
                     );
-
-                    let spike_1 = centerspot.union(spike_1);
+                    let spike_low = spike_high.rotate(Mat3::new(1, 0, 0, 0, 1, 0, 0, 0, -1));
+                    let spike_1 = centerspot.union(spike_low).union(spike_high);
 
                     let spike_2 = spike_1.rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1));
                     let spike_3 = spike_1.rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
@@ -995,7 +997,7 @@ impl Structure for GnarlingFortification {
 
                     painter.fill(
                         spikes,
-                        Fill::Brick(BlockKind::Wood, Rgb::new(184, 177, 134), 24),
+                        Fill::Brick(BlockKind::Wood, Rgb::new(112, 110, 99), 24),
                     );
                     //Open doorways (top floor)
                     painter
@@ -1129,16 +1131,21 @@ impl Structure for GnarlingFortification {
                             roof_overhang,
                         );
                     },
-                    GnarlingStructure::Longhut => {
-                        let randx = wpos.x.abs() % 10;
-                        let randy = wpos.y.abs() % 10;
-                        let randz = alt.abs() % 10;
+                    GnarlingStructure::VeloriteHut => {
+                        let rand = Vec3::new(
+                            wpos.x.abs() % 10,
+                            wpos.y.abs() % 10,
+                            (land.get_alt_approx(wpos) as i32).abs() % 10,
+                        );
+
                         let length = 14;
                         let width = 6;
                         let height = alt + 12;
                         let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
-                        let midwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
+                        let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
                         let moss = Fill::Brick(BlockKind::Wood, Rgb::new(22, 36, 20), 24);
+                        let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
+
                         let low1 = painter.aabb(Aabb {
                             min: Vec2::new(wpos.x - width, wpos.y - length).with_z(height + 1),
                             max: Vec2::new(wpos.x + width, wpos.y + length).with_z(height + 2),
@@ -1167,11 +1174,11 @@ impl Structure for GnarlingFortification {
                         let roof = low1.union(low2).union(top1).union(top2);
                         let roofmoss = roof.translate(Vec3::new(0, 0, 1)).without(top).without(low);
                         top.fill(darkwood.clone());
-                        low.fill(midwood);
-                        roofmoss.fill(moss);
+                        low.fill(lightwood.clone());
+                        roofmoss.fill(moss.clone());
                         painter
                             .prim(Primitive::sphere(
-                                Vec2::new(wpos.x + randy - 5, wpos.y + randz - 5)
+                                Vec2::new(wpos.x + rand.y - 5, wpos.y + rand.z - 5)
                                     .with_z(height + 4),
                                 7.0,
                             ))
@@ -1179,7 +1186,7 @@ impl Structure for GnarlingFortification {
                             .fill(Fill::Block(Block::empty()));
                         painter
                             .prim(Primitive::sphere(
-                                Vec2::new(wpos.x + randx - 5, wpos.y + randy - 5)
+                                Vec2::new(wpos.x + rand.x - 5, wpos.y + rand.y - 5)
                                     .with_z(height + 4),
                                 4.0,
                             ))
@@ -1187,46 +1194,46 @@ impl Structure for GnarlingFortification {
                             .fill(Fill::Block(Block::empty()));
                         painter
                             .prim(Primitive::sphere(
-                                Vec2::new(wpos.x + 2 * (randz - 5), wpos.y + 2 * (randx - 5))
+                                Vec2::new(wpos.x + 2 * (rand.z - 5), wpos.y + 2 * (rand.x - 5))
                                     .with_z(height + 4),
                                 4.0,
                             ))
                             .intersect(roofmoss)
                             .fill(Fill::Block(Block::empty()));
-                        //outside leg
-                        painter
-                            .aabb(Aabb {
-                                min: Vec2::new(wpos.x - length, wpos.y - width).with_z(alt),
-                                max: Vec2::new(wpos.x - length + 1, wpos.y - width + 1)
-                                    .with_z(height + 1),
-                            })
-                            .fill(darkwood.clone());
 
                         //inside leg
-                        let legp1 = painter.aabb(Aabb {
-                            min: Vec2::new(wpos.x - width, wpos.y - width).with_z(alt),
+                        let leg1 = painter.aabb(Aabb {
+                            min: Vec2::new(wpos.x - width, wpos.y - width).with_z(height - 12),
                             max: Vec2::new(wpos.x - width + 2, wpos.y - width + 2)
                                 .with_z(height + 2),
                         });
-                        let legp2 = painter.line(
+                        let legsupport1 = painter.line(
                             Vec2::new(wpos.x - width, wpos.y - width).with_z(height - 6),
                             Vec2::new(wpos.x - width + 3, wpos.y - width + 3).with_z(height),
                             1.0,
                         );
 
-                        let leg1 = legp1.union(legp2);
-                        let leg2 = leg1
+                        let leg2 = leg1.translate(Vec3::new(0, width * 2 - 2, 0));
+                        let leg3 = leg1.translate(Vec3::new(width * 2 - 2, 0, 0));
+                        let leg4 = leg1.translate(Vec3::new(width * 2 - 2, width * 2 - 2, 0));
+                        let legsupport2 = legsupport1
                             .rotate(Mat3::new(0, 1, 0, -1, 0, 0, 0, 0, 1))
                             .translate(Vec3::new(1, width * 2 + 1, 0));
-                        let leg3 = leg1
+                        let legsupport3 = legsupport1
                             .rotate(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
                             .translate(Vec3::new(width * 2 + 1, 1, 0));
-                        let leg4 = leg1
+                        let legsupport4 = legsupport1
                             .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
                             .translate(Vec3::new(width * 2 + 2, width * 2 + 2, 0));
 
+                        let legsupports = legsupport1
+                            .union(legsupport2)
+                            .union(legsupport3)
+                            .union(legsupport4);
+
                         let legs = leg1.union(leg2).union(leg3).union(leg4);
                         legs.fill(darkwood);
+                        legsupports.without(legs).fill(red);
 
                         let spike1 = painter.line(
                             Vec2::new(wpos.x - 12, wpos.y + 2).with_z(height + 3),
@@ -1248,7 +1255,7 @@ impl Structure for GnarlingFortification {
                             .translate(Vec3::new(16, -9, 0));
                         let spikesall = spikeshalf.union(spikesotherhalf);
 
-                        spikesall.fill(Fill::Brick(BlockKind::Wood, Rgb::new(184, 177, 134), 24));
+                        spikesall.fill(Fill::Brick(BlockKind::Wood, Rgb::new(112, 110, 99), 24));
                         let crystal1 = painter.aabb(Aabb {
                             min: Vec2::new(wpos.x - 2, wpos.y - 3).with_z(alt),
                             max: Vec2::new(wpos.x + 2, wpos.y + 1).with_z(alt + 7),
@@ -1302,7 +1309,7 @@ impl Structure for GnarlingFortification {
                         let roof_height = 3.0;
                         let roof_overhang = 1.0;
 
-                        generate_longhut(
+                        generate_chieftainhut(
                             painter,
                             wpos,
                             alt,
@@ -1316,14 +1323,12 @@ impl Structure for GnarlingFortification {
                     },
 
                     GnarlingStructure::Banner => {
-                        let randx = ((wpos.x.abs() as f32 / 10.0
-                            - (wpos.x.abs() as f32 / 10.0).trunc())
-                            * 10.0) as i32;
-                        let randy = ((wpos.y.abs() as f32 / 10.0
-                            - (wpos.y.abs() as f32 / 10.0).trunc())
-                            * 10.0) as i32;
-                        let randz = ((alt.abs() as f32 / 10.0 - (alt.abs() as f32 / 10.0).trunc())
-                            * 10.0) as i32;
+                        let rand = Vec3::new(
+                            wpos.x.abs() % 10,
+                            wpos.y.abs() % 10,
+                            (land.get_alt_approx(wpos) as i32).abs() % 10,
+                        );
+
                         let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
                         let moss = Fill::Brick(BlockKind::Leaves, Rgb::new(22, 36, 20), 24);
                         let red = Fill::Brick(BlockKind::Wood, Rgb::new(102, 31, 2), 12);
@@ -1376,19 +1381,19 @@ impl Structure for GnarlingFortification {
                         //tatters
                         painter
                             .line(
-                                Vec2::new(wpos.x + 3 + randx / 5, wpos.y - 1)
-                                    .with_z(alt + 15 + randy),
-                                Vec2::new(wpos.x + 3 + randy / 5, wpos.y - 1).with_z(alt + 5),
-                                0.9 * randz as f32 / 4.0,
+                                Vec2::new(wpos.x + 3 + rand.x / 5, wpos.y - 1)
+                                    .with_z(alt + 15 + rand.y),
+                                Vec2::new(wpos.x + 3 + rand.y / 5, wpos.y - 1).with_z(alt + 5),
+                                0.9 * rand.z as f32 / 4.0,
                             )
                             .fill(Fill::Block(Block::empty()));
                         painter
                             .line(
-                                Vec2::new(wpos.x + 4 + randz / 2, wpos.y - 1)
-                                    .with_z(alt + 20 + randx),
-                                Vec2::new(wpos.x + 4 + randz / 2, wpos.y - 1)
-                                    .with_z(alt + 17 + randy),
-                                0.9 * randz as f32 / 6.0,
+                                Vec2::new(wpos.x + 4 + rand.z / 2, wpos.y - 1)
+                                    .with_z(alt + 20 + rand.x),
+                                Vec2::new(wpos.x + 4 + rand.z / 2, wpos.y - 1)
+                                    .with_z(alt + 17 + rand.y),
+                                0.9 * rand.z as f32 / 6.0,
                             )
                             .fill(Fill::Block(Block::empty()));
 
