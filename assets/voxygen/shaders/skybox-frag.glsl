@@ -25,8 +25,10 @@ layout(location = 0) in vec3 f_pos;
 layout(location = 0) out vec4 tgt_color;
 
 void main() {
-    // tgt_color = vec4(MU_SCATTER, 1.0);
-    // return;
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(get_sky_color(), 1);
+        return;
+    #endif
 
     vec3 cam_dir = normalize(f_pos - cam_pos.xyz);
 

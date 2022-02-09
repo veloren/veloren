@@ -82,21 +82,25 @@ void main() {
     // Transform info world space
     f_pos += chunk_offs;
 
-    // Terrain 'pop-in' effect
-    f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+    #ifndef EXPERIMENTAL_BAREMINIMUM
+        // Terrain 'pop-in' effect
+        f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+    #endif
 
     #ifdef EXPERIMENTAL_CURVEDWORLD
         f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
     #endif
 
-    // Wind sway effect
-    f_pos += model_wind_sway * vec3(
-        sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
-        sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
-        0.0
-        // NOTE: could potentially replace `v_pos.z * model_z_scale` with a calculation using `inst_chunk_pos` from below
-        //) * pow(abs(v_pos.z * model_z_scale), 1.3) * SCALE_FACTOR;
-        ) * v_pos.z * model_z_scale * SCALE_FACTOR;
+    #ifndef EXPERIMENTAL_BAREMINIMUM
+        // Wind sway effect
+        f_pos += model_wind_sway * vec3(
+            sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),
+            sin(tick.x * 1.5 + f_pos.x * 0.1) * sin(tick.x * 0.25),
+            0.0
+            // NOTE: could potentially replace `v_pos.z * model_z_scale` with a calculation using `inst_chunk_pos` from below
+            //) * pow(abs(v_pos.z * model_z_scale), 1.3) * SCALE_FACTOR;
+            ) * v_pos.z * model_z_scale * SCALE_FACTOR;
+    #endif
 
     // Determine normal
     // TODO: do changes here effect perf on vulkan

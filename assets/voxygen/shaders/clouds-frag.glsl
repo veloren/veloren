@@ -65,6 +65,11 @@ vec3 wpos_at(vec2 uv) {
 void main() {
     vec4 color = texture(sampler2D(t_src_color, s_src_color), uv);
 
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(color.rgb, 1);
+        return;
+    #endif
+
     vec3 wpos = wpos_at(uv);
     float dist = distance(wpos, cam_pos.xyz);
     vec3 dir = (wpos - cam_pos.xyz) / dist;

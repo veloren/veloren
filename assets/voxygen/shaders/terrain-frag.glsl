@@ -86,6 +86,12 @@ void main() {
     // float f_light = textureProj(t_col_light, vec3(f_uv_pos + 0.5, textureSize(t_col_light, 0))).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;
     float f_light, f_glow;
     vec3 f_col = greedy_extract_col_light_glow(t_col_light, s_col_light, f_uv_pos, f_light, f_glow);
+
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(simple_lighting(f_pos.xyz, f_col, f_light), 1);
+        return;
+    #endif
+
     //float f_light = (uint(texture(t_col_light, (f_uv_pos + 0.5) / textureSize(t_col_light, 0)).r * 255.0) & 0x1Fu) / 31.0;
     // vec2 texSize = textureSize(t_col_light, 0);
     // float f_light = texture(t_col_light, f_uv_pos/* + vec2(atlas_offs.xy)*/).a;//1.0;//f_col_light.a * 4.0;// f_light = float(v_col_light & 0x3Fu) / 64.0;

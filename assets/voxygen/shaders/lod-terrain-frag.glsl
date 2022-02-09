@@ -46,6 +46,11 @@ void main() {
     // vec4 vert_pos4 = view_mat * vec4(f_pos, 1.0);
     // vec3 view_dir = normalize(-vec3(vert_pos4)/* / vert_pos4.w*/);
 
+    #ifdef EXPERIMENTAL_BAREMINIMUM
+        tgt_color = vec4(simple_lighting(f_pos.xyz, lod_col(f_pos.xy), 1.0), 1);
+        return;
+    #endif
+
     float my_alt = /*f_pos.z;*/alt_at_real(f_pos.xy);
     // vec3 f_pos = vec3(f_pos.xy, max(my_alt, f_pos.z));
     /* gl_Position =
