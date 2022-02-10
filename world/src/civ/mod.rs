@@ -15,7 +15,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{uniform_idx_as_vec2, BiomeKind, MapSizeLg, TerrainChunkSize},
+    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize},
     vol::RectVolSize,
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
@@ -1120,7 +1120,7 @@ pub enum SiteKind {
 impl SiteKind {
     pub fn is_suitable_loc(&self, chunk: &SimChunk) -> bool {
         match self {
-            SiteKind::Gnarling => matches!(chunk.get_biome(), BiomeKind::Forest),
+            SiteKind::Gnarling => (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75,
             _ => true,
         }
     }

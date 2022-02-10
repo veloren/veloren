@@ -9,7 +9,6 @@ use common::{
     generation::{ChunkSupplement, EntityInfo},
     terrain::{Structure as PrefabStructure, StructuresGroup},
 };
-use inline_tweak::tweak;
 use kiddo::{distance::squared_euclidean, KdTree};
 use lazy_static::lazy_static;
 use rand::prelude::*;
@@ -49,17 +48,24 @@ enum GnarlingStructure {
 
 impl GnarlingStructure {
     fn required_separation(&self, other: &Self) -> i32 {
-        match (self, other) {
-            (Self::Hut, Self::Hut) => 13,
-            (_, Self::VeloriteHut) | (Self::VeloriteHut, _) => 25,
-            (_, Self::Banner) | (Self::Banner, _) => 15,
+        let radius = |structure: &Self| match structure {
+            Self::Hut => 7,
+            Self::VeloriteHut => 15,
+            Self::Banner => 6,
+            Self::Totem => 6,
+            // Generated in different pass that doesn't use distance check
+            Self::WatchTower => 0,
+            Self::ChieftainHut => 0,
+        };
 
-            (Self::Hut, Self::Totem) | (Self::Totem, Self::Hut) => 20,
+        let additional_padding = match (self, other) {
+            (Self::Banner, Self::Banner) => 50,
             (Self::Totem, Self::Totem) => 50,
-            // Chieftain hut and watch tower generated in separate pass without distance check
-            (Self::ChieftainHut | Self::WatchTower, _)
-            | (_, Self::ChieftainHut | Self::WatchTower) => 0,
-        }
+            (Self::VeloriteHut, Self::VeloriteHut) => 50,
+            _ => 0,
+        };
+
+        radius(self) + radius(other) + additional_padding
     }
 }
 
@@ -183,7 +189,7 @@ impl GnarlingFortification {
         let desired_structures = wall_radius.pow(2) / 100;
         let mut structure_locations = Vec::<(GnarlingStructure, Vec3<i32>, Ori)>::new();
         for _ in 0..desired_structures {
-            if let Some((hut_loc, kind)) = attempt(16, || {
+            if let Some((hut_loc, kind)) = attempt(50, || {
                 // Choose structure kind
                 let structure_kind = match rng.gen_range(0..10) {
                     0 => GnarlingStructure::Totem,
@@ -208,7 +214,7 @@ impl GnarlingFortification {
                         (outer_wall_corners[0], 0)
                     };
 
-                let center_weight: f32 = rng.gen_range(0.2..0.6);
+                let center_weight: f32 = rng.gen_range(0.15..0.7);
 
                 // Forbidden and restricted indices are near walls, so don't spawn structures
                 // too close to avoid overlap with wall
