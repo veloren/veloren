@@ -415,7 +415,7 @@ impl Site {
 
         let mut site = Site {
             origin,
-            name: NameGen::location(&mut rng).generate(),
+            name: NameGen::location(&mut rng).generate_town(),
             ..Site::default()
         };
 

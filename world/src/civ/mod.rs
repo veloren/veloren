@@ -514,35 +514,37 @@ impl Civs {
         let mut biome_count = 0;
         for biome in biomes {
             let name = match biome.0 {
-                common::terrain::BiomeKind::Forest if biome.1.len() as u32 > 750 => Some(format!(
+                common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 200 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_temp_forest(),
-                    [
-                        "Forest",
-                        "Woodlands",
-                        "Woods",
-                        "Glades",
-                        "Grove",
-                        "Thickets",
-                        "Weald"
-                    ]
-                    .choose(&mut ctx.rng)
-                    .unwrap()
+                    ["Lake", "Loch"].choose(&mut ctx.rng).unwrap(),
+                    NameGen::location(&mut ctx.rng).generate()
+                )),
+                common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 10 => Some(format!(
+                    "{} {}",
+                    NameGen::location(&mut ctx.rng).generate(),
+                    ["Pool", "Well", "Pond"].choose(&mut ctx.rng).unwrap()
                 )),
                 common::terrain::BiomeKind::Grassland if biome.1.len() as u32 > 750 => {
                     Some(format!(
                         "{} {}",
-                        NameGen::location(&mut ctx.rng).generate_grassland(),
+                        [
+                            NameGen::location(&mut ctx.rng).generate_grassland_engl(),
+                            NameGen::location(&mut ctx.rng).generate_grassland_custom()
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap(),
                         [
                             "Grasslands",
-                            "Flats",
-                            "Greens",
                             "Plains",
                             "Meadows",
                             "Fields",
                             "Heath",
+                            "Hills",
+                            "Prairie",
+                            "Lowlands",
                             "Steppe",
-                            "Downs"
+                            "Downs",
+                            "Greens",
                         ]
                         .choose(&mut ctx.rng)
                         .unwrap()
@@ -550,13 +552,25 @@ impl Civs {
                 },
                 common::terrain::BiomeKind::Ocean if biome.1.len() as u32 > 750 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_biome(),
-                    ["Ocean", "Blue", "Deep"].choose(&mut ctx.rng).unwrap()
+                    [
+                        NameGen::location(&mut ctx.rng).generate_ocean_engl(),
+                        NameGen::location(&mut ctx.rng).generate_ocean_custom()
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap(),
+                    ["Sea", "Bay", "Gulf", "Deep", "Depths", "Ocean", "Blue",]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
                 )),
                 common::terrain::BiomeKind::Mountain if biome.1.len() as u32 > 750 => {
                     Some(format!(
                         "{} {}",
-                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        [
+                            NameGen::location(&mut ctx.rng).generate_mountain_engl(),
+                            NameGen::location(&mut ctx.rng).generate_mountain_custom()
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap(),
                         [
                             "Mountains",
                             "Range",
@@ -569,7 +583,7 @@ impl Civs {
                             "Bluffs",
                             "Ridge",
                             "Canyon",
-                            "Plateau"
+                            "Plateau",
                         ]
                         .choose(&mut ctx.rng)
                         .unwrap()
@@ -578,14 +592,22 @@ impl Civs {
                 common::terrain::BiomeKind::Snowland if biome.1.len() as u32 > 750 => {
                     Some(format!(
                         "{} {}",
-                        NameGen::location(&mut ctx.rng).generate_biome(),
+                        [
+                            NameGen::location(&mut ctx.rng).generate_snowland_engl(),
+                            NameGen::location(&mut ctx.rng).generate_snowland_custom()
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap(),
                         [
                             "Snowlands",
                             "Glacier",
                             "Tundra",
+                            "Drifts",
                             "Snowfields",
                             "Hills",
-                            "Highlands"
+                            "Downs",
+                            "Uplands",
+                            "Highlands",
                         ]
                         .choose(&mut ctx.rng)
                         .unwrap()
@@ -593,14 +615,21 @@ impl Civs {
                 },
                 common::terrain::BiomeKind::Desert if biome.1.len() as u32 > 750 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_biome(),
-                    ["Desert", "Sands", "Sandsea", "Drifts", "Dunes", "Sandfield"]
-                        .choose(&mut ctx.rng)
-                        .unwrap()
+                    [
+                        NameGen::location(&mut ctx.rng).generate_desert_engl(),
+                        NameGen::location(&mut ctx.rng).generate_desert_custom()
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap(),
+                    [
+                        "Desert", "Sands", "Sandsea", "Drifts", "Dunes", "Droughts", "Flats",
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap()
                 )),
-                common::terrain::BiomeKind::Swamp if biome.1.len() as u32 > 750 => Some(format!(
+                common::terrain::BiomeKind::Swamp if biome.1.len() as u32 > 200 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    NameGen::location(&mut ctx.rng).generate_swamp_engl(),
                     [
                         "Swamp",
                         "Swamps",
@@ -609,14 +638,22 @@ impl Civs {
                         "Marshlands",
                         "Morass",
                         "Mire",
-                        "Bog"
+                        "Bog",
+                        "Wetlands",
+                        "Fen",
+                        "Moors",
                     ]
                     .choose(&mut ctx.rng)
                     .unwrap()
                 )),
-                common::terrain::BiomeKind::Jungle if biome.1.len() as u32 > 750 => Some(format!(
+                common::terrain::BiomeKind::Jungle if biome.1.len() as u32 > 85 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_biome(),
+                    [
+                        NameGen::location(&mut ctx.rng).generate_jungle_engl(),
+                        NameGen::location(&mut ctx.rng).generate_jungle_custom()
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap(),
                     [
                         "Jungle",
                         "Rainforest",
@@ -625,36 +662,62 @@ impl Civs {
                         "Wildwood",
                         "Tangle",
                         "Tanglewood",
-                        "Bush"
+                        "Bush",
                     ]
                     .choose(&mut ctx.rng)
                     .unwrap()
                 )),
+                common::terrain::BiomeKind::Forest if biome.1.len() as u32 > 750 => Some(format!(
+                    "{} {}",
+                    [
+                        NameGen::location(&mut ctx.rng).generate_forest_engl(),
+                        NameGen::location(&mut ctx.rng).generate_forest_custom()
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap(),
+                    ["Forest", "Woodlands", "Woods", "Glades", "Grove", "Weald",]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
+                )),
                 common::terrain::BiomeKind::Savannah if biome.1.len() as u32 > 750 => {
                     Some(format!(
                         "{} {}",
-                        NameGen::location(&mut ctx.rng).generate_savannah(),
-                        ["Savannah", "Shrubland", "Sierra", "Prairie", "Lowlands"]
-                            .choose(&mut ctx.rng)
-                            .unwrap()
+                        [
+                            NameGen::location(&mut ctx.rng).generate_savannah_engl(),
+                            NameGen::location(&mut ctx.rng).generate_savannah_custom()
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap(),
+                        [
+                            "Savannah",
+                            "Shrublands",
+                            "Sierra",
+                            "Prairie",
+                            "Lowlands",
+                            "Flats",
+                        ]
+                        .choose(&mut ctx.rng)
+                        .unwrap()
                     ))
                 },
                 common::terrain::BiomeKind::Taiga if biome.1.len() as u32 > 750 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate_taiga(),
-                    ["Taiga", "Timberlands", "Uplands", "Highlands"]
-                        .choose(&mut ctx.rng)
-                        .unwrap()
-                )),
-                common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 200 => Some(format!(
-                    "{} {}",
-                    ["Lake", "Loch"].choose(&mut ctx.rng).unwrap(),
-                    NameGen::location(&mut ctx.rng).generate()
-                )),
-                common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 10 => Some(format!(
-                    "{} {}",
-                    NameGen::location(&mut ctx.rng).generate(),
-                    ["Pool", "Well", "Pond"].choose(&mut ctx.rng).unwrap()
+                    [
+                        NameGen::location(&mut ctx.rng).generate_taiga_engl(),
+                        NameGen::location(&mut ctx.rng).generate_taiga_custom()
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap(),
+                    [
+                        "Forest",
+                        "Woodlands",
+                        "Woods",
+                        "Timberlands",
+                        "Highlands",
+                        "Uplands",
+                    ]
+                    .choose(&mut ctx.rng)
+                    .unwrap()
                 )),
                 _ => None,
             };
