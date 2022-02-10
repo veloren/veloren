@@ -37,6 +37,7 @@ make_case_elim!(
         Chestnut = 19,
         Baobab = 20,
         BirchWood = 21,
+        FrostpineLeaves = 22,
     }
 );
 

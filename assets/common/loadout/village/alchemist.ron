@@ -1,0 +1,9 @@
+({
+    Armor(Chest): Item("common.items.armor.alchemist.chest"),
+    Armor(Hands): Item("common.items.armor.cloth.druid.hand"),
+    Armor(Legs): Item("common.items.armor.alchemist.pants"),
+    Armor(Belt): Item("common.items.armor.alchemist.belt"),
+    Armor(Feet): Item("common.items.armor.ferocious.foot"),
+    Armor(Head): Item("common.items.armor.alchemist.hat"),
+    Lantern: Item("common.items.lantern.black_0"),
+})

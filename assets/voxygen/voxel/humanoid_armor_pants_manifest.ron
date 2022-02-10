@@ -136,6 +136,18 @@
             vox_spec: ("armor.pirate.pants", (-5.0, -4.0, 1.5)),
             color: None
         ),
+        "Alchemist": (
+            vox_spec: ("armor.alchemist.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Blacksmith": (
+            vox_spec: ("armor.blacksmith.pants", (-5.0, -4.0, 0.5)),
+            color: None
+        ),
+        "Chef": (
+            vox_spec: ("armor.chef.pants", (-5.0, -4.0, 0.0)),
+            color: None
+        ),
         "Linen": (
             vox_spec: ("armor.cloth.linen.pants", (-5.0, -4.0, 0.5)),
             color: None

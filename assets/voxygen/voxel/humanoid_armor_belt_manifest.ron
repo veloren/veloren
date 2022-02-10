@@ -108,6 +108,18 @@
             vox_spec: ("armor.pirate.belt", (-4.0, -4.0, 2.5)),
             color: None
         ),
+        "Alchemist":(
+            vox_spec: ("armor.alchemist.belt", (-4.0, -4.0, 2.5)),
+            color: None
+        ),
+        "Blacksmith":(
+            vox_spec: ("armor.blacksmith.belt", (-4.0, -4.0, 2.0)),
+            color: None
+        ),
+        "Chef":(
+            vox_spec: ("armor.chef.belt", (-4.0, -4.0, 2.0)),
+            color: None
+        ),
         "Linen":(
             vox_spec: ("armor.cloth.linen.belt", (-4.0, -4.0, 0.0)),
             color: None

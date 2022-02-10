@@ -31,6 +31,9 @@ pub enum RtSimEntityKind {
     Cultist,
     Villager,
     Merchant,
+    Blacksmith,
+    Chef,
+    Alchemist,
 }
 
 const BIRD_MEDIUM_ROSTER: &[comp::bird_medium::Species] = &[
@@ -90,7 +93,12 @@ impl Entity {
                     },
                 }
             },
-            RtSimEntityKind::Cultist | RtSimEntityKind::Villager | RtSimEntityKind::Merchant => {
+            RtSimEntityKind::Cultist
+            | RtSimEntityKind::Villager
+            | RtSimEntityKind::Chef
+            | RtSimEntityKind::Alchemist
+            | RtSimEntityKind::Blacksmith
+            | RtSimEntityKind::Merchant => {
                 let species = *(&comp::humanoid::ALL_SPECIES)
                     .choose(&mut self.rng(PERM_SPECIES))
                     .unwrap();
@@ -813,6 +821,9 @@ fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
         },
         RtSimEntityKind::Villager => "common.entity.village.villager",
         RtSimEntityKind::Merchant => "common.entity.village.merchant",
+        RtSimEntityKind::Blacksmith => "common.entity.village.blacksmith",
+        RtSimEntityKind::Chef => "common.entity.village.chef",
+        RtSimEntityKind::Alchemist => "common.entity.village.alchemist",
     }
 }
 

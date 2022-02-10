@@ -168,6 +168,16 @@ pub fn apply_trees_to(
                                     StructureBlock::TemperateLeaves,
                                 );
                             },
+                            ForestKind::Frostpine => {
+                                break 'model TreeModel::Procedural(
+                                    ProceduralTree::generate(
+                                        TreeConfig::frostpine(&mut RandomPerm::new(seed), scale),
+                                        &mut RandomPerm::new(seed),
+                                    ),
+                                    StructureBlock::FrostpineLeaves,
+                                );
+                            },
+
                             ForestKind::Mangrove => {
                                 break 'model TreeModel::Procedural(
                                     ProceduralTree::generate(
@@ -404,6 +414,31 @@ impl TreeConfig {
             inhabited: false,
             hanging_sprites: &[(0.03, SpriteKind::Apple), (0.007, SpriteKind::Beehive)],
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
+        }
+    }
+
+    pub fn frostpine(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 36.0 * scale,
+            trunk_radius: 2.3 * scale,
+            branch_child_len: 0.25 / scale,
+            branch_child_radius: 0.0,
+            branch_child_radius_lerp: false,
+            leaf_radius: 1.3..2.2,
+            leaf_radius_scaled: 0.4 * log_scale,
+            straightness: 0.3,
+            max_depth: 1,
+            splits: 34.0 * scale..35.0 * scale,
+            split_range: 0.1..1.2,
+            branch_len_bias: 0.75,
+            leaf_vertical_scale: 0.6,
+            proportionality: 1.0,
+            inhabited: false,
+            hanging_sprites: &[(0.0001, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(79, 102, 105)),
         }
     }
 

@@ -178,6 +178,18 @@
           vox_spec: ("armor.pirate.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
+        "Alchemist": (
+          vox_spec: ("armor.alchemist.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Blacksmith": (
+          vox_spec: ("armor.blacksmith.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
+        "Chef": (
+          vox_spec: ("armor.chef.chest", (-7.0, -4.0, 2.0)),
+          color: None
+        ),
         "Linen": (
           vox_spec: ("armor.cloth.linen.chest", (-7.0, -4.0, 2.0)),
           color: None
