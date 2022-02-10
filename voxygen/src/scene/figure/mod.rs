@@ -705,7 +705,7 @@ impl FigureMgr {
                     (anim::vek::Vec3::<f32>::from(pos.0),),
                     anim::vek::Quaternion::<f32>::default(),
                 ));
-            let wall_dir = physics.on_wall.map(|v| anim::vek::Vec3::from(v));
+            let wall_dir = physics.on_wall.map(anim::vek::Vec3::from);
             // Maintaining figure data and sending new figure data to the GPU turns out to
             // be a very expensive operation. We want to avoid doing it as much
             // as possible, so we make the assumption that players don't care so
