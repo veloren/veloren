@@ -121,6 +121,8 @@ pub enum CharacterState {
     /// Handles logic for interacting with a sprite, e.g. using a chest or
     /// picking a plant
     SpriteInteract(sprite_interact::Data),
+    /// Runs on the wall
+    Wallrun(wallrun::Data),
 }
 
 impl CharacterState {
@@ -294,6 +296,7 @@ impl CharacterState {
             CharacterState::Idle(data) => data.behavior(j, output_events),
             CharacterState::Talk => states::talk::Data.behavior(j, output_events),
             CharacterState::Climb(data) => data.behavior(j, output_events),
+            CharacterState::Wallrun(data) => data.behavior(j, output_events),
             CharacterState::Glide(data) => data.behavior(j, output_events),
             CharacterState::GlideWield(data) => data.behavior(j, output_events),
             CharacterState::Stunned(data) => data.behavior(j, output_events),
@@ -339,6 +342,7 @@ impl CharacterState {
             CharacterState::Idle(data) => data.handle_event(j, output_events, action),
             CharacterState::Talk => states::talk::Data.handle_event(j, output_events, action),
             CharacterState::Climb(data) => data.handle_event(j, output_events, action),
+            CharacterState::Wallrun(data) => data.handle_event(j, output_events, action),
             CharacterState::Glide(data) => data.handle_event(j, output_events, action),
             CharacterState::GlideWield(data) => data.handle_event(j, output_events, action),
             CharacterState::Stunned(data) => data.handle_event(j, output_events, action),

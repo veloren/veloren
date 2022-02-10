@@ -197,6 +197,7 @@ impl<'a> System<'a> for Sys {
                 },
                 // Abilities that temporarily stall energy gain, but preserve regen_rate.
                 CharacterState::Roll { .. }
+                | CharacterState::Wallrun { .. }
                 | CharacterState::Climb { .. }
                 | CharacterState::Stunned { .. }
                 | CharacterState::BasicBlock { .. }

@@ -46,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shader dithering to remove banding from scenes with large colour gradients
 - Convert giant trees to site2
 - Add new upgraded travelers
+- Wallrunning
 
 ### Changed
 

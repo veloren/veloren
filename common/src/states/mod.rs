@@ -30,4 +30,5 @@ pub mod stunned;
 pub mod talk;
 pub mod use_item;
 pub mod utils;
+pub mod wallrun;
 pub mod wielding;
