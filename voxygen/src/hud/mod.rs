@@ -643,7 +643,6 @@ pub struct Show {
     intro: bool,
     help: bool,
     crafting: bool,
-    debug: bool,
     bag: bool,
     bag_inv: bool,
     trade: bool,
@@ -1037,7 +1036,6 @@ impl Hud {
             show: Show {
                 help: false,
                 intro: false,
-                debug: global_state.settings.interface.toggle_debug,
                 bag: false,
                 bag_inv: false,
                 trade: false,
@@ -3150,12 +3148,8 @@ impl Hud {
                                 InterfaceChange::ToggleHelp(toggle_help) => {
                                     self.show.help = *toggle_help;
                                 },
-                                InterfaceChange::ToggleDebug(toggle_debug) => {
-                                    self.show.debug = *toggle_debug;
-                                },
                                 InterfaceChange::ResetInterfaceSettings => {
                                     self.show.help = false;
-                                    self.show.debug = false;
                                 },
                                 _ => {},
                             },
@@ -4015,7 +4009,6 @@ impl Hud {
                     GameInput::ToggleDebug if state => {
                         global_state.settings.interface.toggle_debug =
                             !global_state.settings.interface.toggle_debug;
-                        self.show.debug = global_state.settings.interface.toggle_debug;
                         true
                     },
                     #[cfg(feature = "egui-ui")]
