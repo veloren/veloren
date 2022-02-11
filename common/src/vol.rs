@@ -109,7 +109,7 @@ pub trait ReadVol: BaseVol {
     where
         Self: Sized,
     {
-        Ray::new(self, from, to, |_| true)
+        Ray::new(self, from, to, |_| false)
     }
 
     /// Call provided closure with each block in the supplied Aabb

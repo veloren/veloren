@@ -17,8 +17,8 @@ use common::{
     resources::DeltaTime,
     spiral::Spiral2d,
     states::{self, utils::StageSection},
-    terrain::TerrainChunk,
-    vol::{RectRasterableVol, SizedVol},
+    terrain::{Block, TerrainChunk, TerrainGrid},
+    vol::{ReadVol, RectRasterableVol, SizedVol},
 };
 use common_base::span;
 use hashbrown::HashMap;
@@ -1262,6 +1262,7 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
         let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
+        let terrain = scene_data.state.ecs().fetch::<TerrainGrid>();
 
         for (_entity, pos, ori, shockwave) in (
             &ecs.entities(),
@@ -1312,14 +1313,34 @@ impl ParticleMgr {
                             let position = pos.0
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                            let position_snapped = ((position / scale).floor() + 0.5) * scale;
+                            let ray_length = 10.0;
+                            let mut last_air = false;
+                            let _ = terrain
+                                .ray(
+                                    position + Vec3::unit_z() * ray_length,
+                                    position - Vec3::unit_z() * ray_length,
+                                )
+                                .for_each(|block: &Block, pos: Vec3<i32>| {
+                                    if block.is_solid() && block.get_sprite().is_none() {
+                                        if last_air {
+                                            let position = position.xy().with_z(pos.z as f32 + 1.0);
 
-                            self.particles.push(Particle::new(
-                                Duration::from_millis(250),
-                                time,
-                                ParticleMode::GroundShockwave,
-                                position_snapped,
-                            ));
+                                            let position_snapped =
+                                                ((position / scale).floor() + 0.5) * scale;
+
+                                            self.particles.push(Particle::new(
+                                                Duration::from_millis(250),
+                                                time,
+                                                ParticleMode::GroundShockwave,
+                                                position_snapped,
+                                            ));
+                                            last_air = false;
+                                        }
+                                    } else {
+                                        last_air = true;
+                                    }
+                                })
+                                .cast();
                         }
                     }
                 },
