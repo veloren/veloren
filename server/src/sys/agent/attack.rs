@@ -2265,7 +2265,8 @@ impl<'a> AgentData<'a> {
         if !agent.action_state.initialized {
             // If not initialized yet, start out by summoning green totem
             controller.push_basic_input(InputKind::Ability(2));
-            if matches!(self.char_state, CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover) {
+            if matches!(self.char_state, CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover)
+            {
                 agent.action_state.initialized = true;
             }
         } else if agent.action_state.timer > TOTEM_TIMER {

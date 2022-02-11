@@ -3,16 +3,19 @@ pub mod beam;
 pub mod dash;
 pub mod idle;
 pub mod run;
+pub mod shockwave;
 pub mod shoot;
 pub mod spinmelee;
 pub mod stunned;
+pub mod summon;
 pub mod wield;
 
 // Reexports
 pub use self::{
     alpha::AlphaAnimation, beam::BeamAnimation, dash::DashAnimation, idle::IdleAnimation,
-    run::RunAnimation, shoot::ShootAnimation, spinmelee::SpinMeleeAnimation,
-    stunned::StunnedAnimation, wield::WieldAnimation,
+    run::RunAnimation, shockwave::ShockwaveAnimation, shoot::ShootAnimation,
+    spinmelee::SpinMeleeAnimation, stunned::StunnedAnimation, summon::SummonAnimation,
+    wield::WieldAnimation,
 };
 
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};

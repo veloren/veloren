@@ -503,7 +503,7 @@ impl Structure for GnarlingFortification {
 
                     let mosstop1 = root1.translate(Vec3::new(0, 0, 1));
 
-                    root1.fill(darkwood);
+                    root1.fill(darkwood.clone());
 
                     let start = (start_wpos + 3)
                         .as_()
@@ -525,8 +525,38 @@ impl Structure for GnarlingFortification {
                         painter.cubic_bezier(start, mid + startshift, mid + endshift, end, 2.0);
 
                     let mosstop2 = root2.translate(Vec3::new(0, 0, 1));
+                    let start = start_wpos.as_().with_z(land.get_alt_approx(start_wpos));
+                    let end = end_wpos.as_().with_z(land.get_alt_approx(end_wpos));
+
+                    let wall_base_height = 3.0;
+                    let wall_mid_thickness = 1.0;
+                    let wall_mid_height = 7.0 + wall_base_height;
+
+                    painter
+                        .segment_prism(start, end, wall_mid_thickness, wall_mid_height)
+                        .fill(darkwood.clone());
+
+                    let start = start_wpos
+                        .as_()
+                        .with_z(land.get_alt_approx(start_wpos) + wall_mid_height);
+                    let end = end_wpos
+                        .as_()
+                        .with_z(land.get_alt_approx(end_wpos) + wall_mid_height);
+
+                    let wall_top_thickness = 2.0;
+                    let wall_top_height = 1.0;
+
+                    let topwall =
+                        painter.segment_prism(start, end, wall_top_thickness, wall_top_height);
+                    let mosstopwall = topwall.translate(Vec3::new(0, 0, 1));
+
+                    topwall.fill(lightwood.clone());
 
                     root2.fill(lightwood);
+
+                    mosstopwall
+                        .intersect(mossroot.translate(Vec3::new(0, 0, 8)))
+                        .fill(moss.clone());
 
                     mosstop1.intersect(mossroot).fill(moss.clone());
                     mosstop2.intersect(mossroot).fill(moss);
@@ -857,10 +887,6 @@ impl Structure for GnarlingFortification {
 
                     // Floor
                     let raise = 5;
-                    let base = wpos.with_z(alt);
-                    painter
-                        .cylinder_with_radius(base, hut_radius + 1.0, 2.0)
-                        .fill(lightwood.clone());
 
                     let platform = painter.aabb(Aabb {
                         min: (wpos - 20).with_z(alt + raise),
@@ -875,7 +901,7 @@ impl Structure for GnarlingFortification {
                         2.0,
                     );
                     let support_inner_1 = painter.aabb(Aabb {
-                        min: (wpos - 19).with_z(alt - 3),
+                        min: (wpos - 19).with_z(alt - 10),
                         max: (wpos - 15).with_z(alt + raise),
                     });
                     let support_2 = support_1.translate(Vec3::new(0, 37, 0));

@@ -777,7 +777,9 @@ impl Body {
                 Body::Arthropod(_) => true,
                 _ => false,
             },
-            BuffKind::Regeneration => matches!(self, Body::Object(object::Body::GnarlingTotemGreen)),
+            BuffKind::Regeneration => {
+                matches!(self, Body::Object(object::Body::GnarlingTotemGreen))
+            },
             _ => false,
         }
     }
