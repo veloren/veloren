@@ -31,6 +31,7 @@
         "hud.map.change_map_mode": "Change Map Mode",
         "hud.map.toggle_minimap_voxel": "Toggle Minimap Voxel View",
         "hud.map.zoom_minimap_explanation": "Zoom in the Minimap to see\nthe area around you in higher detail",
+        "hud.map.gnarling": "Gnarling Fortification",
     },
 
 

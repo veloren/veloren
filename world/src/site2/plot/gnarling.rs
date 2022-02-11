@@ -73,7 +73,7 @@ impl GnarlingFortification {
     pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
         let rpos_height = |rpos| land.get_alt_approx(rpos + wpos) as i32;
 
-        let name = String::from("Gnarling Fortification");
+        let name = NameGen::location(rng).generate_gnarling();
         let seed = rng.gen();
         let origin = wpos;
 
@@ -1884,6 +1884,7 @@ fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 fn gnarling_chieftain<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
     EntityInfo::at(pos.map(|x| x as f32))
         .with_asset_expect("common.entity.dungeon.gnarling.chieftain", rng)
+        .with_no_flee()
 }
 
 fn deadwood<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {

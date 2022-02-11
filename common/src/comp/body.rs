@@ -696,7 +696,7 @@ impl Body {
                 object::Body::SeaLantern => 100,
                 object::Body::GnarlingTotemRed
                 | object::Body::GnarlingTotemGreen
-                | object::Body::GnarlingTotemWhite => 25,
+                | object::Body::GnarlingTotemWhite => 50,
                 _ => 1000,
             },
             Body::Golem(golem) => match golem.species {
@@ -777,14 +777,7 @@ impl Body {
                 Body::Arthropod(_) => true,
                 _ => false,
             },
-            BuffKind::Regeneration | BuffKind::ProtectingWard | BuffKind::Hastened => matches!(
-                self,
-                Body::Object(
-                    object::Body::GnarlingTotemRed
-                        | object::Body::GnarlingTotemGreen
-                        | object::Body::GnarlingTotemWhite
-                )
-            ),
+            BuffKind::Regeneration => matches!(self, Body::Object(object::Body::GnarlingTotemGreen)),
             _ => false,
         }
     }

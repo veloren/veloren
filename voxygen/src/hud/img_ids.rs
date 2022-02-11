@@ -417,6 +417,9 @@ image_ids! {
         mmap_poi_peak: "voxygen.element.ui.map.buttons.peak",
         mmap_poi_biome: "voxygen.element.ui.map.buttons.biome",
         mmap_poi_peak_hover: "voxygen.element.ui.map.buttons.peak_hover",
+        mmap_site_gnarling: "voxygen.element.ui.map.buttons.gnarling",
+        mmap_site_gnarling_hover: "voxygen.element.ui.map.buttons.gnarling_hover",
+        mmap_site_gnarling_bg: "voxygen.element.ui.map.buttons.gnarling_bg",
 
         // Window Parts
         window_3: "voxygen.element.ui.generic.frames.window_3",

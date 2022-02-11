@@ -698,6 +698,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Castle => None,
                     SiteKind::Cave => None,
                     SiteKind::Tree => None,
+                    SiteKind::Gnarling => Some(0),
                 };
 
                 Image::new(match &site.kind {
@@ -706,6 +707,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Castle => self.imgs.mmap_site_castle_bg,
                     SiteKind::Cave => self.imgs.mmap_site_cave_bg,
                     SiteKind::Tree => self.imgs.mmap_site_tree,
+                    SiteKind::Gnarling => self.imgs.mmap_site_gnarling_bg,
                 })
                 .x_y_position_relative_to(
                     state.ids.map_layers[0],
@@ -729,6 +731,7 @@ impl<'a> Widget for MiniMap<'a> {
                     SiteKind::Castle => self.imgs.mmap_site_castle,
                     SiteKind::Cave => self.imgs.mmap_site_cave,
                     SiteKind::Tree => self.imgs.mmap_site_tree,
+                    SiteKind::Gnarling => self.imgs.mmap_site_gnarling,
                 })
                 .middle_of(state.ids.mmap_site_icons_bgs[i])
                 .w_h(20.0, 20.0)

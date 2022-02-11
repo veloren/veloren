@@ -870,6 +870,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => i18n.get("hud.map.castle"),
                 SiteKind::Cave => i18n.get("hud.map.cave"),
                 SiteKind::Tree => i18n.get("hud.map.tree"),
+                SiteKind::Gnarling => i18n.get("hud.map.gnarling"),
             });
             let (difficulty, desc) = match &site.kind {
                 SiteKind::Town => (None, i18n.get("hud.map.town").to_string()),
@@ -891,6 +892,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => (None, i18n.get("hud.map.castle").to_string()),
                 SiteKind::Cave => (None, i18n.get("hud.map.cave").to_string()),
                 SiteKind::Tree => (None, i18n.get("hud.map.tree").to_string()),
+                SiteKind::Gnarling => (Some(0), i18n.get("hud.map.gnarling").to_string()),
             };
             let desc = desc + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
@@ -899,6 +901,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => self.imgs.mmap_site_castle,
                 SiteKind::Cave => self.imgs.mmap_site_cave,
                 SiteKind::Tree => self.imgs.mmap_site_tree,
+                SiteKind::Gnarling => self.imgs.mmap_site_gnarling,
             })
             .x_y_position_relative_to(
                 state.ids.map_layers[0],
@@ -912,6 +915,7 @@ impl<'a> Widget for Map<'a> {
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
+                SiteKind::Gnarling => self.imgs.mmap_site_gnarling_hover,
             })
             .image_color(UI_HIGHLIGHT_0.alpha(fade))
             .with_tooltip(
@@ -922,7 +926,7 @@ impl<'a> Widget for Map<'a> {
                 match &site.kind {
                     SiteKind::Town => TEXT_COLOR,
                     SiteKind::Castle => TEXT_COLOR,
-                    SiteKind::Dungeon { .. } => match difficulty {
+                    SiteKind::Dungeon { .. } | SiteKind::Gnarling => match difficulty {
                         Some(0) => QUALITY_LOW,
                         Some(1) => QUALITY_COMMON,
                         Some(2) => QUALITY_MODERATE,
@@ -946,7 +950,7 @@ impl<'a> Widget for Map<'a> {
             // Only display sites that are toggled on
             let show_site = match &site.kind {
                 SiteKind::Town => show_towns,
-                SiteKind::Dungeon { .. } => show_dungeons,
+                SiteKind::Dungeon { .. } | SiteKind::Gnarling => show_dungeons,
                 SiteKind::Castle => show_castles,
                 SiteKind::Cave => show_caves,
                 SiteKind::Tree => show_trees,
@@ -1003,7 +1007,7 @@ impl<'a> Widget for Map<'a> {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }
                     },
-                    SiteKind::Dungeon { .. } => {
+                    SiteKind::Dungeon { .. } | SiteKind::Gnarling => {
                         if show_dungeons {
                             dif_img.set(state.ids.site_difs[i], ui)
                         }

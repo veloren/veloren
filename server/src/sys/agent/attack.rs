@@ -2249,8 +2249,8 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        const TOTEM_TIMER: f32 = 15.0;
-        const HEAVY_ATTACK_WAIT_TIME: f32 = 20.0;
+        const TOTEM_TIMER: f32 = 10.0;
+        const HEAVY_ATTACK_WAIT_TIME: f32 = 15.0;
 
         // Handle timers
         agent.action_state.timer += read_data.dt.0;
@@ -2262,8 +2262,14 @@ impl<'a> AgentData<'a> {
             _ => {},
         }
 
-        // If time to summon a totem, do it
-        if agent.action_state.timer > TOTEM_TIMER {
+        if !agent.action_state.initialized {
+            // If not initialized yet, start out by summoning green totem
+            controller.push_basic_input(InputKind::Ability(2));
+            if matches!(self.char_state, CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover) {
+                agent.action_state.initialized = true;
+            }
+        } else if agent.action_state.timer > TOTEM_TIMER {
+            // If time to summon a totem, do it
             let input = rng.gen_range(1..=3);
             controller.push_basic_input(InputKind::Ability(input));
         } else if agent.action_state.counter > HEAVY_ATTACK_WAIT_TIME {

@@ -134,8 +134,17 @@
     Custom("Bow Simple"): (
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
-        abilities: [
-        ],
+        abilities: [],
+    ),
+    Custom("Axe Simple"): (
+        primary: "common.abilities.axesimple.doublestrike",
+        secondary: "common.abilities.axesimple.doublestrike",
+        abilities: [],
+    ),
+    Custom("Dagger Simple"): (
+        primary: "common.abilities.daggersimple.singlestrike",
+        secondary: "common.abilities.daggersimple.singlestrike",
+        abilities: [],
     ),
     Tool(Dagger): (
         primary: "common.abilities.dagger.tempbasic",
