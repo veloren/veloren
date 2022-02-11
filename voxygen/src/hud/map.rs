@@ -1,7 +1,8 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE, TEXT_BG,
-    TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
+    Show, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LEGENDARY, QUALITY_LOW,
+    QUALITY_MODERATE, TEXT_BG, TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE,
+    UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     game_input::GameInput,
@@ -897,11 +898,15 @@ impl<'a> Widget for Map<'a> {
             let desc = desc + &get_site_economy(site_rich);
             let site_btn = Button::image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town,
-                SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon,
                 SiteKind::Castle => self.imgs.mmap_site_castle,
                 SiteKind::Cave => self.imgs.mmap_site_cave,
                 SiteKind::Tree => self.imgs.mmap_site_tree,
                 SiteKind::Gnarling => self.imgs.mmap_site_gnarling,
+                SiteKind::Dungeon { difficulty } => match difficulty {
+                    4 => self.imgs.mmap_site_minotaur,
+                    5 => self.imgs.mmap_site_mindflayer,
+                    _ => self.imgs.mmap_site_dungeon,
+                },
             })
             .x_y_position_relative_to(
                 state.ids.map_layers[0],
@@ -911,11 +916,15 @@ impl<'a> Widget for Map<'a> {
             .w_h(rside as f64, rside as f64)
             .hover_image(match &site.kind {
                 SiteKind::Town => self.imgs.mmap_site_town_hover,
-                SiteKind::Dungeon { .. } => self.imgs.mmap_site_dungeon_hover,
                 SiteKind::Castle => self.imgs.mmap_site_castle_hover,
                 SiteKind::Cave => self.imgs.mmap_site_cave_hover,
                 SiteKind::Tree => self.imgs.mmap_site_tree_hover,
                 SiteKind::Gnarling => self.imgs.mmap_site_gnarling_hover,
+                SiteKind::Dungeon { difficulty } => match difficulty {
+                    4 => self.imgs.mmap_site_minotaur_hover,
+                    5 => self.imgs.mmap_site_mindflayer_hover,
+                    _ => self.imgs.mmap_site_dungeon_hover,
+                },
             })
             .image_color(UI_HIGHLIGHT_0.alpha(fade))
             .with_tooltip(
@@ -931,7 +940,8 @@ impl<'a> Widget for Map<'a> {
                         Some(1) => QUALITY_COMMON,
                         Some(2) => QUALITY_MODERATE,
                         Some(3) => QUALITY_HIGH,
-                        Some(4 | 5) => QUALITY_EPIC,
+                        Some(4) => QUALITY_EPIC,
+                        Some(5) => QUALITY_LEGENDARY,
                         _ => TEXT_COLOR,
                     },
                     SiteKind::Cave => TEXT_COLOR,
@@ -972,8 +982,7 @@ impl<'a> Widget for Map<'a> {
                     Some(1) => self.imgs.map_dif_2,
                     Some(2) => self.imgs.map_dif_3,
                     Some(3) => self.imgs.map_dif_4,
-                    Some(4) => self.imgs.map_dif_5,
-                    Some(5) => self.imgs.map_dif_6,
+                    Some(4 | 5) => self.imgs.map_dif_5,
                     Some(_) => self.imgs.map_dif_unknown,
                     None => self.imgs.nothing,
                 })
@@ -984,7 +993,7 @@ impl<'a> Widget for Map<'a> {
                 })
                 .w(match difficulty {
                     Some(0) => 1.0 * rsize,
-                    Some(1 | 2 | 5) => 2.0 * rsize,
+                    Some(1 | 2) => 2.0 * rsize,
                     Some(_) => 3.0 * rsize,
                     _ => 1.0 * rsize,
                 })
@@ -998,7 +1007,7 @@ impl<'a> Widget for Map<'a> {
                     Some(1) => QUALITY_COMMON,
                     Some(2) => QUALITY_MODERATE,
                     Some(3) => QUALITY_HIGH,
-                    Some(4 | 5) => QUALITY_EPIC,
+                    Some(4 | 5) => QUALITY_EPIC, // Change this whenever difficulty is fixed
                     _ => TEXT_COLOR,
                 }));
                 match &site.kind {

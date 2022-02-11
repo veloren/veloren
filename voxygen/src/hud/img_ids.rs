@@ -420,6 +420,12 @@ image_ids! {
         mmap_site_gnarling: "voxygen.element.ui.map.buttons.gnarling",
         mmap_site_gnarling_hover: "voxygen.element.ui.map.buttons.gnarling_hover",
         mmap_site_gnarling_bg: "voxygen.element.ui.map.buttons.gnarling_bg",
+        mmap_site_minotaur: "voxygen.element.ui.map.buttons.minotaur",
+        mmap_site_minotaur_hover: "voxygen.element.ui.map.buttons.minotaur_hover",
+        mmap_site_minotaur_bg: "voxygen.element.ui.map.buttons.minotaur_bg",
+        mmap_site_mindflayer: "voxygen.element.ui.map.buttons.mindflayer",
+        mmap_site_mindflayer_hover: "voxygen.element.ui.map.buttons.mindflayer_hover",
+        mmap_site_mindflayer_bg: "voxygen.element.ui.map.buttons.mindflayer_bg",
 
         // Window Parts
         window_3: "voxygen.element.ui.generic.frames.window_3",
