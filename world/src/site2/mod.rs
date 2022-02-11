@@ -758,6 +758,9 @@ impl Site {
 
                     if dist.map_or(false, |d| d <= 1.5) {
                         let alt = canvas.col(wpos2d).map_or(0, |col| col.alt as i32);
+                        let sub_surface_color = canvas
+                            .col(wpos2d)
+                            .map_or(vek::Rgb::zero(), |col| col.sub_surface_color);
                         let mut underground = true;
                         for z in -8..6 {
                             canvas.map(Vec3::new(wpos2d.x, wpos2d.y, alt + z), |b| {
@@ -766,7 +769,10 @@ impl Site {
                                     b.into_vacant()
                                 } else if b.is_filled() {
                                     if b.is_terrain() {
-                                        Block::new(BlockKind::Earth, Rgb::new(0x6A, 0x47, 0x24))
+                                        Block::new(
+                                            BlockKind::Earth,
+                                            (sub_surface_color * 255.0).as_(),
+                                        )
                                     } else {
                                         b
                                     }

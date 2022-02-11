@@ -81,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Made /home command a mod+ exclusive
 - Friendly creatures will now defend each other
 - Creatures will now defend their pets
+- [WorldGen] Change path colors
 
 ### Removed
 
