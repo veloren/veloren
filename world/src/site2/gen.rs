@@ -114,24 +114,6 @@ impl Primitive {
     pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: i32) -> Self {
         Self::Repeat(a.into(), offset, count)
     }
-
-    pub fn cylinder(origin: Vec3<i32>, radius: f32, height: f32) -> Self {
-        let min = origin - Vec2::broadcast(radius.round() as i32);
-        let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
-        Primitive::Cylinder(Aabb { min, max })
-    }
-
-    pub fn sphere(origin: Vec3<i32>, radius: f32) -> Self {
-        let min = origin - Vec3::broadcast(radius.round() as i32);
-        let max = origin + Vec3::broadcast(radius.round() as i32);
-        Primitive::Sphere(Aabb { min, max })
-    }
-
-    pub fn cone(origin: Vec3<i32>, radius: f32, height: f32) -> Self {
-        let min = origin - Vec2::broadcast(radius.round() as i32);
-        let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
-        Primitive::Cone(Aabb { min, max })
-    }
 }
 
 #[derive(Clone)]
@@ -538,6 +520,14 @@ impl Painter {
         self.prim(Primitive::Sphere(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of a sphere using a radius check where a radius
+    /// and origin are parameters instead of a bounding box.
+    pub fn sphere_with_radius(&self, origin: Vec3<i32>, radius: f32) -> PrimitiveRef {
+        let min = origin - Vec3::broadcast(radius.round() as i32);
+        let max = origin + Vec3::broadcast(radius.round() as i32);
+        self.prim(Primitive::Sphere(Aabb { min, max }))
+    }
+
     /// Returns a `PrimitiveRef` of a sphere by returning an ellipsoid with
     /// congruent legs. The voxel artifacts are slightly different from the
     /// radius check `sphere()` method.
@@ -587,10 +577,31 @@ impl Painter {
         self.prim(Primitive::Cylinder(aabb.made_valid()))
     }
 
+    /// Returns a `PrimitiveRef` of a cylinder using a radius check where a
+    /// radius and origin are parameters instead of a bounding box.
+    pub fn cylinder_with_radius(
+        &self,
+        origin: Vec3<i32>,
+        radius: f32,
+        height: f32,
+    ) -> PrimitiveRef {
+        let min = origin - Vec2::broadcast(radius.round() as i32);
+        let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
+        self.prim(Primitive::Cylinder(Aabb { min, max }))
+    }
+
     /// Returns a `PrimitiveRef` of the largest cone that fits in the
     /// provided Aabb.
     pub fn cone(&self, aabb: Aabb<i32>) -> PrimitiveRef {
         self.prim(Primitive::Cone(aabb.made_valid()))
+    }
+
+    /// Returns a `PrimitiveRef` of a cone using a radius check where a radius
+    /// and origin are parameters instead of a bounding box.
+    pub fn cone_with_radius(&self, origin: Vec3<i32>, radius: f32, height: f32) -> PrimitiveRef {
+        let min = origin - Vec2::broadcast(radius.round() as i32);
+        let max = origin + Vec2::broadcast(radius.round() as i32).with_z(height.round() as i32);
+        self.prim(Primitive::Cone(Aabb { min, max }))
     }
 
     /// Returns a `PrimitiveRef` of a 3-dimensional line segment with a provided
