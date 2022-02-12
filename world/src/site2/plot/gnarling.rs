@@ -2064,14 +2064,15 @@ mod tests {
     #[test]
     fn test_creating_entities() {
         let pos = Vec3::zero();
+        let mut rng = thread_rng();
 
-        gnarling_mugger(pos);
-        gnarling_stalker(pos);
-        gnarling_logger(pos);
-        gnarling_chieftain(pos);
-        deadwood(pos);
-        mandragora(pos);
-        wood_golem(pos);
-        harvester_boss(pos);
+        gnarling_mugger(pos, &mut rng);
+        gnarling_stalker(pos, &mut rng);
+        gnarling_logger(pos, &mut rng);
+        gnarling_chieftain(pos, &mut rng);
+        deadwood(pos, &mut rng);
+        mandragora(pos, &mut rng);
+        wood_golem(pos, &mut rng);
+        harvester_boss(pos, &mut rng);
     }
 }
