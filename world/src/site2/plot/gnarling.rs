@@ -29,14 +29,6 @@ pub struct GnarlingFortification {
     tunnels: Tunnels,
 }
 
-struct Tunnels {
-    start: Vec3<i32>,
-    end: Vec3<i32>,
-    branches: Vec<(Vec3<i32>, Vec3<i32>)>,
-    path: Vec<Vec3<i32>>,
-    terminals: Vec<Vec3<i32>>,
-}
-
 enum GnarlingStructure {
     Hut,
     VeloriteHut,
@@ -115,16 +107,8 @@ impl GnarlingFortification {
         }
 
         let tunnel_length_range = (12.0, 27.0);
-        let (branches, path, terminals) = rrt(start, end, is_valid_edge, tunnel_length_range, rng)
-            .unwrap_or((Vec::new(), Vec::new(), Vec::new()));
-
-        let tunnels = Tunnels {
-            start,
-            end,
-            branches,
-            path,
-            terminals,
-        };
+        let tunnels =
+            Tunnels::new(start, end, is_valid_edge, tunnel_length_range, rng).unwrap_or_default();
 
         let num_points = (wall_radius / 15).max(5);
         let outer_wall_corners = (0..num_points)
@@ -1933,114 +1917,151 @@ fn harvester_boss<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
         .with_asset_expect("common.entity.dungeon.gnarling.harvester", rng)
 }
 
-#[allow(clippy::type_complexity)]
-fn rrt<F>(
+#[derive(Default)]
+struct Tunnels {
     start: Vec3<i32>,
     end: Vec3<i32>,
-    is_valid_edge: F,
-    radius_range: (f32, f32),
-    rng: &mut impl Rng,
-) -> Option<(Vec<(Vec3<i32>, Vec3<i32>)>, Vec<Vec3<i32>>, Vec<Vec3<i32>>)>
-where
-    F: Fn(Vec3<i32>, Vec3<i32>) -> bool,
-{
-    let mut nodes = Vec::new();
-    let mut node_index: usize = 0;
+    branches: Vec<(Vec3<i32>, Vec3<i32>)>,
+    path: Vec<Vec3<i32>>,
+    terminals: Vec<Vec3<i32>>,
+}
 
-    // HashMap<ChildNode, ParentNode>
-    let mut parents = HashMap::new();
+impl Tunnels {
+    /// Attempts to find a path from a `start` to the `end` using a rapidly
+    /// exploring random tree (RRT). A point is sampled from an AABB extending
+    /// slightly beyond the start and end in the x and y axes and below the
+    /// start in the z axis to slightly below the end. Nodes are stored in a
+    /// k-d tree for quicker nearest node calculations. A maximum of 7000
+    /// points are sampled until the tree connects the start to the end. A
+    /// final path is then reconstructed from the nodes. Returns a `Tunnels`
+    /// struct of the RRT branches, the complete path, and the location of
+    /// dead ends. Each branch is a tuple of the start and end locations of
+    /// each segment. The path is a vector of all the nodes along the
+    /// complete path from the `start` to the `end`.
+    fn new<F>(
+        start: Vec3<i32>,
+        end: Vec3<i32>,
+        is_valid_edge: F,
+        radius_range: (f32, f32),
+        rng: &mut impl Rng,
+    ) -> Option<Self>
+    where
+        F: Fn(Vec3<i32>, Vec3<i32>) -> bool,
+    {
+        let mut nodes = Vec::new();
+        let mut node_index: usize = 0;
 
-    let mut kdtree = KdTree::new();
-    let start = start.map(|a| (a + 1) as f32);
-    let end = end.map(|a| (a + 1) as f32);
+        // HashMap<ChildNode, ParentNode>
+        let mut parents = HashMap::new();
 
-    let min = Vec3::new(start.x.min(end.x), start.y.min(end.y), start.z.min(end.z));
-    let max = Vec3::new(start.x.max(end.x), start.y.max(end.y), start.z.max(end.z));
+        let mut kdtree = KdTree::new();
+        let startf = start.map(|a| (a + 1) as f32);
+        let endf = end.map(|a| (a + 1) as f32);
 
-    kdtree.add(&[start.x, start.y, start.z], node_index).ok()?;
-    nodes.push(start);
-    node_index += 1;
-    let mut connect = false;
-
-    for _i in 0..7000 {
-        let radius: f32 = rng.gen_range(radius_range.0..radius_range.1);
-        let radius_sqrd = radius.powi(2);
-        if connect {
-            break;
-        }
-        let sampled_point = Vec3::new(
-            rng.gen_range(min.x - 20.0..max.x + 20.0),
-            rng.gen_range(min.y - 20.0..max.y + 20.0),
-            rng.gen_range(min.z - 20.0..max.z - 7.0),
+        let min = Vec3::new(
+            startf.x.min(endf.x),
+            startf.y.min(endf.y),
+            startf.z.min(endf.z),
         );
+        let max = Vec3::new(
+            startf.x.max(endf.x),
+            startf.y.max(endf.y),
+            startf.z.max(endf.z),
+        );
+
+        kdtree
+            .add(&[startf.x, startf.y, startf.z], node_index)
+            .ok()?;
+        nodes.push(startf);
+        node_index += 1;
+        let mut connect = false;
+
+        for _i in 0..7000 {
+            let radius: f32 = rng.gen_range(radius_range.0..radius_range.1);
+            let radius_sqrd = radius.powi(2);
+            if connect {
+                break;
+            }
+            let sampled_point = Vec3::new(
+                rng.gen_range(min.x - 20.0..max.x + 20.0),
+                rng.gen_range(min.y - 20.0..max.y + 20.0),
+                rng.gen_range(min.z - 20.0..max.z - 7.0),
+            );
+            let nearest_index = *kdtree
+                .nearest_one(
+                    &[sampled_point.x, sampled_point.y, sampled_point.z],
+                    &squared_euclidean,
+                )
+                .ok()?
+                .1 as usize;
+            let nearest = nodes[nearest_index];
+            let dist_sqrd = sampled_point.distance_squared(nearest);
+            let new_point = if dist_sqrd > radius_sqrd {
+                nearest + (sampled_point - nearest).normalized().map(|a| a * radius)
+            } else {
+                sampled_point
+            };
+            if is_valid_edge(
+                nearest.map(|e| e.floor() as i32),
+                new_point.map(|e| e.floor() as i32),
+            ) {
+                kdtree
+                    .add(&[new_point.x, new_point.y, new_point.z], node_index)
+                    .ok()?;
+                nodes.push(new_point);
+                parents.insert(node_index, nearest_index);
+                node_index += 1;
+            }
+            if new_point.distance_squared(endf) < radius.powi(2) {
+                connect = true;
+            }
+        }
+
+        let mut path = Vec::new();
         let nearest_index = *kdtree
-            .nearest_one(
-                &[sampled_point.x, sampled_point.y, sampled_point.z],
-                &squared_euclidean,
-            )
+            .nearest_one(&[endf.x, endf.y, endf.z], &squared_euclidean)
             .ok()?
             .1 as usize;
-        let nearest = nodes[nearest_index];
-        let dist_sqrd = sampled_point.distance_squared(nearest);
-        let new_point = if dist_sqrd > radius_sqrd {
-            nearest + (sampled_point - nearest).normalized().map(|a| a * radius)
-        } else {
-            sampled_point
-        };
-        if is_valid_edge(
-            nearest.map(|e| e.floor() as i32),
-            new_point.map(|e| e.floor() as i32),
-        ) {
-            kdtree
-                .add(&[new_point.x, new_point.y, new_point.z], node_index)
-                .ok()?;
-            nodes.push(new_point);
-            parents.insert(node_index, nearest_index);
-            node_index += 1;
+        kdtree.add(&[endf.x, endf.y, endf.z], node_index).ok()?;
+        nodes.push(endf);
+        parents.insert(node_index, nearest_index);
+        path.push(endf);
+        let mut current_node_index = node_index;
+        while current_node_index > 0 {
+            current_node_index = *parents.get(&current_node_index).unwrap();
+            path.push(nodes[current_node_index]);
         }
-        if new_point.distance_squared(end) < radius.powi(2) {
-            connect = true;
+
+        let mut terminals = Vec::new();
+        let last = nodes.len() - 1;
+        for (node_id, node_pos) in nodes.iter().enumerate() {
+            if !parents.values().any(|e| e == &node_id) && node_id != 0 && node_id != last {
+                terminals.push(node_pos.map(|e| e.floor() as i32));
+            }
         }
-    }
 
-    let mut path = Vec::new();
-    let nearest_index = *kdtree
-        .nearest_one(&[end.x, end.y, end.z], &squared_euclidean)
-        .ok()?
-        .1 as usize;
-    kdtree.add(&[end.x, end.y, end.z], node_index).ok()?;
-    nodes.push(end);
-    parents.insert(node_index, nearest_index);
-    path.push(end);
-    let mut current_node_index = node_index;
-    while current_node_index > 0 {
-        current_node_index = *parents.get(&current_node_index).unwrap();
-        path.push(nodes[current_node_index]);
-    }
+        let branches = parents
+            .iter()
+            .map(|(a, b)| {
+                (
+                    nodes[*a].map(|e| e.floor() as i32),
+                    nodes[*b].map(|e| e.floor() as i32),
+                )
+            })
+            .collect::<Vec<(Vec3<i32>, Vec3<i32>)>>();
+        let path = path
+            .iter()
+            .map(|a| a.map(|e| e.floor() as i32))
+            .collect::<Vec<Vec3<i32>>>();
 
-    let mut terminals = Vec::new();
-    let last = nodes.len() - 1;
-    for (node_id, node_pos) in nodes.iter().enumerate() {
-        if !parents.values().any(|e| e == &node_id) && node_id != 0 && node_id != last {
-            terminals.push(node_pos.map(|e| e.floor() as i32));
-        }
-    }
-
-    let branches = parents
-        .iter()
-        .map(|(a, b)| {
-            (
-                nodes[*a].map(|e| e.floor() as i32),
-                nodes[*b].map(|e| e.floor() as i32),
-            )
+        Some(Self {
+            start,
+            end,
+            branches,
+            path,
+            terminals,
         })
-        .collect::<Vec<(Vec3<i32>, Vec3<i32>)>>();
-    let path = path
-        .iter()
-        .map(|a| a.map(|e| e.floor() as i32))
-        .collect::<Vec<Vec3<i32>>>();
-
-    Some((branches, path, terminals))
+    }
 }
 
 #[cfg(test)]
