@@ -332,33 +332,26 @@ impl GnarlingFortification {
         for terminal in &self.tunnels.terminals {
             if area.contains_point(terminal.xy() - self.origin) {
                 let chance = dynamic_rng.gen_range(0..10);
-                match chance {
-                    0..=4 => supplement
-                        .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng)),
-                    5 => {
-                        supplement
-                            .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                        supplement
-                            .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                    },
-                    6 => {
-                        supplement.add_entity(deadwood(*terminal - 5 * Vec3::unit_z(), dynamic_rng))
-                    },
-                    7 => {
-                        supplement
-                            .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                        supplement
-                            .add_entity(deadwood(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                    },
-                    8 => {
-                        supplement
-                            .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                        supplement
-                            .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                        supplement
-                            .add_entity(mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng));
-                    },
-                    _ => {},
+                let entities = match chance {
+                    0..=4 => vec![mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng)],
+                    5 => vec![
+                        mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                        mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                    ],
+                    6 => vec![deadwood(*terminal - 5 * Vec3::unit_z(), dynamic_rng)],
+                    7 => vec![
+                        mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                        deadwood(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                    ],
+                    8 => vec![
+                        mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                        mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                        mandragora(*terminal - 5 * Vec3::unit_z(), dynamic_rng),
+                    ],
+                    _ => Vec::new(),
+                };
+                for entity in entities {
+                    supplement.add_entity(entity)
                 }
             }
         }
