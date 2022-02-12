@@ -11,6 +11,16 @@
     tracks: 
             [
         Individual((
+            title: "Cobbled Halls",
+            path: "voxygen.audio.soundtrack.dungeon.cobbled_halls",
+            length: 240.0,
+            timing: None,
+            biomes:[],
+            site: Some(Dungeon),
+            music_state: Activity(Explore),
+            artist: "Crow",
+        )),
+        Individual((
             title: "Warmth of the Hearth",
             path: "voxygen.audio.soundtrack.town.warmth_of_the_hearth",
             length: 156.0,
