@@ -19,6 +19,7 @@
         "hud.crafting.spinning_wheel": "Spinnrock",
         "hud.crafting.tanning_rack": "Garvningsställning",
         "hud.crafting.salvaging_station": "Återvinningsbord",
+        "hud.crafting.campfire": "Lägereld",
         // Tabs
         "hud.crafting.tabs.all": "Allt",
         "hud.crafting.tabs.armor": "Rustning",

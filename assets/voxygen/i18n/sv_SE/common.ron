@@ -38,6 +38,7 @@
         "common.random": "Slump",
         "common.empty": "Tomt",
         "common.confirm": "Bekräfta",
+        "common.delete_server": "Radera Server",
         
         // Settings Window title
         "common.interface_settings": "Gränssnittsinställningar",
@@ -115,6 +116,8 @@ Startade servern om?
         "common.material.stone": "Sten",
         "common.material.cloth": "Tyg",
         "common.material.hide": "Skinn",
+
+        "common.sprite.chest": "Kista",
     },
 
 
