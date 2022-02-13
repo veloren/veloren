@@ -8,7 +8,7 @@
         "hud.trade.phase2_description": "Bytet är nu låst för att ge dig\n tid att inspektera det.",
         /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
         "hud.trade.phase3_description": "Bytet behandlas.",
-        "hud.trade.persons_offer": "Erbjudande från {playername}",
+        "hud.trade.persons_offer": "Erbjudande från {playername}", // Comment to disable "Outdated" marking. Remove next time this translation changes
         "hud.trade.has_accepted": "{playername}\nhar accepterat", // Comment to disable "Outdated" marking. Remove next time this translation changes
         "hud.trade.accept": "Acceptera", // Comment to disable "Outdated" marking. Remove next time this translation changes
         "hud.trade.decline": "Avböj", // Comment to disable "Outdated" marking. Remove next time this translation changes

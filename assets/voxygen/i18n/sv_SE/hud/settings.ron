@@ -105,6 +105,7 @@
         "hud.settings.save_window_size": "Kom ihåg fönsterstorlek",
         "hud.settings.reset_graphics": "Återställ till standard",
         "hud.settings.bloom": "Bloom",
+        "hud.settings.point_glow": "Punktssken",
 
         "hud.settings.master_volume": "Huvudvolym",
         "hud.settings.inactive_master_volume_perc": "Huvudvolym (inaktivt fönster)",

@@ -30,13 +30,13 @@
 
 Känn dig fri att ta med dig vad du kan tänkas behöva på dina äventyr!
 
-Titta längst ner på din skärm för att se saker som din packning, karta och meny för att tillverka saker.
+Titta längst ner på höger sida av din skärm för att se saker som din packning, tillverkningsmeny och karta.
 
-Tilllverkningsmenyn låter dig tillverka saker som rustning, vapen, mat och mycket mer därtill!
+Tilllverkningsstationerna låter dig tillverka rustning, vapen, mat och mycket mer!
 
-De vilda djuren i och omkring byn är en bra källa till läderbitar som kan användas för att tillverka något för att skydda mot farorna som lurar där ute i världen.
+De vilda djuren runtom hela byn är en bra källa till djurhudar för att tillverka något för att skydda mot farorna ute i världen.
 
-När du känner dig redo kan du försöka skaffa bättre utrustning genom de många utmaningar som finns markerade på din karta!
+När du känner dig redo, försök skaffa bättre utrustning från de många utmaningarna som finns markerade på din karta!
 "#,
 
         "hud.spell": "Förtrollningar",
@@ -46,6 +46,15 @@ När du känner dig redo kan du försöka skaffa bättre utrustning genom de må
         "hud.free_look_indicator": "Kameran är olåst. Tryck {key} för att ändra.",
         "hud.camera_clamp_indicator": "Kameran är låst vertikalt. Tryck {key} För att ändra.",
         "hud.auto_walk_indicator": "Automatisk gång / simning aktiverad",
+        "hud.collect": "Samla in",
+        "hud.pick_up": "Plocka upp",
+        "hud.open": "Öppna",
+        "hud.use": "Använd",
+        "hud.mine": "Hacka",
+        "hud.talk": "Prata",
+        "hud.trade": "Byt",
+        "hud.mount": "Bestig",
+        "hud.sit": "Sitt",
     },
 
 
