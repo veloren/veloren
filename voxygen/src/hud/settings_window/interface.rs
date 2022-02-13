@@ -228,7 +228,7 @@ impl<'a> Widget for Interface<'a> {
 
         // Debug
         let show_debug = ToggleButton::new(
-            self.show.debug,
+            self.global_state.settings.interface.toggle_debug,
             self.imgs.checkbox,
             self.imgs.checkbox_checked,
         )
@@ -238,7 +238,7 @@ impl<'a> Widget for Interface<'a> {
         .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
         .set(state.ids.debug_button, ui);
 
-        if self.show.debug != show_debug {
+        if self.global_state.settings.interface.toggle_debug != show_debug {
             events.push(ToggleDebug(show_debug));
         }
 
