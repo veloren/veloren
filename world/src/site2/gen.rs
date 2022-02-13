@@ -509,6 +509,53 @@ pub struct Painter {
 }
 
 impl Painter {
+    /// Computes the depth of the tree rooted at `prim`
+    pub fn depth(&self, prim: Id<Primitive>) -> usize {
+        fn aux(prims: &Store<Primitive>, prim: Id<Primitive>, prev_depth: usize) -> usize {
+            match prims[prim] {
+                Primitive::Empty
+                | Primitive::Aabb(_)
+                | Primitive::Pyramid { .. }
+                | Primitive::Ramp { .. }
+                | Primitive::Gable { .. }
+                | Primitive::Cylinder(_)
+                | Primitive::Cone(_)
+                | Primitive::Sphere(_)
+                | Primitive::Superquadric { .. }
+                | Primitive::Plane(_, _, _)
+                | Primitive::Segment { .. }
+                | Primitive::SegmentPrism { .. }
+                | Primitive::Prefab(_) => prev_depth,
+                Primitive::Sampling(a, _)
+                | Primitive::Rotate(a, _)
+                | Primitive::Translate(a, _)
+                | Primitive::Scale(a, _)
+                | Primitive::Repeat(a, _, _) => aux(prims, a, 1 + prev_depth),
+
+                Primitive::Intersect(a, b) | Primitive::Union(a, b) | Primitive::Without(a, b) => {
+                    aux(prims, a, 1 + prev_depth).max(aux(prims, b, 1 + prev_depth))
+                },
+            }
+        }
+        let prims = self.prims.borrow();
+        aux(&prims, prim, 0)
+    }
+
+    /// Orders two primitives by depth, since (A && (B && C)) is cheaper to
+    /// evaluate than ((A && B) && C) due to short-circuiting.
+    pub fn order_by_depth(
+        &self,
+        a: impl Into<Id<Primitive>>,
+        b: impl Into<Id<Primitive>>,
+    ) -> (Id<Primitive>, Id<Primitive>) {
+        let (a, b) = (a.into(), b.into());
+        if self.depth(a) < self.depth(b) {
+            (a, b)
+        } else {
+            (b, a)
+        }
+    }
+
     /// Returns a `PrimitiveRef` of an axis aligned bounding box. The geometric
     /// name of this shape is a "right rectangular prism."
     pub fn aabb(&self, aabb: Aabb<i32>) -> PrimitiveRef {
@@ -838,13 +885,15 @@ impl<'a> PrimitiveRef<'a> {
     /// Joins two primitives together by returning the total of the blocks of
     /// both primitives. In boolean logic this is an `OR` operation.
     pub fn union(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::union(self, other))
+        let (a, b) = self.painter.order_by_depth(self, other);
+        self.painter.prim(Primitive::union(a, b))
     }
 
     /// Joins two primitives together by returning only overlapping blocks. In
     /// boolean logic this is an `AND` operation.
     pub fn intersect(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::intersect(self, other))
+        let (a, b) = self.painter.order_by_depth(self, other);
+        self.painter.prim(Primitive::intersect(a, b))
     }
 
     /// Subtracts the blocks of the `other` primitive from `self`. In boolean
