@@ -1,0 +1,20 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Arabic (Saudi locale)
+(
+    string_map: {
+        "character_window.character_name": "اسم الشخصية",
+        // Character stats
+        "character_window.character_stats": r#"قدرة التحمل
+
+اللياقه البدنيه
+
+قوة الإرادة
+
+الحماية
+"#,
+    },
+
+    vector_map: {
+    }
+)
