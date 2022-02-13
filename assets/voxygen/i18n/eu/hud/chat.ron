@@ -1,0 +1,49 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Basque
+(
+    string_map: {
+        "hud.chat.all": "Denak",
+        "hud.chat.chat_tab_hover_tooltip": "Egin klik eskuineko botoiarekin ezarpenak irekitzeko.",
+
+        // Debuff outcomes
+        "hud.outcome.burning": "kiskalita hil da",
+        "hud.outcome.curse": "sorginduta hil da",
+        "hud.outcome.bleeding": "odolustuta hil da",
+        "hud.outcome.crippled": "died of: crippled",
+        "hud.outcome.frozen": "izoztuta hil da",
+
+        // Chat outputs
+        "hud.chat.online_msg": "[{name}] sartu da",
+        "hud.chat.offline_msg": "[{name}] irten da",
+
+        "hud.chat.default_death_msg": "[{name}] hil da",
+        "hud.chat.environmental_kill_msg": "[{name}] {environment}-(e)n hil da",
+        "hud.chat.fall_kill_msg": "[{name}] altuera handi batetik erorita hil da",
+        "hud.chat.suicide_msg": "[{name}]-(e)k bere buruaz beste egin du",
+
+        "hud.chat.died_of_pvp_buff_msg": "[{victim}] {died_of_buff} [{attacker}]-(e)ren erruz",
+        "hud.chat.pvp_melee_kill_msg": "[{attacker}](e)k [{victim}] garaitu du",
+        "hud.chat.pvp_ranged_kill_msg": "[{attacker}](e)k [{victim}] tiroz hil du",
+        "hud.chat.pvp_explosion_kill_msg": "[{attacker}](e)k [{victim}] leherrarazi du",
+        "hud.chat.pvp_energy_kill_msg": "[{attacker}](e)k [{victim}] magiaz hil du",
+
+        "hud.chat.died_of_buff_nonexistent_msg": "[{victim}] {died_of_buff}",
+
+        "hud.chat.died_of_npc_buff_msg": "[{victim}] {died_of_buff} caused by {attacker}",
+        "hud.chat.npc_melee_kill_msg": "{attacker}-(e)k [{victim}] hil du",
+        "hud.chat.npc_ranged_kill_msg": "{attacker}-(e)k [{victim}] tiroz hil du",
+        "hud.chat.npc_explosion_kill_msg": "{attacker}-(e)k [{victim}] leherrarazi du",
+        "hud.chat.npc_energy_kill_msg": "{attacker}-(e)k [{victim}] magiaz hil du",
+        "hud.chat.npc_other_kill_msg": "{attacker}-(e)k [{victim}] hil du",
+
+        "hud.chat.loot_msg": "[{item}] jaso duzu",
+        "hud.chat.loot_fail": "Inbentarioa beteta duzu!",
+        "hud.chat.goodbye": "Agur!",
+        "hud.chat.connection_lost": "Konexioa galdu duzu. {time} segundo barru kanporatua izango zara.",
+    },
+
+
+    vector_map: {
+    }
+)

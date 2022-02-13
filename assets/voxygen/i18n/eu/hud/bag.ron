@@ -1,0 +1,45 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Basque
+(
+    string_map: {
+        // Inventory
+        "hud.bag.inventory": "{playername}(r)en inbentarioa",
+        "hud.bag.stats_title": "{playername}(r)en estatistikak",
+        "hud.bag.exp": "Esp",
+        "hud.bag.armor": "Armadura",
+        "hud.bag.stats": "Estatistikak",
+        "hud.bag.head": "Burua",
+        "hud.bag.neck": "Lepoa",
+        "hud.bag.tabard": "Tabard",
+        "hud.bag.shoulders": "Sorbalda",
+        "hud.bag.chest": "Bularra",
+        "hud.bag.hands": "Eskuak",
+        "hud.bag.lantern": "Argiontzia",
+        "hud.bag.glider": "Planeagailua",
+        "hud.bag.belt": "Gerrikoa",
+        "hud.bag.ring": "Eraztuna",
+        "hud.bag.back": "Bizkarra",
+        "hud.bag.legs": "Hankak",
+        "hud.bag.feet": "Oinak",
+        "hud.bag.mainhand": "Esku nagusia",
+        "hud.bag.offhand": "Bigarren eskua",
+        "hud.bag.swap_equipped_weapons_desc": "Sakatu {key}",
+        "hud.bag.bag": "Zorroa",
+        "hud.bag.health": "Osasuna",
+        "hud.bag.energy": "Energia",
+        "hud.bag.combat_rating": "Borroka maila",
+        "hud.bag.protection": "Babesa",
+        "hud.bag.stun_res": "Kolpeen aurkako indarra",
+        "hud.bag.combat_rating_desc": "Ekipamendua eta osasunaren arabera kalkulatua",
+        "hud.bag.protection_desc": "Armadurak emandako babesa.",
+        "hud.bag.stun_res_desc": "Bata bestearen atzetik jasotako kolpeei aurre egiteko indarra. Energia bezala berreskuratzen da.",
+        "hud.bag.sort_by_name": "Ordenatu izenaren arabera",
+        "hud.bag.sort_by_quality": "Ordenatu kalitatearen arabera",
+        "hud.bag.sort_by_category": "Ordenatu kategoriaren arabera",
+    },
+
+
+    vector_map: {
+    }
+)
