@@ -1,15 +1,15 @@
 BasicRanged(
     energy_cost: 0,
-    buildup_duration: 0.5,
+    buildup_duration: 0.55,
     recover_duration: 0.4,
     projectile: Fireball(
         damage: 9.0,
-        radius: 4.0,
+        radius: 2.0,
         energy_regen: 10.0,
         min_falloff: 0.5,
     ),
     projectile_body: Object(BoltFire),
-    projectile_speed: 40,
+    projectile_speed: 25,
     num_projectiles: 8,
-    projectile_spread: 0.05,
+    projectile_spread: 0.125,
 )

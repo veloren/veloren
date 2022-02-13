@@ -1,6 +1,6 @@
 ItemDef(
     name: "Gnarling Chieftain",
-    description: "Ceremonial attire used by members..",
+    description: "Only worn by the most spiritual of Gnarlings.",
     kind: Armor((
         kind: Pants("GnarlingChieftain"),
         stats: (
