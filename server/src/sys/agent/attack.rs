@@ -142,10 +142,24 @@ impl<'a> AgentData<'a> {
                     ..self.traversal_config
                 },
             ) {
-                controller.inputs.move_dir =
-                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
-                if !self.char_state.is_attack() {
-                    controller.inputs.look_dir = -controller.inputs.look_dir;
+                let flee_dir = -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
+                let pos = self.pos.0.xy().with_z(self.pos.0.z + 1.5);
+                if read_data
+                    .terrain
+                    .ray(pos, pos + flee_dir * 2.0)
+                    .until(|b| b.is_solid() || b.get_sprite().is_none())
+                    .cast()
+                    .0
+                    > 1.0
+                {
+                    // If able to flee, flee
+                    controller.inputs.move_dir = flee_dir;
+                    if !self.char_state.is_attack() {
+                        controller.inputs.look_dir = -controller.inputs.look_dir;
+                    }
+                } else {
+                    // Otherwise, fight to the death
+                    controller.push_basic_input(InputKind::Primary);
                 }
             }
         } else if attack_data.dist_sqrd < PREF_DIST.powi(2) {
@@ -2272,7 +2286,21 @@ impl<'a> AgentData<'a> {
         } else if agent.action_state.timer > TOTEM_TIMER {
             // If time to summon a totem, do it
             let input = rng.gen_range(1..=3);
-            controller.push_basic_input(InputKind::Ability(input));
+            let buff_kind = match input {
+                2 => Some(BuffKind::Regeneration),
+                3 => Some(BuffKind::Hastened),
+                _ => None,
+            };
+            if buff_kind.map_or(true, |b| self.has_buff(read_data, b))
+                && matches!(self.char_state, CharacterState::Wielding { .. })
+            {
+                // If already under effects of buff from totem that would be summoned, don't
+                // summon totem (doesn't work for red totems since that applies debuff to
+                // enemies instead)
+                agent.action_state.timer = 0.0;
+            } else {
+                controller.push_basic_input(InputKind::Ability(input));
+            }
         } else if agent.action_state.counter > HEAVY_ATTACK_WAIT_TIME {
             // Else if time for a heavy attack
             if attack_data.in_min_range() {

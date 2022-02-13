@@ -700,6 +700,7 @@ impl Body {
                 _ => 1000,
             },
             Body::Golem(golem) => match golem.species {
+                golem::Species::WoodGolem => 200,
                 golem::Species::ClayGolem => 450,
                 _ => 1000,
             },
@@ -778,7 +779,14 @@ impl Body {
                 _ => false,
             },
             BuffKind::Regeneration => {
-                matches!(self, Body::Object(object::Body::GnarlingTotemGreen))
+                matches!(
+                    self,
+                    Body::Object(
+                        object::Body::GnarlingTotemRed
+                            | object::Body::GnarlingTotemGreen
+                            | object::Body::GnarlingTotemWhite
+                    )
+                )
             },
             _ => false,
         }

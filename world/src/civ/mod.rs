@@ -137,7 +137,7 @@ impl Civs {
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
-                SiteKind::Gnarling => (16i32, 5.0),
+                SiteKind::Gnarling => (16i32, 10.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {

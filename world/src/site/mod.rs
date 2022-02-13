@@ -27,6 +27,7 @@ pub struct SpawnRules {
     pub trees: bool,
     pub max_warp: f32,
     pub paths: bool,
+    pub waypoints: bool,
 }
 
 impl SpawnRules {
@@ -37,6 +38,7 @@ impl SpawnRules {
             trees: self.trees && other.trees,
             max_warp: self.max_warp.min(other.max_warp),
             paths: self.paths && other.paths,
+            waypoints: self.waypoints && other.waypoints,
         }
     }
 }
@@ -47,6 +49,7 @@ impl Default for SpawnRules {
             trees: true,
             max_warp: 1.0,
             paths: true,
+            waypoints: true,
         }
     }
 }

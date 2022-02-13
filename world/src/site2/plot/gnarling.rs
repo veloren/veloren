@@ -221,11 +221,15 @@ impl GnarlingFortification {
                     + corner_2.as_() * corner_2_weight)
                     .as_();
 
-                // Check that structure not too close to another structure
-                if structure_locations.iter().any(|(kind, loc, _door_dir)| {
-                    structure_center.distance_squared(loc.xy())
-                        < structure_kind.required_separation(kind).pow(2)
-                }) {
+                // Check that structure not in the water or too close to another structure
+                if land
+                    .get_chunk_wpos(structure_center + origin)
+                    .map_or(false, |c| c.is_underwater())
+                    || structure_locations.iter().any(|(kind, loc, _door_dir)| {
+                        structure_center.distance_squared(loc.xy())
+                            < structure_kind.required_separation(kind).pow(2)
+                    })
+                {
                     None
                 } else {
                     Some((
@@ -316,6 +320,15 @@ impl GnarlingFortification {
 
     pub fn radius(&self) -> i32 { self.radius }
 
+    pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
+        SpawnRules {
+            trees: wpos.distance_squared(self.origin) > self.wall_radius.pow(2),
+            waypoints: false,
+            ..SpawnRules::default()
+        }
+    }
+
+    // TODO: Find a better way of spawning entities in site2
     pub fn apply_supplement<'a>(
         &'a self,
         // NOTE: Used only for dynamic elements like chests and entities!
@@ -362,47 +375,45 @@ impl GnarlingFortification {
             ));
         }
 
-        for (loc, pos, ori) in &self.structure_locations {
+        for (loc, pos, _ori) in &self.structure_locations {
             let wpos = *pos + self.origin;
             if area.contains_point(pos.xy()) {
                 match loc {
                     GnarlingStructure::Hut => {
-                        supplement.add_entity(random_gnarling(wpos, dynamic_rng));
+                        let num = dynamic_rng.gen_range(2..=3);
+                        for _ in 0..num {
+                            supplement.add_entity(random_gnarling(wpos, dynamic_rng));
+                        }
                     },
                     GnarlingStructure::VeloriteHut => {
-                        supplement.add_entity(random_gnarling(wpos, dynamic_rng));
+                        let num = dynamic_rng.gen_range(2..=6);
+                        for _ in 0..num {
+                            supplement.add_entity(random_gnarling(
+                                wpos.xy().with_z(wpos.z + 12),
+                                dynamic_rng,
+                            ));
+                        }
                     },
-                    GnarlingStructure::Banner => {
-                        supplement.add_entity(random_gnarling(wpos, dynamic_rng));
-                    },
+                    GnarlingStructure::Banner => {},
                     GnarlingStructure::ChieftainHut => {
-                        supplement.add_entity(gnarling_chieftain(
-                            wpos.xy().with_z(wpos.z + 8),
-                            dynamic_rng,
-                        ));
-                        let left_inner_guard_pos = wpos + ori.dir() * 8 + ori.cw().dir() * 2;
-                        supplement.add_entity(wood_golem(left_inner_guard_pos, dynamic_rng));
-                        let right_inner_guard_pos = wpos + ori.dir() * 8 + ori.ccw().dir() * 2;
-                        supplement.add_entity(wood_golem(right_inner_guard_pos, dynamic_rng));
-                        let left_outer_guard_pos = wpos + ori.dir() * 16 + ori.cw().dir() * 2;
-                        supplement.add_entity(random_gnarling(left_outer_guard_pos, dynamic_rng));
-                        let right_outer_guard_pos = wpos + ori.dir() * 16 + ori.ccw().dir() * 2;
-                        supplement.add_entity(random_gnarling(right_outer_guard_pos, dynamic_rng));
+                        let pos = wpos.xy().with_z(wpos.z + 8);
+                        supplement.add_entity(gnarling_chieftain(pos, dynamic_rng));
+                        for _ in 0..2 {
+                            supplement.add_entity(wood_golem(pos, dynamic_rng));
+                        }
                     },
                     GnarlingStructure::WatchTower => {
                         supplement.add_entity(wood_golem(wpos, dynamic_rng));
                         let spawn_pos = wpos.xy().with_z(wpos.z + 27);
-                        for _ in 0..4 {
+                        let num = dynamic_rng.gen_range(2..=4);
+                        for _ in 0..num {
                             supplement.add_entity(gnarling_stalker(
                                 spawn_pos + Vec2::broadcast(4),
                                 dynamic_rng,
                             ));
                         }
                     },
-                    GnarlingStructure::Totem => {
-                        let spawn_pos = wpos + pos.xy().map(|x| x.signum() * -5);
-                        supplement.add_entity(wood_golem(spawn_pos, dynamic_rng));
-                    },
+                    GnarlingStructure::Totem => {},
                 }
             }
         }
@@ -511,7 +522,7 @@ impl Structure for GnarlingFortification {
 
                     painter
                         .segment_prism(start, end, wall_mid_thickness, wall_mid_height)
-                        .fill(darkwood.clone());
+                        .fill(darkwood);
 
                     let start = start_wpos
                         .as_()
@@ -850,12 +861,7 @@ impl Structure for GnarlingFortification {
                     painter: &Painter,
                     wpos: Vec2<i32>,
                     alt: i32,
-                    _door_dir: Ori,
-                    hut_radius: f32,
-                    _hut_wall_height: f32,
-                    _door_height: i32,
                     roof_height: f32,
-                    _roof_overhang: f32,
                 ) {
                     let darkwood = Fill::Brick(BlockKind::Wood, Rgb::new(55, 25, 8), 12);
                     let lightwood = Fill::Brick(BlockKind::Wood, Rgb::new(71, 33, 11), 12);
@@ -1300,23 +1306,9 @@ impl Structure for GnarlingFortification {
                             .fill(Fill::Prefab(Box::new(totem), totem_pos, self.seed));
                     },
                     GnarlingStructure::ChieftainHut => {
-                        let hut_radius = 5.0;
-                        let hut_wall_height = 15.0;
-                        let door_height = 3;
                         let roof_height = 3.0;
-                        let roof_overhang = 1.0;
 
-                        generate_chieftainhut(
-                            painter,
-                            wpos,
-                            alt,
-                            *door_dir,
-                            hut_radius,
-                            hut_wall_height,
-                            door_height,
-                            roof_height,
-                            roof_overhang,
-                        );
+                        generate_chieftainhut(painter, wpos, alt, roof_height);
                     },
 
                     GnarlingStructure::Banner => {

@@ -88,11 +88,20 @@ impl Site {
             .min_by_key(|d2| *d2 as i32)
             .map(|d2| d2.sqrt() as f32 / TILE_SIZE as f32)
             .unwrap_or(1.0);
-        SpawnRules {
+        let base_spawn_rules = SpawnRules {
             trees: max_warp == 1.0,
             max_warp,
             paths: max_warp > std::f32::EPSILON,
-        }
+            waypoints: true,
+        };
+        self.plots
+            .values()
+            .filter_map(|plot| match &plot.kind {
+                PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
+                PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
+                _ => None,
+            })
+            .fold(base_spawn_rules, |a, b| a.combine(b))
     }
 
     pub fn bounds(&self) -> Aabr<i32> {
