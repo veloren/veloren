@@ -380,13 +380,13 @@ impl GnarlingFortification {
             if area.contains_point(pos.xy()) {
                 match loc {
                     GnarlingStructure::Hut => {
-                        let num = dynamic_rng.gen_range(2..=3);
+                        let num = dynamic_rng.gen_range(1..=3);
                         for _ in 0..num {
                             supplement.add_entity(random_gnarling(wpos, dynamic_rng));
                         }
                     },
                     GnarlingStructure::VeloriteHut => {
-                        let num = dynamic_rng.gen_range(2..=6);
+                        let num = dynamic_rng.gen_range(1..=4);
                         for _ in 0..num {
                             supplement.add_entity(random_gnarling(
                                 wpos.xy().with_z(wpos.z + 12),
@@ -400,6 +400,9 @@ impl GnarlingFortification {
                         supplement.add_entity(gnarling_chieftain(pos, dynamic_rng));
                         for _ in 0..2 {
                             supplement.add_entity(wood_golem(pos, dynamic_rng));
+                        }
+                        for _ in 0..6 {
+                            supplement.add_entity(random_gnarling(pos, dynamic_rng));
                         }
                     },
                     GnarlingStructure::WatchTower => {
@@ -1549,7 +1552,7 @@ impl Structure for GnarlingFortification {
                                     min: (wpos + 2).with_z(alt + roof_height),
                                     max: (wpos + 9).with_z(alt + roof_height + 4),
                                 },
-                                1,
+                                0,
                                 Dir::Y,
                             )
                             .without(
@@ -1560,7 +1563,7 @@ impl Structure for GnarlingFortification {
                                         max: Vec2::new(wpos.x + 8, wpos.y + 9)
                                             .with_z(alt + roof_height + 3),
                                     },
-                                    1,
+                                    0,
                                     Dir::Y,
                                 ),
                             );
@@ -1869,10 +1872,10 @@ fn gnarling_logger<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
 }
 
 fn random_gnarling<R: Rng>(pos: Vec3<i32>, rng: &mut R) -> EntityInfo {
-    match rng.gen_range(0..3) {
-        0 => gnarling_logger(pos, rng),
+    match rng.gen_range(0..4) {
+        0 => gnarling_stalker(pos, rng),
         1 => gnarling_mugger(pos, rng),
-        _ => gnarling_stalker(pos, rng),
+        _ => gnarling_logger(pos, rng),
     }
 }
 

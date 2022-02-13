@@ -7,6 +7,6 @@ EntityConfig (
         base_asset: Loadout("common.loadout.dungeon.gnarling.mandragora"),
         inventory: [],
     ),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.miniboss"),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
     meta: [],
 )

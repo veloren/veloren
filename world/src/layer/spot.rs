@@ -481,7 +481,9 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                     (3..5, "common.entity.dungeon.gnarling.mugger"),
                     (3..5, "common.entity.dungeon.gnarling.stalker"),
                     (3..5, "common.entity.dungeon.gnarling.logger"),
-                    (2..4, "common.entity.dungeon.gnarling.chieftain"),
+                    (2..4, "common.entity.dungeon.gnarling.mandragora"),
+                    (1..3, "common.entity.wild.aggressive.deadwood"),
+                    (1..2, "common.entity.dungeon.gnarling.woodgolem"),
                 ],
             },
             Spot::GnarlingTree => SpotConfig {
