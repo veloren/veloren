@@ -82,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Friendly creatures will now defend each other
 - Creatures will now defend their pets
 - [WorldGen] Change path colors
+- Render item drops instead of placeholder textures
 
 ### Removed
 

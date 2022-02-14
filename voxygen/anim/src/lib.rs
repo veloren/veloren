@@ -58,6 +58,7 @@ pub mod fish_medium;
 pub mod fish_small;
 pub mod fixture;
 pub mod golem;
+pub mod item_drop;
 pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;

@@ -2,7 +2,7 @@ use super::image_frame::ImageFrame;
 use crate::hud::{
     get_quality_col,
     img_ids::Imgs,
-    item_imgs::{animate_by_pulse, ItemImgs, ItemKey},
+    item_imgs::{animate_by_pulse, ItemImgs},
     util,
 };
 use client::Client;
@@ -11,6 +11,7 @@ use common::{
     comp::{
         item::{
             armor::{ArmorKind, Protection},
+            item_key::ItemKey,
             Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
         },
         Energy,

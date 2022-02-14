@@ -8,6 +8,7 @@ pub mod fish_medium;
 pub mod fish_small;
 pub mod golem;
 pub mod humanoid;
+pub mod item_drop;
 pub mod object;
 pub mod quadruped_low;
 pub mod quadruped_medium;
@@ -50,6 +51,7 @@ make_case_elim!(
         QuadrupedLow(body: quadruped_low::Body) = 13,
         Ship(body: ship::Body) = 14,
         Arthropod(body: arthropod::Body) = 15,
+        ItemDrop(body: item_drop::Body) = 16,
     }
 );
 
@@ -83,6 +85,7 @@ pub struct AllBodies<BodyMeta, SpeciesMeta> {
     pub biped_large: BodyData<BodyMeta, biped_large::AllSpecies<SpeciesMeta>>,
     pub biped_small: BodyData<BodyMeta, biped_small::AllSpecies<SpeciesMeta>>,
     pub object: BodyData<BodyMeta, ()>,
+    pub item_drop: BodyData<BodyMeta, ()>,
     pub golem: BodyData<BodyMeta, golem::AllSpecies<SpeciesMeta>>,
     pub theropod: BodyData<BodyMeta, theropod::AllSpecies<SpeciesMeta>>,
     pub quadruped_low: BodyData<BodyMeta, quadruped_low::AllSpecies<SpeciesMeta>>,
@@ -133,6 +136,7 @@ impl<'a, BodyMeta, SpeciesMeta> core::ops::Index<&'a Body> for AllBodies<BodyMet
             Body::BipedLarge(_) => &self.biped_large.body,
             Body::BipedSmall(_) => &self.biped_small.body,
             Body::Object(_) => &self.object.body,
+            Body::ItemDrop(_) => &self.item_drop.body,
             Body::Golem(_) => &self.golem.body,
             Body::Theropod(_) => &self.theropod.body,
             Body::QuadrupedLow(_) => &self.quadruped_low.body,
@@ -196,6 +200,7 @@ impl Body {
                 _ => false,
             },
             Body::Object(_) => false,
+            Body::ItemDrop(_) => false,
             Body::Golem(b1) => match other {
                 Body::Golem(b2) => b1.species == b2.species,
                 _ => false,
@@ -235,6 +240,7 @@ impl Body {
             Body::Humanoid(_) => HUMAN_DENSITY,
             Body::Ship(ship) => ship.density().0,
             Body::Object(object) => object.density().0,
+            Body::ItemDrop(item_drop) => item_drop.density().0,
             _ => HUMAN_DENSITY,
         };
         Density(d)
@@ -287,6 +293,7 @@ impl Body {
                 65.0 * humanoid.height() / 1.75f32
             },
             Body::Object(obj) => obj.mass().0,
+            Body::ItemDrop(item_drop) => item_drop.mass().0,
             Body::QuadrupedLow(body) => match body.species {
                 quadruped_low::Species::Alligator => 360.0, // ~✅
                 quadruped_low::Species::Asp => 300.0,
@@ -411,6 +418,7 @@ impl Body {
                 Vec3::new(height / 1.3, 1.75 / 2.0, height)
             },
             Body::Object(object) => object.dimensions(),
+            Body::ItemDrop(item_drop) => item_drop.dimensions(),
             Body::QuadrupedMedium(body) => match body.species {
                 quadruped_medium::Species::Barghest => Vec3::new(2.0, 4.4, 2.7),
                 quadruped_medium::Species::Bear => Vec3::new(2.0, 3.8, 3.0),
@@ -696,6 +704,7 @@ impl Body {
                 object::Body::SeaLantern => 100,
                 _ => 1000,
             },
+            Body::ItemDrop(_) => 1000,
             Body::Golem(golem) => match golem.species {
                 golem::Species::ClayGolem => 450,
                 _ => 1000,

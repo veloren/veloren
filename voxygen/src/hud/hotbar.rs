@@ -1,5 +1,7 @@
-use crate::hud::item_imgs::ItemKey;
-use common::comp::{self, inventory::item::Item};
+use common::comp::{
+    self,
+    inventory::item::{item_key::ItemKey, Item},
+};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq)]

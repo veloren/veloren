@@ -12,8 +12,8 @@ use common::{
         fish_small::{self, BodyType as FSBodyType, Species as FSSpecies},
         golem::{self, BodyType as GBodyType, Species as GSpecies},
         humanoid::{self, Body, BodyType, EyeColor, Skin, Species},
-        item::{ItemDef, ModularComponentKind},
-        object,
+        item::{item_key::ItemKey, ItemDef, ModularComponentKind},
+        item_drop, object,
         quadruped_low::{self, BodyType as QLBodyType, Species as QLSpecies},
         quadruped_medium::{self, BodyType as QMBodyType, Species as QMSpecies},
         quadruped_small::{self, BodyType as QSBodyType, Species as QSSpecies},
@@ -23,7 +23,7 @@ use common::{
         },
         theropod::{self, BodyType as TBodyType, Species as TSpecies},
     },
-    figure::{Cell, DynaUnionizer, MatSegment, Material, Segment},
+    figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
     vol::Vox,
 };
 use hashbrown::HashMap;
@@ -137,7 +137,6 @@ macro_rules! make_vox_spec {
             type Manifests = AssetHandle<Self::Spec>;
             type Extra = ();
 
-            #[allow(unused_variables)]
             fn load_spec() -> Result<Self::Manifests, assets::Error> {
                 Self::Spec::load("")
             }
@@ -398,7 +397,7 @@ make_vox_spec!(
         // TODO: Add these.
         /* tabard: HumArmorTabardSpec = "voxygen.voxel.humanoid_armor_tabard_manifest", */
     },
-    |FigureKey { body, extra }, spec| {
+    |FigureKey { body, item_key: _, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -2888,7 +2887,7 @@ make_vox_spec!(
         armor_tail: BipedSmallArmorTailSpec = "voxygen.voxel.biped_small_armor_tail_manifest",
 
     },
-    |FigureKey { body: _, extra }, spec| {
+    |FigureKey { body: _, item_key: _, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -3917,7 +3916,7 @@ make_vox_spec!(
         main: BipedLargeMainSpec = "voxygen.voxel.biped_weapon_manifest",
         second: BipedLargeSecondSpec = "voxygen.voxel.biped_weapon_manifest",
     },
-    |FigureKey { body, extra }, spec| {
+    |FigureKey { body, item_key: _, extra }, spec| {
         const DEFAULT_LOADOUT: super::cache::CharacterCacheKey = super::cache::CharacterCacheKey {
             third_person: None,
             tool: None,
@@ -4902,6 +4901,75 @@ impl ObjectCentralSpec {
     }
 }
 
+#[derive(Deserialize)]
+struct ItemDropCentralSpec(HashMap<ItemKey, (String, [f32; 3], [f32; 3], f32)>);
+
+make_vox_spec!(
+    item_drop::Body,
+    struct ItemDropSpec {
+        central: ItemDropCentralSpec = "voxygen.voxel.item_drop_manifest",
+    },
+    | FigureKey { body, item_key, .. }, spec| {
+        [
+            Some(spec.central.read().0.mesh_bone0(body, item_key.as_deref().unwrap_or(&ItemKey::Empty))),
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+        ]
+    },
+);
+
+impl ItemDropCentralSpec {
+    fn mesh_bone0(&self, item_drop: &item_drop::Body, item_key: &ItemKey) -> BoneMeshes {
+        let coin_pouch = (
+            "voxel.object.pouch".to_string(),
+            [-5.0, -5.0, 0.0],
+            [-10.0, 15.0, 0.0],
+            0.8,
+        );
+
+        if let Some(spec) = match item_drop {
+            item_drop::Body::CoinPouch => Some(&coin_pouch),
+            _ => self.0.get(item_key),
+        } {
+            let full_spec: String = ["voxygen.", spec.0.as_str()].concat();
+            (
+                match item_drop {
+                    item_drop::Body::Armor(_) => {
+                        MatSegment::from(&graceful_load_vox_fullspec(&full_spec).read().0)
+                            .map(|mat_cell| match mat_cell {
+                                MatCell::None => None,
+                                MatCell::Mat(_) => Some(MatCell::None),
+                                MatCell::Normal(data) => data.is_hollow().then(|| MatCell::None),
+                            })
+                            .to_segment(|_| Default::default())
+                    },
+                    _ => graceful_load_segment_fullspec(&full_spec),
+                },
+                Vec3::from(spec.1),
+            )
+        } else {
+            error!(
+                "No specification exists for {:?}, {:?}",
+                item_drop, item_key
+            );
+            load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5))
+        }
+    }
+}
+
 fn mesh_ship_bone<K: fmt::Debug + Eq + Hash, V, F: Fn(&V) -> &ShipCentralSubSpec>(
     map: &HashMap<K, V>,
     obj: &K,
@@ -4925,7 +4993,6 @@ impl BodySpec for ship::Body {
     type Manifests = AssetHandle<Self::Spec>;
     type Spec = ShipSpec;
 
-    #[allow(unused_variables)]
     fn load_spec() -> Result<Self::Manifests, assets::Error> { Self::Spec::load("") }
 
     fn reload_watcher(manifests: &Self::Manifests) -> ReloadWatcher { manifests.reload_watcher() }

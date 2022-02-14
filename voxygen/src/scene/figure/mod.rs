@@ -24,16 +24,17 @@ use anim::{
     arthropod::ArthropodSkeleton, biped_large::BipedLargeSkeleton, biped_small::BipedSmallSkeleton,
     bird_large::BirdLargeSkeleton, bird_medium::BirdMediumSkeleton, character::CharacterSkeleton,
     dragon::DragonSkeleton, fish_medium::FishMediumSkeleton, fish_small::FishSmallSkeleton,
-    golem::GolemSkeleton, object::ObjectSkeleton, quadruped_low::QuadrupedLowSkeleton,
-    quadruped_medium::QuadrupedMediumSkeleton, quadruped_small::QuadrupedSmallSkeleton,
-    ship::ShipSkeleton, theropod::TheropodSkeleton, Animation, Skeleton,
+    golem::GolemSkeleton, item_drop::ItemDropSkeleton, object::ObjectSkeleton,
+    quadruped_low::QuadrupedLowSkeleton, quadruped_medium::QuadrupedMediumSkeleton,
+    quadruped_small::QuadrupedSmallSkeleton, ship::ShipSkeleton, theropod::TheropodSkeleton,
+    Animation, Skeleton,
 };
 use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
-        Body, CharacterState, Collider, Controller, Health, Inventory, Item, Last, LightAnimation,
-        LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
+        Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
+        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     link::Is,
     mounting::Rider,
@@ -117,6 +118,7 @@ struct FigureMgrStates {
     biped_small_states: HashMap<EcsEntity, FigureState<BipedSmallSkeleton>>,
     golem_states: HashMap<EcsEntity, FigureState<GolemSkeleton>>,
     object_states: HashMap<EcsEntity, FigureState<ObjectSkeleton>>,
+    item_drop_states: HashMap<EcsEntity, FigureState<ItemDropSkeleton>>,
     ship_states: HashMap<EcsEntity, FigureState<ShipSkeleton>>,
     volume_states: HashMap<EcsEntity, FigureState<VolumeKey>>,
     arthropod_states: HashMap<EcsEntity, FigureState<ArthropodSkeleton>>,
@@ -139,6 +141,7 @@ impl FigureMgrStates {
             biped_small_states: HashMap::new(),
             golem_states: HashMap::new(),
             object_states: HashMap::new(),
+            item_drop_states: HashMap::new(),
             ship_states: HashMap::new(),
             volume_states: HashMap::new(),
             arthropod_states: HashMap::new(),
@@ -202,6 +205,10 @@ impl FigureMgrStates {
                 .map(DerefMut::deref_mut),
             Body::Golem(_) => self.golem_states.get_mut(entity).map(DerefMut::deref_mut),
             Body::Object(_) => self.object_states.get_mut(entity).map(DerefMut::deref_mut),
+            Body::ItemDrop(_) => self
+                .item_drop_states
+                .get_mut(entity)
+                .map(DerefMut::deref_mut),
             Body::Ship(ship) => {
                 if ship.manifest_entry().is_some() {
                     self.ship_states.get_mut(entity).map(DerefMut::deref_mut)
@@ -236,6 +243,7 @@ impl FigureMgrStates {
             Body::BipedSmall(_) => self.biped_small_states.remove(entity).map(|e| e.meta),
             Body::Golem(_) => self.golem_states.remove(entity).map(|e| e.meta),
             Body::Object(_) => self.object_states.remove(entity).map(|e| e.meta),
+            Body::ItemDrop(_) => self.item_drop_states.remove(entity).map(|e| e.meta),
             Body::Ship(ship) => {
                 if ship.manifest_entry().is_some() {
                     self.ship_states.remove(entity).map(|e| e.meta)
@@ -263,6 +271,7 @@ impl FigureMgrStates {
         self.biped_small_states.retain(|k, v| f(k, &mut *v));
         self.golem_states.retain(|k, v| f(k, &mut *v));
         self.object_states.retain(|k, v| f(k, &mut *v));
+        self.item_drop_states.retain(|k, v| f(k, &mut *v));
         self.ship_states.retain(|k, v| f(k, &mut *v));
         self.volume_states.retain(|k, v| f(k, &mut *v));
         self.arthropod_states.retain(|k, v| f(k, &mut *v));
@@ -284,6 +293,7 @@ impl FigureMgrStates {
             + self.biped_small_states.len()
             + self.golem_states.len()
             + self.object_states.len()
+            + self.item_drop_states.len()
             + self.ship_states.len()
             + self.volume_states.len()
             + self.arthropod_states.len()
@@ -360,6 +370,11 @@ impl FigureMgrStates {
                 .filter(|(_, c)| c.visible())
                 .count()
             + self
+                .item_drop_states
+                .iter()
+                .filter(|(_, c)| c.visible())
+                .count()
+            + self
                 .arthropod_states
                 .iter()
                 .filter(|(_, c)| c.visible())
@@ -388,6 +403,7 @@ pub struct FigureMgr {
     biped_large_model_cache: FigureModelCache<BipedLargeSkeleton>,
     biped_small_model_cache: FigureModelCache<BipedSmallSkeleton>,
     object_model_cache: FigureModelCache<ObjectSkeleton>,
+    item_drop_model_cache: FigureModelCache<ItemDropSkeleton>,
     ship_model_cache: FigureModelCache<ShipSkeleton>,
     golem_model_cache: FigureModelCache<GolemSkeleton>,
     volume_model_cache: FigureModelCache<VolumeKey>,
@@ -412,6 +428,7 @@ impl FigureMgr {
             biped_large_model_cache: FigureModelCache::new(),
             biped_small_model_cache: FigureModelCache::new(),
             object_model_cache: FigureModelCache::new(),
+            item_drop_model_cache: FigureModelCache::new(),
             ship_model_cache: FigureModelCache::new(),
             golem_model_cache: FigureModelCache::new(),
             volume_model_cache: FigureModelCache::new(),
@@ -446,6 +463,7 @@ impl FigureMgr {
         self.biped_small_model_cache
             .clean(&mut self.col_lights, tick);
         self.object_model_cache.clean(&mut self.col_lights, tick);
+        self.item_drop_model_cache.clean(&mut self.col_lights, tick);
         self.ship_model_cache.clean(&mut self.col_lights, tick);
         self.golem_model_cache.clean(&mut self.col_lights, tick);
         self.volume_model_cache.clean(&mut self.col_lights, tick);
@@ -864,6 +882,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let holding_lantern = inventory
@@ -1759,6 +1778,7 @@ impl FigureMgr {
                             player_camera_mode,
                             player_character_state,
                             &slow_jobs,
+                            None,
                         );
 
                     let state = self
@@ -1957,6 +1977,7 @@ impl FigureMgr {
                             player_camera_mode,
                             player_character_state,
                             &slow_jobs,
+                            None,
                         );
 
                     let state = self
@@ -2272,6 +2293,7 @@ impl FigureMgr {
                             player_camera_mode,
                             player_character_state,
                             &slow_jobs,
+                            None,
                         );
 
                     let state = self
@@ -2627,6 +2649,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -2729,6 +2752,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -2810,6 +2834,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -3207,6 +3232,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self.states.dragon_states.entry(entity).or_insert_with(|| {
@@ -3292,6 +3318,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -3469,6 +3496,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -3759,6 +3787,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -4080,6 +4109,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -4161,6 +4191,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self
@@ -4781,6 +4812,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self.states.golem_states.entry(entity).or_insert_with(|| {
@@ -5020,6 +5052,7 @@ impl FigureMgr {
                         player_camera_mode,
                         player_character_state,
                         &slow_jobs,
+                        None,
                     );
 
                     let state = self.states.object_states.entry(entity).or_insert_with(|| {
@@ -5135,6 +5168,68 @@ impl FigureMgr {
                         body,
                     );
                 },
+                Body::ItemDrop(body) => {
+                    let item_key = item.map(ItemKey::from);
+                    let (model, skeleton_attr) = self.item_drop_model_cache.get_or_create_model(
+                        renderer,
+                        &mut self.col_lights,
+                        body,
+                        inventory,
+                        (),
+                        tick,
+                        player_camera_mode,
+                        player_character_state,
+                        &slow_jobs,
+                        item_key,
+                    );
+
+                    let state = self
+                        .states
+                        .item_drop_states
+                        .entry(entity)
+                        .or_insert_with(|| {
+                            FigureState::new(renderer, ItemDropSkeleton::default(), body)
+                        });
+
+                    // Average velocity relative to the current ground
+                    let _rel_avg_vel = state.avg_vel - physics.ground_vel;
+
+                    let (character, last_character) = match (character, last_character) {
+                        (Some(c), Some(l)) => (c, l),
+                        _ => (
+                            &CharacterState::Idle(common::states::idle::Data {
+                                is_sneaking: false,
+                            }),
+                            &Last {
+                                0: CharacterState::Idle(common::states::idle::Data {
+                                    is_sneaking: false,
+                                }),
+                            },
+                        ),
+                    };
+
+                    if !character.same_variant(&last_character.0) {
+                        state.state_time = 0.0;
+                    }
+
+                    let target_bones = anim::item_drop::IdleAnimation::update_skeleton(
+                        &ItemDropSkeleton::default(),
+                        time,
+                        state.state_time,
+                        &mut state_animation_rate,
+                        skeleton_attr,
+                    );
+
+                    state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
+                    state.update(
+                        renderer,
+                        &mut update_buf,
+                        &common_params,
+                        state_animation_rate,
+                        model,
+                        body,
+                    );
+                },
                 Body::Ship(body) => {
                     let (model, skeleton_attr) = if let Some(Collider::Volume(vol)) = collider {
                         let vk = VolumeKey {
@@ -5151,6 +5246,7 @@ impl FigureMgr {
                             player_camera_mode,
                             player_character_state,
                             &slow_jobs,
+                            None,
                         );
 
                         let state = self
@@ -5180,6 +5276,7 @@ impl FigureMgr {
                             player_camera_mode,
                             player_character_state,
                             &slow_jobs,
+                            None,
                         )
                     } else {
                         // No way to determine model (this is okay, we might just not have received
@@ -5282,6 +5379,7 @@ impl FigureMgr {
     ) {
         span!(_guard, "render_shadows", "FigureManager::render_shadows");
         let ecs = state.ecs();
+        let items = ecs.read_storage::<Item>();
 
         (
                 &ecs.entities(),
@@ -5312,6 +5410,7 @@ impl FigureMgr {
                         _ => 0,
                     },
                     |state| state.can_shadow_sun(),
+                    if matches!(body, Body::ItemDrop(_)) { items.get(entity).map(ItemKey::from) } else { None },
                 ) {
                     drawer.draw(model, bound);
                 }
@@ -5331,7 +5430,7 @@ impl FigureMgr {
 
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
-
+        let items = ecs.read_storage::<Item>();
         for (entity, pos, body, _, inventory, scale, collider) in (
             &ecs.entities(),
             &ecs.read_storage::<Pos>(),
@@ -5362,6 +5461,11 @@ impl FigureMgr {
                     _ => 0,
                 },
                 |state| state.visible(),
+                if matches!(body, Body::ItemDrop(_)) {
+                    items.get(entity).map(ItemKey::from)
+                } else {
+                    None
+                },
             ) {
                 drawer.draw(model, bound, col_lights);
             }
@@ -5381,6 +5485,7 @@ impl FigureMgr {
 
         let character_state_storage = state.read_storage::<common::comp::CharacterState>();
         let character_state = character_state_storage.get(player_entity);
+        let items = ecs.read_storage::<Item>();
 
         if let (Some(pos), Some(body)) = (
             ecs.read_storage::<Pos>().get(player_entity),
@@ -5407,6 +5512,11 @@ impl FigureMgr {
                 figure_lod_render_distance,
                 0,
                 |state| state.visible(),
+                if matches!(body, Body::ItemDrop(_)) {
+                    items.get(player_entity).map(ItemKey::from)
+                } else {
+                    None
+                },
             ) {
                 drawer.draw(model, bound, col_lights);
                 /*renderer.render_player_shadow(
@@ -5435,6 +5545,7 @@ impl FigureMgr {
         figure_lod_render_distance: f32,
         mut_count: usize,
         filter_state: impl Fn(&FigureStateMeta) -> bool,
+        item_key: Option<ItemKey>,
     ) -> Option<FigureModelRef> {
         let body = *body;
 
@@ -5462,6 +5573,7 @@ impl FigureMgr {
             biped_large_model_cache,
             biped_small_model_cache,
             object_model_cache,
+            item_drop_model_cache,
             ship_model_cache,
             golem_model_cache,
             volume_model_cache,
@@ -5482,6 +5594,7 @@ impl FigureMgr {
                     biped_small_states,
                     golem_states,
                     object_states,
+                    item_drop_states,
                     ship_states,
                     volume_states,
                     arthropod_states,
@@ -5502,6 +5615,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5518,6 +5632,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5534,6 +5649,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5550,6 +5666,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5566,6 +5683,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5582,6 +5700,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5598,6 +5717,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5614,6 +5734,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5630,6 +5751,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5646,6 +5768,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5662,6 +5785,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5678,6 +5802,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5694,6 +5819,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5710,6 +5836,7 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
                         ),
                     )
                 }),
@@ -5726,6 +5853,24 @@ impl FigureMgr {
                             tick,
                             player_camera_mode,
                             character_state,
+                            None,
+                        ),
+                    )
+                }),
+            Body::ItemDrop(body) => item_drop_states
+                .get(&entity)
+                .filter(|state| filter_state(*state))
+                .map(move |state| {
+                    (
+                        state.bound(),
+                        item_drop_model_cache.get_model(
+                            col_lights,
+                            body,
+                            inventory,
+                            tick,
+                            player_camera_mode,
+                            character_state,
+                            item_key,
                         ),
                     )
                 }),
@@ -5744,6 +5889,7 @@ impl FigureMgr {
                                     tick,
                                     player_camera_mode,
                                     character_state,
+                                    None,
                                 ),
                             )
                         })
@@ -5761,6 +5907,7 @@ impl FigureMgr {
                                     tick,
                                     player_camera_mode,
                                     character_state,
+                                    None,
                                 ),
                             )
                         })
