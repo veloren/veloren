@@ -399,7 +399,7 @@ void main() {
             attr = Attr(
                 spiral_motion(inst_dir, 0.3 * (floor(2 * rand0 + 0.5) - 0.5) * min(linear_scale(10), 1), lifetime / inst_lifespan, 10.0, inst_time),
                 vec3((1.7 - 0.7 * abs(floor(2 * rand0 - 0.5) + 0.5)) * (1.5 + 0.5 * sin(tick.x * 10 - lifetime * 4))),
-                vec4(vec3(purple_col, green_col, 0.75 * purple_col), 1),
+                vec4(vec3(red_col + purple_col * 0.6, green_col + purple_col * 0.35, purple_col), 1),
                 spin_in_axis(inst_dir, tick.z)
             );
             break;

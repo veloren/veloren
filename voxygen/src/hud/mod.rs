@@ -4301,7 +4301,6 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
         BuffKind::Frenzied { .. } => imgs.buff_frenzy_0,
-        // TODO: Get unique icon
         BuffKind::Hastened { .. } => imgs.buff_haste_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
