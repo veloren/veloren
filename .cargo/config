@@ -4,19 +4,20 @@ rustflags = [
 ]
 
 [alias]
+# tools
 cmd-doc-gen = "run --features=bin_cmd_doc_gen --bin cmd_doc_gen"
 csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_export"
 csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
-test-server = "run --bin veloren-server-cli --no-default-features"
-tracy-server = "-Zunstable-options run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
-tracy-world-server = "-Zunstable-options run --bin veloren-server-cli --features tracy,simd --profile no_overflow"
-tracy-world-server-releasedebuginfo = "-Zunstable-options run --bin veloren-server-cli --features tracy,simd --profile releasedebuginfo"
-test-voxygen = "run --bin veloren-voxygen --no-default-features --features simd,egui-ui"
-tracy-voxygen = "-Zunstable-options run --bin veloren-voxygen --no-default-features --features tracy,simd,egui-ui --profile no_overflow"
+# server-cli
 server = "run --bin veloren-server-cli"
-dbg-voxygen = "run --bin veloren-voxygen -Zunstable-options --profile debuginfo"
+test-server = "run --bin veloren-server-cli --no-default-features simd"
+tracy-server = "run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
+tracy-world-server = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow"
+tracy-world-server-debuginfo = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow_debuginfo"
+tracy-world-server-releasedebuginfo = "run --bin veloren-server-cli --features tracy,simd --profile releasedebuginfo"
+# voxygen
+test-voxygen = "run --bin veloren-voxygen --no-default-features --features simd,egui-ui,shaderc-from-source"
+tracy-voxygen = "run --bin veloren-voxygen --no-default-features --features tracy,simd,egui-ui,shaderc-from-source --profile no_overflow"
+dbg-voxygen = "run --bin veloren-voxygen --profile debuginfo"
+# misc
 swarm = "run --bin swarm --features client/bin_bot,client/tick_network --"
-
-
-[env]
-RUSTC_FORCE_INCREMENTAL = "1"
