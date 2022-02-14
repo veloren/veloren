@@ -620,6 +620,7 @@ image_ids! {
         buff_invincibility_0: "voxygen.element.de_buffs.buff_invincibility_0",
         buff_dmg_red_0: "voxygen.element.de_buffs.buff_damage_reduce_0",
         buff_frenzy_0: "voxygen.element.de_buffs.buff_frenzy_0",
+        buff_haste_0: "voxygen.element.de_buffs.buff_haste_0",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",

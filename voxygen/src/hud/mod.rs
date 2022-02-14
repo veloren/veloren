@@ -1541,11 +1541,17 @@ impl Hud {
                             .set(self.ids.player_rank_up, ui_widgets);
                         // Rank Number
                         let rank = display.total_points;
+                        let fontsize = match rank {
+                            1..=99 => (20, 8.0),
+                            100..=999 => (18, 9.0),
+                            1000..=9999 => (17, 10.0),
+                            _ => (14, 12.0),
+                        };
                         Text::new(&format!("{}", rank))
-                            .font_size(20)
+                            .font_size(fontsize.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, 8.0)
+                            .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
                             .set(self.ids.player_rank_up_txt_number, ui_widgets);
                         // Static "New Rank!" text
                         Text::new(i18n.get("hud.rank_up"))
@@ -4296,7 +4302,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
         BuffKind::Frenzied { .. } => imgs.buff_frenzy_0,
         // TODO: Get unique icon
-        BuffKind::Hastened { .. } => imgs.buff_frenzy_0,
+        BuffKind::Hastened { .. } => imgs.buff_haste_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
