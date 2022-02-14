@@ -68,12 +68,12 @@ coverage:
     max: 2
 
 #linux, windows, macos builds here as template
-.tlinux:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-linux:${CACHE_IMAGE_TAG}
+.tlinux-x86_64:
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-linux-x86_64:${CACHE_IMAGE_TAG}
   script:
     - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/linux.sh
-    - source ./.gitlab/scripts/linux.sh
+    - cat ./.gitlab/scripts/linux-x86_64.sh
+    - source ./.gitlab/scripts/linux-x86_64.sh
     - cp -r target/release/veloren-server-cli $CI_PROJECT_DIR
     - cp -r target/release/veloren-voxygen $CI_PROJECT_DIR
   artifacts:
@@ -100,12 +100,12 @@ coverage:
       - LICENSE
     expire_in: 1 week
 
-.twindows:
-  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-windows:${CACHE_IMAGE_TAG}
+.twindows-x86_64:
+  image: registry.gitlab.com/veloren/veloren-docker-ci/cache/release-windows-x86_64:${CACHE_IMAGE_TAG}
   script:
     - ln -s /dockercache/target target
-    - cat ./.gitlab/scripts/windows.sh
-    - source ./.gitlab/scripts/windows.sh
+    - cat ./.gitlab/scripts/windows-x86_64.sh
+    - source ./.gitlab/scripts/windows-x86_64.sh
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-server-cli.exe $CI_PROJECT_DIR
     - cp -r target/x86_64-pc-windows-gnu/release/veloren-voxygen.exe $CI_PROJECT_DIR
     - cp /usr/lib/gcc/x86_64-w64-mingw32/7.3-posix/libgcc_s_seh-1.dll $CI_PROJECT_DIR
@@ -164,19 +164,19 @@ coverage:
     - export RUST_TARGET="aarch64-apple-darwin"
 
 # build on release or master
-linux:
+linux-x86_64:
   extends:
-    - .tlinux
+    - .tlinux-x86_64
     - .release
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
-windows:
+windows-x86_64:
   extends:
-    - .twindows
+    - .twindows-x86_64
     - .release
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
-macos:
+macos-x86_64:
   extends:
     - .tmacos-x86_64
     - .release
@@ -189,10 +189,10 @@ macos-aarch64:
   tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
 # The air-* builds are the builds that Airshipper Server expects to find in the scheduled build webhook JSON.
-# Renaming these will break Airshipper downloads!
-air-linux:
+# Renaming these will break Airshipper downloads! build on schedule quickfix till airshipper 0.5
+air-linux-x86_64:
   extends:
-    - .tlinux
+    - .tlinux-x86_64
     - .release-scheduled
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
@@ -202,13 +202,13 @@ air-linux-aarch64:
     - .release-scheduled
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
-air-windows:
+air-windows-x86_64:
   extends:
-    - .twindows
+    - .twindows-x86_64
     - .release-scheduled
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
-air-macos:
+air-macos-x86_64:
   extends:
     - .tmacos-x86_64
     - .release-scheduled
@@ -221,9 +221,9 @@ air-macos-aarch64:
   tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
 # if NOT release or master, allow optional builds
-opt-linux:
+opt-linux-x86_64:
   extends:
-    - .tlinux
+    - .tlinux-x86_64
     - .optional-release
   tags: ["veloren/veloren", "build"]
 
@@ -233,9 +233,9 @@ opt-linux-aarch64:
     - .optional-release
   tags: ["veloren/veloren", "build"]
 
-opt-windows:
+opt-windows-x86_64:
   extends:
-    - .twindows
+    - .twindows-x86_64
     - .optional-release
   tags: ["veloren/veloren", "build"]
 

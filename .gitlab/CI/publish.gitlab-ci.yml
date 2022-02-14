@@ -21,7 +21,7 @@ docker:
     entrypoint: [""]
   tags: ["veloren/veloren", "publish", "trusted"]
   dependencies:
-    - linux
+    - linux-x86_64
   before_script:
     - ls "$CI_PROJECT_DIR/server-cli/"
   script:
@@ -38,7 +38,7 @@ docker-nightly:
     entrypoint: [""]
   tags: ["veloren/veloren", "publish", "trusted"]
   dependencies:
-    - air-linux
+    - air-linux-x86_64
   before_script:
     - ls "$CI_PROJECT_DIR/server-cli/"
   script:
