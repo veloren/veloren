@@ -1006,7 +1006,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
         }
         true
     }
-    (if let Some(chunk) = sim.get(loc) {
+    let possible_terrain = if let Some(chunk) = sim.get(loc) {
         !chunk.river.is_ocean()
             && !chunk.river.is_lake()
             && !chunk.river.is_river()
@@ -1017,7 +1017,9 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
             && site_kind.is_suitable_loc(chunk)
     } else {
         false
-    }) && check_chunk_occupation(sim, loc, site_kind.exclusion_radius())
+    };
+    let not_occupied = check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
+    possible_terrain && not_occupied
 }
 
 /// Attempt to search for a location that's suitable for site construction
