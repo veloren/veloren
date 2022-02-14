@@ -90,12 +90,18 @@ impl std::fmt::Debug for Primitive {
             Primitive::Pyramid { aabb, inset } => {
                 f.debug_tuple("Pyramid").field(&aabb).field(&inset).finish()
             },
-            Primitive::Ramp { aabb, inset, dir } => {
-                f.debug_tuple("Ramp").field(&aabb).field(&inset).field(&dir).finish()
-            },
-            Primitive::Gable { aabb, inset, dir } => {
-                f.debug_tuple("Gable").field(&aabb).field(&inset).field(&dir).finish()
-            },
+            Primitive::Ramp { aabb, inset, dir } => f
+                .debug_tuple("Ramp")
+                .field(&aabb)
+                .field(&inset)
+                .field(&dir)
+                .finish(),
+            Primitive::Gable { aabb, inset, dir } => f
+                .debug_tuple("Gable")
+                .field(&aabb)
+                .field(&inset)
+                .field(&dir)
+                .finish(),
             Primitive::Cylinder(aabb) => f.debug_tuple("Cylinder").field(&aabb).finish(),
             Primitive::Cone(aabb) => f.debug_tuple("Cone").field(&aabb).finish(),
             Primitive::Sphere(aabb) => f.debug_tuple("Sphere").field(&aabb).finish(),
@@ -523,7 +529,9 @@ impl Fill {
                 self.get_bounds_opt(tree, *a),
                 self.get_bounds_opt(tree, *b),
                 |a, b| a.intersection(b),
-            ).into_iter().collect(),
+            )
+            .into_iter()
+            .collect(),
 
             Primitive::Union(a, b) => {
                 fn jaccard(x: Aabb<i32>, y: Aabb<i32>) -> f32 {
@@ -538,7 +546,10 @@ impl Fill {
                 if let Some(aabb) = inputs.pop() {
                     results.push(aabb);
                     for a in &inputs {
-                        let best = results.iter().enumerate().max_by_key(|(_, b)| (jaccard(*a, **b) * 1000.0) as usize);
+                        let best = results
+                            .iter()
+                            .enumerate()
+                            .max_by_key(|(_, b)| (jaccard(*a, **b) * 1000.0) as usize);
                         match best {
                             Some((i, b)) if jaccard(*a, *b) > 0.3 => {
                                 let mut aabb = results.swap_remove(i);
@@ -616,7 +627,7 @@ impl Fill {
 
     pub fn get_bounds(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Aabb<i32> {
         self.get_bounds_opt(tree, prim)
-            .unwrap_or(Aabb::new_empty(Vec3::zero()))
+            .unwrap_or_else(|| Aabb::new_empty(Vec3::zero()))
     }
 }
 
