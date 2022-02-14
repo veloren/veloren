@@ -983,31 +983,32 @@ impl Site {
             };
 
             for (prim, fill) in fills {
-                let mut aabb = fill.get_bounds(&prim_tree, prim);
-                aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
-                aabb.max = Vec2::min(aabb.max.xy(), chunk_aabr.max).with_z(aabb.max.z);
+                for mut aabb in fill.get_bounds_disjoint(&prim_tree, prim) {
+                    aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
+                    aabb.max = Vec2::min(aabb.max.xy(), chunk_aabr.max).with_z(aabb.max.z);
 
-                for x in aabb.min.x..aabb.max.x {
-                    for y in aabb.min.y..aabb.max.y {
-                        let col_tile = self.wpos_tile(Vec2::new(x, y));
-                        if
-                        /* col_tile.is_building() && */
-                        col_tile
-                            .plot
-                            .and_then(|p| self.plots[p].z_range())
-                            .zip(self.plots[plot].z_range())
-                            .map_or(false, |(a, b)| a.end > b.end)
-                        {
-                            continue;
-                        }
+                    for x in aabb.min.x..aabb.max.x {
+                        for y in aabb.min.y..aabb.max.y {
+                            let col_tile = self.wpos_tile(Vec2::new(x, y));
+                            if
+                            /* col_tile.is_building() && */
+                            col_tile
+                                .plot
+                                .and_then(|p| self.plots[p].z_range())
+                                .zip(self.plots[plot].z_range())
+                                .map_or(false, |(a, b)| a.end > b.end)
+                            {
+                                continue;
+                            }
 
-                        for z in aabb.min.z..aabb.max.z {
-                            let pos = Vec3::new(x, y, z);
+                            for z in aabb.min.z..aabb.max.z {
+                                let pos = Vec3::new(x, y, z);
 
-                            canvas.map(pos, |block| {
-                                fill.sample_at(&prim_tree, prim, pos, &info, block)
-                                    .unwrap_or(block)
-                            });
+                                canvas.map(pos, |block| {
+                                    fill.sample_at(&prim_tree, prim, pos, &info, block)
+                                        .unwrap_or(block)
+                                });
+                            }
                         }
                     }
                 }

@@ -82,6 +82,69 @@ pub enum Primitive {
     Repeat(Id<Primitive>, Vec3<i32>, i32),
 }
 
+impl std::fmt::Debug for Primitive {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            Primitive::Empty => f.debug_tuple("Empty").finish(),
+            Primitive::Aabb(aabb) => f.debug_tuple("Aabb").field(&aabb).finish(),
+            Primitive::Pyramid { aabb, inset } => {
+                f.debug_tuple("Pyramid").field(&aabb).field(&inset).finish()
+            },
+            Primitive::Ramp { aabb, inset, dir } => {
+                f.debug_tuple("Ramp").field(&aabb).field(&inset).field(&dir).finish()
+            },
+            Primitive::Gable { aabb, inset, dir } => {
+                f.debug_tuple("Gable").field(&aabb).field(&inset).field(&dir).finish()
+            },
+            Primitive::Cylinder(aabb) => f.debug_tuple("Cylinder").field(&aabb).finish(),
+            Primitive::Cone(aabb) => f.debug_tuple("Cone").field(&aabb).finish(),
+            Primitive::Sphere(aabb) => f.debug_tuple("Sphere").field(&aabb).finish(),
+            Primitive::Superquadric { aabb, degree } => f
+                .debug_tuple("Superquadric")
+                .field(&aabb)
+                .field(&degree)
+                .finish(),
+            Primitive::Plane(aabr, origin, gradient) => f
+                .debug_tuple("Plane")
+                .field(&aabr)
+                .field(&origin)
+                .field(&gradient)
+                .finish(),
+            Primitive::Segment { segment, radius } => f
+                .debug_tuple("Segment")
+                .field(&segment)
+                .field(&radius)
+                .finish(),
+            Primitive::SegmentPrism {
+                segment,
+                radius,
+                height,
+            } => f
+                .debug_tuple("SegmentPrism")
+                .field(&segment)
+                .field(&radius)
+                .field(&height)
+                .finish(),
+            Primitive::Sampling(prim, _) => f.debug_tuple("Sampling").field(&prim).finish(),
+            Primitive::Prefab(prefab) => f.debug_tuple("Prefab").field(&prefab).finish(),
+            Primitive::Intersect(a, b) => f.debug_tuple("Intersect").field(&a).field(&b).finish(),
+            Primitive::Union(a, b) => f.debug_tuple("Union").field(&a).field(&b).finish(),
+            Primitive::Without(a, b) => f.debug_tuple("Without").field(&a).field(&b).finish(),
+            Primitive::Rotate(a, mat) => f.debug_tuple("Rotate").field(&a).field(&mat).finish(),
+            Primitive::Translate(a, vec) => {
+                f.debug_tuple("Translate").field(&a).field(&vec).finish()
+            },
+            Primitive::Scale(a, vec) => f.debug_tuple("Scale").field(&a).field(&vec).finish(),
+            Primitive::Repeat(a, offset, n) => f
+                .debug_tuple("Repeat")
+                .field(&a)
+                .field(&offset)
+                .field(&n)
+                .finish(),
+        }
+    }
+}
+
 impl Primitive {
     pub fn intersect(a: impl Into<Id<Primitive>>, b: impl Into<Id<Primitive>>) -> Self {
         Self::Intersect(a.into(), b.into())
@@ -387,7 +450,7 @@ impl Fill {
         }
     }
 
-    fn get_bounds_inner(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Option<Aabb<i32>> {
+    fn get_bounds_inner(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Vec<Aabb<i32>> {
         fn or_zip_with<T, F: FnOnce(T, T) -> T>(a: Option<T>, b: Option<T>, f: F) -> Option<T> {
             match (a, b) {
                 (Some(a), Some(b)) => Some(f(a, b)),
@@ -396,16 +459,16 @@ impl Fill {
             }
         }
 
-        Some(match &tree[prim] {
-            Primitive::Empty => return None,
-            Primitive::Aabb(aabb) => *aabb,
-            Primitive::Pyramid { aabb, .. } => *aabb,
-            Primitive::Gable { aabb, .. } => *aabb,
-            Primitive::Ramp { aabb, .. } => *aabb,
-            Primitive::Cylinder(aabb) => *aabb,
-            Primitive::Cone(aabb) => *aabb,
-            Primitive::Sphere(aabb) => *aabb,
-            Primitive::Superquadric { aabb, .. } => *aabb,
+        match &tree[prim] {
+            Primitive::Empty => vec![],
+            Primitive::Aabb(aabb) => vec![*aabb],
+            Primitive::Pyramid { aabb, .. } => vec![*aabb],
+            Primitive::Gable { aabb, .. } => vec![*aabb],
+            Primitive::Ramp { aabb, .. } => vec![*aabb],
+            Primitive::Cylinder(aabb) => vec![*aabb],
+            Primitive::Cone(aabb) => vec![*aabb],
+            Primitive::Sphere(aabb) => vec![*aabb],
+            Primitive::Superquadric { aabb, .. } => vec![*aabb],
             Primitive::Plane(aabr, origin, gradient) => {
                 let half_size = aabr.half_size().reduce_max();
                 let longest_dist = ((aabr.center() - origin.xy()).map(|x| x.abs())
@@ -421,7 +484,7 @@ impl Fill {
                     min: aabr.min.with_z(origin.z + z.reduce_min().min(0)),
                     max: aabr.max.with_z(origin.z + z.reduce_max().max(0)),
                 };
-                aabb.made_valid()
+                vec![aabb.made_valid()]
             },
             Primitive::Segment { segment, radius } => {
                 let aabb = Aabb {
@@ -429,10 +492,10 @@ impl Fill {
                     max: segment.end,
                 }
                 .made_valid();
-                Aabb {
+                vec![Aabb {
                     min: (aabb.min - *radius).floor().as_(),
                     max: (aabb.max + *radius).ceil().as_(),
-                }
+                }]
             },
             Primitive::SegmentPrism {
                 segment,
@@ -452,58 +515,108 @@ impl Fill {
                     let xy = (aabb.max.xy() + *radius).ceil();
                     xy.with_z((aabb.max.z + *height).ceil()).as_()
                 };
-                Aabb { min, max }
+                vec![Aabb { min, max }]
             },
-            Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a)?,
-            Primitive::Prefab(p) => p.get_bounds(),
+            Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a),
+            Primitive::Prefab(p) => vec![p.get_bounds()],
             Primitive::Intersect(a, b) => or_zip_with(
-                self.get_bounds_inner(tree, *a),
-                self.get_bounds_inner(tree, *b),
+                self.get_bounds_opt(tree, *a),
+                self.get_bounds_opt(tree, *b),
                 |a, b| a.intersection(b),
-            )?,
-            Primitive::Union(a, b) => or_zip_with(
-                self.get_bounds_inner(tree, *a),
-                self.get_bounds_inner(tree, *b),
-                |a, b| a.union(b),
-            )?,
-            Primitive::Without(a, _) => self.get_bounds_inner(tree, *a)?,
-            Primitive::Rotate(prim, mat) => {
-                let aabb = self.get_bounds_inner(tree, *prim)?;
-                let extent = *mat * Vec3::from(aabb.size());
-                let new_aabb: Aabb<i32> = Aabb {
-                    min: aabb.min,
-                    max: aabb.min + extent,
-                };
-                new_aabb.made_valid()
+            ).into_iter().collect(),
+
+            Primitive::Union(a, b) => {
+                fn jaccard(x: Aabb<i32>, y: Aabb<i32>) -> f32 {
+                    let s_intersection = x.intersection(y).size().as_::<f32>().magnitude();
+                    let s_union = x.union(y).size().as_::<f32>().magnitude();
+                    s_intersection / s_union
+                }
+                let mut inputs = Vec::new();
+                inputs.extend(self.get_bounds_inner(tree, *a));
+                inputs.extend(self.get_bounds_inner(tree, *b));
+                let mut results = Vec::new();
+                if let Some(aabb) = inputs.pop() {
+                    results.push(aabb);
+                    for a in &inputs {
+                        let best = results.iter().enumerate().max_by_key(|(_, b)| (jaccard(*a, **b) * 1000.0) as usize);
+                        match best {
+                            Some((i, b)) if jaccard(*a, *b) > 0.3 => {
+                                let mut aabb = results.swap_remove(i);
+                                aabb = aabb.union(*a);
+                                results.push(aabb);
+                            },
+                            _ => results.push(*a),
+                        }
+                    }
+                    results
+                } else {
+                    results
+                }
             },
-            Primitive::Translate(prim, vec) => {
-                let aabb = self.get_bounds_inner(tree, *prim)?;
-                Aabb {
+            Primitive::Without(a, _) => self.get_bounds_inner(tree, *a),
+            Primitive::Rotate(prim, mat) => self
+                .get_bounds_inner(tree, *prim)
+                .into_iter()
+                .map(|aabb| {
+                    let extent = *mat * Vec3::from(aabb.size());
+                    let new_aabb: Aabb<i32> = Aabb {
+                        min: aabb.min,
+                        max: aabb.min + extent,
+                    };
+                    new_aabb.made_valid()
+                })
+                .collect(),
+            Primitive::Translate(prim, vec) => self
+                .get_bounds_inner(tree, *prim)
+                .into_iter()
+                .map(|aabb| Aabb {
                     min: aabb.min.map2(*vec, i32::saturating_add),
                     max: aabb.max.map2(*vec, i32::saturating_add),
-                }
-            },
-            Primitive::Scale(prim, vec) => {
-                let aabb = self.get_bounds_inner(tree, *prim)?;
-                let center = aabb.center();
-                Aabb {
-                    min: center + ((aabb.min - center).as_::<f32>() * vec).as_::<i32>(),
-                    max: center + ((aabb.max - center).as_::<f32>() * vec).as_::<i32>(),
-                }
-            },
-            Primitive::Repeat(prim, offset, count) => {
-                let aabb = self.get_bounds_inner(tree, *prim)?;
-                Aabb {
+                })
+                .collect(),
+            Primitive::Scale(prim, vec) => self
+                .get_bounds_inner(tree, *prim)
+                .into_iter()
+                .map(|aabb| {
+                    let center = aabb.center();
+                    Aabb {
+                        min: center + ((aabb.min - center).as_::<f32>() * vec).as_::<i32>(),
+                        max: center + ((aabb.max - center).as_::<f32>() * vec).as_::<i32>(),
+                    }
+                })
+                .collect(),
+            Primitive::Repeat(prim, offset, count) => self
+                .get_bounds_inner(tree, *prim)
+                .into_iter()
+                .map(|aabb| Aabb {
                     min: aabb.min.map2(aabb.min + offset * count, |a, b| a.min(b)),
                     max: aabb.max.map2(aabb.max + offset * count, |a, b| a.max(b)),
-                }
-            },
-        })
+                })
+                .collect(),
+        }
+    }
+
+    pub fn get_bounds_disjoint(
+        &self,
+        tree: &Store<Primitive>,
+        prim: Id<Primitive>,
+    ) -> Vec<Aabb<i32>> {
+        self.get_bounds_inner(tree, prim)
+    }
+
+    pub fn get_bounds_opt(
+        &self,
+        tree: &Store<Primitive>,
+        prim: Id<Primitive>,
+    ) -> Option<Aabb<i32>> {
+        self.get_bounds_inner(tree, prim)
+            .into_iter()
+            .reduce(|a, b| a.union(b))
     }
 
     pub fn get_bounds(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Aabb<i32> {
-        self.get_bounds_inner(tree, prim)
-            .unwrap_or_else(|| Aabb::new_empty(Vec3::zero()))
+        self.get_bounds_opt(tree, prim)
+            .unwrap_or(Aabb::new_empty(Vec3::zero()))
     }
 }
 
