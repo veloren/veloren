@@ -994,7 +994,13 @@ impl Painter {
 
     /// Fills the supplied primitive with the provided `Fill`.
     pub fn fill(&self, prim: impl Into<Id<Primitive>>, fill: Fill) {
-        self.fills.borrow_mut().push((prim.into(), fill));
+        let prim = prim.into();
+        if let Primitive::Union(a, b) = self.prims.borrow()[prim] {
+            self.fill(a, fill.clone());
+            self.fill(b, fill);
+        } else {
+            self.fills.borrow_mut().push((prim, fill));
+        }
     }
 
     pub fn render_aabr(&self) -> Aabr<i32> { self.render_area }
