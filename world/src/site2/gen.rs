@@ -318,12 +318,17 @@ impl Fill {
             },
             Primitive::Repeat(prim, offset, count) => {
                 let aabb = self.get_bounds(tree, *prim);
-                let diff = pos - aabb.min;
+                let aabb_corner = {
+                    let min_red = aabb.min.map2(*offset, |a, b| if b < 0 { 0 } else { a });
+                    let max_red = aabb.max.map2(*offset, |a, b| if b < 0 { a } else { 0 });
+                    min_red + max_red
+                };
+                let diff = pos - aabb_corner;
                 let min = diff
                     .map2(*offset, |a, b| if b == 0 { i32::MAX } else { a / b })
                     .reduce_min()
                     .min(*count);
-                let pos = aabb.min + diff - offset * min;
+                let pos = pos - offset * min;
                 self.contains_at(tree, *prim, pos)
             },
         }

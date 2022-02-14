@@ -24,7 +24,10 @@ use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use specs::{Join, WorldExt};
-use std::{f32::consts::PI, time::Duration};
+use std::{
+    f32::consts::{PI, TAU},
+    time::Duration,
+};
 use vek::*;
 
 pub struct ParticleMgr {
@@ -978,7 +981,7 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Burning,
                         ..
                     } => {
-                        let num_particles = aura.radius.powi(2) * dt / inline_tweak::tweak!(250.0);
+                        let num_particles = aura.radius.powi(2) * dt / 250.0;
                         let num_particles = num_particles.floor() as usize
                             + if rng.gen_bool(f64::from(num_particles % 1.0)) {
                                 1
@@ -988,13 +991,11 @@ impl ParticleMgr {
                         self.particles
                             .resize_with(self.particles.len() + num_particles, || {
                                 let rand_pos = {
-                                    let mut x = (rng.gen::<f32>() - 0.5) * 2.0;
-                                    let mut y = (rng.gen::<f32>() - 0.5) * 2.0;
-                                    while (x.powi(2) + y.powi(2)) > 1.0 {
-                                        x = (rng.gen::<f32>() - 0.5) * 2.0;
-                                        y = (rng.gen::<f32>() - 0.5) * 2.0;
-                                    }
-                                    Vec2::new(x, y) * aura.radius + pos.0.xy()
+                                    let theta = rng.gen::<f32>() * TAU;
+                                    let radius = aura.radius * rng.gen::<f32>().sqrt();
+                                    let x = radius * theta.sin();
+                                    let y = radius * theta.cos();
+                                    Vec2::new(x, y) + pos.0.xy()
                                 };
                                 let max_dur = Duration::from_secs(1);
                                 Particle::new_directed(
@@ -1313,12 +1314,12 @@ impl ParticleMgr {
                             let position = pos.0
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                            let ray_length = 10.0;
+                            let half_ray_length = 10.0;
                             let mut last_air = false;
                             let _ = terrain
                                 .ray(
-                                    position + Vec3::unit_z() * ray_length,
-                                    position - Vec3::unit_z() * ray_length,
+                                    position + Vec3::unit_z() * half_ray_length,
+                                    position - Vec3::unit_z() * half_ray_length,
                                 )
                                 .for_each(|block: &Block, pos: Vec3<i32>| {
                                     if block.is_solid() && block.get_sprite().is_none() {

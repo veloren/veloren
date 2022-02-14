@@ -183,7 +183,7 @@ pub enum TileKind {
     Road { a: u16, b: u16, w: u16 },
     Building,
     Castle,
-    Wall(Ori),
+    Wall(Dir),
     Tower(RoofKind),
     Keep(KeepKind),
     Gate,
@@ -243,60 +243,11 @@ pub enum HazardKind {
 pub enum KeepKind {
     Middle,
     Corner,
-    Wall(Ori),
+    Wall(Dir),
 }
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum RoofKind {
     Parapet,
     Pyramid,
-}
-
-#[repr(u8)]
-#[derive(Copy, Clone, PartialEq)]
-pub enum Ori {
-    North = 0,
-    East = 1,
-    South = 2,
-    West = 3,
-}
-
-impl Ori {
-    pub fn dir(self) -> Vec2<i32> { CARDINALS[self as u8 as usize] }
-
-    pub fn cw(self) -> Self {
-        match self {
-            Ori::North => Ori::East,
-            Ori::East => Ori::South,
-            Ori::South => Ori::West,
-            Ori::West => Ori::North,
-        }
-    }
-
-    pub fn ccw(self) -> Self {
-        match self {
-            Ori::North => Ori::West,
-            Ori::East => Ori::North,
-            Ori::South => Ori::East,
-            Ori::West => Ori::South,
-        }
-    }
-
-    pub fn opposite(self) -> Self {
-        match self {
-            Ori::North => Ori::South,
-            Ori::East => Ori::West,
-            Ori::South => Ori::North,
-            Ori::West => Ori::East,
-        }
-    }
-
-    pub fn from_vec2(vec: Vec2<i32>) -> Self {
-        match vec {
-            vec if vec.x.abs() > vec.y.abs() && vec.x > 0 => Ori::East,
-            vec if vec.x.abs() > vec.y.abs() => Ori::West,
-            vec if vec.y > 0 => Ori::North,
-            _ => Ori::South,
-        }
-    }
 }

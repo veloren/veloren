@@ -25,7 +25,7 @@ pub struct GnarlingFortification {
     wall_towers: Vec<Vec3<i32>>,
     // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
     // to origin, ori tells which way structure should face
-    structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Ori)>,
+    structure_locations: Vec<(GnarlingStructure, Vec3<i32>, Dir)>,
     tunnels: Tunnels,
 }
 
@@ -171,7 +171,7 @@ impl GnarlingFortification {
         ];
 
         let desired_structures = wall_radius.pow(2) / 100;
-        let mut structure_locations = Vec::<(GnarlingStructure, Vec3<i32>, Ori)>::new();
+        let mut structure_locations = Vec::<(GnarlingStructure, Vec3<i32>, Dir)>::new();
         for _ in 0..desired_structures {
             if let Some((hut_loc, kind)) = attempt(50, || {
                 // Choose structure kind
@@ -238,12 +238,12 @@ impl GnarlingFortification {
                     ))
                 }
             }) {
-                let dir_to_center = Ori::from_vec2(hut_loc.xy()).opposite();
+                let dir_to_center = Dir::from_vector(hut_loc.xy()).opposite();
                 let door_rng: u32 = rng.gen_range(0..9);
                 let door_dir = match door_rng {
                     0..=3 => dir_to_center,
-                    4..=5 => dir_to_center.cw(),
-                    6..=7 => dir_to_center.ccw(),
+                    4..=5 => dir_to_center.rotated_cw(),
+                    6..=7 => dir_to_center.rotated_ccw(),
                     // Should only be 8
                     _ => dir_to_center.opposite(),
                 };
@@ -263,7 +263,7 @@ impl GnarlingFortification {
         let chieftain_hut_loc = ((inner_tower_locs[0] + inner_tower_locs[1])
             + 2 * outer_wall_corners[chieftain_indices[1]])
             / 4;
-        let chieftain_hut_ori = Ori::from_vec2(chieftain_hut_loc).opposite();
+        let chieftain_hut_ori = Dir::from_vector(chieftain_hut_loc).opposite();
         structure_locations.push((
             GnarlingStructure::ChieftainHut,
             chieftain_hut_loc.with_z(rpos_height(chieftain_hut_loc)),
@@ -284,7 +284,7 @@ impl GnarlingFortification {
             structure_locations.push((
                 GnarlingStructure::WatchTower,
                 loc.with_z(rpos_height(*loc)),
-                Ori::North,
+                Dir::Y,
             ));
         });
 
@@ -755,7 +755,7 @@ impl Structure for GnarlingFortification {
                     painter: &Painter,
                     wpos: Vec2<i32>,
                     alt: i32,
-                    door_dir: Ori,
+                    door_dir: Dir,
                     hut_radius: f32,
                     hut_wall_height: f32,
                     door_height: i32,
@@ -799,16 +799,16 @@ impl Structure for GnarlingFortification {
                     // Door
                     let aabb_min = |dir| {
                         match dir {
-                            Ori::North | Ori::East => wpos - Vec2::one(),
-                            Ori::South | Ori::West => wpos + randx / 5 + 1,
+                            Dir::X | Dir::Y => wpos - Vec2::one(),
+                            Dir::NegX | Dir::NegY => wpos + randx / 5 + 1,
                         }
                         .with_z(alt + 1)
                     };
                     let aabb_max = |dir| {
                         (match dir {
-                            Ori::North | Ori::East => wpos + randx / 5 + 1,
-                            Ori::South | Ori::West => wpos - Vec2::one(),
-                        } + dir.dir() * hut_radius as i32)
+                            Dir::X | Dir::Y => wpos + randx / 5 + 1,
+                            Dir::NegX | Dir::NegY => wpos - Vec2::one(),
+                        } + dir.to_vec2() * hut_radius as i32)
                             .with_z(alt + 1 + door_height)
                     };
 
@@ -881,30 +881,26 @@ impl Structure for GnarlingFortification {
 
                     painter.fill(platform, darkwood.clone());
 
-                    let support_1 = painter.line(
-                        (wpos - 19).with_z(alt - 3),
-                        (wpos - 19).with_z(alt + raise),
-                        2.0,
-                    );
-                    let support_inner_1 = painter.aabb(Aabb {
-                        min: (wpos - 19).with_z(alt - 10),
-                        max: (wpos - 15).with_z(alt + raise),
-                    });
-                    let support_2 = support_1.translate(Vec3::new(0, 37, 0));
-                    let support_3 = support_1.translate(Vec3::new(37, 0, 0));
-                    let support_4 = support_1.translate(Vec3::new(37, 37, 0));
-                    let support_inner_1 = support_inner_1.translate(Vec3::new(0, 17, 0));
-                    let support_inner_2 = support_inner_1.translate(Vec3::new(34, 0, 0));
-                    let support_inner_3 = support_inner_1.translate(Vec3::new(17, 17, 0));
-                    let support_inner_4 = support_inner_1.translate(Vec3::new(17, -17, 0));
-                    let supports = support_1
-                        .union(support_2)
-                        .union(support_3)
-                        .union(support_4)
-                        .union(support_inner_1)
-                        .union(support_inner_2)
-                        .union(support_inner_3)
-                        .union(support_inner_4);
+                    let supports = painter
+                        .line(
+                            (wpos - 19).with_z(alt - 3),
+                            (wpos - 19).with_z(alt + raise),
+                            2.0,
+                        )
+                        .repeat(Vec3::new(37, 0, 0), 1)
+                        .repeat(Vec3::new(0, 37, 0), 1);
+
+                    let supports_inner = painter
+                        .aabb(Aabb {
+                            min: (wpos - 19).with_z(alt - 10) + Vec3::unit_y() * 17,
+                            max: (wpos - 15).with_z(alt + raise) + Vec3::unit_y() * 17,
+                        })
+                        .repeat(Vec3::new(17, 17, 0), 1)
+                        .repeat(Vec3::new(17, -17, 0), 1);
+                    // let support_inner_2 = support_inner_1.translate(Vec3::new(34, 0, 0));
+                    // let support_inner_3 = support_inner_1.translate(Vec3::new(17, 17, 0));
+                    // let support_inner_4 = support_inner_1.translate(Vec3::new(17, -17, 0));
+                    let supports = supports.union(supports_inner);
 
                     painter.fill(supports, darkwood.clone());
                     let height_1 = 10.0;

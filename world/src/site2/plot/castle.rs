@@ -76,7 +76,7 @@ impl Structure for Castle {
                 let wpos = site.tile_wpos(tile_pos);
                 match site.tiles.get(tile_pos).kind.clone() {
                     TileKind::Wall(ori) => {
-                        let dir = ori.dir();
+                        let dir = ori.to_vec2();
                         let wall = painter.prim(Primitive::Aabb(Aabb {
                             min: wpos.with_z(self.alt - 20),
                             max: (wpos + ts).with_z(self.alt + wall_height),

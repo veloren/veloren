@@ -3,10 +3,11 @@ pub mod plot;
 mod tile;
 pub mod util;
 
-use self::tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
+use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
 pub use self::{
     gen::{aabr_with_z, Fill, Painter, Primitive, Structure},
     plot::{Plot, PlotKind},
+    util::Dir,
 };
 use crate::{
     site::{namegen::NameGen, SpawnRules},
@@ -608,13 +609,13 @@ impl Site {
                         });
 
                         let wall_north = Tile {
-                            kind: TileKind::Wall(Ori::North),
+                            kind: TileKind::Wall(Dir::Y),
                             plot: Some(plot),
                             hard_alt: Some(castle_alt),
                         };
 
                         let wall_east = Tile {
-                            kind: TileKind::Wall(Ori::East),
+                            kind: TileKind::Wall(Dir::X),
                             plot: Some(plot),
                             hard_alt: Some(castle_alt),
                         };
@@ -697,7 +698,7 @@ impl Site {
                                 max: aabr.center() + 3,
                             },
                             Tile {
-                                kind: TileKind::Wall(Ori::North),
+                                kind: TileKind::Wall(Dir::Y),
                                 plot: Some(plot),
                                 hard_alt: Some(castle_alt),
                             },
