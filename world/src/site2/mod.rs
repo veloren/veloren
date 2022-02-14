@@ -5,7 +5,7 @@ pub mod util;
 
 use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
 pub use self::{
-    gen::{aabr_with_z, Fill, Painter, Primitive, Structure},
+    gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
     plot::{Plot, PlotKind},
     util::Dir,
 };

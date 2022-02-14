@@ -1707,15 +1707,12 @@ impl Structure for GnarlingFortification {
 
         let random_field = RandomField::new(self.seed);
 
-        let mut tunnels = painter.empty();
-        let mut path_tunnels = painter.empty();
-        let mut tunnels_clear = painter.empty();
-        let mut ferns = painter.empty();
-        let mut velorite_ores = painter.empty();
-        let mut fire_bowls = painter.empty();
-        let mut fern_scatter = painter.empty();
-        let mut velorite_scatter = painter.empty();
-        let mut fire_bowl_scatter = painter.empty();
+        let mut tunnels = Vec::new();
+        let mut path_tunnels = Vec::new();
+        let mut tunnels_clear = Vec::new();
+        let mut ferns = Vec::new();
+        let mut velorite_ores = Vec::new();
+        let mut fire_bowls = Vec::new();
         for branch in self.tunnels.branches.iter() {
             let tunnel_radius_i32 = 4 + branch.0.x % 4;
             let in_path =
@@ -1729,6 +1726,9 @@ impl Structure for GnarlingFortification {
             let ctrl1 = (((start + end) / 2) + end) / 2 + ctrl1_offset;
             let tunnel = painter.cubic_bezier(start, ctrl0, ctrl1, end, tunnel_radius);
             let tunnel_clear = painter.cubic_bezier(start, ctrl0, ctrl1, end, tunnel_radius - 1.0);
+            let mut fern_scatter = painter.empty();
+            let mut velorite_scatter = painter.empty();
+            let mut fire_bowl_scatter = painter.empty();
 
             let min_z = branch.0.z.min(branch.1.z);
             let max_z = branch.0.z.max(branch.1.z);
@@ -1758,21 +1758,21 @@ impl Structure for GnarlingFortification {
             let velorite = tunnel_clear.intersect(velorite_scatter);
             let fire_bowl = tunnel_clear.intersect(fire_bowl_scatter);
             if in_path {
-                path_tunnels = path_tunnels.union(tunnel);
+                path_tunnels.push(tunnel);
             } else {
-                tunnels = tunnels.union(tunnel);
+                tunnels.push(tunnel);
             }
-            tunnels_clear = tunnels_clear.union(tunnel_clear);
-            ferns = ferns.union(fern);
-            velorite_ores = velorite_ores.union(velorite);
-            fire_bowls = fire_bowls.union(fire_bowl);
+            tunnels_clear.push(tunnel_clear);
+            ferns.push(fern);
+            velorite_ores.push(velorite);
+            fire_bowls.push(fire_bowl);
         }
 
-        let mut rooms = painter.empty();
-        let mut rooms_clear = painter.empty();
-        let mut chests_ori_0 = painter.empty();
-        let mut chests_ori_2 = painter.empty();
-        let mut chests_ori_4 = painter.empty();
+        let mut rooms = Vec::new();
+        let mut rooms_clear = Vec::new();
+        let mut chests_ori_0 = Vec::new();
+        let mut chests_ori_2 = Vec::new();
+        let mut chests_ori_4 = Vec::new();
         for terminal in self.tunnels.terminals.iter() {
             let room = painter.sphere(Aabb {
                 min: terminal - 8,
@@ -1782,15 +1782,15 @@ impl Structure for GnarlingFortification {
                 min: terminal - 7,
                 max: terminal + 7 + 1,
             });
-            rooms = rooms.union(room);
-            rooms_clear = rooms_clear.union(room_clear);
+            rooms.push(room);
+            rooms_clear.push(room_clear);
 
             // FIRE!!!!!
             let fire_bowl = painter.aabb(Aabb {
                 min: terminal.with_z(terminal.z - 7),
                 max: terminal.with_z(terminal.z - 7) + 1,
             });
-            fire_bowls = fire_bowls.union(fire_bowl);
+            fire_bowls.push(fire_bowl);
 
             // Chest
             let chest_seed = random_field.get(*terminal) % 5;
@@ -1800,55 +1800,74 @@ impl Structure for GnarlingFortification {
                     min: chest_pos,
                     max: chest_pos + 1,
                 });
-                chests_ori_4 = chests_ori_4.union(chest);
+                chests_ori_4.push(chest);
                 if chest_seed < 2 {
                     let chest_pos = Vec3::new(terminal.x, terminal.y + 4, terminal.z - 6);
                     let chest = painter.aabb(Aabb {
                         min: chest_pos,
                         max: chest_pos + 1,
                     });
-                    chests_ori_0 = chests_ori_0.union(chest);
+                    chests_ori_0.push(chest);
                     if chest_seed < 1 {
                         let chest_pos = Vec3::new(terminal.x - 4, terminal.y, terminal.z - 6);
                         let chest = painter.aabb(Aabb {
                             min: chest_pos,
                             max: chest_pos + 1,
                         });
-                        chests_ori_2 = chests_ori_2.union(chest);
+                        chests_ori_2.push(chest);
                     }
                 }
             }
         }
-        tunnels.fill(wood.clone());
-        path_tunnels.fill(dirt);
-        rooms.fill(wood.clone());
-        boss_room.fill(wood.clone());
-        stump.fill(wood);
+        tunnels
+            .into_iter()
+            .chain(rooms.into_iter())
+            .chain(core::iter::once(boss_room))
+            .chain(core::iter::once(stump))
+            .for_each(|prim| prim.fill(wood.clone()));
+        path_tunnels.into_iter().for_each(|t| t.fill(dirt.clone()));
 
         // Clear out insides after filling the walls in
-        let cavern_clear = tunnels_clear.union(rooms_clear).union(boss_room_clear);
-        let sprite_clear = cavern_clear
-            .translate(Vec3::new(0, 0, 1))
-            .intersect(cavern_clear);
-        cavern_clear.clear();
+        let mut sprite_clear = Vec::new();
+        tunnels_clear
+            .into_iter()
+            .chain(rooms_clear.into_iter())
+            .chain(core::iter::once(boss_room_clear))
+            .for_each(|prim| {
+                sprite_clear.push(prim.translate(Vec3::new(0, 0, 1)).intersect(prim));
+
+                prim.clear();
+            });
 
         // Place sprites
-        ferns.fill(Fill::Block(Block::air(SpriteKind::JungleFern)));
-        velorite_ores.fill(Fill::Block(Block::air(SpriteKind::Velorite)));
-        fire_bowls.fill(Fill::Block(Block::air(SpriteKind::FireBowlGround)));
+        ferns
+            .into_iter()
+            .for_each(|prim| prim.fill(Fill::Block(Block::air(SpriteKind::JungleFern))));
+        velorite_ores
+            .into_iter()
+            .for_each(|prim| prim.fill(Fill::Block(Block::air(SpriteKind::Velorite))));
+        fire_bowls
+            .into_iter()
+            .for_each(|prim| prim.fill(Fill::Block(Block::air(SpriteKind::FireBowlGround))));
 
-        chests_ori_0.fill(Fill::Block(
-            Block::air(SpriteKind::DungeonChest0).with_ori(0).unwrap(),
-        ));
-        chests_ori_2.fill(Fill::Block(
-            Block::air(SpriteKind::DungeonChest0).with_ori(2).unwrap(),
-        ));
-        chests_ori_4.fill(Fill::Block(
-            Block::air(SpriteKind::DungeonChest0).with_ori(4).unwrap(),
-        ));
+        chests_ori_0.into_iter().for_each(|prim| {
+            prim.fill(Fill::Block(
+                Block::air(SpriteKind::DungeonChest0).with_ori(0).unwrap(),
+            ))
+        });
+        chests_ori_2.into_iter().for_each(|prim| {
+            prim.fill(Fill::Block(
+                Block::air(SpriteKind::DungeonChest0).with_ori(2).unwrap(),
+            ))
+        });
+        chests_ori_4.into_iter().for_each(|prim| {
+            prim.fill(Fill::Block(
+                Block::air(SpriteKind::DungeonChest0).with_ori(4).unwrap(),
+            ))
+        });
 
         entrance_hollow.clear();
-        sprite_clear.clear();
+        sprite_clear.into_iter().for_each(|prim| prim.clear());
     }
 }
 

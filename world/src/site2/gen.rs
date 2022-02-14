@@ -1010,6 +1010,8 @@ impl<'a> From<PrimitiveRef<'a>> for Id<Primitive> {
     fn from(r: PrimitiveRef<'a>) -> Self { r.id }
 }
 
+// TODO: Enable this
+#[allow(clippy::return_self_not_must_use)]
 impl<'a> PrimitiveRef<'a> {
     /// Joins two primitives together by returning the total of the blocks of
     /// both primitives. In boolean logic this is an `OR` operation.
