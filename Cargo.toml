@@ -64,6 +64,11 @@ opt-level = 3
 [profile.no_overflow.package."veloren-voxygen-anim"]
 opt-level = 3
 
+# this profile is for profiling with using the no_overflow profile, since release can take signifcant times to build.
+[profile.no_overflow_debuginfo]
+inherits = 'no_overflow'
+debug = 1
+
 # this profile is used for veloren releases, compile time doesn't matter
 # we need stacktraces, light debug information, as much checks as possible
 # I would like to put it in a seperate `official_release` target, but that doesnt share caches with `cargo test` and `cargo bench`
