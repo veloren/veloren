@@ -1314,8 +1314,18 @@ impl ParticleMgr {
                             let position = pos.0
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
+                            // Arbitrary number chosen that is large enough to be able to accurately
+                            // place particles most of the time, but also not too big as to make ray
+                            // be too large (for performance reasons)
                             let half_ray_length = 10.0;
                             let mut last_air = false;
+                            // TODO: Optimize ray to only be cast at most once per block per tick if
+                            // it becomes an issue.
+                            // From imbris:
+                            //      each ray is ~2 us
+                            //      at 30 FPS, it peaked at 113 rays in a tick
+                            //      total time was 240 us (although potentially half that is
+                            //          overhead from the profiling of each ray)
                             let _ = terrain
                                 .ray(
                                     position + Vec3::unit_z() * half_ray_length,
