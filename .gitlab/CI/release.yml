@@ -18,8 +18,10 @@
     max: 1
 
 # Template to only run if pushes to master or a tag happened for scheduled builds
-.release-nightly-tmp-fix-airshipper:
-  stage: build-nightly
+# This is a temporary fix until Airshipper can use a different mechanism of identifying jobs it should take
+# artifacts from. Once this is done the air-* jobs can be removed.
+.release-scheduled:
+  stage: build-scheduled
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule" && ($CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/ || $CI_COMMIT_REF_NAME =~ /^r[0-9]+\.[0-9]+/)
       when: on_success
