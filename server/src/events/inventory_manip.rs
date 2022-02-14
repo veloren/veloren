@@ -247,14 +247,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
             drop(inventories);
             if let Some(item) = drop_item {
-                // TODO: Choose a body appropriate for the item
-                let body = match item.item_definition_id() {
-                    "common.items.utility.coins" => comp::object::Body::Coins,
-                    _ => comp::object::Body::Pouch,
-                };
-
                 state
-                    .create_object(Default::default(), body)
+                    .create_item_drop(Default::default(), &item)
                     .with(comp::Pos(
                         Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32) + Vec3::unit_z(),
                     ))
@@ -712,12 +706,6 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         .into_iter()
         .filter(|(_, _, i)| !matches!(i.quality(), item::Quality::Debug))
     {
-        // hack: special case coins for now
-        let body = match item.item_definition_id() {
-            "common.items.utility.coins" => comp::object::Body::Coins,
-            _ => comp::object::Body::Pouch,
-        };
-
         // If item is a container check inside of it for Debug items and remove them
         item.slots_mut().iter_mut().for_each(|x| {
             if let Some(contained_item) = &x {
@@ -728,7 +716,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         });
 
         state
-            .create_object(Default::default(), body)
+            .create_item_drop(Default::default(), &item)
             .with(comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()))
             .with(item)
             .with(comp::Vel(Vec3::zero()))

@@ -325,6 +325,7 @@ impl Scene {
                     CameraMode::default(),
                     None,
                     scene_data.slow_job_pool,
+                    None,
                 )
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
@@ -368,6 +369,7 @@ impl Scene {
                 inventory,
                 tick,
                 CameraMode::default(),
+                None,
                 None,
             );
 

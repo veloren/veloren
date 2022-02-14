@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
+    item_imgs::{animate_by_pulse, ItemImgs},
     Position, PositionSpecifier, Show, BLACK, CRITICAL_HP_COLOR, HP_COLOR, TEXT_COLOR,
     UI_HIGHLIGHT_0, UI_MAIN, XP_COLOR,
 };
@@ -34,6 +34,7 @@ use common::{
         ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
         inventory::{
             item::{
+                item_key::ItemKey,
                 tool::{MaterialStatManifest, ToolKind},
                 ItemKind,
             },
@@ -1358,7 +1359,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_general_combat_left".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_general_combat_left".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -1367,9 +1368,9 @@ impl<'a> Diary<'a> {
         .set(state.ids.general_combat_render_0, ui);
 
         Image::new(animate_by_pulse(
-            &self
-                .item_imgs
-                .img_ids_or_not_found_img(Tool("example_general_combat_right".to_string())),
+            &self.item_imgs.img_ids_or_not_found_img(ItemKey::Tool(
+                "example_general_combat_right".to_string(),
+            )),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -1536,7 +1537,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_sword".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_sword".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -1707,7 +1708,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_hammer".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_hammer".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -1865,7 +1866,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_axe".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_axe".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -2023,7 +2024,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_sceptre".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_sceptre".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -2175,7 +2176,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_bow".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_bow".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -2333,7 +2334,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_staff_fire".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_staff_fire".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)
@@ -2480,7 +2481,7 @@ impl<'a> Diary<'a> {
         Image::new(animate_by_pulse(
             &self
                 .item_imgs
-                .img_ids_or_not_found_img(Tool("example_pick".to_string())),
+                .img_ids_or_not_found_img(ItemKey::Tool("example_pick".to_string())),
             self.pulse,
         ))
         .wh(ART_SIZE)

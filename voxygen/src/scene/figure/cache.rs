@@ -14,6 +14,7 @@ use common::{
         },
         item::{
             armor::{Armor, ArmorKind},
+            item_key::ItemKey,
             Item, ItemKind,
         },
         CharacterState,
@@ -60,9 +61,12 @@ const LOD_COUNT: usize = 3;
 type FigureModelEntryLod<'b> = Option<&'b FigureModelEntry<LOD_COUNT>>;
 
 #[derive(Clone, Eq, Hash, PartialEq)]
+/// TODO: merge item_key and extra field into an enum
 pub struct FigureKey<Body> {
     /// Body pointed to by this key.
     pub(super) body: Body,
+    /// Only used by Body::ItemDrop
+    pub item_key: Option<Arc<ItemKey>>,
     /// Extra state.
     pub(super) extra: Option<Arc<CharacterCacheKey>>,
 }
@@ -323,10 +327,12 @@ where
         _tick: u64,
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
+        item_key: Option<ItemKey>,
     ) -> FigureModelEntryLod<'b> {
         // TODO: Use raw entries to avoid lots of allocation (among other things).
         let key = FigureKey {
             body,
+            item_key: item_key.map(Arc::new),
             extra: inventory.map(|inventory| {
                 Arc::new(CharacterCacheKey::from(
                     character_state,
@@ -343,6 +349,7 @@ where
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn get_or_create_model<'c>(
         &'c mut self,
         renderer: &mut Renderer,
@@ -354,6 +361,7 @@ where
         camera_mode: CameraMode,
         character_state: Option<&CharacterState>,
         slow_jobs: &SlowJobPool,
+        item_key: Option<ItemKey>,
     ) -> (FigureModelEntryLod<'c>, &'c Skel::Attr)
     where
         for<'a> &'a Skel::Body: Into<Skel::Attr>,
@@ -363,6 +371,7 @@ where
         let skeleton_attr = (&body).into();
         let key = FigureKey {
             body,
+            item_key: item_key.map(Arc::new),
             extra: inventory.map(|inventory| {
                 Arc::new(CharacterCacheKey::from(
                     character_state,
@@ -417,7 +426,8 @@ where
 
                 slow_jobs.spawn("FIGURE_MESHING", move || {
                     // First, load all the base vertex data.
-                    let meshes = <Skel::Body as BodySpec>::bone_meshes(&key, &manifests, extra);
+                    let meshes =
+                        <Skel::Body as BodySpec>::bone_meshes(&key, &manifests, extra);
 
                     // Then, set up meshing context.
                     let mut greedy = FigureModel::make_greedy();
@@ -447,9 +457,7 @@ where
                             .filter_map(|(i, bm)| bm.as_ref().map(|bm| (i as u8, bm)))
                             .for_each(|(i, (segment, offset))| {
                                 // Generate this mesh.
-                                let (_opaque_mesh, bounds) =
-                                    generate_mesh(&mut greedy, &mut opaque, segment, *offset, i);
-
+                                let (_opaque_mesh, bounds) = generate_mesh(&mut greedy, &mut opaque, segment, *offset, i);
                                 // Update the figure bounds to the largest granularity seen so far
                                 // (NOTE: this is more than a little imperfect).
                                 //

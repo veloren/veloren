@@ -306,6 +306,12 @@ impl Body {
                 },
             },
 
+            Body::ItemDrop(_) => {
+                let dim = self.dimensions();
+                const CD: f32 = 2.0;
+                CD * (PI / 6.0 * dim.x * dim.y * dim.z).powf(2.0 / 3.0)
+            },
+
             Body::Ship(_) => {
                 // Airships tend to use the square of the cube root of its volume for
                 // reference area

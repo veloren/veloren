@@ -1,14 +1,14 @@
 use super::{
     hotbar::{self, Slot as HotbarSlot},
     img_ids,
-    item_imgs::{ItemImgs, ItemKey},
+    item_imgs::ItemImgs,
     util,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
     ability::{Ability, AbilityInput, AuxiliaryAbility},
     slot::InvSlotId,
-    ActiveAbilities, Body, Energy, Inventory, SkillSet,
+    ActiveAbilities, Body, Energy, Inventory, ItemKey, SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;

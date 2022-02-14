@@ -1,4 +1,5 @@
 pub mod armor;
+pub mod item_key;
 pub mod modular;
 pub mod tool;
 

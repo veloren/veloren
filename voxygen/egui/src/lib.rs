@@ -728,6 +728,7 @@ fn body_species(body: &Body) -> String {
         Body::BipedLarge(body) => format!("{:?}", body.species),
         Body::BipedSmall(body) => format!("{:?}", body.species),
         Body::Object(body) => format!("{:?}", body),
+        Body::ItemDrop(body) => format!("{:?}", body),
         Body::Golem(body) => format!("{:?}", body.species),
         Body::Theropod(body) => format!("{:?}", body.species),
         Body::QuadrupedLow(body) => format!("{:?}", body.species),

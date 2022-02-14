@@ -379,7 +379,7 @@ pub fn handle_mine_block(
                     }
                 }
                 state
-                    .create_object(Default::default(), comp::object::Body::Pouch)
+                    .create_item_drop(Default::default(), &item)
                     .with(comp::Pos(pos.map(|e| e as f32) + Vec3::new(0.5, 0.5, 0.0)))
                     .with(item)
                     .build();

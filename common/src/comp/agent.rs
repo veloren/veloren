@@ -263,6 +263,7 @@ impl<'a> From<&'a Body> for Psyche {
                 Body::FishMedium(_) => 0.75,
                 Body::BipedLarge(_) => 0.0,
                 Body::Object(_) => 0.0,
+                Body::ItemDrop(_) => 0.0,
                 Body::Golem(_) => 0.0,
                 Body::Theropod(_) => 0.0,
                 Body::Ship(_) => 0.0,

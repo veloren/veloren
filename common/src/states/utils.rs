@@ -109,6 +109,7 @@ impl Body {
                 _ => 80.0,
             },
             Body::Object(_) => 0.0,
+            Body::ItemDrop(_) => 0.0,
             Body::Golem(_) => 60.0,
             Body::Theropod(_) => 135.0,
             Body::QuadrupedLow(quadruped_low) => match quadruped_low.species {
@@ -183,6 +184,7 @@ impl Body {
             Body::BipedLarge(_) => 2.7,
             Body::BipedSmall(_) => 3.5,
             Body::Object(_) => 2.0,
+            Body::ItemDrop(_) => 2.0,
             Body::Golem(_) => 2.0,
             Body::Theropod(theropod) => match theropod.species {
                 theropod::Species::Archaeos => 2.3,
@@ -208,6 +210,7 @@ impl Body {
     pub fn swim_thrust(&self) -> Option<f32> {
         match self {
             Body::Object(_) => None,
+            Body::ItemDrop(_) => None,
             Body::BipedLarge(_) | Body::Golem(_) => Some(200.0 * self.mass().0),
             Body::BipedSmall(_) => Some(100.0 * self.mass().0),
             Body::BirdMedium(_) => Some(50.0 * self.mass().0),
@@ -247,7 +250,7 @@ impl Body {
     /// Returns jump impulse if the body type can jump, otherwise None
     pub fn jump_impulse(&self) -> Option<f32> {
         match self {
-            Body::Object(_) | Body::Ship(_) => None,
+            Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) => None,
             Body::BipedLarge(_) | Body::Dragon(_) | Body::Golem(_) | Body::QuadrupedLow(_) => {
                 Some(0.1 * self.mass().0)
             },

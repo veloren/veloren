@@ -1013,6 +1013,13 @@
         ),
         species: ()
     ),
+    item_drop: (
+        body: (
+            keyword: "item_drop",
+            names_0: []
+        ),
+        species: ()
+    ),
     ship: (
         body: (
             keyword: "ship",

@@ -1,7 +1,7 @@
 use super::{
     get_quality_col,
     img_ids::{Imgs, ImgsRot},
-    item_imgs::{animate_by_pulse, ItemImgs, ItemKey::Tool},
+    item_imgs::{animate_by_pulse, ItemImgs},
     Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::ui::{
@@ -13,7 +13,8 @@ use common::{
     assets::AssetExt,
     comp::{
         item::{
-            ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality, TagExampleInfo,
+            item_key::ItemKey, ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
+            TagExampleInfo,
         },
         Inventory,
     },
@@ -634,7 +635,7 @@ impl<'a> Widget for Crafting<'a> {
                     Button::image(animate_by_pulse(
                         &self
                             .item_imgs
-                            .img_ids_or_not_found_img(Tool(station_img_str.to_string())),
+                            .img_ids_or_not_found_img(ItemKey::Tool(station_img_str.to_string())),
                         self.pulse,
                     ))
                     .image_color(color::LIGHT_RED)
@@ -815,7 +816,7 @@ impl<'a> Widget for Crafting<'a> {
                 Image::new(animate_by_pulse(
                     &self
                         .item_imgs
-                        .img_ids_or_not_found_img(Tool(station_img.to_string())),
+                        .img_ids_or_not_found_img(ItemKey::Tool(station_img.to_string())),
                     self.pulse,
                 ))
                 .w_h(25.0, 25.0)
@@ -1056,7 +1057,7 @@ impl<'a> Widget for Crafting<'a> {
             Image::new(animate_by_pulse(
                 &self
                     .item_imgs
-                    .img_ids_or_not_found_img(Tool("DismantlingBench".to_string())),
+                    .img_ids_or_not_found_img(ItemKey::Tool("DismantlingBench".to_string())),
                 self.pulse,
             ))
             .wh([size; 2])

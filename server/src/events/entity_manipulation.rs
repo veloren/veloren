@@ -17,8 +17,8 @@ use common::{
         self, aura, buff,
         chat::{KillSource, KillType},
         inventory::item::MaterialStatManifest,
-        object, Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange,
-        Inventory, Player, Poise, Pos, SkillSet, Stats,
+        Alignment, Auras, Body, CharacterState, Energy, Group, Health, HealthChange, Inventory,
+        Player, Poise, Pos, SkillSet, Stats,
     },
     event::{EventBus, ServerEvent},
     outcome::Outcome,
@@ -427,7 +427,6 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         // and if it is not owned by another entity (not a pet)
 
         // Decide for a loot drop before turning into a lootbag
-        let old_body = state.ecs().write_storage::<Body>().remove(entity);
 
         let item = {
             let mut item_drop = state.ecs().write_storage::<comp::ItemDrop>();
@@ -442,23 +441,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                 // render the items on the ground, rather than changing the texture depending on
                 // the body type
                 let _ = state
-                    .create_object(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), match old_body {
-                        Some(common::comp::Body::Humanoid(_)) => object::Body::Pouch,
-                        Some(common::comp::Body::BipedSmall(_))
-                        | Some(common::comp::Body::BipedLarge(_)) => object::Body::Pouch,
-                        Some(common::comp::Body::Golem(_)) => object::Body::Chest,
-                        Some(common::comp::Body::QuadrupedSmall(_)) => object::Body::SmallMeat,
-                        Some(common::comp::Body::FishMedium(_))
-                        | Some(common::comp::Body::FishSmall(_)) => object::Body::FishMeat,
-                        Some(common::comp::Body::QuadrupedMedium(_)) => object::Body::BeastMeat,
-                        Some(common::comp::Body::QuadrupedLow(_)) => object::Body::ToughMeat,
-                        Some(common::comp::Body::BirdLarge(_))
-                        | Some(common::comp::Body::BirdMedium(_)) => object::Body::BirdMeat,
-                        Some(common::comp::Body::Theropod(_)) => object::Body::BeastMeat,
-                        Some(common::comp::Body::Dragon(_)) => object::Body::BeastMeat,
-                        Some(common::comp::Body::Object(_)) => object::Body::Chest,
-                        _ => object::Body::Pouch,
-                    })
+                    .create_item_drop(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), &item)
                     .maybe_with(vel)
                     .with(item)
                     .build();

@@ -60,8 +60,8 @@ pub use self::{
     beam::{Beam, BeamSegment},
     body::{
         arthropod, biped_large, biped_small, bird_large, bird_medium, dragon, fish_medium,
-        fish_small, golem, humanoid, object, quadruped_low, quadruped_medium, quadruped_small,
-        ship, theropod, AllBodies, Body, BodyData,
+        fish_small, golem, humanoid, item_drop, object, quadruped_low, quadruped_medium,
+        quadruped_small, ship, theropod, AllBodies, Body, BodyData,
     },
     buff::{
         Buff, BuffCategory, BuffChange, BuffData, BuffEffect, BuffId, BuffKind, BuffSource, Buffs,
@@ -83,6 +83,7 @@ pub use self::{
     inventory::{
         item::{
             self,
+            item_key::ItemKey,
             tool::{self, AbilityItem},
             Item, ItemConfig, ItemDrop,
         },
