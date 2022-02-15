@@ -1232,6 +1232,7 @@ impl Renderer {
 
     /// Create a new dynamic model with the specified size.
     pub fn create_dynamic_model<V: Vertex>(&mut self, size: usize) -> DynamicModel<V> {
+        self.ensure_sufficient_index_length::<V>(size);
         DynamicModel::new(&self.device, size)
     }
 

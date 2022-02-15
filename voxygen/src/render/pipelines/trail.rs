@@ -18,6 +18,8 @@ impl Vertex {
             attributes: &ATTRIBUTES,
         }
     }
+
+    pub fn zero() -> Self { Self { pos: [0.0; 3] } }
 }
 
 impl VertexTrait for Vertex {

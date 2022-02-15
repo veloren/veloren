@@ -572,7 +572,7 @@ impl FigureMgr {
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
-        trail_mgr: &TrailMgr,
+        trail_mgr: &mut TrailMgr,
         scene_data: &SceneData,
         // Visible chunk data.
         visible_psr_bounds: math::Aabr<f32>,
@@ -6294,7 +6294,7 @@ impl<S: Skeleton> FigureState<S> {
     pub fn update<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
-        trail_mgr: Option<&TrailMgr>,
+        trail_mgr: Option<&mut TrailMgr>,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
         FigureUpdateCommonParameters {
             entity,
@@ -6458,11 +6458,10 @@ impl<S: Skeleton> FigureState<S> {
         });
         let offsets_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
         if let Some(trail_mgr) = trail_mgr {
-            if let Some(dynamic_model) = entity
+            if let Some(quad_mesh) = entity
                 .as_ref()
-                .and_then(|e| trail_mgr.dynamic_models.get(e))
+                .and_then(|e| trail_mgr.entity_meshes.get_mut(e))
             {
-                let mut quad_mesh = Mesh::new();
                 let quad = if let (Some((p1, p2)), Some((p4, p3))) =
                     (self.abs_trail_points, offsets_abs_trail_points)
                 {
@@ -6490,8 +6489,7 @@ impl<S: Skeleton> FigureState<S> {
                     let zero = trail::Vertex { pos: [0.0; 3] };
                     Quad::new(zero, zero, zero, zero)
                 };
-                quad_mesh.push_quad(quad);
-                renderer.update_model(dynamic_model, &quad_mesh, trail_mgr.offset * 4);
+                quad_mesh.replace_quad(trail_mgr.offset * 4, quad);
             }
         }
         self.abs_trail_points = offsets_abs_trail_points;
