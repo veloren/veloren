@@ -44,7 +44,7 @@ use crate::{
     column::ColumnGen,
     index::Index,
     layer::spot::Spot,
-    site::SiteKind,
+    site::{SiteKind, SpawnRules},
     util::{Grid, Sampler},
 };
 use common::{
@@ -156,6 +156,8 @@ impl World {
                                 civ::SiteKind::Castle => world_msg::SiteKind::Castle,
                                 civ::SiteKind::Refactor => world_msg::SiteKind::Town,
                                 civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
+                                // TODO: Maybe change?
+                                civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }
@@ -408,7 +410,16 @@ impl World {
         };
 
         if sim_chunk.contains_waypoint {
-            supplement.add_entity(EntityInfo::at(gen_entity_pos(&mut dynamic_rng)).into_waypoint());
+            let waypoint_pos = gen_entity_pos(&mut dynamic_rng);
+            if sim_chunk
+                .sites
+                .iter()
+                .map(|site| index.sites[*site].spawn_rules(waypoint_pos.xy().as_()))
+                .fold(SpawnRules::default(), |a, b| a.combine(b))
+                .waypoints
+            {
+                supplement.add_entity(EntityInfo::at(waypoint_pos).into_waypoint());
+            }
         }
 
         // Apply layer supplement

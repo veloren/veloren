@@ -394,6 +394,7 @@ pub enum CharacterAbility {
         swing_duration: f32,
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
+        ori_modifier: f32,
     },
     BasicRanged {
         energy_cost: f32,
@@ -551,12 +552,12 @@ pub enum CharacterAbility {
         cast_duration: f32,
         recover_duration: f32,
         targets: combat::GroupTarget,
-        aura: aura::AuraBuffConstructor,
+        auras: Vec<aura::AuraBuffConstructor>,
         aura_duration: f32,
         range: f32,
         energy_cost: f32,
         scales_with_combo: bool,
-        specifier: aura::Specifier,
+        specifier: Option<aura::Specifier>,
     },
     Blink {
         buildup_duration: f32,
@@ -610,6 +611,7 @@ impl Default for CharacterAbility {
                 angle: 15.0,
                 damage_effect: None,
             },
+            ori_modifier: 1.0,
         }
     }
 }
@@ -697,6 +699,7 @@ impl CharacterAbility {
                 ref mut swing_duration,
                 ref mut recover_duration,
                 ref mut melee_constructor,
+                ori_modifier: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -961,13 +964,7 @@ impl CharacterAbility {
                 ref mut cast_duration,
                 ref mut recover_duration,
                 targets: _,
-                aura:
-                    aura::AuraBuffConstructor {
-                        kind: _,
-                        ref mut strength,
-                        duration: _,
-                        category: _,
-                    },
+                ref mut auras,
                 aura_duration: _,
                 ref mut range,
                 ref mut energy_cost,
@@ -977,9 +974,18 @@ impl CharacterAbility {
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;
-                // Do we want to make buff_strength affect this instead of power?
-                // Look into during modular weapon transition
-                *strength *= stats.power;
+                auras.iter_mut().for_each(
+                    |aura::AuraBuffConstructor {
+                         kind: _,
+                         ref mut strength,
+                         duration: _,
+                         category: _,
+                     }| {
+                        // Do we want to make buff_strength affect this instead of power?
+                        // Look into during modular weapon transition
+                        *strength *= stats.power;
+                    },
+                );
                 *range *= stats.range;
                 *energy_cost /= stats.energy_efficiency;
             },
@@ -1076,7 +1082,6 @@ impl CharacterAbility {
     }
 
     #[must_use = "method returns new ability and doesn't mutate the original value"]
-    #[warn(clippy::pedantic)]
     pub fn adjusted_by_skills(mut self, skillset: &SkillSet, tool: Option<ToolKind>) -> Self {
         match tool {
             Some(ToolKind::Sword) => self.adjusted_by_sword_skills(skillset),
@@ -1092,7 +1097,6 @@ impl CharacterAbility {
         self
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_mining_skills(&mut self, skillset: &SkillSet) {
         use skills::MiningSkill::Speed;
 
@@ -1114,7 +1118,6 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_general_skills(&mut self, skillset: &SkillSet) {
         if let CharacterAbility::Roll {
             ref mut energy_cost,
@@ -1236,7 +1239,6 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_axe_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{AxeSkill::*, Skill::Axe};
@@ -1330,7 +1332,6 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_hammer_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{HammerSkill::*, Skill::Hammer};
@@ -1433,7 +1434,6 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_bow_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{BowSkill::*, Skill::Bow};
@@ -1534,7 +1534,6 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_staff_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{Skill::Staff, StaffSkill::*};
@@ -1604,7 +1603,6 @@ impl CharacterAbility {
         }
     }
 
-    #[warn(clippy::pedantic)]
     fn adjusted_by_sceptre_skills(&mut self, skillset: &SkillSet) {
         #![allow(clippy::enum_glob_use)]
         use skills::{SceptreSkill::*, Skill::Sceptre};
@@ -1638,20 +1636,24 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::BasicAura {
-                ref mut aura,
+                ref mut auras,
                 ref mut range,
                 ref mut energy_cost,
-                specifier: aura::Specifier::HealingAura,
+                specifier: Some(aura::Specifier::HealingAura),
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.sceptre_tree.healing_aura;
                 if let Ok(level) = skillset.skill_level(Sceptre(HHeal)) {
-                    aura.strength *= modifiers.strength.powi(level.into());
+                    auras.iter_mut().for_each(|ref mut aura| {
+                        aura.strength *= modifiers.strength.powi(level.into());
+                    });
                 }
                 if let Ok(level) = skillset.skill_level(Sceptre(HDuration)) {
-                    if let Some(ref mut duration) = aura.duration {
-                        *duration *= modifiers.duration.powi(level.into());
-                    }
+                    auras.iter_mut().for_each(|ref mut aura| {
+                        if let Some(ref mut duration) = aura.duration {
+                            *duration *= modifiers.duration.powi(level.into());
+                        }
+                    });
                 }
                 if let Ok(level) = skillset.skill_level(Sceptre(HRange)) {
                     *range *= modifiers.range.powi(level.into());
@@ -1661,20 +1663,24 @@ impl CharacterAbility {
                 }
             },
             CharacterAbility::BasicAura {
-                ref mut aura,
+                ref mut auras,
                 ref mut range,
                 ref mut energy_cost,
-                specifier: aura::Specifier::WardingAura,
+                specifier: Some(aura::Specifier::WardingAura),
                 ..
             } => {
                 let modifiers = SKILL_MODIFIERS.sceptre_tree.warding_aura;
                 if let Ok(level) = skillset.skill_level(Sceptre(AStrength)) {
-                    aura.strength *= modifiers.strength.powi(level.into());
+                    auras.iter_mut().for_each(|ref mut aura| {
+                        aura.strength *= modifiers.strength.powi(level.into());
+                    });
                 }
                 if let Ok(level) = skillset.skill_level(Sceptre(ADuration)) {
-                    if let Some(ref mut duration) = aura.duration {
-                        *duration *= modifiers.duration.powi(level.into());
-                    }
+                    auras.iter_mut().for_each(|ref mut aura| {
+                        if let Some(ref mut duration) = aura.duration {
+                            *duration *= modifiers.duration.powi(level.into());
+                        }
+                    });
                 }
                 if let Ok(level) = skillset.skill_level(Sceptre(ARange)) {
                     *range *= modifiers.range.powi(level.into());
@@ -1696,6 +1702,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 swing_duration,
                 recover_duration,
                 melee_constructor,
+                ori_modifier,
                 energy_cost: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
@@ -1703,6 +1710,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     swing_duration: Duration::from_secs_f32(*swing_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
+                    ori_modifier: *ori_modifier,
                     ability_info,
                 },
                 timer: Duration::default(),
@@ -2080,7 +2088,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 cast_duration,
                 recover_duration,
                 targets,
-                aura,
+                auras,
                 aura_duration,
                 range,
                 energy_cost: _,
@@ -2092,7 +2100,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     cast_duration: Duration::from_secs_f32(*cast_duration),
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     targets: *targets,
-                    aura: *aura,
+                    auras: auras.clone(),
                     aura_duration: Duration::from_secs_f32(*aura_duration),
                     range: *range,
                     ability_info,

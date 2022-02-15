@@ -408,6 +408,7 @@ impl NpcData {
             has_agency,
             agent_mark,
             alignment,
+            no_flee,
             // stats
             body,
             name,
@@ -495,7 +496,7 @@ impl NpcData {
                         .with_trade_site(trade_for_site),
                 )
                 .with_patrol_origin(pos)
-                .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)))
+                .with_no_flee_if(matches!(agent_mark, Some(agent::Mark::Guard)) || no_flee)
         });
 
         let agent = if matches!(alignment, comp::Alignment::Enemy)

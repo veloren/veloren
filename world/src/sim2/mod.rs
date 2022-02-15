@@ -208,6 +208,7 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
                 SiteKind::Tree(_) => (),
                 SiteKind::Refactor(_) => towns += site.economy.pop,
                 SiteKind::GiantTree(_) => (),
+                SiteKind::Gnarling(_) => {},
             }
         }
         if towns.valid() {

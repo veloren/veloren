@@ -44,7 +44,7 @@ impl Dir {
 
     /// Rotate the direction anti clock wise
     #[must_use]
-    pub fn rotate_left(self) -> Dir {
+    pub fn rotated_ccw(self) -> Dir {
         match self {
             Dir::X => Dir::Y,
             Dir::NegX => Dir::NegY,
@@ -55,7 +55,7 @@ impl Dir {
 
     /// Rotate the direction clock wise
     #[must_use]
-    pub fn rotate_right(self) -> Dir {
+    pub fn rotated_cw(self) -> Dir {
         match self {
             Dir::X => Dir::NegY,
             Dir::NegX => Dir::Y,
@@ -121,8 +121,8 @@ impl Dir {
         match other {
             Dir::X => self,
             Dir::NegX => self.opposite(),
-            Dir::Y => self.rotate_right(),
-            Dir::NegY => self.rotate_left(),
+            Dir::Y => self.rotated_cw(),
+            Dir::NegY => self.rotated_ccw(),
         }
     }
 

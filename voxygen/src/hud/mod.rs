@@ -1539,11 +1539,17 @@ impl Hud {
                             .set(self.ids.player_rank_up, ui_widgets);
                         // Rank Number
                         let rank = display.total_points;
+                        let fontsize = match rank {
+                            1..=99 => (20, 8.0),
+                            100..=999 => (18, 9.0),
+                            1000..=9999 => (17, 10.0),
+                            _ => (14, 12.0),
+                        };
                         Text::new(&format!("{}", rank))
-                            .font_size(20)
+                            .font_size(fontsize.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(1.0, 1.0, 1.0, fade))
-                            .mid_top_with_margin_on(self.ids.player_rank_up, 8.0)
+                            .mid_top_with_margin_on(self.ids.player_rank_up, fontsize.1)
                             .set(self.ids.player_rank_up_txt_number, ui_widgets);
                         // Static "New Rank!" text
                         Text::new(i18n.get("hud.rank_up"))
@@ -4288,6 +4294,7 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
         BuffKind::Frenzied { .. } => imgs.buff_frenzy_0,
+        BuffKind::Hastened { .. } => imgs.buff_haste_0,
         //  Debuffs
         BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
         BuffKind::Cursed { .. } => imgs.debuff_skull_0,
@@ -4312,6 +4319,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> &str 
         BuffKind::Invulnerability => localized_strings.get("buff.title.invulnerability"),
         BuffKind::ProtectingWard => localized_strings.get("buff.title.protectingward"),
         BuffKind::Frenzied => localized_strings.get("buff.title.frenzied"),
+        BuffKind::Hastened => localized_strings.get("buff.title.hastened"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get("buff.title.bleed"),
         BuffKind::Cursed { .. } => localized_strings.get("buff.title.cursed"),
@@ -4348,6 +4356,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
             Cow::Borrowed(localized_strings.get("buff.desc.protectingward"))
         },
         BuffKind::Frenzied => Cow::Borrowed(localized_strings.get("buff.desc.frenzied")),
+        BuffKind::Hastened => Cow::Borrowed(localized_strings.get("buff.desc.hastened")),
         // Debuffs
         BuffKind::Bleeding { .. } => Cow::Borrowed(localized_strings.get("buff.desc.bleed")),
         BuffKind::Cursed { .. } => Cow::Borrowed(localized_strings.get("buff.desc.cursed")),

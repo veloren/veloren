@@ -94,6 +94,10 @@ make_case_elim!(
         Coconut = 79,
         SpitPoison = 80,
         BoltIcicle = 81,
+        Dart = 82,
+        GnarlingTotemRed = 83,
+        GnarlingTotemGreen = 84,
+        GnarlingTotemWhite = 85,
     }
 );
 
@@ -104,7 +108,7 @@ impl Body {
     }
 }
 
-pub const ALL_OBJECTS: [Body; 80] = [
+pub const ALL_OBJECTS: [Body; 86] = [
     Body::Arrow,
     Body::Bomb,
     Body::Scarecrow,
@@ -185,6 +189,12 @@ pub const ALL_OBJECTS: [Body; 80] = [
     Body::Apple,
     Body::Hive,
     Body::Coconut,
+    Body::SpitPoison,
+    Body::BoltIcicle,
+    Body::Dart,
+    Body::GnarlingTotemRed,
+    Body::GnarlingTotemWhite,
+    Body::GnarlingTotemGreen,
 ];
 
 impl From<Body> for super::Body {
@@ -276,6 +286,10 @@ impl Body {
             Body::Coconut => "coconut",
             Body::SpitPoison => "spit_poison",
             Body::BoltIcicle => "bolt_icicle",
+            Body::Dart => "dart",
+            Body::GnarlingTotemRed => "gnarling_totem_red",
+            Body::GnarlingTotemGreen => "gnarling_totem_green",
+            Body::GnarlingTotemWhite => "gnarling_totem_white",
         }
     }
 
@@ -293,7 +307,9 @@ impl Body {
     pub fn density(&self) -> Density {
         let density = match self {
             Body::Anvil | Body::Cauldron => IRON_DENSITY,
-            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow => 500.0,
+            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow | Body::Dart => {
+                500.0
+            },
             Body::Bomb => 2000.0, // I have no idea what it's supposed to be
             Body::Crate => 300.0, // let's say it's a lot of wood and maybe some contents
             Body::Scarecrow => 900.0,
@@ -310,7 +326,9 @@ impl Body {
         let m = match self {
             // I think MultiArrow is one of several arrows, not several arrows combined?
             Body::Anvil => 100.0,
-            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow => 0.003,
+            Body::Arrow | Body::ArrowSnake | Body::ArrowTurret | Body::MultiArrow | Body::Dart => {
+                0.003
+            },
             Body::BedBlue => 50.0,
             Body::Bedroll => 3.0,
             Body::Bench => 100.0,
@@ -381,6 +399,7 @@ impl Body {
             Body::Apple => 2.0,
             Body::Hive => 2.0,
             Body::Coconut => 2.0,
+            Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => 100.0,
         };
 
         Mass(m)
@@ -388,7 +407,7 @@ impl Body {
 
     pub fn dimensions(&self) -> Vec3<f32> {
         match self {
-            Body::Arrow | Body::ArrowSnake | Body::MultiArrow | Body::ArrowTurret => {
+            Body::Arrow | Body::ArrowSnake | Body::MultiArrow | Body::ArrowTurret | Body::Dart => {
                 Vec3::new(0.01, 0.8, 0.01)
             },
             Body::BoltFire => Vec3::new(0.1, 0.1, 0.1),
@@ -398,6 +417,9 @@ impl Body {
             Body::Snowball => Vec3::broadcast(2.5),
             Body::Tornado => Vec3::new(2.0, 2.0, 3.4),
             Body::TrainingDummy => Vec3::new(1.5, 1.5, 3.0),
+            Body::GnarlingTotemRed | Body::GnarlingTotemGreen | Body::GnarlingTotemWhite => {
+                Vec3::new(0.8, 0.8, 1.4)
+            },
             // FIXME: this *must* be exhaustive match
             _ => Vec3::broadcast(0.5),
         }

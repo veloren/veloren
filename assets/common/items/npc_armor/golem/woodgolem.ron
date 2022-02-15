@@ -1,0 +1,13 @@
+ItemDef(
+    name: "Wood Golem Armor",
+    description: "Yeet",
+    kind: Armor((
+        kind: Chest("Wood Golem"),
+        stats: (
+            protection: Some(Normal(60.0)),
+            poise_resilience: Some(Normal(60.0)),
+        ),
+    )),
+    quality: Common,
+    tags: [],
+)

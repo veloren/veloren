@@ -23,6 +23,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
+    /// Adjusts turning rate during the attack
+    pub ori_modifier: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -44,7 +46,7 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
-        handle_orientation(data, &mut update, 1.0, None);
+        handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
         handle_move(data, &mut update, 0.7);
         handle_jump(data, output_events, &mut update, 1.0);
 

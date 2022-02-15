@@ -6,10 +6,10 @@ ItemDef(
         hands: Two,
         stats: Direct((
             equip_time_secs: 0.0,
-            power: 0.3,
-            effect_power: 0.8,
-            speed: 0.6,
-            crit_chance: 0.26764706,
+            power: 1.0,
+            effect_power: 1.0,
+            speed: 1.0,
+            crit_chance: 0.1,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
@@ -17,5 +17,5 @@ ItemDef(
     )),
     quality: Low,
     tags: [],
-    ability_spec: Some(Custom("Staff Simple")),
+    ability_spec: Some(Custom("Gnarling Chieftain")),
 )

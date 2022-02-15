@@ -60,6 +60,7 @@ pub struct AttackData {
     pub min_attack_dist: f32,
     pub dist_sqrd: f32,
     pub angle: f32,
+    pub angle_xy: f32,
 }
 
 impl AttackData {
@@ -67,15 +68,27 @@ impl AttackData {
 }
 
 #[derive(Eq, PartialEq)]
+// When adding a new variant, first decide if it should instead fall under one
+// of the pre-exisitng tactics
 pub enum Tactic {
-    Melee,
+    // General tactics
+    SimpleMelee,
+    SimpleBackstab,
+    ElevatedRanged,
+    Turret,
+    FixedTurret,
+    RotatingTurret,
+    RadialTurret,
+
+    // Tool specific tactics
     Axe,
     Hammer,
     Sword,
     Bow,
     Staff,
     Sceptre,
-    StoneGolem,
+
+    // Broad creature tactics
     CircleCharge { radius: u32, circle_time: u32 },
     QuadLowRanged,
     TailSlap,
@@ -85,11 +98,6 @@ pub enum Tactic {
     QuadMedJump,
     QuadMedBasic,
     Theropod,
-    Turret,
-    FixedTurret,
-    RotatingTurret,
-    RadialTurret,
-    Mindflayer,
     BirdLargeBreathe,
     BirdLargeFire,
     BirdLargeBasic,
@@ -97,12 +105,19 @@ pub enum Tactic {
     ArthropodBasic,
     ArthropodRanged,
     ArthropodLeap,
+
+    // Specific species tactics
+    Mindflayer,
     Minotaur,
     ClayGolem,
     TidalWarrior,
     Yeti,
-    Tornado,
     Harvester,
+    StoneGolem,
+    Deadwood,
+    Mandragora,
+    WoodGolem,
+    GnarlingChieftain,
 }
 
 #[derive(SystemData)]

@@ -702,10 +702,13 @@ impl Body {
                 object::Body::Crossbow => 80,
                 object::Body::HaniwaSentry => 60,
                 object::Body::SeaLantern => 100,
+                object::Body::GnarlingTotemGreen => 25,
+                object::Body::GnarlingTotemRed | object::Body::GnarlingTotemWhite => 35,
                 _ => 1000,
             },
             Body::ItemDrop(_) => 1000,
             Body::Golem(golem) => match golem.species {
+                golem::Species::WoodGolem => 200,
                 golem::Species::ClayGolem => 450,
                 _ => 1000,
             },
@@ -782,6 +785,16 @@ impl Body {
                 Body::BipedLarge(b) => matches!(b.species, biped_large::Species::Harvester),
                 Body::Arthropod(_) => true,
                 _ => false,
+            },
+            BuffKind::Regeneration => {
+                matches!(
+                    self,
+                    Body::Object(
+                        object::Body::GnarlingTotemRed
+                            | object::Body::GnarlingTotemGreen
+                            | object::Body::GnarlingTotemWhite
+                    )
+                )
             },
             _ => false,
         }

@@ -227,7 +227,6 @@ impl Room {
         // Toss mobs in the center of the room
         if tile_pos == enemy_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {
-                0 => enemy_0(dynamic_rng, tile_wcenter),
                 1 => enemy_1(dynamic_rng, tile_wcenter),
                 2 => enemy_2(dynamic_rng, tile_wcenter),
                 3 => enemy_3(dynamic_rng, tile_wcenter),
@@ -286,7 +285,6 @@ impl Room {
 
         if tile_pos == miniboss_spawn_tile && tile_wcenter.xy() == wpos2d {
             let entities = match self.difficulty {
-                0 => mini_boss_0(dynamic_rng, tile_wcenter),
                 1 => mini_boss_1(dynamic_rng, tile_wcenter),
                 2 => mini_boss_2(dynamic_rng, tile_wcenter),
                 3 => mini_boss_3(dynamic_rng, tile_wcenter),
@@ -320,7 +318,6 @@ impl Room {
 
         if tile_pos == boss_spawn_tile && wpos2d == tile_wcenter.xy() {
             let entities = match self.difficulty {
-                0 => boss_0(dynamic_rng, tile_wcenter),
                 1 => boss_1(dynamic_rng, tile_wcenter),
                 2 => boss_2(dynamic_rng, tile_wcenter),
                 3 => boss_3(dynamic_rng, tile_wcenter),
@@ -674,22 +671,6 @@ impl Floor {
     }
 }
 
-fn enemy_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    let number = dynamic_rng.gen_range(2..=4);
-    let mut entities = Vec::new();
-    entities.resize_with(number, || {
-        // TODO: give enemies health skills?
-        let entity = EntityInfo::at(tile_wcenter.map(|e| e as f32));
-        match dynamic_rng.gen_range(0..=4) {
-            0 => entity.with_asset_expect("common.entity.dungeon.tier-0.mugger", dynamic_rng),
-            1 => entity.with_asset_expect("common.entity.dungeon.tier-0.stalker", dynamic_rng),
-            _ => entity.with_asset_expect("common.entity.dungeon.tier-0.logger", dynamic_rng),
-        }
-    });
-
-    entities
-}
-
 fn enemy_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     let number = dynamic_rng.gen_range(2..=4);
     let mut entities = Vec::new();
@@ -789,13 +770,6 @@ fn turret_5(dynamic_rng: &mut impl Rng, pos: Vec3<f32>) -> EntityInfo {
     EntityInfo::at(pos).with_asset_expect("common.entity.dungeon.tier-5.turret", dynamic_rng)
 }
 
-fn boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    vec![
-        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-0.boss", dynamic_rng),
-    ]
-}
-
 fn boss_1(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
@@ -837,13 +811,6 @@ fn boss_fallback(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<Ent
     vec![
         EntityInfo::at(tile_wcenter.map(|e| e as f32))
             .with_asset_expect("common.entity.dungeon.fallback.boss", dynamic_rng),
-    ]
-}
-
-fn mini_boss_0(dynamic_rng: &mut impl Rng, tile_wcenter: Vec3<i32>) -> Vec<EntityInfo> {
-    vec![
-        EntityInfo::at(tile_wcenter.map(|e| e as f32))
-            .with_asset_expect("common.entity.dungeon.tier-0.miniboss", dynamic_rng),
     ]
 }
 
@@ -1457,7 +1424,6 @@ mod tests {
     fn test_creating_bosses() {
         let mut dynamic_rng = rand::thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
-        boss_0(&mut dynamic_rng, tile_wcenter);
         boss_1(&mut dynamic_rng, tile_wcenter);
         boss_2(&mut dynamic_rng, tile_wcenter);
         boss_3(&mut dynamic_rng, tile_wcenter);
@@ -1471,7 +1437,6 @@ mod tests {
     fn test_creating_enemies() {
         let mut dynamic_rng = rand::thread_rng();
         let random_position = Vec3::new(0, 0, 0);
-        enemy_0(&mut dynamic_rng, random_position);
         enemy_1(&mut dynamic_rng, random_position);
         enemy_2(&mut dynamic_rng, random_position);
         enemy_3(&mut dynamic_rng, random_position);
@@ -1485,7 +1450,6 @@ mod tests {
     fn test_creating_minibosses() {
         let mut dynamic_rng = rand::thread_rng();
         let tile_wcenter = Vec3::new(0, 0, 0);
-        mini_boss_0(&mut dynamic_rng, tile_wcenter);
         mini_boss_1(&mut dynamic_rng, tile_wcenter);
         mini_boss_2(&mut dynamic_rng, tile_wcenter);
         mini_boss_3(&mut dynamic_rng, tile_wcenter);

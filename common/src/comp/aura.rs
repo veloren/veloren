@@ -58,7 +58,7 @@ pub enum AuraChange {
 }
 
 /// Used by the aura system to filter entities when applying an effect.
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Copy, Clone, Debug, Deserialize, Serialize)]
 pub enum AuraTarget {
     /// Targets the group of the entity specified by the `Uid`. This is useful
     /// for auras which should only affect a player's party.

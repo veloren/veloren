@@ -1,0 +1,6 @@
+({
+    Armor(Feet): Item("common.items.npc_armor.biped_small.mandragora.foot.mandragora"),
+    Armor(Hands): Item("common.items.npc_armor.biped_small.mandragora.hand.mandragora"),
+    Armor(Chest): Item("common.items.npc_armor.biped_small.mandragora.chest.mandragora"),
+    Armor(Legs): Item("common.items.npc_armor.biped_small.mandragora.pants.mandragora"),
+})

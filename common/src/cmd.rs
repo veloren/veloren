@@ -207,6 +207,7 @@ lazy_static! {
             BuffKind::Wet => "wet",
             BuffKind::Ensnared => "ensnared",
             BuffKind::Poisoned => "poisoned",
+            BuffKind::Hastened => "hastened",
         };
         let mut buff_parser = HashMap::new();
         BuffKind::iter().for_each(|kind| {buff_parser.insert(string_from_buff(kind).to_string(), kind);});

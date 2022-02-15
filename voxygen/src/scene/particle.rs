@@ -17,14 +17,17 @@ use common::{
     resources::DeltaTime,
     spiral::Spiral2d,
     states::{self, utils::StageSection},
-    terrain::TerrainChunk,
-    vol::{RectRasterableVol, SizedVol},
+    terrain::{Block, TerrainChunk, TerrainGrid},
+    vol::{ReadVol, RectRasterableVol, SizedVol},
 };
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
 use specs::{Join, WorldExt};
-use std::{f32::consts::PI, time::Duration};
+use std::{
+    f32::consts::{PI, TAU},
+    time::Duration,
+};
 use vek::*;
 
 pub struct ParticleMgr {
@@ -910,6 +913,7 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
         let mut rng = thread_rng();
+        let dt = scene_data.state.get_delta_time();
 
         for (pos, auras) in (
             &ecs.read_storage::<Pos>(),
@@ -945,6 +949,16 @@ impl ParticleMgr {
                         kind: buff::BuffKind::Regeneration,
                         ..
                     } => {
+                        if auras.auras.iter().any(|(_, aura)| {
+                            matches!(aura.aura_kind, aura::AuraKind::Buff {
+                                kind: buff::BuffKind::ProtectingWard,
+                                ..
+                            })
+                        }) {
+                            // If same entity has both protecting ward and regeneration auras, skip
+                            // particles for regeneration
+                            continue;
+                        }
                         let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
                         self.particles.resize_with(
                             self.particles.len()
@@ -957,6 +971,58 @@ impl ParticleMgr {
                                     aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
                                     time,
                                     ParticleMode::EnergyHealing,
+                                    pos.0,
+                                    pos.0 + init_pos,
+                                )
+                            },
+                        );
+                    },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Burning,
+                        ..
+                    } => {
+                        let num_particles = aura.radius.powi(2) * dt / 250.0;
+                        let num_particles = num_particles.floor() as usize
+                            + if rng.gen_bool(f64::from(num_particles % 1.0)) {
+                                1
+                            } else {
+                                0
+                            };
+                        self.particles
+                            .resize_with(self.particles.len() + num_particles, || {
+                                let rand_pos = {
+                                    let theta = rng.gen::<f32>() * TAU;
+                                    let radius = aura.radius * rng.gen::<f32>().sqrt();
+                                    let x = radius * theta.sin();
+                                    let y = radius * theta.cos();
+                                    Vec2::new(x, y) + pos.0.xy()
+                                };
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::FlameThrower,
+                                    rand_pos.with_z(pos.0.z),
+                                    rand_pos.with_z(pos.0.z + 1.0),
+                                )
+                            });
+                    },
+                    aura::AuraKind::Buff {
+                        kind: buff::BuffKind::Hastened,
+                        ..
+                    } => {
+                        let heartbeats = self.scheduler.heartbeats(Duration::from_millis(5));
+                        self.particles.resize_with(
+                            self.particles.len()
+                                + aura.radius.powi(2) as usize * usize::from(heartbeats) / 300,
+                            || {
+                                let rand_dist = aura.radius * (1.0 - rng.gen::<f32>().powi(100));
+                                let init_pos = Vec3::new(rand_dist, 0_f32, 0_f32);
+                                let max_dur = Duration::from_secs(1);
+                                Particle::new_directed(
+                                    aura.duration.map_or(max_dur, |dur| dur.min(max_dur)),
+                                    time,
+                                    ParticleMode::EnergyBuffing,
                                     pos.0,
                                     pos.0 + init_pos,
                                 )
@@ -1197,6 +1263,7 @@ impl ParticleMgr {
         let ecs = state.ecs();
         let time = state.get_time();
         let dt = scene_data.state.ecs().fetch::<DeltaTime>().0;
+        let terrain = scene_data.state.ecs().fetch::<TerrainGrid>();
 
         for (_entity, pos, ori, shockwave) in (
             &ecs.entities(),
@@ -1247,14 +1314,44 @@ impl ParticleMgr {
                             let position = pos.0
                                 + distance * Vec3::new(arc_position.cos(), arc_position.sin(), 0.0);
 
-                            let position_snapped = ((position / scale).floor() + 0.5) * scale;
+                            // Arbitrary number chosen that is large enough to be able to accurately
+                            // place particles most of the time, but also not too big as to make ray
+                            // be too large (for performance reasons)
+                            let half_ray_length = 10.0;
+                            let mut last_air = false;
+                            // TODO: Optimize ray to only be cast at most once per block per tick if
+                            // it becomes an issue.
+                            // From imbris:
+                            //      each ray is ~2 us
+                            //      at 30 FPS, it peaked at 113 rays in a tick
+                            //      total time was 240 us (although potentially half that is
+                            //          overhead from the profiling of each ray)
+                            let _ = terrain
+                                .ray(
+                                    position + Vec3::unit_z() * half_ray_length,
+                                    position - Vec3::unit_z() * half_ray_length,
+                                )
+                                .for_each(|block: &Block, pos: Vec3<i32>| {
+                                    if block.is_solid() && block.get_sprite().is_none() {
+                                        if last_air {
+                                            let position = position.xy().with_z(pos.z as f32 + 1.0);
 
-                            self.particles.push(Particle::new(
-                                Duration::from_millis(250),
-                                time,
-                                ParticleMode::GroundShockwave,
-                                position_snapped,
-                            ));
+                                            let position_snapped =
+                                                ((position / scale).floor() + 0.5) * scale;
+
+                                            self.particles.push(Particle::new(
+                                                Duration::from_millis(250),
+                                                time,
+                                                ParticleMode::GroundShockwave,
+                                                position_snapped,
+                                            ));
+                                            last_air = false;
+                                        }
+                                    } else {
+                                        last_air = true;
+                                    }
+                                })
+                                .cast();
                         }
                     }
                 },

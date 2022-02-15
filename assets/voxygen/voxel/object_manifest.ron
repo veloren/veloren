@@ -819,4 +819,44 @@
             central: ("armor.empty"),
         )
     ),
+    Dart: (
+        bone0: (
+            offset: (-0.5, -5.5, -1.5),
+            central: ("weapon.projectile.dart"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    GnarlingTotemRed: (
+        bone0: (
+            offset: (-6.0, -5.0, 0.0),
+            central: ("object.gnarling_totem_red"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    GnarlingTotemGreen: (
+        bone0: (
+            offset: (-9.0, -5.0, 0.0),
+            central: ("object.gnarling_totem_green"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
+    GnarlingTotemWhite: (
+        bone0: (
+            offset: (-8.0, -5.0, 0.0),
+            central: ("object.gnarling_totem_white"),
+        ),
+        bone1: (
+            offset: (0.0, 0.0, 0.0),
+            central: ("armor.empty"),
+        )
+    ),
 })

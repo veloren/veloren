@@ -63,15 +63,63 @@
         secondary: "common.abilities.hammersimple.doublestrike",
         abilities: [],
     ),
-    Custom("Axe Simple"): (
-        primary: "common.abilities.axesimple.doublestrike",
-        secondary: "common.abilities.axesimple.doublestrike",
+    // TODO: Later investigate if we want to make this back to a simple axe when more things need a simpler axe ability set
+    Custom("Gnarling Axe"): (
+        primary: "common.abilities.gnarling.axe.chop",
+        secondary: "common.abilities.gnarling.axe.chop",
         abilities: [],
     ),
-    Custom("Dagger Simple"): (
-        primary: "common.abilities.daggersimple.singlestrike",
-        secondary: "common.abilities.daggersimple.singlestrike",
+    Custom("Gnarling Dagger"): (
+        primary: "common.abilities.gnarling.dagger.stab",
+        secondary: "common.abilities.gnarling.dagger.stab",
         abilities: [],
+    ),
+    Custom("Gnarling Blowgun"): (
+        primary: "common.abilities.gnarling.blowgun.dart",
+        secondary: "common.abilities.gnarling.blowgun.dart",
+        abilities: [],
+    ),
+    Custom("Gnarling Chieftain"): (
+        primary: "common.abilities.gnarling.chieftain.flamestrike",
+        secondary: "common.abilities.gnarling.chieftain.firebarrage",
+        abilities: [
+            (None, "common.abilities.gnarling.chieftain.fireshockwave"),
+            (None, "common.abilities.gnarling.chieftain.redtotem"),
+            (None, "common.abilities.gnarling.chieftain.greentotem"),
+            (None, "common.abilities.gnarling.chieftain.whitetotem"),
+        ],
+    ),
+    Custom("Gnarling Totem Red"): (
+        primary: "common.abilities.gnarling.totem.red",
+        secondary: "common.abilities.gnarling.totem.red",
+        abilities: [],
+    ),
+    Custom("Gnarling Totem Green"): (
+        primary: "common.abilities.gnarling.totem.green",
+        secondary: "common.abilities.gnarling.totem.green",
+        abilities: [],
+    ),
+    Custom("Gnarling Totem White"): (
+        primary: "common.abilities.gnarling.totem.white",
+        secondary: "common.abilities.gnarling.totem.white",
+        abilities: [],
+    ),
+    Custom("Deadwood"): (
+        primary: "common.abilities.custom.deadwood.lifestealbeam",
+        secondary: "common.abilities.custom.deadwood.dash",
+        abilities: [],
+    ),
+    Custom("Mandragora"): (
+        primary: "common.abilities.custom.mandragora.basic",
+        secondary: "common.abilities.custom.mandragora.scream",
+        abilities: [],
+    ),
+    Custom("Wood Golem"): (
+        primary: "common.abilities.custom.woodgolem.strike",
+        secondary: "common.abilities.custom.woodgolem.spin",
+        abilities: [
+            (None, "common.abilities.custom.woodgolem.shockwave")
+        ],
     ),
     Custom("Sword Simple"): (
         primary: "common.abilities.swordsimple.doublestrike",
@@ -86,14 +134,17 @@
     Custom("Bow Simple"): (
         primary: "common.abilities.bowsimple.basic",
         secondary: "common.abilities.bowsimple.basic",
-        abilities: [
-        ],
+        abilities: [],
     ),
-    Tool(Blowgun): (
-        primary: "common.abilities.blowgun.basic",
-        secondary: "common.abilities.blowgun.basic",
-        abilities: [
-        ],
+    Custom("Axe Simple"): (
+        primary: "common.abilities.axesimple.doublestrike",
+        secondary: "common.abilities.axesimple.doublestrike",
+        abilities: [],
+    ),
+    Custom("Dagger Simple"): (
+        primary: "common.abilities.daggersimple.singlestrike",
+        secondary: "common.abilities.daggersimple.singlestrike",
+        abilities: [],
     ),
     Tool(Dagger): (
         primary: "common.abilities.dagger.tempbasic",

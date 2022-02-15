@@ -1,0 +1,12 @@
+EntityConfig (
+    name: Name("Mandragora"),
+    body: RandomWith("mandragora"),
+    alignment: Alignment(Enemy),
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.mandragora")),
+        base_asset: Loadout("common.loadout.dungeon.gnarling.mandragora"),
+        inventory: [],
+    ),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+    meta: [],
+)

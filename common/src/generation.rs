@@ -180,6 +180,7 @@ pub struct EntityInfo {
     pub has_agency: bool,
     pub alignment: Alignment,
     pub agent_mark: Option<agent::Mark>,
+    pub no_flee: bool,
     // Stats
     pub body: Body,
     pub name: Option<String>,
@@ -220,6 +221,7 @@ impl EntityInfo {
             skillset_asset: None,
             pet: None,
             trading_information: None,
+            no_flee: false,
         }
     }
 
@@ -526,6 +528,12 @@ impl EntityInfo {
     #[must_use]
     pub fn with_economy(mut self, e: &SiteInformation) -> Self {
         self.trading_information = Some(e.clone());
+        self
+    }
+
+    #[must_use]
+    pub fn with_no_flee(mut self) -> Self {
+        self.no_flee = true;
         self
     }
 }

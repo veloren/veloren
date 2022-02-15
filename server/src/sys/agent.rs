@@ -1692,7 +1692,7 @@ impl<'a> AgentData<'a> {
             ToolKind::Hammer => Tactic::Hammer,
             ToolKind::Sword | ToolKind::Spear | ToolKind::Blowgun => Tactic::Sword,
             ToolKind::Axe => Tactic::Axe,
-            _ => Tactic::Melee,
+            _ => Tactic::SimpleMelee,
         };
 
         let tactic = self
@@ -1703,7 +1703,7 @@ impl<'a> AgentData<'a> {
                 if let Some(ability_spec) = item.ability_spec() {
                     match ability_spec {
                         AbilitySpec::Custom(spec) => match spec.as_str() {
-                            "Axe Simple" | "Oni" | "Sword Simple" => Tactic::Sword,
+                            "Oni" | "Sword Simple" => Tactic::Sword,
                             "Staff Simple" => Tactic::Staff,
                             "Bow Simple" => Tactic::Bow,
                             "Stone Golem" => Tactic::StoneGolem,
@@ -1742,20 +1742,30 @@ impl<'a> AgentData<'a> {
                             "Minotaur" => Tactic::Minotaur,
                             "Clay Golem" => Tactic::ClayGolem,
                             "Tidal Warrior" => Tactic::TidalWarrior,
-                            "Tidal Totem" => Tactic::RadialTurret,
+                            "Tidal Totem"
+                            | "Tornado"
+                            | "Gnarling Totem Red"
+                            | "Gnarling Totem Green"
+                            | "Gnarling Totem White" => Tactic::RadialTurret,
                             "Yeti" => Tactic::Yeti,
                             "Harvester" => Tactic::Harvester,
-                            _ => Tactic::Melee,
+                            "Gnarling Dagger" => Tactic::SimpleBackstab,
+                            "Gnarling Blowgun" => Tactic::ElevatedRanged,
+                            "Deadwood" => Tactic::Deadwood,
+                            "Mandragora" => Tactic::Mandragora,
+                            "Wood Golem" => Tactic::WoodGolem,
+                            "Gnarling Chieftain" => Tactic::GnarlingChieftain,
+                            _ => Tactic::SimpleMelee,
                         },
                         AbilitySpec::Tool(tool_kind) => tool_tactic(*tool_kind),
                     }
                 } else if let ItemKind::Tool(tool) = &item.kind() {
                     tool_tactic(tool.kind)
                 } else {
-                    Tactic::Melee
+                    Tactic::SimpleMelee
                 }
             })
-            .unwrap_or(Tactic::Melee);
+            .unwrap_or(Tactic::SimpleMelee);
 
         // Wield the weapon as running towards the target
         controller.push_action(ControlAction::Wield);
@@ -1768,6 +1778,12 @@ impl<'a> AgentData<'a> {
             .ori
             .look_vec()
             .angle_between(tgt_data.pos.0 - self.pos.0)
+            .to_degrees();
+        let angle_xy = self
+            .ori
+            .look_vec()
+            .xy()
+            .angle_between((tgt_data.pos.0 - self.pos.0).xy())
             .to_degrees();
 
         let eye_offset = self.body.map_or(0.0, |b| b.eye_height());
@@ -1910,13 +1926,14 @@ impl<'a> AgentData<'a> {
             min_attack_dist,
             dist_sqrd,
             angle,
+            angle_xy,
         };
 
         // Match on tactic. Each tactic has different controls
         // depending on the distance from the agent to the target
         match tactic {
-            Tactic::Melee => {
-                self.handle_melee_attack(agent, controller, &attack_data, tgt_data, read_data, rng)
+            Tactic::SimpleMelee => {
+                self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
             },
             Tactic::Axe => {
                 self.handle_axe_attack(agent, controller, &attack_data, tgt_data, read_data, rng)
@@ -2051,7 +2068,6 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
-            Tactic::Tornado => self.handle_tornado_attack(controller),
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,
                 controller,
@@ -2110,6 +2126,29 @@ impl<'a> AgentData<'a> {
             Tactic::Harvester => {
                 self.handle_harvester_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
+            Tactic::SimpleBackstab => {
+                self.handle_simple_backstab(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::ElevatedRanged => {
+                self.handle_elevated_ranged(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Deadwood => {
+                self.handle_deadwood(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::Mandragora => {
+                self.handle_mandragora(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::WoodGolem => {
+                self.handle_wood_golem(agent, controller, &attack_data, tgt_data, read_data)
+            },
+            Tactic::GnarlingChieftain => self.handle_gnarling_chieftain(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+                rng,
+            ),
         }
     }
 

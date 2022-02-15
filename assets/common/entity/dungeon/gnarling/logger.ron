@@ -4,7 +4,7 @@
     alignment: Alignment(Enemy),
     loadout: Extended(
         hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.logger")),
-        base_asset: Loadout("common.loadout.dungeon.tier-0.logger"),
+        base_asset: Loadout("common.loadout.dungeon.gnarling.logger"),
         inventory: [],
     ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),

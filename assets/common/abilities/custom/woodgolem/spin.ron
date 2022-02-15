@@ -1,0 +1,22 @@
+SpinMelee(
+    buildup_duration: 0.35,
+    swing_duration: 0.3,
+    recover_duration: 0.2,
+    melee_constructor: (
+        kind: Bash(
+            damage: 15.0,
+            poise: 30.0,
+            knockback: 20.0,
+            energy_regen: 0.0,
+        ),
+        range: 7.5,
+        angle: 360.0,
+    ),
+    energy_cost: 0,
+    is_infinite: false,
+    movement_behavior: Stationary,
+    is_interruptible: false,
+    forward_speed: 0.0,
+    num_spins: 1,
+    specifier: None,
+)

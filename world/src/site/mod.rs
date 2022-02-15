@@ -27,6 +27,7 @@ pub struct SpawnRules {
     pub trees: bool,
     pub max_warp: f32,
     pub paths: bool,
+    pub waypoints: bool,
 }
 
 impl SpawnRules {
@@ -37,6 +38,7 @@ impl SpawnRules {
             trees: self.trees && other.trees,
             max_warp: self.max_warp.min(other.max_warp),
             paths: self.paths && other.paths,
+            waypoints: self.waypoints && other.waypoints,
         }
     }
 }
@@ -47,6 +49,7 @@ impl Default for SpawnRules {
             trees: true,
             max_warp: 1.0,
             paths: true,
+            waypoints: true,
         }
     }
 }
@@ -63,6 +66,7 @@ pub enum SiteKind {
     Refactor(site2::Site),
     Tree(tree::Tree),
     GiantTree(site2::Site),
+    Gnarling(site2::Site),
 }
 
 impl Site {
@@ -76,6 +80,13 @@ impl Site {
     pub fn dungeon(d: site2::Site) -> Self {
         Self {
             kind: SiteKind::Dungeon(d),
+            economy: Economy::default(),
+        }
+    }
+
+    pub fn gnarling(g: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Gnarling(g),
             economy: Economy::default(),
         }
     }
@@ -116,6 +127,7 @@ impl Site {
             SiteKind::Refactor(s) => s.radius(),
             SiteKind::Tree(t) => t.radius(),
             SiteKind::GiantTree(gt) => gt.radius(),
+            SiteKind::Gnarling(g) => g.radius(),
         }
     }
 
@@ -127,6 +139,7 @@ impl Site {
             SiteKind::Refactor(s) => s.origin,
             SiteKind::Tree(t) => t.origin,
             SiteKind::GiantTree(gt) => gt.origin,
+            SiteKind::Gnarling(g) => g.origin,
         }
     }
 
@@ -138,6 +151,7 @@ impl Site {
             SiteKind::Refactor(s) => s.spawn_rules(wpos),
             SiteKind::Tree(t) => t.spawn_rules(wpos),
             SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
+            SiteKind::Gnarling(g) => g.spawn_rules(wpos),
         }
     }
 
@@ -149,6 +163,7 @@ impl Site {
             SiteKind::Refactor(s) => s.name(),
             SiteKind::Tree(_) => "Giant Tree",
             SiteKind::GiantTree(gt) => gt.name(),
+            SiteKind::Gnarling(g) => g.name(),
         }
     }
 
@@ -182,6 +197,7 @@ impl Site {
             SiteKind::Refactor(s) => s.render(canvas, dynamic_rng),
             SiteKind::Tree(t) => t.render(canvas, dynamic_rng),
             SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
+            SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
         }
     }
 
@@ -206,6 +222,7 @@ impl Site {
             SiteKind::Refactor(_) => {},
             SiteKind::Tree(_) => {},
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 

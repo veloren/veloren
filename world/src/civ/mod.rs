@@ -4,7 +4,7 @@ mod econ;
 
 use crate::{
     config::CONFIG,
-    sim::WorldSim,
+    sim::{SimChunk, WorldSim},
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
     util::{attempt, seed_expan, DHashMap, DHashSet, NEIGHBORS},
@@ -110,6 +110,7 @@ impl Civs {
                             (SiteKind::Tree, 4)
                         }
                     },
+                    32..=37 => (SiteKind::Gnarling, 5),
                     _ => (SiteKind::Dungeon, 0),
                 };
                 let loc = find_site_loc(&mut ctx, None, size, kind)?;
@@ -136,6 +137,7 @@ impl Civs {
                 SiteKind::Refactor => (32i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
+                SiteKind::Gnarling => (16i32, 10.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -215,6 +217,11 @@ impl Civs {
                     WorldSite::tree(Tree::generate(wpos, &Land::from_sim(ctx.sim), &mut rng))
                 },
                 SiteKind::GiantTree => WorldSite::giant_tree(site2::Site::generate_giant_tree(
+                    &Land::from_sim(ctx.sim),
+                    &mut rng,
+                    wpos,
+                )),
+                SiteKind::Gnarling => WorldSite::gnarling(site2::Site::generate_gnarling(
                     &Land::from_sim(ctx.sim),
                     &mut rng,
                     wpos,
@@ -442,10 +449,11 @@ impl Civs {
     }
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
+        let kind = SiteKind::Settlement;
         let site = attempt(5, || {
-            let loc = find_site_loc(ctx, None, 1, SiteKind::Settlement)?;
+            let loc = find_site_loc(ctx, None, 1, kind)?;
             Some(self.establish_site(ctx, loc, |place| Site {
-                kind: SiteKind::Settlement,
+                kind,
                 site_tmp: None,
                 center: loc,
                 place,
@@ -1007,6 +1015,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
                 .get_gradient_approx(loc)
                 .map(|grad| grad < 1.0)
                 .unwrap_or(false)
+            && site_kind.is_suitable_loc(chunk)
     } else {
         false
     }) && check_chunk_occupation(sim, loc, site_kind.exclusion_radius())
@@ -1045,7 +1054,7 @@ fn find_site_loc(
         }
 
         loc = ctx.sim.get(test_loc).and_then(|c| {
-            Some(
+            site_kind.is_suitable_loc(c).then_some(
                 c.downhill?
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
             )
@@ -1105,6 +1114,16 @@ pub enum SiteKind {
     Refactor,
     Tree,
     GiantTree,
+    Gnarling,
+}
+
+impl SiteKind {
+    pub fn is_suitable_loc(&self, chunk: &SimChunk) -> bool {
+        match self {
+            SiteKind::Gnarling => (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75,
+            _ => true,
+        }
+    }
 }
 
 impl SiteKind {

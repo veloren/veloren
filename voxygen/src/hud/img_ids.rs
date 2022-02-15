@@ -417,6 +417,15 @@ image_ids! {
         mmap_poi_peak: "voxygen.element.ui.map.buttons.peak",
         mmap_poi_biome: "voxygen.element.ui.map.buttons.biome",
         mmap_poi_peak_hover: "voxygen.element.ui.map.buttons.peak_hover",
+        mmap_site_gnarling: "voxygen.element.ui.map.buttons.gnarling",
+        mmap_site_gnarling_hover: "voxygen.element.ui.map.buttons.gnarling_hover",
+        mmap_site_gnarling_bg: "voxygen.element.ui.map.buttons.gnarling_bg",
+        mmap_site_minotaur: "voxygen.element.ui.map.buttons.minotaur",
+        mmap_site_minotaur_hover: "voxygen.element.ui.map.buttons.minotaur_hover",
+        mmap_site_minotaur_bg: "voxygen.element.ui.map.buttons.minotaur_bg",
+        mmap_site_mindflayer: "voxygen.element.ui.map.buttons.mindflayer",
+        mmap_site_mindflayer_hover: "voxygen.element.ui.map.buttons.mindflayer_hover",
+        mmap_site_mindflayer_bg: "voxygen.element.ui.map.buttons.mindflayer_bg",
 
         // Window Parts
         window_3: "voxygen.element.ui.generic.frames.window_3",
@@ -611,6 +620,7 @@ image_ids! {
         buff_invincibility_0: "voxygen.element.de_buffs.buff_invincibility_0",
         buff_dmg_red_0: "voxygen.element.de_buffs.buff_damage_reduce_0",
         buff_frenzy_0: "voxygen.element.de_buffs.buff_frenzy_0",
+        buff_haste_0: "voxygen.element.de_buffs.buff_haste_0",
 
         // Debuffs
         debuff_skull_0: "voxygen.element.de_buffs.debuff_skull_0",

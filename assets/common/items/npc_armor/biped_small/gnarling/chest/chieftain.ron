@@ -1,12 +1,12 @@
 ItemDef(
     name: "Gnarling Chieftain",
-    description: "Ceremonial attire used by members.",
+    description: "Only worn by the most spiritual of Gnarlings.",
     kind: Armor((
         kind: Chest("GnarlingChieftain"),
         stats: (
-            protection: Some(Normal(2.0)),
-            poise_resilience: Some(Normal(1.0)),
-            energy_max: Some(2.7),
+            protection: Some(Normal(80.0)),
+            poise_resilience: Some(Normal(60.0)),
+            energy_max: Some(120.0),
             energy_reward: Some(0.027),
             crit_power: Some(0.025),
         ),

@@ -3,10 +3,11 @@ pub mod plot;
 mod tile;
 pub mod util;
 
-use self::tile::{HazardKind, KeepKind, Ori, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
+use self::tile::{HazardKind, KeepKind, RoofKind, Tile, TileGrid, TileKind, TILE_SIZE};
 pub use self::{
-    gen::{aabr_with_z, Fill, Painter, Primitive, Structure},
+    gen::{aabr_with_z, Fill, Painter, Primitive, PrimitiveRef, Structure},
     plot::{Plot, PlotKind},
+    util::Dir,
 };
 use crate::{
     site::{namegen::NameGen, SpawnRules},
@@ -88,11 +89,20 @@ impl Site {
             .min_by_key(|d2| *d2 as i32)
             .map(|d2| d2.sqrt() as f32 / TILE_SIZE as f32)
             .unwrap_or(1.0);
-        SpawnRules {
+        let base_spawn_rules = SpawnRules {
             trees: max_warp == 1.0,
             max_warp,
             paths: max_warp > std::f32::EPSILON,
-        }
+            waypoints: true,
+        };
+        self.plots
+            .values()
+            .filter_map(|plot| match &plot.kind {
+                PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
+                PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
+                _ => None,
+            })
+            .fold(base_spawn_rules, |a, b| a.combine(b))
     }
 
     pub fn bounds(&self) -> Aabr<i32> {
@@ -376,37 +386,59 @@ impl Site {
         site
     }
 
-    pub fn generate_giant_tree(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_gnarling(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
         let mut rng = reseed(rng);
-
         let mut site = Site {
             origin,
             ..Site::default()
         };
+        site.demarcate_obstacles(land);
+        let gnarling_fortification = plot::GnarlingFortification::generate(origin, land, &mut rng);
+        site.name = gnarling_fortification.name().to_string();
+        let size = gnarling_fortification.radius() / tile::TILE_SIZE as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Gnarling(gnarling_fortification),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::GnarlingFortification,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+        site
+    }
 
+    pub fn generate_giant_tree(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
         site.demarcate_obstacles(land);
         let giant_tree = plot::GiantTree::generate(&site, Vec2::zero(), land, &mut rng);
         site.name = giant_tree.name().to_string();
         let size = (giant_tree.radius() / tile::TILE_SIZE as f32).ceil() as i32;
-
         let aabr = Aabr {
             min: Vec2::broadcast(-size),
             max: Vec2::broadcast(size) + 1,
         };
-
         let plot = site.create_plot(Plot {
             kind: PlotKind::GiantTree(giant_tree),
             root_tile: aabr.center(),
             tiles: aabr_tiles(aabr).collect(),
             seed: rng.gen(),
         });
-
         site.blit_aabr(aabr, Tile {
             kind: TileKind::Building,
             plot: Some(plot),
             hard_alt: None,
         });
-
         site
     }
 
@@ -577,13 +609,13 @@ impl Site {
                         });
 
                         let wall_north = Tile {
-                            kind: TileKind::Wall(Ori::North),
+                            kind: TileKind::Wall(Dir::Y),
                             plot: Some(plot),
                             hard_alt: Some(castle_alt),
                         };
 
                         let wall_east = Tile {
-                            kind: TileKind::Wall(Ori::East),
+                            kind: TileKind::Wall(Dir::X),
                             plot: Some(plot),
                             hard_alt: Some(castle_alt),
                         };
@@ -666,7 +698,7 @@ impl Site {
                                 max: aabr.center() + 3,
                             },
                             Tile {
-                                kind: TileKind::Wall(Ori::North),
+                                kind: TileKind::Wall(Dir::Y),
                                 plot: Some(plot),
                                 hard_alt: Some(castle_alt),
                             },
@@ -951,36 +983,38 @@ impl Site {
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
+                PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 _ => continue,
             };
 
             for (prim, fill) in fills {
-                let mut aabb = fill.get_bounds(&prim_tree, prim);
-                aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
-                aabb.max = Vec2::min(aabb.max.xy(), chunk_aabr.max).with_z(aabb.max.z);
+                for mut aabb in fill.get_bounds_disjoint(&prim_tree, prim) {
+                    aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
+                    aabb.max = Vec2::min(aabb.max.xy(), chunk_aabr.max).with_z(aabb.max.z);
 
-                for x in aabb.min.x..aabb.max.x {
-                    for y in aabb.min.y..aabb.max.y {
-                        let col_tile = self.wpos_tile(Vec2::new(x, y));
-                        if
-                        /* col_tile.is_building() && */
-                        col_tile
-                            .plot
-                            .and_then(|p| self.plots[p].z_range())
-                            .zip(self.plots[plot].z_range())
-                            .map_or(false, |(a, b)| a.end > b.end)
-                        {
-                            continue;
-                        }
+                    for x in aabb.min.x..aabb.max.x {
+                        for y in aabb.min.y..aabb.max.y {
+                            let col_tile = self.wpos_tile(Vec2::new(x, y));
+                            if
+                            /* col_tile.is_building() && */
+                            col_tile
+                                .plot
+                                .and_then(|p| self.plots[p].z_range())
+                                .zip(self.plots[plot].z_range())
+                                .map_or(false, |(a, b)| a.end > b.end)
+                            {
+                                continue;
+                            }
 
-                        for z in aabb.min.z..aabb.max.z {
-                            let pos = Vec3::new(x, y, z);
+                            for z in aabb.min.z..aabb.max.z {
+                                let pos = Vec3::new(x, y, z);
 
-                            canvas.map(pos, |block| {
-                                fill.sample_at(&prim_tree, prim, pos, &info, block)
-                                    .unwrap_or(block)
-                            });
+                                canvas.map(pos, |block| {
+                                    fill.sample_at(&prim_tree, prim, pos, &info, block)
+                                        .unwrap_or(block)
+                                });
+                            }
                         }
                     }
                 }
@@ -995,8 +1029,10 @@ impl Site {
         supplement: &mut crate::ChunkSupplement,
     ) {
         for (_, plot) in self.plots.iter() {
-            if let PlotKind::Dungeon(d) = &plot.kind {
-                d.apply_supplement(dynamic_rng, wpos2d, supplement);
+            match &plot.kind {
+                PlotKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
+                PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+                _ => {},
             }
         }
     }

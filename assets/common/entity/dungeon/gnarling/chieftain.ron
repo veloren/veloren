@@ -1,0 +1,15 @@
+(
+    name: Name("Gnarling Chieftain"),
+    body: RandomWith("gnarling"),
+    alignment: Alignment(Enemy),
+    loadout: Extended(
+        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.chieftain")),
+        base_asset: Loadout("common.loadout.dungeon.gnarling.chieftain"),
+        inventory: [],
+    ),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.boss"),
+    meta: [
+        // Done for health reasons
+        SkillSetAsset("common.skillset.preset.rank5.fullskill"),
+    ],
+)

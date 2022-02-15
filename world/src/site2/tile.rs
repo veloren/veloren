@@ -183,10 +183,11 @@ pub enum TileKind {
     Road { a: u16, b: u16, w: u16 },
     Building,
     Castle,
-    Wall(Ori),
+    Wall(Dir),
     Tower(RoofKind),
     Keep(KeepKind),
     Gate,
+    GnarlingFortification,
 }
 
 #[derive(Clone, PartialEq)]
@@ -242,24 +243,11 @@ pub enum HazardKind {
 pub enum KeepKind {
     Middle,
     Corner,
-    Wall(Ori),
+    Wall(Dir),
 }
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum RoofKind {
     Parapet,
     Pyramid,
-}
-
-#[repr(u8)]
-#[derive(Copy, Clone, PartialEq)]
-pub enum Ori {
-    North = 0,
-    East = 1,
-    South = 2,
-    West = 3,
-}
-
-impl Ori {
-    pub fn dir(self) -> Vec2<i32> { CARDINALS[self as u8 as usize] }
 }

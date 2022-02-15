@@ -777,7 +777,8 @@ fn insert_killing_buff(buff: BuffKind, localized_strings: &Localization, templat
         | BuffKind::IncreaseMaxHealth
         | BuffKind::Invulnerability
         | BuffKind::ProtectingWard
-        | BuffKind::Frenzied => {
+        | BuffKind::Frenzied
+        | BuffKind::Hastened => {
             tracing::error!("Player was killed by a positive buff!");
             localized_strings.get("hud.outcome.mysterious")
         },

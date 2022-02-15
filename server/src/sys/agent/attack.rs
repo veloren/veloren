@@ -19,7 +19,9 @@ use std::{f32::consts::PI, time::Duration};
 use vek::*;
 
 impl<'a> AgentData<'a> {
-    pub fn handle_melee_attack(
+    // Intended for any agent that has one attack, that attack is a melee attack,
+    // and the agent is able to freely walk around
+    pub fn handle_simple_melee(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
@@ -28,7 +30,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        if attack_data.in_min_range() && attack_data.angle < 45.0 {
+        if attack_data.in_min_range() && attack_data.angle < 30.0 {
             controller.push_basic_input(InputKind::Primary);
             controller.inputs.move_dir = Vec2::zero();
         } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -39,6 +41,149 @@ impl<'a> AgentData<'a> {
                 && rng.gen::<f32>() < 0.02
             {
                 controller.push_basic_input(InputKind::Roll);
+            }
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
+        }
+    }
+
+    // Intended for any agent that has one attack, that attack is a melee attack,
+    // the agent is able to freely walk around, and the agent is trying to attack
+    // from behind its target
+    pub fn handle_simple_backstab(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        // Handle attacking of agent
+        if attack_data.in_min_range() && attack_data.angle < 30.0 {
+            controller.push_basic_input(InputKind::Primary);
+            controller.inputs.move_dir = Vec2::zero();
+        }
+
+        // Handle movement of agent
+        let target_ori = agent
+            .target
+            .and_then(|t| read_data.orientations.get(t.target))
+            .map(|ori| ori.look_vec())
+            .unwrap_or_default();
+        let dist = attack_data.dist_sqrd.sqrt();
+
+        let in_front_of_target = target_ori.dot(self.pos.0 - tgt_data.pos.0) > 0.0;
+        if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
+            // If in front of the target, circle to try and get behind, else just make a
+            // beeline for the back of the agent
+            let vec_to_target = (tgt_data.pos.0 - self.pos.0).xy();
+            if in_front_of_target {
+                let theta = (PI / 2. - dist * 0.1).max(0.0);
+                // Checks both CW and CCW rotation
+                let potential_move_dirs = [
+                    vec_to_target
+                        .rotated_z(theta)
+                        .try_normalized()
+                        .unwrap_or_default(),
+                    vec_to_target
+                        .rotated_z(-theta)
+                        .try_normalized()
+                        .unwrap_or_default(),
+                ];
+                // Finds shortest path to get behind
+                if let Some(move_dir) = potential_move_dirs
+                    .iter()
+                    .find(|move_dir| target_ori.xy().dot(**move_dir) < 0.0)
+                {
+                    controller.inputs.move_dir = *move_dir;
+                }
+            } else {
+                // Aim for a point a given distance behind the target to prevent sideways
+                // movement
+                let move_target = tgt_data.pos.0.xy() - dist / 2. * target_ori.xy();
+                controller.inputs.move_dir = (move_target - self.pos.0)
+                    .try_normalized()
+                    .unwrap_or_default();
+            }
+        } else {
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
+        }
+    }
+
+    pub fn handle_elevated_ranged(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        let elevation = self.pos.0.z - tgt_data.pos.0.z;
+        const PREF_DIST: f32 = 30_f32;
+        if attack_data.angle_xy < 30.0
+            && (elevation > 10.0 || attack_data.dist_sqrd > PREF_DIST.powi(2))
+            && can_see_tgt(
+                &read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            )
+        {
+            controller.push_basic_input(InputKind::Primary);
+        } else if attack_data.dist_sqrd < (PREF_DIST / 2.).powi(2) {
+            // Attempt to move quickly away from target if too close
+            if let Some((bearing, _)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                let flee_dir = -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
+                let pos = self.pos.0.xy().with_z(self.pos.0.z + 1.5);
+                if read_data
+                    .terrain
+                    .ray(pos, pos + flee_dir * 2.0)
+                    .until(|b| b.is_solid() || b.get_sprite().is_none())
+                    .cast()
+                    .0
+                    > 1.0
+                {
+                    // If able to flee, flee
+                    controller.inputs.move_dir = flee_dir;
+                    if !self.char_state.is_attack() {
+                        controller.inputs.look_dir = -controller.inputs.look_dir;
+                    }
+                } else {
+                    // Otherwise, fight to the death
+                    controller.push_basic_input(InputKind::Primary);
+                }
+            }
+        } else if attack_data.dist_sqrd < PREF_DIST.powi(2) {
+            // Attempt to move away from target if too close, while still attacking
+            if let Some((bearing, _)) = agent.chaser.chase(
+                &*read_data.terrain,
+                self.pos.0,
+                self.vel.0,
+                tgt_data.pos.0,
+                TraversalConfig {
+                    min_tgt_dist: 1.25,
+                    ..self.traversal_config
+                },
+            ) {
+                if can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                ) {
+                    controller.push_basic_input(InputKind::Primary);
+                }
+                controller.inputs.move_dir =
+                    -bearing.xy().try_normalized().unwrap_or_else(Vec2::zero);
             }
         } else {
             self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
@@ -1106,21 +1251,10 @@ impl<'a> AgentData<'a> {
         &self,
         _agent: &mut Agent,
         controller: &mut Controller,
-        attack_data: &AttackData,
-        tgt_data: &TargetData,
-        read_data: &ReadData,
+        _attack_data: &AttackData,
+        _tgt_data: &TargetData,
+        _read_data: &ReadData,
     ) {
-        if can_see_tgt(
-            &*read_data.terrain,
-            self.pos,
-            tgt_data.pos,
-            attack_data.dist_sqrd,
-        ) {
-            controller.push_basic_input(InputKind::Primary);
-        }
-    }
-
-    pub fn handle_tornado_attack(&self, controller: &mut Controller) {
         controller.push_basic_input(InputKind::Primary);
     }
 
@@ -1975,5 +2109,226 @@ impl<'a> AgentData<'a> {
         }
         // Always attempt to path towards target
         self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+    }
+
+    pub fn handle_deadwood(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const BEAM_RANGE: f32 = 20.0;
+        const BEAM_TIME: Duration = Duration::from_secs(3);
+        // action_state.condition controls whether or not deadwood should beam or dash
+        if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
+        {
+            // If already dashing, keep dashing and have move_dir set to forward
+            controller.push_basic_input(InputKind::Secondary);
+            controller.inputs.move_dir = self.ori.look_vec().xy();
+        } else if attack_data.in_min_range() && attack_data.angle < 10.0 {
+            // If near target, dash at them and through them to get away
+            controller.push_basic_input(InputKind::Secondary);
+        } else if matches!(self.char_state, CharacterState::BasicBeam(s) if s.stage_section != StageSection::Recover && s.timer < BEAM_TIME)
+        {
+            // If already beaming, keep beaming if not beaming for over 5 seconds
+            controller.push_basic_input(InputKind::Primary);
+        } else if attack_data.dist_sqrd < BEAM_RANGE.powi(2) {
+            // Else if in beam range, beam them
+            if attack_data.angle < 5.0 {
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                // If not in angle, apply slight movement so deadwood orients itself correctly
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::zero)
+                    * 0.01;
+            }
+        } else {
+            // Otherwise too far, move towards target
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
+
+    pub fn handle_mandragora(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const SCREAM_RANGE: f32 = 10.0;
+
+        if !agent.action_state.initialized {
+            agent.action_state.counter = self.health.map_or(0.0, |h| h.maximum());
+            agent.action_state.initialized = true;
+        }
+
+        if !agent.action_state.condition {
+            // If mandragora is still "sleeping" and hasn't screamed yet, do nothing until
+            // target in range or until it's taken damage
+            if self
+                .health
+                .map_or(false, |h| h.current() < agent.action_state.counter)
+                || attack_data.dist_sqrd < SCREAM_RANGE.powi(2)
+            {
+                agent.action_state.condition = true;
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else {
+            // Once mandragora has woken, move towards target and attack
+            if attack_data.in_min_range() {
+                controller.push_basic_input(InputKind::Primary);
+            } else if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
+                && can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                // If in pathing range and can see target, move towards them
+                self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+            } else {
+                // Otherwise, go back to sleep
+                agent.action_state.condition = false;
+                agent.action_state.counter = self.health.map_or(0.0, |h| h.maximum());
+            }
+        }
+    }
+
+    pub fn handle_wood_golem(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+    ) {
+        const SHOCKWAVE_RANGE: f32 = 25.0;
+        const SHOCKWAVE_WAIT_TIME: f32 = 7.5;
+        const SPIN_WAIT_TIME: f32 = 3.0;
+
+        // After spinning, reset timer
+        if matches!(self.char_state, CharacterState::SpinMelee(s) if s.stage_section == StageSection::Recover)
+        {
+            agent.action_state.timer = 0.0;
+        }
+
+        if attack_data.in_min_range() {
+            // If in minimum range
+            if agent.action_state.timer > SPIN_WAIT_TIME {
+                // If it's been too long since able to hit target, spin
+                controller.push_basic_input(InputKind::Secondary);
+            } else if attack_data.angle < 30.0 {
+                // Else if in angle to strike, strike
+                controller.push_basic_input(InputKind::Primary);
+            } else {
+                // Else increment spin timer
+                agent.action_state.timer += read_data.dt.0;
+                // If not in angle, apply slight movement so golem orients itself correctly
+                controller.inputs.move_dir = (tgt_data.pos.0 - self.pos.0)
+                    .xy()
+                    .try_normalized()
+                    .unwrap_or_else(Vec2::zero)
+                    * 0.01;
+            }
+        } else {
+            // Else if too far for melee
+            if attack_data.dist_sqrd < SHOCKWAVE_RANGE.powi(2) && attack_data.angle < 45.0 {
+                // Shockwave if close enough and haven't shockwaved too recently
+                if agent.action_state.counter > SHOCKWAVE_WAIT_TIME {
+                    controller.push_basic_input(InputKind::Ability(0));
+                }
+                if matches!(self.char_state, CharacterState::Shockwave(_)) {
+                    agent.action_state.counter = 0.0;
+                } else {
+                    agent.action_state.counter += read_data.dt.0;
+                }
+            }
+            // And always try to path towards target
+            self.path_toward_target(agent, controller, tgt_data, read_data, false, false, None);
+        }
+    }
+
+    pub fn handle_gnarling_chieftain(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        attack_data: &AttackData,
+        tgt_data: &TargetData,
+        read_data: &ReadData,
+        rng: &mut impl Rng,
+    ) {
+        const TOTEM_TIMER: f32 = 10.0;
+        const HEAVY_ATTACK_WAIT_TIME: f32 = 15.0;
+
+        // Handle timers
+        agent.action_state.timer += read_data.dt.0;
+        match self.char_state {
+            CharacterState::BasicSummon(_) => agent.action_state.timer = 0.0,
+            CharacterState::Shockwave(_) | CharacterState::BasicRanged(_) => {
+                agent.action_state.counter = 0.0
+            },
+            _ => {},
+        }
+
+        if !agent.action_state.initialized {
+            // If not initialized yet, start out by summoning green totem
+            controller.push_basic_input(InputKind::Ability(2));
+            if matches!(self.char_state, CharacterState::BasicSummon(s) if s.stage_section == StageSection::Recover)
+            {
+                agent.action_state.initialized = true;
+            }
+        } else if agent.action_state.timer > TOTEM_TIMER {
+            // If time to summon a totem, do it
+            let input = rng.gen_range(1..=3);
+            let buff_kind = match input {
+                2 => Some(BuffKind::Regeneration),
+                3 => Some(BuffKind::Hastened),
+                _ => None,
+            };
+            if buff_kind.map_or(true, |b| self.has_buff(read_data, b))
+                && matches!(self.char_state, CharacterState::Wielding { .. })
+            {
+                // If already under effects of buff from totem that would be summoned, don't
+                // summon totem (doesn't work for red totems since that applies debuff to
+                // enemies instead)
+                agent.action_state.timer = 0.0;
+            } else {
+                controller.push_basic_input(InputKind::Ability(input));
+            }
+        } else if agent.action_state.counter > HEAVY_ATTACK_WAIT_TIME {
+            // Else if time for a heavy attack
+            if attack_data.in_min_range() {
+                // If in range, shockwave
+                controller.push_basic_input(InputKind::Ability(0));
+            } else if can_see_tgt(
+                &read_data.terrain,
+                self.pos,
+                tgt_data.pos,
+                attack_data.dist_sqrd,
+            ) {
+                // Else if in sight, barrage
+                controller.push_basic_input(InputKind::Secondary);
+            }
+        } else if attack_data.in_min_range() {
+            // Else if not time to use anything fancy, if in range and angle, strike them
+            if attack_data.angle < 20.0 {
+                controller.push_basic_input(InputKind::Primary);
+                agent.action_state.counter += read_data.dt.0;
+            } else {
+                // If not in angle, charge heavy attack faster
+                agent.action_state.counter += read_data.dt.0 * 5.0;
+            }
+        } else {
+            // If not in range, charge heavy attack faster
+            agent.action_state.counter += read_data.dt.0 * 3.3;
+        }
+
+        self.path_toward_target(agent, controller, tgt_data, read_data, false, true, None);
     }
 }

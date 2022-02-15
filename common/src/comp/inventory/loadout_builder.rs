@@ -180,6 +180,9 @@ fn default_main_tool(body: &Body) -> Item {
             golem::Species::ClayGolem => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.clay_golem_fist",
             )),
+            golem::Species::WoodGolem => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.wood_golem_fist",
+            )),
             _ => None,
         },
         Body::QuadrupedMedium(quadruped_medium) => match quadruped_medium.species {
@@ -241,7 +244,7 @@ fn default_main_tool(body: &Body) -> Item {
                 "common.items.npc_weapons.unique.quadlowbreathe",
             )),
             quadruped_low::Species::Deadwood => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.quadlowbeam",
+                "common.items.npc_weapons.unique.deadwood",
             )),
             quadruped_low::Species::Basilisk => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.basilisk",
@@ -362,6 +365,15 @@ fn default_main_tool(body: &Body) -> Item {
             object::Body::Tornado => Some(Item::new_from_asset_expect(
                 "common.items.npc_weapons.unique.tornado",
             )),
+            object::Body::GnarlingTotemRed => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.gnarling.redtotem",
+            )),
+            object::Body::GnarlingTotemGreen => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.gnarling.greentotem",
+            )),
+            object::Body::GnarlingTotemWhite => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.biped_small.gnarling.whitetotem",
+            )),
             _ => None,
         },
         Body::BipedSmall(biped_small) => match (biped_small.species, biped_small.body_type) {
@@ -465,6 +477,7 @@ impl LoadoutBuilder {
             },
             Body::Golem(body) => match body.species {
                 golem::Species::ClayGolem => Some("common.items.npc_armor.golem.claygolem"),
+                golem::Species::WoodGolem => Some("common.items.npc_armor.golem.woodgolem"),
                 _ => None,
             },
             Body::QuadrupedLow(body) => match body.species {

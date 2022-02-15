@@ -484,6 +484,7 @@ pub struct ActionState {
     pub counter: f32,
     pub condition: bool,
     pub int_counter: u8,
+    pub initialized: bool,
 }
 
 impl Agent {
