@@ -15,6 +15,9 @@ pub struct TrailMgr {
 
     /// Dynamic model to upload to GPU
     dynamic_model: DynamicModel<TrailVertex>,
+
+    /// Used to create sub model from dynamic model
+    model_len: u32,
 }
 
 const TRAIL_DYNAMIC_MODEL_SIZE: usize = 15;
@@ -25,6 +28,7 @@ impl TrailMgr {
             entity_meshes: HashMap::new(),
             offset: 0,
             dynamic_model: renderer.create_dynamic_model(0),
+            model_len: 0,
         }
     }
 
@@ -59,15 +63,25 @@ impl TrailMgr {
                 .retain(|entity, _| ecs.entities().is_alive(*entity));
 
             // Create dynamic model from currently existing meshes
-            self.dynamic_model = {
-                let mut big_mesh = Mesh::new();
-                self.entity_meshes
-                    .values()
-                    .for_each(|mesh| big_mesh.push_mesh(mesh));
-                let dynamic_model = renderer.create_dynamic_model(big_mesh.len());
-                renderer.update_model(&dynamic_model, &big_mesh, 0);
-                dynamic_model
+            let mut big_mesh = Mesh::new();
+            self.entity_meshes
+                .values()
+                // If any of the vertices in a mesh are non-zero, upload the entire mesh for the entity
+                .filter(|mesh| mesh.iter().any(|vert| *vert != TrailVertex::zero()))
+                .for_each(|mesh| big_mesh.push_mesh(mesh));
+
+            // To avoid empty mesh
+            if big_mesh.is_empty() {
+                let zero = TrailVertex::zero();
+                big_mesh.push_quad(Quad::new(zero, zero, zero, zero));
+            }
+
+            // If dynamic model too small, resize
+            if self.dynamic_model.len() < big_mesh.len() {
+                self.dynamic_model = renderer.create_dynamic_model(big_mesh.len());
             };
+            renderer.update_model(&self.dynamic_model, &big_mesh, 0);
+            self.model_len = big_mesh.len() as u32;
         } else {
             self.entity_meshes.clear();
         }
@@ -76,7 +90,7 @@ impl TrailMgr {
     pub fn render<'a>(&'a self, drawer: &mut TrailDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "TrailMgr::render");
         if scene_data.weapon_trails_enabled {
-            drawer.draw(&self.dynamic_model);
+            drawer.draw(&self.dynamic_model, self.model_len);
         }
     }
 }

@@ -877,11 +877,16 @@ pub struct TrailDrawer<'pass_ref, 'pass: 'pass_ref> {
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
-    pub fn draw<'data: 'pass>(&mut self, model: &'data DynamicModel<trail::Vertex>) {
-        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data DynamicModel<trail::Vertex>,
+        model_len: u32,
+    ) {
+        self.render_pass
+            .set_vertex_buffer(0, model.submodel(0..model_len).buf());
         self.render_pass
             // TODO: since we cast to u32 maybe this should returned by the len/count functions?
-            .draw_indexed(0..model.len() as u32 / 4 * 6, 0, 0..1);
+            .draw_indexed(0..model_len / 4 * 6, 0, 0..1);
     }
 }
 

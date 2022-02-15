@@ -6482,11 +6482,11 @@ impl<S: Skeleton> FigureState<S> {
                         };
                         Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4))
                     } else {
-                        let zero = trail::Vertex { pos: [0.0; 3] };
+                        let zero = trail::Vertex::zero();
                         Quad::new(zero, zero, zero, zero)
                     }
                 } else {
-                    let zero = trail::Vertex { pos: [0.0; 3] };
+                    let zero = trail::Vertex::zero();
                     Quad::new(zero, zero, zero, zero)
                 };
                 quad_mesh.replace_quad(trail_mgr.offset * 4, quad);

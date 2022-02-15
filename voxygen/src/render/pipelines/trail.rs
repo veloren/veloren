@@ -3,7 +3,7 @@ use bytemuck::{Pod, Zeroable};
 use std::mem;
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug, Zeroable, Pod)]
+#[derive(Copy, Clone, Debug, Zeroable, Pod, PartialEq)]
 pub struct Vertex {
     pub pos: [f32; 3],
 }
