@@ -1,6 +1,9 @@
 use super::super::{AaMode, GlobalsLayouts, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
-use std::mem;
+use std::{
+    mem,
+    ops::{Add, Mul},
+};
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod, PartialEq)]
@@ -20,6 +23,26 @@ impl Vertex {
     }
 
     pub fn zero() -> Self { Self { pos: [0.0; 3] } }
+}
+
+impl Mul<f32> for Vertex {
+    type Output = Self;
+
+    fn mul(self, val: f32) -> Self::Output {
+        Self {
+            pos: self.pos.map(|a| a * val),
+        }
+    }
+}
+
+impl Add<Vertex> for Vertex {
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        Self {
+            pos: self.pos.zip(other.pos).map(|(a, b)| a + b),
+        }
+    }
 }
 
 impl VertexTrait for Vertex {

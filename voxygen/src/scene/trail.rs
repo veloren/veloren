@@ -21,6 +21,7 @@ pub struct TrailMgr {
 }
 
 const TRAIL_DYNAMIC_MODEL_SIZE: usize = 15;
+const TRAIL_SHRINKAGE: f32 = 0.8;
 
 impl TrailMgr {
     pub fn new(renderer: &mut Renderer) -> Self {
@@ -39,8 +40,18 @@ impl TrailMgr {
             // Update offset
             self.offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
 
-            // Reset quad for each entity mesh at new offset
             self.entity_meshes.values_mut().for_each(|mesh| {
+                // Shrink size of each quad over time
+                let vertices = mesh.vertices_mut_vec();
+                for i in 0..TRAIL_DYNAMIC_MODEL_SIZE {
+                    // Verts per quad are in b, c, a, d order
+                    vertices[i * 4 + 2] = vertices[i * 4 + 2] * TRAIL_SHRINKAGE
+                        + vertices[i * 4] * (1.0 - TRAIL_SHRINKAGE);
+                    vertices[i * 4 + 3] = vertices[i * 4 + 3] * TRAIL_SHRINKAGE
+                        + vertices[i * 4 + 1] * (1.0 - TRAIL_SHRINKAGE);
+                }
+
+                // Reset quad for each entity mesh at new offset
                 let zero = TrailVertex::zero();
                 mesh.replace_quad(self.offset * 4, Quad::new(zero, zero, zero, zero));
             });
