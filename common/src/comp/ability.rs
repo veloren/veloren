@@ -344,11 +344,11 @@ impl From<AuxiliaryAbility> for Ability {
     }
 }
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 /// A lighter form of character state to pass around as needed for frontend
 /// purposes
 // Only add to this enum as needed for frontends, not necessary to immediately
 // add a variant here when adding a new character state
+#[derive(Copy, Clone, Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub enum CharacterAbilityType {
     BasicMelee(StageSection),
     BasicRanged,
