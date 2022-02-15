@@ -39,7 +39,11 @@ impl TrailMgr {
             // Update offset
             self.offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
 
-            // TODO: Automatically make mesh 0 at this offset for all entities
+            // Reset quad for each entity mesh at new offset
+            self.entity_meshes.values_mut().for_each(|mesh| {
+                let zero = TrailVertex::zero();
+                mesh.replace_quad(self.offset * 4, Quad::new(zero, zero, zero, zero));
+            });
 
             // Create a mesh for each entity that doesn't already have one
             let ecs = scene_data.state.ecs();

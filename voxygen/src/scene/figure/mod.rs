@@ -6462,7 +6462,7 @@ impl<S: Skeleton> FigureState<S> {
                 .as_ref()
                 .and_then(|e| trail_mgr.entity_meshes.get_mut(e))
             {
-                let quad = if let (Some((p1, p2)), Some((p4, p3))) =
+                if let (Some((p1, p2)), Some((p4, p3))) =
                     (self.abs_trail_points, offsets_abs_trail_points)
                 {
                     use StageSection::{Action, Movement, Recover};
@@ -6480,16 +6480,10 @@ impl<S: Skeleton> FigureState<S> {
                         let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
                             pos: p.into_array(),
                         };
-                        Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4))
-                    } else {
-                        let zero = trail::Vertex::zero();
-                        Quad::new(zero, zero, zero, zero)
+                        let quad = Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4));
+                        quad_mesh.replace_quad(trail_mgr.offset * 4, quad);
                     }
-                } else {
-                    let zero = trail::Vertex::zero();
-                    Quad::new(zero, zero, zero, zero)
-                };
-                quad_mesh.replace_quad(trail_mgr.offset * 4, quad);
+                }
             }
         }
         self.abs_trail_points = offsets_abs_trail_points;
