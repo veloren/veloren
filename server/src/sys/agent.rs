@@ -258,6 +258,11 @@ impl<'a> System<'a> for Sys {
                     // But keep in mind our 25 m/s gravity
                     let is_falling_dangerous = data.vel.0.z < -20.0;
 
+                    let is_on_fire = read_data
+                        .buffs
+                        .get(entity)
+                        .map_or(false, |b| b.kinds.contains_key(&BuffKind::Burning));
+
                     // If falling velocity is critical, throw everything
                     // and save yourself!
                     //
@@ -268,6 +273,18 @@ impl<'a> System<'a> for Sys {
                         data.fly_upward(controller)
                     } else if is_falling_dangerous && data.glider_equipped {
                         data.glider_fall(controller);
+                    // If on fire and able, stop, drop, and roll
+                    } else if is_on_fire
+                        && data.body.map_or(false, |b| b.is_humanoid())
+                        && data.physics_state.on_ground.is_some()
+                        && rng.gen_bool((2.0 * read_data.dt.0).into())
+                    {
+                        controller.inputs.move_dir = ori
+                            .look_vec()
+                            .xy()
+                            .try_normalized()
+                            .unwrap_or_else(Vec2::zero);
+                        controller.push_basic_input(InputKind::Roll);
                     } else {
                         // Target an entity that's attacking us if the attack
                         // was recent and we have a health component
@@ -639,10 +656,6 @@ impl<'a> AgentData<'a> {
                         self.choose_target(agent, controller, read_data, event_emitter);
                     }
 
-                    // FIXME: This check being a pre-requisite to attack() prevents agents from
-                    // supporting their buddies when necessary. For example, village guards will
-                    // literally watch villagers and other guards be slaughtered until these victims
-                    // get within aggro range (which is what aggro_on checks) or get too far.
                     if aggro_on {
                         let target_data = TargetData::new(
                             tgt_pos,
