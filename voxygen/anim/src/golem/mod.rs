@@ -83,7 +83,8 @@ impl Skeleton for GolemSkeleton {
                     .into(),
                 ..Default::default()
             },
-            weapon_trail_mat: None,
+            main_weapon_trail_mat: None,
+            off_weapon_trail_mat: None,
         }
     }
 }

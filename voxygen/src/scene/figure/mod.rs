@@ -33,9 +33,8 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
-        Body, CharacterState, Collider, Controller, Health, Inventory, Item,
-        ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale,
-        Vel,
+        Body, CharacterState, Collider, Controller, Health, Inventory, Item, ItemKey, Last,
+        LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale, Vel,
     },
     link::Is,
     mounting::Rider,
@@ -6192,7 +6191,8 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: Option<anim::vek::Vec3<f32>>,
-    abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Animation to be applied to rider of this entity
     mount_transform: anim::vek::Transform<f32, f32, f32>,
     // Contains the position of this figure or if it is a rider it will contain the mount's
@@ -6270,7 +6270,8 @@ impl<S: Skeleton> FigureState<S> {
         Self {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
-                abs_trail_points: None,
+                main_abs_trail_points: None,
+                off_abs_trail_points: None,
                 mount_transform: offsets.mount_bone,
                 mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
@@ -6440,37 +6441,62 @@ impl<S: Skeleton> FigureState<S> {
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
         // Handle weapon trails
-        let weapon_offsets = offsets.weapon_trail_mat.map(|mat| {
-            let (trail_start, trail_end) = match tools.0 {
-                Some(ToolKind::Sword) => (20.25, 29.25),
-                // TODO: Make sure these are good positions, only did tweaking on sword
-                Some(ToolKind::Axe) => (10.0, 19.25),
-                Some(ToolKind::Hammer) => (10.0, 19.25),
-                _ => (0.0, 0.0),
-            };
-            (
-                (mat * anim::vek::Vec4::new(0.0, 0.0, trail_start, 1.0)).xyz(),
-                (mat * anim::vek::Vec4::new(0.0, 0.0, trail_end, 1.0)).xyz(),
-            )
-        });
-        let offsets_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
-        if let Some(trail_mgr) = trail_mgr {
-            if let Some(quad_mesh) = entity
-                .as_ref()
-                .and_then(|e| trail_mgr.entity_meshes.get_mut(e))
+        fn handle_weapon_trails(
+            trail_mgr: &mut TrailMgr,
+            new_weapon_trail_mat: Option<anim::vek::Mat4<f32>>,
+            old_abs_trail_points: &mut Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+            entity: EcsEntity,
+            is_main_weapon: bool,
+            pos: anim::vek::Vec3<f32>,
+            tools: (Option<ToolKind>, Option<ToolKind>),
+        ) {
+            let weapon_offsets = new_weapon_trail_mat.map(|mat| {
+                let (trail_start, trail_end) = match tools.0 {
+                    Some(ToolKind::Sword) => (20.25, 29.25),
+                    // TODO: Make sure these are good positions, only did tweaking on sword
+                    Some(ToolKind::Axe) => (10.0, 19.25),
+                    Some(ToolKind::Hammer) => (10.0, 19.25),
+                    _ => (0.0, 0.0),
+                };
+                (
+                    (mat * anim::vek::Vec4::new(0.0, 0.0, trail_start, 1.0)).xyz(),
+                    (mat * anim::vek::Vec4::new(0.0, 0.0, trail_end, 1.0)).xyz(),
+                )
+            });
+            let new_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
+            let trail_mgr_offset = trail_mgr.offset;
+            let quad_mesh = trail_mgr.entity_mesh_or_insert(entity, is_main_weapon);
+            if let (Some((p1, p2)), Some((p4, p3))) = (&old_abs_trail_points, new_abs_trail_points)
             {
-                if let (Some((p1, p2)), Some((p4, p3))) =
-                    (self.abs_trail_points, offsets_abs_trail_points)
-                {
-                    let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
-                        pos: p.into_array(),
-                    };
-                    let quad = Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4));
-                    quad_mesh.replace_quad(trail_mgr.offset * 4, quad);
-                }
+                let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
+                    pos: p.into_array(),
+                };
+                let quad = Quad::new(vertex(*p1), vertex(*p2), vertex(p3), vertex(p4));
+                quad_mesh.replace_quad(trail_mgr_offset * 4, quad);
             }
+            *old_abs_trail_points = new_abs_trail_points;
         }
-        self.abs_trail_points = offsets_abs_trail_points;
+
+        if let (Some(trail_mgr), Some(entity)) = (trail_mgr, entity) {
+            handle_weapon_trails(
+                trail_mgr,
+                offsets.main_weapon_trail_mat,
+                &mut self.main_abs_trail_points,
+                *entity,
+                true,
+                *pos,
+                *tools,
+            );
+            handle_weapon_trails(
+                trail_mgr,
+                offsets.off_weapon_trail_mat,
+                &mut self.off_abs_trail_points,
+                *entity,
+                false,
+                *pos,
+                *tools,
+            );
+        }
 
         // TODO: compute the mount bone only when it is needed
         self.mount_transform = offsets.mount_bone;

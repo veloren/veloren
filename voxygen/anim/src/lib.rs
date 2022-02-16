@@ -1,7 +1,4 @@
-#![feature(
-    generic_associated_types,
-    bool_to_option,
-)]
+#![feature(generic_associated_types, bool_to_option)]
 #![allow(incomplete_features)]
 #[cfg(all(feature = "be-dyn-lib", feature = "use-dyn-lib"))]
 compile_error!("Can't use both \"be-dyn-lib\" and \"use-dyn-lib\" features at once");
@@ -106,7 +103,8 @@ pub fn init() { lazy_static::initialize(&LIB); }
 pub struct Offsets {
     pub lantern: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
-    pub weapon_trail_mat: Option<Mat4<f32>>,
+    pub main_weapon_trail_mat: Option<Mat4<f32>>,
+    pub off_weapon_trail_mat: Option<Mat4<f32>>,
 }
 
 pub trait Skeleton: Send + Sync + 'static {

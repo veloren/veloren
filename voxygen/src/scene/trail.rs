@@ -1,14 +1,19 @@
 use super::SceneData;
 use crate::render::{DynamicModel, Mesh, Quad, Renderer, TrailDrawer, TrailVertex};
-use common::comp::CharacterState;
 use common_base::span;
-use specs::{Entity as EcsEntity, Join, WorldExt};
+use specs::Entity as EcsEntity;
 use std::collections::HashMap;
 // use vek::*;
 
+#[derive(Clone, Copy, Eq, PartialEq, Hash)]
+struct MeshKey {
+    entity: EcsEntity,
+    is_main_weapon: bool,
+}
+
 pub struct TrailMgr {
     /// Meshes for each entity
-    pub entity_meshes: HashMap<EcsEntity, Mesh<TrailVertex>>,
+    entity_meshes: HashMap<MeshKey, Mesh<TrailVertex>>,
 
     /// Offset
     pub offset: usize,
@@ -47,7 +52,8 @@ impl TrailMgr {
                     // Verts per quad are in b, c, a, d order
                     vertices[i * 4 + 2] = vertices[i * 4 + 2] * TRAIL_SHRINKAGE
                         + vertices[i * 4] * (1.0 - TRAIL_SHRINKAGE);
-                    if i != (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE {
+                    if i != (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE
+                    {
                         // Avoid shrinking edge of most recent quad so that edges of quads align
                         vertices[i * 4 + 3] = vertices[i * 4 + 3] * TRAIL_SHRINKAGE
                             + vertices[i * 4 + 1] * (1.0 - TRAIL_SHRINKAGE);
@@ -59,26 +65,9 @@ impl TrailMgr {
                 mesh.replace_quad(self.offset * 4, Quad::new(zero, zero, zero, zero));
             });
 
-            // Create a mesh for each entity that doesn't already have one
-            let ecs = scene_data.state.ecs();
-            for (entity, _char_state) in
-                (&ecs.entities(), &ecs.read_storage::<CharacterState>()).join()
-            {
-                // Result returned doesn't matter, it just needs to only insert if entry didn't
-                // already exist
-                if let Ok(mesh) = self.entity_meshes.try_insert(entity, Mesh::new()) {
-                    // Allocate up to necessary length so repalce_quad works as expected elsewhere
-                    let zero = TrailVertex::zero();
-                    for _ in 0..TRAIL_DYNAMIC_MODEL_SIZE {
-                        mesh.push_quad(Quad::new(zero, zero, zero, zero));
-                    }
-                }
-            }
-
-            // Clear meshes for entities that no longer exist (is this even
-            // necessary? not sure if this growing too big is a concern)
+            // Clear meshes for entities that only have zero quads in mesh
             self.entity_meshes
-                .retain(|entity, _| ecs.entities().is_alive(*entity));
+                .retain(|_, mesh| mesh.iter().any(|vert| *vert != TrailVertex::zero()));
 
             // Create dynamic model from currently existing meshes
             let mut big_mesh = Mesh::new();
@@ -110,5 +99,28 @@ impl TrailMgr {
         if scene_data.weapon_trails_enabled {
             drawer.draw(&self.dynamic_model, self.model_len);
         }
+    }
+
+    pub fn entity_mesh_or_insert(
+        &mut self,
+        entity: EcsEntity,
+        is_main_weapon: bool,
+    ) -> &mut Mesh<TrailVertex> {
+        let key = MeshKey {
+            entity,
+            is_main_weapon,
+        };
+        self.entity_meshes
+            .entry(key)
+            .or_insert_with(Self::default_trail_mesh)
+    }
+
+    fn default_trail_mesh() -> Mesh<TrailVertex> {
+        let mut mesh = Mesh::new();
+        let zero = TrailVertex::zero();
+        for _ in 0..TRAIL_DYNAMIC_MODEL_SIZE {
+            mesh.push_quad(Quad::new(zero, zero, zero, zero));
+        }
+        mesh
     }
 }

@@ -49,7 +49,8 @@ impl anim::Skeleton for VolumeKey {
         anim::Offsets {
             lantern: None,
             mount_bone: anim::vek::Transform::default(),
-            weapon_trail_mat: None,
+            main_weapon_trail_mat: None,
+            off_weapon_trail_mat: None,
         }
     }
 

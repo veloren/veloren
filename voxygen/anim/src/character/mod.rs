@@ -79,6 +79,7 @@ skeleton_impls!(struct CharacterSkeleton {
     :: // Begin non-bone fields
     holding_lantern: bool,
     main_weapon_trail: bool,
+    off_weapon_trail: bool,
 });
 
 impl CharacterSkeleton {
@@ -127,6 +128,7 @@ impl Skeleton for CharacterSkeleton {
             shorts_mat
         } * Mat4::<f32>::from(self.lantern);
         let main_mat = control_l_mat * Mat4::<f32>::from(self.main);
+        let second_mat = control_r_mat * Mat4::<f32>::from(self.second);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -142,7 +144,7 @@ impl Skeleton for CharacterSkeleton {
             make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_r)),
             make_bone(chest_mat * Mat4::<f32>::from(self.glider)),
             make_bone(main_mat),
-            make_bone(control_r_mat * Mat4::<f32>::from(self.second)),
+            make_bone(second_mat),
             make_bone(lantern_mat),
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
@@ -157,7 +159,8 @@ impl Skeleton for CharacterSkeleton {
                     .into(),
                 ..Default::default()
             },
-            weapon_trail_mat: self.main_weapon_trail.then_some(main_mat),
+            main_weapon_trail_mat: self.main_weapon_trail.then_some(main_mat),
+            off_weapon_trail_mat: self.off_weapon_trail.then_some(second_mat),
         }
     }
 }
