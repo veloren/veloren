@@ -32,9 +32,9 @@ const float FADE_DIST = 32.0;
 
 void main() {
     vec3 trail_color = vec3(.55, .92, 1.0);
-    float trail_alpha = 0.01;
+    float trail_alpha = 0.05;
     // Controls how much light affects alpha variation. TODO: Maybe a better name?
-    float light_variable = 0.25;
+    float light_variable = 1.0;
 
     #ifdef EXPERIMENTAL_BAREMINIMUM
         tgt_color = vec4(trail_color, trail_alpha);
