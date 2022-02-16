@@ -663,11 +663,7 @@ pub fn handle_climb(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
 pub fn handle_wallrun(data: &JoinData<'_>, update: &mut StateUpdate) -> bool {
     if data.physics.on_wall.is_some()
         && data.physics.on_ground.is_none()
-        && !data
-            .physics
-            .in_liquid()
-            .map(|depth| depth > 1.0)
-            .unwrap_or(false)
+        && data.physics.in_liquid().is_none()
         && data.body.can_climb()
     {
         update.character = CharacterState::Wallrun(wallrun::Data);
