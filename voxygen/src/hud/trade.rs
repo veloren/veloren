@@ -473,10 +473,25 @@ impl<'a> Trade<'a> {
         trade: &'a PendingTrade,
     ) -> <Self as Widget>::Event {
         let mut event = None;
+        let (hover_img, press_img, accept_button_luminance) = if trade.is_empty_trade() {
+            //Darken the accept button if the trade is empty.
+            (
+                self.imgs.button,
+                self.imgs.button,
+                Color::Rgba(0.6, 0.6, 0.6, 1.0),
+            )
+        } else {
+            (
+                self.imgs.button_hover,
+                self.imgs.button_press,
+                Color::Rgba(1.0, 1.0, 1.0, 1.0),
+            )
+        };
         if Button::image(self.imgs.button)
             .w_h(31.0 * 5.0, 12.0 * 2.0)
-            .hover_image(self.imgs.button_hover)
-            .press_image(self.imgs.button_press)
+            .hover_image(hover_img)
+            .press_image(press_img)
+            .image_color(accept_button_luminance)
             .bottom_left_with_margins_on(state.ids.bg, 90.0, 47.0)
             .label(self.localized_strings.get("hud.trade.accept"))
             .label_font_size(self.fonts.cyri.scale(14))

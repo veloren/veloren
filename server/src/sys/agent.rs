@@ -1239,7 +1239,7 @@ impl<'a> AgentData<'a> {
                         // results in lagging and moving to the review phase of an unfavorable trade
                         // (although since the phase is included in the message, this shouldn't
                         // result in fully accepting an unfavourable trade))
-                        if !pending.accept_flags[who] {
+                        if !pending.accept_flags[who] && !pending.is_empty_trade() {
                             event_emitter.emit(ServerEvent::ProcessTradeAction(
                                 *self.entity,
                                 tradeid,

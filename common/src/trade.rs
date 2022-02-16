@@ -116,6 +116,8 @@ impl PendingTrade {
             .map(|(i, _)| i)
     }
 
+    pub fn is_empty_trade(&self) -> bool { self.offers[0].is_empty() && self.offers[1].is_empty() }
+
     /// Invariants:
     /// - A party is never shown as offering more of an item than they own
     /// - Offers with a quantity of zero get removed from the trade
@@ -165,7 +167,7 @@ impl PendingTrade {
                 }
             },
             Accept(phase) => {
-                if self.phase == phase {
+                if self.phase == phase && !self.is_empty_trade() {
                     self.accept_flags[who] = true;
                 }
                 if self.accept_flags[0] && self.accept_flags[1] {
