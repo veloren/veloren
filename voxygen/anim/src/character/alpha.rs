@@ -49,7 +49,10 @@ impl Animation for AlphaAnimation {
 
         match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Sword | ToolKind::Dagger) => {
-                if matches!(stage_section, Some(StageSection::Action | StageSection::Recover)) {
+                if matches!(
+                    stage_section,
+                    Some(StageSection::Action | StageSection::Recover)
+                ) {
                     next.main_weapon_trail = true;
                 }
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);

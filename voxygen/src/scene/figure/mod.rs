@@ -6452,7 +6452,7 @@ impl<S: Skeleton> FigureState<S> {
         ) {
             let weapon_offsets = new_weapon_trail_mat.map(|mat| {
                 let (trail_start, trail_end) = match tools.0 {
-                    Some(ToolKind::Sword) => (20.25, 29.25),
+                    Some(ToolKind::Sword) => (0.0, 29.25),
                     // TODO: Make sure these are good positions, only did tweaking on sword
                     Some(ToolKind::Axe) => (10.0, 19.25),
                     Some(ToolKind::Hammer) => (10.0, 19.25),

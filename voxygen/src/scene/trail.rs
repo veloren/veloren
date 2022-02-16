@@ -48,12 +48,18 @@ impl TrailMgr {
             self.entity_meshes.values_mut().for_each(|mesh| {
                 // Shrink size of each quad over time
                 let vertices = mesh.vertices_mut_vec();
+                let last_offset =
+                    (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE;
+                let next_offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
                 for i in 0..TRAIL_DYNAMIC_MODEL_SIZE {
                     // Verts per quad are in b, c, a, d order
-                    vertices[i * 4 + 2] = vertices[i * 4 + 2] * TRAIL_SHRINKAGE
-                        + vertices[i * 4] * (1.0 - TRAIL_SHRINKAGE);
-                    if i != (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE
-                    {
+                    vertices[i * 4 + 2] = if i == next_offset {
+                        vertices[i * 4]
+                    } else {
+                        vertices[i * 4 + 2] * TRAIL_SHRINKAGE
+                            + vertices[i * 4] * (1.0 - TRAIL_SHRINKAGE)
+                    };
+                    if i != last_offset {
                         // Avoid shrinking edge of most recent quad so that edges of quads align
                         vertices[i * 4 + 3] = vertices[i * 4 + 3] * TRAIL_SHRINKAGE
                             + vertices[i * 4 + 1] * (1.0 - TRAIL_SHRINKAGE);
