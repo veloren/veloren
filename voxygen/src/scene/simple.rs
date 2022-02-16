@@ -158,7 +158,6 @@ impl Scene {
                     mount_transform_pos: None,
                     body: None,
                     tools: (None, None),
-                    char_ability: None,
                     col: Rgba::broadcast(1.0),
                     dt: 15.0, // Want to get there immediately.
                     _lpindex: 0,
@@ -351,7 +350,6 @@ impl Scene {
                 mount_transform_pos: None,
                 body: None,
                 tools: (None, None),
-                char_ability: None,
                 col: Rgba::broadcast(1.0),
                 dt: scene_data.delta_time,
                 _lpindex: 0,

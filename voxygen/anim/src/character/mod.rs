@@ -78,6 +78,7 @@ skeleton_impls!(struct CharacterSkeleton {
     control_r,
     :: // Begin non-bone fields
     holding_lantern: bool,
+    main_weapon_trail: bool,
 });
 
 impl CharacterSkeleton {
@@ -156,7 +157,7 @@ impl Skeleton for CharacterSkeleton {
                     .into(),
                 ..Default::default()
             },
-            weapon_trail_mat: Some(main_mat),
+            weapon_trail_mat: self.main_weapon_trail.then_some(main_mat),
         }
     }
 }

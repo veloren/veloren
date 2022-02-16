@@ -33,7 +33,7 @@ use common::{
     comp::{
         inventory::slot::EquipSlot,
         item::{Hands, ItemKind, ToolKind},
-        Body, CharacterAbilityType, CharacterState, Collider, Controller, Health, Inventory, Item,
+        Body, CharacterState, Collider, Controller, Health, Inventory, Item,
         ItemKey, Last, LightAnimation, LightEmitter, Ori, PhysicsState, PoiseState, Pos, Scale,
         Vel,
     },
@@ -864,7 +864,6 @@ impl FigureMgr {
                 mount_transform_pos,
                 body: Some(body),
                 tools: (active_tool_kind, second_tool_kind),
-                char_ability: character.map(|c| c.into()),
                 col,
                 dt,
                 _lpindex: lpindex,
@@ -6249,7 +6248,6 @@ pub struct FigureUpdateCommonParameters<'a> {
     pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
     pub body: Option<Body>,
     pub tools: (Option<ToolKind>, Option<ToolKind>),
-    pub char_ability: Option<CharacterAbilityType>,
     pub col: vek::Rgba<f32>,
     pub dt: f32,
     // TODO: evaluate unused variable
@@ -6304,7 +6302,6 @@ impl<S: Skeleton> FigureState<S> {
             mount_transform_pos,
             body,
             tools,
-            char_ability,
             col,
             dt,
             _lpindex,
@@ -6465,24 +6462,11 @@ impl<S: Skeleton> FigureState<S> {
                 if let (Some((p1, p2)), Some((p4, p3))) =
                     (self.abs_trail_points, offsets_abs_trail_points)
                 {
-                    use StageSection::{Action, Movement, Recover};
-                    if matches!(
-                        char_ability,
-                        Some(
-                            CharacterAbilityType::BasicMelee(Action)
-                                | CharacterAbilityType::ChargedMelee(Action)
-                                | CharacterAbilityType::DashMelee(Action)
-                                | CharacterAbilityType::ComboMelee(Action | Recover, _)
-                                | CharacterAbilityType::LeapMelee(Movement | Action)
-                                | CharacterAbilityType::SpinMelee(Action)
-                        )
-                    ) {
-                        let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
-                            pos: p.into_array(),
-                        };
-                        let quad = Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4));
-                        quad_mesh.replace_quad(trail_mgr.offset * 4, quad);
-                    }
+                    let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
+                        pos: p.into_array(),
+                    };
+                    let quad = Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4));
+                    quad_mesh.replace_quad(trail_mgr.offset * 4, quad);
                 }
             }
         }
