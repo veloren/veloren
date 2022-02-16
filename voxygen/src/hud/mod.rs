@@ -773,8 +773,6 @@ impl Show {
         }
     }
 
-    fn toggle_bag(&mut self) { self.bag(!self.bag); }
-
     fn toggle_trade(&mut self) { self.trade(!self.trade); }
 
     fn toggle_map(&mut self) { self.map(!self.map) }
@@ -2710,7 +2708,10 @@ impl Hud {
             )
             .set(self.ids.buttons, ui_widgets)
             {
-                Some(buttons::Event::ToggleBag) => self.show.toggle_bag(),
+                Some(buttons::Event::ToggleBag) => {
+                    let state = !self.show.bag;
+                    Self::show_bag(&mut self.slot_manager, &mut self.show, state)
+                },
                 Some(buttons::Event::ToggleSettings) => self.show.toggle_settings(global_state),
                 Some(buttons::Event::ToggleSocial) => self.show.toggle_social(),
                 Some(buttons::Event::ToggleSpell) => self.show.toggle_spell(),
@@ -2919,7 +2920,7 @@ impl Hud {
                     Some(bag::Event::BagExpand) => self.show.bag_inv = !self.show.bag_inv,
                     Some(bag::Event::Close) => {
                         self.show.stats = false;
-                        self.show.bag(false);
+                        Self::show_bag(&mut self.slot_manager, &mut self.show, false);
                         if !self.show.social {
                             self.show.want_grab = true;
                             self.force_ungrab = false;
@@ -3631,14 +3632,22 @@ impl Hud {
                         // Used from hotbar
                         self.hotbar.get(h).map(|s| match s {
                             hotbar::SlotContents::Inventory(i, _) => {
-                                if let Some(slot) = inventories
-                                    .get(client.entity())
-                                    .and_then(|inv| inv.get_slot_from_hash(i))
-                                {
-                                    events.push(Event::UseSlot {
-                                        slot: comp::slot::Slot::Inventory(slot),
-                                        bypass_dialog: false,
-                                    });
+                                if let Some(inv) = inventories.get(client.entity()) {
+                                    // If the item in the inactive main hand is the same as the item
+                                    // pressed in the hotbar, then swap active and inactive hands
+                                    // instead of looking for
+                                    // the item in the inventory
+                                    if inv
+                                        .equipped(comp::slot::EquipSlot::InactiveMainhand)
+                                        .map_or(false, |item| item.item_hash() == i)
+                                    {
+                                        events.push(Event::SwapEquippedWeapons);
+                                    } else if let Some(slot) = inv.get_slot_from_hash(i) {
+                                        events.push(Event::UseSlot {
+                                            slot: comp::slot::Slot::Inventory(slot),
+                                            bypass_dialog: false,
+                                        });
+                                    }
                                 }
                             },
                             hotbar::SlotContents::Ability(_) => {},
@@ -3775,6 +3784,13 @@ impl Hud {
         events
     }
 
+    fn show_bag(slot_manager: &mut slots::SlotManager, show: &mut Show, state: bool) {
+        show.bag(state);
+        if !state {
+            slot_manager.idle();
+        }
+    }
+
     pub fn add_failed_block_pickup(&mut self, pos: Vec3<i32>) {
         self.failed_block_pickups.insert(pos, self.pulse);
     }
@@ -3852,13 +3868,22 @@ impl Hud {
                 hotbar.get(slot).map(|s| match s {
                     hotbar::SlotContents::Inventory(i, _) => {
                         if just_pressed {
-                            if let Some(slot) =
-                                client_inventory.and_then(|inv| inv.get_slot_from_hash(i))
-                            {
-                                events.push(Event::UseSlot {
-                                    slot: comp::slot::Slot::Inventory(slot),
-                                    bypass_dialog: false,
-                                });
+                            if let Some(inv) = client_inventory {
+                                // If the item in the inactive main hand is the same as the item
+                                // pressed in the hotbar, then swap active and inactive hands
+                                // instead of looking for the item
+                                // in the inventory
+                                if inv
+                                    .equipped(comp::slot::EquipSlot::InactiveMainhand)
+                                    .map_or(false, |item| item.item_hash() == i)
+                                {
+                                    events.push(Event::SwapEquippedWeapons);
+                                } else if let Some(slot) = inv.get_slot_from_hash(i) {
+                                    events.push(Event::UseSlot {
+                                        slot: comp::slot::Slot::Inventory(slot),
+                                        bypass_dialog: false,
+                                    });
+                                }
                             }
                         }
                     },
@@ -3969,6 +3994,9 @@ impl Hud {
                     self.events.push(Event::TradeAction(TradeAction::Decline));
                 } else {
                     // Close windows on esc
+                    if self.show.bag {
+                        self.slot_manager.idle();
+                    }
                     self.show.toggle_windows(global_state);
                 }
                 true
@@ -3988,7 +4016,8 @@ impl Hud {
                         true
                     },
                     GameInput::Bag if state => {
-                        self.show.toggle_bag();
+                        let state = !self.show.bag;
+                        Self::show_bag(&mut self.slot_manager, &mut self.show, state);
                         true
                     },
                     GameInput::Social if state => {
