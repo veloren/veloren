@@ -47,8 +47,11 @@ impl TrailMgr {
                     // Verts per quad are in b, c, a, d order
                     vertices[i * 4 + 2] = vertices[i * 4 + 2] * TRAIL_SHRINKAGE
                         + vertices[i * 4] * (1.0 - TRAIL_SHRINKAGE);
-                    vertices[i * 4 + 3] = vertices[i * 4 + 3] * TRAIL_SHRINKAGE
-                        + vertices[i * 4 + 1] * (1.0 - TRAIL_SHRINKAGE);
+                    if i != (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE {
+                        // Avoid shrinking edge of most recent quad so that edges of quads align
+                        vertices[i * 4 + 3] = vertices[i * 4 + 3] * TRAIL_SHRINKAGE
+                            + vertices[i * 4 + 1] * (1.0 - TRAIL_SHRINKAGE);
+                    }
                 }
 
                 // Reset quad for each entity mesh at new offset
