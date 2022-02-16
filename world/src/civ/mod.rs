@@ -525,11 +525,11 @@ impl Civs {
                 common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 200 => Some(format!(
                     "{} {}",
                     ["Lake", "Loch"].choose(&mut ctx.rng).unwrap(),
-                    NameGen::location(&mut ctx.rng).generate()
+                    NameGen::location(&mut ctx.rng).generate_lake_custom()
                 )),
                 common::terrain::BiomeKind::Lake if biome.1.len() as u32 > 10 => Some(format!(
                     "{} {}",
-                    NameGen::location(&mut ctx.rng).generate(),
+                    NameGen::location(&mut ctx.rng).generate_lake_custom(),
                     ["Pool", "Well", "Pond"].choose(&mut ctx.rng).unwrap()
                 )),
                 common::terrain::BiomeKind::Grassland if biome.1.len() as u32 > 750 => {
