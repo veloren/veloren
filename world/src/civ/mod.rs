@@ -1010,6 +1010,11 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
         !chunk.river.is_ocean()
             && !chunk.river.is_lake()
             && !chunk.river.is_river()
+            && !chunk.is_underwater()
+            && !matches!(
+                chunk.get_biome(),
+                common::terrain::BiomeKind::Lake | common::terrain::BiomeKind::Ocean
+            )
             && sim
                 .get_gradient_approx(loc)
                 .map(|grad| grad < 1.0)
