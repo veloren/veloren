@@ -1626,8 +1626,9 @@ impl FigureMgr {
                         CharacterState::ComboMelee2(s) => {
                             if let Some(stage_section) = s.stage_section {
                                 let timer = s.timer.as_secs_f32();
-                                let strike_data = s.static_data.strikes
-                                    [s.completed_strikes % s.static_data.strikes.len()];
+                                let current_strike =
+                                    s.completed_strikes % s.static_data.strikes.len();
+                                let strike_data = s.static_data.strikes[current_strike];
                                 let progress = match stage_section {
                                     StageSection::Buildup => {
                                         timer / strike_data.buildup_duration.as_secs_f32()
@@ -1640,8 +1641,6 @@ impl FigureMgr {
                                     },
                                     _ => 0.0,
                                 };
-                                let current_strike =
-                                    s.completed_strikes % s.static_data.strikes.len();
 
                                 anim::character::ComboAnimation::update_skeleton(
                                     &target_base,

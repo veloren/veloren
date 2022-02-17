@@ -97,7 +97,9 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_jump(data, output_events, &mut update, 1.0);
+        if !input_is_pressed(data, InputKind::Primary) {
+            handle_dodge_input(data, &mut update);
+        }
 
         let strike_data =
             self.static_data.strikes[self.completed_strikes % self.static_data.strikes.len()];
@@ -106,41 +108,31 @@ impl CharacterBehavior for Data {
             Some(StageSection::Buildup) => {
                 if self.timer < strike_data.buildup_duration {
                     // Build up
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Transitions to swing section of stage
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: Duration::default(),
-                        stage_section: Some(StageSection::Action),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = Some(StageSection::Action);
+                    }
                 }
             },
             Some(StageSection::Action) => {
                 if input_is_pressed(data, InputKind::Primary) {
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        skip_recover: true,
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.skip_recover = true;
+                    }
                 }
                 if self.timer.as_secs_f32()
                     > strike_data.hit_timing * strike_data.swing_duration.as_secs_f32()
                     && !self.exhausted
                 {
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        exhausted: true,
-                        skip_recover: self.skip_recover
-                            || input_is_pressed(data, InputKind::Primary),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                        c.exhausted = true;
+                    }
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
                     let buff_strength = get_buff_strength(data, self.static_data.ability_info);
@@ -153,41 +145,31 @@ impl CharacterBehavior for Data {
                     );
                 } else if self.timer < strike_data.swing_duration {
                     // Swings
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        skip_recover: self.skip_recover
-                            || input_is_pressed(data, InputKind::Primary),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else if self.skip_recover {
                     next_strike(&mut update)
                 } else {
                     // Transitions to recover section of stage
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: Duration::default(),
-                        stage_section: Some(StageSection::Recover),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = Some(StageSection::Recover);
+                    }
                 }
             },
             Some(StageSection::Recover) => {
                 if self.timer < strike_data.recover_duration {
                     // Recovery
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Done
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: Duration::default(),
-                        stage_section: None,
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = Duration::default();
+                        c.stage_section = None;
+                    }
                 }
             },
             Some(_) => {
@@ -198,11 +180,9 @@ impl CharacterBehavior for Data {
             },
             None => {
                 if self.timer < STANCE_TIME {
-                    update.character = CharacterState::ComboMelee2(Data {
-                        static_data: self.static_data.clone(),
-                        timer: tick_attack_or_default(data, self.timer, None),
-                        ..*self
-                    });
+                    if let CharacterState::ComboMelee2(c) = &mut update.character {
+                        c.timer = tick_attack_or_default(data, self.timer, None);
+                    }
                 } else {
                     // Done
                     update.character =
@@ -210,15 +190,16 @@ impl CharacterBehavior for Data {
                     // Make sure melee component is removed
                     data.updater.remove::<Melee>(data.entity);
                 }
+
+                handle_climb(data, &mut update);
+                handle_jump(data, output_events, &mut update, 1.0);
+
                 if input_is_pressed(data, InputKind::Primary) {
                     next_strike(&mut update)
+                } else {
+                    attempt_input(data, output_events, &mut update);
                 }
             },
-        }
-
-        // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, InputKind::Primary) {
-            handle_dodge_input(data, &mut update);
         }
 
         update

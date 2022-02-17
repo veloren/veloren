@@ -419,6 +419,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
+        meta: Option<AbilityMeta>,
     },
     BasicRanged {
         energy_cost: f32,
@@ -430,6 +431,7 @@ pub enum CharacterAbility {
         projectile_speed: f32,
         num_projectiles: u32,
         projectile_spread: f32,
+        meta: Option<AbilityMeta>,
     },
     RepeaterRanged {
         energy_cost: f32,
@@ -442,12 +444,14 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
+        meta: Option<AbilityMeta>,
     },
     Boost {
         movement_duration: f32,
         only_up: bool,
         speed: f32,
         max_exit_velocity: f32,
+        meta: Option<AbilityMeta>,
     },
     DashMelee {
         energy_cost: f32,
@@ -461,6 +465,7 @@ pub enum CharacterAbility {
         ori_modifier: f32,
         charge_through: bool,
         is_interruptible: bool,
+        meta: Option<AbilityMeta>,
     },
     BasicBlock {
         buildup_duration: f32,
@@ -468,6 +473,7 @@ pub enum CharacterAbility {
         max_angle: f32,
         block_strength: f32,
         energy_cost: f32,
+        meta: Option<AbilityMeta>,
     },
     Roll {
         energy_cost: f32,
@@ -476,6 +482,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         roll_strength: f32,
         immune_melee: bool,
+        meta: Option<AbilityMeta>,
     },
     ComboMelee {
         stage_data: Vec<combo_melee::Stage<f32>>,
@@ -487,9 +494,11 @@ pub enum CharacterAbility {
         scales_from_combo: u32,
         is_interruptible: bool,
         ori_modifier: f32,
+        meta: Option<AbilityMeta>,
     },
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
+        meta: Option<AbilityMeta>,
     },
     LeapMelee {
         energy_cost: f32,
@@ -500,6 +509,7 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
+        meta: Option<AbilityMeta>,
     },
     SpinMelee {
         buildup_duration: f32,
@@ -513,6 +523,7 @@ pub enum CharacterAbility {
         num_spins: u32,
         specifier: Option<spin_melee::FrontendSpecifier>,
         melee_constructor: MeleeConstructor,
+        meta: Option<AbilityMeta>,
     },
     ChargedMelee {
         energy_cost: f32,
@@ -523,6 +534,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
+        meta: Option<AbilityMeta>,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -541,6 +553,7 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
         move_speed: f32,
+        meta: Option<AbilityMeta>,
     },
     Shockwave {
         energy_cost: f32,
@@ -559,6 +572,7 @@ pub enum CharacterAbility {
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
         damage_effect: Option<CombatEffect>,
+        meta: Option<AbilityMeta>,
     },
     BasicBeam {
         buildup_duration: f32,
@@ -573,6 +587,7 @@ pub enum CharacterAbility {
         energy_drain: f32,
         ori_rate: f32,
         specifier: beam::FrontendSpecifier,
+        meta: Option<AbilityMeta>,
     },
     BasicAura {
         buildup_duration: f32,
@@ -585,11 +600,13 @@ pub enum CharacterAbility {
         energy_cost: f32,
         scales_with_combo: bool,
         specifier: Option<aura::Specifier>,
+        meta: Option<AbilityMeta>,
     },
     Blink {
         buildup_duration: f32,
         recover_duration: f32,
         max_range: f32,
+        meta: Option<AbilityMeta>,
     },
     BasicSummon {
         buildup_duration: f32,
@@ -599,6 +616,7 @@ pub enum CharacterAbility {
         summon_distance: (f32, f32),
         summon_info: basic_summon::SummonInfo,
         duration: Option<Duration>,
+        meta: Option<AbilityMeta>,
     },
     SelfBuff {
         buildup_duration: f32,
@@ -608,6 +626,7 @@ pub enum CharacterAbility {
         buff_strength: f32,
         buff_duration: Option<f32>,
         energy_cost: f32,
+        meta: Option<AbilityMeta>,
     },
     SpriteSummon {
         buildup_duration: f32,
@@ -616,6 +635,7 @@ pub enum CharacterAbility {
         sprite: SpriteKind,
         summon_distance: (f32, f32),
         sparseness: f64,
+        meta: Option<AbilityMeta>,
     },
     Music {
         play_duration: f32,
@@ -643,6 +663,7 @@ impl Default for CharacterAbility {
                 damage_effect: None,
             },
             ori_modifier: 1.0,
+            meta: None,
         }
     }
 }
@@ -709,6 +730,7 @@ impl CharacterAbility {
             recover_duration: 0.125,
             roll_strength: 2.0,
             immune_melee: true,
+            meta: None,
         }
     }
 
@@ -719,6 +741,7 @@ impl CharacterAbility {
             max_angle: 60.0,
             block_strength: 0.5,
             energy_cost: 2.5,
+            meta: None,
         }
     }
 
@@ -733,6 +756,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 ori_modifier: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -750,6 +774,7 @@ impl CharacterAbility {
                 ref mut projectile_speed,
                 num_projectiles: _,
                 projectile_spread: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -768,6 +793,7 @@ impl CharacterAbility {
                 projectile_body: _,
                 projectile_light: _,
                 ref mut projectile_speed,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *shoot_duration /= stats.speed;
@@ -781,6 +807,7 @@ impl CharacterAbility {
                 only_up: _,
                 speed: ref mut boost_speed,
                 max_exit_velocity: _,
+                meta: _,
             } => {
                 *movement_duration /= stats.speed;
                 *boost_speed *= stats.power;
@@ -797,6 +824,7 @@ impl CharacterAbility {
                 ori_modifier: _,
                 charge_through: _,
                 is_interruptible: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -813,6 +841,7 @@ impl CharacterAbility {
                 // Block strength explicitly not modified by power, that will be a separate stat
                 block_strength: _,
                 ref mut energy_cost,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -825,6 +854,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 roll_strength: _,
                 immune_melee: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *movement_duration /= stats.speed;
@@ -841,13 +871,17 @@ impl CharacterAbility {
                 scales_from_combo: _,
                 is_interruptible: _,
                 ori_modifier: _,
+                meta: _,
             } => {
                 *stage_data = stage_data
                     .iter_mut()
                     .map(|s| s.adjusted_by_stats(stats))
                     .collect();
             },
-            ComboMelee2 { ref mut strikes } => {
+            ComboMelee2 {
+                ref mut strikes,
+                meta: _,
+            } => {
                 *strikes = strikes
                     .iter_mut()
                     .map(|s| s.adjusted_by_stats(stats))
@@ -862,6 +896,7 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 forward_leap_strength: _,
                 vertical_leap_strength: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -881,6 +916,7 @@ impl CharacterAbility {
                 forward_speed: _,
                 num_spins: _,
                 specifier: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -897,6 +933,7 @@ impl CharacterAbility {
                 ref mut recover_duration,
                 ref mut melee_constructor,
                 specifier: _,
+                meta: _,
             } => {
                 *swing_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -921,6 +958,7 @@ impl CharacterAbility {
                 ref mut initial_projectile_speed,
                 ref mut scaled_projectile_speed,
                 move_speed: _,
+                meta: _,
             } => {
                 *initial_damage *= stats.power;
                 *scaled_damage *= stats.power;
@@ -948,6 +986,7 @@ impl CharacterAbility {
                 damage_kind: _,
                 specifier: _,
                 ref mut damage_effect,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *swing_duration /= stats.speed;
@@ -979,6 +1018,7 @@ impl CharacterAbility {
                 ref mut energy_drain,
                 ori_rate: _,
                 specifier: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -1009,6 +1049,7 @@ impl CharacterAbility {
                 ref mut energy_cost,
                 scales_with_combo: _,
                 specifier: _,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
@@ -1030,6 +1071,7 @@ impl CharacterAbility {
                 ref mut buildup_duration,
                 ref mut recover_duration,
                 ref mut max_range,
+                meta: _,
             } => {
                 *buildup_duration /= stats.speed;
                 *recover_duration /= stats.speed;
@@ -1043,6 +1085,7 @@ impl CharacterAbility {
                 summon_distance: (ref mut inner_dist, ref mut outer_dist),
                 summon_info: _,
                 duration: _,
+                meta: _,
             } => {
                 // TODO: Figure out how/if power should affect this
                 *buildup_duration /= stats.speed;
@@ -1059,6 +1102,7 @@ impl CharacterAbility {
                 ref mut buff_strength,
                 buff_duration: _,
                 ref mut energy_cost,
+                meta: _,
             } => {
                 *buff_strength *= stats.diminished_buff_strength();
                 *buildup_duration /= stats.speed;
@@ -1073,6 +1117,7 @@ impl CharacterAbility {
                 sprite: _,
                 summon_distance: (ref mut inner_dist, ref mut outer_dist),
                 sparseness: _,
+                meta: _,
             } => {
                 // TODO: Figure out how/if power should affect this
                 *buildup_duration /= stats.speed;
@@ -1122,6 +1167,53 @@ impl CharacterAbility {
             | BasicSummon { .. }
             | SpriteSummon { .. } => 0.0,
         }
+    }
+
+    // TODO: Maybe consider making CharacterAbility a struct at some point?
+    pub fn ability_meta(&self) -> Option<AbilityMeta> {
+        use CharacterAbility::*;
+        match self {
+            BasicMelee { meta, .. }
+            | BasicRanged { meta, .. }
+            | RepeaterRanged { meta, .. }
+            | DashMelee { meta, .. }
+            | Roll { meta, .. }
+            | LeapMelee { meta, .. }
+            | SpinMelee { meta, .. }
+            | ChargedMelee { meta, .. }
+            | ChargedRanged { meta, .. }
+            | Shockwave { meta, .. }
+            | BasicAura { meta, .. }
+            | BasicBlock { meta, .. }
+            | SelfBuff { meta, .. }
+            | BasicBeam { meta, .. }
+            | Boost { meta, .. }
+            | ComboMelee { meta, .. }
+            | ComboMelee2 { meta, .. }
+            | Blink { meta, .. }
+            | BasicSummon { meta, .. }
+            | SpriteSummon { meta, .. } => *meta,
+        }
+    }
+
+    #[must_use]
+    pub fn contextualize(mut self, data: &JoinData) -> Self {
+        if let Some(ability_info) = data.character.ability_info() {
+            if let Some(AbilityMeta::Sword(old_stance)) = ability_info.ability_meta {
+                if matches!(self.ability_meta(), Some(AbilityMeta::Sword(new_stance)) if old_stance == new_stance)
+                {
+                    const ENERGY_REDUCTION: f32 = 0.75;
+                    use CharacterAbility::*;
+                    match &mut self {
+                        BasicMelee { energy_cost, .. } => {
+                            *energy_cost *= ENERGY_REDUCTION;
+                        },
+                        _ => {},
+                    }
+                }
+            }
+        }
+        self
     }
 
     #[must_use = "method returns new ability and doesn't mutate the original value"]
@@ -1649,6 +1741,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 ori_modifier,
                 energy_cost: _,
+                meta: _,
             } => CharacterState::BasicMelee(basic_melee::Data {
                 static_data: basic_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1672,6 +1765,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_cost: _,
                 num_projectiles,
                 projectile_spread,
+                meta: _,
             } => CharacterState::BasicRanged(basic_ranged::Data {
                 static_data: basic_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1693,6 +1787,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 only_up,
                 speed,
                 max_exit_velocity,
+                meta: _,
             } => CharacterState::Boost(boost::Data {
                 static_data: boost::StaticData {
                     movement_duration: Duration::from_secs_f32(*movement_duration),
@@ -1715,6 +1810,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 ori_modifier,
                 charge_through,
                 is_interruptible,
+                meta: _,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
                     energy_drain: *energy_drain,
@@ -1741,6 +1837,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 max_angle,
                 block_strength,
                 energy_cost,
+                meta: _,
             } => CharacterState::BasicBlock(basic_block::Data {
                 static_data: basic_block::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1760,6 +1857,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 roll_strength,
                 immune_melee,
+                meta: _,
             } => CharacterState::Roll(roll::Data {
                 static_data: roll::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1785,6 +1883,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 scales_from_combo,
                 is_interruptible,
                 ori_modifier,
+                meta: _,
             } => CharacterState::ComboMelee(combo_melee::Data {
                 static_data: combo_melee::StaticData {
                     num_stages: stage_data.len() as u32,
@@ -1804,7 +1903,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
-            CharacterAbility::ComboMelee2 { strikes } => {
+            CharacterAbility::ComboMelee2 { strikes, meta: _ } => {
                 CharacterState::ComboMelee2(combo_melee2::Data {
                     static_data: combo_melee2::StaticData {
                         strikes: strikes.iter().map(|s| s.to_duration()).collect(),
@@ -1813,7 +1912,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     exhausted: false,
                     skip_recover: false,
                     timer: Duration::default(),
-                    stage_section: None,
+                    stage_section: Some(StageSection::Buildup),
                     completed_strikes: 0,
                 })
             },
@@ -1826,6 +1925,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 forward_leap_strength,
                 vertical_leap_strength,
+                meta: _,
             } => CharacterState::LeapMelee(leap_melee::Data {
                 static_data: leap_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1853,6 +1953,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 forward_speed,
                 num_spins,
                 specifier,
+                meta: _,
             } => CharacterState::SpinMelee(spin_melee::Data {
                 static_data: spin_melee::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1882,6 +1983,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 melee_constructor,
                 specifier,
+                meta: _,
             } => CharacterState::ChargedMelee(charged_melee::Data {
                 static_data: charged_melee::StaticData {
                     energy_cost: *energy_cost,
@@ -1916,6 +2018,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 initial_projectile_speed,
                 scaled_projectile_speed,
                 move_speed,
+                meta: _,
             } => CharacterState::ChargedRanged(charged_ranged::Data {
                 static_data: charged_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1950,6 +2053,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 projectile_body,
                 projectile_light,
                 projectile_speed,
+                meta: _,
             } => CharacterState::RepeaterRanged(repeater_ranged::Data {
                 static_data: repeater_ranged::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -1987,6 +2091,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 damage_kind,
                 specifier,
                 damage_effect,
+                meta: _,
             } => CharacterState::Shockwave(shockwave::Data {
                 static_data: shockwave::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2022,6 +2127,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_drain,
                 ori_rate,
                 specifier,
+                meta: _,
             } => CharacterState::BasicBeam(basic_beam::Data {
                 static_data: basic_beam::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2052,6 +2158,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_cost: _,
                 scales_with_combo,
                 specifier,
+                meta: _,
             } => CharacterState::BasicAura(basic_aura::Data {
                 static_data: basic_aura::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2073,6 +2180,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buildup_duration,
                 recover_duration,
                 max_range,
+                meta: _,
             } => CharacterState::Blink(blink::Data {
                 static_data: blink::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2091,6 +2199,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 summon_distance,
                 summon_info,
                 duration,
+                meta: _,
             } => CharacterState::BasicSummon(basic_summon::Data {
                 static_data: basic_summon::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2114,6 +2223,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 buff_strength,
                 buff_duration,
                 energy_cost: _,
+                meta: _,
             } => CharacterState::SelfBuff(self_buff::Data {
                 static_data: self_buff::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2134,6 +2244,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 sprite,
                 summon_distance,
                 sparseness,
+                meta: _,
             } => CharacterState::SpriteSummon(sprite_summon::Data {
                 static_data: sprite_summon::StaticData {
                     buildup_duration: Duration::from_secs_f32(*buildup_duration),
@@ -2163,4 +2274,23 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             }),
         }
     }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum AbilityMeta {
+    Sword(SwordStance),
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum SwordStance {
+    Balanced,
+    Offensive,
+    Crippling,
+    Cleaving,
+    Defensive,
+    Parrying,
+    Heavy,
+    Mobility,
+    Reaching,
+    AirSlash,
 }

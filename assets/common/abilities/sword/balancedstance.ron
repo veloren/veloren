@@ -54,5 +54,6 @@ ComboMelee2(
             forward_movement: 0.0,
             ori_modifier: 0.6,
         ),
-    ]
+    ],
+    meta: Some(Sword(Balanced)),
 )

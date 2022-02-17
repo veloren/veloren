@@ -2,6 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
+        ability::AbilityMeta,
         arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
@@ -952,25 +953,15 @@ fn handle_ability(data: &JoinData<'_>, update: &mut StateUpdate, input: InputKin
                     Some(data.body),
                 )
             })
+            .map(|(ability, from_offhand)| (ability.contextualize(data), from_offhand))
             .filter(|(ability, _)| ability.requirements_paid(data, update))
         {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, from_offhand, input),
+                AbilityInfo::from_input(data, from_offhand, input, ability.ability_meta()),
                 data,
             ));
         }
-    }
-}
-
-pub fn handle_ability_input(data: &JoinData<'_>, update: &mut StateUpdate) {
-    if let Some(input) = data
-        .controller
-        .queued_inputs
-        .keys()
-        .find(|i| i.is_ability())
-    {
-        handle_ability(data, update, *input);
     }
 }
 
@@ -1016,7 +1007,7 @@ pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) {
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, false, InputKind::Roll),
+                AbilityInfo::from_input(data, false, InputKind::Block, None),
                 data,
             ));
         }
@@ -1031,7 +1022,7 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, false, InputKind::Roll),
+                AbilityInfo::from_input(data, false, InputKind::Roll, None),
                 data,
             ));
             if let CharacterState::Roll(roll) = &mut update.character {
@@ -1218,10 +1209,16 @@ pub struct AbilityInfo {
     pub hand: Option<HandInfo>,
     pub input: InputKind,
     pub input_attr: Option<InputAttr>,
+    pub ability_meta: Option<AbilityMeta>,
 }
 
 impl AbilityInfo {
-    pub fn from_input(data: &JoinData<'_>, from_offhand: bool, input: InputKind) -> Self {
+    pub fn from_input(
+        data: &JoinData<'_>,
+        from_offhand: bool,
+        input: InputKind,
+        ability_meta: Option<AbilityMeta>,
+    ) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::ActiveOffhand)
         } else {
@@ -1239,6 +1236,7 @@ impl AbilityInfo {
             hand,
             input,
             input_attr: data.controller.queued_inputs.get(&input).copied(),
+            ability_meta,
         }
     }
 }

@@ -7,7 +7,7 @@ use crate::{
     states::{
         self,
         behavior::{CharacterBehavior, JoinData},
-        utils::StageSection,
+        utils::{AbilityInfo, StageSection},
         *,
     },
 };
@@ -411,6 +411,44 @@ impl CharacterState {
             CharacterState::Idle(data) => data.footwear,
             CharacterState::Skate(data) => Some(data.footwear),
             _ => None,
+        }
+    }
+
+    pub fn ability_info(&self) -> Option<AbilityInfo> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(_) => None,
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(data.static_data.ability_info),
+            CharacterState::Roll(data) => Some(data.static_data.ability_info),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ComboMelee2(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::Boost(data) => Some(data.static_data.ability_info),
+            CharacterState::DashMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::LeapMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::SpinMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ChargedMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::ChargedRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::RepeaterRanged(data) => Some(data.static_data.ability_info),
+            CharacterState::Shockwave(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicBeam(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicAura(data) => Some(data.static_data.ability_info),
+            CharacterState::Blink(data) => Some(data.static_data.ability_info),
+            CharacterState::BasicSummon(data) => Some(data.static_data.ability_info),
+            CharacterState::SelfBuff(data) => Some(data.static_data.ability_info),
+            CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
+            CharacterState::UseItem(_) => None,
+            CharacterState::SpriteInteract(_) => None,
         }
     }
 }
