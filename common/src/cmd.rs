@@ -108,6 +108,9 @@ pub enum ChatCommand {
     Wiring,
     World,
     MakeVolume,
+    Location,
+    CreateLocation,
+    DeleteLocation,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
@@ -320,7 +323,7 @@ impl ChatCommand {
             ),
             ChatCommand::Ban => cmd(
                 vec![
-                    Any("username", Required),
+                    PlayerName(Required),
                     Boolean("overwrite", "true".to_string(), Optional),
                     Any("ban duration", Optional),
                     Message(Optional),
@@ -458,7 +461,7 @@ impl ChatCommand {
                 Some(Admin),
             ),
             ChatCommand::Kick => cmd(
-                vec![Any("username", Required), Message(Optional)],
+                vec![PlayerName(Required), Message(Optional)],
                 "Kick a player with a given username",
                 Some(Moderator),
             ),
@@ -559,7 +562,7 @@ impl ChatCommand {
             ),
             ChatCommand::ServerPhysics => cmd(
                 vec![
-                    Any("username", Required),
+                    PlayerName(Required),
                     Boolean("enabled", "true".to_string(), Optional),
                 ],
                 "Set/unset server-authoritative physics for an account",
@@ -621,7 +624,7 @@ impl ChatCommand {
                 Some(Moderator),
             ),
             ChatCommand::Unban => cmd(
-                vec![Any("username", Required)],
+                vec![PlayerName(Required)],
                 "Remove the ban for the given username",
                 Some(Moderator),
             ),
@@ -633,7 +636,7 @@ impl ChatCommand {
             ),
             ChatCommand::Wiring => cmd(vec![], "Create wiring element", Some(Admin)),
             ChatCommand::Whitelist => cmd(
-                vec![Any("add/remove", Required), Any("username", Required)],
+                vec![Any("add/remove", Required), PlayerName(Required)],
                 "Adds/removes username to whitelist",
                 Some(Moderator),
             ),
@@ -643,6 +646,19 @@ impl ChatCommand {
                 None,
             ),
             ChatCommand::MakeVolume => cmd(vec![], "Create a volume (experimental)", Some(Admin)),
+            ChatCommand::Location => {
+                cmd(vec![Any("name", Required)], "Teleport to a location", None)
+            },
+            ChatCommand::CreateLocation => cmd(
+                vec![Any("name", Required)],
+                "Create a location at the current position",
+                Some(Moderator),
+            ),
+            ChatCommand::DeleteLocation => cmd(
+                vec![Any("name", Required)],
+                "Delete a location",
+                Some(Moderator),
+            ),
         }
     }
 
@@ -715,6 +731,9 @@ impl ChatCommand {
             ChatCommand::Whitelist => "whitelist",
             ChatCommand::World => "world",
             ChatCommand::MakeVolume => "make_volume",
+            ChatCommand::Location => "location",
+            ChatCommand::CreateLocation => "create_location",
+            ChatCommand::DeleteLocation => "delete_location",
         }
     }
 

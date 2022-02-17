@@ -4,6 +4,7 @@
 
 use crate::{
     client::Client,
+    location::Locations,
     login_provider::LoginProvider,
     settings::{
         Ban, BanAction, BanInfo, EditableSetting, SettingError, WhitelistInfo, WhitelistRecord,
@@ -182,6 +183,9 @@ fn do_command(
         ChatCommand::Whitelist => handle_whitelist,
         ChatCommand::World => handle_world,
         ChatCommand::MakeVolume => handle_make_volume,
+        ChatCommand::Location => handle_location,
+        ChatCommand::CreateLocation => handle_create_location,
+        ChatCommand::DeleteLocation => handle_delete_location,
     };
 
     handler(server, client, target, args, cmd)
@@ -3514,5 +3518,90 @@ fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
         Ok(())
     } else {
         Err("Such preset doesn't exist".to_owned())
+    }
+}
+
+fn handle_location(
+    server: &mut Server,
+    _client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    let loc = if let Some(name) = parse_args!(args, String) {
+        match server.state.ecs().read_resource::<Locations>().get(&name) {
+            Ok(loc) => loc,
+            Err(e) => return Err(e.to_string()),
+        }
+    } else {
+        return Err(action.help_string());
+    };
+
+    position_mut(server, target, "target", |target_pos| {
+        target_pos.0 = loc;
+    })
+}
+
+fn handle_create_location(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    if let Some(name) = parse_args!(args, String) {
+        let target_pos = position(server, target, "target")?;
+
+        let res = server
+            .state
+            .ecs_mut()
+            .write_resource::<Locations>()
+            .insert(name.clone(), target_pos.0);
+        match res {
+            Ok(()) => {
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Created location '{}'", name),
+                    ),
+                );
+                Ok(())
+            },
+            Err(e) => Err(e.to_string()),
+        }
+    } else {
+        Err(action.help_string())
+    }
+}
+
+fn handle_delete_location(
+    server: &mut Server,
+    client: EcsEntity,
+    _target: EcsEntity,
+    args: Vec<String>,
+    action: &ChatCommand,
+) -> CmdResult<()> {
+    if let Some(name) = parse_args!(args, String) {
+        let res = server
+            .state
+            .ecs_mut()
+            .write_resource::<Locations>()
+            .remove(&name);
+        match res {
+            Ok(()) => {
+                server.notify_client(
+                    client,
+                    ServerGeneral::server_msg(
+                        ChatType::CommandInfo,
+                        format!("Deleted location '{}'", name),
+                    ),
+                );
+                Ok(())
+            },
+            Err(e) => Err(e.to_string()),
+        }
+    } else {
+        Err(action.help_string())
     }
 }

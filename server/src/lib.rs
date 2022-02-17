@@ -23,6 +23,7 @@ mod data_dir;
 pub mod error;
 pub mod events;
 pub mod input;
+pub mod location;
 pub mod login_provider;
 pub mod metrics;
 pub mod persistence;
@@ -55,6 +56,7 @@ use crate::{
     cmd::ChatCommandExt,
     connection_handler::ConnectionHandler,
     data_dir::DataDir,
+    location::Locations,
     login_provider::LoginProvider,
     persistence::PersistedComponents,
     presence::{Presence, RegionSubscription, RepositionOnChunkLoad},
@@ -243,6 +245,7 @@ impl Server {
         });
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         state.ecs_mut().insert(Vec::<ChunkRequest>::new());
+        state.ecs_mut().insert(Locations::default());
         state.ecs_mut().insert(LoginProvider::new(
             settings.auth_server_address.clone(),
             Arc::clone(&runtime),
