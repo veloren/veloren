@@ -112,6 +112,12 @@ impl<'a> System<'a> for Sys {
             )
                 .join()
             {
+                // Unless the melee attack can hit multiple targets, stop the attack if it has
+                // already hit 1 target
+                if !melee_attack.multi_target && melee_attack.hit_count > 0 {
+                    break;
+                }
+
                 let look_dir = *ori.look_dir();
 
                 // 2D versions

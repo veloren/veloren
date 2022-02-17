@@ -287,6 +287,9 @@ impl CharacterBehavior for Data {
                         max_angle: self.static_data.stage_data[stage_index].angle.to_radians(),
                         applied: false,
                         hit_count: 0,
+                        // TODO: Evaluate if we want to leave this true. State will be removed at
+                        // some point anyways and this does preserve behavior
+                        multi_target: true,
                         break_block: data
                             .inputs
                             .break_block_pos

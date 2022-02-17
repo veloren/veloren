@@ -11,6 +11,7 @@ SpinMelee(
         ),
         range: 3.5,
         angle: 360.0,
+        multi_target: true,
     ),
     energy_cost: 0,
     is_infinite: true,
