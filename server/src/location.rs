@@ -54,6 +54,8 @@ impl Locations {
             .ok_or(LocationError::DoesNotExist(name))
     }
 
+    pub fn iter(&self) -> impl Iterator<Item = &String> { self.locations.keys() }
+
     pub fn remove<'a>(&mut self, name: &'a str) -> Result<(), LocationError<'a>> {
         self.locations
             .remove(name)

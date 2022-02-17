@@ -3523,23 +3523,36 @@ fn set_skills(skill_set: &mut comp::SkillSet, preset: &str) -> CmdResult<()> {
 
 fn handle_location(
     server: &mut Server,
-    _client: EcsEntity,
+    client: EcsEntity,
     target: EcsEntity,
     args: Vec<String>,
-    action: &ChatCommand,
+    _action: &ChatCommand,
 ) -> CmdResult<()> {
-    let loc = if let Some(name) = parse_args!(args, String) {
-        match server.state.ecs().read_resource::<Locations>().get(&name) {
-            Ok(loc) => loc,
-            Err(e) => return Err(e.to_string()),
+    if let Some(name) = parse_args!(args, String) {
+        let loc = server.state.ecs().read_resource::<Locations>().get(&name);
+        match loc {
+            Ok(loc) => position_mut(server, target, "target", |target_pos| {
+                target_pos.0 = loc;
+            }),
+            Err(e) => Err(e.to_string()),
         }
     } else {
-        return Err(action.help_string());
-    };
-
-    position_mut(server, target, "target", |target_pos| {
-        target_pos.0 = loc;
-    })
+        let locations = server.state.ecs().read_resource::<Locations>();
+        let mut locations = locations.iter().map(|s| s.as_str()).collect::<Vec<_>>();
+        locations.sort_unstable();
+        server.notify_client(
+            client,
+            ServerGeneral::server_msg(
+                ChatType::CommandInfo,
+                if locations.is_empty() {
+                    "No locations currently exist".to_owned()
+                } else {
+                    format!("Available locations:\n{}", locations.join(", "))
+                },
+            ),
+        );
+        Ok(())
+    }
 }
 
 fn handle_create_location(
