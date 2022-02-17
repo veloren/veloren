@@ -28,8 +28,6 @@ pub struct StaticData {
     pub is_infinite: bool,
     /// Used to dictate how movement functions in this state
     pub movement_behavior: MovementBehavior,
-    /// Whether the state can be interrupted by other abilities
-    pub is_interruptible: bool,
     /// Used for forced forward movement
     pub forward_speed: f32,
     /// Number of spins
@@ -167,9 +165,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_dodge_input(data, &mut update);
-        }
+        handle_dodge_interrupt(data, &mut update, None);
 
         update
     }

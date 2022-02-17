@@ -464,7 +464,6 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
         charge_through: bool,
-        is_interruptible: bool,
         meta: Option<AbilityMeta>,
     },
     BasicBlock {
@@ -492,7 +491,6 @@ pub enum CharacterAbility {
         speed_increase: f32,
         max_speed_increase: f32,
         scales_from_combo: u32,
-        is_interruptible: bool,
         ori_modifier: f32,
         meta: Option<AbilityMeta>,
     },
@@ -518,7 +516,6 @@ pub enum CharacterAbility {
         energy_cost: f32,
         is_infinite: bool,
         movement_behavior: spin_melee::MovementBehavior,
-        is_interruptible: bool,
         forward_speed: f32,
         num_spins: u32,
         specifier: Option<spin_melee::FrontendSpecifier>,
@@ -824,7 +821,6 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 ori_modifier: _,
                 charge_through: _,
-                is_interruptible: _,
                 meta: _,
             } => {
                 *buildup_duration /= stats.speed;
@@ -870,7 +866,6 @@ impl CharacterAbility {
                 speed_increase: _,
                 max_speed_increase: _,
                 scales_from_combo: _,
-                is_interruptible: _,
                 ori_modifier: _,
                 meta: _,
             } => {
@@ -913,7 +908,6 @@ impl CharacterAbility {
                 ref mut melee_constructor,
                 is_infinite: _,
                 movement_behavior: _,
-                is_interruptible: _,
                 forward_speed: _,
                 num_spins: _,
                 specifier: _,
@@ -1810,7 +1804,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 melee_constructor,
                 ori_modifier,
                 charge_through,
-                is_interruptible,
                 meta: _,
             } => CharacterState::DashMelee(dash_melee::Data {
                 static_data: dash_melee::StaticData {
@@ -1823,7 +1816,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     melee_constructor: *melee_constructor,
                     ori_modifier: *ori_modifier,
-                    is_interruptible: *is_interruptible,
                     ability_info,
                 },
                 auto_charge: false,
@@ -1882,7 +1874,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 speed_increase,
                 max_speed_increase,
                 scales_from_combo,
-                is_interruptible,
                 ori_modifier,
                 meta: _,
             } => CharacterState::ComboMelee(combo_melee::Data {
@@ -1895,7 +1886,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     speed_increase: 1.0 - *speed_increase,
                     max_speed_increase: *max_speed_increase,
                     scales_from_combo: *scales_from_combo,
-                    is_interruptible: *is_interruptible,
                     ori_modifier: *ori_modifier as f32,
                     ability_info,
                 },
@@ -1950,7 +1940,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 energy_cost,
                 is_infinite,
                 movement_behavior,
-                is_interruptible,
                 forward_speed,
                 num_spins,
                 specifier,
@@ -1964,7 +1953,6 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     energy_cost: *energy_cost,
                     is_infinite: *is_infinite,
                     movement_behavior: *movement_behavior,
-                    is_interruptible: *is_interruptible,
                     forward_speed: *forward_speed,
                     num_spins: *num_spins,
                     ability_info,

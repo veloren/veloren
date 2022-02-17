@@ -1042,6 +1042,31 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
+/// Contains logic for dodge interrupt
+pub fn handle_dodge_interrupt(
+    data: &JoinData,
+    update: &mut StateUpdate,
+    input_override: Option<InputKind>,
+) {
+    // Check that the input used to enter current character state (if there was one)
+    // is not pressed
+    if input_override
+        .or(data.character.ability_info().map(|a| a.input))
+        .map_or(true, |input| !input_is_pressed(data, input))
+    {
+        // If there is a stage section, only roll during
+        if data
+            .character
+            .stage_section()
+            .map_or(true, |stage_section| {
+                matches!(stage_section, StageSection::Buildup)
+            })
+        {
+            handle_dodge_input(data, update);
+        }
+    }
+}
+
 pub fn is_strafing(data: &JoinData<'_>, update: &StateUpdate) -> bool {
     // TODO: Don't always check `character.is_aimed()`, allow the frontend to
     // control whether the player strafes during an aimed `CharacterState`.

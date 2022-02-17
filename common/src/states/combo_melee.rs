@@ -132,8 +132,6 @@ pub struct StaticData {
     pub max_speed_increase: f32,
     /// Number of times damage scales with combo
     pub scales_from_combo: u32,
-    /// Whether the state can be interrupted by other abilities
-    pub is_interruptible: bool,
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
     /// What key is used to press ability
@@ -364,9 +362,7 @@ impl CharacterBehavior for Data {
         }
 
         // At end of state logic so an interrupt isn't overwritten
-        if !input_is_pressed(data, self.static_data.ability_info.input) {
-            handle_dodge_input(data, &mut update);
-        }
+        handle_dodge_interrupt(data, &mut update, None);
 
         update
     }

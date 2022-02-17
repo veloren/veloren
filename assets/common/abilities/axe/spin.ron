@@ -16,7 +16,6 @@ SpinMelee(
     energy_cost: 10.0,
     is_infinite: true,
     movement_behavior: AxeHover,
-    is_interruptible: false,
     forward_speed: 0.0,
     num_spins: 1,
     specifier: None,

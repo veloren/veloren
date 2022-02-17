@@ -97,9 +97,7 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        if !input_is_pressed(data, InputKind::Primary) {
-            handle_dodge_input(data, &mut update);
-        }
+        handle_dodge_interrupt(data, &mut update, Some(InputKind::Primary));
 
         let strike_data =
             self.static_data.strikes[self.completed_strikes % self.static_data.strikes.len()];

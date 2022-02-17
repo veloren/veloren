@@ -451,6 +451,44 @@ impl CharacterState {
             CharacterState::SpriteInteract(_) => None,
         }
     }
+
+    pub fn stage_section(&self) -> Option<StageSection> {
+        match &self {
+            CharacterState::Idle(_) => None,
+            CharacterState::Talk => None,
+            CharacterState::Climb(_) => None,
+            CharacterState::Wallrun(_) => None,
+            CharacterState::Glide(_) => None,
+            CharacterState::GlideWield(_) => None,
+            CharacterState::Stunned(data) => Some(data.stage_section),
+            CharacterState::Sit => None,
+            CharacterState::Dance => None,
+            CharacterState::BasicBlock(data) => Some(data.stage_section),
+            CharacterState::Roll(data) => Some(data.stage_section),
+            CharacterState::Wielding(_) => None,
+            CharacterState::Equipping(_) => None,
+            CharacterState::ComboMelee(data) => Some(data.stage_section),
+            CharacterState::ComboMelee2(data) => data.stage_section,
+            CharacterState::BasicMelee(data) => Some(data.stage_section),
+            CharacterState::BasicRanged(data) => Some(data.stage_section),
+            CharacterState::Boost(_) => None,
+            CharacterState::DashMelee(data) => Some(data.stage_section),
+            CharacterState::LeapMelee(data) => Some(data.stage_section),
+            CharacterState::SpinMelee(data) => Some(data.stage_section),
+            CharacterState::ChargedMelee(data) => Some(data.stage_section),
+            CharacterState::ChargedRanged(data) => Some(data.stage_section),
+            CharacterState::RepeaterRanged(data) => Some(data.stage_section),
+            CharacterState::Shockwave(data) => Some(data.stage_section),
+            CharacterState::BasicBeam(data) => Some(data.stage_section),
+            CharacterState::BasicAura(data) => Some(data.stage_section),
+            CharacterState::Blink(data) => Some(data.stage_section),
+            CharacterState::BasicSummon(data) => Some(data.stage_section),
+            CharacterState::SelfBuff(data) => Some(data.stage_section),
+            CharacterState::SpriteSummon(data) => Some(data.stage_section),
+            CharacterState::UseItem(data) => Some(data.stage_section),
+            CharacterState::SpriteInteract(data) => Some(data.stage_section),
+        }
+    }
 }
 
 impl Default for CharacterState {
