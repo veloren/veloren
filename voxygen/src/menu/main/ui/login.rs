@@ -24,7 +24,7 @@ const INPUT_TEXT_SIZE: u16 = 20;
 /// Login screen for the main menu
 pub struct Screen {
     quit_button: button::State,
-    settings_button: button::State,
+    // settings_button: button::State,
     servers_button: button::State,
     credits_button: button::State,
     language_select_button: button::State,
@@ -40,7 +40,7 @@ impl Screen {
         Self {
             servers_button: Default::default(),
             credits_button: Default::default(),
-            settings_button: Default::default(),
+            // settings_button: Default::default(),
             quit_button: Default::default(),
             language_select_button: Default::default(),
 
@@ -72,13 +72,13 @@ impl Screen {
                 button_style,
                 Some(Message::ShowServers),
             ),
-            neat_button(
-                &mut self.settings_button,
-                i18n.get("common.settings"),
-                FILL_FRAC_ONE,
-                button_style,
-                None,
-            ),
+            // neat_button(
+            //     &mut self.settings_button,
+            //     i18n.get("common.settings"),
+            //     FILL_FRAC_ONE,
+            //     button_style,
+            //     None,
+            // ),
             neat_button(
                 &mut self.language_select_button,
                 i18n.get("common.languages"),
