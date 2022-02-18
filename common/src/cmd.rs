@@ -93,6 +93,7 @@ pub enum ChatCommand {
     Say,
     ServerPhysics,
     SetMotd,
+    Ship,
     Site,
     SkillPoint,
     SkillPreset,
@@ -573,6 +574,11 @@ impl ChatCommand {
                 "Set the server description",
                 Some(Admin),
             ),
+            ChatCommand::Ship => cmd(
+                vec![Float("destination_degrees_ccw_of_east", 90.0, Optional)],
+                "Spawns a ship",
+                Some(Admin),
+            ),
             // Uses Message because site names can contain spaces,
             // which would be assumed to be separators otherwise
             ChatCommand::Site => cmd(
@@ -716,6 +722,7 @@ impl ChatCommand {
             ChatCommand::Say => "say",
             ChatCommand::ServerPhysics => "server_physics",
             ChatCommand::SetMotd => "set_motd",
+            ChatCommand::Ship => "ship",
             ChatCommand::Site => "site",
             ChatCommand::SkillPoint => "skill_point",
             ChatCommand::SkillPreset => "skill_preset",

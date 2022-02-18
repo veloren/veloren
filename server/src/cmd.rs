@@ -168,6 +168,7 @@ fn do_command(
         ChatCommand::Say => handle_say,
         ChatCommand::ServerPhysics => handle_server_physics,
         ChatCommand::SetMotd => handle_set_motd,
+        ChatCommand::Ship => handle_spawn_ship,
         ChatCommand::Site => handle_site,
         ChatCommand::SkillPoint => handle_skill_point,
         ChatCommand::SkillPreset => handle_skill_preset,
@@ -1307,7 +1308,8 @@ fn handle_spawn_airship(
                 200.0,
             )
     });
-    let ship = comp::ship::Body::random();
+    let mut rng = rand::thread_rng();
+    let ship = comp::ship::Body::random_airship_with(&mut rng);
     let mut builder = server
         .state
         .create_ship(pos, ship, |ship| ship.make_collider(), true)
@@ -1330,6 +1332,54 @@ fn handle_spawn_airship(
     server.notify_client(
         client,
         ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned an airship"),
+    );
+    Ok(())
+}
+
+fn handle_spawn_ship(
+    server: &mut Server,
+    client: EcsEntity,
+    target: EcsEntity,
+    args: Vec<String>,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    let angle = parse_args!(args, f32);
+    let mut pos = position(server, target, "target")?;
+    pos.0.z += 50.0;
+    const DESTINATION_RADIUS: f32 = 2000.0;
+    let angle = angle.map(|a| a * std::f32::consts::PI / 180.0);
+    let destination = angle.map(|a| {
+        pos.0
+            + Vec3::new(
+                DESTINATION_RADIUS * a.cos(),
+                DESTINATION_RADIUS * a.sin(),
+                200.0,
+            )
+    });
+    let mut rng = rand::thread_rng();
+    let ship = comp::ship::Body::random_ship_with(&mut rng);
+    let mut builder = server
+        .state
+        .create_ship(pos, ship, |ship| ship.make_collider(), true)
+        .with(LightEmitter {
+            col: Rgb::new(1.0, 0.65, 0.2),
+            strength: 2.0,
+            flicker: 1.0,
+            animated: true,
+        });
+    if let Some(pos) = destination {
+        let (kp, ki, kd) = comp::agent::pid_coefficients(&comp::Body::Ship(ship));
+        fn pure_z(sp: Vec3<f32>, pv: Vec3<f32>) -> f32 { (sp - pv).z }
+        let agent = comp::Agent::from_body(&comp::Body::Ship(ship))
+            .with_destination(pos)
+            .with_position_pid_controller(comp::PidController::new(kp, ki, kd, pos, 0.0, pure_z));
+        builder = builder.with(agent);
+    }
+    builder.build();
+
+    server.notify_client(
+        client,
+        ServerGeneral::server_msg(ChatType::CommandInfo, "Spawned a ship"),
     );
     Ok(())
 }
