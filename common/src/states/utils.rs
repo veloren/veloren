@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::AbilityMeta,
+        ability::{AbilityMeta, InterruptCapability},
         arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
@@ -1007,7 +1007,7 @@ pub fn handle_block_input(data: &JoinData<'_>, update: &mut StateUpdate) {
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, false, InputKind::Block, None),
+                AbilityInfo::from_input(data, false, InputKind::Block, Default::default()),
                 data,
             ));
         }
@@ -1022,7 +1022,7 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
         if ability.requirements_paid(data, update) {
             update.character = CharacterState::from((
                 &ability,
-                AbilityInfo::from_input(data, false, InputKind::Roll, None),
+                AbilityInfo::from_input(data, false, InputKind::Roll, Default::default()),
                 data,
             ));
             if let CharacterState::Roll(roll) = &mut update.character {
@@ -1042,10 +1042,11 @@ pub fn handle_dodge_input(data: &JoinData<'_>, update: &mut StateUpdate) {
     }
 }
 
-/// Contains logic for dodge interrupt
-pub fn handle_dodge_interrupt(
+pub fn handle_interrupts(
     data: &JoinData,
     update: &mut StateUpdate,
+    // Used when an input other than the one that activated the ability being pressed should block
+    // an interrupt
     input_override: Option<InputKind>,
 ) {
     // Check that the input used to enter current character state (if there was one)
@@ -1054,15 +1055,29 @@ pub fn handle_dodge_interrupt(
         .or_else(|| data.character.ability_info().map(|a| a.input))
         .map_or(true, |input| !input_is_pressed(data, input))
     {
-        // If there is a stage section, only roll during
-        if data
-            .character
-            .stage_section()
-            .map_or(true, |stage_section| {
-                matches!(stage_section, StageSection::Buildup)
-            })
-        {
+        let can_dodge = {
+            let in_buildup = data
+                .character
+                .stage_section()
+                .map_or(true, |stage_section| {
+                    matches!(stage_section, StageSection::Buildup)
+                });
+            let interruptible = data.character.ability_info().map_or(false, |info| {
+                info.ability_meta
+                    .capabilities
+                    .contains(InterruptCapability::ROLL)
+            });
+            in_buildup || interruptible
+        };
+        let can_block = data.character.ability_info().map_or(false, |info| {
+            info.ability_meta
+                .capabilities
+                .contains(InterruptCapability::BLOCK)
+        });
+        if can_dodge {
             handle_dodge_input(data, update);
+        } else if can_block {
+            handle_block_input(data, update);
         }
     }
 }
@@ -1234,7 +1249,7 @@ pub struct AbilityInfo {
     pub hand: Option<HandInfo>,
     pub input: InputKind,
     pub input_attr: Option<InputAttr>,
-    pub ability_meta: Option<AbilityMeta>,
+    pub ability_meta: AbilityMeta,
 }
 
 impl AbilityInfo {
@@ -1242,7 +1257,7 @@ impl AbilityInfo {
         data: &JoinData<'_>,
         from_offhand: bool,
         input: InputKind,
-        ability_meta: Option<AbilityMeta>,
+        ability_meta: AbilityMeta,
     ) -> Self {
         let tool_data = if from_offhand {
             unwrap_tool_data(data, EquipSlot::ActiveOffhand)

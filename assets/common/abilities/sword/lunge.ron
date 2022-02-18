@@ -14,5 +14,11 @@ BasicMelee(
         range: 5.0,
         angle: 10.0,
     ),
-    meta: Some(Sword(Balanced)),
+    meta: (
+        kind: Some(Sword(Balanced)),
+        capabilities: (
+            // Block
+            bits: 0b00000010,
+        ),
+    ),
 )

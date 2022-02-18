@@ -55,5 +55,11 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
-    meta: Some(Sword(Balanced)),
+    meta: (
+        kind: Some(Sword(Balanced)),
+        capabilities: (
+            // Roll
+            bits: 0b00000001,
+        ),
+    ),
 )

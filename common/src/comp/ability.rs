@@ -419,7 +419,8 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     BasicRanged {
         energy_cost: f32,
@@ -431,7 +432,8 @@ pub enum CharacterAbility {
         projectile_speed: f32,
         num_projectiles: u32,
         projectile_spread: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     RepeaterRanged {
         energy_cost: f32,
@@ -444,14 +446,16 @@ pub enum CharacterAbility {
         projectile_body: Body,
         projectile_light: Option<LightEmitter>,
         projectile_speed: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     Boost {
         movement_duration: f32,
         only_up: bool,
         speed: f32,
         max_exit_velocity: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     DashMelee {
         energy_cost: f32,
@@ -464,7 +468,8 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         ori_modifier: f32,
         charge_through: bool,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     BasicBlock {
         buildup_duration: f32,
@@ -472,7 +477,8 @@ pub enum CharacterAbility {
         max_angle: f32,
         block_strength: f32,
         energy_cost: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     Roll {
         energy_cost: f32,
@@ -481,7 +487,8 @@ pub enum CharacterAbility {
         recover_duration: f32,
         roll_strength: f32,
         immune_melee: bool,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     ComboMelee {
         stage_data: Vec<combo_melee::Stage<f32>>,
@@ -492,11 +499,13 @@ pub enum CharacterAbility {
         max_speed_increase: f32,
         scales_from_combo: u32,
         ori_modifier: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     LeapMelee {
         energy_cost: f32,
@@ -507,7 +516,8 @@ pub enum CharacterAbility {
         melee_constructor: MeleeConstructor,
         forward_leap_strength: f32,
         vertical_leap_strength: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     SpinMelee {
         buildup_duration: f32,
@@ -520,7 +530,8 @@ pub enum CharacterAbility {
         num_spins: u32,
         specifier: Option<spin_melee::FrontendSpecifier>,
         melee_constructor: MeleeConstructor,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     ChargedMelee {
         energy_cost: f32,
@@ -531,7 +542,8 @@ pub enum CharacterAbility {
         recover_duration: f32,
         melee_constructor: MeleeConstructor,
         specifier: Option<charged_melee::FrontendSpecifier>,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     ChargedRanged {
         energy_cost: f32,
@@ -550,7 +562,8 @@ pub enum CharacterAbility {
         initial_projectile_speed: f32,
         scaled_projectile_speed: f32,
         move_speed: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     Shockwave {
         energy_cost: f32,
@@ -569,7 +582,8 @@ pub enum CharacterAbility {
         damage_kind: DamageKind,
         specifier: comp::shockwave::FrontendSpecifier,
         damage_effect: Option<CombatEffect>,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     BasicBeam {
         buildup_duration: f32,
@@ -584,7 +598,8 @@ pub enum CharacterAbility {
         energy_drain: f32,
         ori_rate: f32,
         specifier: beam::FrontendSpecifier,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     BasicAura {
         buildup_duration: f32,
@@ -597,13 +612,15 @@ pub enum CharacterAbility {
         energy_cost: f32,
         scales_with_combo: bool,
         specifier: Option<aura::Specifier>,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     Blink {
         buildup_duration: f32,
         recover_duration: f32,
         max_range: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     BasicSummon {
         buildup_duration: f32,
@@ -613,7 +630,8 @@ pub enum CharacterAbility {
         summon_distance: (f32, f32),
         summon_info: basic_summon::SummonInfo,
         duration: Option<Duration>,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     SelfBuff {
         buildup_duration: f32,
@@ -623,7 +641,8 @@ pub enum CharacterAbility {
         buff_strength: f32,
         buff_duration: Option<f32>,
         energy_cost: f32,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     SpriteSummon {
         buildup_duration: f32,
@@ -632,7 +651,8 @@ pub enum CharacterAbility {
         sprite: SpriteKind,
         summon_distance: (f32, f32),
         sparseness: f64,
-        meta: Option<AbilityMeta>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
     Music {
         play_duration: f32,
@@ -661,7 +681,7 @@ impl Default for CharacterAbility {
                 damage_effect: None,
             },
             ori_modifier: 1.0,
-            meta: None,
+            meta: Default::default(),
         }
     }
 }
@@ -728,7 +748,7 @@ impl CharacterAbility {
             recover_duration: 0.125,
             roll_strength: 2.0,
             immune_melee: true,
-            meta: None,
+            meta: Default::default(),
         }
     }
 
@@ -739,7 +759,7 @@ impl CharacterAbility {
             max_angle: 60.0,
             block_strength: 0.5,
             energy_cost: 2.5,
-            meta: None,
+            meta: Default::default(),
         }
     }
 
@@ -1165,7 +1185,7 @@ impl CharacterAbility {
     }
 
     // TODO: Maybe consider making CharacterAbility a struct at some point?
-    pub fn ability_meta(&self) -> Option<AbilityMeta> {
+    pub fn ability_meta(&self) -> AbilityMeta {
         use CharacterAbility::*;
         match self {
             BasicMelee { meta, .. }
@@ -1194,8 +1214,8 @@ impl CharacterAbility {
     #[must_use]
     pub fn contextualize(mut self, data: &JoinData) -> Self {
         if let Some(ability_info) = data.character.ability_info() {
-            if let Some(AbilityMeta::Sword(old_stance)) = ability_info.ability_meta {
-                if matches!(self.ability_meta(), Some(AbilityMeta::Sword(new_stance)) if old_stance == new_stance)
+            if let Some(AbilityKind::Sword(old_stance)) = ability_info.ability_meta.kind {
+                if matches!(self.ability_meta().kind, Some(AbilityKind::Sword(new_stance)) if old_stance == new_stance)
                 {
                     const ENERGY_REDUCTION: f32 = 0.75;
                     use CharacterAbility::*;
@@ -2266,7 +2286,25 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum AbilityMeta {
+pub struct AbilityMeta {
+    pub kind: Option<AbilityKind>,
+    #[serde(default)]
+    pub capabilities: InterruptCapability,
+}
+
+impl Default for AbilityMeta {
+    fn default() -> Self {
+        Self {
+            kind: None,
+            capabilities: InterruptCapability::NONE,
+        }
+    }
+}
+
+// Only extend this if it is needed to control certain functionality of
+// abilities
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum AbilityKind {
     Sword(SwordStance),
 }
 
@@ -2282,4 +2320,13 @@ pub enum SwordStance {
     Mobility,
     Reaching,
     AirSlash,
+}
+
+bitflags::bitflags! {
+    #[derive(Default, Serialize, Deserialize)]
+    pub struct InterruptCapability: u8 {
+        const NONE  = 0b00000000;
+        const ROLL  = 0b00000001;
+        const BLOCK = 0b00000010;
+    }
 }

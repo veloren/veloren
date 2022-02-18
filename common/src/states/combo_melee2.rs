@@ -97,7 +97,7 @@ impl CharacterBehavior for Data {
 
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_dodge_interrupt(data, &mut update, Some(InputKind::Primary));
+        handle_interrupts(data, &mut update, Some(InputKind::Primary));
 
         let strike_data =
             self.static_data.strikes[self.completed_strikes % self.static_data.strikes.len()];
