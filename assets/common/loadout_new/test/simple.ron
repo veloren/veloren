@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    inherit: Asset("common.loadout_new.rings"),
+    head: Item("common.items.armor.cultist.bandana"),
+    active_hands: InHands((
+        Item("common.items.axe_1h.orichalcum"),
+        Choice([
+           (1, Item("common.items.hammer_1h.orichalcum")),
+           (1, Item("common.items.axe_1h.orichalcum")),
+        ]),
+    )),
+)

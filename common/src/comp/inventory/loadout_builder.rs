@@ -54,14 +54,36 @@ type Weight = u8;
 
 #[derive(Debug, Deserialize, Clone)]
 enum Base {
-    One(String),
+    Asset(String),
+    /// NOTE: If you have the same item in multiple configs,
+    /// first one will have the priority
+    Combine(Vec<Base>),
+    Choice(Vec<(Weight, Base)>),
 }
 
+
 impl Base {
-    fn to_spec(&self) -> Result<LoadoutSpecNew, LoadoutBuilderError> {
+    fn to_spec(&self, rng: &mut impl Rng) -> Result<LoadoutSpecNew, LoadoutBuilderError> {
         match self {
-            Base::One(asset_specifier) => LoadoutSpecNew::load_cloned(asset_specifier)
+            Base::Asset(asset_specifier) => LoadoutSpecNew::load_cloned(asset_specifier)
                 .map_err(LoadoutBuilderError::LoadoutAssetError),
+            Base::Combine(bases) => {
+                let bases = bases.iter().map(|b| b.to_spec(rng)?.eval(rng));
+                // Get first base of combined
+                let mut current = LoadoutSpecNew::default();
+                for base in bases {
+                    current = current.merge(base?);
+                }
+
+                Ok(current)
+            },
+            Base::Choice(choice) => {
+                let (_, base) = choice
+                    .choose_weighted(rng, |(weight, _)| *weight)
+                    .map_err(LoadoutBuilderError::BaseChoiceError)?;
+
+                base.to_spec(rng)
+            },
         }
     }
 }
@@ -69,25 +91,10 @@ impl Base {
 #[derive(Debug, Deserialize, Clone)]
 enum Hands {
     /// Allows to specify one pair
-    /// Example
-    /// ```text
-    /// Specific(("common.items.axe_1h.orichalcum", "common.items.axe_1h.orichalcum"))
-    /// ```
-    Specific((Option<String>, Option<String>)),
+    // TODO: add link to tests with example
+    InHands((Option<ItemSpecNew>, Option<ItemSpecNew>)),
     /// Allows specify range of choices
-    /// Choice([
-    ///     (1, Specific(
-    ///        ("common.items.axe_1h.orichalcum",
-    ///        "common.items.axe_1h.orichalcum")),
-    ///     (1, Specific(
-    ///        ("common.items.hammer_1h.orichalcum",
-    ///        "common.items.hammer_1h.orichalcum")),
-    ///     (1, Specific(
-    ///        ("common.items.hammer_1h.orichalcum",
-    ///        "common.items.axe_1h.orichalcum")),
-    ///     (1, Specific(
-    ///        ("common.items.sword.cultist")),
-    /// ])
+    // TODO: add link to tests with example
     Choice(Vec<(Weight, Hands)>),
 }
 
@@ -96,15 +103,20 @@ impl Hands {
         &self,
         rng: &mut impl Rng,
     ) -> Result<(Option<Item>, Option<Item>), LoadoutBuilderError> {
-        use std::ops::Deref;
         match self {
-            Hands::Specific((mainhand, offhand)) => {
-                let from_asset = |i: &String| {
-                    Item::new_from_asset(i.deref()).map_err(LoadoutBuilderError::ItemAssetError)
-                };
+            Hands::InHands((mainhand, offhand)) => {
+                let mut from_spec = |i: &ItemSpecNew| i.try_to_item(rng);
 
-                let mainhand = mainhand.as_ref().map(from_asset).transpose()?;
-                let offhand = offhand.as_ref().map(from_asset).transpose()?;
+                let mainhand = mainhand
+                    .as_ref()
+                    .map(|i| from_spec(i))
+                    .transpose()?
+                    .flatten();
+                let offhand = offhand
+                    .as_ref()
+                    .map(|i| from_spec(i))
+                    .transpose()?
+                    .flatten();
                 Ok((mainhand, offhand))
             },
             Hands::Choice(pairs) => {
@@ -237,10 +249,10 @@ impl LoadoutSpecNew {
     /// ring1: b,
     /// ring2: c,
     /// ```
-    fn eval(self) -> Result<Self, LoadoutBuilderError> {
+    fn eval(self, rng: &mut impl Rng) -> Result<Self, LoadoutBuilderError> {
         // Iherit loadout if needed
         if let Some(ref base) = self.inherit {
-            let base = base.to_spec()?.eval();
+            let base = base.to_spec(rng)?.eval(rng);
             Ok(self.merge(base?))
         } else {
             Ok(self)
@@ -248,10 +260,12 @@ impl LoadoutSpecNew {
     }
 }
 
+#[derive(Debug)]
 pub enum LoadoutBuilderError {
     LoadoutAssetError(assets::Error),
     ItemAssetError(assets::Error),
     ItemChoiceError(WeightedError),
+    BaseChoiceError(WeightedError),
 }
 
 impl assets::Asset for LoadoutSpecNew {
@@ -752,7 +766,7 @@ impl LoadoutBuilder {
         rng: &mut R,
     ) -> Result<Self, LoadoutBuilderError> {
         // Include any inheritance
-        let spec = spec.eval()?;
+        let spec = spec.eval(rng)?;
 
         // Utility function to unwrap our itemspec
         let mut to_item = |maybe_item: Option<ItemSpecNew>| {
@@ -1117,5 +1131,14 @@ mod tests {
                 entry.validate(key);
             }
         }
+    }
+
+    #[test]
+    fn test_new_config() {
+        let dummy_rng = &mut rand::thread_rng();
+        let new_spec =
+            LoadoutSpecNew::load_expect_cloned("common.loadout_new.test.choice_base");
+        let new_spec = new_spec.eval(dummy_rng).unwrap();
+        panic!("{new_spec:#?}");
     }
 }
