@@ -50,6 +50,216 @@ impl assets::Asset for LoadoutSpec {
     const EXTENSION: &'static str = "ron";
 }
 
+type Weight = u8;
+
+#[derive(Debug, Deserialize, Clone)]
+enum Base {
+    One(String),
+}
+
+impl Base {
+    fn to_spec(&self) -> Result<LoadoutSpecNew, LoadoutBuilderError> {
+        match self {
+            Base::One(asset_specifier) => LoadoutSpecNew::load_cloned(asset_specifier)
+                .map_err(LoadoutBuilderError::LoadoutAssetError),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+enum Hands {
+    /// Allows to specify one pair
+    /// Example
+    /// ```text
+    /// Specific(("common.items.axe_1h.orichalcum", "common.items.axe_1h.orichalcum"))
+    /// ```
+    Specific((Option<String>, Option<String>)),
+    /// Allows specify range of choices
+    /// Choice([
+    ///     (1, Specific(
+    ///        ("common.items.axe_1h.orichalcum",
+    ///        "common.items.axe_1h.orichalcum")),
+    ///     (1, Specific(
+    ///        ("common.items.hammer_1h.orichalcum",
+    ///        "common.items.hammer_1h.orichalcum")),
+    ///     (1, Specific(
+    ///        ("common.items.hammer_1h.orichalcum",
+    ///        "common.items.axe_1h.orichalcum")),
+    ///     (1, Specific(
+    ///        ("common.items.sword.cultist")),
+    /// ])
+    Choice(Vec<(Weight, Hands)>),
+}
+
+impl Hands {
+    fn try_to_pair(
+        &self,
+        rng: &mut impl Rng,
+    ) -> Result<(Option<Item>, Option<Item>), LoadoutBuilderError> {
+        use std::ops::Deref;
+        match self {
+            Hands::Specific((mainhand, offhand)) => {
+                let from_asset = |i: &String| {
+                    Item::new_from_asset(i.deref()).map_err(LoadoutBuilderError::ItemAssetError)
+                };
+
+                let mainhand = mainhand.as_ref().map(from_asset).transpose()?;
+                let offhand = offhand.as_ref().map(from_asset).transpose()?;
+                Ok((mainhand, offhand))
+            },
+            Hands::Choice(pairs) => {
+                let (_, pair_spec) = pairs
+                    .choose_weighted(rng, |(weight, _)| *weight)
+                    .map_err(LoadoutBuilderError::ItemChoiceError)?;
+
+                pair_spec.try_to_pair(rng)
+            },
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
+enum ItemSpecNew {
+    Item(String),
+    Choice(Vec<(Weight, Option<ItemSpecNew>)>),
+}
+
+impl ItemSpecNew {
+    fn try_to_item(&self, rng: &mut impl Rng) -> Result<Option<Item>, LoadoutBuilderError> {
+        match self {
+            ItemSpecNew::Item(item_asset) => {
+                let item = Item::new_from_asset(item_asset)
+                    .map_err(LoadoutBuilderError::ItemAssetError)?;
+                Ok(Some(item))
+            },
+            ItemSpecNew::Choice(items) => {
+                let (_, item_spec) = items
+                    .choose_weighted(rng, |(weight, _)| *weight)
+                    .map_err(LoadoutBuilderError::ItemChoiceError)?;
+
+                let item = if let Some(item_spec) = item_spec {
+                    item_spec.try_to_item(rng)?
+                } else {
+                    None
+                };
+                Ok(item)
+            },
+        }
+    }
+}
+
+// FIXME: remove clone
+#[derive(Debug, Deserialize, Clone, Default)]
+pub struct LoadoutSpecNew {
+    // Meta fields
+    inherit: Option<Base>,
+    // Armor
+    head: Option<ItemSpecNew>,
+    neck: Option<ItemSpecNew>,
+    shoulders: Option<ItemSpecNew>,
+    chest: Option<ItemSpecNew>,
+    gloves: Option<ItemSpecNew>,
+    ring1: Option<ItemSpecNew>,
+    ring2: Option<ItemSpecNew>,
+    back: Option<ItemSpecNew>,
+    belt: Option<ItemSpecNew>,
+    legs: Option<ItemSpecNew>,
+    feet: Option<ItemSpecNew>,
+    tabard: Option<ItemSpecNew>,
+    bag1: Option<ItemSpecNew>,
+    bag2: Option<ItemSpecNew>,
+    bag3: Option<ItemSpecNew>,
+    bag4: Option<ItemSpecNew>,
+    lantern: Option<ItemSpecNew>,
+    glider: Option<ItemSpecNew>,
+    // Weapons
+    active_hands: Option<Hands>,
+    inactive_hands: Option<Hands>,
+}
+
+impl LoadoutSpecNew {
+    /// It just merges `self` with `base`.
+    /// If some field exists in `self` it will be used,
+    /// if no, it will be taken from `base`.
+    ///
+    /// NOTE: it won't recursively load bases.
+    /// For example if A inherits from B and B inherits from C -
+    /// as result we will get LoadoutSpec A that inherits from C,
+    /// but C will left as is.
+    fn merge(self, base: Self) -> Self {
+        Self {
+            inherit: base.inherit,
+            head: self.head.or(base.head),
+            neck: self.neck.or(base.neck),
+            shoulders: self.shoulders.or(base.shoulders),
+            chest: self.chest.or(base.chest),
+            gloves: self.gloves.or(base.gloves),
+            ring1: self.ring1.or(base.ring1),
+            ring2: self.ring2.or(base.ring2),
+            back: self.back.or(base.back),
+            belt: self.belt.or(base.belt),
+            legs: self.legs.or(base.legs),
+            feet: self.feet.or(base.feet),
+            tabard: self.tabard.or(base.tabard),
+            bag1: self.bag1.or(base.bag1),
+            bag2: self.bag2.or(base.bag2),
+            bag3: self.bag3.or(base.bag3),
+            bag4: self.bag4.or(base.bag4),
+            lantern: self.lantern.or(base.lantern),
+            glider: self.glider.or(base.glider),
+            active_hands: self.active_hands.or(base.active_hands),
+            inactive_hands: self.inactive_hands.or(base.inactive_hands),
+        }
+    }
+
+    /// Recursively evaluate all inheritance chain.
+    /// For example with following structure.
+    ///
+    /// ```text
+    /// A
+    /// inherit: B,
+    /// gloves: a,
+    ///
+    /// B
+    /// inherit: C,
+    /// ring1: b,
+    ///
+    /// C
+    /// inherit: None,
+    /// ring2: c
+    /// ```
+    ///
+    /// result will be
+    ///
+    /// ```text
+    /// inherit: None,
+    /// gloves: a,
+    /// ring1: b,
+    /// ring2: c,
+    /// ```
+    fn eval(self) -> Result<Self, LoadoutBuilderError> {
+        // Iherit loadout if needed
+        if let Some(ref base) = self.inherit {
+            let base = base.to_spec()?.eval();
+            Ok(self.merge(base?))
+        } else {
+            Ok(self)
+        }
+    }
+}
+
+pub enum LoadoutBuilderError {
+    LoadoutAssetError(assets::Error),
+    ItemAssetError(assets::Error),
+    ItemChoiceError(WeightedError),
+}
+
+impl assets::Asset for LoadoutSpecNew {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub enum ItemSpec {
     /// One specific item.
@@ -533,6 +743,116 @@ impl LoadoutBuilder {
         self = creator(self, economy);
 
         self
+    }
+
+    #[must_use = "Method consumes builder and returns updated builder."]
+    fn with_loadout_spec_new<R: Rng>(
+        mut self,
+        spec: LoadoutSpecNew,
+        rng: &mut R,
+    ) -> Result<Self, LoadoutBuilderError> {
+        // Include any inheritance
+        let spec = spec.eval()?;
+
+        // Utility function to unwrap our itemspec
+        let mut to_item = |maybe_item: Option<ItemSpecNew>| {
+            if let Some(item) = maybe_item {
+                item.try_to_item(rng)
+            } else {
+                Ok(None)
+            }
+        };
+
+        let to_pair = |maybe_hands: Option<Hands>, rng: &mut R| {
+            if let Some(hands) = maybe_hands {
+                hands.try_to_pair(rng)
+            } else {
+                Ok((None, None))
+            }
+        };
+
+        // Place every item
+        if let Some(item) = to_item(spec.head)? {
+            self = self.head(Some(item))
+        }
+        if let Some(item) = to_item(spec.neck)? {
+            self = self.neck(Some(item))
+        }
+        if let Some(item) = to_item(spec.shoulders)? {
+            self = self.shoulder(Some(item))
+        }
+        if let Some(item) = to_item(spec.chest)? {
+            self = self.chest(Some(item))
+        }
+        if let Some(item) = to_item(spec.gloves)? {
+            self = self.hands(Some(item))
+        }
+        if let Some(item) = to_item(spec.ring1)? {
+            self = self.ring1(Some(item))
+        }
+        if let Some(item) = to_item(spec.ring2)? {
+            self = self.ring2(Some(item))
+        }
+        if let Some(item) = to_item(spec.back)? {
+            self = self.back(Some(item))
+        }
+        if let Some(item) = to_item(spec.belt)? {
+            self = self.belt(Some(item))
+        }
+        if let Some(item) = to_item(spec.legs)? {
+            self = self.pants(Some(item))
+        }
+        if let Some(item) = to_item(spec.feet)? {
+            self = self.feet(Some(item))
+        }
+        if let Some(item) = to_item(spec.tabard)? {
+            self = self.tabard(Some(item))
+        }
+        if let Some(item) = to_item(spec.bag1)? {
+            self = self.bag(ArmorSlot::Bag1, Some(item))
+        }
+        if let Some(item) = to_item(spec.bag2)? {
+            self = self.bag(ArmorSlot::Bag2, Some(item))
+        }
+        if let Some(item) = to_item(spec.bag3)? {
+            self = self.bag(ArmorSlot::Bag3, Some(item))
+        }
+        if let Some(item) = to_item(spec.bag4)? {
+            self = self.bag(ArmorSlot::Bag4, Some(item))
+        }
+        if let Some(item) = to_item(spec.lantern)? {
+            self = self.lantern(Some(item))
+        }
+        if let Some(item) = to_item(spec.glider)? {
+            self = self.glider(Some(item))
+        }
+        let (active_mainhand, active_offhand) = to_pair(spec.active_hands, rng)?;
+        if let Some(item) = active_mainhand {
+            self = self.active_mainhand(Some(item));
+        }
+        if let Some(item) = active_offhand {
+            self = self.active_offhand(Some(item));
+        }
+        let (inactive_mainhand, inactive_offhand) = to_pair(spec.inactive_hands, rng)?;
+        if let Some(item) = inactive_mainhand {
+            self = self.inactive_mainhand(Some(item));
+        }
+        if let Some(item) = inactive_offhand {
+            self = self.inactive_offhand(Some(item));
+        }
+
+        Ok(self)
+    }
+
+    #[must_use = "Method consumes builder and returns updated builder."]
+    pub fn with_asset_new(
+        self,
+        asset_specifier: &str,
+        rng: &mut impl Rng,
+    ) -> Result<Self, LoadoutBuilderError> {
+        let spec = LoadoutSpecNew::load_cloned(asset_specifier)
+            .map_err(LoadoutBuilderError::LoadoutAssetError)?;
+        self.with_loadout_spec_new(spec, rng)
     }
 
     /// # Usage
