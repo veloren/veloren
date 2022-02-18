@@ -13,6 +13,7 @@ use common::{
     GroupTarget,
 };
 use common_ecs::{Job, Origin, Phase, System};
+use itertools::Itertools;
 use specs::{
     shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
@@ -111,6 +112,7 @@ impl<'a> System<'a> for Sys {
                 &read_data.uids,
             )
                 .join()
+                .sorted_by_key(|(_, pos_b, _, _, _)| pos_b.0.distance_squared(pos.0) as u32)
             {
                 // Unless the melee attack can hit multiple targets, stop the attack if it has
                 // already hit 1 target

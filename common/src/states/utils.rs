@@ -1051,7 +1051,7 @@ pub fn handle_dodge_interrupt(
     // Check that the input used to enter current character state (if there was one)
     // is not pressed
     if input_override
-        .or(data.character.ability_info().map(|a| a.input))
+        .or_else(|| data.character.ability_info().map(|a| a.input))
         .map_or(true, |input| !input_is_pressed(data, input))
     {
         // If there is a stage section, only roll during
