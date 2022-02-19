@@ -93,7 +93,7 @@ mod v2 {
                 ItemSpec::Choice(choices) => {
                     let smallest = choices
                         .iter()
-                        .map(|(w, i)| *w)
+                        .map(|(w, _)| *w)
                         .min_by(|x, y| x.partial_cmp(y).expect("floats are evil"))
                         .expect("choice shouldn't empty");
                     // Very imprecise algo, but it works
@@ -192,6 +192,8 @@ where
     OldV: DeserializeOwned,
     NewV: Serialize,
 {
+    use std::io::BufReader;
+    use std::io::BufRead;
     match tree {
         Walk::Dir { path, content } => {
             let target_dir = to.join(path);
@@ -201,12 +203,32 @@ where
             }
         },
         Walk::File(path) => {
+            // Grab all comments from old file
+            let source = fs::File::open(from.join(&path))?;
+            let mut comments = Vec::new();
+            for line in BufReader::new(source).lines() {
+                if let Ok(line) = line {
+                    if let Some(idx) = line.find("//") {
+                        let comment = &line[idx..line.len()];
+                        comments.push(comment.to_owned());
+                    }
+                }
+            }
+            // Parse the file
             let source = fs::File::open(from.join(&path))?;
             let old: OldV = ron::de::from_reader(source).unwrap();
+            // Convert it to new format
             let new: NewV = old.into();
-            let target = fs::File::create(to.join(&path))?;
-            let pretty_config = ron::ser::PrettyConfig::new();
-            ron::ser::to_writer_pretty(target, &new, pretty_config).unwrap();
+            // Write it all back
+            let pretty_config = ron::ser::PrettyConfig::new()
+                .extensions(ron::extensions::Extensions::IMPLICIT_SOME);
+            let config_string = ron::ser::to_string_pretty(&new, pretty_config)
+                .expect("serialize shouldn't fail");
+            let comments_string = comments.join("\n");
+
+            let mut target = fs::File::create(to.join(&path))?;
+            write!(&mut target, "{comments_string}\n{config_string}")
+                .expect("fail to write to the file");
             println!("{path:?} done");
         },
     }
