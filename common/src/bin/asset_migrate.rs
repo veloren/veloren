@@ -1,33 +1,155 @@
+use hashbrown::HashMap;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
     fs, io,
     io::Write,
     path::{Path, PathBuf},
 };
+use veloren_common::comp::inventory::{
+    loadout_builder::ItemSpec,
+    slot::{ArmorSlot, EquipSlot},
+};
 
 /// Old version.
 mod v1 {
     use super::*;
+    pub type Config = LoadoutSpec;
 
-    #[derive(Serialize, Deserialize)]
-    pub struct Example {
-        pub field: u8,
-    }
+    #[derive(Debug, Deserialize, Clone)]
+    pub struct LoadoutSpec(pub HashMap<EquipSlot, ItemSpec>);
 }
 
 /// New version.
 mod v2 {
     use super::*;
 
-    #[derive(Serialize, Deserialize)]
-    pub struct Example {
-        pub field: f64,
+    type OldConfig = super::v1::Config;
+    pub type Config = LoadoutSpecNew;
+    type Weight = u8;
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    enum Base {
+        Asset(String),
+        /// NOTE: If you have the same item in multiple configs,
+        /// first one will have the priority
+        Combine(Vec<Base>),
+        Choice(Vec<(Weight, Base)>),
     }
 
-    impl From<super::v1::Example> for Example {
-        fn from(old: super::v1::Example) -> Self {
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum ItemSpecNew {
+        Item(String),
+        Choice(Vec<(Weight, Option<ItemSpecNew>)>),
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum Hands {
+        /// Allows to specify one pair
+        // TODO: add link to tests with example
+        InHands((Option<ItemSpecNew>, Option<ItemSpecNew>)),
+        /// Allows specify range of choices
+        // TODO: add link to tests with example
+        Choice(Vec<(Weight, Hands)>),
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone, Default)]
+    pub struct LoadoutSpecNew {
+        // Meta fields
+        inherit: Option<Base>,
+        // Armor
+        head: Option<ItemSpecNew>,
+        neck: Option<ItemSpecNew>,
+        shoulders: Option<ItemSpecNew>,
+        chest: Option<ItemSpecNew>,
+        gloves: Option<ItemSpecNew>,
+        ring1: Option<ItemSpecNew>,
+        ring2: Option<ItemSpecNew>,
+        back: Option<ItemSpecNew>,
+        belt: Option<ItemSpecNew>,
+        legs: Option<ItemSpecNew>,
+        feet: Option<ItemSpecNew>,
+        tabard: Option<ItemSpecNew>,
+        bag1: Option<ItemSpecNew>,
+        bag2: Option<ItemSpecNew>,
+        bag3: Option<ItemSpecNew>,
+        bag4: Option<ItemSpecNew>,
+        lantern: Option<ItemSpecNew>,
+        glider: Option<ItemSpecNew>,
+        // Weapons
+        active_hands: Option<Hands>,
+        inactive_hands: Option<Hands>,
+    }
+
+    impl From<(Option<ItemSpec>, Option<ItemSpec>)> for Hands {
+        fn from((mainhand, offhand): (Option<ItemSpec>, Option<ItemSpec>)) -> Self {
+            Hands::InHands((mainhand.map(|i| i.into()), offhand.map(|i| i.into())))
+        }
+    }
+
+    impl From<ItemSpec> for ItemSpecNew {
+        fn from(old: ItemSpec) -> Self {
+            match old {
+                ItemSpec::Item(s) => ItemSpecNew::Item(s),
+                ItemSpec::Choice(choices) => {
+                    let smallest = choices
+                        .iter()
+                        .map(|(w, i)| *w)
+                        .min_by(|x, y| x.partial_cmp(y).expect("floats are evil"))
+                        .expect("choice shouldn't empty");
+                    // Very imprecise algo, but it works
+                    let new_choices = choices
+                        .into_iter()
+                        .map(|(w, i)| ((w / smallest) as u8, i.map(|i| i.into())))
+                        .collect();
+
+                    ItemSpecNew::Choice(new_choices)
+                },
+            }
+        }
+    }
+
+    impl From<OldConfig> for Config {
+        fn from(old: OldConfig) -> Self {
+            let super::v1::LoadoutSpec(old) = old;
+            let to_new_item = |slot: &EquipSlot| -> Option<ItemSpecNew> {
+                old.get(slot).cloned().map(|i| i.into())
+            };
+
+            let active_mainhand = old.get(&EquipSlot::ActiveMainhand).cloned();
+            let active_offhand = old.get(&EquipSlot::ActiveOffhand).cloned();
+            let inactive_mainhand = old.get(&EquipSlot::InactiveMainhand).cloned();
+            let inactive_offhand = old.get(&EquipSlot::InactiveOffhand).cloned();
+
+            let to_hands =
+                |mainhand: Option<ItemSpec>, offhand: Option<ItemSpec>| -> Option<Hands> {
+                    if mainhand.is_none() && offhand.is_none() {
+                        None
+                    } else {
+                        Some((mainhand, offhand).into())
+                    }
+                };
             Self {
-                field: f64::from(old.field),
+                inherit: None,
+                head: to_new_item(&EquipSlot::Armor(ArmorSlot::Head)),
+                neck: to_new_item(&EquipSlot::Armor(ArmorSlot::Neck)),
+                shoulders: to_new_item(&EquipSlot::Armor(ArmorSlot::Shoulders)),
+                chest: to_new_item(&EquipSlot::Armor(ArmorSlot::Chest)),
+                gloves: to_new_item(&EquipSlot::Armor(ArmorSlot::Hands)),
+                ring1: to_new_item(&EquipSlot::Armor(ArmorSlot::Ring1)),
+                ring2: to_new_item(&EquipSlot::Armor(ArmorSlot::Ring2)),
+                back: to_new_item(&EquipSlot::Armor(ArmorSlot::Back)),
+                belt: to_new_item(&EquipSlot::Armor(ArmorSlot::Belt)),
+                legs: to_new_item(&EquipSlot::Armor(ArmorSlot::Legs)),
+                feet: to_new_item(&EquipSlot::Armor(ArmorSlot::Feet)),
+                tabard: to_new_item(&EquipSlot::Armor(ArmorSlot::Tabard)),
+                bag1: to_new_item(&EquipSlot::Armor(ArmorSlot::Bag1)),
+                bag2: to_new_item(&EquipSlot::Armor(ArmorSlot::Bag2)),
+                bag3: to_new_item(&EquipSlot::Armor(ArmorSlot::Bag3)),
+                bag4: to_new_item(&EquipSlot::Armor(ArmorSlot::Bag4)),
+                lantern: to_new_item(&EquipSlot::Lantern),
+                glider: to_new_item(&EquipSlot::Glider),
+                active_hands: to_hands(active_mainhand, active_offhand),
+                inactive_hands: to_hands(inactive_mainhand, inactive_offhand),
             }
         }
     }
@@ -97,7 +219,7 @@ fn convert_loop(from: &str, to: &str) {
         path: Path::new("").to_owned(),
         content: walk_tree(root, root).unwrap(),
     };
-    walk_with_migrate::<v1::Example, v2::Example>(files, Path::new(from), Path::new(to)).unwrap();
+    walk_with_migrate::<v1::Config, v2::Config>(files, Path::new(from), Path::new(to)).unwrap();
 }
 
 fn input_string(prompt: &str) -> String { input_validated_string(prompt, &|_| true) }
