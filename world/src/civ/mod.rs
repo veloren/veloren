@@ -248,6 +248,10 @@ impl Civs {
                         )?,
                         SiteKind::ChapelSite,
                     ),
+                    44..=49 => (
+                        find_site_loc(&mut ctx, (&this.gnarling_enemies(), 40), SiteKind::Adlet)?,
+                        SiteKind::Adlet,
+                    ),
                     _ => (
                         find_site_loc(
                             &mut ctx,
@@ -289,6 +293,7 @@ impl Civs {
                 SiteKind::Gnarling => (16i32, 10.0),
                 SiteKind::Citadel => (16i32, 0.0),
                 SiteKind::Bridge(_, _) => (0, 0.0),
+                SiteKind::Adlet => (16i32, 10.0),
             };
 
             let (raise, raise_dist, make_waypoint): (f32, i32, bool) = match &site.kind {
@@ -419,6 +424,11 @@ impl Civs {
                         &mut rng,
                         *a,
                         *b,
+                    )),
+                    SiteKind::Adlet => WorldSite::adlet(site2::Site::generate_adlet(
+                        &Land::from_sim(ctx.sim),
+                        &mut rng,
+                        wpos,
                     )),
                 }
             });
@@ -1260,6 +1270,13 @@ impl Civs {
         })
     }
 
+    fn adlet_enemies(&self) -> Vec<Vec2<i32>> {
+        self.sites().filter_map(|s| match s.kind {
+            SiteKind::Tree | SiteKind::GiantTree => None,
+            _ => Some(s.center),
+        })
+    }
+
     fn chapel_site_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
@@ -1545,6 +1562,7 @@ pub enum SiteKind {
     Gnarling,
     Citadel,
     Bridge(Vec2<i32>, Vec2<i32>),
+    Adlet,
 }
 
 impl SiteKind {
@@ -1672,6 +1690,7 @@ impl SiteKind {
                         && (-0.3..0.4).contains(&chunk.temp)
                         && chunk.tree_density > 0.75
                 },
+                SiteKind::Adlet => (-0.8..0.2).contains(&chunk.temp) && chunk.tree_density > 0.2,
                 SiteKind::GiantTree | SiteKind::Tree => {
                     on_land()
                         && on_flat_terrain()

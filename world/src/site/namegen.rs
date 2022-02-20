@@ -643,4 +643,24 @@ impl<'a, R: Rng> NameGen<'a, R> {
         ];
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
+
+    //adlet placeholder
+    pub fn generate_adlet(mut self) -> String {
+        let start = ["gn", "kr", "k", "r", "t", "kn", "tr", "kt", "gr"];
+        let middle = [
+            "t", "tt", "k", "kk", "r", "r", "rl", "lm", "km", "tm", "kn", "kr", "tr", "nk", "gn",
+            "kl", "kt", "lt", "arln", "ln", "k't", "k'n", "k'm", "g'm", "l'k", "t'n", "r'k",
+            "n'kr", "k R", "t K", "rl Gn", "rl K", "k Gn", "t M", "t N", "r K", "r N", "k M",
+            "k T", "rl T", "t Kn", "r Kn",
+        ];
+        let vowel = ["e", "a", "i", "o"];
+        let end = [
+            "arak", "orok", "arok", "orak", "attak", "akarl", "okarl", "atok", "anak", "etak",
+            "orek", "arek", "atik", "arik", "etik", "arlak", "arlek", "otek", "almek", "arlnok",
+            "arlnak", "okorl", "eknok", "ottok", "erlek", "akkat", "okkar", "attor", "ittor",
+            "aktor", "okomor", "imor", "inork", "inor", "amakkor", "ikkor", "amarl", "omarl",
+            "ikkarl", "okkarl", "emekk", "akatak", "okatak",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
 }

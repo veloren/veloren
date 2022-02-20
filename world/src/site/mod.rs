@@ -74,6 +74,7 @@ pub enum SiteKind {
     GiantTree(site2::Site),
     Gnarling(site2::Site),
     Bridge(site2::Site),
+    Adlet(site2::Site),
 }
 
 impl Site {
@@ -94,6 +95,13 @@ impl Site {
     pub fn gnarling(g: site2::Site) -> Self {
         Self {
             kind: SiteKind::Gnarling(g),
+            economy: Economy::default(),
+        }
+    }
+
+    pub fn adlet(g: site2::Site) -> Self {
+        Self {
+            kind: SiteKind::Adlet(g),
             economy: Economy::default(),
         }
     }
@@ -175,6 +183,7 @@ impl Site {
             SiteKind::GiantTree(gt) => gt.radius(),
             SiteKind::Gnarling(g) => g.radius(),
             SiteKind::Bridge(b) => b.radius(),
+            SiteKind::Adlet(g) => g.radius(),
         }
     }
 
@@ -192,6 +201,7 @@ impl Site {
             SiteKind::GiantTree(gt) => gt.origin,
             SiteKind::Gnarling(g) => g.origin,
             SiteKind::Bridge(b) => b.origin,
+            SiteKind::Adlet(g) => g.origin,
         }
     }
 
@@ -209,6 +219,7 @@ impl Site {
             SiteKind::GiantTree(gt) => gt.spawn_rules(wpos),
             SiteKind::Gnarling(g) => g.spawn_rules(wpos),
             SiteKind::Bridge(b) => b.spawn_rules(wpos),
+            SiteKind::Adlet(g) => g.spawn_rules(wpos),
         }
     }
 
@@ -226,6 +237,7 @@ impl Site {
             SiteKind::GiantTree(gt) => gt.name(),
             SiteKind::Gnarling(g) => g.name(),
             SiteKind::Bridge(b) => b.name(),
+            SiteKind::Adlet(g) => g.name(),
         }
     }
 
@@ -262,6 +274,7 @@ impl Site {
             SiteKind::GiantTree(gt) => gt.render(canvas, dynamic_rng),
             SiteKind::Gnarling(g) => g.render(canvas, dynamic_rng),
             SiteKind::Bridge(b) => b.render(canvas, dynamic_rng),
+            SiteKind::Adlet(g) => g.render(canvas, dynamic_rng),
         }
     }
 
@@ -292,6 +305,7 @@ impl Site {
             SiteKind::GiantTree(gt) => gt.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
             SiteKind::Bridge(b) => b.apply_supplement(dynamic_rng, wpos2d, supplement),
+            SiteKind::Adlet(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
         }
     }
 

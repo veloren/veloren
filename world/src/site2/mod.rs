@@ -105,6 +105,7 @@ impl Site {
             .filter_map(|plot| match &plot.kind {
                 PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
                 PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
+                PlotKind::Adlet(g) => Some(g.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))
@@ -464,6 +465,34 @@ impl Site {
         });
         site.blit_aabr(aabr, Tile {
             kind: TileKind::GnarlingFortification,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+        site
+    }
+
+    pub fn generate_adlet(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+        let mut site = Site {
+            origin,
+            ..Site::default()
+        };
+        site.demarcate_obstacles(land);
+        let adlet_stronghold = plot::AdletStronghold::generate(origin, land, &mut rng);
+        site.name = adlet_stronghold.name().to_string();
+        let size = adlet_stronghold.radius() / tile::TILE_SIZE as i32;
+        let aabr = Aabr {
+            min: Vec2::broadcast(-size),
+            max: Vec2::broadcast(size),
+        };
+        let plot = site.create_plot(Plot {
+            kind: PlotKind::Adlet(adlet_stronghold),
+            root_tile: aabr.center(),
+            tiles: aabr_tiles(aabr).collect(),
+            seed: rng.gen(),
+        });
+        site.blit_aabr(aabr, Tile {
+            kind: TileKind::AdletStronghold,
             plot: Some(plot),
             hard_alt: None,
         });
@@ -1341,6 +1370,7 @@ impl Site {
                 PlotKind::SeaChapel(sea_chapel) => sea_chapel.render_collect(self, canvas),
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
+                PlotKind::Adlet(adlet) => adlet.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
                 PlotKind::SavannahPit(savannah_pit) => savannah_pit.render_collect(self, canvas),
@@ -1420,6 +1450,7 @@ impl Site {
             match &plot.kind {
                 PlotKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
                 PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+                PlotKind::Adlet(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
                 _ => {},
             }
         }

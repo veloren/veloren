@@ -192,6 +192,7 @@ pub enum TileKind {
     Gate,
     GnarlingFortification,
     Bridge,
+    AdletStronghold,
 }
 
 #[derive(Clone, PartialEq)]

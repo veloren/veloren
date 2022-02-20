@@ -150,6 +150,7 @@ pub enum SiteKind {
     Gnarling,
     ChapelSite,
     Bridge,
+    Adlet,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
