@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Waypoints saved between sessions and shared with group members.
 
 ### Changed
 
@@ -58,7 +59,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Convert giant trees to site2
 - Add new upgraded travelers
 - Wallrunning
-- Waypoints saved between sessions and shared with group members.
 
 ### Changed
 
