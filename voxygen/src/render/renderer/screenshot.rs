@@ -88,9 +88,13 @@ impl TakeScreenshot {
     /// swapchain image
     pub fn bind_group(&self) -> &wgpu::BindGroup { &self.bind_group.bind_group }
 
-    /// NOTE: spawns thread
     /// Call this after rendering to the screenshot texture
-    pub fn download_and_handle(self, encoder: &mut wgpu::CommandEncoder) {
+    ///
+    /// Issues a command to copy from the texture to a buffer and returns a
+    /// closure that needs to be called after submitting the encoder
+    /// to the queue. When called, the closure will spawn a new thread for
+    /// async mapping of the buffer and downloading of the screenshot.
+    pub fn copy_to_buffer(self, encoder: &mut wgpu::CommandEncoder) -> impl FnOnce() {
         // Calculate padded bytes per row
         let padded_bytes_per_row = padded_bytes_per_row(self.width, self.bytes_per_pixel);
         // Copy image to a buffer
@@ -114,14 +118,17 @@ impl TakeScreenshot {
                 depth_or_array_layers: 1,
             },
         );
-        // Send buffer to another thread for async mapping, downloading, and passing to
-        // the given handler function (which probably saves it to the disk)
-        std::thread::Builder::new()
-            .name("screenshot".into())
-            .spawn(move || {
-                self.download_and_handle_internal();
-            })
-            .expect("Failed to spawn screenshot thread");
+
+        move || {
+            // Send buffer to another thread for async mapping, downloading, and passing to
+            // the given handler function (which probably saves it to the disk)
+            std::thread::Builder::new()
+                .name("screenshot".into())
+                .spawn(move || {
+                    self.download_and_handle_internal();
+                })
+                .expect("Failed to spawn screenshot thread");
+        }
     }
 
     fn download_and_handle_internal(self) {

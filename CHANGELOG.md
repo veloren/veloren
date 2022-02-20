@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 ### Fixed
+- Fixed bug that would sometimes cause taking a screenshot to panic because a buffer was mapped a the wrong time.
 
 ## [0.12.0] - 2022-02-19
 

@@ -553,42 +553,48 @@ impl<'frame> Drop for Drawer<'frame> {
         // If taking a screenshot and the blit pipeline is available
         // NOTE: blit pipeline should always be available for now so we don't report an
         // error if it isn't
-        if let Some((screenshot, blit)) = self
+        let download_and_handle_screenshot = self
             .taking_screenshot
             .take()
             .zip(self.borrow.pipelines.blit())
-        {
-            // Image needs to be copied from the screenshot texture to the swapchain texture
-            let mut render_pass = encoder.scoped_render_pass(
-                "screenshot blit",
-                self.borrow.device,
-                &wgpu::RenderPassDescriptor {
-                    label: Some("Blit screenshot pass"),
-                    color_attachments: &[wgpu::RenderPassColorAttachment {
-                        view: &self.swap_tex.view,
-                        resolve_target: None,
-                        ops: wgpu::Operations {
-                            load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
-                            store: true,
-                        },
-                    }],
-                    depth_stencil_attachment: None,
-                },
-            );
-            render_pass.set_pipeline(&blit.pipeline);
-            render_pass.set_bind_group(0, screenshot.bind_group(), &[]);
-            render_pass.draw(0..3, 0..1);
-            drop(render_pass);
-            // Issues a command to copy from the texture to a buffer and then sends the
-            // buffer off to another thread to be mapped and processed
-            screenshot.download_and_handle(&mut encoder);
-        }
+            .map(|(screenshot, blit)| {
+                // Image needs to be copied from the screenshot texture to the swapchain texture
+                let mut render_pass = encoder.scoped_render_pass(
+                    "screenshot blit",
+                    self.borrow.device,
+                    &wgpu::RenderPassDescriptor {
+                        label: Some("Blit screenshot pass"),
+                        color_attachments: &[wgpu::RenderPassColorAttachment {
+                            view: &self.swap_tex.view,
+                            resolve_target: None,
+                            ops: wgpu::Operations {
+                                load: wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),
+                                store: true,
+                            },
+                        }],
+                        depth_stencil_attachment: None,
+                    },
+                );
+                render_pass.set_pipeline(&blit.pipeline);
+                render_pass.set_bind_group(0, screenshot.bind_group(), &[]);
+                render_pass.draw(0..3, 0..1);
+                drop(render_pass);
+                // Issues a command to copy from the texture to a buffer and returns a closure
+                // that will send the buffer off to another thread to be mapped
+                // and processed.
+                screenshot.copy_to_buffer(&mut encoder)
+            });
 
         let (mut encoder, profiler) = encoder.end_scope();
         profiler.resolve_queries(&mut encoder);
 
         // It is recommended to only do one submit per frame
         self.borrow.queue.submit(std::iter::once(encoder.finish()));
+        // Need to call this after submit so the async mapping doesn't occur before
+        // copying the screenshot to the buffer which will be mapped.
+        if let Some(f) = download_and_handle_screenshot {
+            f();
+        }
 
         profiler
             .end_frame()
