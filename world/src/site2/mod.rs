@@ -498,7 +498,7 @@ impl Site {
                 },
                 // Workshop
                 5 => {
-                    let size = (2.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
+                    let size = (3.0 + rng.gen::<f32>().powf(5.0) * 1.5).round() as u32;
                     if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
                         site.find_roadside_aabr(
                             &mut rng,
