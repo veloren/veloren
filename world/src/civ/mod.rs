@@ -15,7 +15,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize},
+    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize, TERRAIN_CHUNK_BLOCKS_LG},
     vol::RectVolSize,
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
@@ -1065,7 +1065,7 @@ fn find_site_loc(
     size: i32,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
-    const MAX_ATTEMPTS: usize = 1000;
+    const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
     let (avoid_locs, distance) = avoid;
     for _ in 0..MAX_ATTEMPTS {
@@ -1096,6 +1096,7 @@ fn find_site_loc(
             )
         });
     }
+    warn!("Failed to place site {:?}.", site_kind);
     None
 }
 
@@ -1158,6 +1159,32 @@ impl SiteKind {
         sim.get(loc).map_or(false, |chunk| match self {
             SiteKind::Gnarling => (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75,
             SiteKind::GiantTree | SiteKind::Tree => chunk.tree_density > 0.4,
+            SiteKind::Castle => {
+                if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
+                    return false;
+                }
+                const HILL_RADIUS: i32 = 3 * TERRAIN_CHUNK_BLOCKS_LG as i32;
+                for x in (-HILL_RADIUS)..HILL_RADIUS {
+                    for y in (-HILL_RADIUS)..HILL_RADIUS {
+                        let check_loc = loc + Vec2::new(x, y);
+                        if let Some(true) = sim
+                            .get_alt_approx(check_loc)
+                            .map(|surrounding_alt| surrounding_alt > chunk.alt + 1.0)
+                        {
+                            return false;
+                        }
+                        // Castles are really big, so to avoid parts of them ending up underwater or
+                        // in other awkward positions we have to do this
+                        if sim
+                            .get(check_loc)
+                            .map_or(true, |c| c.is_underwater() || c.near_cliffs())
+                        {
+                            return false;
+                        }
+                    }
+                }
+                true
+            },
             SiteKind::Refactor | SiteKind::Settlement => {
                 const RESOURCE_RADIUS: i32 = 1;
                 let mut river_chunks = 0;
