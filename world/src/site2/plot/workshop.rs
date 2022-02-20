@@ -122,15 +122,16 @@ impl Structure for Workshop {
             SpriteKind::Anvil,
             SpriteKind::DismantlingBench,
         ];
-        for d in 0..3 {
+        'outer: for d in 0..3 {
             for dir in CARDINALS {
-                let position = center + dir * (3 + d * 2);
-                if !stations.is_empty() {
-                    let cr_station = stations.swap_remove(
-                        RandomField::new(0).get(position.with_z(base)) as usize % stations.len(),
-                    );
-                    painter.sprite(position.with_z(base), cr_station);
+                if stations.is_empty() {
+                    break 'outer;
                 }
+                let position = center + dir * (3 + d * 2);
+                let cr_station = stations.swap_remove(
+                    RandomField::new(0).get(position.with_z(base)) as usize % stations.len(),
+                );
+                painter.sprite(position.with_z(base), cr_station);
             }
         }
     }
