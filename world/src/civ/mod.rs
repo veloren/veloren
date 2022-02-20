@@ -1157,6 +1157,7 @@ impl SiteKind {
     pub fn is_suitable_loc(&self, loc: Vec2<i32>, sim: &WorldSim) -> bool {
         sim.get(loc).map_or(false, |chunk| match self {
             SiteKind::Gnarling => (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75,
+            SiteKind::GiantTree | SiteKind::Tree => chunk.tree_density > 0.4,
             SiteKind::Refactor | SiteKind::Settlement => {
                 const RESOURCE_RADIUS: i32 = 1;
                 let mut river_chunks = 0;
