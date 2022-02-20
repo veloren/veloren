@@ -111,20 +111,20 @@ impl Structure for Workshop {
                 );
             }
         }
-        for dir in CARDINALS {
-            for d in 0..3 {
+        let mut stations = vec![
+            SpriteKind::CraftingBench,
+            SpriteKind::Forge,
+            SpriteKind::SpinningWheel,
+            SpriteKind::TanningRack,
+            SpriteKind::CookingPot,
+            SpriteKind::Cauldron,
+            SpriteKind::Loom,
+            SpriteKind::Anvil,
+            SpriteKind::DismantlingBench,
+        ];
+        for d in 0..3 {
+            for dir in CARDINALS {
                 let position = center + dir * (3 + d * 2);
-                let mut stations = vec![
-                    SpriteKind::CraftingBench,
-                    SpriteKind::Forge,
-                    SpriteKind::SpinningWheel,
-                    SpriteKind::TanningRack,
-                    SpriteKind::CookingPot,
-                    SpriteKind::Cauldron,
-                    SpriteKind::Loom,
-                    SpriteKind::Anvil,
-                    SpriteKind::DismantlingBench,
-                ];
                 if !stations.is_empty() {
                     let cr_station = stations.swap_remove(
                         RandomField::new(0).get(position.with_z(base)) as usize % stations.len(),
