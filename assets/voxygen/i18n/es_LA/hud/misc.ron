@@ -8,6 +8,8 @@
         "hud.quests": "Misiones",
         "hud.you_died": "Moriste",
         "hud.waypoint_saved": "Marcador Guardado",
+        "hud.sp_arrow_txt": "SP",
+        "hud.inventory_full": "Inventario lleno",
 
         "hud.press_key_to_show_keybindings_fmt": "Presiona {key} para mostrar los controles del teclado",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Linterna",
@@ -18,54 +20,42 @@
         // Respawn message
         "hud.press_key_to_respawn": r#"Presiona {key} para reaparecer en la ultima fogata que visitaste."#,
 
-        // Welcome message
-        "hud.welcome": r#"Bienvenido a la alfa de Veloren!
+        // Tutorial Button
+        "hud.tutorial_btn": r#"Tutorial"#,
+        "hud.tutorial_click_here": r#"¡Presiona [ {key} ] para 
+mover libremente el cursor y clickear este boton!"#,
+        "hud.tutorial_elements": r#"Craftear"#,
 
+"hud.temp_quest_headline": r#"Saludos viajero!"#,
+"hud.temp_quest_text": r#"Para comenzar tu viaje puedes empezar a buscar en esta aldea y reunir algunos provisiones.
 
-Algunos consejos antes de que empieces:
+Puedes llevar todo lo que necesites en tu viaje!
 
+Mira en la parte inferior derecha de la pantalla para encontrar cosas como tu bolsa, el menú de artesanía y el mapa.
 
-Presiona F1 para ver los controles del teclado disponibles.
+El menú de elaboracion te permite crear armaduras, armas, comida y mucho más!
 
-Escribe /help en el chat para ver los comandos del chat
+Los animales salvajes que rodean la ciudad son una gran fuente de trozos de cuero para crear alguna protección contra los peligros del mundo.
 
+Cuando te sientas preparado, ¡intenta conseguir un equipo aún mejor en los numerosos desafíos marcados en el mapa!
+"#,
 
-Hay cofres y otros objetos que aparecen al azar en el Mundo!
-
-Presiona E para recogerlos.
-
-Para usar lo que consigas de los cofres abre tu inventario con 'B'.
-
-Doble click en los objetos en tu bolsa para usarlos o equiparlos.
-
-Deshazte de ellos haciendo click en ellos y luego arrastralos fuera de la bolsa.
-
-
-Las noches pueden volverse bastante oscuras en Veloren.
-
-Enciende tu Linterna escribiendo /lantern en el chat o presionando la G.
-
-
-Quieres liberar tu cursor para cerrar esta ventana? Presiona TAB!
-
-
-Disfruta tu estadía en el Mundo de Veloren."#,
-
-"hud.temp_quest_headline": r#"Por favor, ayúdanos Viajero!"#,
-"hud.temp_quest_text": r#"Calabozos llenos de cultistas malvados
-han emergido alrededor de nuestros pacíficos pueblos!
-
-
-Consigue alguien que te acompañe, re-abastecete con comida
-y derrota sus viles lideres y acólitos.
-
-
-Tal vez incluso obtengas uno de sus
-objetos infundidos con magia?"#,
         "hud.spell": "Hechizos",
+        // Diary
+        "hud.diary": "Diario",
 
         "hud.free_look_indicator": "Vista libre activa",
+        "hud.camera_clamp_indicator": "Soporte vertical de la cámara activa. Presiona {key} para desactivarla.",
         "hud.auto_walk_indicator": "Caminata automática activa",
+        "hud.collect": "Recolectar",
+        "hud.pick_up": "Recoger",
+        "hud.open": "Abrir",
+        "hud.use": "Usar",
+        "hud.mine": "Picar",
+        "hud.talk": "Hablar",
+        "hud.trade": "Comerciar",
+        "hud.mount": "Montar",
+        "hud.sit": "Sentarse",
     },
 
 

@@ -4,7 +4,7 @@
 (
     string_map: {
         "hud.social": "Otros jugadores",
-        "hud.social.online": "En línea",
+        "hud.social.online": "Conectados",
         "hud.social.friends": "Amigos",
         "hud.social.not_yet_available": "No disponible todavía",
         "hud.social.faction": "Facción",

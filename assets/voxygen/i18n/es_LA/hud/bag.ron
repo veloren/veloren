@@ -3,6 +3,7 @@
 /// Localization for Latin-American
 (
     string_map: {
+        // Inventory
         "hud.bag.inventory": "Inventario de {playername}",
         "hud.bag.stats_title": "Estadísticas de {playername}",
         "hud.bag.exp": "Exp",
@@ -23,6 +24,22 @@
         "hud.bag.feet": "Pies",
         "hud.bag.mainhand": "Mano Principal",
         "hud.bag.offhand": "Mano Secundaria",
+        "hud.bag.inactive_mainhand": "Mano principal inactiva",
+        "hud.bag.inactive_offhand": "Mano secundaria inactiva",
+        "hud.bag.swap_equipped_weapons_title": "Intercambiar armas equipadas",
+        "hud.bag.swap_equipped_weapons_desc": "Presiona {key}",
+        "hud.bag.bag": "Mochila",
+        "hud.bag.health": "Salud",
+        "hud.bag.energy": "Energía",
+        "hud.bag.combat_rating": "Puntos de combate",
+        "hud.bag.protection": "Protección",
+        "hud.bag.stun_res": "Resistencia a aturdimiento",
+        "hud.bag.combat_rating_desc": "Calculado a partir de tu\nequipo y salud.",
+        "hud.bag.protection_desc": "Reducción de daño por armadura",
+        "hud.bag.stun_res_desc": "Resistencia contra ser aturdido por golpes consecutivos.\nRegenera como Energía.",
+        "hud.bag.sort_by_name": "Ordenar por nombre",
+        "hud.bag.sort_by_quality": "Ordenar por calidad",
+        "hud.bag.sort_by_category": "Ordenar por categoría",
     },
 
 

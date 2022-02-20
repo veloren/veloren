@@ -3,13 +3,13 @@
 /// Localization for Spanish (Spain)
 (
     string_map: {
-        "character_window.character_name": "Nombre del personaje",
+        "character_window.character_name": "Nombre del Personaje",
         // Charater stats
         "character_window.character_stats": r#"Resistencia
 
-Aptitud
+Estado Físico
 
-Fuerza de voluntad
+Fuerza de Voluntad
 
 Protección
 "#,

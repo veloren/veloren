@@ -5,6 +5,7 @@
     string_map: {
         "hud.group": "Grupo",
         "hud.group.invite_to_join": "[{name}] Te invito a su Grupo!",
+        "hud.group.invite_to_trade": "[{name}] quiere comerciar contigo.",
         "hud.group.invite": "Invitar",
         "hud.group.kick": "Echar",
         "hud.group.assign_leader": "Asignar Lider",

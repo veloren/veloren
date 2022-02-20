@@ -2235,10 +2235,10 @@ impl Hud {
             match global_state.settings.interface.intro_show {
                 Intro::Show => {
                     if Button::image(self.imgs.button)
-                        .w_h(150.0, 40.0)
+                        .w_h(200.0, 60.0)
                         .hover_image(self.imgs.button_hover)
                         .press_image(self.imgs.button_press)
-                        .bottom_left_with_margins_on(ui_widgets.window, 200.0, 120.0)
+                        .bottom_left_with_margins_on(ui_widgets.window, 350.0, 150.0)
                         .label(i18n.get("hud.tutorial_btn"))
                         .label_font_id(self.fonts.cyri.conrod_id)
                         .label_font_size(self.fonts.cyri.scale(18))
@@ -2260,9 +2260,10 @@ impl Hud {
                         "{key}",
                         toggle_cursor_key.display_string(key_layout).as_str(),
                     ))
-                    .mid_top_with_margin_on(self.ids.tut_arrow, -18.0)
+                    .mid_top_with_margin_on(self.ids.tut_arrow, -40.0)
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(14))
+                    .center_justify()
                     .color(BLACK)
                     .set(self.ids.tut_arrow_txt_bg, ui_widgets);
                     Text::new(&i18n.get("hud.tutorial_click_here").replace(
@@ -2270,6 +2271,7 @@ impl Hud {
                         toggle_cursor_key.display_string(key_layout).as_str(),
                     ))
                     .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
+                    .center_justify()
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(14))
                     .color(QUALITY_LEGENDARY)

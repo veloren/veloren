@@ -8,11 +8,10 @@
         "char_selection.deleting_character": "Borrando Personaje...",
         "char_selection.change_server": "Cambiar Servidor",
         "char_selection.enter_world": "Entrar al Mundo",
-        "char_selection.logout": "Cerrar Sesión",
+        "char_selection.logout": "Volver",
         "char_selection.create_new_character": "Crear Nuevo Personaje",
         "char_selection.creating_character": "Creando Personaje...",
         "char_selection.character_creation": "Creación de Personaje",
-
         "char_selection.human_default": "Humano por defecto",
         "char_selection.level_fmt": "Nivel {level_nb}",
         "char_selection.uncanny_valley": "Valle Misterioso",
@@ -25,6 +24,7 @@
         "char_selection.eyeshape": "Detalles de los Ojos",
         "char_selection.accessories": "Accesorios",
         "char_selection.create_info_name": "Tu Personaje necesita un nombre!",
+        "char_selection.version_mismatch": "¡ADVERTENCIA! Este servidor está ejecutando una versión de juego diferente, posiblemente incompatible. Actualiza tu juego.",
     },
 
     vector_map: {
