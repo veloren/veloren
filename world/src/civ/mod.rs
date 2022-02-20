@@ -90,9 +90,13 @@ impl Civs {
             this.generate_cave(&mut ctx);
         }
 
+        let mut start_locations: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
-            if this.birth_civ(&mut ctx.reseed()).is_none() {
+            if this
+                .birth_civ(&mut ctx.reseed(), &mut start_locations)
+                .is_none()
+            {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
@@ -447,10 +451,15 @@ impl Civs {
             .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
     }
 
-    fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
+    fn birth_civ(
+        &mut self,
+        ctx: &mut GenCtx<impl Rng>,
+        start_locations: &mut Vec<Vec2<i32>>,
+    ) -> Option<Id<Civ>> {
         let kind = SiteKind::Refactor;
-        let site = attempt(5, || {
-            let loc = find_site_loc(ctx, None, 1, kind)?;
+        let site = attempt(100, || {
+            let loc = find_site_loc(ctx, Some((start_locations, 40)), 1, kind)?;
+            start_locations.push(loc);
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
                 site_tmp: None,
@@ -1029,28 +1038,28 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
 /// Attempt to search for a location that's suitable for site construction
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
-    near: Option<(Vec2<i32>, f32)>,
+    avoid: Option<(&Vec<Vec2<i32>>, i32)>,
     size: i32,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 1000;
     let mut loc = None;
     for _ in 0..MAX_ATTEMPTS {
-        let test_loc = loc.unwrap_or_else(|| match near {
-            Some((origin, dist)) => {
-                origin
-                    + (Vec2::new(ctx.rng.gen_range(-1.0..1.0), ctx.rng.gen_range(-1.0..1.0))
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero)
-                        * ctx.rng.gen::<f32>()
-                        * dist)
-                        .map(|e| e as i32)
-            },
-            None => Vec2::new(
+        let test_loc = loc.unwrap_or_else(|| {
+            Vec2::new(
                 ctx.rng.gen_range(0..ctx.sim.get_size().x as i32),
                 ctx.rng.gen_range(0..ctx.sim.get_size().y as i32),
-            ),
+            )
         });
+
+        if let Some((avoid_locs, distance)) = avoid {
+            if avoid_locs
+                .iter()
+                .any(|l| l.distance_squared(test_loc) < distance * distance)
+            {
+                continue;
+            }
+        }
 
         for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
             if loc_suitable_for_site(ctx.sim, test_loc + offset, site_kind) {
