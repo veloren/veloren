@@ -49,9 +49,9 @@ fn main() -> io::Result<()> {
     let _ = signal_hook::flag::register(signal_hook::consts::SIGUSR1, Arc::clone(&sigusr1_signal));
 
     let (_guards, _guards2) = if basic {
-        (vec![], common_frontend::init_stdout(None))
+        (Vec::new(), common_frontend::init_stdout(None))
     } else {
-        (common_frontend::init(None, &|| LOG.clone()), vec![])
+        (common_frontend::init(None, &|| LOG.clone()), Vec::new())
     };
 
     // Load settings
@@ -154,10 +154,6 @@ fn main() -> io::Result<()> {
 
     info!("Starting server...");
 
-    if no_auth {
-        server_settings.auth_server_address = None;
-    }
-
     let protocols_and_addresses = server_settings.gameserver_protocols.clone();
     let metrics_port = &server_settings.metrics_address.port();
     // Create server
@@ -170,17 +166,17 @@ fn main() -> io::Result<()> {
     )
     .expect("Failed to create server instance!");
 
-    let mut gameserver_addresses = vec![];
-    for protocol in protocols_and_addresses {
-        gameserver_addresses.push(match protocol {
+    // Collect addresses that the server is listening to log.
+    let gameserver_addresses = protocols_and_addresses
+        .into_iter()
+        .map(|protocol| match protocol {
             Protocol::Tcp { address } => ("TCP", address),
             Protocol::Quic {
                 address,
                 cert_file_path: _,
                 key_file_path: _,
             } => ("QUIC", address),
-        })
-    }
+        });
 
     info!(
         ?metrics_port,

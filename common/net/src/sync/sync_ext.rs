@@ -36,8 +36,6 @@ pub trait WorldSyncExt {
 impl WorldSyncExt for specs::World {
     fn register_sync_marker(&mut self) {
         self.register_synced::<Uid>();
-
-        // TODO: Consider only having allocator server side for now
         self.insert(UidAllocator::new());
     }
 

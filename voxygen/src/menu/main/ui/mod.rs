@@ -429,9 +429,9 @@ impl Controls {
                 }
             },
             Message::DeleteServer => {
-                events.push(Event::DeleteServer {
-                    server_index: self.selected_server_index.unwrap(),
-                });
+                if let Some(server_index) = self.selected_server_index {
+                    events.push(Event::DeleteServer { server_index });
+                }
             },
             /* Note: Keeping in case we re-add the disclaimer */
             /*Message::AcceptDisclaimer => {
