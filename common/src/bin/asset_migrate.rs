@@ -55,28 +55,49 @@ mod v2 {
     #[derive(Debug, Deserialize, Serialize, Clone, Default)]
     pub struct LoadoutSpecNew {
         // Meta fields
+        #[serde(skip_serializing_if = "Option::is_none")]
         inherit: Option<Base>,
         // Armor
+        #[serde(skip_serializing_if = "Option::is_none")]
         head: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         neck: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         shoulders: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         chest: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         gloves: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         ring1: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         ring2: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         back: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         belt: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         legs: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         feet: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         tabard: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         bag1: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         bag2: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         bag3: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         bag4: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         lantern: Option<ItemSpecNew>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         glider: Option<ItemSpecNew>,
         // Weapons
+        #[serde(skip_serializing_if = "Option::is_none")]
         active_hands: Option<Hands>,
+        #[serde(skip_serializing_if = "Option::is_none")]
         inactive_hands: Option<Hands>,
     }
 
