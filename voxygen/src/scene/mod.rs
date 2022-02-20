@@ -677,6 +677,7 @@ impl Scene {
             scene_data.ambiance,
             self.camera.get_mode(),
             scene_data.sprite_render_distance as f32 - 20.0,
+            client.current_weather_wpos(cam_pos.xy()).wind,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));

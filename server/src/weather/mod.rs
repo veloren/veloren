@@ -24,11 +24,11 @@ pub fn init(state: &mut State, world: &world::World) {
     state
         .ecs_mut()
         .insert(SysScheduler::<tick::Sys>::every(Duration::from_secs_f32(
-            0.1,
+            sim::DT / 100.0,
         )));
     state
         .ecs_mut()
         .insert(SysScheduler::<sync::Sys>::every(Duration::from_secs_f32(
-            0.1,
+            sim::DT / 100.0,
         )));
 }

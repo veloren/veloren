@@ -92,6 +92,7 @@ void main() {
     #endif
 
     #ifndef EXPERIMENTAL_BAREMINIMUM
+        // TODO: take wind_vel into account
         // Wind sway effect
         f_pos += model_wind_sway * vec3(
             sin(tick.x * 1.5 + f_pos.y * 0.1) * sin(tick.x * 0.35),

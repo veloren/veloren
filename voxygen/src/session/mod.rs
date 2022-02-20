@@ -338,9 +338,10 @@ impl SessionState {
                             .get_weather()
                             .iter()
                             .map(|(_, w)| {
+                                //println!("{}, ", w.cloud);
                                 [
                                     (w.cloud * 255.0) as u8,
-                                    (w.rain + 128.0).clamp(0.0, 255.0) as u8,
+                                    (w.rain * 255.0) as u8,
                                     (w.wind.x + 128.0).clamp(0.0, 255.0) as u8,
                                     (w.wind.y + 128.0).clamp(0.0, 255.0) as u8,
                                 ]
@@ -1126,6 +1127,7 @@ impl PlayState for SessionState {
                     num_particles: self.scene.particle_mgr().particle_count() as u32,
                     num_particles_visible: self.scene.particle_mgr().particle_count_visible()
                         as u32,
+                    weather: client.current_weather(),
                 }
             });
 

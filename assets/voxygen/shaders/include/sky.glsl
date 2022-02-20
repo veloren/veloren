@@ -97,6 +97,9 @@ vec2 wind_offset = vec2(time_of_day.x * wind_speed);
 
 float cloud_scale = view_distance.z / 150.0;
 
+layout(set = 0, binding = 5) uniform texture2D t_alt;
+layout(set = 0, binding = 6) uniform sampler s_alt;
+
 vec2 pos_to_uv(texture2D tex, sampler s, vec2 pos) {
     // Want: (pixel + 0.5) / W
     vec2 texSize = textureSize(sampler2D(tex, s), 0);
@@ -105,19 +108,22 @@ vec2 pos_to_uv(texture2D tex, sampler s, vec2 pos) {
 }
 
 // Weather texture
-layout(set = 0, binding = 12) uniform texture2D t_clouds;
-layout(set = 0, binding = 13) uniform sampler s_clouds;
+layout(set = 0, binding = 12) uniform texture2D t_weather;
+layout(set = 0, binding = 13) uniform sampler s_weather;
+
+vec4 sample_weather(vec2 wpos) {
+    return textureLod(sampler2D(t_weather, s_weather), pos_to_uv(t_alt, s_alt, wpos - focus_off.xy), 0); // TODO: make this work for any world size
+}
 
 float cloud_tendency_at(vec2 pos) {
-    float nz = textureLod/*textureBicubic16*/(sampler2D(t_clouds, s_clouds), pos / 33500 , 0).r;
     //float nz = textureLod(sampler2D(t_noise, s_noise), (pos + wind_offset) / 60000.0 / cloud_scale, 0).x - 0.3;
-    nz = pow(nz, 3);
-    return nz;
+    return sample_weather(pos).r;
 }
 
 const float RAIN_CLOUD = 0.05;
 float rain_density_at(vec2 pos) {
-    return clamp((cloud_tendency_at(pos) - RAIN_CLOUD) * 10, 0, 1);
+    return sample_weather(pos).g;
+    //return clamp((cloud_tendency_at(pos) - RAIN_CLOUD) * 10, 0, 1);
 }
 
 float cloud_shadow(vec3 pos, vec3 light_dir) {

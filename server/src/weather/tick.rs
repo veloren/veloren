@@ -14,7 +14,6 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, TimeOfDay>,
-        ReadExpect<'a, Arc<world::World>>,
         WriteExpect<'a, WeatherSim>,
         Write<'a, SysScheduler<Self>>,
     );
@@ -23,12 +22,9 @@ impl<'a> System<'a> for Sys {
     const ORIGIN: Origin = Origin::Server;
     const PHASE: Phase = Phase::Create;
 
-    fn run(
-        job: &mut common_ecs::Job<Self>,
-        (game_time, world, mut sim, mut scheduler): Self::SystemData,
-    ) {
+    fn run(job: &mut common_ecs::Job<Self>, (game_time, mut sim, mut scheduler): Self::SystemData) {
         if scheduler.should_run() {
-            sim.tick(&*world, &*game_time, 1.0);
+            sim.tick(&*game_time, 1.0);
         }
     }
 }

@@ -5,8 +5,6 @@
 #include <sky.glsl>
 #include <srgb.glsl>
 
-layout(set = 0, binding = 5) uniform texture2D t_alt;
-layout(set = 0, binding = 6) uniform sampler s_alt;
 layout(set = 0, binding = 7) uniform texture2D t_horizon;
 layout(set = 0, binding = 8) uniform sampler s_horizon;
 

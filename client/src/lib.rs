@@ -1430,6 +1430,12 @@ impl Client {
         }
     }
 
+    pub fn current_weather_wpos(&self, wpos: Vec2<f32>) -> Weather {
+        let cell_pos =
+            (wpos / ((TerrainChunkSize::RECT_SIZE * weather::CHUNKS_PER_CELL).as_())).as_();
+        *self.weather.get(cell_pos).unwrap_or(&Weather::default())
+    }
+
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(self.position()?)
             .map2(TerrainChunkSize::RECT_SIZE, |e: f32, sz| {

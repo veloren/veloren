@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 use vek::Vec2;
 
@@ -5,8 +7,11 @@ pub const CHUNKS_PER_CELL: u32 = 16;
 // Weather::default is Clear, 0 degrees C and no wind
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Weather {
+    /// Clouds currently in the area between 0 and 1
     pub cloud: f32,
+    /// Rain per time, between 0 and 1
     pub rain: f32,
+    // Wind direction in block / second
     pub wind: Vec2<f32>,
 }
 
@@ -34,4 +39,15 @@ pub enum WeatherKind {
     Cloudy,
     Rain,
     Storm,
+}
+
+impl fmt::Display for WeatherKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            WeatherKind::Clear => write!(f, "Clear"),
+            WeatherKind::Cloudy => write!(f, "Cloudy"),
+            WeatherKind::Rain => write!(f, "Rain"),
+            WeatherKind::Storm => write!(f, "Storm"),
+        }
+    }
 }

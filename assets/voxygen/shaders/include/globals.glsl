@@ -19,6 +19,7 @@ layout(std140, set = 0, binding = 0) uniform u_globals {
     uvec4 medium;
     ivec4 select_pos;
     vec4 gamma_exposure;
+    vec2 wind_vel;
     float ambiance;
     // 0 - FirstPerson
     // 1 - ThirdPerson
@@ -36,7 +37,5 @@ mat4 threshold_matrix = mat4(
 );
 float distance_divider = 2;
 float shadow_dithering = 0.5;
-
-vec2 wind_vel = vec2(0.0);
 
 #endif
