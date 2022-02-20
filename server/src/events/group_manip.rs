@@ -2,7 +2,7 @@ use crate::{client::Client, Server};
 use common::{
     comp::{
         self,
-        group::{self, Group, GroupManager},
+        group::{self, ChangeNotification, Group, GroupManager},
         invite::{InviteKind, PendingInvites},
         ChatType, GroupManip,
     },
@@ -81,6 +81,37 @@ pub fn can_invite(
     true
 }
 
+pub fn update_map_markers<'a>(
+    map_markers: &ReadStorage<'a, comp::MapMarker>,
+    uids: &ReadStorage<'a, Uid>,
+    client: &Client,
+    change: &ChangeNotification<Entity>,
+) {
+    use comp::group::ChangeNotification::*;
+    let send_update = |entity| {
+        if let (Some(map_marker), Some(uid)) = (map_markers.get(entity), uids.get(entity)) {
+            client.send_fallible(ServerGeneral::MapMarker(
+                comp::MapMarkerUpdate::GroupMember(
+                    *uid,
+                    comp::MapMarkerChange::Update(map_marker.0),
+                ),
+            ));
+        }
+    };
+    match change {
+        &Added(entity, _) => {
+            send_update(entity);
+        },
+        NewGroup { leader: _, members } => {
+            for (entity, _) in members {
+                send_update(*entity);
+            }
+        },
+        // Removed and NoGroup can be inferred by the client, NewLeader does not affect map markers
+        Removed(_) | NoGroup | NewLeader(_) => {},
+    }
+}
+
 // TODO: turn chat messages into enums
 pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupManip) {
     match manip {
@@ -89,6 +120,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             let clients = state.ecs().read_storage::<Client>();
             let uids = state.ecs().read_storage::<Uid>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
+            let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             group_manager.leave_group(
                 entity,
                 &mut state.ecs().write_storage(),
@@ -100,10 +132,13 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                         .get(entity)
                         .and_then(|c| {
                             group_change
-                                .try_map(|e| uids.get(e).copied())
+                                .try_map_ref(|e| uids.get(*e).copied())
                                 .map(|g| (g, c))
                         })
-                        .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
+                        .map(|(g, c)| {
+                            update_map_markers(&map_markers, &uids, c, &group_change);
+                            c.send_fallible(ServerGeneral::GroupUpdate(g));
+                        });
                 },
             );
         },
@@ -151,6 +186,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
 
             let mut groups = state.ecs().write_storage::<group::Group>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
+            let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             // Make sure kicker is the group leader
             match groups
                 .get(target)
@@ -169,10 +205,13 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                                 .get(entity)
                                 .and_then(|c| {
                                     group_change
-                                        .try_map(|e| uids.get(e).copied())
+                                        .try_map_ref(|e| uids.get(*e).copied())
                                         .map(|g| (g, c))
                                 })
-                                .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
+                                .map(|(g, c)| {
+                                    update_map_markers(&map_markers, &uids, c, &group_change);
+                                    c.send_fallible(ServerGeneral::GroupUpdate(g));
+                                });
                         },
                     );
 
@@ -230,6 +269,7 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
             };
             let groups = state.ecs().read_storage::<group::Group>();
             let mut group_manager = state.ecs().write_resource::<GroupManager>();
+            let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             // Make sure assigner is the group leader
             match groups
                 .get(target)
@@ -248,10 +288,13 @@ pub fn handle_group(server: &mut Server, entity: specs::Entity, manip: GroupMani
                                 .get(entity)
                                 .and_then(|c| {
                                     group_change
-                                        .try_map(|e| uids.get(e).copied())
+                                        .try_map_ref(|e| uids.get(*e).copied())
                                         .map(|g| (g, c))
                                 })
-                                .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
+                                .map(|(g, c)| {
+                                    update_map_markers(&map_markers, &uids, c, &group_change);
+                                    c.send_fallible(ServerGeneral::GroupUpdate(g));
+                                });
                         },
                     );
                     // Tell them they are the leader

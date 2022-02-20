@@ -1,4 +1,4 @@
-use crate::resources::Time;
+use crate::{resources::Time, uid::Uid};
 use serde::{Deserialize, Serialize};
 use specs::Component;
 use specs_idvs::IdvStorage;
@@ -44,4 +44,26 @@ impl Component for WaypointArea {
 
 impl Default for WaypointArea {
     fn default() -> Self { Self(5.0) }
+}
+
+/// Marker on the map, used for sharing waypoint with group and
+/// persisting it server side.
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub struct MapMarker(pub Vec2<i32>);
+
+impl Component for MapMarker {
+    type Storage = IdvStorage<Self>;
+}
+
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum MapMarkerChange {
+    Update(Vec2<i32>),
+    Remove,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum MapMarkerUpdate {
+    Owned(MapMarkerChange),
+    GroupMember(Uid, MapMarkerChange),
+    ClearGroup,
 }

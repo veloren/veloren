@@ -1,7 +1,7 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE,
-    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    MapMarkers, QUALITY_COMMON, QUALITY_DEBUG, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW,
+    QUALITY_MODERATE, TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
     hud::{Graphic, Ui},
@@ -375,7 +375,6 @@ widget_ids! {
 
 #[derive(WidgetCommon)]
 pub struct MiniMap<'a> {
-    show: &'a Show,
     client: &'a Client,
     imgs: &'a Imgs,
     rot_imgs: &'a ImgsRot,
@@ -385,13 +384,12 @@ pub struct MiniMap<'a> {
     common: widget::CommonBuilder,
     ori: Vec3<f32>,
     global_state: &'a GlobalState,
-    location_marker: Option<Vec2<f32>>,
+    location_markers: &'a MapMarkers,
     voxel_minimap: &'a VoxelMinimap,
 }
 
 impl<'a> MiniMap<'a> {
     pub fn new(
-        show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
@@ -399,11 +397,10 @@ impl<'a> MiniMap<'a> {
         fonts: &'a Fonts,
         ori: Vec3<f32>,
         global_state: &'a GlobalState,
-        location_marker: Option<Vec2<f32>>,
+        location_markers: &'a MapMarkers,
         voxel_minimap: &'a VoxelMinimap,
     ) -> Self {
         Self {
-            show,
             client,
             imgs,
             rot_imgs,
@@ -412,7 +409,7 @@ impl<'a> MiniMap<'a> {
             common: widget::CommonBuilder::default(),
             ori,
             global_state,
-            location_marker,
+            location_markers,
             voxel_minimap,
         }
     }
@@ -792,11 +789,14 @@ impl<'a> Widget for MiniMap<'a> {
             }
 
             // Location marker
-            if self.show.map_marker {
-                if let Some(rpos) = self.location_marker.and_then(|lm| wpos_to_rpos(lm, true)) {
-                    let factor = 1.2;
+            if let Some(rpos) = self
+                .location_markers
+                .owned
+                .and_then(|lm| wpos_to_rpos(lm.as_(), true))
+            {
+                let factor = 1.2;
 
-                    Button::image(self.imgs.location_marker)
+                Button::image(self.imgs.location_marker)
                     .x_y_position_relative_to(
                         state.ids.map_layers[0],
                         position::Relative::Scalar(rpos.x as f64),
@@ -806,7 +806,6 @@ impl<'a> Widget for MiniMap<'a> {
                     //.image_color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .floating(true)
                     .set(state.ids.location_marker, ui);
-                }
             }
             // Indicator
             let ind_scale = 0.4;

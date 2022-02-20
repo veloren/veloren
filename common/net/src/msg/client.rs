@@ -78,6 +78,7 @@ pub enum ClientGeneral {
     UnlockSkill(Skill),
     UnlockSkillGroup(SkillGroupKind),
     RequestSiteInfo(SiteId),
+    UpdateMapMarker(comp::MapMarkerChange),
     //Only in Game, via terrain stream
     TerrainChunkRequest {
         key: Vec2<i32>,
@@ -132,7 +133,8 @@ impl ClientMsg {
                         | ClientGeneral::UnlockSkillGroup(_)
                         | ClientGeneral::RequestPlayerPhysics { .. }
                         | ClientGeneral::RequestLossyTerrainCompression { .. }
-                        | ClientGeneral::AcknowledgePersistenceLoadError => {
+                        | ClientGeneral::AcknowledgePersistenceLoadError
+                        | ClientGeneral::UpdateMapMarker(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         //Always possible

@@ -1267,3 +1267,41 @@ pub fn handle_change_ability(
         );
     }
 }
+
+pub fn handle_update_map_marker(
+    server: &mut Server,
+    entity: EcsEntity,
+    update: comp::MapMarkerChange,
+) {
+    use comp::{MapMarker, MapMarkerChange::*};
+    match update {
+        Update(waypoint) => {
+            server
+                .state
+                .write_component_ignore_entity_dead(entity, MapMarker(waypoint));
+        },
+        Remove => {
+            server.state.delete_component::<MapMarker>(entity);
+        },
+    }
+    let ecs = server.state.ecs_mut();
+    // Send updated waypoint to group members
+    let groups = ecs.read_storage();
+    let uids = ecs.read_storage();
+    if let Some((group_id, uid)) = groups.get(entity).zip(uids.get(entity)) {
+        let clients = ecs.read_storage::<Client>();
+        for client in comp::group::members(
+            *group_id,
+            &groups,
+            &ecs.entities(),
+            &ecs.read_storage(),
+            &uids,
+        )
+        .filter_map(|(e, _)| if e != entity { clients.get(e) } else { None })
+        {
+            client.send_fallible(ServerGeneral::MapMarker(
+                comp::MapMarkerUpdate::GroupMember(*uid, update),
+            ));
+        }
+    }
+}

@@ -1,4 +1,4 @@
-use super::group_manip;
+use super::group_manip::{self, update_map_markers};
 use crate::{client::Client, Server};
 use common::{
     comp::{
@@ -202,6 +202,7 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
 
         match kind {
             InviteKind::Group => {
+                let map_markers = state.ecs().read_storage::<comp::MapMarker>();
                 let mut group_manager = state.ecs().write_resource::<GroupManager>();
                 group_manager.add_group_member(
                     inviter,
@@ -215,10 +216,13 @@ pub fn handle_invite_accept(server: &mut Server, entity: specs::Entity) {
                             .get(entity)
                             .and_then(|c| {
                                 group_change
-                                    .try_map(|e| uids.get(e).copied())
+                                    .try_map_ref(|e| uids.get(*e).copied())
                                     .map(|g| (g, c))
                             })
-                            .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
+                            .map(|(g, c)| {
+                                update_map_markers(&map_markers, &uids, c, &group_change);
+                                c.send_fallible(ServerGeneral::GroupUpdate(g));
+                            });
                     },
                 );
             },

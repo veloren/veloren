@@ -31,6 +31,7 @@ pub struct PersistedComponents {
     pub waypoint: Option<comp::Waypoint>,
     pub pets: Vec<PetPersistenceData>,
     pub active_abilities: comp::ActiveAbilities,
+    pub map_marker: Option<comp::MapMarker>,
 }
 
 pub type EditableComponents = (comp::Body,);

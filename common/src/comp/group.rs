@@ -62,9 +62,9 @@ pub enum ChangeNotification<E> {
 // Also note when the same notification is sent to multiple destinations the
 // mapping might be duplicated effort
 impl<E> ChangeNotification<E> {
-    pub fn try_map<T>(self, f: impl Fn(E) -> Option<T>) -> Option<ChangeNotification<T>> {
+    pub fn try_map_ref<T>(&self, f: impl Fn(&E) -> Option<T>) -> Option<ChangeNotification<T>> {
         match self {
-            Self::Added(e, r) => f(e).map(|t| ChangeNotification::Added(t, r)),
+            Self::Added(e, r) => f(e).map(|t| ChangeNotification::Added(t, *r)),
             Self::Removed(e) => f(e).map(ChangeNotification::Removed),
             Self::NewLeader(e) => f(e).map(ChangeNotification::NewLeader),
             // Note just discards members that fail map
@@ -72,8 +72,8 @@ impl<E> ChangeNotification<E> {
                 f(leader).map(|leader| ChangeNotification::NewGroup {
                     leader,
                     members: members
-                        .into_iter()
-                        .filter_map(|(e, r)| f(e).map(|t| (t, r)))
+                        .iter()
+                        .filter_map(|(e, r)| f(e).map(|t| (t, *r)))
                         .collect(),
                 })
             },

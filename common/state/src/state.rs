@@ -191,6 +191,7 @@ impl State {
         ecs.register::<comp::InventoryUpdate>();
         ecs.register::<comp::Admin>();
         ecs.register::<comp::Waypoint>();
+        ecs.register::<comp::MapMarker>();
         ecs.register::<comp::Projectile>();
         ecs.register::<comp::Melee>();
         ecs.register::<comp::ItemDrop>();

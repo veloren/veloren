@@ -185,7 +185,8 @@ impl Client {
                     | ServerGeneral::Knockback(_)
                     | ServerGeneral::SiteEconomy(_)
                     | ServerGeneral::UpdatePendingTrade(_, _, _)
-                    | ServerGeneral::FinishedTrade(_) => {
+                    | ServerGeneral::FinishedTrade(_)
+                    | ServerGeneral::MapMarker(_) => {
                         PreparedMsg::new(2, &g, &self.in_game_stream_params)
                     },
                     //Ingame related, terrain

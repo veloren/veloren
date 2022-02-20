@@ -3,7 +3,7 @@ use common_base::dev_panic;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::string::ToString;
-use vek::Vec3;
+use vek::{Vec2, Vec3};
 
 #[derive(Serialize, Deserialize)]
 pub struct HumanoidBody {
@@ -62,7 +62,8 @@ generic_body_from_impl!(comp::quadruped_small::Body);
 
 #[derive(Serialize, Deserialize)]
 pub struct CharacterPosition {
-    pub waypoint: Vec3<f32>,
+    pub waypoint: Option<Vec3<f32>>,
+    pub map_marker: Option<Vec2<i32>>,
 }
 
 pub fn skill_group_to_db_string(skill_group: comp::skillset::SkillGroupKind) -> String {

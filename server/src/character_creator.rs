@@ -64,6 +64,7 @@ pub fn create_character(
         .expect("Inventory has at least 1 slot left!");
 
     let waypoint = None;
+    let map_marker = None;
 
     character_updater.create_character(entity, player_uuid, character_alias, PersistedComponents {
         body,
@@ -73,6 +74,7 @@ pub fn create_character(
         waypoint,
         pets: Vec::new(),
         active_abilities: Default::default(),
+        map_marker,
     });
     Ok(())
 }

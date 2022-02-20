@@ -148,19 +148,22 @@ pub fn load_character_data(
         },
     )?;
 
-    let char_waypoint = character_data.waypoint.as_ref().and_then(|x| {
-        match convert_waypoint_from_database_json(x) {
-            Ok(w) => Some(w),
-            Err(e) => {
-                warn!(
-                    "Error reading waypoint from database for character ID
+    let (char_waypoint, char_map_marker) = match character_data
+        .waypoint
+        .as_ref()
+        .map(|x| convert_waypoint_from_database_json(x))
+    {
+        Some(Ok(w)) => w,
+        Some(Err(e)) => {
+            warn!(
+                "Error reading waypoint from database for character ID
     {}, error: {}",
-                    char_id, e
-                );
-                None
-            },
-        }
-    });
+                char_id, e
+            );
+            (None, None)
+        },
+        None => (None, None),
+    };
 
     let mut stmt = connection.prepare_cached(
         "
@@ -261,6 +264,7 @@ pub fn load_character_data(
         waypoint: char_waypoint,
         pets,
         active_abilities: convert_active_abilities_from_database(&ability_set_data),
+        map_marker: char_map_marker,
     })
 }
 
@@ -354,6 +358,7 @@ pub fn create_character(
         waypoint,
         pets: _,
         active_abilities,
+        map_marker,
     } = persisted_components;
 
     // Fetch new entity IDs for character, inventory and loadout
@@ -438,7 +443,7 @@ pub fn create_character(
         &character_id as &dyn ToSql,
         &uuid,
         &character_alias,
-        &convert_waypoint_to_database_json(waypoint),
+        &convert_waypoint_to_database_json(waypoint, map_marker),
     ])?;
     drop(stmt);
 
@@ -935,6 +940,8 @@ fn delete_pets(
 
     Ok(())
 }
+
+#[allow(clippy::too_many_arguments)]
 pub fn update(
     char_id: CharacterId,
     char_skill_set: comp::SkillSet,
@@ -942,6 +949,7 @@ pub fn update(
     pets: Vec<PetPersistenceData>,
     char_waypoint: Option<comp::Waypoint>,
     active_abilities: comp::ability::ActiveAbilities,
+    map_marker: Option<comp::MapMarker>,
     transaction: &mut Transaction,
 ) -> Result<(), PersistenceError> {
     // Run pet persistence
@@ -1066,7 +1074,7 @@ pub fn update(
         ])?;
     }
 
-    let db_waypoint = convert_waypoint_to_database_json(char_waypoint);
+    let db_waypoint = convert_waypoint_to_database_json(char_waypoint, map_marker);
 
     let mut stmt = transaction.prepare_cached(
         "
@@ -1103,7 +1111,7 @@ pub fn update(
     if ability_sets_count != 1 {
         return Err(PersistenceError::OtherError(format!(
             "Error updating ability_set table for char_id {}",
-            char_id
+            char_id,
         )));
     }
 
