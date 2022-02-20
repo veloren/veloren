@@ -102,21 +102,44 @@ impl Civs {
         }
         info!(?initial_civ_count, "all civilisations created");
 
+        let mut gnarling_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut dungeon_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut tree_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut castle_enemies: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0..64) {
-                    0..=5 => (SiteKind::Castle, 3),
+                let (kind, size, avoid) = match ctx.rng.gen_range(0..64) {
+                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 20)),
                     28..=31 => {
                         if index.features().site2_giant_trees {
-                            (SiteKind::GiantTree, 4)
+                            (SiteKind::GiantTree, 4, (&tree_enemies, 20))
                         } else {
-                            (SiteKind::Tree, 4)
+                            (SiteKind::Tree, 4, (&tree_enemies, 20))
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, 5),
-                    _ => (SiteKind::Dungeon, 0),
+                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 20)),
+                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 20)),
                 };
-                let loc = find_site_loc(&mut ctx, None, size, kind)?;
+                let loc = find_site_loc(&mut ctx, avoid, size, kind)?;
+                match kind {
+                    SiteKind::Castle => {
+                        gnarling_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        tree_enemies.push(loc);
+                        castle_enemies.push(loc);
+                    },
+                    SiteKind::Gnarling => {
+                        castle_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        gnarling_enemies.push(loc);
+                    },
+                    SiteKind::Dungeon => {
+                        gnarling_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        castle_enemies.push(loc);
+                    },
+                    _ => (),
+                }
                 Some(this.establish_site(&mut ctx.reseed(), loc, |place| Site {
                     kind,
                     center: loc,
@@ -458,7 +481,7 @@ impl Civs {
     ) -> Option<Id<Civ>> {
         let kind = SiteKind::Refactor;
         let site = attempt(100, || {
-            let loc = find_site_loc(ctx, Some((start_locations, 40)), 1, kind)?;
+            let loc = find_site_loc(ctx, (start_locations, 40), 1, kind)?;
             start_locations.push(loc);
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
@@ -1038,12 +1061,13 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
 /// Attempt to search for a location that's suitable for site construction
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
-    avoid: Option<(&Vec<Vec2<i32>>, i32)>,
+    avoid: (&Vec<Vec2<i32>>, i32),
     size: i32,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
     const MAX_ATTEMPTS: usize = 1000;
     let mut loc = None;
+    let (avoid_locs, distance) = avoid;
     for _ in 0..MAX_ATTEMPTS {
         let test_loc = loc.unwrap_or_else(|| {
             Vec2::new(
@@ -1052,13 +1076,11 @@ fn find_site_loc(
             )
         });
 
-        if let Some((avoid_locs, distance)) = avoid {
-            if avoid_locs
-                .iter()
-                .any(|l| l.distance_squared(test_loc) < distance * distance)
-            {
-                continue;
-            }
+        if avoid_locs
+            .iter()
+            .any(|l| l.distance_squared(test_loc) < distance * distance)
+        {
+            continue;
         }
 
         for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
