@@ -13,7 +13,6 @@ use crate::{
     },
     trade::SiteInformation,
 };
-use hashbrown::HashMap;
 use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 use strum::EnumIter;
@@ -42,14 +41,6 @@ pub enum Preset {
     HuskSummon,
 }
 
-#[derive(Debug, Deserialize, Clone)]
-pub struct LoadoutSpec(HashMap<EquipSlot, ItemSpec>);
-impl assets::Asset for LoadoutSpec {
-    type Loader = assets::RonLoader;
-
-    const EXTENSION: &'static str = "ron";
-}
-
 type Weight = u8;
 
 #[derive(Debug, Deserialize, Clone)]
@@ -61,16 +52,15 @@ enum Base {
     Choice(Vec<(Weight, Base)>),
 }
 
-
 impl Base {
-    fn to_spec(&self, rng: &mut impl Rng) -> Result<LoadoutSpecNew, LoadoutBuilderError> {
+    fn to_spec(&self, rng: &mut impl Rng) -> Result<LoadoutSpec, LoadoutBuilderError> {
         match self {
-            Base::Asset(asset_specifier) => LoadoutSpecNew::load_cloned(asset_specifier)
+            Base::Asset(asset_specifier) => LoadoutSpec::load_cloned(asset_specifier)
                 .map_err(LoadoutBuilderError::LoadoutAssetError),
             Base::Combine(bases) => {
                 let bases = bases.iter().map(|b| b.to_spec(rng)?.eval(rng));
                 // Get first base of combined
-                let mut current = LoadoutSpecNew::default();
+                let mut current = LoadoutSpec::default();
                 for base in bases {
                     current = current.merge(base?);
                 }
@@ -162,7 +152,7 @@ impl ItemSpecNew {
 
 // FIXME: remove clone
 #[derive(Debug, Deserialize, Clone, Default)]
-pub struct LoadoutSpecNew {
+pub struct LoadoutSpec {
     // Meta fields
     inherit: Option<Base>,
     // Armor
@@ -189,14 +179,14 @@ pub struct LoadoutSpecNew {
     inactive_hands: Option<Hands>,
 }
 
-impl LoadoutSpecNew {
+impl LoadoutSpec {
     /// It just merges `self` with `base`.
     /// If some field exists in `self` it will be used,
     /// if no, it will be taken from `base`.
     ///
     /// NOTE: it won't recursively load bases.
     /// For example if A inherits from B and B inherits from C -
-    /// as result we will get LoadoutSpec A that inherits from C,
+    /// as result we will get `LoadoutSpec` A that inherits from C,
     /// but C will left as is.
     fn merge(self, base: Self) -> Self {
         Self {
@@ -268,7 +258,7 @@ pub enum LoadoutBuilderError {
     BaseChoiceError(WeightedError),
 }
 
-impl assets::Asset for LoadoutSpecNew {
+impl assets::Asset for LoadoutSpec {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
@@ -760,9 +750,9 @@ impl LoadoutBuilder {
     }
 
     #[must_use = "Method consumes builder and returns updated builder."]
-    fn with_loadout_spec_new<R: Rng>(
+    fn with_loadout_spec<R: Rng>(
         mut self,
-        spec: LoadoutSpecNew,
+        spec: LoadoutSpec,
         rng: &mut R,
     ) -> Result<Self, LoadoutBuilderError> {
         // Include any inheritance
@@ -859,14 +849,14 @@ impl LoadoutBuilder {
     }
 
     #[must_use = "Method consumes builder and returns updated builder."]
-    pub fn with_asset_new(
+    pub fn with_asset(
         self,
         asset_specifier: &str,
         rng: &mut impl Rng,
     ) -> Result<Self, LoadoutBuilderError> {
-        let spec = LoadoutSpecNew::load_cloned(asset_specifier)
+        let spec = LoadoutSpec::load_cloned(asset_specifier)
             .map_err(LoadoutBuilderError::LoadoutAssetError)?;
-        self.with_loadout_spec_new(spec, rng)
+        self.with_loadout_spec(spec, rng)
     }
 
     /// # Usage
@@ -876,79 +866,9 @@ impl LoadoutBuilder {
     /// # Panics
     /// 1) Will panic if there is no asset with such `asset_specifier`
     /// 2) Will panic if path to item specified in loadout file doesn't exist
-    /// 3) Will panic while runs in tests and asset doesn't have "correct" form
     #[must_use = "Method consumes builder and returns updated builder."]
-    pub fn with_asset_expect(mut self, asset_specifier: &str, rng: &mut impl Rng) -> Self {
-        let spec = LoadoutSpec::load_expect_cloned(asset_specifier).0;
-        for (key, entry) in spec {
-            let item = match entry.try_to_item(asset_specifier, rng) {
-                Some(item) => item,
-                None => continue,
-            };
-            match key {
-                EquipSlot::ActiveMainhand => {
-                    self = self.active_mainhand(Some(item));
-                },
-                EquipSlot::ActiveOffhand => {
-                    self = self.active_offhand(Some(item));
-                },
-                EquipSlot::InactiveMainhand => {
-                    self = self.inactive_mainhand(Some(item));
-                },
-                EquipSlot::InactiveOffhand => {
-                    self = self.inactive_offhand(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Head) => {
-                    self = self.head(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Shoulders) => {
-                    self = self.shoulder(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Chest) => {
-                    self = self.chest(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Hands) => {
-                    self = self.hands(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Legs) => {
-                    self = self.pants(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Feet) => {
-                    self = self.feet(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Belt) => {
-                    self = self.belt(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Back) => {
-                    self = self.back(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Neck) => {
-                    self = self.neck(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Ring1) => {
-                    self = self.ring1(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Ring2) => {
-                    self = self.ring2(Some(item));
-                },
-                EquipSlot::Lantern => {
-                    self = self.lantern(Some(item));
-                },
-                EquipSlot::Armor(ArmorSlot::Tabard) => {
-                    self = self.tabard(Some(item));
-                },
-                EquipSlot::Glider => {
-                    self = self.glider(Some(item));
-                },
-                EquipSlot::Armor(
-                    slot @ (ArmorSlot::Bag1 | ArmorSlot::Bag2 | ArmorSlot::Bag3 | ArmorSlot::Bag4),
-                ) => {
-                    self = self.bag(slot, Some(item));
-                },
-            };
-        }
-
-        self
+    pub fn with_asset_expect(self, asset_specifier: &str, rng: &mut impl Rng) -> Self {
+        self.with_asset(asset_specifier, rng).expect("failed loading loadout config")
     }
 
     /// Set default armor items for the loadout. This may vary with game
@@ -1131,14 +1051,5 @@ mod tests {
                 entry.validate(key);
             }
         }
-    }
-
-    #[test]
-    fn test_new_config() {
-        let dummy_rng = &mut rand::thread_rng();
-        let new_spec =
-            LoadoutSpecNew::load_expect_cloned("common.loadout_new.test.choice_base");
-        let new_spec = new_spec.eval(dummy_rng).unwrap();
-        panic!("{new_spec:#?}");
     }
 }
