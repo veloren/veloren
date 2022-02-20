@@ -6,6 +6,7 @@ use common::{
     weather::{Weather, CHUNKS_PER_CELL},
 };
 use itertools::Itertools;
+use noise::{NoiseFn, SuperSimplex, Turbulence};
 use vek::*;
 use world::World;
 
@@ -46,10 +47,13 @@ pub struct WeatherSim {
     info: Grid<WeatherInfo>,
 }
 
-const WATER_BOILING_POINT: f32 = 2.5;
+/*
 const MAX_WIND_SPEED: f32 = 128.0;
-pub(crate) const CELL_SIZE: f32 = (CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x) as f32;
-pub(crate) const DT: f32 = CELL_SIZE / MAX_WIND_SPEED;
+*/
+pub(crate) const CELL_SIZE: u32 = CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x;
+
+/// How often the weather is updated, in seconds
+pub(crate) const DT: f32 = 5.0; // CELL_SIZE as f32 / MAX_WIND_SPEED;
 
 fn sample_plane_normal(points: &[Vec3<f32>]) -> Option<Vec3<f32>> {
     if points.len() < 3 {
@@ -87,6 +91,8 @@ fn sample_plane_normal(points: &[Vec3<f32>]) -> Option<Vec3<f32>> {
         Some(Vec3::new(xy * yz - xz * yy, xy * xz - yz * xx, det_z).normalized())
     }
 }
+
+fn cell_to_wpos(p: Vec2<i32>) -> Vec2<i32> { p * CELL_SIZE as i32 }
 
 impl WeatherSim {
     pub fn new(size: Vec2<u32>, world: &World) -> Self {
@@ -146,14 +152,44 @@ impl WeatherSim {
 
     pub fn get_weather(&self) -> &Grid<Weather> { &self.weather }
 
+    /*
     fn get_cell(&self, p: Vec2<i32>, time: f64) -> Cell {
         *self.cells.get(p).unwrap_or(&sample_cell(p, time))
     }
+    */
 
     // https://minds.wisconsin.edu/bitstream/handle/1793/66950/LitzauSpr2013.pdf
     // Time step is cell size / maximum wind speed
     pub fn tick(&mut self, time_of_day: &TimeOfDay) {
         let time = time_of_day.0;
+
+        let base_nz = Turbulence::new(
+            Turbulence::new(SuperSimplex::new())
+                .set_frequency(0.2)
+                .set_power(1.5),
+        )
+        .set_frequency(2.0)
+        .set_power(0.2);
+
+        let rain_nz = SuperSimplex::new();
+
+        for (point, cell) in self.weather.iter_mut() {
+            let wpos = cell_to_wpos(point);
+
+            let space_scale = 7500.0;
+            let time_scale = 25000.0;
+            let spos = (wpos.as_::<f64>() / space_scale).with_z(time as f64 / time_scale);
+
+            let pressure = (base_nz.get(spos.into_array()) * 0.5 + 1.0).clamped(0.0, 1.0) as f32;
+
+            cell.cloud = 1.0 - pressure;
+            cell.rain = (1.0 - pressure - 0.2).max(0.0).powf(1.5);
+            cell.wind = Vec2::new(
+                rain_nz.get(spos.into_array()) as f32,
+                rain_nz.get((spos + 1.0).into_array()) as f32,
+            ) * 250.0 * (1.0 - pressure);
+        }
+        /*
         let mut swap = Grid::new(self.cells.size(), Cell::default());
         // Dissipate wind, humidty and pressure
         // Dissipation is represented by the target cell expanding into the 8 adjacent
@@ -349,8 +385,6 @@ impl WeatherSim {
                 * (self.weather[point].rain * 0.9 + 0.1)
                 * temp_part;
         }
-
-        // Maybe moisture condenses to clouds, which if they have a certain
-        // amount they will release rain.
+        */
     }
 }

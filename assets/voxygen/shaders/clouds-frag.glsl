@@ -102,7 +102,7 @@ void main() {
     #ifdef EXPERIMENTAL_RAIN
         vec3 old_color = color.rgb;
 
-        float fall_rate = 20.0;
+        float fall_rate = 40.0;
 
         dir.xy += wind_vel * dir.z / fall_rate;
         dir = normalize(dir);
@@ -126,7 +126,7 @@ void main() {
                 }
 
                 float drop_density = 3;
-                vec2 drop_size = vec2(0.0025, 0.17);
+                vec2 drop_size = vec2(0.0015, 0.17);
 
                 vec2 rain_pos = (view_pos * rain_dist);
                 rain_pos += vec2(0, tick.x * fall_rate + cam_wpos.z);

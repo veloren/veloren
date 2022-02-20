@@ -6635,6 +6635,7 @@ dependencies = [
  "humantime",
  "itertools",
  "lazy_static",
+ "noise",
  "num_cpus",
  "portpicker",
  "prometheus",

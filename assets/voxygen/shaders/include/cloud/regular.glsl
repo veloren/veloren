@@ -61,13 +61,16 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         ;
     }
 
+    float cloud_alt = CLOUD_AVG_ALT + alt * 0.5;
+
     //vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
     float sun_access = 0.0;
     float moon_access = 0.0;
-    float cloud_sun_access = 0.0;
+    float cloud_sun_access = clamp((pos.z - cloud_alt) / 1500 + 0.5, 0, 1);
     float cloud_moon_access = 0.0;
     float cloud_broad_a = 0.0;
     float cloud_broad_b = 0.0;
+
     // This is a silly optimisation but it actually nets us a fair few fps by skipping quite a few expensive calcs
     if ((pos.z < CLOUD_AVG_ALT + 15000.0 && cloud_tendency > 0.0)) {
         // Turbulence (small variations in clouds/mist)
@@ -78,11 +81,10 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         const float CLOUD_DENSITY = 10000.0;
         const float CLOUD_ALT_VARI_WIDTH = 100000.0;
         const float CLOUD_ALT_VARI_SCALE = 5000.0;
-        float cloud_alt = CLOUD_AVG_ALT + alt * 0.5;
 
         cloud_broad_a = cloud_broad(wind_pos + sun_dir.xyz * 250);
         cloud_broad_b = cloud_broad(wind_pos - sun_dir.xyz * 250);
-        cloud = cloud_tendency + (0.0
+        cloud = cloud_tendency + cloud_tendency * (0.0
             + 24 * (cloud_broad_a + cloud_broad_b) * 0.5
         #if (CLOUD_MODE >= CLOUD_MODE_MINIMAL)
             + 4 * (noise_3d((wind_pos + turb_offset) / 2000.0 / cloud_scale) - 0.5)
@@ -93,23 +95,29 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             + 0.75 * (noise_3d(wind_pos / 500.0 / cloud_scale) - 0.5)
         #endif
-        ) * 0.01;
+        ) * 0.1;
         cloud = pow(max(cloud, 0), 3) * sign(cloud);
-        cloud *= CLOUD_DENSITY * sqrt(cloud_tendency) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
+        cloud *= CLOUD_DENSITY * sqrt(cloud_tendency + 0.001) * falloff(abs(pos.z - cloud_alt) / CLOUD_DEPTH);
 
         // What proportion of sunlight is *not* being blocked by nearby cloud? (approximation)
         // Basically, just throw together a few values that roughly approximate this term and come up with an average
-        cloud_sun_access = exp((
+        cloud_sun_access = mix(cloud_sun_access, exp((
             // Cloud density gradient
             0.25 * (cloud_broad_a - cloud_broad_b + (0.25 * (noise_3d(wind_pos / 4000 / cloud_scale) - 0.5) + 0.1 * (noise_3d(wind_pos / 1000 / cloud_scale) - 0.5)))
         #if (CLOUD_MODE >= CLOUD_MODE_HIGH)
             // More noise
             + 0.01 * (noise_3d(wind_pos / 500) / cloud_scale - 0.5)
         #endif
-        ) * 15.0 - 1.5) * 1.5;
+        ) * 15.0 - 1.5) * 1.5, min(cloud_tendency * 10, 1));
         // Since we're assuming the sun/moon is always above (not always correct) it's the same for the moon
         cloud_moon_access = 1.0 - cloud_sun_access;
     }
+
+    #if (CLOUD_MODE >= CLOUD_MODE_LOW)
+        cloud += max(noise_3d((wind_pos) / 25000.0 / cloud_scale) - 0.75 + noise_3d((wind_pos) / 2500.0 / cloud_scale) * 0.1, 0)
+            * 0.1
+            / (abs(pos.z - cloud_alt) / 500.0 + 0.1);
+    #endif
 
     // Keeping this because it's something I'm likely to reenable later
     /*
@@ -238,10 +246,12 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         float min_dist = clamp(max_dist / 4, 0.25, 24);
         int i;
 
-        // TODO: Make it a double rainbow
-        float rainbow_t = (0.7 - dot(sun_dir.xyz, dir)) * 8 / 0.05;
-        int rainbow_c = int(floor(rainbow_t));
-        rainbow_t = fract(rainbow_t);
+        #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+            // TODO: Make it a double rainbow
+            float rainbow_t = (0.7 - dot(sun_dir.xyz, dir)) * 8 / 0.05;
+            int rainbow_c = int(floor(rainbow_t));
+            rainbow_t = fract(rainbow_t);
+        #endif
 
         for (i = 0; cdist > min_dist && i < 250; i ++) {
             ldist = cdist;
@@ -276,21 +286,27 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                 emission * density_integrals.y * step;
 
             // Rainbow
-            if (rainbow_c >= 0 && rainbow_c < 8) {
-                float rain = rain_density_at(pos.xy);
-                vec3 colors[9] = {
-                    surf_color,
-                    vec3(0.9, 0.5, 0.9),
-                    vec3(0.25, 0.0, 0.5),
-                    vec3(0.0, 0.0, 1.0),
-                    vec3(0.0, 0.5, 0.0),
-                    vec3(1.0, 1.0, 0.0),
-                    vec3(1.0, 0.6, 0.0),
-                    vec3(1.0, 0.0, 0.0),
-                    surf_color,
-                };
-                surf_color = mix(surf_color, mix(colors[rainbow_c], colors[rainbow_c + 1], rainbow_t), rain * sun_access * sun_access * get_sun_brightness() * pow(min(cdist / 500.0, 1.0), 2.0));
-            }
+            #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+                if (rainbow_c >= 0 && rainbow_c < 8) {
+                    float rain = rain_density_at(pos.xy);
+                    vec3 colors[9] = {
+                        surf_color,
+                        vec3(0.9, 0.5, 0.9),
+                        vec3(0.25, 0.0, 0.5),
+                        vec3(0.0, 0.0, 1.0),
+                        vec3(0.0, 0.5, 0.0),
+                        vec3(1.0, 1.0, 0.0),
+                        vec3(1.0, 0.6, 0.0),
+                        vec3(1.0, 0.0, 0.0),
+                        surf_color,
+                    };
+                    surf_color = mix(
+                        surf_color,
+                        mix(colors[rainbow_c], colors[rainbow_c + 1], rainbow_t),
+                        rain * sun_access * sun_access * get_sun_brightness() * pow(min(cdist / 500.0, 1.0), 2.0),
+                    );
+                }
+            #endif
         }
     #ifdef IS_POSTPROCESS
         }
