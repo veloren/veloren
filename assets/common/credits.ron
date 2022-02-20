@@ -91,6 +91,16 @@
         asset_path: "voxygen/font/wizard.ttf",
         license: "CC BY-SA 3.0",
         license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+    ), (
+        name: "Wizard Extended",
+        // original
+        source_link: "https://fontstruct.com/fontstructions/show/1506403/wizard-5",
+        authors: ["Omegaville (original)"],
+        asset_path: "voxygen/font/wizard_extended.ttf",
+        license: "CC BY-SA 3.0",
+        license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
+        modifications: "Added additional characters.",
+        notes: "Derived from Wizard",
     )],
     other_art: [],
     /// Entry format:

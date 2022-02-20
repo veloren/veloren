@@ -33,7 +33,7 @@ use tracing::warn;
 pub const TEXT_COLOR: iced::Color = iced::Color::from_rgb(1.0, 1.0, 1.0);
 pub const DISABLED_TEXT_COLOR: iced::Color = iced::Color::from_rgba(1.0, 1.0, 1.0, 0.2);
 
-pub const FILL_FRAC_ONE: f32 = 0.77;
+pub const FILL_FRAC_ONE: f32 = 0.67;
 pub const FILL_FRAC_TWO: f32 = 0.53;
 
 image_ids_ice! {

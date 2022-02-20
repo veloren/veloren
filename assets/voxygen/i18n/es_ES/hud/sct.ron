@@ -4,7 +4,7 @@
 (
     string_map: {
         // SCT outputs
-        "hud.sct.experience": "{amount} Exp",
+        "hud.sct.experience": "Experiencia {amount}",
         "hud.sct.block": "BLOQUEADO",
         },
 

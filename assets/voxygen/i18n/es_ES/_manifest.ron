@@ -21,7 +21,7 @@
             scale_ratio: 1.0,
         ),
         "wizard": Font (
-            asset_key: "voxygen.font.wizard",
+            asset_key: "voxygen.font.wizard_extended",
             scale_ratio: 1.0,
         ),
         "cyri": Font (
