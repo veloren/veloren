@@ -101,10 +101,9 @@ impl Civs {
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (kind, size) = match ctx.rng.gen_range(0..64) {
-                    0..=4 => (SiteKind::Castle, 3),
-                    5..=28 if index.features().site2 => (SiteKind::Refactor, 6),
-                    29..=31 => {
-                        if index.features().site2 {
+                    0..=5 => (SiteKind::Castle, 3),
+                    28..=31 => {
+                        if index.features().site2_giant_trees {
                             (SiteKind::GiantTree, 4)
                         } else {
                             (SiteKind::Tree, 4)
@@ -449,7 +448,7 @@ impl Civs {
     }
 
     fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
-        let kind = SiteKind::Settlement;
+        let kind = SiteKind::Refactor;
         let site = attempt(5, || {
             let loc = find_site_loc(ctx, None, 1, kind)?;
             Some(self.establish_site(ctx, loc, |place| Site {
@@ -1131,7 +1130,7 @@ impl SiteKind {
         // FIXME: Provide specific values for each individual SiteKind
         match self {
             SiteKind::Dungeon => 4,
-            _ => 2, // This is just an arbitrary value
+            _ => 8, // This is just an arbitrary value
         }
     }
 }

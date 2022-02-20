@@ -403,10 +403,13 @@ impl Server {
                 Some(t) => t.center,
                 None => {
                     let center_chunk = world.sim().map_size_lg().chunks().map(i32::from) / 2;
+                    use world::civ::SiteKind;
                     world
                         .civs()
                         .sites()
-                        .filter(|site| matches!(site.kind, world::civ::SiteKind::Settlement))
+                        .filter(|site| {
+                            matches!(site.kind, SiteKind::Settlement | SiteKind::Refactor)
+                        })
                         .map(|site| site.center)
                         .min_by_key(|site_pos| site_pos.distance_squared(center_chunk))
                         .unwrap_or(center_chunk)

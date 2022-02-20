@@ -9,6 +9,7 @@
     scatter: true,
     paths: true,
     spots: true,
-    site2: false,
+    site2_towns: true,
+    site2_giant_trees: false,
     wildlife_density: 1.0,
 )
