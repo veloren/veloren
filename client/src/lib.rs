@@ -48,7 +48,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
-    weather::Weather,
+    weather::{self, Weather},
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -107,7 +107,7 @@ pub enum Event {
     CharacterEdited(CharacterId),
     CharacterError(String),
     MapMarker(comp::MapMarkerUpdate),
-    WeatherUpdate(Grid<Weather>),
+    WeatherUpdate,
 }
 
 pub struct WorldData {
@@ -159,6 +159,7 @@ pub struct Client {
     runtime: Arc<Runtime>,
     server_info: ServerInfo,
     world_data: WorldData,
+    weather: Grid<Weather>,
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
     sites: HashMap<SiteId, SiteInfoRich>,
@@ -610,6 +611,7 @@ impl Client {
                 lod_horizon,
                 map: world_map,
             },
+            weather: Grid::new(Vec2::new(1, 1), Weather::default()),
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
             sites: sites
@@ -1415,6 +1417,19 @@ impl Client {
             .map(|v| v.0)
     }
 
+    pub fn get_weather(&self) -> &Grid<Weather> { &self.weather }
+
+    pub fn current_weather(&self) -> Weather {
+        if let Some(position) = self.position() {
+            let cell_pos = (position.xy()
+                / ((TerrainChunkSize::RECT_SIZE * weather::CHUNKS_PER_CELL).as_()))
+            .as_();
+            *self.weather.get(cell_pos).unwrap_or(&Weather::default())
+        } else {
+            Weather::default()
+        }
+    }
+
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
         let chunk_pos = Vec2::from(self.position()?)
             .map2(TerrainChunkSize::RECT_SIZE, |e: f32, sz| {
@@ -2196,7 +2211,8 @@ impl Client {
                 frontend_events.push(Event::MapMarker(event));
             },
             ServerGeneral::WeatherUpdate(weather) => {
-                frontend_events.push(Event::WeatherUpdate(weather));
+                self.weather = weather;
+                frontend_events.push(Event::WeatherUpdate);
             },
             _ => unreachable!("Not a in_game message"),
         }

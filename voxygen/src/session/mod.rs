@@ -325,15 +325,17 @@ impl SessionState {
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
-                client::Event::WeatherUpdate(weather) => {
+                client::Event::WeatherUpdate => {
                     //weather
                     //    .iter_mut()
                     //    .for_each(|(p, c)| *c = if (p.x + p.y) % 2 == 0 { 1.0 } else { 0.0 });
+                    let size = client.get_weather().size();
                     global_state.window.renderer_mut().update_texture(
                         &self.scene.lod.get_data().clouds,
                         [0, 0],
-                        [weather.size().x as u32, weather.size().y as u32],
-                        weather
+                        [size.x as u32, size.y as u32],
+                        client
+                            .get_weather()
                             .iter()
                             .map(|(_, w)| {
                                 [

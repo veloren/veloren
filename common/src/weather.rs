@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use vek::Vec2;
 
+pub const CHUNKS_PER_CELL: u32 = 16;
 // Weather::default is Clear, 0 degrees C and no wind
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default)]
 pub struct Weather {
@@ -18,7 +19,8 @@ impl Weather {
             (self.rain * 10.0) as i32,
             (self.wind.magnitude() * 10.0) as i32,
         ) {
-            (_, _, 2455..) => WeatherKind::Storm,
+            // Over 24.5 m/s wind is a storm
+            (_, _, 245..) => WeatherKind::Storm,
             (_, 1..=10, _) => WeatherKind::Rain,
             (4..=10, _, _) => WeatherKind::Cloudy,
             _ => WeatherKind::Clear,
@@ -26,6 +28,7 @@ impl Weather {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum WeatherKind {
     Clear,
     Cloudy,

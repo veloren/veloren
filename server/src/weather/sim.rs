@@ -8,7 +8,7 @@ use common::{
     resources::TimeOfDay,
     terrain::{BiomeKind, TerrainChunkSize},
     vol::RectVolSize,
-    weather::Weather,
+    weather::{Weather, CHUNKS_PER_CELL},
 };
 use itertools::Itertools;
 use vek::*;
@@ -261,7 +261,7 @@ impl WeatherSim {
                 cell.rain -= rain_fall_max;
                 self.weather[point].rain = 1.0;
             } else {
-                self.weather[point].rain = 0.0;
+                self.weather[point].rain = 0.5;
             }
             cell.moisture += evaporation - condensation;
 
