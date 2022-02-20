@@ -90,7 +90,7 @@ pub use self::{
         slot, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
     last::Last,
-    location::{Waypoint, WaypointArea},
+    location::{MapMarker, MapMarkerChange, MapMarkerUpdate, Waypoint, WaypointArea},
     melee::{Melee, MeleeConstructor},
     misc::Object,
     ori::Ori,

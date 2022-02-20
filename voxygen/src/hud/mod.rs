@@ -83,7 +83,7 @@ use common::{
         inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         skillset::{skills::Skill, SkillGroupKind},
-        BuffData, BuffKind, Item,
+        BuffData, BuffKind, Item, MapMarkerChange,
     },
     consts::MAX_PICKUP_RANGE,
     link::Is,
@@ -546,6 +546,7 @@ pub enum Event {
 
     SettingsChange(SettingsChange),
     AcknowledgePersistenceLoadError,
+    MapMarkerEvent(MapMarkerChange),
 }
 
 // TODO: Are these the possible layouts we want?
@@ -638,6 +639,12 @@ impl PressBehavior {
     }
 }
 
+#[derive(Default, Clone)]
+pub struct MapMarkers {
+    owned: Option<Vec2<i32>>,
+    group: HashMap<Uid, Vec2<i32>>,
+}
+
 pub struct Show {
     ui: bool,
     intro: bool,
@@ -667,8 +674,7 @@ pub struct Show {
     auto_walk: bool,
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
-    location_marker: Option<Vec2<f32>>,
-    map_marker: bool,
+    location_markers: MapMarkers,
     salvage: bool,
 }
 impl Show {
@@ -889,6 +895,26 @@ impl Show {
             global_state.window.center_cursor();
         }
     }
+
+    pub fn update_map_markers(&mut self, event: comp::MapMarkerUpdate) {
+        match event {
+            comp::MapMarkerUpdate::Owned(event) => match event {
+                MapMarkerChange::Update(waypoint) => self.location_markers.owned = Some(waypoint),
+                MapMarkerChange::Remove => self.location_markers.owned = None,
+            },
+            comp::MapMarkerUpdate::GroupMember(user, event) => match event {
+                MapMarkerChange::Update(waypoint) => {
+                    self.location_markers.group.insert(user, waypoint);
+                },
+                MapMarkerChange::Remove => {
+                    self.location_markers.group.remove(&user);
+                },
+            },
+            comp::MapMarkerUpdate::ClearGroup => {
+                self.location_markers.group.clear();
+            },
+        }
+    }
 }
 
 pub struct PromptDialogSettings {
@@ -1060,8 +1086,7 @@ impl Hud {
                 auto_walk: false,
                 camera_clamp: false,
                 prompt_dialog: None,
-                location_marker: None,
-                map_marker: false,
+                location_markers: MapMarkers::default(),
                 salvage: false,
             },
             to_focus: None,
@@ -2756,7 +2781,6 @@ impl Hud {
 
         // MiniMap
         for event in MiniMap::new(
-            &self.show,
             client,
             &self.imgs,
             &self.rot_imgs,
@@ -2764,7 +2788,7 @@ impl Hud {
             &self.fonts,
             camera.get_orientation(),
             global_state,
-            self.show.location_marker,
+            &self.show.location_markers,
             &self.voxel_minimap,
         )
         .set(self.ids.minimap, ui_widgets)
@@ -3272,7 +3296,6 @@ impl Hud {
         // Map
         if self.show.map {
             for event in Map::new(
-                &self.show,
                 client,
                 &self.imgs,
                 &self.rot_imgs,
@@ -3282,7 +3305,7 @@ impl Hud {
                 i18n,
                 global_state,
                 tooltip_manager,
-                self.show.location_marker,
+                &self.show.location_markers,
                 self.map_drag,
             )
             .set(self.ids.map, ui_widgets)
@@ -3300,13 +3323,15 @@ impl Hud {
                         events.push(Event::RequestSiteInfo(id));
                     },
                     map::Event::SetLocationMarker(pos) => {
-                        self.show.location_marker = Some(pos);
+                        events.push(Event::MapMarkerEvent(MapMarkerChange::Update(pos)));
+                        self.show.location_markers.owned = Some(pos);
                     },
                     map::Event::MapDrag(new_drag) => {
                         self.map_drag = new_drag;
                     },
-                    map::Event::ToggleMarker => {
-                        self.show.map_marker = !self.show.map_marker;
+                    map::Event::RemoveMarker => {
+                        self.show.location_markers.owned = None;
+                        events.push(Event::MapMarkerEvent(MapMarkerChange::Remove));
                     },
                 }
             }

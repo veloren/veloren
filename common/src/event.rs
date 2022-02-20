@@ -115,6 +115,7 @@ pub enum ServerEvent {
             Option<comp::Waypoint>,
             Vec<(comp::Pet, comp::Body, comp::Stats)>,
             comp::ActiveAbilities,
+            Option<comp::MapMarker>,
         ),
     },
     ExitIngame {
@@ -208,6 +209,10 @@ pub enum ServerEvent {
         slot: usize,
         auxiliary_key: comp::ability::AuxiliaryKey,
         new_ability: comp::ability::AuxiliaryAbility,
+    },
+    UpdateMapMarker {
+        entity: EcsEntity,
+        update: comp::MapMarkerChange,
     },
 }
 

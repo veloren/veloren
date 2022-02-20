@@ -2,7 +2,7 @@ use crate::{persistence::character_updater, presence::Presence, sys::SysSchedule
 use common::{
     comp::{
         pet::{is_tameable, Pet},
-        ActiveAbilities, Alignment, Body, Inventory, SkillSet, Stats, Waypoint,
+        ActiveAbilities, Alignment, Body, Inventory, MapMarker, SkillSet, Stats, Waypoint,
     },
     uid::Uid,
 };
@@ -22,6 +22,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Inventory>,
         ReadStorage<'a, Uid>,
         ReadStorage<'a, Waypoint>,
+        ReadStorage<'a, MapMarker>,
         ReadStorage<'a, Pet>,
         ReadStorage<'a, Stats>,
         ReadStorage<'a, ActiveAbilities>,
@@ -43,6 +44,7 @@ impl<'a> System<'a> for Sys {
             player_inventories,
             uids,
             player_waypoints,
+            map_markers,
             pets,
             stats,
             active_abilities,
@@ -59,6 +61,7 @@ impl<'a> System<'a> for Sys {
                     &uids,
                     player_waypoints.maybe(),
                     &active_abilities,
+                    map_markers.maybe(),
                 )
                     .join()
                     .filter_map(
@@ -69,6 +72,7 @@ impl<'a> System<'a> for Sys {
                             player_uid,
                             waypoint,
                             active_abilities,
+                            map_marker,
                         )| match presence.kind {
                             PresenceKind::Character(id) => {
                                 let pets = (&alignments, &bodies, &stats, &pets)
@@ -86,7 +90,15 @@ impl<'a> System<'a> for Sys {
                                     })
                                     .collect();
 
-                                Some((id, skill_set, inventory, pets, waypoint, active_abilities))
+                                Some((
+                                    id,
+                                    skill_set,
+                                    inventory,
+                                    pets,
+                                    waypoint,
+                                    active_abilities,
+                                    map_marker,
+                                ))
                             },
                             PresenceKind::Spectator => None,
                         },

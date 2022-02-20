@@ -887,6 +887,7 @@ impl Server {
                                 waypoint,
                                 pets,
                                 active_abilities,
+                                map_marker,
                             } = character_data;
                             let character_data = (
                                 body,
@@ -896,6 +897,7 @@ impl Server {
                                 waypoint,
                                 pets,
                                 active_abilities,
+                                map_marker,
                             );
                             ServerEvent::UpdateCharacterData {
                                 entity: query_result.entity,

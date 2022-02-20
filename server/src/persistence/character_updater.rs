@@ -25,6 +25,7 @@ pub type CharacterUpdateData = (
     Vec<PetPersistenceData>,
     Option<comp::Waypoint>,
     comp::ability::ActiveAbilities,
+    Option<comp::MapMarker>,
 );
 
 pub type PetPersistenceData = (comp::Pet, comp::Body, comp::Stats);
@@ -332,12 +333,21 @@ impl CharacterUpdater {
                 Vec<PetPersistenceData>,
                 Option<&'a comp::Waypoint>,
                 &'a comp::ability::ActiveAbilities,
+                Option<&'a comp::MapMarker>,
             ),
         >,
     ) {
         let updates = updates
             .map(
-                |(character_id, skill_set, inventory, pets, waypoint, active_abilities)| {
+                |(
+                    character_id,
+                    skill_set,
+                    inventory,
+                    pets,
+                    waypoint,
+                    active_abilities,
+                    map_marker,
+                )| {
                     (
                         character_id,
                         (
@@ -346,6 +356,7 @@ impl CharacterUpdater {
                             pets,
                             waypoint.cloned(),
                             active_abilities.clone(),
+                            map_marker.cloned(),
                         ),
                     )
                 },
@@ -388,7 +399,7 @@ fn execute_batch_update(
     transaction.set_drop_behavior(DropBehavior::Rollback);
     trace!("Transaction started for character batch update");
     updates.into_iter().try_for_each(
-        |(character_id, (stats, inventory, pets, waypoint, active_abilities))| {
+        |(character_id, (stats, inventory, pets, waypoint, active_abilities, map_marker))| {
             super::character::update(
                 character_id,
                 stats,
@@ -396,6 +407,7 @@ fn execute_batch_update(
                 pets,
                 waypoint,
                 active_abilities,
+                map_marker,
                 &mut transaction,
             )
         },

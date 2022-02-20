@@ -22,6 +22,8 @@ use specs::{Builder, Entity as EcsEntity, WorldExt};
 use std::time::Duration;
 use vek::{Rgb, Vec3};
 
+use super::group_manip::update_map_markers;
+
 pub fn handle_initialize_character(
     server: &mut Server,
     entity: EcsEntity,
@@ -35,6 +37,14 @@ pub fn handle_loaded_character_data(
     entity: EcsEntity,
     loaded_components: PersistedComponents,
 ) {
+    if let Some(marker) = loaded_components.map_marker {
+        server.notify_client(
+            entity,
+            ServerGeneral::MapMarker(comp::MapMarkerUpdate::Owned(comp::MapMarkerChange::Update(
+                marker.0,
+            ))),
+        );
+    }
     server
         .state
         .update_character_data(entity, loaded_components);
@@ -103,6 +113,7 @@ pub fn handle_create_npc(
         let uids = state.ecs().read_storage::<Uid>();
         let mut group_manager = state.ecs().write_resource::<comp::group::GroupManager>();
         if let Some(owner) = state.ecs().entity_from_uid(owner_uid.into()) {
+            let map_markers = state.ecs().read_storage::<comp::MapMarker>();
             group_manager.new_pet(
                 new_entity,
                 owner,
@@ -115,10 +126,13 @@ pub fn handle_create_npc(
                         .get(entity)
                         .and_then(|c| {
                             group_change
-                                .try_map(|e| uids.get(e).copied())
+                                .try_map_ref(|e| uids.get(*e).copied())
                                 .map(|g| (g, c))
                         })
                         .map(|(g, c)| {
+                            // Might be unneccessary, but maybe pets can somehow have map
+                            // markers in the future
+                            update_map_markers(&map_markers, &uids, c, &group_change);
                             c.send_fallible(ServerGeneral::GroupUpdate(g));
                         });
                 },

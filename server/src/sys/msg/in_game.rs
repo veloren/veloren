@@ -285,6 +285,9 @@ impl Sys {
                     .get_mut(entity)
                     .map(|mut skill_set| skill_set.persistence_load_error = None);
             },
+            ClientGeneral::UpdateMapMarker(update) => {
+                server_emitter.emit(ServerEvent::UpdateMapMarker { entity, update });
+            },
             ClientGeneral::RequestCharacterList
             | ClientGeneral::CreateCharacter { .. }
             | ClientGeneral::EditCharacter { .. }

@@ -308,6 +308,9 @@ impl SessionState {
                 client::Event::CharacterError(error) => {
                     global_state.client_error = Some(error);
                 },
+                client::Event::MapMarker(event) => {
+                    self.hud.show.update_map_markers(event);
+                },
             }
         }
 
@@ -1445,6 +1448,9 @@ impl PlayState for SessionState {
                         self.client
                             .borrow_mut()
                             .acknolwedge_persistence_load_error();
+                    },
+                    HudEvent::MapMarkerEvent(event) => {
+                        self.client.borrow_mut().map_marker_event(event);
                     },
                 }
             }

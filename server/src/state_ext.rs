@@ -1,5 +1,6 @@
 use crate::{
     client::Client,
+    events::update_map_markers,
     persistence::PersistedComponents,
     pet::restore_pet,
     presence::{Presence, RepositionOnChunkLoad},
@@ -526,6 +527,7 @@ impl StateExt for State {
             waypoint,
             pets,
             active_abilities,
+            map_marker,
         } = components;
 
         if let Some(player_uid) = self.read_component_copied::<Uid>(entity) {
@@ -570,6 +572,10 @@ impl StateExt for State {
                 self.write_component_ignore_entity_dead(entity, comp::Pos(waypoint.get_pos()));
                 self.write_component_ignore_entity_dead(entity, comp::Vel(Vec3::zero()));
                 self.write_component_ignore_entity_dead(entity, comp::ForceUpdate);
+            }
+
+            if let Some(map_marker) = map_marker {
+                self.write_component_ignore_entity_dead(entity, map_marker);
             }
 
             let player_pos = self.ecs().read_storage::<comp::Pos>().get(entity).copied();
@@ -885,6 +891,7 @@ impl StateExt for State {
             let clients = self.ecs().read_storage::<Client>();
             let uids = self.ecs().read_storage::<Uid>();
             let mut group_manager = self.ecs().write_resource::<comp::group::GroupManager>();
+            let map_markers = self.ecs().read_storage::<comp::MapMarker>();
             group_manager.entity_deleted(
                 entity,
                 &mut self.ecs().write_storage(),
@@ -896,10 +903,13 @@ impl StateExt for State {
                         .get(entity)
                         .and_then(|c| {
                             group_change
-                                .try_map(|e| uids.get(e).copied())
+                                .try_map_ref(|e| uids.get(*e).copied())
                                 .map(|g| (g, c))
                         })
-                        .map(|(g, c)| c.send(ServerGeneral::GroupUpdate(g)));
+                        .map(|(g, c)| {
+                            update_map_markers(&map_markers, &uids, c, &group_change);
+                            c.send_fallible(ServerGeneral::GroupUpdate(g));
+                        });
                 },
             );
         }

@@ -1,6 +1,6 @@
-use crate::client::Client;
+use crate::{client::Client, events::update_map_markers};
 use common::{
-    comp::{anchor::Anchor, group::GroupManager, Agent, Alignment, Pet},
+    comp::{self, anchor::Anchor, group::GroupManager, Agent, Alignment, Pet},
     uid::Uid,
 };
 use common_net::msg::ServerGeneral;
@@ -59,6 +59,7 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
     // Add to group system
     let clients = ecs.read_storage::<Client>();
     let mut group_manager = ecs.write_resource::<GroupManager>();
+    let map_markers = ecs.read_storage::<comp::MapMarker>();
     group_manager.new_pet(
         pet_entity,
         owner,
@@ -71,10 +72,15 @@ fn tame_pet_internal(ecs: &specs::World, pet_entity: Entity, owner: Entity, pet:
                 .get(entity)
                 .and_then(|c| {
                     group_change
-                        .try_map(|e| uids.get(e).copied())
+                        .try_map_ref(|e| uids.get(*e).copied())
                         .map(|g| (g, c))
                 })
-                .map(|(g, c)| c.send_fallible(ServerGeneral::GroupUpdate(g)));
+                .map(|(g, c)| {
+                    // Might be unneccessary, but maybe pets can somehow have map
+                    // markers in the future
+                    update_map_markers(&map_markers, &uids, c, &group_change);
+                    c.send_fallible(ServerGeneral::GroupUpdate(g));
+                });
         },
     );
 }

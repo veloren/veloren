@@ -30,7 +30,7 @@ use common::{
         slot::{EquipSlot, InvSlotId, Slot},
         CharacterState, ChatMode, ControlAction, ControlEvent, Controller, ControllerInputs,
         GroupManip, InputKind, InventoryAction, InventoryEvent, InventoryUpdateEvent,
-        UtteranceKind,
+        MapMarkerChange, UtteranceKind,
     },
     event::{EventBus, LocalEvent},
     grid::Grid,
@@ -112,6 +112,7 @@ pub enum Event {
     CharacterCreated(CharacterId),
     CharacterEdited(CharacterId),
     CharacterError(String),
+    MapMarker(comp::MapMarkerUpdate),
 }
 
 pub struct WorldData {
@@ -759,7 +760,8 @@ impl Client {
                     | ClientGeneral::UnlockSkillGroup(_)
                     | ClientGeneral::RequestPlayerPhysics { .. }
                     | ClientGeneral::RequestLossyTerrainCompression { .. }
-                    | ClientGeneral::AcknowledgePersistenceLoadError => {
+                    | ClientGeneral::AcknowledgePersistenceLoadError
+                    | ClientGeneral::UpdateMapMarker(_) => {
                         #[cfg(feature = "tracy")]
                         {
                             ingame = 1.0;
@@ -1188,6 +1190,10 @@ impl Client {
         {
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::Respawn));
         }
+    }
+
+    pub fn map_marker_event(&mut self, event: MapMarkerChange) {
+        self.send_msg(ClientGeneral::UpdateMapMarker(event));
     }
 
     /// Checks whether a player can swap their weapon+ability `Loadout` settings
@@ -1909,6 +1915,9 @@ impl Client {
                                     self.personalize_alias(uid, player_info.player_alias.clone())
                                 )),
                             ));
+                            frontend_events.push(Event::MapMarker(
+                                comp::MapMarkerUpdate::GroupMember(uid, MapMarkerChange::Remove),
+                            ));
                         }
                         if self.group_members.remove(&uid).is_none() {
                             warn!(
@@ -1931,10 +1940,12 @@ impl Client {
                         if let Some(uid) = self.uid() {
                             self.group_members.remove(&uid);
                         }
+                        frontend_events.push(Event::MapMarker(comp::MapMarkerUpdate::ClearGroup));
                     },
                     NoGroup => {
                         self.group_leader = None;
                         self.group_members = HashMap::new();
+                        frontend_events.push(Event::MapMarker(comp::MapMarkerUpdate::ClearGroup));
                     },
                 }
             },
@@ -2031,6 +2042,9 @@ impl Client {
                 if let Some(rich) = self.sites_mut().get_mut(&economy.id) {
                     rich.economy = Some(economy);
                 }
+            },
+            ServerGeneral::MapMarker(event) => {
+                frontend_events.push(Event::MapMarker(event));
             },
             _ => unreachable!("Not a in_game message"),
         }

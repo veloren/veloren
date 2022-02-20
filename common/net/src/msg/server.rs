@@ -189,6 +189,7 @@ pub enum ServerGeneral {
     FinishedTrade(TradeResult),
     /// Economic information about sites
     SiteEconomy(EconomyInfo),
+    MapMarker(comp::MapMarkerUpdate),
 }
 
 impl ServerGeneral {
@@ -298,7 +299,8 @@ impl ServerMsg {
                         | ServerGeneral::Knockback(_)
                         | ServerGeneral::UpdatePendingTrade(_, _, _)
                         | ServerGeneral::FinishedTrade(_)
-                        | ServerGeneral::SiteEconomy(_) => {
+                        | ServerGeneral::SiteEconomy(_)
+                        | ServerGeneral::MapMarker(_) => {
                             c_type == ClientType::Game && presence.is_some()
                         },
                         // Always possible

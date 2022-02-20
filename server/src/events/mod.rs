@@ -12,7 +12,7 @@ use entity_manipulation::{
     handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_combo_change,
     handle_delete, handle_destroy, handle_energy_change, handle_entity_attacked_hook,
     handle_explosion, handle_health_change, handle_knockback, handle_land_on_ground, handle_parry,
-    handle_poise, handle_respawn, handle_teleport_to,
+    handle_poise, handle_respawn, handle_teleport_to, handle_update_map_marker,
 };
 use group_manip::handle_group;
 use information::handle_site_info;
@@ -25,6 +25,8 @@ use invite::{handle_invite, handle_invite_response};
 use player::{handle_client_disconnect, handle_exit_ingame};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use trade::{cancel_trade_for, handle_process_trade_action};
+
+pub use group_manip::update_map_markers;
 
 mod entity_creation;
 mod entity_manipulation;
@@ -132,8 +134,16 @@ impl Server {
                     character_id,
                 } => handle_initialize_character(self, entity, character_id),
                 ServerEvent::UpdateCharacterData { entity, components } => {
-                    let (body, stats, skill_set, inventory, waypoint, pets, active_abilities) =
-                        components;
+                    let (
+                        body,
+                        stats,
+                        skill_set,
+                        inventory,
+                        waypoint,
+                        pets,
+                        active_abilities,
+                        map_marker,
+                    ) = components;
                     let components = PersistedComponents {
                         body,
                         stats,
@@ -142,6 +152,7 @@ impl Server {
                         waypoint,
                         pets,
                         active_abilities,
+                        map_marker,
                     };
                     handle_loaded_character_data(self, entity, components);
                 },
@@ -253,6 +264,9 @@ impl Server {
                     auxiliary_key,
                     new_ability,
                 } => handle_change_ability(self, entity, slot, auxiliary_key, new_ability),
+                ServerEvent::UpdateMapMarker { entity, update } => {
+                    handle_update_map_marker(self, entity, update)
+                },
             }
         }
 

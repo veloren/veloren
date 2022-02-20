@@ -217,28 +217,30 @@ pub fn convert_body_to_database_json(
     })
 }
 
-pub fn convert_waypoint_to_database_json(waypoint: Option<Waypoint>) -> Option<String> {
-    match waypoint {
-        Some(w) => {
-            let charpos = CharacterPosition {
-                waypoint: w.get_pos(),
-            };
-            Some(
-                serde_json::to_string(&charpos)
-                    .map_err(|err| {
-                        PersistenceError::ConversionError(format!(
-                            "Error encoding waypoint: {:?}",
-                            err
-                        ))
-                    })
-                    .ok()?,
-            )
-        },
-        None => None,
+pub fn convert_waypoint_to_database_json(
+    waypoint: Option<Waypoint>,
+    map_marker: Option<MapMarker>,
+) -> Option<String> {
+    if waypoint.is_some() || map_marker.is_some() {
+        let charpos = CharacterPosition {
+            waypoint: waypoint.map(|w| w.get_pos()),
+            map_marker: map_marker.map(|m| m.0),
+        };
+        Some(
+            serde_json::to_string(&charpos)
+                .map_err(|err| {
+                    PersistenceError::ConversionError(format!("Error encoding waypoint: {:?}", err))
+                })
+                .ok()?,
+        )
+    } else {
+        None
     }
 }
 
-pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, PersistenceError> {
+pub fn convert_waypoint_from_database_json(
+    position: &str,
+) -> Result<(Option<Waypoint>, Option<MapMarker>), PersistenceError> {
     let character_position =
         serde_json::de::from_str::<CharacterPosition>(position).map_err(|err| {
             PersistenceError::ConversionError(format!(
@@ -246,7 +248,12 @@ pub fn convert_waypoint_from_database_json(position: &str) -> Result<Waypoint, P
                 position, err
             ))
         })?;
-    Ok(Waypoint::new(character_position.waypoint, Time(0.0)))
+    Ok((
+        character_position
+            .waypoint
+            .map(|pos| Waypoint::new(pos, Time(0.0))),
+        character_position.map_marker.map(MapMarker),
+    ))
 }
 
 /// Properly-recursive items (currently modular weapons) occupy the same

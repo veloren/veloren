@@ -1,6 +1,6 @@
 use super::{
     img_ids::{Imgs, ImgsRot},
-    Show, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE, TEXT_BG,
+    MapMarkers, QUALITY_COMMON, QUALITY_EPIC, QUALITY_HIGH, QUALITY_LOW, QUALITY_MODERATE, TEXT_BG,
     TEXT_BLUE_COLOR, TEXT_COLOR, TEXT_GRAY_COLOR, TEXT_VELORITE, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::{
@@ -51,6 +51,7 @@ widget_ids! {
         member_indicators[],
         member_height_indicators[],
         location_marker,
+        location_marker_group[],
         map_settings_align,
         show_towns_img,
         show_towns_box,
@@ -98,7 +99,6 @@ const SHOW_ECONOMY: bool = false; // turn this display off (for 0.9) until we ha
 
 #[derive(WidgetCommon)]
 pub struct Map<'a> {
-    show: &'a Show,
     client: &'a Client,
     world_map: &'a (Vec<img_ids::Rotations>, Vec2<u32>),
     imgs: &'a Imgs,
@@ -110,12 +110,11 @@ pub struct Map<'a> {
     global_state: &'a GlobalState,
     rot_imgs: &'a ImgsRot,
     tooltip_manager: &'a mut TooltipManager,
-    location_marker: Option<Vec2<f32>>,
+    location_markers: &'a MapMarkers,
     map_drag: Vec2<f64>,
 }
 impl<'a> Map<'a> {
     pub fn new(
-        show: &'a Show,
         client: &'a Client,
         imgs: &'a Imgs,
         rot_imgs: &'a ImgsRot,
@@ -125,11 +124,10 @@ impl<'a> Map<'a> {
         localized_strings: &'a Localization,
         global_state: &'a GlobalState,
         tooltip_manager: &'a mut TooltipManager,
-        location_marker: Option<Vec2<f32>>,
+        location_markers: &'a MapMarkers,
         map_drag: Vec2<f64>,
     ) -> Self {
         Self {
-            show,
             imgs,
             rot_imgs,
             world_map,
@@ -140,7 +138,7 @@ impl<'a> Map<'a> {
             localized_strings,
             global_state,
             tooltip_manager,
-            location_marker,
+            location_markers,
             map_drag,
         }
     }
@@ -154,9 +152,9 @@ pub enum Event {
     SettingsChange(InterfaceChange),
     Close,
     RequestSiteInfo(SiteId),
-    SetLocationMarker(Vec2<f32>),
+    SetLocationMarker(Vec2<i32>),
     MapDrag(Vec2<f64>),
-    ToggleMarker,
+    RemoveMarker,
 }
 
 fn get_site_economy(site_rich: &SiteInfoRich) -> String {
@@ -370,16 +368,15 @@ impl<'a> Widget for Map<'a> {
                 .next()
             {
                 match wpos {
-                    Some(ref wpos) => events.push(Event::SetLocationMarker(*wpos)),
+                    Some(ref wpos) => events.push(Event::SetLocationMarker(wpos.as_())),
                     None => {
                         let tmp: Vec2<f64> = Vec2::<f64>::from(click.xy) / zoom - drag;
                         let wpos = tmp
                             .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e as f32 * sz as f32)
                             + player_pos;
-                        events.push(Event::SetLocationMarker(wpos));
+                        events.push(Event::SetLocationMarker(wpos.as_()));
                     },
                 }
-                events.push(Event::ToggleMarker);
             }
 
             // Handle zooming with the mousewheel
@@ -1220,18 +1217,36 @@ impl<'a> Widget for Map<'a> {
             }
         }
 
-        // Location marker
-        if self.show.map_marker {
-            let factor = 1.4;
-            let side_length = 20.0 * factor;
-            if let Some((lm, (rpos, fade))) = self.location_marker.and_then(|lm| {
-                Some(lm).zip(wpos_to_rpos_fade(
-                    lm,
-                    Vec2::from(side_length / 2.0),
-                    side_length / 2.0,
-                ))
-            }) {
-                if Button::image(self.imgs.location_marker)
+        let factor = 1.4;
+        let side_length = 20.0 * factor;
+        // Groups location markers
+        if state.ids.location_marker_group.len() < self.location_markers.group.len() {
+            state.update(|s| {
+                s.ids.location_marker_group.resize(
+                    self.location_markers.group.len(),
+                    &mut ui.widget_id_generator(),
+                )
+            })
+        };
+        for (i, (&uid, &rpos)) in self.location_markers.group.iter().enumerate() {
+            let lm = rpos.as_();
+            if let Some((rpos, fade)) =
+                wpos_to_rpos_fade(lm, Vec2::from(side_length / 2.0), side_length / 2.0)
+            {
+                let name = self
+                    .client
+                    .player_list()
+                    .get(&uid)
+                    .map(|info| info.player_alias.as_str())
+                    .or_else(|| {
+                        uid_allocator
+                            .retrieve_entity_internal(uid.into())
+                            .and_then(|entity| stats.get(entity))
+                            .map(|stats| stats.name.as_str())
+                    })
+                    .unwrap_or("");
+
+                Button::image(self.imgs.location_marker_group)
                     .x_y_position_relative_to(
                         state.ids.map_layers[0],
                         position::Relative::Scalar(rpos.x as f64),
@@ -1247,25 +1262,57 @@ impl<'a> Widget for Map<'a> {
                             "X: {}, Y: {}\n\n{}",
                             lm.x as i32,
                             lm.y as i32,
-                            i18n.get("hud.map.marked_location_remove")
+                            i18n.get("hud.map.placed_by").replace("{name}", name),
                         ),
                         &site_tooltip,
                         TEXT_VELORITE,
                     )
-                    .set(state.ids.location_marker, ui)
-                    .was_clicked()
-                {
-                    events.push(Event::ToggleMarker);
-                }
-
-                handle_widget_mouse_events(
-                    state.ids.location_marker,
-                    Some(Vec2::new(0.0, 0.0)),
-                    ui,
-                    &mut events,
-                    state.ids.map_layers[0],
-                );
+                    .set(state.ids.location_marker_group[i], ui);
             }
+        }
+        // Location marker
+        if let Some((lm, (rpos, fade))) = self.location_markers.owned.and_then(|lm| {
+            let lm = lm.as_();
+            Some(lm).zip(wpos_to_rpos_fade(
+                lm,
+                Vec2::from(side_length / 2.0),
+                side_length / 2.0,
+            ))
+        }) {
+            if Button::image(self.imgs.location_marker)
+                .x_y_position_relative_to(
+                    state.ids.map_layers[0],
+                    position::Relative::Scalar(rpos.x as f64),
+                    position::Relative::Scalar(rpos.y as f64 + 10.0 * factor as f64),
+                )
+                .w_h(side_length as f64, side_length as f64)
+                .image_color(Color::Rgba(1.0, 1.0, 1.0, fade))
+                .floating(true)
+                .with_tooltip(
+                    self.tooltip_manager,
+                    i18n.get("hud.map.marked_location"),
+                    &format!(
+                        "X: {}, Y: {}\n\n{}",
+                        lm.x as i32,
+                        lm.y as i32,
+                        i18n.get("hud.map.marked_location_remove")
+                    ),
+                    &site_tooltip,
+                    TEXT_VELORITE,
+                )
+                .set(state.ids.location_marker, ui)
+                .was_clicked()
+            {
+                events.push(Event::RemoveMarker);
+            }
+
+            handle_widget_mouse_events(
+                state.ids.location_marker,
+                Some(Vec2::new(0.0, 0.0)),
+                ui,
+                &mut events,
+                state.ids.map_layers[0],
+            );
         }
 
         // Cursor pos relative to playerpos and widget size
