@@ -172,6 +172,9 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             return;
         }
 
+        // TODO: Limit possessible entities to those in the client's subscribed
+        // regions.
+
         // Transfer client component. Note: we require this component for possession.
         if let Some(client) = clients.remove(possessor) {
             client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
@@ -274,10 +277,8 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         // Remove will of the entity
         ecs.write_storage::<comp::Agent>().remove(possesse);
         // Reset controller of former shell
-        // TODO: client needs to do this on their side as well since we don't sync
-        // controllers.
         if let Some(c) = ecs.write_storage::<comp::Controller>().get_mut(possessor) {
-            c.reset();
+            *c = Default::default();
         }
 
         let clients = ecs.read_storage::<Client>();

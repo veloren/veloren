@@ -1828,7 +1828,19 @@ impl Client {
             },
             ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
-                    *self.state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
+                    let old_player_entity = core::mem::replace(
+                        &mut *self.state.ecs_mut().write_resource(),
+                        PlayerEntity(Some(entity)),
+                    );
+                    if let Some(old_entity) = old_player_entity.0 {
+                        // Transfer controller to the new entity.
+                        let mut controllers = self.state.ecs().write_storage::<Controller>();
+                        if let Some(controller) = controllers.remove(old_entity) {
+                            if let Err(e) = controllers.insert(entity, controller) {
+                                error!(?e, "Failed to insert controller when setting new player entity!");
+                            }
+                        }
+                    }
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".to_owned()));
                 }
