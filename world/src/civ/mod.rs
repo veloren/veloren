@@ -1212,11 +1212,13 @@ impl SiteKind {
                 let forestry_score = if has_river { tree_chunks } else { 0 };
                 let trading_score =
                     std::cmp::min(std::cmp::min(land_chunks, ocean_chunks), river_chunks);
-                let industry_score =
-                    3 * food_score + 2 * forestry_score + mining_score + trading_score;
+                let industry_score = 3.0 * (food_score as f32 + 1.0).log2()
+                    + 2.0 * (forestry_score as f32 + 1.0).log2()
+                    + (mining_score as f32 + 1.0).log2()
+                    + (trading_score as f32 + 1.0).log2();
                 has_potable_water
                     && has_building_materials
-                    && industry_score > 10
+                    && industry_score > 6.0
                     && warm_or_firewood
             },
             _ => true,
