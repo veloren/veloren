@@ -1,3 +1,8 @@
+use std::time::Duration;
+
+use rand::{prelude::*, rngs::SmallRng};
+use vek::*;
+
 use common::{
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
@@ -6,9 +11,7 @@ use common::{
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
-use rand::{prelude::*, rngs::SmallRng};
-use std::time::Duration;
-use vek::*;
+use common::calendar::Calendar;
 
 const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
     if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 1, y: 1 }) {
@@ -46,7 +49,7 @@ impl World {
         _index: IndexRef,
         chunk_pos: Vec2<i32>,
         _should_continue: impl FnMut() -> bool,
-        _time: Option<TimeOfDay>,
+        _time: Option<(TimeOfDay, Calendar)>,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let (x, y) = chunk_pos.map(|e| e.to_le_bytes()).into_tuple();
         let mut rng = SmallRng::from_seed([
