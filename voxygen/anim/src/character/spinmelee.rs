@@ -39,10 +39,18 @@ impl Animation for SpinMeleeAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powf(2.0)),
             _ => (0.0, 0.0, 0.0),
         };
+
         let pullback = 1.0 - movement3;
         let move1 = movement1 * pullback;
         let move2 = movement2 * pullback;
         let mut next = (*skeleton).clone();
+        if matches!(
+            stage_section,
+            Some(StageSection::Action | StageSection::Recover)
+        ) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_z(0.0);
         next.second.position = Vec3::new(0.0, 0.0, 0.0);

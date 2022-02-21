@@ -54,7 +54,13 @@ impl Animation for ChargeswingAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
-
+        if matches!(
+            stage_section,
+            Some(StageSection::Charge | StageSection::Action | StageSection::Recover)
+        ) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
         let pullback = 1.0 - movement3;
         let move1 = move1base * pullback;
         let move2 = move2base * pullback;

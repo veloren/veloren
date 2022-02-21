@@ -46,40 +46,36 @@ impl Animation for AlphaAnimation {
         next.second.orientation = Quaternion::rotation_z(0.0);
         next.torso.position = Vec3::new(0.0, 0.0, 1.1);
         next.torso.orientation = Quaternion::rotation_z(0.0);
-
+        if matches!(
+            stage_section,
+            Some(StageSection::Action | StageSection::Recover)
+        ) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
         match ability_info.and_then(|a| a.tool) {
             Some(ToolKind::Sword | ToolKind::Dagger) => {
-                if matches!(
-                    stage_section,
-                    Some(StageSection::Action | StageSection::Recover)
-                ) {
-                    next.main_weapon_trail = true;
-                }
                 next.main.position = Vec3::new(0.0, 0.0, 0.0);
                 next.main.orientation = Quaternion::rotation_x(0.0);
 
-                next.chest.orientation =
-                    Quaternion::rotation_z(move1 * 1.1 + move2 * -2.0 + move3 * 0.2);
+                next.chest.orientation = Quaternion::rotation_z(move1 * 1.1 + move2 * -2.0);
 
                 next.head.position = Vec3::new(0.0 + move2 * 2.0, s_a.head.0, s_a.head.1);
-                next.head.orientation =
-                    Quaternion::rotation_z(move1 * -0.9 + move2 * 1.8 + move3 * -0.2);
+                next.head.orientation = Quaternion::rotation_z(move1 * -0.9 + move2 * 1.8);
             },
 
             Some(ToolKind::Axe) => {
-                let (move1, move2, move3) = match stage_section {
+                let (move1, move2, _move3) = match stage_section {
                     Some(StageSection::Buildup) => (anim_time.powf(0.25), 0.0, 0.0),
                     Some(StageSection::Action) => (1.0, anim_time, 0.0),
                     Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4)),
                     _ => (0.0, 0.0, 0.0),
                 };
                 next.head.position = Vec3::new(move2 * 2.0, s_a.head.0 + move2 * 2.0, s_a.head.1);
-                next.chest.orientation =
-                    Quaternion::rotation_x(0.0 + move1 * 0.6 + move2 * -0.6 + move3 * 0.4)
-                        * Quaternion::rotation_y(0.0 + move1 * 0.0 + move2 * 0.0 + move3 * 0.0)
-                        * Quaternion::rotation_z(0.0 + move1 * 1.5 + move2 * -2.5 + move3 * 1.5);
-                next.head.orientation =
-                    Quaternion::rotation_z(0.0 + move1 * -1.5 + move2 * 2.5 + move3 * -1.0);
+                next.chest.orientation = Quaternion::rotation_x(0.0 + move1 * 0.6 + move2 * -0.6)
+                    * Quaternion::rotation_y(0.0 + move1 * 0.0 + move2 * 0.0)
+                    * Quaternion::rotation_z(0.0 + move1 * 1.5 + move2 * -2.5);
+                next.head.orientation = Quaternion::rotation_z(0.0 + move1 * -1.5 + move2 * 2.5);
             },
 
             Some(ToolKind::Hammer) | Some(ToolKind::Pick) => {

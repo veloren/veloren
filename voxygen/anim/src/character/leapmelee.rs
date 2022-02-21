@@ -42,6 +42,13 @@ impl Animation for LeapAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, 1.0, anim_time.powf(0.75)),
             _ => (0.0, 0.0, 0.0, 0.0),
         };
+        if matches!(
+            stage_section,
+            Some(StageSection::Movement | StageSection::Action | StageSection::Recover)
+        ) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
         let pullback = 1.0 - move4;
         let move1 = movement1 * pullback;
         let move2 = movement2 * pullback;

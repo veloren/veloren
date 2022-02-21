@@ -815,7 +815,7 @@ impl FigureMgr {
                 .unwrap_or_else(|| vek::Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
             * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
-                vek::Rgba::new(5.0, 5.0, 5.0, 1.0)
+                vek::Rgba::new(1.5, 1.5, 1.5, 1.0)
             } else {
                 vek::Rgba::one()
             };
@@ -6456,6 +6456,8 @@ impl<S: Skeleton> FigureState<S> {
                     // TODO: Make sure these are good positions, only did tweaking on sword
                     Some(ToolKind::Axe) => (10.0, 19.25),
                     Some(ToolKind::Hammer) => (10.0, 19.25),
+                    Some(ToolKind::Staff) => (10.0, 19.25),
+                    Some(ToolKind::Sceptre) => (10.0, 19.25),
                     _ => (0.0, 0.0),
                 };
                 (
