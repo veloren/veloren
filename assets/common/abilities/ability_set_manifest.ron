@@ -4,7 +4,9 @@
     Tool(Sword): (
         primary: "common.abilities.sword.balancedstance",
         secondary: "common.abilities.sword.lunge",
-        abilities: [],
+        abilities: [
+            (None, "common.abilities.sword.testfinisher"),
+        ],
     ),
     Tool(Axe): (
         primary: "common.abilities.axe.doublestrike",

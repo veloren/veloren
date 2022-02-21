@@ -405,7 +405,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::SpriteInteract(_)
             | CharacterState::Skate(_)
             | CharacterState::Wallrun(_)
-            | CharacterState::ComboMelee2(_) => Self::Other,
+            | CharacterState::ComboMelee2(_)
+            | CharacterState::FinisherMelee(_) => Self::Other,
         }
     }
 }
@@ -657,6 +658,19 @@ pub enum CharacterAbility {
     Music {
         play_duration: f32,
         ori_modifier: f32,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
+    FinisherMelee {
+        energy_cost: f32,
+        buildup_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        melee_constructor: MeleeConstructor,
+        minimum_combo: u32,
+        scaling: Option<finisher_melee::Scaling>,
+        #[serde(default)]
+        meta: AbilityMeta,
     },
 }
 
@@ -727,6 +741,14 @@ impl CharacterAbility {
             } => {
                 ((*scales_with_combo && data.combo.map_or(false, |c| c.counter() > 0))
                     | !*scales_with_combo)
+                    && update.energy.try_change_by(-*energy_cost).is_ok()
+            },
+            CharacterAbility::FinisherMelee {
+                energy_cost,
+                minimum_combo,
+                ..
+            } => {
+                data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::ComboMelee { .. }
@@ -1144,8 +1166,25 @@ impl CharacterAbility {
             Music {
                 ref mut play_duration,
                 ori_modifier: _,
+                meta: _,
             } => {
                 *play_duration /= stats.speed;
+            },
+            FinisherMelee {
+                ref mut energy_cost,
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut melee_constructor,
+                minimum_combo: _,
+                scaling: _,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *swing_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
         }
         self
@@ -1166,7 +1205,8 @@ impl CharacterAbility {
             | Shockwave { energy_cost, .. }
             | BasicAura { energy_cost, .. }
             | BasicBlock { energy_cost, .. }
-            | SelfBuff { energy_cost, .. } => *energy_cost,
+            | SelfBuff { energy_cost, .. }
+            | FinisherMelee { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1207,7 +1247,9 @@ impl CharacterAbility {
             | ComboMelee2 { meta, .. }
             | Blink { meta, .. }
             | BasicSummon { meta, .. }
-            | SpriteSummon { meta, .. } => *meta,
+            | SpriteSummon { meta, .. }
+            | FinisherMelee { meta, .. }
+            | Music { meta, .. } => *meta,
         }
     }
 
@@ -1221,6 +1263,9 @@ impl CharacterAbility {
                     use CharacterAbility::*;
                     match &mut self {
                         BasicMelee { energy_cost, .. } => {
+                            *energy_cost *= ENERGY_REDUCTION;
+                        },
+                        FinisherMelee { energy_cost, .. } => {
                             *energy_cost *= ENERGY_REDUCTION;
                         },
                         _ => {},
@@ -2271,6 +2316,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             CharacterAbility::Music {
                 play_duration,
                 ori_modifier,
+                meta: _,
             } => CharacterState::Music(music::Data {
                 static_data: music::StaticData {
                     play_duration: Duration::from_secs_f32(*play_duration),
@@ -2279,6 +2325,30 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 },
                 timer: Duration::default(),
                 stage_section: StageSection::Action,
+                exhausted: false,
+            }),
+            CharacterAbility::FinisherMelee {
+                energy_cost: _,
+                buildup_duration,
+                swing_duration,
+                recover_duration,
+                melee_constructor,
+                minimum_combo,
+                scaling,
+                meta: _,
+            } => CharacterState::FinisherMelee(finisher_melee::Data {
+                static_data: finisher_melee::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee_constructor: *melee_constructor,
+                    scaling: *scaling,
+                    minimum_combo: *minimum_combo,
+                    combo_on_use: data.combo.map_or(0, |c| c.counter()),
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
         }

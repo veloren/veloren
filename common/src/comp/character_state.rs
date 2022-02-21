@@ -129,6 +129,8 @@ pub enum CharacterState {
     Skate(skate::Data),
     /// Play music instrument
     Music(music::Data),
+    /// Melee attack that scales off and consumes combo
+    FinisherMelee(finisher_melee::Data),
 }
 
 impl CharacterState {
@@ -163,6 +165,7 @@ impl CharacterState {
                     was_wielded: true,
                     ..
                 })
+                | CharacterState::FinisherMelee(_)
         )
     }
 
@@ -202,6 +205,7 @@ impl CharacterState {
                 | CharacterState::Blink(_)
                 | CharacterState::BasicSummon(_)
                 | CharacterState::SpriteSummon(_)
+                | CharacterState::FinisherMelee(_)
         )
     }
 
@@ -224,6 +228,7 @@ impl CharacterState {
                 | CharacterState::UseItem(_)
                 | CharacterState::Wielding(_)
                 | CharacterState::Talk
+                | CharacterState::FinisherMelee(_)
         )
     }
 
@@ -354,6 +359,7 @@ impl CharacterState {
             CharacterState::SpriteInteract(data) => data.behavior(j, output_events),
             CharacterState::Skate(data) => data.behavior(j, output_events),
             CharacterState::Music(data) => data.behavior(j, output_events),
+            CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
         }
     }
 
@@ -403,6 +409,7 @@ impl CharacterState {
             CharacterState::SpriteInteract(data) => data.handle_event(j, output_events, action),
             CharacterState::Skate(data) => data.handle_event(j, output_events, action),
             CharacterState::Music(data) => data.handle_event(j, output_events, action),
+            CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -449,6 +456,9 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => Some(data.static_data.ability_info),
             CharacterState::UseItem(_) => None,
             CharacterState::SpriteInteract(_) => None,
+            CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::Music(data) => Some(data.static_data.ability_info),
+            CharacterState::Skate(_) => None,
         }
     }
 
@@ -487,6 +497,9 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => Some(data.stage_section),
             CharacterState::UseItem(data) => Some(data.stage_section),
             CharacterState::SpriteInteract(data) => Some(data.stage_section),
+            CharacterState::FinisherMelee(data) => Some(data.stage_section),
+            CharacterState::Music(data) => Some(data.stage_section),
+            CharacterState::Skate(_) => None,
         }
     }
 }
