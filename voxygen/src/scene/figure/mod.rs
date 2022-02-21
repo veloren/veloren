@@ -6474,7 +6474,7 @@ impl<S: Skeleton> FigureState<S> {
         if let (Some(trail_mgr), Some(entity)) = (trail_mgr, entity) {
             handle_weapon_trails(
                 trail_mgr,
-                offsets.main_weapon_trail_mat,
+                offsets.primary_trail_mat,
                 &mut self.main_abs_trail_points,
                 *entity,
                 true,
@@ -6483,7 +6483,7 @@ impl<S: Skeleton> FigureState<S> {
             );
             handle_weapon_trails(
                 trail_mgr,
-                offsets.off_weapon_trail_mat,
+                offsets.secondary_trail_mat,
                 &mut self.off_abs_trail_points,
                 *entity,
                 false,
