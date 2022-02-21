@@ -18,6 +18,7 @@ use common::{
     link::Is,
     mounting::{Mount, Mounting, Rider},
     outcome::Outcome,
+    region::RegionMap,
     terrain::{Block, SpriteKind},
     uid::Uid,
     vol::ReadVol,
@@ -172,8 +173,20 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             return;
         }
 
-        // TODO: Limit possessible entities to those in the client's subscribed
-        // regions.
+        // Limit possessible entities to those in the client's subscribed regions (so
+        // that the entity already exists on the client, reduces the amount of
+        // syncing edge cases to consider).
+        let mut subscriptions = ecs.write_storage::<RegionSubscription>();
+        let region_map = ecs.read_resource::<RegionMap>();
+        let possesse_in_subscribed_region = subscriptions
+            .get(possessor)
+            .iter()
+            .flat_map(|s| s.regions.iter())
+            .filter_map(|key| region_map.get(*key))
+            .any(|region| region.entities().contains(possesse.id()));
+        if !possesse_in_subscribed_region {
+            return;
+        }
 
         // Transfer client component. Note: we require this component for possession.
         if let Some(client) = clients.remove(possessor) {
@@ -214,13 +227,11 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             }
         }
 
-        transfer_component(&mut players, possessor, possesse);
-
         let mut presence = ecs.write_storage::<Presence>();
-        let mut subscriptions = ecs.write_storage::<RegionSubscription>();
         let mut admins = ecs.write_storage::<comp::Admin>();
         let mut waypoints = ecs.write_storage::<comp::Waypoint>();
 
+        transfer_component(&mut players, possessor, possesse);
         transfer_component(&mut presence, possessor, possesse);
         transfer_component(&mut subscriptions, possessor, possesse);
         transfer_component(&mut admins, possessor, possesse);
