@@ -1,9 +1,5 @@
-use std::time::Duration;
-
-use rand::{prelude::*, rngs::SmallRng};
-use vek::*;
-
 use common::{
+    calendar::Calendar,
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
     terrain::{
@@ -11,7 +7,9 @@ use common::{
     },
     vol::{ReadVol, RectVolSize, WriteVol},
 };
-use common::calendar::Calendar;
+use rand::{prelude::*, rngs::SmallRng};
+use std::time::Duration;
+use vek::*;
 
 const DEFAULT_WORLD_CHUNKS_LG: MapSizeLg =
     if let Ok(map_size_lg) = MapSizeLg::new(Vec2 { x: 1, y: 1 }) {
