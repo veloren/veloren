@@ -69,6 +69,7 @@ pub mod vek;
 
 use self::vek::*;
 use bytemuck::{Pod, Zeroable};
+use common::comp::tool::ToolKind;
 #[cfg(feature = "use-dyn-lib")]
 use {
     lazy_static::lazy_static, std::ffi::CStr, std::sync::Arc, std::sync::Mutex,
@@ -103,8 +104,8 @@ pub fn init() { lazy_static::initialize(&LIB); }
 pub struct Offsets {
     pub lantern: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
-    pub main_weapon_trail_mat: Option<Mat4<f32>>,
-    pub off_weapon_trail_mat: Option<Mat4<f32>>,
+    pub main_weapon_trail_mat: Option<(Mat4<f32>, fn(Option<ToolKind>) -> (Vec4<f32>, Vec4<f32>))>,
+    pub off_weapon_trail_mat: Option<(Mat4<f32>, fn(Option<ToolKind>) -> (Vec4<f32>, Vec4<f32>))>,
 }
 
 pub trait Skeleton: Send + Sync + 'static {

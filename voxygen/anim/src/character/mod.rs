@@ -50,7 +50,7 @@ pub use self::{
     talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
 };
 use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
-use common::comp;
+use common::comp::{self, tool::ToolKind};
 use core::{convert::TryFrom, f32::consts::PI};
 
 pub type Body = comp::humanoid::Body;
@@ -149,6 +149,20 @@ impl Skeleton for CharacterSkeleton {
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
+        let weapon_offsets = |tool| {
+            let lengths = match tool {
+                Some(ToolKind::Sword) => (0.0, 29.25),
+                Some(ToolKind::Axe) => (10.0, 19.25),
+                Some(ToolKind::Hammer) => (10.0, 19.25),
+                Some(ToolKind::Staff) => (10.0, 19.25),
+                Some(ToolKind::Sceptre) => (10.0, 19.25),
+                _ => (0.0, 0.0),
+            };
+            (
+                Vec4::new(0.0, 0.0, lengths.0, 1.0),
+                Vec4::new(0.0, 0.0, lengths.1, 1.0),
+            )
+        };
         Offsets {
             lantern: Some((lantern_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
@@ -159,8 +173,10 @@ impl Skeleton for CharacterSkeleton {
                     .into(),
                 ..Default::default()
             },
-            main_weapon_trail_mat: self.main_weapon_trail.then_some(main_mat),
-            off_weapon_trail_mat: self.off_weapon_trail.then_some(second_mat),
+            main_weapon_trail_mat: self.main_weapon_trail.then_some((main_mat, weapon_offsets)),
+            off_weapon_trail_mat: self
+                .off_weapon_trail
+                .then_some((second_mat, weapon_offsets)),
         }
     }
 }
