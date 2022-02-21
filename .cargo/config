@@ -10,7 +10,7 @@ csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv
 csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
 # server-cli
 server = "run --bin veloren-server-cli"
-test-server = "run --bin veloren-server-cli --no-default-features simd"
+test-server = "run --bin veloren-server-cli --no-default-features --features simd"
 tracy-server = "run --bin veloren-server-cli --no-default-features --features tracy,simd --profile no_overflow"
 tracy-world-server = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow"
 tracy-world-server-debuginfo = "run --bin veloren-server-cli --features tracy,simd --profile no_overflow_debuginfo"

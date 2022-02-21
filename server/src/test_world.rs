@@ -1,4 +1,5 @@
 use common::{
+    calendar::Calendar,
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
     terrain::{
@@ -46,7 +47,7 @@ impl World {
         _index: IndexRef,
         chunk_pos: Vec2<i32>,
         _should_continue: impl FnMut() -> bool,
-        _time: Option<TimeOfDay>,
+        _time: Option<(TimeOfDay, Calendar)>,
     ) -> Result<(TerrainChunk, ChunkSupplement), ()> {
         let (x, y) = chunk_pos.map(|e| e.to_le_bytes()).into_tuple();
         let mut rng = SmallRng::from_seed([
