@@ -741,7 +741,7 @@ pub enum DamageKind {
 }
 
 const PIERCING_PENETRATION_FRACTION: f32 = 1.0;
-const SLASHING_ENERGY_FRACTION: f32 = 1.0;
+const SLASHING_ENERGY_FRACTION: f32 = 0.5;
 const CRUSHING_POISE_FRACTION: f32 = 1.0;
 
 #[cfg(not(target_arch = "wasm32"))]
