@@ -4,7 +4,7 @@ mod econ;
 
 use crate::{
     config::CONFIG,
-    sim::{SimChunk, WorldSim},
+    sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
     util::{attempt, seed_expan, DHashMap, DHashSet, NEIGHBORS},
@@ -15,7 +15,7 @@ use common::{
     path::Path,
     spiral::Spiral2d,
     store::{Id, Store},
-    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize},
+    terrain::{uniform_idx_as_vec2, MapSizeLg, TerrainChunkSize, TERRAIN_CHUNK_BLOCKS_LG},
     vol::RectVolSize,
 };
 use core::{fmt, hash::BuildHasherDefault, ops::Range};
@@ -90,29 +90,56 @@ impl Civs {
             this.generate_cave(&mut ctx);
         }
 
+        let mut start_locations: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
-            if this.birth_civ(&mut ctx.reseed()).is_none() {
+            if this
+                .birth_civ(&mut ctx.reseed(), &mut start_locations)
+                .is_none()
+            {
                 warn!("Failed to find starting site for civilisation.");
             }
         }
         info!(?initial_civ_count, "all civilisations created");
 
+        let mut gnarling_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut dungeon_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut tree_enemies: Vec<Vec2<i32>> = start_locations.clone();
+        let mut castle_enemies: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
-                let (kind, size) = match ctx.rng.gen_range(0..64) {
-                    0..=5 => (SiteKind::Castle, 3),
+                let (kind, size, avoid) = match ctx.rng.gen_range(0..64) {
+                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 20)),
                     28..=31 => {
                         if index.features().site2_giant_trees {
-                            (SiteKind::GiantTree, 4)
+                            (SiteKind::GiantTree, 4, (&tree_enemies, 20))
                         } else {
-                            (SiteKind::Tree, 4)
+                            (SiteKind::Tree, 4, (&tree_enemies, 20))
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, 5),
-                    _ => (SiteKind::Dungeon, 0),
+                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 20)),
+                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 20)),
                 };
-                let loc = find_site_loc(&mut ctx, None, size, kind)?;
+                let loc = find_site_loc(&mut ctx, avoid, size, kind)?;
+                match kind {
+                    SiteKind::Castle => {
+                        gnarling_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        tree_enemies.push(loc);
+                        castle_enemies.push(loc);
+                    },
+                    SiteKind::Gnarling => {
+                        castle_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        gnarling_enemies.push(loc);
+                    },
+                    SiteKind::Dungeon => {
+                        gnarling_enemies.push(loc);
+                        dungeon_enemies.push(loc);
+                        castle_enemies.push(loc);
+                    },
+                    _ => (),
+                }
                 Some(this.establish_site(&mut ctx.reseed(), loc, |place| Site {
                     kind,
                     center: loc,
@@ -447,10 +474,15 @@ impl Civs {
             .and_then(|path| astar.get_cheapest_cost().map(|cost| (path, cost)))
     }
 
-    fn birth_civ(&mut self, ctx: &mut GenCtx<impl Rng>) -> Option<Id<Civ>> {
+    fn birth_civ(
+        &mut self,
+        ctx: &mut GenCtx<impl Rng>,
+        start_locations: &mut Vec<Vec2<i32>>,
+    ) -> Option<Id<Civ>> {
         let kind = SiteKind::Refactor;
-        let site = attempt(5, || {
-            let loc = find_site_loc(ctx, None, 1, kind)?;
+        let site = attempt(100, || {
+            let loc = find_site_loc(ctx, (start_locations, 40), 1, kind)?;
+            start_locations.push(loc);
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
                 site_tmp: None,
@@ -1006,45 +1038,50 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
         }
         true
     }
-    (if let Some(chunk) = sim.get(loc) {
+    let possible_terrain = if let Some(chunk) = sim.get(loc) {
         !chunk.river.is_ocean()
             && !chunk.river.is_lake()
             && !chunk.river.is_river()
+            && !chunk.is_underwater()
+            && !matches!(
+                chunk.get_biome(),
+                common::terrain::BiomeKind::Lake | common::terrain::BiomeKind::Ocean
+            )
             && sim
                 .get_gradient_approx(loc)
                 .map(|grad| grad < 1.0)
                 .unwrap_or(false)
-            && site_kind.is_suitable_loc(chunk)
     } else {
         false
-    }) && check_chunk_occupation(sim, loc, site_kind.exclusion_radius())
+    };
+    let not_occupied = check_chunk_occupation(sim, loc, site_kind.exclusion_radius());
+    possible_terrain && site_kind.is_suitable_loc(loc, sim) && not_occupied
 }
 
 /// Attempt to search for a location that's suitable for site construction
 fn find_site_loc(
     ctx: &mut GenCtx<impl Rng>,
-    near: Option<(Vec2<i32>, f32)>,
+    avoid: (&Vec<Vec2<i32>>, i32),
     size: i32,
     site_kind: SiteKind,
 ) -> Option<Vec2<i32>> {
-    const MAX_ATTEMPTS: usize = 100;
+    const MAX_ATTEMPTS: usize = 10000;
     let mut loc = None;
+    let (avoid_locs, distance) = avoid;
     for _ in 0..MAX_ATTEMPTS {
-        let test_loc = loc.unwrap_or_else(|| match near {
-            Some((origin, dist)) => {
-                origin
-                    + (Vec2::new(ctx.rng.gen_range(-1.0..1.0), ctx.rng.gen_range(-1.0..1.0))
-                        .try_normalized()
-                        .unwrap_or_else(Vec2::zero)
-                        * ctx.rng.gen::<f32>()
-                        * dist)
-                        .map(|e| e as i32)
-            },
-            None => Vec2::new(
+        let test_loc = loc.unwrap_or_else(|| {
+            Vec2::new(
                 ctx.rng.gen_range(0..ctx.sim.get_size().x as i32),
                 ctx.rng.gen_range(0..ctx.sim.get_size().y as i32),
-            ),
+            )
         });
+
+        if avoid_locs
+            .iter()
+            .any(|l| l.distance_squared(test_loc) < distance * distance)
+        {
+            continue;
+        }
 
         for offset in Spiral2d::new().take((size * 2 + 1).pow(2) as usize) {
             if loc_suitable_for_site(ctx.sim, test_loc + offset, site_kind) {
@@ -1053,12 +1090,13 @@ fn find_site_loc(
         }
 
         loc = ctx.sim.get(test_loc).and_then(|c| {
-            site_kind.is_suitable_loc(c).then_some(
+            site_kind.is_suitable_loc(test_loc, ctx.sim).then_some(
                 c.downhill?
                     .map2(TerrainChunkSize::RECT_SIZE, |e, sz: u32| e / (sz as i32)),
             )
         });
     }
+    warn!("Failed to place site {:?}.", site_kind);
     None
 }
 
@@ -1117,11 +1155,133 @@ pub enum SiteKind {
 }
 
 impl SiteKind {
-    pub fn is_suitable_loc(&self, chunk: &SimChunk) -> bool {
-        match self {
+    pub fn is_suitable_loc(&self, loc: Vec2<i32>, sim: &WorldSim) -> bool {
+        sim.get(loc).map_or(false, |chunk| match self {
             SiteKind::Gnarling => (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75,
+            SiteKind::GiantTree | SiteKind::Tree => chunk.tree_density > 0.4,
+            SiteKind::Castle => {
+                if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
+                    return false;
+                }
+                const HILL_RADIUS: i32 = 3 * TERRAIN_CHUNK_BLOCKS_LG as i32;
+                for x in (-HILL_RADIUS)..HILL_RADIUS {
+                    for y in (-HILL_RADIUS)..HILL_RADIUS {
+                        let check_loc = loc + Vec2::new(x, y);
+                        if let Some(true) = sim
+                            .get_alt_approx(check_loc)
+                            .map(|surrounding_alt| surrounding_alt > chunk.alt + 1.0)
+                        {
+                            return false;
+                        }
+                        // Castles are really big, so to avoid parts of them ending up underwater or
+                        // in other awkward positions we have to do this
+                        if sim
+                            .get(check_loc)
+                            .map_or(true, |c| c.is_underwater() || c.near_cliffs())
+                        {
+                            return false;
+                        }
+                    }
+                }
+                true
+            },
+            SiteKind::Refactor | SiteKind::Settlement => {
+                const RESOURCE_RADIUS: i32 = 1;
+                let mut river_chunks = 0;
+                let mut lake_chunks = 0;
+                let mut ocean_chunks = 0;
+                let mut rock_chunks = 0;
+                let mut tree_chunks = 0;
+                let mut farmable_chunks = 0;
+                let mut farmable_needs_irrigation_chunks = 0;
+                let mut land_chunks = 0;
+                for x in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
+                    for y in (-RESOURCE_RADIUS)..RESOURCE_RADIUS {
+                        let check_loc = loc
+                            + Vec2::new(x, y)
+                                .map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32);
+                        sim.get(check_loc).map(|c| {
+                            if num::abs(chunk.alt - c.alt) < 200.0 {
+                                if c.river.is_river() {
+                                    river_chunks += 1;
+                                }
+                                if c.river.is_lake() {
+                                    lake_chunks += 1;
+                                }
+                                if c.river.is_ocean() {
+                                    ocean_chunks += 1;
+                                }
+                                if c.tree_density > 0.7 {
+                                    tree_chunks += 1;
+                                }
+                                if c.rockiness < 0.3 && c.temp > CONFIG.snow_temp {
+                                    if c.surface_veg > 0.5 {
+                                        farmable_chunks += 1;
+                                    } else {
+                                        match c.get_biome() {
+                                            common::terrain::BiomeKind::Savannah => {
+                                                farmable_needs_irrigation_chunks += 1
+                                            },
+                                            common::terrain::BiomeKind::Desert => {
+                                                farmable_needs_irrigation_chunks += 1
+                                            },
+                                            _ => (),
+                                        }
+                                    }
+                                }
+                                if !c.river.is_river() && !c.river.is_lake() && !c.river.is_ocean()
+                                {
+                                    land_chunks += 1;
+                                }
+                            }
+                            // Mining is different since presumably you dig into the hillside
+                            if c.rockiness > 0.7 && c.alt - chunk.alt > -10.0 {
+                                rock_chunks += 1;
+                            }
+                        });
+                    }
+                }
+                let has_river = river_chunks > 1;
+                let has_lake = lake_chunks > 1;
+                let vegetation_implies_potable_water = chunk.tree_density > 0.4
+                    && !matches!(chunk.get_biome(), common::terrain::BiomeKind::Swamp);
+                let warm_or_firewood = chunk.temp > CONFIG.snow_temp || tree_chunks > 2;
+                let has_potable_water = {
+                    has_river || (has_lake && chunk.alt > 100.0) || vegetation_implies_potable_water
+                };
+                let has_building_materials = tree_chunks > 0
+                    || rock_chunks > 0
+                    || chunk.temp > CONFIG.tropical_temp && (has_river || has_lake);
+                let water_rich = lake_chunks + river_chunks > 2;
+                let can_grow_rice = water_rich
+                    && chunk.humidity + 1.0 > CONFIG.jungle_hum
+                    && chunk.temp + 1.0 > CONFIG.tropical_temp;
+                let farming_score = if can_grow_rice {
+                    farmable_chunks * 2
+                } else {
+                    farmable_chunks
+                } + if water_rich {
+                    farmable_needs_irrigation_chunks
+                } else {
+                    0
+                };
+                let fish_score = lake_chunks + ocean_chunks;
+                let food_score = farming_score + fish_score;
+                let mining_score = if tree_chunks > 1 { rock_chunks } else { 0 };
+                let forestry_score = if has_river { tree_chunks } else { 0 };
+                let trading_score =
+                    std::cmp::min(std::cmp::min(land_chunks, ocean_chunks), river_chunks);
+                let industry_score = 3.0 * (food_score as f32 + 1.0).log2()
+                    + 2.0 * (forestry_score as f32 + 1.0).log2()
+                    + (mining_score as f32 + 1.0).log2()
+                    + (trading_score as f32 + 1.0).log2();
+                has_potable_water
+                    && has_building_materials
+                    && industry_score > 6.0
+                    && warm_or_firewood
+            },
             _ => true,
-        }
+        })
     }
 }
 
