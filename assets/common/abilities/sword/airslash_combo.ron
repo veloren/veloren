@@ -14,6 +14,7 @@ BasicMelee(
         range: 5.0,
         angle: 10.0,
     ),
+    ori_modifier: 1.0,
     meta: (
         kind: Some(Sword(Balanced)),
         capabilities: (

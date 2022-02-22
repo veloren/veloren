@@ -26,7 +26,42 @@ pub enum Skill {
 }
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
-pub enum SwordSkill {}
+pub enum SwordSkill {
+    BalancedFinisher,
+    OffensiveCombo,
+    OffensiveFinisher,
+    OffensiveAdvance,
+    CripplingCombo,
+    CripplingFinisher,
+    CripplingStrike,
+    CripplingGouge,
+    CleavingCombo,
+    CleavingFinisher,
+    CleavingSpin,
+    CleavingDive,
+    DefensiveCombo,
+    DefensiveBulwark,
+    DefensiveRetreat,
+    ParryingCombo,
+    ParryingParry,
+    ParryingRiposte,
+    ParryingCounter,
+    HeavyCombo,
+    HeavyFinisher,
+    HeavyPommelStrike,
+    HeavyFortitude,
+    MobilityCombo,
+    MobilityFeint,
+    MobilityAgility,
+    ReachingCombo,
+    ReachingCharge,
+    ReachingFlurry,
+    ReachingSkewer,
+    AirSlashCombo,
+    AirSlashVertical,
+    AirSlashHorizontal,
+    AirSlashWhirlwind,
+}
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Serialize, Deserialize, Ord, PartialOrd)]
 pub enum AxeSkill {
