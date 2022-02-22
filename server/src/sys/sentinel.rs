@@ -96,6 +96,31 @@ macro_rules! trackers {
 
                 Some(EntityPackage { uid, comps })
             }
+
+            /// Create sync package for switching a client to another entity specifically to
+            /// remove/add components that are only synced for the client's entity.
+            pub fn create_sync_from_client_entity_switch(
+                &self,
+                old_uid: Uid,
+                new_uid: Uid,
+                new_entity: specs::Entity,
+            ) -> CompSyncPackage<EcsCompPacket> {
+                let mut comp_sync_package = CompSyncPackage::new();
+
+                $(
+                    if matches!(
+                        <$component_type as NetSync>::SYNC_FROM,
+                        SyncFrom::ClientEntity,
+                    ) {
+                        comp_sync_package.comp_removed::<$component_type>(old_uid);
+                        if let Some(comp) = self.$component_name.get(new_entity).cloned() {
+                            comp_sync_package.comp_inserted(new_uid, comp);
+                        }
+                    }
+                )*
+
+                comp_sync_package
+            }
         }
 
         /// Contains an [`UpdateTracker`] for every synced component (that uses this method of
@@ -225,6 +250,7 @@ macro_rules! trackers {
 
                 comp_sync_package
             }
+
         }
     }
 }

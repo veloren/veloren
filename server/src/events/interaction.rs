@@ -284,6 +284,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             );
             inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
         }
+        drop(inventories);
 
         // Remove will of the entity
         ecs.write_storage::<comp::Agent>().remove(possesse);
@@ -292,13 +293,23 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             *c = Default::default();
         }
 
+        // Send client new `SyncFrom::ClientEntity` components and tell it to
+        // deletes these on the old entity.
         let clients = ecs.read_storage::<Client>();
         let client = clients
             .get(possesse)
             .expect("We insert this component above and have exclusive access to the world.");
-        // TODO: send client new `SyncFrom::ClientEntity` components
-        // TODO: also make sure the client deletes the ones on the old entity
-        // when `SetPlayerEntity` is recieved.
+        use crate::sys::sentinel::TrackedStorages;
+        use specs::SystemData;
+        let tracked_storages = TrackedStorages::fetch(ecs);
+        let comp_sync_package = tracked_storages.create_sync_from_client_entity_switch(
+            possessor_uid,
+            possesse_uid,
+            possesse,
+        );
+        if !comp_sync_package.is_empty() {
+            client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+        }
     }
 }
 
