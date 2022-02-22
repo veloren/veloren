@@ -1,9 +1,10 @@
 use super::SceneData;
 use crate::render::{DynamicModel, Mesh, Quad, Renderer, TrailDrawer, TrailVertex};
+use common::comp::{object, Body, Pos, Vel};
 use common_base::span;
-use specs::Entity as EcsEntity;
+use specs::{Entity as EcsEntity, Join, WorldExt};
 use std::collections::HashMap;
-// use vek::*;
+use vek::*;
 
 #[derive(Clone, Copy, Eq, PartialEq, Hash)]
 struct MeshKey {
@@ -14,6 +15,9 @@ struct MeshKey {
 pub struct TrailMgr {
     /// Meshes for each entity
     entity_meshes: HashMap<MeshKey, Mesh<TrailVertex>>,
+
+    /// Position cache for things like projectiles
+    pos_cache: HashMap<EcsEntity, Pos>,
 
     /// Offset
     pub offset: usize,
@@ -32,6 +36,7 @@ impl TrailMgr {
     pub fn new(renderer: &mut Renderer) -> Self {
         Self {
             entity_meshes: HashMap::new(),
+            pos_cache: HashMap::new(),
             offset: 0,
             dynamic_model: renderer.create_dynamic_model(0),
             model_len: 0,
@@ -70,6 +75,44 @@ impl TrailMgr {
                 let zero = TrailVertex::zero();
                 mesh.replace_quad(self.offset * 4, Quad::new(zero, zero, zero, zero));
             });
+
+            // Hack to shove trails in for projectiles
+            let ecs = scene_data.state.ecs();
+            for (entity, body, vel, pos) in (
+                &ecs.entities(),
+                &ecs.read_storage::<Body>(),
+                &ecs.read_storage::<Vel>(),
+                &ecs.read_storage::<Pos>(),
+            )
+                .join()
+            {
+                if !vel.0.is_approx_zero()
+                    && matches!(
+                        body,
+                        Body::Object(
+                            object::Body::Arrow
+                                | object::Body::MultiArrow
+                                | object::Body::ArrowSnake
+                                | object::Body::ArrowTurret,
+                        )
+                    )
+                {
+                    let last_pos = *self.pos_cache.entry(entity).or_insert(*pos);
+                    let offset = self.offset;
+                    let quad_mesh = self.entity_mesh_or_insert(entity, true);
+                    const THICKNESS: f32 = 0.05;
+                    let p1 = pos.0;
+                    let p2 = p1 + Vec3::unit_z() * THICKNESS;
+                    let p4 = last_pos.0;
+                    let p3 = p4 + Vec3::unit_z() * THICKNESS;
+                    let vertex = |p: Vec3<f32>| TrailVertex {
+                        pos: p.into_array(),
+                    };
+                    let quad = Quad::new(vertex(p1), vertex(p2), vertex(p3), vertex(p4));
+                    quad_mesh.replace_quad(offset * 4, quad);
+                    self.pos_cache.insert(entity, *pos);
+                }
+            }
 
             // Clear meshes for entities that only have zero quads in mesh
             self.entity_meshes
