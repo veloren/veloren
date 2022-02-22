@@ -163,12 +163,28 @@ fn activate_aura(
     let should_activate = match aura.aura_kind {
         AuraKind::Buff { kind, source, .. } => {
             let conditions_held = match kind {
-                BuffKind::CampfireHeal => read_data
-                    .char_states
-                    .get(target)
-                    .map_or(false, |target_state| {
-                        target_state.is_sitting() && health.current() < health.maximum()
-                    }),
+                BuffKind::CampfireHeal => {
+                    // true if sitting or if owned and owner is sitting + not full health
+                    health.current() < health.maximum()
+                        && (read_data
+                            .char_states
+                            .get(target)
+                            .map_or(false, CharacterState::is_sitting)
+                            || read_data
+                                .alignments
+                                .get(target)
+                                .and_then(|alignment| match alignment {
+                                    Alignment::Owned(uid) => Some(uid),
+                                    _ => None,
+                                })
+                                .and_then(|uid| {
+                                    read_data
+                                        .uid_allocator
+                                        .retrieve_entity_internal((*uid).into())
+                                })
+                                .and_then(|owner| read_data.char_states.get(owner))
+                                .map_or(false, CharacterState::is_sitting))
+                },
                 // Add other specific buff conditions here
                 _ => true,
             };
