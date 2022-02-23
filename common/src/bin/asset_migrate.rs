@@ -5,25 +5,37 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
 };
-use veloren_common::comp::inventory::{
-    loadout_builder::ItemSpec,
-    slot::{ArmorSlot, EquipSlot},
-};
+use veloren_common::comp::inventory::slot::{ArmorSlot, EquipSlot};
 
 /// Old version.
-mod v1 {
+mod loadout_v1 {
     use super::*;
     pub type Config = LoadoutSpec;
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum ItemSpec {
+        /// One specific item.
+        /// Example:
+        /// Item("common.items.armor.steel.foot")
+        Item(String),
+        /// Choice from items with weights.
+        /// Example:
+        /// Choice([
+        ///  (1.0, Some(Item("common.items.lantern.blue_0"))),
+        ///  (1.0, None),
+        /// ])
+        Choice(Vec<(f32, Option<ItemSpec>)>),
+    }
 
     #[derive(Debug, Deserialize, Clone)]
     pub struct LoadoutSpec(pub HashMap<EquipSlot, ItemSpec>);
 }
 
 /// New version.
-mod v2 {
-    use super::*;
+mod loadout_v2 {
+    use super::{loadout_v1::ItemSpec, *};
 
-    type OldConfig = super::v1::Config;
+    type OldConfig = super::loadout_v1::Config;
     pub type Config = LoadoutSpecNew;
     type Weight = u8;
 
@@ -131,7 +143,7 @@ mod v2 {
 
     impl From<OldConfig> for Config {
         fn from(old: OldConfig) -> Self {
-            let super::v1::LoadoutSpec(old) = old;
+            let super::loadout_v1::LoadoutSpec(old) = old;
             let to_new_item = |slot: &EquipSlot| -> Option<ItemSpecNew> {
                 old.get(slot).cloned().map(|i| i.into())
             };
@@ -176,6 +188,29 @@ mod v2 {
     }
 }
 
+mod v1 {
+    use super::*;
+    pub type Config = EntityConfig;
+
+    #[derive(Debug, Deserialize, Clone)]
+    pub struct EntityConfig;
+}
+
+mod v2 {
+    use super::*;
+    pub type OldConfig = super::v1::Config;
+    pub type Config = EntityConfig;
+
+    #[derive(Debug, Deserialize, Serialize, Clone, Default)]
+    pub struct EntityConfig;
+
+    impl From<OldConfig> for Config {
+        fn from(old: OldConfig) -> Self {
+            Self::default()
+        }
+    }
+}
+
 #[derive(Debug)]
 enum Walk {
     File(PathBuf),
@@ -213,8 +248,7 @@ where
     OldV: DeserializeOwned,
     NewV: Serialize,
 {
-    use std::io::BufReader;
-    use std::io::BufRead;
+    use std::io::{BufRead, BufReader};
     match tree {
         Walk::Dir { path, content } => {
             let target_dir = to.join(path);
@@ -243,8 +277,8 @@ where
             // Write it all back
             let pretty_config = ron::ser::PrettyConfig::new()
                 .extensions(ron::extensions::Extensions::IMPLICIT_SOME);
-            let config_string = ron::ser::to_string_pretty(&new, pretty_config)
-                .expect("serialize shouldn't fail");
+            let config_string =
+                ron::ser::to_string_pretty(&new, pretty_config).expect("serialize shouldn't fail");
             let comments_string = comments.join("\n");
 
             let mut target = fs::File::create(to.join(&path))?;
