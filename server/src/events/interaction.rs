@@ -1,5 +1,4 @@
 use specs::{world::WorldExt, Builder, Entity as EcsEntity, Join};
-use tracing::error;
 use vek::*;
 
 use common::{
@@ -9,8 +8,6 @@ use common::{
         agent::{AgentEvent, Sound, SoundKind},
         dialogue::Subject,
         inventory::slot::EquipSlot,
-        item,
-        slot::Slot,
         tool::ToolKind,
         Inventory, Pos, SkillGroupKind,
     },
@@ -18,19 +15,13 @@ use common::{
     link::Is,
     mounting::{Mount, Mounting, Rider},
     outcome::Outcome,
-    region::RegionMap,
     terrain::{Block, SpriteKind},
     uid::Uid,
     vol::ReadVol,
 };
-use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+use common_net::sync::WorldSyncExt;
 
-use crate::{
-    client::Client,
-    presence::{Presence, RegionSubscription},
-    state_ext::StateExt,
-    Server,
-};
+use crate::{state_ext::StateExt, Server};
 
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
@@ -142,175 +133,6 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
 pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
     state.ecs().write_storage::<Is<Rider>>().remove(rider);
-}
-
-/// FIXME: This code is dangerous and needs to be refactored.  We can't just
-/// comment it out, but it needs to be fixed for a variety of reasons.  Get rid
-/// of this ASAP!
-pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid) {
-    let ecs = server.state.ecs();
-    if let (Some(possessor), Some(possesse)) = (
-        ecs.entity_from_uid(possessor_uid.into()),
-        ecs.entity_from_uid(possesse_uid.into()),
-    ) {
-        // Check that entities still exist
-        if !possessor.gen().is_alive()
-            || !ecs.is_alive(possessor)
-            || !possesse.gen().is_alive()
-            || !ecs.is_alive(possesse)
-        {
-            error!(
-                "Error possessing! either the possessor entity or possesse entity no longer exists"
-            );
-            return;
-        }
-
-        let mut clients = ecs.write_storage::<Client>();
-        let mut players = ecs.write_storage::<comp::Player>();
-
-        if clients.contains(possesse) || players.contains(possesse) {
-            error!("Can't possess other players!");
-            return;
-        }
-
-        // Limit possessible entities to those in the client's subscribed regions (so
-        // that the entity already exists on the client, reduces the amount of
-        // syncing edge cases to consider).
-        let mut subscriptions = ecs.write_storage::<RegionSubscription>();
-        let region_map = ecs.read_resource::<RegionMap>();
-        let possesse_in_subscribed_region = subscriptions
-            .get(possessor)
-            .iter()
-            .flat_map(|s| s.regions.iter())
-            .filter_map(|key| region_map.get(*key))
-            .any(|region| region.entities().contains(possesse.id()));
-        if !possesse_in_subscribed_region {
-            return;
-        }
-
-        // Transfer client component. Note: we require this component for possession.
-        if let Some(client) = clients.remove(possessor) {
-            client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
-            // Note: we check that the `possessor` and `possesse` entities exist above, so
-            // this should never panic.
-            clients
-                .insert(possesse, client)
-                .expect("Checked entity was alive!");
-        } else {
-            error!("Error posessing, no `Client` component on the possessor!");
-            return;
-        };
-
-        // Other components to transfer if they exist.
-        // TODO: don't transfer character id, TODO: consider how this could relate to
-        // database duplications, might need to model this like the player
-        // logging out. Note: logging back in is delayed because it would
-        // re-load from the database before old information is saved, if you are
-        // able to reposess the same entity, this should not be an issue,
-        // although the logout save being duplicated with the batch save may need to be
-        // considered, the logout save would be outdated. If you could cause
-        // your old entity to drop items while possessing another entity that
-        // would cause duplication in the database (on the other hand this ability
-        // should be strictly limited to admins, and not intended to be a normal
-        // gameplay ability).
-        fn transfer_component<C: specs::Component>(
-            storage: &mut specs::WriteStorage<'_, C>,
-            possessor: EcsEntity,
-            possesse: EcsEntity,
-        ) {
-            if let Some(c) = storage.remove(possessor) {
-                // Note: we check that the `possessor` and `possesse` entities exist above, so
-                // this should never panic.
-                storage
-                    .insert(possesse, c)
-                    .expect("Checked entity was alive!");
-            }
-        }
-
-        let mut presence = ecs.write_storage::<Presence>();
-        let mut admins = ecs.write_storage::<comp::Admin>();
-        let mut waypoints = ecs.write_storage::<comp::Waypoint>();
-
-        transfer_component(&mut players, possessor, possesse);
-        transfer_component(&mut presence, possessor, possesse);
-        transfer_component(&mut subscriptions, possessor, possesse);
-        transfer_component(&mut admins, possessor, possesse);
-        transfer_component(&mut waypoints, possessor, possesse);
-
-        // If a player is posessing, add possesse to playerlist as player and remove old
-        // player.
-        // Fetches from possesse entity here since we have transferred over the `Player`
-        // component.
-        if let Some(player) = players.get(possesse) {
-            use common_net::msg;
-
-            let add_player_msg = ServerGeneral::PlayerListUpdate(
-                msg::server::PlayerListUpdate::Add(possesse_uid, msg::server::PlayerInfo {
-                    player_alias: player.alias.clone(),
-                    is_online: true,
-                    is_moderator: admins.contains(possesse),
-                    character: ecs.read_storage::<comp::Stats>().get(possesse).map(|s| {
-                        msg::CharacterInfo {
-                            name: s.name.clone(),
-                        }
-                    }),
-                }),
-            );
-            let remove_player_msg = ServerGeneral::PlayerListUpdate(
-                msg::server::PlayerListUpdate::Remove(possessor_uid),
-            );
-
-            drop((clients, players)); // need to drop so we can use `notify_players` below
-            server.state().notify_players(remove_player_msg);
-            server.state().notify_players(add_player_msg);
-        }
-
-        // Put possess item into loadout
-        let mut inventories = ecs.write_storage::<Inventory>();
-        let mut inventory = inventories
-            .entry(possesse)
-            .expect("Nobody has &mut World, so there's no way to delete an entity.")
-            .or_insert(Inventory::new_empty());
-
-        let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
-        if let item::ItemKind::Tool(_) = debug_item.kind() {
-            let leftover_items = inventory.swap(
-                Slot::Equip(EquipSlot::ActiveMainhand),
-                Slot::Equip(EquipSlot::InactiveMainhand),
-            );
-            assert!(
-                leftover_items.is_empty(),
-                "Swapping active and inactive mainhands never results in leftover items"
-            );
-            inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
-        }
-        drop(inventories);
-
-        // Remove will of the entity
-        ecs.write_storage::<comp::Agent>().remove(possesse);
-        // Reset controller of former shell
-        if let Some(c) = ecs.write_storage::<comp::Controller>().get_mut(possessor) {
-            *c = Default::default();
-        }
-
-        // Send client new `SyncFrom::ClientEntity` components and tell it to
-        // deletes these on the old entity.
-        let clients = ecs.read_storage::<Client>();
-        let client = clients
-            .get(possesse)
-            .expect("We insert this component above and have exclusive access to the world.");
-        use crate::sys::sentinel::TrackedStorages;
-        use specs::SystemData;
-        let tracked_storages = TrackedStorages::fetch(ecs);
-        let comp_sync_package = tracked_storages.create_sync_from_client_entity_switch(
-            possessor_uid,
-            possesse_uid,
-            possesse,
-        );
-        if !comp_sync_package.is_empty() {
-            client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
-        }
-    }
 }
 
 fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&Pos>) -> bool {

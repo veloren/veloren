@@ -1837,12 +1837,35 @@ impl Client {
                         let mut controllers = self.state.ecs().write_storage::<Controller>();
                         if let Some(controller) = controllers.remove(old_entity) {
                             if let Err(e) = controllers.insert(entity, controller) {
-                                error!(?e, "Failed to insert controller when setting new player entity!");
+                                error!(
+                                    ?e,
+                                    "Failed to insert controller when setting new player entity!"
+                                );
                             }
+                        }
+
+                        let uids = self.state.ecs().read_storage::<Uid>();
+                        if let Some((prev_uid, presence)) =
+                            uids.get(old_entity).copied().zip(self.presence)
+                        {
+                            self.presence = Some(match presence {
+                                PresenceKind::Character(char_id) => {
+                                    PresenceKind::Possessor(char_id, prev_uid)
+                                },
+                                PresenceKind::Spectator => PresenceKind::Spectator,
+                                PresenceKind::Possessor(old_char_id, old_uid) => {
+                                    if old_uid == uid {
+                                        // Returning to original entity
+                                        PresenceKind::Character(old_char_id)
+                                    } else {
+                                        PresenceKind::Possessor(old_char_id, old_uid)
+                                    }
+                                },
+                            });
                         }
                     }
                 } else {
-                    return Err(Error::Other("Failed to find entity from uid.".to_owned()));
+                    return Err(Error::Other("Failed to find entity from uid.".into()));
                 }
             },
             ServerGeneral::TimeOfDay(time_of_day, calendar) => {

@@ -8,7 +8,8 @@
     bool_to_option,
     drain_filter,
     once_cell,
-    trait_alias
+    trait_alias,
+    option_get_or_insert_default
 )]
 #![recursion_limit = "2048"]
 

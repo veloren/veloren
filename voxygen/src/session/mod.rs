@@ -1361,10 +1361,11 @@ impl PlayState for SessionState {
                         let server_name = &client.server_info().name;
                         // If we are changing the hotbar state this CANNOT be None.
                         let character_id = match client.presence().unwrap() {
-                            PresenceKind::Character(id) => id,
+                            PresenceKind::Character(id) => Some(id),
                             PresenceKind::Spectator => {
                                 unreachable!("HUD adaption in Spectator mode!")
                             },
+                            PresenceKind::Possessor(_, _) => None,
                         };
 
                         // Get or update the ServerProfile.

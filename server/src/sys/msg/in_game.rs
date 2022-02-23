@@ -14,7 +14,7 @@ use common::{
     vol::ReadVol,
 };
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{ClientGeneral, PresenceKind, ServerGeneral};
+use common_net::msg::{ClientGeneral, ServerGeneral};
 use common_state::{BlockChange, BuildAreas};
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace, warn};
@@ -84,14 +84,14 @@ impl Sys {
                 }
             },
             ClientGeneral::ControllerInputs(inputs) => {
-                if matches!(presence.kind, PresenceKind::Character(_)) {
+                if presence.kind.controlling_char() {
                     if let Some(controller) = controllers.get_mut(entity) {
                         controller.inputs.update_with_new(*inputs);
                     }
                 }
             },
             ClientGeneral::ControlEvent(event) => {
-                if matches!(presence.kind, PresenceKind::Character(_)) {
+                if presence.kind.controlling_char() {
                     // Skip respawn if client entity is alive
                     if let ControlEvent::Respawn = event {
                         if healths.get(entity).map_or(true, |h| !h.is_dead) {
@@ -105,7 +105,7 @@ impl Sys {
                 }
             },
             ClientGeneral::ControlAction(event) => {
-                if matches!(presence.kind, PresenceKind::Character(_)) {
+                if presence.kind.controlling_char() {
                     if let Some(controller) = controllers.get_mut(entity) {
                         controller.push_action(event);
                     }
@@ -119,7 +119,7 @@ impl Sys {
                         .or_default()
                 });
 
-                if matches!(presence.kind, PresenceKind::Character(_))
+                if presence.kind.controlling_char()
                     && force_updates.get(entity).is_none()
                     && healths.get(entity).map_or(true, |h| !h.is_dead)
                     && is_rider.get(entity).is_none()
