@@ -3,51 +3,33 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 5.0,
-                    poise: 0.0,
-                    knockback: 0.0,
-                    energy_regen: 5.0,
+                    damage: 7,
+                    poise: 0,
+                    knockback: 0,
+                    energy_regen: 5,
                 ),
                 range: 3.0,
                 angle: 45.0,
             ),
-            buildup_duration: 0.5,
+            buildup_duration: 0.3,
             swing_duration: 0.1,
             hit_timing: 0.5,
-            recover_duration: 0.3,
+            recover_duration: 0.5,
             forward_movement: 0.0,
             ori_modifier: 0.6,
         ),
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 10.0,
-                    poise: 0.0,
-                    knockback: 0.0,
-                    energy_regen: 5.0,
+                    damage: 10,
+                    poise: 0,
+                    knockback: 0,
+                    energy_regen: 10,
                 ),
                 range: 3.0,
                 angle: 45.0,
             ),
-            buildup_duration: 0.5,
-            swing_duration: 0.1,
-            hit_timing: 0.5,
-            recover_duration: 0.3,
-            forward_movement: 0.0,
-            ori_modifier: 0.6,
-        ),
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 15.0,
-                    poise: 0.0,
-                    knockback: 0.0,
-                    energy_regen: 5.0,
-                ),
-                range: 3.0,
-                angle: 45.0,
-            ),
-            buildup_duration: 0.5,
+            buildup_duration: 0.3,
             swing_duration: 0.1,
             hit_timing: 0.5,
             recover_duration: 0.3,
@@ -57,9 +39,5 @@ ComboMelee2(
     ],
     meta: (
         kind: Some(Sword(Balanced)),
-        capabilities: (
-            // Roll
-            bits: 0b00000001,
-        ),
     ),
 )

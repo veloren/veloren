@@ -2,7 +2,7 @@ use crate::{
     astar::Astar,
     combat,
     comp::{
-        ability::{AbilityMeta, InterruptCapability},
+        ability::{Ability, AbilityInput, AbilityMeta, Capability},
         arthropod, biped_large, biped_small,
         character_state::OutputEvents,
         inventory::slot::{ArmorSlot, EquipSlot, Slot},
@@ -1063,16 +1063,12 @@ pub fn handle_interrupts(
                     matches!(stage_section, StageSection::Buildup)
                 });
             let interruptible = data.character.ability_info().map_or(false, |info| {
-                info.ability_meta
-                    .capabilities
-                    .contains(InterruptCapability::ROLL)
+                info.ability_meta.capabilities.contains(Capability::ROLL)
             });
             in_buildup || interruptible
         };
         let can_block = data.character.ability_info().map_or(false, |info| {
-            info.ability_meta
-                .capabilities
-                .contains(InterruptCapability::BLOCK)
+            info.ability_meta.capabilities.contains(Capability::BLOCK)
         });
         if can_dodge {
             handle_dodge_input(data, update);
@@ -1250,6 +1246,7 @@ pub struct AbilityInfo {
     pub input: InputKind,
     pub input_attr: Option<InputAttr>,
     pub ability_meta: AbilityMeta,
+    pub ability: Option<Ability>,
 }
 
 impl AbilityInfo {
@@ -1270,6 +1267,9 @@ impl AbilityInfo {
                 Some(HandInfo::from_main_tool(hands, from_offhand)),
             )
         });
+        let ability = Option::<AbilityInput>::from(input)
+            .zip(data.active_abilities)
+            .map(|(i, a)| a.get_ability(i, data.inventory, Some(data.skill_set)));
 
         Self {
             tool,
@@ -1277,6 +1277,7 @@ impl AbilityInfo {
             input,
             input_attr: data.controller.queued_inputs.get(&input).copied(),
             ability_meta,
+            ability,
         }
     }
 }

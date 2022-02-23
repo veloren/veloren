@@ -231,7 +231,7 @@ pub enum AbilityInput {
     Auxiliary(usize),
 }
 
-#[derive(Copy, Clone, Serialize, Deserialize, Debug)]
+#[derive(Copy, Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum Ability {
     ToolPrimary,
     ToolSecondary,
@@ -2355,20 +2355,11 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct AbilityMeta {
     pub kind: Option<AbilityKind>,
     #[serde(default)]
-    pub capabilities: InterruptCapability,
-}
-
-impl Default for AbilityMeta {
-    fn default() -> Self {
-        Self {
-            kind: None,
-            capabilities: InterruptCapability::NONE,
-        }
-    }
+    pub capabilities: Capability,
 }
 
 // Only extend this if it is needed to control certain functionality of
@@ -2394,8 +2385,7 @@ pub enum SwordStance {
 
 bitflags::bitflags! {
     #[derive(Default, Serialize, Deserialize)]
-    pub struct InterruptCapability: u8 {
-        const NONE  = 0b00000000;
+    pub struct Capability: u8 {
         const ROLL  = 0b00000001;
         const BLOCK = 0b00000010;
     }
