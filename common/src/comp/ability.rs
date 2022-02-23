@@ -505,6 +505,7 @@ pub enum CharacterAbility {
     },
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
+        is_stance: bool,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -918,6 +919,7 @@ impl CharacterAbility {
             },
             ComboMelee2 {
                 ref mut strikes,
+                is_stance: _,
                 meta: _,
             } => {
                 *strikes = strikes
@@ -1959,19 +1961,22 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 timer: Duration::default(),
                 stage_section: StageSection::Buildup,
             }),
-            CharacterAbility::ComboMelee2 { strikes, meta: _ } => {
-                CharacterState::ComboMelee2(combo_melee2::Data {
-                    static_data: combo_melee2::StaticData {
-                        strikes: strikes.iter().map(|s| s.to_duration()).collect(),
-                        ability_info,
-                    },
-                    exhausted: false,
-                    skip_recover: false,
-                    timer: Duration::default(),
-                    stage_section: Some(StageSection::Buildup),
-                    completed_strikes: 0,
-                })
-            },
+            CharacterAbility::ComboMelee2 {
+                strikes,
+                is_stance,
+                meta: _,
+            } => CharacterState::ComboMelee2(combo_melee2::Data {
+                static_data: combo_melee2::StaticData {
+                    strikes: strikes.iter().map(|s| s.to_duration()).collect(),
+                    is_stance: *is_stance,
+                    ability_info,
+                },
+                exhausted: false,
+                skip_recover: false,
+                timer: Duration::default(),
+                stage_section: Some(StageSection::Buildup),
+                completed_strikes: 0,
+            }),
             CharacterAbility::LeapMelee {
                 energy_cost: _,
                 buildup_duration,

@@ -65,6 +65,9 @@ impl Strike<f32> {
 pub struct StaticData {
     /// Data for each stage
     pub strikes: Vec<Strike<Duration>>,
+    /// Whether or not combo melee should function as a stance (where it remains
+    /// in the character state after a strike has finished)
+    pub is_stance: bool,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -95,9 +98,17 @@ impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        // If is a stance, use M1 to control strikes, otherwise use the input that
+        // activated the ability
+        let ability_input = if self.static_data.is_stance {
+            InputKind::Primary
+        } else {
+            self.static_data.ability_info.input
+        };
+
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, 0.7);
-        handle_interrupts(data, &mut update, Some(InputKind::Primary));
+        handle_interrupts(data, &mut update, Some(ability_input));
 
         let strike_data =
             self.static_data.strikes[self.completed_strikes % self.static_data.strikes.len()];
@@ -118,7 +129,7 @@ impl CharacterBehavior for Data {
                 }
             },
             Some(StageSection::Action) => {
-                if input_is_pressed(data, InputKind::Primary) {
+                if input_is_pressed(data, ability_input) {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
                         c.skip_recover = true;
                     }
@@ -163,10 +174,18 @@ impl CharacterBehavior for Data {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
                 } else {
-                    // Done
-                    if let CharacterState::ComboMelee2(c) = &mut update.character {
-                        c.timer = Duration::default();
-                        c.stage_section = None;
+                    // If is a stance, stay in combo melee, otherwise return to wielding
+                    if self.static_data.is_stance {
+                        if let CharacterState::ComboMelee2(c) = &mut update.character {
+                            c.timer = Duration::default();
+                            c.stage_section = None;
+                        }
+                    } else {
+                        // Return to wielding
+                        update.character =
+                            CharacterState::Wielding(wielding::Data { is_sneaking: false });
+                        // Make sure attack component is removed
+                        data.updater.remove::<Melee>(data.entity);
                     }
                 }
             },
@@ -192,7 +211,7 @@ impl CharacterBehavior for Data {
                 handle_climb(data, &mut update);
                 handle_jump(data, output_events, &mut update, 1.0);
 
-                if input_is_pressed(data, InputKind::Primary) {
+                if input_is_pressed(data, ability_input) {
                     next_strike(&mut update)
                 } else {
                     attempt_input(data, output_events, &mut update);

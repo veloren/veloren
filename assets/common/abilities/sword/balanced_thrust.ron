@@ -19,6 +19,7 @@ ComboMelee2(
             ori_modifier: 0.6,
         ),
     ],
+    is_stance: false,
     meta: (
         kind: Some(Sword(Balanced)),
     ),
