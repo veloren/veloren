@@ -24,7 +24,7 @@ use common::{
         theropod::{self, BodyType as TBodyType, Species as TSpecies},
     },
     figure::{Cell, DynaUnionizer, MatCell, MatSegment, Material, Segment},
-    vol::Vox,
+    vol::{IntoFullPosIterator, ReadVol, Vox},
 };
 use hashbrown::HashMap;
 use serde::Deserialize;
@@ -4945,21 +4945,31 @@ impl ItemDropCentralSpec {
             _ => self.0.get(item_key),
         } {
             let full_spec: String = ["voxygen.", spec.0.as_str()].concat();
-            (
-                match item_drop {
-                    item_drop::Body::Armor(_) => {
-                        MatSegment::from(&graceful_load_vox_fullspec(&full_spec).read().0)
-                            .map(|mat_cell| match mat_cell {
-                                MatCell::None => None,
-                                MatCell::Mat(_) => Some(MatCell::None),
-                                MatCell::Normal(data) => data.is_hollow().then(|| MatCell::None),
-                            })
-                            .to_segment(|_| Default::default())
-                    },
-                    _ => graceful_load_segment_fullspec(&full_spec),
+            let segment = match item_drop {
+                item_drop::Body::Armor(_) => {
+                    MatSegment::from(&graceful_load_vox_fullspec(&full_spec).read().0)
+                        .map(|mat_cell| match mat_cell {
+                            MatCell::None => None,
+                            MatCell::Mat(_) => Some(MatCell::None),
+                            MatCell::Normal(data) => data.is_hollow().then(|| MatCell::None),
+                        })
+                        .to_segment(|_| Default::default())
                 },
-                Vec3::from(spec.1),
-            )
+                _ => graceful_load_segment_fullspec(&full_spec),
+            };
+            let offset = segment_center(&segment).unwrap_or_else(|| Vec3::broadcast(0.0));
+            (segment, match item_drop {
+                item_drop::Body::Tool(_) => Vec3::new(offset.x - 2.0, offset.y, offset.z),
+                item_drop::Body::Armor(kind) => match kind {
+                    item_drop::ItemDropArmorKind::Neck
+                    | item_drop::ItemDropArmorKind::Back
+                    | item_drop::ItemDropArmorKind::Tabard => {
+                        Vec3::new(offset.x, offset.y - 2.0, offset.z)
+                    },
+                    _ => offset * Vec3::new(1.0, 1.0, 0.0),
+                },
+                _ => offset * Vec3::new(1.0, 1.0, 0.0),
+            })
         } else {
             error!(
                 "No specification exists for {:?}, {:?}",
@@ -4967,6 +4977,38 @@ impl ItemDropCentralSpec {
             );
             load_mesh("not_found", Vec3::new(-5.0, -5.0, -2.5))
         }
+    }
+}
+
+fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
+    let (mut x_min, mut x_max, mut y_min, mut y_max, mut z_min, mut z_max) =
+        (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
+    for pos in segment.full_pos_iter() {
+        if let Cell::Filled(data) = segment.get(pos).unwrap() {
+            if !data.is_hollow() {
+                if pos.x < x_min {
+                    x_min = pos.x;
+                } else if pos.x > x_max {
+                    x_max = pos.x;
+                }
+                if pos.y < y_min {
+                    y_min = pos.y;
+                } else if pos.y > y_max {
+                    y_max = pos.y;
+                }
+                if pos.z < z_min {
+                    z_min = pos.z;
+                } else if pos.z > z_max {
+                    z_max = pos.z;
+                }
+            }
+        }
+    }
+
+    if (x_min, x_max, y_min, y_max, z_min, z_max) == (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0) {
+        None
+    } else {
+        Some(Vec3::new(x_min + x_max, y_min + y_max, z_min + z_max).map(|n| n as f32 / -2.0))
     }
 }
 

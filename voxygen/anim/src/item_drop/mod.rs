@@ -52,7 +52,7 @@ impl ItemDropSkeleton {
         match body {
             Body::Tool(_) => 0.8,
             Body::Glider => 0.45,
-            Body::Coins => 0.5,
+            Body::Coins => 0.3,
             Body::Armor(kind) => match kind {
                 ItemDropArmorKind::Neck | ItemDropArmorKind::Ring => 0.5,
                 ItemDropArmorKind::Back => 0.7,
