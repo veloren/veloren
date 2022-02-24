@@ -347,25 +347,31 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         // Sync the player's character data to the database. This must be done before
         // moving any components from the entity.
         //
-        // NOTE: Below we delete old entity (if PresenceKind::Character) as if logging out. This is
-        // to prevent any potential for item duplication (although it would only be possible if the
-        // player could repossess their entity, hand off some items, and then crash the server in a
-        // particular time window, and only admins should have access to the item with this ability
-        // in the first place (though that isn't foolproof)). We could potentially fix this but it
-        // would require some tweaks to the CharacterUpdater code (to be able to deque the pending
-        // persistence request issued here if repossesing the original character), and it seems
-        // prudent to be more conservative with making changes there to support this feature.
+        // NOTE: Below we delete old entity (if PresenceKind::Character) as if logging
+        // out. This is to prevent any potential for item duplication (although
+        // it would only be possible if the player could repossess their entity,
+        // hand off some items, and then crash the server in a particular time
+        // window, and only admins should have access to the item with this ability
+        // in the first place (though that isn't foolproof)). We could potentially fix
+        // this but it would require some tweaks to the CharacterUpdater code
+        // (to be able to deque the pending persistence request issued here if
+        // repossesing the original character), and it seems prudent to be more
+        // conservative with making changes there to support this feature.
         let possessor = persist_entity(state, possessor);
         let ecs = state.ecs();
 
         let mut clients = ecs.write_storage::<Client>();
 
         // Transfer client component. Note: we require this component for possession.
-        let client = clients.remove(possessor).expect("Checked client component was present above!");
+        let client = clients
+            .remove(possessor)
+            .expect("Checked client component was present above!");
         client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
         // Note: we check that the `possessor` and `possesse` entities exist above, so
         // this should never panic.
-        clients.insert(possesse, client).expect("Checked entity was alive!");
+        clients
+            .insert(possesse, client)
+            .expect("Checked entity was alive!");
 
         // Other components to transfer if they exist.
         fn transfer_component<C: specs::Component>(
@@ -483,9 +489,9 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         }
     }
 
-    // Outside block above to prevent borrow conflicts (i.e. convenient to let everything drop at
-    // the end of the block rather than doing it manually for this).
-    // See note on `persist_entity` call above for why we do this.
+    // Outside block above to prevent borrow conflicts (i.e. convenient to let
+    // everything drop at the end of the block rather than doing it manually for
+    // this). See note on `persist_entity` call above for why we do this.
     if let Some(entity) = delete_entity {
         // Delete old entity
         if let Err(e) = state.delete_entity_recorded(entity) {

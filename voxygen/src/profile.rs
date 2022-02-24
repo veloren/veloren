@@ -57,7 +57,7 @@ impl Default for ServerProfile {
 #[serde(default)]
 pub struct Profile {
     pub servers: HashMap<String, ServerProfile>,
-    /// Temporary character profiler, used when it should
+    /// Temporary character profile, used when it should
     /// not be persisted to the disk.
     #[serde(skip)]
     pub transient_character: Option<CharacterProfile>,
