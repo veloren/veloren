@@ -1843,26 +1843,13 @@ impl Client {
                                 );
                             }
                         }
-
-                        let uids = self.state.ecs().read_storage::<Uid>();
-                        if let Some((prev_uid, presence)) =
-                            uids.get(old_entity).copied().zip(self.presence)
-                        {
-                            self.presence = Some(match presence {
-                                PresenceKind::Character(char_id) => {
-                                    PresenceKind::Possessor(char_id, prev_uid)
-                                },
-                                PresenceKind::Spectator => PresenceKind::Spectator,
-                                PresenceKind::Possessor(old_char_id, old_uid) => {
-                                    if old_uid == uid {
-                                        // Returning to original entity
-                                        PresenceKind::Character(old_char_id)
-                                    } else {
-                                        PresenceKind::Possessor(old_char_id, old_uid)
-                                    }
-                                },
-                            });
-                        }
+                    }
+                    if let Some(presence) = self.presence {
+                        self.presence = Some(match presence {
+                            PresenceKind::Spectator => PresenceKind::Spectator,
+                            PresenceKind::Character(_) => PresenceKind::Possessor,
+                            PresenceKind::Possessor => PresenceKind::Possessor,
+                        });
                     }
                 } else {
                     return Err(Error::Other("Failed to find entity from uid.".into()));

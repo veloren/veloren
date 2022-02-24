@@ -1024,7 +1024,7 @@ impl Hud {
         let character_id = match client.presence().unwrap() {
             PresenceKind::Character(id) => Some(id),
             PresenceKind::Spectator => unreachable!("HUD creation in Spectator mode!"),
-            PresenceKind::Possessor(_, _) => None,
+            PresenceKind::Possessor => None,
         };
 
         // Create a new HotbarState from the persisted slots.

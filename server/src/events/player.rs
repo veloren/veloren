@@ -271,7 +271,7 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                 );
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },
-            PresenceKind::Possessor(_, _) => { /* Do nothing, possessor's are not persisted */ },
+            PresenceKind::Possessor => { /* Do nothing, possessor's are not persisted */ },
         };
     }
 
@@ -289,15 +289,17 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
     };
     use common_net::sync::WorldSyncExt;
 
-    let ecs = server.state.ecs();
+    let state = server.state_mut();
+    let mut delete_entity = None;
 
     if let (Some(possessor), Some(possesse)) = (
-        ecs.entity_from_uid(possessor_uid.into()),
-        ecs.entity_from_uid(possesse_uid.into()),
+        state.ecs().entity_from_uid(possessor_uid.into()),
+        state.ecs().entity_from_uid(possesse_uid.into()),
     ) {
         // In this section we check various invariants and can return early if any of
         // them are not met.
         {
+            let ecs = state.ecs();
             // Check that entities still exist
             if !possessor.gen().is_alive()
                 || !ecs.is_alive(possessor)
@@ -344,13 +346,18 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
 
         // Sync the player's character data to the database. This must be done before
         // moving any components from the entity.
-        drop(ecs);
-        let state = server.state_mut();
+        //
+        // NOTE: Below we delete old entity (if PresenceKind::Character) as if logging out. This is
+        // to prevent any potential for item duplication (although it would only be possible if the
+        // player could repossess their entity, hand off some items, and then crash the server in a
+        // particular time window, and only admins should have access to the item with this ability
+        // in the first place (though that isn't foolproof)). We could potentially fix this but it
+        // would require some tweaks to the CharacterUpdater code (to be able to deque the pending
+        // persistence request issued here if repossesing the original character), and it seems
+        // prudent to be more conservative with making changes there to support this feature.
         let possessor = persist_entity(state, possessor);
-        drop(state);
-        // TODO: delete old entity (if PresenceKind::Character) as if logging out.
+        let ecs = state.ecs();
 
-        let ecs = server.state.ecs();
         let mut clients = ecs.write_storage::<Client>();
 
         // Transfer client component. Note: we require this component for possession.
@@ -361,17 +368,6 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         clients.insert(possesse, client).expect("Checked entity was alive!");
 
         // Other components to transfer if they exist.
-        // TODO: don't transfer character id, TODO: consider how this could relate to
-        // database duplications, might need to model this like the player
-        // logging out. Note: logging back in is delayed because it would
-        // re-load from the database before old information is saved, if you are
-        // able to reposess the same entity, this should not be an issue,
-        // although the logout save being duplicated with the batch save may need to be
-        // considered, the logout save would be outdated. If you could cause
-        // your old entity to drop items while possessing another entity that
-        // would cause duplication in the database (on the other hand this ability
-        // should be strictly limited to admins, and not intended to be a normal
-        // gameplay ability).
         fn transfer_component<C: specs::Component>(
             storage: &mut specs::WriteStorage<'_, C>,
             possessor: EcsEntity,
@@ -397,16 +393,13 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         transfer_component(&mut presence, possessor, possesse, |mut presence| {
             presence.kind = match presence.kind {
                 PresenceKind::Spectator => PresenceKind::Spectator,
-                // TODO: also perform this transition on the client in response to entity switch.
-                // Disable persistence by changing the presence.
-                PresenceKind::Character(char_id) => PresenceKind::Possessor(char_id, possessor_uid),
-                PresenceKind::Possessor(old_char_id, old_uid) => if old_uid == possesse_uid {
-                    // If moving back to the original entity, shift back to the character
-                    // presence which will re-enable persistence. 
-                    PresenceKind::Character(old_char_id)
-                } else {
-                    PresenceKind::Possessor(old_char_id, old_uid)
+                // This prevents persistence from overwriting original character info with stuff
+                // from the new character.
+                PresenceKind::Character(_) => {
+                    delete_entity = Some(possessor);
+                    PresenceKind::Possessor
                 },
+                PresenceKind::Possessor => PresenceKind::Possessor,
             };
 
             presence
@@ -439,8 +432,8 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
             );
 
             drop((clients, players)); // need to drop so we can use `notify_players` below
-            server.state().notify_players(remove_player_msg);
-            server.state().notify_players(add_player_msg);
+            state.notify_players(remove_player_msg);
+            state.notify_players(add_player_msg);
         }
 
         // Put possess item into loadout
@@ -487,6 +480,20 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid
         );
         if !comp_sync_package.is_empty() {
             client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+        }
+    }
+
+    // Outside block above to prevent borrow conflicts (i.e. convenient to let everything drop at
+    // the end of the block rather than doing it manually for this).
+    // See note on `persist_entity` call above for why we do this.
+    if let Some(entity) = delete_entity {
+        // Delete old entity
+        if let Err(e) = state.delete_entity_recorded(entity) {
+            error!(
+                ?e,
+                ?entity,
+                "Failed to delete entity when removing character during possession."
+            );
         }
     }
 }

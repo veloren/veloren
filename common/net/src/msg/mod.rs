@@ -19,30 +19,21 @@ pub use self::{
     },
     world_msg::WorldMapMsg,
 };
-use common::{character::CharacterId, uid::Uid};
+use common::character::CharacterId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum PresenceKind {
     Spectator,
     Character(CharacterId),
-    Possessor(
-        /// The original character Id before possession began. Used to revert
-        /// back to original `Character` presence if original entity is
-        /// re-possessed.
-        CharacterId,
-        /// The original entity Uid.
-        Uid,
-    ),
+    Possessor,
 }
 
 impl PresenceKind {
     /// Check if the presence represents a control of a character, and thus
     /// certain in-game messages from the client such as control inputs
     /// should be handled.
-    pub fn controlling_char(&self) -> bool {
-        matches!(self, Self::Character(_) | Self::Possessor(_, _))
-    }
+    pub fn controlling_char(&self) -> bool { matches!(self, Self::Character(_) | Self::Possessor) }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

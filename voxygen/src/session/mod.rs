@@ -1365,7 +1365,7 @@ impl PlayState for SessionState {
                             PresenceKind::Spectator => {
                                 unreachable!("HUD adaption in Spectator mode!")
                             },
-                            PresenceKind::Possessor(_, _) => None,
+                            PresenceKind::Possessor => None,
                         };
 
                         // Get or update the ServerProfile.
