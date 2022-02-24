@@ -4902,7 +4902,7 @@ impl ObjectCentralSpec {
 }
 
 #[derive(Deserialize)]
-struct ItemDropCentralSpec(HashMap<ItemKey, (String, [f32; 3], [f32; 3], f32)>);
+struct ItemDropCentralSpec(HashMap<ItemKey, String>);
 
 make_vox_spec!(
     item_drop::Body,
@@ -4933,12 +4933,7 @@ make_vox_spec!(
 
 impl ItemDropCentralSpec {
     fn mesh_bone0(&self, item_drop: &item_drop::Body, item_key: &ItemKey) -> BoneMeshes {
-        let coin_pouch = (
-            "voxel.object.pouch".to_string(),
-            [-5.0, -5.0, 0.0],
-            [-10.0, 15.0, 0.0],
-            0.8,
-        );
+        let coin_pouch = "voxel.object.pouch".to_string();
 
         if let Some(spec) = match item_drop {
             item_drop::Body::CoinPouch => Some(&coin_pouch),
@@ -4957,7 +4952,7 @@ impl ItemDropCentralSpec {
                 },
                 _ => graceful_load_segment_fullspec(&full_spec),
             };
-            let offset = segment_center(&segment).unwrap_or_else(|| Vec3::broadcast(0.0));
+            let offset = segment_center(&segment).unwrap_or_default();
             (segment, match item_drop {
                 item_drop::Body::Tool(_) => Vec3::new(offset.x - 2.0, offset.y, offset.z),
                 item_drop::Body::Armor(kind) => match kind {
@@ -4984,7 +4979,7 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
     let (mut x_min, mut x_max, mut y_min, mut y_max, mut z_min, mut z_max) =
         (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
     for pos in segment.full_pos_iter() {
-        if let Cell::Filled(data) = segment.get(pos).unwrap() {
+        if let Some(Cell::Filled(data)) = segment.get(pos) {
             if !data.is_hollow() {
                 if pos.x < x_min {
                     x_min = pos.x;
