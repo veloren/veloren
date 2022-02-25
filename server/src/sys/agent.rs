@@ -12,7 +12,7 @@ use crate::{
             IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST, PARTIAL_PATH_DIST,
             RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS, SEPARATION_DIST,
         },
-        data::{AgentData, AttackData, ReadData, Tactic, TargetData},
+        data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
             aim_projectile, can_see_tgt, get_entity_by_id, is_dead, is_dead_or_invulnerable,
             is_invulnerable, try_owner_alignment,
@@ -2270,55 +2270,57 @@ impl<'a> AgentData<'a> {
         controller: &mut Controller,
         tgt_data: &TargetData,
         read_data: &ReadData,
-        full_path: bool,
-        separate: bool,
+        path: Path,
         speed_multiplier: Option<f32>,
     ) -> bool {
-        let pathing_pos = if separate {
-            let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
+        let pathing_pos = match path {
+            Path::Full => {
+                let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
 
-            for entity in read_data
-                .cached_spatial_grid
-                .0
-                .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST)
-            {
-                if let (Some(alignment), Some(other_alignment)) =
-                    (self.alignment, read_data.alignments.get(entity))
+                for entity in read_data
+                    .cached_spatial_grid
+                    .0
+                    .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST)
                 {
-                    if Alignment::passive_towards(*alignment, *other_alignment) {
-                        if let (Some(pos), Some(body), Some(other_body)) = (
-                            read_data.positions.get(entity),
-                            self.body,
-                            read_data.bodies.get(entity),
-                        ) {
-                            if self.pos.0.xy().distance(pos.0.xy())
-                                < body.spacing_radius() + other_body.spacing_radius()
-                            {
-                                sep_vec += (self.pos.0.xy() - pos.0.xy())
-                                    .try_normalized()
-                                    .unwrap_or_else(Vec2::zero)
-                                    * (((body.spacing_radius() + other_body.spacing_radius())
-                                        - self.pos.0.xy().distance(pos.0.xy()))
-                                        / (body.spacing_radius() + other_body.spacing_radius()));
+                    if let (Some(alignment), Some(other_alignment)) =
+                        (self.alignment, read_data.alignments.get(entity))
+                    {
+                        if Alignment::passive_towards(*alignment, *other_alignment) {
+                            if let (Some(pos), Some(body), Some(other_body)) = (
+                                read_data.positions.get(entity),
+                                self.body,
+                                read_data.bodies.get(entity),
+                            ) {
+                                if self.pos.0.xy().distance(pos.0.xy())
+                                    < body.spacing_radius() + other_body.spacing_radius()
+                                {
+                                    sep_vec += (self.pos.0.xy() - pos.0.xy())
+                                        .try_normalized()
+                                        .unwrap_or_else(Vec2::zero)
+                                        * (((body.spacing_radius() + other_body.spacing_radius())
+                                            - self.pos.0.xy().distance(pos.0.xy()))
+                                            / (body.spacing_radius()
+                                                + other_body.spacing_radius()));
+                                }
                             }
                         }
                     }
                 }
-            }
-            self.pos.0
-                + PARTIAL_PATH_DIST
-                    * (sep_vec * SEPARATION_BIAS
-                        + (tgt_data.pos.0 - self.pos.0) * (1.0 - SEPARATION_BIAS))
-                        .try_normalized()
-                        .unwrap_or_else(Vec3::zero)
-        } else if full_path {
-            tgt_data.pos.0
-        } else {
-            self.pos.0
-                + PARTIAL_PATH_DIST
-                    * (tgt_data.pos.0 - self.pos.0)
-                        .try_normalized()
-                        .unwrap_or_else(Vec3::zero)
+                self.pos.0
+                    + PARTIAL_PATH_DIST
+                        * (sep_vec * SEPARATION_BIAS
+                            + (tgt_data.pos.0 - self.pos.0) * (1.0 - SEPARATION_BIAS))
+                            .try_normalized()
+                            .unwrap_or_else(Vec3::zero)
+            },
+            Path::Separate => tgt_data.pos.0,
+            Path::Partial => {
+                self.pos.0
+                    + PARTIAL_PATH_DIST
+                        * (tgt_data.pos.0 - self.pos.0)
+                            .try_normalized()
+                            .unwrap_or_else(Vec3::zero)
+            },
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
         if let Some((bearing, speed)) = agent.chaser.chase(

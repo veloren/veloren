@@ -154,3 +154,9 @@ pub struct ReadData<'a> {
     pub combos: ReadStorage<'a, Combo>,
     pub active_abilities: ReadStorage<'a, ActiveAbilities>,
 }
+
+pub enum Path {
+    Full,
+    Separate,
+    Partial,
+}
