@@ -2259,7 +2259,7 @@ impl<'a> AgentData<'a> {
     }
 
     /// Directs the entity to path and move toward the target
-    /// If full_path is false, the entity will path to a location 50 units along
+    /// If path is not Full, the entity will path to a location 50 units along
     /// the vector between the entity and the target. The speed multiplier
     /// multiplies the movement speed by a value less than 1.0.
     /// A `None` value implies a multiplier of 1.0.
