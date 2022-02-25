@@ -2296,16 +2296,13 @@ impl<'a> AgentData<'a> {
                                 self.body,
                                 read_data.bodies.get(entity),
                             ) {
-                                if self.pos.0.xy().distance(pos.0.xy())
-                                    < body.spacing_radius() + other_body.spacing_radius()
-                                {
+                                let spacing = body.spacing_radius() + other_body.spacing_radius();
+                                if self.pos.0.xy().distance(pos.0.xy()) < spacing {
                                     sep_vec += (self.pos.0.xy() - pos.0.xy())
                                         .try_normalized()
                                         .unwrap_or_else(Vec2::zero)
-                                        * (((body.spacing_radius() + other_body.spacing_radius())
-                                            - self.pos.0.xy().distance(pos.0.xy()))
-                                            / (body.spacing_radius()
-                                                + other_body.spacing_radius()));
+                                        * ((spacing - self.pos.0.xy().distance(pos.0.xy()))
+                                            / spacing);
                                 }
                             }
                         }
