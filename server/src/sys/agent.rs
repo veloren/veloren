@@ -2299,10 +2299,10 @@ impl<'a> AgentData<'a> {
                                 let dist_to_pos_xy = self.pos.0.xy().distance(pos.0.xy());
                                 let spacing = body.spacing_radius() + other_body.spacing_radius();
                                 if dist_to_pos_xy < spacing {
-                                    sep_vec += (self.pos.0.xy() - pos.0.xy())
-                                        .try_normalized()
-                                        .unwrap_or_else(Vec2::zero)
-                                        * ((spacing - dist_to_pos_xy) / spacing);
+                                    let dist_to_pos = self.pos.0.xy() - pos.0.xy();
+                                    sep_vec +=
+                                        dist_to_pos.try_normalized().unwrap_or_else(Vec2::zero)
+                                            * ((spacing - dist_to_pos_xy) / spacing);
                                 }
                             }
                         }
