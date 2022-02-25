@@ -2273,7 +2273,8 @@ impl<'a> AgentData<'a> {
         path: Path,
         speed_multiplier: Option<f32>,
     ) -> bool {
-        let distance_to_target = tgt_data.pos.0 - self.pos.0;
+        let pos = self.pos.0;
+        let distance_to_target = tgt_data.pos.0 - pos;
         let pathing_pos = match path {
             Path::Full => {
                 let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
@@ -2281,7 +2282,7 @@ impl<'a> AgentData<'a> {
                 for entity in read_data
                     .cached_spatial_grid
                     .0
-                    .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST)
+                    .in_circle_aabr(pos.xy(), SEPARATION_DIST)
                 {
                     if let (Some(alignment), Some(other_alignment)) =
                         (self.alignment, read_data.alignments.get(entity))
@@ -2307,25 +2308,23 @@ impl<'a> AgentData<'a> {
                         }
                     }
                 }
-                self.pos.0
-                    + PARTIAL_PATH_DIST
-                        * (sep_vec * SEPARATION_BIAS + distance_to_target * (1.0 - SEPARATION_BIAS))
-                            .try_normalized()
-                            .unwrap_or_else(Vec3::zero)
+                pos + PARTIAL_PATH_DIST
+                    * (sep_vec * SEPARATION_BIAS + distance_to_target * (1.0 - SEPARATION_BIAS))
+                        .try_normalized()
+                        .unwrap_or_else(Vec3::zero)
             },
             Path::Separate => tgt_data.pos.0,
             Path::Partial => {
-                self.pos.0
-                    + PARTIAL_PATH_DIST
-                        * distance_to_target
-                            .try_normalized()
-                            .unwrap_or_else(Vec3::zero)
+                pos + PARTIAL_PATH_DIST
+                    * distance_to_target
+                        .try_normalized()
+                        .unwrap_or_else(Vec3::zero)
             },
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*read_data.terrain,
-            self.pos.0,
+            pos,
             self.vel.0,
             pathing_pos,
             TraversalConfig {
