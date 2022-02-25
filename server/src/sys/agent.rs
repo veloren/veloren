@@ -2273,6 +2273,7 @@ impl<'a> AgentData<'a> {
         path: Path,
         speed_multiplier: Option<f32>,
     ) -> bool {
+        let distance_to_target = tgt_data.pos.0 - self.pos.0;
         let pathing_pos = match path {
             Path::Full => {
                 let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
@@ -2308,8 +2309,7 @@ impl<'a> AgentData<'a> {
                 }
                 self.pos.0
                     + PARTIAL_PATH_DIST
-                        * (sep_vec * SEPARATION_BIAS
-                            + (tgt_data.pos.0 - self.pos.0) * (1.0 - SEPARATION_BIAS))
+                        * (sep_vec * SEPARATION_BIAS + distance_to_target * (1.0 - SEPARATION_BIAS))
                             .try_normalized()
                             .unwrap_or_else(Vec3::zero)
             },
@@ -2317,7 +2317,7 @@ impl<'a> AgentData<'a> {
             Path::Partial => {
                 self.pos.0
                     + PARTIAL_PATH_DIST
-                        * (tgt_data.pos.0 - self.pos.0)
+                        * distance_to_target
                             .try_normalized()
                             .unwrap_or_else(Vec3::zero)
             },
