@@ -4,7 +4,7 @@ use common::{
     calendar::{Calendar, CalendarEvent},
     generation::{ChunkSupplement, EntityInfo},
     resources::TimeOfDay,
-    terrain::Block,
+    terrain::{BiomeKind, Block},
     time::DayPeriod,
     vol::{BaseVol, ReadVol, RectSizedVol, WriteVol},
 };
@@ -265,7 +265,9 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // Ocean animals
         ("world.wildlife.spawn.tropical.ocean", |_c, col| {
             close(col.temp, CONFIG.tropical_temp, 0.1) / 10.0
-                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false) && col.tree_density == 0.0 {
+                * if col.water_dist.map(|d| d < 1.0).unwrap_or(false)
+                    && !matches!(col.chunk.get_biome(), BiomeKind::Ocean)
+                {
                     0.001
                 } else {
                     0.0
