@@ -2274,6 +2274,9 @@ impl<'a> AgentData<'a> {
         speed_multiplier: Option<f32>,
     ) -> bool {
         let pos = self.pos.0;
+        let target_position = |vec3: Vec3<f32>| {
+            pos + PARTIAL_PATH_DIST * vec3.try_normalized().unwrap_or_else(Vec3::zero)
+        };
         let distance_to_target = tgt_data.pos.0 - pos;
         let pathing_pos = match path {
             Path::Full => {
@@ -2308,18 +2311,12 @@ impl<'a> AgentData<'a> {
                         }
                     }
                 }
-                pos + PARTIAL_PATH_DIST
-                    * (sep_vec * SEPARATION_BIAS + distance_to_target * (1.0 - SEPARATION_BIAS))
-                        .try_normalized()
-                        .unwrap_or_else(Vec3::zero)
+                target_position(
+                    sep_vec * SEPARATION_BIAS + distance_to_target * (1.0 - SEPARATION_BIAS),
+                )
             },
             Path::Separate => tgt_data.pos.0,
-            Path::Partial => {
-                pos + PARTIAL_PATH_DIST
-                    * distance_to_target
-                        .try_normalized()
-                        .unwrap_or_else(Vec3::zero)
-            },
+            Path::Partial => target_position(distance_to_target),
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
         if let Some((bearing, speed)) = agent.chaser.chase(
