@@ -30,6 +30,14 @@ vec3 apply_point_glow(vec3 wpos, vec3 dir, float max_dist, vec3 color) {
 
             float strength = pow(attenuation_strength_real(difference), spread);
 
+            #ifdef EXPERIMENTAL_LOWGLOWNEARCAMERA
+                vec3 cam_wpos = cam_pos.xyz + focus_pos.xyz + focus_off.xyz;
+                vec3 cam_diff = light_pos - cam_wpos;
+                float cam_dist_2 = dot(cam_diff, cam_diff);
+                // 3 meters away glow returns to the maximum strength.
+                strength *= clamp(cam_dist_2 / 9.0, 0.25, 1.0);
+            #endif
+
             vec3 light_color = srgb_to_linear(L.light_col.rgb) * strength;
 
             const float LIGHT_AMBIANCE = 0.025;
