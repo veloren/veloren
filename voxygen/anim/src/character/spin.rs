@@ -49,6 +49,7 @@ impl Animation for SpinAnimation {
         next.main.position = Vec3::new(0.0, 0.0, 0.0);
         next.main.orientation = Quaternion::rotation_x(0.0);
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
+
         if matches!(
             stage_section,
             Some(StageSection::Action | StageSection::Recover)

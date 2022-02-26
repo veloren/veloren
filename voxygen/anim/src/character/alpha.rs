@@ -46,6 +46,7 @@ impl Animation for AlphaAnimation {
         next.second.orientation = Quaternion::rotation_z(0.0);
         next.torso.position = Vec3::new(0.0, 0.0, 1.1);
         next.torso.orientation = Quaternion::rotation_z(0.0);
+
         if matches!(
             stage_section,
             Some(StageSection::Action | StageSection::Recover)

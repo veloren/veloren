@@ -4,8 +4,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
-            sprite, terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            blit, bloom, debug, figure, fluid, lod_terrain, particle, shadow, skybox, sprite,
+            terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -214,7 +214,10 @@ impl<'frame> Drawer<'frame> {
 
     /// Returns None if the clouds pipeline is not available
     pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
-        let pipeline = &self.borrow.pipelines.all()?.clouds;
+        let pipelines = super::SecondPassPipelines {
+            clouds: &self.borrow.pipelines.all()?.clouds,
+            trail: &self.borrow.pipelines.all()?.trail,
+        };
 
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
@@ -237,7 +240,7 @@ impl<'frame> Drawer<'frame> {
         Some(SecondPassDrawer {
             render_pass,
             borrow: &self.borrow,
-            pipeline,
+            pipelines,
         })
     }
 
@@ -738,15 +741,6 @@ impl<'pass> FirstPassDrawer<'pass> {
         ParticleDrawer { render_pass }
     }
 
-    pub fn draw_trails(&mut self) -> TrailDrawer<'_, 'pass> {
-        let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
-
-        render_pass.set_pipeline(&self.pipelines.trail.pipeline);
-        set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
-
-        TrailDrawer { render_pass }
-    }
-
     pub fn draw_sprites<'data: 'pass>(
         &mut self,
         globals: &'data sprite::SpriteGlobalsBindGroup,
@@ -877,16 +871,10 @@ pub struct TrailDrawer<'pass_ref, 'pass: 'pass_ref> {
 }
 
 impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
-    pub fn draw<'data: 'pass>(
-        &mut self,
-        model: &'data DynamicModel<trail::Vertex>,
-        model_len: u32,
-    ) {
+    pub fn draw(&mut self, submodel: SubModel<'pass, trail::Vertex>) {
+        self.render_pass.set_vertex_buffer(0, submodel.buf());
         self.render_pass
-            .set_vertex_buffer(0, model.submodel(0..model_len).buf());
-        self.render_pass
-            // TODO: since we cast to u32 maybe this should returned by the len/count functions?
-            .draw_indexed(0..model_len / 4 * 6, 0, 0..1);
+            .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
     }
 }
 
@@ -943,15 +931,25 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
 pub struct SecondPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
-    pipeline: &'pass clouds::CloudsPipeline,
+    pipelines: super::SecondPassPipelines<'pass>,
 }
 
 impl<'pass> SecondPassDrawer<'pass> {
     pub fn draw_clouds(&mut self) {
-        self.render_pass.set_pipeline(&self.pipeline.pipeline);
+        self.render_pass
+            .set_pipeline(&self.pipelines.clouds.pipeline);
         self.render_pass
             .set_bind_group(1, &self.borrow.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
+    }
+
+    pub fn draw_trails(&mut self) -> TrailDrawer<'_, 'pass> {
+        let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
+
+        render_pass.set_pipeline(&self.pipelines.trail.pipeline);
+        set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
+
+        TrailDrawer { render_pass }
     }
 }
 

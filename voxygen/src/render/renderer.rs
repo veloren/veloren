@@ -9,7 +9,8 @@ mod shadow_map;
 
 use locals::Locals;
 use pipeline_creation::{
-    IngameAndShadowPipelines, InterfacePipelines, PipelineCreation, Pipelines, ShadowPipelines,
+    IngameAndShadowPipelines, InterfacePipelines, PipelineCreation, Pipelines, SecondPassPipelines,
+    ShadowPipelines,
 };
 use shaders::Shaders;
 use shadow_map::{ShadowMap, ShadowMapRenderer};

@@ -78,6 +78,8 @@ void main() {
 
     vec3 emitted_light, reflected_light;
 
+    // TODO: Look into using the same light parameter that is used for figures
+    // Comment on this method copy-pasted from particle shader:
     // This is a bit of a hack. Because we can't find the volumetric lighting of each particle (they don't talk to the
     // CPU) we need to some how find an approximation of how much the sun is blocked. We do this by fading out the sun
     // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like

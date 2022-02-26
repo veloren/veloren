@@ -13,14 +13,14 @@ struct MeshKey {
 }
 
 pub struct TrailMgr {
-    /// Meshes for each entity
-    entity_meshes: HashMap<MeshKey, Mesh<TrailVertex>>,
+    /// Meshes for each entity, usize is the last offset tick it was updated
+    entity_meshes: HashMap<MeshKey, (Mesh<TrailVertex>, usize)>,
 
     /// Position cache for things like projectiles
     pos_cache: HashMap<EcsEntity, Pos>,
 
     /// Offset
-    pub offset: usize,
+    offset: usize,
 
     /// Dynamic model to upload to GPU
     dynamic_model: DynamicModel<TrailVertex>,
@@ -47,35 +47,6 @@ impl TrailMgr {
         span!(_guard, "maintain", "TrailMgr::maintain");
 
         if scene_data.weapon_trails_enabled {
-            // Update offset
-            self.offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
-
-            self.entity_meshes.values_mut().for_each(|mesh| {
-                // Shrink size of each quad over time
-                let vertices = mesh.vertices_mut_vec();
-                let last_offset =
-                    (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE;
-                let next_offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
-                for i in 0..TRAIL_DYNAMIC_MODEL_SIZE {
-                    // Verts per quad are in b, c, a, d order
-                    vertices[i * 4 + 2] = if i == next_offset {
-                        vertices[i * 4]
-                    } else {
-                        vertices[i * 4 + 2] * TRAIL_SHRINKAGE
-                            + vertices[i * 4] * (1.0 - TRAIL_SHRINKAGE)
-                    };
-                    if i != last_offset {
-                        // Avoid shrinking edge of most recent quad so that edges of quads align
-                        vertices[i * 4 + 3] = vertices[i * 4 + 3] * TRAIL_SHRINKAGE
-                            + vertices[i * 4 + 1] * (1.0 - TRAIL_SHRINKAGE);
-                    }
-                }
-
-                // Reset quad for each entity mesh at new offset
-                let zero = TrailVertex::zero();
-                mesh.replace_quad(self.offset * 4, Quad::new(zero, zero, zero, zero));
-            });
-
             // Hack to shove trails in for projectiles
             let ecs = scene_data.state.ecs();
             for (entity, body, vel, pos) in (
@@ -86,7 +57,8 @@ impl TrailMgr {
             )
                 .join()
             {
-                if !vel.0.is_approx_zero()
+                const MIN_SPEED: f32 = 15.0;
+                if vel.0.magnitude_squared() > MIN_SPEED.powi(2)
                     && matches!(
                         body,
                         Body::Object(
@@ -114,17 +86,50 @@ impl TrailMgr {
                 }
             }
 
+            // Update offset
+            self.offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
+
+            self.entity_meshes.values_mut().for_each(|(mesh, _)| {
+                // TODO: Figure out how to do this in shader files instead
+                // Shrink size of each quad over time
+                let vertices = mesh.vertices_mut_vec();
+                let last_offset =
+                    (self.offset + TRAIL_DYNAMIC_MODEL_SIZE - 1) % TRAIL_DYNAMIC_MODEL_SIZE;
+                let next_offset = (self.offset + 1) % TRAIL_DYNAMIC_MODEL_SIZE;
+                for i in 0..TRAIL_DYNAMIC_MODEL_SIZE {
+                    // Verts per quad are in b, c, a, d order
+                    let [b, c, a, d] = [0, 1, 2, 3].map(|offset| i * 4 + offset);
+                    vertices[a] = if i == next_offset {
+                        vertices[b]
+                    } else {
+                        vertices[a] * TRAIL_SHRINKAGE + vertices[b] * (1.0 - TRAIL_SHRINKAGE)
+                    };
+                    if i != last_offset {
+                        // Avoid shrinking edge of most recent quad so that edges of quads align
+                        vertices[d] =
+                            vertices[d] * TRAIL_SHRINKAGE + vertices[c] * (1.0 - TRAIL_SHRINKAGE);
+                    }
+                }
+
+                // Reset quad for each entity mesh at new offset
+                let zero = TrailVertex::zero();
+                mesh.replace_quad(self.offset * 4, Quad::new(zero, zero, zero, zero));
+            });
+
             // Clear meshes for entities that only have zero quads in mesh
             self.entity_meshes
-                .retain(|_, mesh| mesh.iter().any(|vert| *vert != TrailVertex::zero()));
+                .retain(|_, (mesh, _)| mesh.iter().any(|vert| *vert != TrailVertex::zero()));
+            // .retain(|_, (_mesh, last_updated)| *last_updated == self.offset);
 
-            // Create dynamic model from currently existing meshes
+            // TODO: as an optimization we can keep this big mesh around between frames and
+            // write directly to it for each entity. Create big mesh from
+            // currently existing meshes that is used to update dynamic model
             let mut big_mesh = Mesh::new();
             self.entity_meshes
                 .values()
                 // If any of the vertices in a mesh are non-zero, upload the entire mesh for the entity
-                .filter(|mesh| mesh.iter().any(|vert| *vert != TrailVertex::zero()))
-                .for_each(|mesh| big_mesh.push_mesh(mesh));
+                .filter(|(mesh, _)| mesh.iter().any(|vert| *vert != TrailVertex::zero()))
+                .for_each(|(mesh, _)| big_mesh.push_mesh(mesh));
 
             // To avoid empty mesh
             if big_mesh.is_empty() {
@@ -132,21 +137,26 @@ impl TrailMgr {
                 big_mesh.push_quad(Quad::new(zero, zero, zero, zero));
             }
 
-            // If dynamic model too small, resize
+            // If dynamic model too small, resize, with room for 10 additional entities to
+            // avoid needing to resize frequently
             if self.dynamic_model.len() < big_mesh.len() {
-                self.dynamic_model = renderer.create_dynamic_model(big_mesh.len());
+                self.dynamic_model = renderer
+                    .create_dynamic_model(big_mesh.len() + TRAIL_DYNAMIC_MODEL_SIZE * 4 * 10);
             };
             renderer.update_model(&self.dynamic_model, &big_mesh, 0);
             self.model_len = big_mesh.len() as u32;
         } else {
             self.entity_meshes.clear();
+            // Clear dynamic model to free memory
+            self.dynamic_model = renderer.create_dynamic_model(0);
         }
     }
 
     pub fn render<'a>(&'a self, drawer: &mut TrailDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "TrailMgr::render");
         if scene_data.weapon_trails_enabled {
-            drawer.draw(&self.dynamic_model, self.model_len);
+            // drawer.draw(&self.dynamic_model, self.model_len);
+            drawer.draw(self.dynamic_model.submodel(0..self.model_len))
         }
     }
 
@@ -159,9 +169,11 @@ impl TrailMgr {
             entity,
             is_main_weapon,
         };
-        self.entity_meshes
+        &mut self
+            .entity_meshes
             .entry(key)
-            .or_insert_with(Self::default_trail_mesh)
+            .or_insert((Self::default_trail_mesh(), self.offset))
+            .0
     }
 
     fn default_trail_mesh() -> Mesh<TrailVertex> {
@@ -172,4 +184,6 @@ impl TrailMgr {
         }
         mesh
     }
+
+    pub fn offset(&self) -> usize { self.offset }
 }

@@ -33,6 +33,11 @@ pub struct Pipelines {
     pub blit: blit::BlitPipeline,
 }
 
+pub struct SecondPassPipelines<'a> {
+    pub clouds: &'a clouds::CloudsPipeline,
+    pub trail: &'a trail::TrailPipeline,
+}
+
 /// Pipelines that are needed to render 3D stuff in-game
 /// Use to decouple interface pipeline creation when initializing the renderer
 pub struct IngamePipelines {

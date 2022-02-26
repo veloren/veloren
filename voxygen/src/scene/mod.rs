@@ -1153,10 +1153,6 @@ impl Scene {
             self.particle_mgr
                 .render(&mut first_pass.draw_particles(), scene_data);
 
-            // Render weapon trails.
-            self.trail_mgr
-                .render(&mut first_pass.draw_trails(), scene_data);
-
             // Render debug shapes
             self.debug.render(&mut first_pass.draw_debug());
         }

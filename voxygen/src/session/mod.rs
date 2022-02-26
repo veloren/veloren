@@ -1561,11 +1561,16 @@ impl PlayState for SessionState {
             );
         }
 
-        // Clouds
-        {
-            prof_span!("clouds");
-            if let Some(mut second_pass) = drawer.second_pass() {
+        if let Some(mut second_pass) = drawer.second_pass() {
+            // Clouds
+            {
+                prof_span!("clouds");
                 second_pass.draw_clouds();
+            }
+            // Trails
+            {
+                prof_span!("trails");
+                second_pass.draw_trails();
             }
         }
         // Bloom (call does nothing if bloom is off)

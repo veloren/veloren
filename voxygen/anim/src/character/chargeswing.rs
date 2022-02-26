@@ -54,6 +54,7 @@ impl Animation for ChargeswingAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, anim_time.powi(4), 0.0, 1.0),
             _ => (0.0, 0.0, 0.0, 0.0, 0.0),
         };
+
         if matches!(
             stage_section,
             Some(StageSection::Charge | StageSection::Action | StageSection::Recover)

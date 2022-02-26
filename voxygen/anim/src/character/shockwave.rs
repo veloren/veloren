@@ -42,6 +42,7 @@ impl Animation for ShockwaveAnimation {
             Some(StageSection::Recover) => (1.0, 1.0, anim_time),
             _ => (0.0, 0.0, 0.0),
         };
+
         if matches!(
             stage_section,
             Some(StageSection::Action | StageSection::Recover)
