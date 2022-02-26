@@ -4939,7 +4939,7 @@ impl ItemDropCentralSpec {
             item_drop::Body::CoinPouch => Some(&coin_pouch),
             _ => self.0.get(item_key),
         } {
-            let full_spec: String = ["voxygen.", spec.0.as_str()].concat();
+            let full_spec: String = ["voxygen.", spec.as_str()].concat();
             let segment = match item_drop {
                 item_drop::Body::Armor(_) => {
                     MatSegment::from(&graceful_load_vox_fullspec(&full_spec).read().0)
@@ -4954,6 +4954,7 @@ impl ItemDropCentralSpec {
             };
             let offset = segment_center(&segment).unwrap_or_default();
             (segment, match item_drop {
+                // TODO: apply non-random rotations to items here
                 item_drop::Body::Tool(_) => Vec3::new(offset.x - 2.0, offset.y, offset.z),
                 item_drop::Body::Armor(kind) => match kind {
                     item_drop::ItemDropArmorKind::Neck
@@ -4979,7 +4980,7 @@ fn segment_center(segment: &Segment) -> Option<Vec3<f32>> {
     let (mut x_min, mut x_max, mut y_min, mut y_max, mut z_min, mut z_max) =
         (i32::MAX, 0, i32::MAX, 0, i32::MAX, 0);
     for pos in segment.full_pos_iter() {
-        if let Some(Cell::Filled(data)) = segment.get(pos) {
+        if let Ok(Cell::Filled(data)) = segment.get(pos) {
             if !data.is_hollow() {
                 if pos.x < x_min {
                     x_min = pos.x;

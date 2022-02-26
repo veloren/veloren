@@ -1,2932 +1,785 @@
-//  (specifier, offset, (x_rot, y_rot, z_rot), zoom)
-//  TODO: correct item offsets so the displayed text lines up better with the items
+//  specifier
 ({
     // Bows
-    Tool("common.items.weapons.bow.bone-0"): (
-        "voxel.weapon.bow.bone-0",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.bone-1"): (
-        "voxel.weapon.bow.bone-1",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.bone-2"): (
-        "voxel.weapon.bow.bone-2",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.bone-3"): (
-        "voxel.weapon.bow.bone-3",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.eldwood-0"): (
-        "voxel.weapon.bow.eldwood-0",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.eldwood-1"): (
-        "voxel.weapon.bow.eldwood-1",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.eldwood-2"): (
-        "voxel.weapon.bow.eldwood-2",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.frostwood-0"): (
-        "voxel.weapon.bow.frostwood-0",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.frostwood-1"): (
-        "voxel.weapon.bow.frostwood-1",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.frostwood-2"): (
-        "voxel.weapon.bow.frostwood-2",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.hardwood-0"): (
-        "voxel.weapon.bow.hardwood-0",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.hardwood-1"): (
-        "voxel.weapon.bow.hardwood-1",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.hardwood-2"): (
-        "voxel.weapon.bow.hardwood-2",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.hardwood-3"): (
-        "voxel.weapon.bow.hardwood-3",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.hardwood-4"): (
-        "voxel.weapon.bow.hardwood-4",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.hardwood-5"): (
-        "voxel.weapon.bow.hardwood-5",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.metal-0"): (
-        "voxel.weapon.bow.metal-0",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.metal-1"): (
-        "voxel.weapon.bow.metal-1",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.metal-2"): (
-        "voxel.weapon.bow.metal-2",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.metal-3"): (
-        "voxel.weapon.bow.metal-3",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.metal-4"): (
-        "voxel.weapon.bow.metal-4",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.rawwood-0"): (
-        "voxel.weapon.bow.rawwood-0",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.rawwood-1"): (
-        "voxel.weapon.bow.rawwood-1",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.sagitta"): (
-        "voxel.weapon.bow.sagitta",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.starter"): (
-        "voxel.weapon.bow.starter",
-        (-2.5, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.velorite"): (
-        "voxel.weapon.bow.velorite",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.debug.velorite_bow_debug"): (
-        "voxel.weapon.bow.velorite",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.wood-0"): (
-        "voxel.weapon.bow.wood-0",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.wood-1"): (
-        "voxel.weapon.bow.wood-1",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.wood-2"): (
-        "voxel.weapon.bow.wood-2",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.wood-3"): (
-        "voxel.weapon.bow.wood-3",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.bow.wood-4"): (
-        "voxel.weapon.bow.wood-4",
-        (-3.0, -3.0, -5.0), (90.0, 90.0, 0.0), 1.0,
-    ),
+    Tool("common.items.weapons.bow.bone-0"): "voxel.weapon.bow.bone-0",
+    Tool("common.items.weapons.bow.bone-1"): "voxel.weapon.bow.bone-1",
+    Tool("common.items.weapons.bow.bone-2"): "voxel.weapon.bow.bone-2",
+    Tool("common.items.weapons.bow.bone-3"): "voxel.weapon.bow.bone-3",
+    Tool("common.items.weapons.bow.eldwood-0"): "voxel.weapon.bow.eldwood-0",
+    Tool("common.items.weapons.bow.eldwood-1"): "voxel.weapon.bow.eldwood-1",
+    Tool("common.items.weapons.bow.eldwood-2"): "voxel.weapon.bow.eldwood-2",
+    Tool("common.items.weapons.bow.frostwood-0"): "voxel.weapon.bow.frostwood-0",
+    Tool("common.items.weapons.bow.frostwood-1"): "voxel.weapon.bow.frostwood-1",
+    Tool("common.items.weapons.bow.frostwood-2"): "voxel.weapon.bow.frostwood-2",
+    Tool("common.items.weapons.bow.hardwood-0"): "voxel.weapon.bow.hardwood-0",
+    Tool("common.items.weapons.bow.hardwood-1"): "voxel.weapon.bow.hardwood-1",
+    Tool("common.items.weapons.bow.hardwood-2"): "voxel.weapon.bow.hardwood-2",
+    Tool("common.items.weapons.bow.hardwood-3"): "voxel.weapon.bow.hardwood-3",
+    Tool("common.items.weapons.bow.hardwood-4"): "voxel.weapon.bow.hardwood-4",
+    Tool("common.items.weapons.bow.hardwood-5"): "voxel.weapon.bow.hardwood-5",
+    Tool("common.items.weapons.bow.metal-0"): "voxel.weapon.bow.metal-0",
+    Tool("common.items.weapons.bow.metal-1"): "voxel.weapon.bow.metal-1",
+    Tool("common.items.weapons.bow.metal-2"): "voxel.weapon.bow.metal-2",
+    Tool("common.items.weapons.bow.metal-3"): "voxel.weapon.bow.metal-3",
+    Tool("common.items.weapons.bow.metal-4"): "voxel.weapon.bow.metal-4",
+    Tool("common.items.weapons.bow.rawwood-0"): "voxel.weapon.bow.rawwood-0",
+    Tool("common.items.weapons.bow.rawwood-1"): "voxel.weapon.bow.rawwood-1",
+    Tool("common.items.weapons.bow.sagitta"): "voxel.weapon.bow.sagitta",
+    Tool("common.items.weapons.bow.starter"): "voxel.weapon.bow.starter",
+    Tool("common.items.weapons.bow.velorite"): "voxel.weapon.bow.velorite",
+    Tool("common.items.debug.velorite_bow_debug"): "voxel.weapon.bow.velorite",
+    Tool("common.items.weapons.bow.wood-0"): "voxel.weapon.bow.wood-0",
+    Tool("common.items.weapons.bow.wood-1"): "voxel.weapon.bow.wood-1",
+    Tool("common.items.weapons.bow.wood-2"): "voxel.weapon.bow.wood-2",
+    Tool("common.items.weapons.bow.wood-3"): "voxel.weapon.bow.wood-3",
+    Tool("common.items.weapons.bow.wood-4"): "voxel.weapon.bow.wood-4",
     // Daggers
-    Tool("common.items.weapons.dagger.starter_dagger"): (
-        "voxel.weapon.dagger.dagger_rusty",
-        (-2.5, -5.0, -5.0), (-120.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.dagger.basic_0"): (
-        "voxel.weapon.dagger.dagger_basic-0",
-        (-3.0, -5.0, -5.0), (-120.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.dagger.cultist_0"): (
-        "voxel.weapon.dagger.dagger_cult-0",
-        (-3.0, -5.0, -5.0), (-120.0, 90.0, 0.0), 1.1,
-    ),
+    Tool("common.items.weapons.dagger.starter_dagger"): "voxel.weapon.dagger.dagger_rusty",
+    Tool("common.items.weapons.dagger.basic_0"): "voxel.weapon.dagger.dagger_basic-0",
+    Tool("common.items.weapons.dagger.cultist_0"): "voxel.weapon.dagger.dagger_cult-0",
     // Swords
-    Tool("common.items.weapons.sword.bloodsteel-0"): (
-        "voxel.weapon.sword.bloodsteel-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.bloodsteel-1"): (
-        "voxel.weapon.sword.bloodsteel-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.bloodsteel-2"): (
-        "voxel.weapon.sword.bloodsteel-2",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.bronze-0"): (
-        "voxel.weapon.sword.bronze-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.bronze-1"): (
-        "voxel.weapon.sword.bronze-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.bronze-2"): (
-        "voxel.weapon.sword.bronze-2",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.caladbolg"): (
-        "voxel.weapon.sword.caladbolg",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.cobalt-0"): (
-        "voxel.weapon.sword.cobalt-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.cobalt-1"): (
-        "voxel.weapon.sword.cobalt-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.cobalt-2"): (
-        "voxel.weapon.sword.cobalt-2",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.cobalt-3"): (
-        "voxel.weapon.sword.cobalt-3",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.cultist"): (
-        "voxel.weapon.sword.cultist",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.frost-0"): (
-        "voxel.weapon.sword.frost-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.frost-1"): (
-        "voxel.weapon.sword.frost-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-0"): (
-        "voxel.weapon.sword.iron-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-1"): (
-        "voxel.weapon.sword.iron-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-10"): (
-        "voxel.weapon.sword.iron-10",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-2"): (
-        "voxel.weapon.sword.iron-2",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-3"): (
-        "voxel.weapon.sword.iron-3",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-4"): (
-        "voxel.weapon.sword.iron-4",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-5"): (
-        "voxel.weapon.sword.iron-5",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-6"): (
-        "voxel.weapon.sword.iron-6",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-7"): (
-        "voxel.weapon.sword.iron-7",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-8"): (
-        "voxel.weapon.sword.iron-8",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.iron-9"): (
-        "voxel.weapon.sword.iron-9",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.starter"): (
-        "voxel.weapon.sword.starter",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-0"): (
-        "voxel.weapon.sword.steel-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-1"): (
-        "voxel.weapon.sword.steel-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-2"): (
-        "voxel.weapon.sword.steel-2",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-3"): (
-        "voxel.weapon.sword.steel-3",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-4"): (
-        "voxel.weapon.sword.steel-4",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-5"): (
-        "voxel.weapon.sword.steel-5",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-6"): (
-        "voxel.weapon.sword.steel-6",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-7"): (
-        "voxel.weapon.sword.steel-7",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.steel-8"): (
-        "voxel.weapon.sword.steel-8",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.stone-0"): (
-        "voxel.weapon.sword.stone-0",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.stone-1"): (
-        "voxel.weapon.sword.stone-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.stone-2"): (
-        "voxel.weapon.sword.stone-2",
-        (-3.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.wood-0"): (
-        "voxel.weapon.sword.wood-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.wood-1"): (
-        "voxel.weapon.sword.wood-1",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sword.wood-2"): (
-        "voxel.weapon.sword.wood-2",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.debug.admin_sword"): (
-        "voxel.weapon.sword.frost-1",
-        (-3.0, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
+    Tool("common.items.weapons.sword.bloodsteel-0"): "voxel.weapon.sword.bloodsteel-0",
+    Tool("common.items.weapons.sword.bloodsteel-1"): "voxel.weapon.sword.bloodsteel-1",
+    Tool("common.items.weapons.sword.bloodsteel-2"): "voxel.weapon.sword.bloodsteel-2",
+    Tool("common.items.weapons.sword.bronze-0"): "voxel.weapon.sword.bronze-0",
+    Tool("common.items.weapons.sword.bronze-1"): "voxel.weapon.sword.bronze-1",
+    Tool("common.items.weapons.sword.bronze-2"): "voxel.weapon.sword.bronze-2",
+    Tool("common.items.weapons.sword.caladbolg"): "voxel.weapon.sword.caladbolg",
+    Tool("common.items.weapons.sword.cobalt-0"): "voxel.weapon.sword.cobalt-0",
+    Tool("common.items.weapons.sword.cobalt-1"): "voxel.weapon.sword.cobalt-1",
+    Tool("common.items.weapons.sword.cobalt-2"): "voxel.weapon.sword.cobalt-2",
+    Tool("common.items.weapons.sword.cobalt-3"): "voxel.weapon.sword.cobalt-3",
+    Tool("common.items.weapons.sword.cultist"): "voxel.weapon.sword.cultist",
+    Tool("common.items.weapons.sword.frost-0"): "voxel.weapon.sword.frost-0",
+    Tool("common.items.weapons.sword.frost-1"): "voxel.weapon.sword.frost-1",
+    Tool("common.items.weapons.sword.iron-0"): "voxel.weapon.sword.iron-0",
+    Tool("common.items.weapons.sword.iron-1"): "voxel.weapon.sword.iron-1",
+    Tool("common.items.weapons.sword.iron-10"): "voxel.weapon.sword.iron-10",
+    Tool("common.items.weapons.sword.iron-2"): "voxel.weapon.sword.iron-2",
+    Tool("common.items.weapons.sword.iron-3"): "voxel.weapon.sword.iron-3",
+    Tool("common.items.weapons.sword.iron-4"): "voxel.weapon.sword.iron-4",
+    Tool("common.items.weapons.sword.iron-5"): "voxel.weapon.sword.iron-5",
+    Tool("common.items.weapons.sword.iron-6"): "voxel.weapon.sword.iron-6",
+    Tool("common.items.weapons.sword.iron-7"): "voxel.weapon.sword.iron-7",
+    Tool("common.items.weapons.sword.iron-8"): "voxel.weapon.sword.iron-8",
+    Tool("common.items.weapons.sword.iron-9"): "voxel.weapon.sword.iron-9",
+    Tool("common.items.weapons.sword.starter"): "voxel.weapon.sword.starter",
+    Tool("common.items.weapons.sword.steel-0"): "voxel.weapon.sword.steel-0",
+    Tool("common.items.weapons.sword.steel-1"): "voxel.weapon.sword.steel-1",
+    Tool("common.items.weapons.sword.steel-2"): "voxel.weapon.sword.steel-2",
+    Tool("common.items.weapons.sword.steel-3"): "voxel.weapon.sword.steel-3",
+    Tool("common.items.weapons.sword.steel-4"): "voxel.weapon.sword.steel-4",
+    Tool("common.items.weapons.sword.steel-5"): "voxel.weapon.sword.steel-5",
+    Tool("common.items.weapons.sword.steel-6"): "voxel.weapon.sword.steel-6",
+    Tool("common.items.weapons.sword.steel-7"): "voxel.weapon.sword.steel-7",
+    Tool("common.items.weapons.sword.steel-8"): "voxel.weapon.sword.steel-8",
+    Tool("common.items.weapons.sword.stone-0"): "voxel.weapon.sword.stone-0",
+    Tool("common.items.weapons.sword.stone-1"): "voxel.weapon.sword.stone-1",
+    Tool("common.items.weapons.sword.stone-2"): "voxel.weapon.sword.stone-2",
+    Tool("common.items.weapons.sword.wood-0"): "voxel.weapon.sword.wood-0",
+    Tool("common.items.weapons.sword.wood-1"): "voxel.weapon.sword.wood-1",
+    Tool("common.items.weapons.sword.wood-2"): "voxel.weapon.sword.wood-2",
+    Tool("common.items.debug.admin_sword"): "voxel.weapon.sword.frost-1",
     // 1h Swords
-    Tool("common.items.weapons.sword_1h.bloodsteel-0"): (
-        "voxel.weapon.sword_1h.bloodsteel-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.bloodsteel-1"): (
-        "voxel.weapon.sword_1h.bloodsteel-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.bloodsteel-2"): (
-        "voxel.weapon.sword_1h.bloodsteel-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.bronze-0"): (
-        "voxel.weapon.sword_1h.bronze-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.bronze-1"): (
-        "voxel.weapon.sword_1h.bronze-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.bronze-2"): (
-        "voxel.weapon.sword_1h.bronze-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.cobalt-0"): (
-        "voxel.weapon.sword_1h.cobalt-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.cobalt-1"): (
-        "voxel.weapon.sword_1h.cobalt-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.cobalt-2"): (
-        "voxel.weapon.sword_1h.cobalt-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.cobalt-3"): (
-        "voxel.weapon.sword_1h.cobalt-3",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.starter"): (
-        "voxel.weapon.sword_1h.starter",
-        (-2.5, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.iron-0"): (
-        "voxel.weapon.sword_1h.iron-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.iron-1"): (
-        "voxel.weapon.sword_1h.iron-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.iron-2"): (
-        "voxel.weapon.sword_1h.iron-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.iron-3"): (
-        "voxel.weapon.sword_1h.iron-3",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.iron-4"): (
-        "voxel.weapon.sword_1h.iron-4",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.obsidian-0"): (
-        "voxel.weapon.sword_1h.obsidian-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.orichalcum-0"): (
-        "voxel.weapon.sword_1h.orichalcum-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.orichalcum-1"): (
-        "voxel.weapon.sword_1h.orichalcum-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.steel-0"): (
-        "voxel.weapon.sword_1h.steel-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.steel-1"): (
-        "voxel.weapon.sword_1h.steel-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.steel-2"): (
-        "voxel.weapon.sword_1h.steel-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sword_1h.steel-3"): (
-        "voxel.weapon.sword_1h.steel-3",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
+    Tool("common.items.weapons.sword_1h.bloodsteel-0"): "voxel.weapon.sword_1h.bloodsteel-0",
+    Tool("common.items.weapons.sword_1h.bloodsteel-1"): "voxel.weapon.sword_1h.bloodsteel-1",
+    Tool("common.items.weapons.sword_1h.bloodsteel-2"): "voxel.weapon.sword_1h.bloodsteel-2",
+    Tool("common.items.weapons.sword_1h.bronze-0"): "voxel.weapon.sword_1h.bronze-0",
+    Tool("common.items.weapons.sword_1h.bronze-1"): "voxel.weapon.sword_1h.bronze-1",
+    Tool("common.items.weapons.sword_1h.bronze-2"): "voxel.weapon.sword_1h.bronze-2",
+    Tool("common.items.weapons.sword_1h.cobalt-0"): "voxel.weapon.sword_1h.cobalt-0",
+    Tool("common.items.weapons.sword_1h.cobalt-1"): "voxel.weapon.sword_1h.cobalt-1",
+    Tool("common.items.weapons.sword_1h.cobalt-2"): "voxel.weapon.sword_1h.cobalt-2",
+    Tool("common.items.weapons.sword_1h.cobalt-3"): "voxel.weapon.sword_1h.cobalt-3",
+    Tool("common.items.weapons.sword_1h.starter"): "voxel.weapon.sword_1h.starter",
+    Tool("common.items.weapons.sword_1h.iron-0"): "voxel.weapon.sword_1h.iron-0",
+    Tool("common.items.weapons.sword_1h.iron-1"): "voxel.weapon.sword_1h.iron-1",
+    Tool("common.items.weapons.sword_1h.iron-2"): "voxel.weapon.sword_1h.iron-2",
+    Tool("common.items.weapons.sword_1h.iron-3"): "voxel.weapon.sword_1h.iron-3",
+    Tool("common.items.weapons.sword_1h.iron-4"): "voxel.weapon.sword_1h.iron-4",
+    Tool("common.items.weapons.sword_1h.obsidian-0"): "voxel.weapon.sword_1h.obsidian-0",
+    Tool("common.items.weapons.sword_1h.orichalcum-0"): "voxel.weapon.sword_1h.orichalcum-0",
+    Tool("common.items.weapons.sword_1h.orichalcum-1"): "voxel.weapon.sword_1h.orichalcum-1",
+    Tool("common.items.weapons.sword_1h.steel-0"): "voxel.weapon.sword_1h.steel-0",
+    Tool("common.items.weapons.sword_1h.steel-1"): "voxel.weapon.sword_1h.steel-1",
+    Tool("common.items.weapons.sword_1h.steel-2"): "voxel.weapon.sword_1h.steel-2",
+    Tool("common.items.weapons.sword_1h.steel-3"): "voxel.weapon.sword_1h.steel-3",
     // Axes
-    Tool("common.items.weapons.axe.starter_axe"): (
-        "voxel.weapon.axe.2haxe_rusty",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.orc_axe-0"): (
-        "voxel.weapon.axe.2haxe_orc-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.13,
-    ),
-    Tool("common.items.weapons.axe.bronze_axe-0"): (
-        "voxel.weapon.axe.2haxe_bronze-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.bronze_axe-1"): (
-        "voxel.weapon.axe.2haxe_bronze-1",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.bronze_axe-2"): (
-        "voxel.weapon.axe.2haxe_bronze-2",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-0"): (
-        "voxel.weapon.axe.2haxe_iron-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.05,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-1"): (
-        "voxel.weapon.axe.2haxe_iron-1",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-2"): (
-        "voxel.weapon.axe.2haxe_iron-2",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-3"): (
-        "voxel.weapon.axe.2haxe_iron-3",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-4"): (
-        "voxel.weapon.axe.2haxe_iron-4",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.05,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-5"): (
-        "voxel.weapon.axe.2haxe_iron-5",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-6"): (
-        "voxel.weapon.axe.2haxe_iron-6",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-7"): (
-        "voxel.weapon.axe.2haxe_iron-7",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-8"): (
-        "voxel.weapon.axe.2haxe_iron-8",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.13,
-    ),
-    Tool("common.items.weapons.axe.iron_axe-9"): (
-        "voxel.weapon.axe.2haxe_iron-9",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-0"): (
-        "voxel.weapon.axe.2haxe_steel-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-1"): (
-        "voxel.weapon.axe.2haxe_steel-1",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-2"): (
-        "voxel.weapon.axe.2haxe_steel-2",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-3"): (
-        "voxel.weapon.axe.2haxe_steel-3",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-4"): (
-        "voxel.weapon.axe.2haxe_steel-4",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-5"): (
-        "voxel.weapon.axe.2haxe_steel-5",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.steel_axe-6"): (
-        "voxel.weapon.axe.2haxe_steel-6",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.bloodsteel_axe-0"): (
-        "voxel.weapon.axe.2haxe_bloodsteel-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.15,
-    ),
-    Tool("common.items.weapons.axe.bloodsteel_axe-1"): (
-        "voxel.weapon.axe.2haxe_bloodsteel-1",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.bloodsteel_axe-2"): (
-        "voxel.weapon.axe.2haxe_bloodsteel-2",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.cobalt_axe-0"): (
-        "voxel.weapon.axe.2haxe_cobalt-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.cobalt_axe-1"): (
-        "voxel.weapon.axe.2haxe_cobalt-1",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.axe.malachite_axe-0"): (
-        "voxel.weapon.axe.2haxe_malachite-0",
-        (-2.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.axe.parashu"): (
-        "voxel.weapon.axe.parashu",
-        (-5.0, -3.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
+    Tool("common.items.weapons.axe.starter_axe"): "voxel.weapon.axe.2haxe_rusty",
+    Tool("common.items.weapons.axe.orc_axe-0"): "voxel.weapon.axe.2haxe_orc-0",
+    Tool("common.items.weapons.axe.bronze_axe-0"): "voxel.weapon.axe.2haxe_bronze-0",
+    Tool("common.items.weapons.axe.bronze_axe-1"): "voxel.weapon.axe.2haxe_bronze-1",
+    Tool("common.items.weapons.axe.bronze_axe-2"): "voxel.weapon.axe.2haxe_bronze-2",
+    Tool("common.items.weapons.axe.iron_axe-0"): "voxel.weapon.axe.2haxe_iron-0",
+    Tool("common.items.weapons.axe.iron_axe-1"): "voxel.weapon.axe.2haxe_iron-1",
+    Tool("common.items.weapons.axe.iron_axe-2"): "voxel.weapon.axe.2haxe_iron-2",
+    Tool("common.items.weapons.axe.iron_axe-3"): "voxel.weapon.axe.2haxe_iron-3",
+    Tool("common.items.weapons.axe.iron_axe-4"): "voxel.weapon.axe.2haxe_iron-4",
+    Tool("common.items.weapons.axe.iron_axe-5"): "voxel.weapon.axe.2haxe_iron-5",
+    Tool("common.items.weapons.axe.iron_axe-6"): "voxel.weapon.axe.2haxe_iron-6",
+    Tool("common.items.weapons.axe.iron_axe-7"): "voxel.weapon.axe.2haxe_iron-7",
+    Tool("common.items.weapons.axe.iron_axe-8"): "voxel.weapon.axe.2haxe_iron-8",
+    Tool("common.items.weapons.axe.iron_axe-9"): "voxel.weapon.axe.2haxe_iron-9",
+    Tool("common.items.weapons.axe.steel_axe-0"): "voxel.weapon.axe.2haxe_steel-0",
+    Tool("common.items.weapons.axe.steel_axe-1"): "voxel.weapon.axe.2haxe_steel-1",
+    Tool("common.items.weapons.axe.steel_axe-2"): "voxel.weapon.axe.2haxe_steel-2",
+    Tool("common.items.weapons.axe.steel_axe-3"): "voxel.weapon.axe.2haxe_steel-3",
+    Tool("common.items.weapons.axe.steel_axe-4"): "voxel.weapon.axe.2haxe_steel-4",
+    Tool("common.items.weapons.axe.steel_axe-5"): "voxel.weapon.axe.2haxe_steel-5",
+    Tool("common.items.weapons.axe.steel_axe-6"): "voxel.weapon.axe.2haxe_steel-6",
+    Tool("common.items.weapons.axe.bloodsteel_axe-0"): "voxel.weapon.axe.2haxe_bloodsteel-0",
+    Tool("common.items.weapons.axe.bloodsteel_axe-1"): "voxel.weapon.axe.2haxe_bloodsteel-1",
+    Tool("common.items.weapons.axe.bloodsteel_axe-2"): "voxel.weapon.axe.2haxe_bloodsteel-2",
+    Tool("common.items.weapons.axe.cobalt_axe-0"): "voxel.weapon.axe.2haxe_cobalt-0",
+    Tool("common.items.weapons.axe.cobalt_axe-1"): "voxel.weapon.axe.2haxe_cobalt-1",
+    Tool("common.items.weapons.axe.malachite_axe-0"): "voxel.weapon.axe.2haxe_malachite-0",
+    Tool("common.items.weapons.axe.parashu"): "voxel.weapon.axe.parashu",
     // 1h Axes
-    Tool("common.items.weapons.axe_1h.bloodsteel-0"): (
-        "voxel.weapon.axe_1h.bloodsteel-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.bloodsteel-1"): (
-        "voxel.weapon.axe_1h.bloodsteel-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.bronze-0"): (
-        "voxel.weapon.axe_1h.bronze-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.bronze-1"): (
-        "voxel.weapon.axe_1h.bronze-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.cobalt-0"): (
-        "voxel.weapon.axe_1h.cobalt-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.cobalt-1"): (
-        "voxel.weapon.axe_1h.cobalt-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.iron-0"): (
-        "voxel.weapon.axe_1h.iron-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.iron-1"): (
-        "voxel.weapon.axe_1h.iron-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.iron-2"): (
-        "voxel.weapon.axe_1h.iron-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.iron-3"): (
-        "voxel.weapon.axe_1h.iron-3",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.orichalcum-0"): (
-        "voxel.weapon.axe_1h.orichalcum-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.steel-0"): (
-        "voxel.weapon.axe_1h.steel-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.steel-1"): (
-        "voxel.weapon.axe_1h.steel-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.steel-2"): (
-        "voxel.weapon.axe_1h.steel-2",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.stone-0"): (
-        "voxel.weapon.axe_1h.stone-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.stone-1"): (
-        "voxel.weapon.axe_1h.stone-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.wood-0"): (
-        "voxel.weapon.axe_1h.wood-0",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Tool("common.items.weapons.axe_1h.wood-1"): (
-        "voxel.weapon.axe_1h.wood-1",
-        (-2.5, -3.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
+    Tool("common.items.weapons.axe_1h.bloodsteel-0"): "voxel.weapon.axe_1h.bloodsteel-0",
+    Tool("common.items.weapons.axe_1h.bloodsteel-1"): "voxel.weapon.axe_1h.bloodsteel-1",
+    Tool("common.items.weapons.axe_1h.bronze-0"): "voxel.weapon.axe_1h.bronze-0",
+    Tool("common.items.weapons.axe_1h.bronze-1"): "voxel.weapon.axe_1h.bronze-1",
+    Tool("common.items.weapons.axe_1h.cobalt-0"): "voxel.weapon.axe_1h.cobalt-0",
+    Tool("common.items.weapons.axe_1h.cobalt-1"): "voxel.weapon.axe_1h.cobalt-1",
+    Tool("common.items.weapons.axe_1h.iron-0"): "voxel.weapon.axe_1h.iron-0",
+    Tool("common.items.weapons.axe_1h.iron-1"): "voxel.weapon.axe_1h.iron-1",
+    Tool("common.items.weapons.axe_1h.iron-2"): "voxel.weapon.axe_1h.iron-2",
+    Tool("common.items.weapons.axe_1h.iron-3"): "voxel.weapon.axe_1h.iron-3",
+    Tool("common.items.weapons.axe_1h.orichalcum-0"): "voxel.weapon.axe_1h.orichalcum-0",
+    Tool("common.items.weapons.axe_1h.steel-0"): "voxel.weapon.axe_1h.steel-0",
+    Tool("common.items.weapons.axe_1h.steel-1"): "voxel.weapon.axe_1h.steel-1",
+    Tool("common.items.weapons.axe_1h.steel-2"): "voxel.weapon.axe_1h.steel-2",
+    Tool("common.items.weapons.axe_1h.stone-0"): "voxel.weapon.axe_1h.stone-0",
+    Tool("common.items.weapons.axe_1h.stone-1"): "voxel.weapon.axe_1h.stone-1",
+    Tool("common.items.weapons.axe_1h.wood-0"): "voxel.weapon.axe_1h.wood-0",
+    Tool("common.items.weapons.axe_1h.wood-1"): "voxel.weapon.axe_1h.wood-1",
     // Hammers
-    Tool("common.items.weapons.hammer.hammer_1"): (
-        "voxel.weapon.hammer.2hhammer_rusty",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.starter_hammer"): (
-        "voxel.weapon.hammer.2hhammer_rusty",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.wood_hammer-0"): (
-        "voxel.weapon.hammer.2hhammer_wood-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.flimsy_hammer"): (
-        "voxel.weapon.hammer.2hhammer_flimsy",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.stone_hammer-0"): (
-        "voxel.weapon.hammer.2hhammer_stone-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.stone_hammer-1"): (
-        "voxel.weapon.hammer.2hhammer_stone-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.stone_hammer-2"): (
-        "voxel.weapon.hammer.2hhammer_stone-2",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.stone_hammer-3"): (
-        "voxel.weapon.hammer.2hhammer_stone-3",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.bronze_hammer-0"): (
-        "voxel.weapon.hammer.2hhammer_bronze-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.bronze_hammer-1"): (
-        "voxel.weapon.hammer.2hhammer_bronze-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-0"): (
-        "voxel.weapon.hammer.2hhammer_iron-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-1"): (
-        "voxel.weapon.hammer.2hhammer_iron-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-2"): (
-        "voxel.weapon.hammer.2hhammer_iron-2",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-3"): (
-        "voxel.weapon.hammer.2hhammer_iron-3",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-4"): (
-        "voxel.weapon.hammer.2hhammer_iron-4",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-5"): (
-        "voxel.weapon.hammer.2hhammer_iron-5",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-6"): (
-        "voxel.weapon.hammer.2hhammer_iron-6",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-7"): (
-        "voxel.weapon.hammer.2hhammer_iron-7",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.iron_hammer-8"): (
-        "voxel.weapon.hammer.2hhammer_iron-8",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.steel_hammer-0"): (
-        "voxel.weapon.hammer.2hhammer_steel-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.steel_hammer-1"): (
-        "voxel.weapon.hammer.2hhammer_steel-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.steel_hammer-2"): (
-        "voxel.weapon.hammer.2hhammer_steel-2",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.steel_hammer-3"): (
-        "voxel.weapon.hammer.2hhammer_steel-3",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.steel_hammer-4"): (
-        "voxel.weapon.hammer.2hhammer_steel-4",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.steel_hammer-5"): (
-        "voxel.weapon.hammer.2hhammer_steel-5",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.cobalt_hammer-0"): (
-        "voxel.weapon.hammer.2hhammer_cobalt-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.cobalt_hammer-1"): (
-        "voxel.weapon.hammer.2hhammer_cobalt-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.runic_hammer"): (
-        "voxel.weapon.hammer.2hhammer_runic",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.ramshead_hammer"): (
-        "voxel.weapon.hammer.2hhammer_ramshead",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.mjolnir"): (
-        "voxel.weapon.hammer.2hhammer_mjolnir",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.cultist_purp_2h-0"): (
-        "voxel.weapon.hammer.cult_purp-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.hammer.burnt_drumstick"): (
-        "voxel.weapon.hammer.burnt_drumstick",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
+    Tool("common.items.weapons.hammer.hammer_1"): "voxel.weapon.hammer.2hhammer_rusty",
+    Tool("common.items.weapons.hammer.starter_hammer"): "voxel.weapon.hammer.2hhammer_rusty",
+    Tool("common.items.weapons.hammer.wood_hammer-0"): "voxel.weapon.hammer.2hhammer_wood-0",
+    Tool("common.items.weapons.hammer.flimsy_hammer"): "voxel.weapon.hammer.2hhammer_flimsy",
+    Tool("common.items.weapons.hammer.stone_hammer-0"): "voxel.weapon.hammer.2hhammer_stone-0",
+    Tool("common.items.weapons.hammer.stone_hammer-1"): "voxel.weapon.hammer.2hhammer_stone-1",
+    Tool("common.items.weapons.hammer.stone_hammer-2"): "voxel.weapon.hammer.2hhammer_stone-2",
+    Tool("common.items.weapons.hammer.stone_hammer-3"): "voxel.weapon.hammer.2hhammer_stone-3",
+    Tool("common.items.weapons.hammer.bronze_hammer-0"): "voxel.weapon.hammer.2hhammer_bronze-0",
+    Tool("common.items.weapons.hammer.bronze_hammer-1"): "voxel.weapon.hammer.2hhammer_bronze-1",
+    Tool("common.items.weapons.hammer.iron_hammer-0"): "voxel.weapon.hammer.2hhammer_iron-0",
+    Tool("common.items.weapons.hammer.iron_hammer-1"): "voxel.weapon.hammer.2hhammer_iron-1",
+    Tool("common.items.weapons.hammer.iron_hammer-2"): "voxel.weapon.hammer.2hhammer_iron-2",
+    Tool("common.items.weapons.hammer.iron_hammer-3"): "voxel.weapon.hammer.2hhammer_iron-3",
+    Tool("common.items.weapons.hammer.iron_hammer-4"): "voxel.weapon.hammer.2hhammer_iron-4",
+    Tool("common.items.weapons.hammer.iron_hammer-5"): "voxel.weapon.hammer.2hhammer_iron-5",
+    Tool("common.items.weapons.hammer.iron_hammer-6"): "voxel.weapon.hammer.2hhammer_iron-6",
+    Tool("common.items.weapons.hammer.iron_hammer-7"): "voxel.weapon.hammer.2hhammer_iron-7",
+    Tool("common.items.weapons.hammer.iron_hammer-8"): "voxel.weapon.hammer.2hhammer_iron-8",
+    Tool("common.items.weapons.hammer.steel_hammer-0"): "voxel.weapon.hammer.2hhammer_steel-0",
+    Tool("common.items.weapons.hammer.steel_hammer-1"): "voxel.weapon.hammer.2hhammer_steel-1",
+    Tool("common.items.weapons.hammer.steel_hammer-2"): "voxel.weapon.hammer.2hhammer_steel-2",
+    Tool("common.items.weapons.hammer.steel_hammer-3"): "voxel.weapon.hammer.2hhammer_steel-3",
+    Tool("common.items.weapons.hammer.steel_hammer-4"): "voxel.weapon.hammer.2hhammer_steel-4",
+    Tool("common.items.weapons.hammer.steel_hammer-5"): "voxel.weapon.hammer.2hhammer_steel-5",
+    Tool("common.items.weapons.hammer.cobalt_hammer-0"): "voxel.weapon.hammer.2hhammer_cobalt-0",
+    Tool("common.items.weapons.hammer.cobalt_hammer-1"): "voxel.weapon.hammer.2hhammer_cobalt-1",
+    Tool("common.items.weapons.hammer.runic_hammer"): "voxel.weapon.hammer.2hhammer_runic",
+    Tool("common.items.weapons.hammer.ramshead_hammer"): "voxel.weapon.hammer.2hhammer_ramshead",
+    Tool("common.items.weapons.hammer.mjolnir"): "voxel.weapon.hammer.2hhammer_mjolnir",
+    Tool("common.items.weapons.hammer.cultist_purp_2h-0"): "voxel.weapon.hammer.cult_purp-0",
+    Tool("common.items.weapons.hammer.burnt_drumstick"): "voxel.weapon.hammer.burnt_drumstick",
     // 1h Hammers
-    Tool("common.items.weapons.hammer_1h.bloodsteel-0"): (
-        "voxel.weapon.hammer_1h.bloodsteel-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.bloodsteel-1"): (
-        "voxel.weapon.hammer_1h.bloodsteel-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.bronze-0"): (
-        "voxel.weapon.hammer_1h.bronze-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.bronze-1"): (
-        "voxel.weapon.hammer_1h.bronze-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.cobalt-0"): (
-        "voxel.weapon.hammer_1h.cobalt-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.cobalt-1"): (
-        "voxel.weapon.hammer_1h.cobalt-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.iron-0"): (
-        "voxel.weapon.hammer_1h.iron-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.iron-1"): (
-        "voxel.weapon.hammer_1h.iron-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.iron-2"): (
-        "voxel.weapon.hammer_1h.iron-2",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.orichalcum-0"): (
-        "voxel.weapon.hammer_1h.orichalcum-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.steel-0"): (
-        "voxel.weapon.hammer_1h.steel-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.steel-1"): (
-        "voxel.weapon.hammer_1h.steel-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.steel-2"): (
-        "voxel.weapon.hammer_1h.steel-2",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.stone-0"): (
-        "voxel.weapon.hammer_1h.stone-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.stone-1"): (
-        "voxel.weapon.hammer_1h.stone-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.wood-0"): (
-        "voxel.weapon.hammer_1h.wood-0",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.hammer_1h.wood-1"): (
-        "voxel.weapon.hammer_1h.wood-1",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
+    Tool("common.items.weapons.hammer_1h.bloodsteel-0"): "voxel.weapon.hammer_1h.bloodsteel-0",
+    Tool("common.items.weapons.hammer_1h.bloodsteel-1"): "voxel.weapon.hammer_1h.bloodsteel-1",
+    Tool("common.items.weapons.hammer_1h.bronze-0"): "voxel.weapon.hammer_1h.bronze-0",
+    Tool("common.items.weapons.hammer_1h.bronze-1"): "voxel.weapon.hammer_1h.bronze-1",
+    Tool("common.items.weapons.hammer_1h.cobalt-0"): "voxel.weapon.hammer_1h.cobalt-0",
+    Tool("common.items.weapons.hammer_1h.cobalt-1"): "voxel.weapon.hammer_1h.cobalt-1",
+    Tool("common.items.weapons.hammer_1h.iron-0"): "voxel.weapon.hammer_1h.iron-0",
+    Tool("common.items.weapons.hammer_1h.iron-1"): "voxel.weapon.hammer_1h.iron-1",
+    Tool("common.items.weapons.hammer_1h.iron-2"): "voxel.weapon.hammer_1h.iron-2",
+    Tool("common.items.weapons.hammer_1h.orichalcum-0"): "voxel.weapon.hammer_1h.orichalcum-0",
+    Tool("common.items.weapons.hammer_1h.steel-0"): "voxel.weapon.hammer_1h.steel-0",
+    Tool("common.items.weapons.hammer_1h.steel-1"): "voxel.weapon.hammer_1h.steel-1",
+    Tool("common.items.weapons.hammer_1h.steel-2"): "voxel.weapon.hammer_1h.steel-2",
+    Tool("common.items.weapons.hammer_1h.stone-0"): "voxel.weapon.hammer_1h.stone-0",
+    Tool("common.items.weapons.hammer_1h.stone-1"): "voxel.weapon.hammer_1h.stone-1",
+    Tool("common.items.weapons.hammer_1h.wood-0"): "voxel.weapon.hammer_1h.wood-0",
+    Tool("common.items.weapons.hammer_1h.wood-1"): "voxel.weapon.hammer_1h.wood-1",
     // Staffs
-    Tool("common.items.weapons.staff.staff_1"): (
-        "voxel.weapon.staff.firestaff_starter",
-        (-4.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.starter_staff"): (
-        "voxel.weapon.staff.firestaff_starter",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.bone_staff"): (
-        "voxel.weapon.staff.bone_staff",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.crimson_eye"): (
-        "voxel.weapon.staff.crimson_eye",
-        (-4.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.cultist_staff"): (
-        "voxel.weapon.staff.firestaff_cultist",
-        (-4.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.phoenix"): (
-        "voxel.weapon.staff.phoenix",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.aurora"): (
-        "voxel.weapon.staff.aurora",
-        (-4.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.infused_tower"): (
-        "voxel.weapon.staff.infused_tower",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.flamethrower_0"): (
-        "voxel.weapon.staff.unstable_thrower",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.ley_seeker"): (
-        "voxel.weapon.staff.ley_seeker",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.lava_rod"): (
-        "voxel.weapon.staff.lava_rod",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.fiery_wishing_rod"): (
-        "voxel.weapon.staff.fiery_wishing_rod",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.orc_iron"): (
-        "voxel.weapon.staff.orcish_branding_iron",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.bent_fuse"): (
-        "voxel.weapon.staff.bent_fuse",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.staff.heated_arm"): (
-        "voxel.weapon.staff.heated_arm",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.frostwood_torch"): (
-        "voxel.weapon.staff.frostwood_torch",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.golden_khakkara"): (
-        "voxel.weapon.staff.golden_khakkara",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.laevateinn"): (
-        "voxel.weapon.staff.laevateinn",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.ruby_rod"): (
-        "voxel.weapon.staff.ruby_rod",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.dragon_tongue"): (
-        "voxel.weapon.staff.dragon_tongue",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.staff.solar"): (
-        "voxel.weapon.staff.solar",
-        (-2.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
+    Tool("common.items.weapons.staff.staff_1"): "voxel.weapon.staff.firestaff_starter",
+    Tool("common.items.weapons.staff.starter_staff"): "voxel.weapon.staff.firestaff_starter",
+    Tool("common.items.weapons.staff.bone_staff"): "voxel.weapon.staff.bone_staff",
+    Tool("common.items.weapons.staff.crimson_eye"): "voxel.weapon.staff.crimson_eye",
+    Tool("common.items.weapons.staff.cultist_staff"): "voxel.weapon.staff.firestaff_cultist",
+    Tool("common.items.weapons.staff.phoenix"): "voxel.weapon.staff.phoenix",
+    Tool("common.items.weapons.staff.aurora"): "voxel.weapon.staff.aurora",
+    Tool("common.items.weapons.staff.infused_tower"): "voxel.weapon.staff.infused_tower",
+    Tool("common.items.weapons.staff.flamethrower_0"): "voxel.weapon.staff.unstable_thrower",
+    Tool("common.items.weapons.staff.ley_seeker"): "voxel.weapon.staff.ley_seeker",
+    Tool("common.items.weapons.staff.lava_rod"): "voxel.weapon.staff.lava_rod",
+    Tool("common.items.weapons.staff.fiery_wishing_rod"): "voxel.weapon.staff.fiery_wishing_rod",
+    Tool("common.items.weapons.staff.orc_iron"): "voxel.weapon.staff.orcish_branding_iron",
+    Tool("common.items.weapons.staff.bent_fuse"): "voxel.weapon.staff.bent_fuse",
+    Tool("common.items.weapons.staff.heated_arm"): "voxel.weapon.staff.heated_arm",
+    Tool("common.items.weapons.staff.frostwood_torch"): "voxel.weapon.staff.frostwood_torch",
+    Tool("common.items.weapons.staff.golden_khakkara"): "voxel.weapon.staff.golden_khakkara",
+    Tool("common.items.weapons.staff.laevateinn"): "voxel.weapon.staff.laevateinn",
+    Tool("common.items.weapons.staff.ruby_rod"): "voxel.weapon.staff.ruby_rod",
+    Tool("common.items.weapons.staff.dragon_tongue"): "voxel.weapon.staff.dragon_tongue",
+    Tool("common.items.weapons.staff.solar"): "voxel.weapon.staff.solar",
     // Healing Sceptres
-    Tool("common.items.weapons.sceptre.starter_sceptre"): (
-        "voxel.weapon.sceptre.wood-simple",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.25,
-    ),
-    Tool("common.items.weapons.sceptre.moon0"): (
-        "voxel.weapon.sceptre.moon",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.staff_nature"): (
-        "voxel.weapon.sceptre.wood-nature",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.totem_green"): (
-        "voxel.weapon.sceptre.totem_green",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.root_green0"): (
-        "voxel.weapon.sceptre.root_green",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.fork0"): (
-        "voxel.weapon.sceptre.fork",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.loops0"): (
-        "voxel.weapon.sceptre.loops",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.root_evil"): (
-        "voxel.weapon.sceptre.root_evil",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.sceptre_velorite_0"): (
-        "voxel.weapon.sceptre.ore-nature",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.15,
-    ),
-    Tool("common.items.weapons.sceptre.caduceus"): (
-        "voxel.weapon.sceptre.caduceus",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.sceptre.coralline_cane"): (
-        "voxel.weapon.sceptre.coralline_cane",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.sceptre.divine_gohei"): (
-        "voxel.weapon.sceptre.divine_gohei",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.15,
-    ),
-    Tool("common.items.weapons.sceptre.emerald"): (
-        "voxel.weapon.sceptre.emerald",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.12,
-    ),
-    Tool("common.items.weapons.sceptre.druids_arbor"): (
-        "voxel.weapon.sceptre.druids_arbor",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.12,
-    ),
-    Tool("common.items.weapons.sceptre.amethyst"): (
-        "voxel.weapon.sceptre.amethyst",
-        (-3.5, -3.0, -5.0), (-130., 90.0, 0.0), 1.12,
-    ),
+    Tool("common.items.weapons.sceptre.starter_sceptre"): "voxel.weapon.sceptre.wood-simple",
+    Tool("common.items.weapons.sceptre.moon0"): "voxel.weapon.sceptre.moon",
+    Tool("common.items.weapons.sceptre.staff_nature"): "voxel.weapon.sceptre.wood-nature",
+    Tool("common.items.weapons.sceptre.totem_green"): "voxel.weapon.sceptre.totem_green",
+    Tool("common.items.weapons.sceptre.root_green0"): "voxel.weapon.sceptre.root_green",
+    Tool("common.items.weapons.sceptre.fork0"): "voxel.weapon.sceptre.fork",
+    Tool("common.items.weapons.sceptre.loops0"): "voxel.weapon.sceptre.loops",
+    Tool("common.items.weapons.sceptre.root_evil"): "voxel.weapon.sceptre.root_evil",
+    Tool("common.items.weapons.sceptre.sceptre_velorite_0"): "voxel.weapon.sceptre.ore-nature",
+    Tool("common.items.weapons.sceptre.caduceus"): "voxel.weapon.sceptre.caduceus",
+    Tool("common.items.weapons.sceptre.coralline_cane"): "voxel.weapon.sceptre.coralline_cane",
+    Tool("common.items.weapons.sceptre.divine_gohei"): "voxel.weapon.sceptre.divine_gohei",
+    Tool("common.items.weapons.sceptre.emerald"): "voxel.weapon.sceptre.emerald",
+    Tool("common.items.weapons.sceptre.druids_arbor"): "voxel.weapon.sceptre.druids_arbor",
+    Tool("common.items.weapons.sceptre.amethyst"): "voxel.weapon.sceptre.amethyst",
     // Shields
-    Tool("common.items.weapons.shield.shield_1"): (
-        "voxel.weapon.shield.wood-0",
-        (-3.5, -3.0, -5.0), (-90.0, 90.0, 0.0), 2.4,
-    ),
+    Tool("common.items.weapons.shield.shield_1"): "voxel.weapon.shield.wood-0",
     // Lanterns
-    Lantern("Black0"): (
-        "voxel.lantern.black-0",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Lantern("Green0"): (
-        "voxel.lantern.green-0",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Lantern("Magic"): (
-        "voxel.lantern.magic_lantern",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Lantern("Blue0"): (
-        "voxel.lantern.blue-0",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Lantern("Red0"): (
-        "voxel.lantern.red-0",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Lantern("GeodePurp"): (
-        "voxel.lantern.geode_purp",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Lantern("PumpkinLantern"): (
-        "voxel.lantern.pumpkin",
-        (-2.5, -2.5, 0.0), (-100.0, 205.0, 7.0), 0.9,
-    ),
-    Lantern("PolarisLantern"): (
-        "voxel.lantern.polaris",
-        (-2.5, -2.5, 0.0), (-90.0, 120.0, 0.0), 0.9,
-    ),
+    Lantern("Black0"): "voxel.lantern.black-0",
+    Lantern("Green0"): "voxel.lantern.green-0",
+    Lantern("Magic"): "voxel.lantern.magic_lantern",
+    Lantern("Blue0"): "voxel.lantern.blue-0",
+    Lantern("Red0"): "voxel.lantern.red-0",
+    Lantern("GeodePurp"): "voxel.lantern.geode_purp",
+    Lantern("PumpkinLantern"): "voxel.lantern.pumpkin",
+    Lantern("PolarisLantern"): "voxel.lantern.polaris",
     // Farming Equipment
-    Tool("common.items.weapons.tool.broom"): (
-        "voxel.weapon.tool.broom-0",
-        (-2.0, -4.5, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.tool.hoe"): (
-        "voxel.weapon.tool.hoe_green",
-        (-2.0, -4.5, -5.0), (130.0, 35.0, 180.0), 1.0,
-    ),
-    Tool("common.items.weapons.tool.pitchfork"): (
-        "voxel.weapon.tool.pitchfork-0",
-        (-2.0, -4.5, -5.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
-    Tool("common.items.weapons.tool.rake"): (
-        "voxel.weapon.tool.rake-0",
-        (-2.0, -4.5, -5.0), (-135.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.tool.fishing_rod"): (
-        "voxel.weapon.tool.fishing_rod_blue-0",
-        (-2.0, -4.5, -5.0), (90.0, 90.0, 0.0), 1.5,
-    ),
-    Tool("common.items.weapons.tool.pickaxe"): (
-        "voxel.weapon.tool.pickaxe_green-0",
-        (-2.0, -4.5, -5.0), (-135.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.weapons.tool.shovel-0"): (
-        "voxel.weapon.tool.shovel_green",
-        (-2.0, -4.5, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
-    Tool("common.items.weapons.tool.shovel-1"): (
-        "voxel.weapon.tool.shovel_gold",
-        (-2.0, -4.5, -5.0), (-135.0, 90.0, 0.0), 1.2,
-    ),
+    Tool("common.items.weapons.tool.broom"): "voxel.weapon.tool.broom-0",
+    Tool("common.items.weapons.tool.hoe"): "voxel.weapon.tool.hoe_green",
+    Tool("common.items.weapons.tool.pitchfork"): "voxel.weapon.tool.pitchfork-0",
+    Tool("common.items.weapons.tool.rake"): "voxel.weapon.tool.rake-0",
+    Tool("common.items.weapons.tool.fishing_rod"): "voxel.weapon.tool.fishing_rod_blue-0",
+    Tool("common.items.weapons.tool.pickaxe"): "voxel.weapon.tool.pickaxe_green-0",
+    Tool("common.items.weapons.tool.shovel-0"): "voxel.weapon.tool.shovel_green",
+    Tool("common.items.weapons.tool.shovel-1"): "voxel.weapon.tool.shovel_gold",
     // Picks
-    Tool("common.items.tool.pickaxe_stone"): (
-        "voxel.weapon.tool.pickaxe_green-0",
-        (-3.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.0,
-    ),
-    Tool("common.items.tool.pickaxe_steel"): (
-        "voxel.weapon.tool.pickaxe_green-1",
-        (-3.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 1.0,
-    ),
+    Tool("common.items.tool.pickaxe_stone"): "voxel.weapon.tool.pickaxe_green-0",
+    Tool("common.items.tool.pickaxe_steel"): "voxel.weapon.tool.pickaxe_green-1",
     // Other
-    Utility(Coins): (
-        "voxel.object.v-coin",
-        (-10.0, -10.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
-    ),
-    Utility(Collar): (
-        "voxel.object.collar",
-        (-5.0, -5.0, 0.0), (-60.0, 20.0, 10.0), 0.9,
-    ),
+    Utility(Coins): "voxel.object.v-coin",
+    Utility(Collar): "voxel.object.collar",
     // Armor
     // Starter Parts
-    Armor(Foot("Sandal")): (
-        "voxel.armor.misc.foot.cloth_sandal",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Pants("Rugged")): (
-        "voxel.armor.rugged.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Chest("Rugged")): (
-        "voxel.armor.rugged.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerPurpBrown")): (
-        "voxel.armor.misc.chest.worker_purp_brown",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("WorkerBrown")): (
-        "voxel.armor.misc.pants.worker_brown",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Foot("Sandal")): "voxel.armor.misc.foot.cloth_sandal",
+    Armor(Pants("Rugged")): "voxel.armor.rugged.pants",
+    Armor(Chest("Rugged")): "voxel.armor.rugged.chest",
+    Armor(Chest("WorkerPurpBrown")): "voxel.armor.misc.chest.worker_purp_brown",
+    Armor(Pants("WorkerBrown")): "voxel.armor.misc.pants.worker_brown",
     // Cultist Clothing
-    Armor(Chest("Cultist")): (
-        "voxel.armor.cultist.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Cultist")): (
-        "voxel.armor.cultist.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Cultist")): (
-        "voxel.armor.cultist.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Cultist")): (
-        "voxel.armor.cultist.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Cultist")): (
-        "voxel.armor.cultist.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Cultist")): (
-        "voxel.armor.cultist.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("Cultist")): (
-        "voxel.armor.cultist.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Cultist")): (
-        "voxel.armor.cultist.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Cultist")): (
-        "voxel.armor.cultist.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Cultist")): (
-        "voxel.armor.cultist.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Head("Cultist")): (
-        "voxel.armor.cultist.bandana",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.9,
-    ),
+    Armor(Chest("Cultist")): "voxel.armor.cultist.chest",
+    Armor(Pants("Cultist")): "voxel.armor.cultist.pants",
+    Armor(Belt("Cultist")): "voxel.armor.cultist.belt",
+    Armor(Foot("Cultist")): "voxel.armor.cultist.foot",
+    Armor(Hand("Cultist")): "voxel.armor.cultist.hand",
+    Armor(Shoulder("Cultist")): "voxel.armor.cultist.shoulder",
+    Armor(Chest("Cultist")): "voxel.armor.cultist.chest",
+    Armor(Pants("Cultist")): "voxel.armor.cultist.pants",
+    Armor(Hand("Cultist")): "voxel.armor.cultist.hand",
+    Armor(Shoulder("Cultist")): "voxel.armor.cultist.shoulder",
+    Armor(Head("Cultist")): "voxel.armor.cultist.bandana",
     // Villager Clothing
-    Armor(Pants("WorkerBlue")): (
-        "voxel.armor.misc.pants.worker_blue",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Chest("WorkerGreen0")): (
-        "voxel.armor.misc.chest.worker_green",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerGreen1")): (
-        "voxel.armor.misc.chest.shirt_white",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerRed0")): (
-        "voxel.armor.misc.chest.worker_green",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerRed1")): (
-        "voxel.armor.misc.chest.shirt_white",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerPurple0")): (
-        "voxel.armor.misc.chest.worker_green",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerPurple1")): (
-        "voxel.armor.misc.chest.shirt_white",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerYellow0")): (
-        "voxel.armor.misc.chest.worker_green",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerYellow1")): (
-        "voxel.armor.misc.chest.shirt_white",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerOrange0")): (
-        "voxel.armor.misc.chest.worker_green",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("WorkerOrange1")): (
-        "voxel.armor.misc.chest.shirt_white",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
+    Armor(Pants("WorkerBlue")): "voxel.armor.misc.pants.worker_blue",
+    Armor(Chest("WorkerGreen0")): "voxel.armor.misc.chest.worker_green",
+    Armor(Chest("WorkerGreen1")): "voxel.armor.misc.chest.shirt_white",
+    Armor(Chest("WorkerRed0")): "voxel.armor.misc.chest.worker_green",
+    Armor(Chest("WorkerRed1")): "voxel.armor.misc.chest.shirt_white",
+    Armor(Chest("WorkerPurple0")): "voxel.armor.misc.chest.worker_green",
+    Armor(Chest("WorkerPurple1")): "voxel.armor.misc.chest.shirt_white",
+    Armor(Chest("WorkerYellow0")): "voxel.armor.misc.chest.worker_green",
+    Armor(Chest("WorkerYellow1")): "voxel.armor.misc.chest.shirt_white",
+    Armor(Chest("WorkerOrange0")): "voxel.armor.misc.chest.worker_green",
+    Armor(Chest("WorkerOrange1")): "voxel.armor.misc.chest.shirt_white",
     // Merchant
-    Armor(Chest("Merchant")): (
-        "voxel.armor.merchant.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Merchant")): (
-        "voxel.armor.merchant.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Merchant")): (
-        "voxel.armor.merchant.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Merchant")): (
-        "voxel.armor.merchant.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Merchant")): (
-        "voxel.armor.merchant.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Merchant")): (
-        "voxel.armor.merchant.shoulder_l",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Chest("Merchant")): (
-        "voxel.armor.merchant.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Merchant")): (
-        "voxel.armor.merchant.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Merchant")): (
-        "voxel.armor.merchant.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),    
-    Armor(Head("Merchant")): (
-        "voxel.armor.merchant.turban",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Merchant")): (
-        "voxel.armor.merchant.back",
-        (-3.0, 0.0, -5.0), (-90.0, 45.0,0.0), 0.9,
-    ),
+    Armor(Chest("Merchant")): "voxel.armor.merchant.chest",
+    Armor(Pants("Merchant")): "voxel.armor.merchant.pants",
+    Armor(Belt("Merchant")): "voxel.armor.merchant.belt",
+    Armor(Foot("Merchant")): "voxel.armor.merchant.foot",
+    Armor(Hand("Merchant")): "voxel.armor.merchant.hand",
+    Armor(Shoulder("Merchant")): "voxel.armor.merchant.shoulder_l",
+    Armor(Chest("Merchant")): "voxel.armor.merchant.chest",
+    Armor(Pants("Merchant")): "voxel.armor.merchant.pants",
+    Armor(Hand("Merchant")): "voxel.armor.merchant.hand",
+    Armor(Head("Merchant")): "voxel.armor.merchant.turban",
+    Armor(Back("Merchant")): "voxel.armor.merchant.back",
     // Velorite Battlemage Set
-    Armor(Chest("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Back("VeloriteMage")): (
-        "voxel.armor.velorite_battlemage.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 1.1,
-    ),
+    Armor(Chest("VeloriteMage")): "voxel.armor.velorite_battlemage.chest",
+    Armor(Pants("VeloriteMage")): "voxel.armor.velorite_battlemage.pants",
+    Armor(Belt("VeloriteMage")): "voxel.armor.velorite_battlemage.belt",
+    Armor(Foot("VeloriteMage")): "voxel.armor.velorite_battlemage.foot",
+    Armor(Hand("VeloriteMage")): "voxel.armor.velorite_battlemage.hand",
+    Armor(Shoulder("VeloriteMage")): "voxel.armor.velorite_battlemage.shoulder",
+    Armor(Back("VeloriteMage")): "voxel.armor.velorite_battlemage.back",
     // Assassin Set
-    Armor(Chest("Assassin")): (
-        "voxel.armor.assassin.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Assassin")): (
-        "voxel.armor.assassin.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Assassin")): (
-        "voxel.armor.assassin.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Assassin")): (
-        "voxel.armor.assassin.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Assassin")): (
-        "voxel.armor.assassin.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Assassin")): (
-        "voxel.armor.assassin.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
+    Armor(Chest("Assassin")): "voxel.armor.assassin.chest",
+    Armor(Pants("Assassin")): "voxel.armor.assassin.pants",
+    Armor(Belt("Assassin")): "voxel.armor.assassin.belt",
+    Armor(Foot("Assassin")): "voxel.armor.assassin.foot",
+    Armor(Hand("Assassin")): "voxel.armor.assassin.hand",
+    Armor(Shoulder("Assassin")): "voxel.armor.assassin.shoulder",
     //PlateLeather Armor
-    Armor(Chest("LeatherPlate")): (
-        "voxel.armor.leather_plate.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("LeatherPlate")): (
-        "voxel.armor.leather_plate.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("LeatherPlate")): (
-        "voxel.armor.leather_plate.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("LeatherPlate")): (
-        "voxel.armor.leather_plate.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("LeatherPlate")): (
-        "voxel.armor.leather_plate.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("LeatherPlate")): (
-        "voxel.armor.leather_plate.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("LeatherPlate")): "voxel.armor.leather_plate.chest",
+    Armor(Pants("LeatherPlate")): "voxel.armor.leather_plate.pants",
+    Armor(Belt("LeatherPlate")): "voxel.armor.leather_plate.belt",
+    Armor(Foot("LeatherPlate")): "voxel.armor.leather_plate.foot",
+    Armor(Hand("LeatherPlate")): "voxel.armor.leather_plate.hand",
+    Armor(Shoulder("LeatherPlate")): "voxel.armor.leather_plate.shoulder",
     //Ferocious Armor
-    Armor(Chest("Ferocious")): (
-        "voxel.armor.ferocious.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Ferocious")): (
-        "voxel.armor.ferocious.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Ferocious")): (
-        "voxel.armor.ferocious.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Ferocious")): (
-        "voxel.armor.ferocious.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Ferocious")): (
-        "voxel.armor.ferocious.hand",
-        (-2.5, -2.5, 0.0), (-90.0, 135.0, 0.0), 1.0,
-    ),
-    Armor(Shoulder("Ferocious")): (
-        "voxel.armor.ferocious.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Ferocious")): (
-        "voxel.armor.ferocious.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Ferocious")): "voxel.armor.ferocious.chest",
+    Armor(Pants("Ferocious")): "voxel.armor.ferocious.pants",
+    Armor(Belt("Ferocious")): "voxel.armor.ferocious.belt",
+    Armor(Foot("Ferocious")): "voxel.armor.ferocious.foot",
+    Armor(Hand("Ferocious")): "voxel.armor.ferocious.hand",
+    Armor(Shoulder("Ferocious")): "voxel.armor.ferocious.shoulder",
+    Armor(Back("Ferocious")): "voxel.armor.ferocious.back",
     //Blue Leather Armor
-    Armor(Chest("BlueLeather")): (
-        "voxel.armor.leather_blue.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("BlueLeather")): (
-        "voxel.armor.leather_blue.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("BlueLeather")): "voxel.armor.leather_blue.chest",
+    Armor(Pants("BlueLeather")): "voxel.armor.leather_blue.pants",
     //Linen Cloth
-    Armor(Chest("ClothBlue")): (
-        "voxel.armor.cloth_blue.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("ClothBlue")): (
-        "voxel.armor.cloth_blue.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("ClothBlue")): (
-        "voxel.armor.cloth_blue.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("ClothBlue")): (
-        "voxel.armor.cloth_blue.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("ClothBlue")): (
-        "voxel.armor.cloth_blue.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("ClothBlue0")): (
-        "voxel.armor.cloth_blue.shoulder_0",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("ClothBlue1")): (
-        "voxel.armor.cloth_blue.shoulder_1",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("ClothBlue")): "voxel.armor.cloth_blue.chest",
+    Armor(Pants("ClothBlue")): "voxel.armor.cloth_blue.pants",
+    Armor(Belt("ClothBlue")): "voxel.armor.cloth_blue.belt",
+    Armor(Foot("ClothBlue")): "voxel.armor.cloth_blue.foot",
+    Armor(Hand("ClothBlue")): "voxel.armor.cloth_blue.hand",
+    Armor(Shoulder("ClothBlue0")): "voxel.armor.cloth_blue.shoulder_0",
+    Armor(Shoulder("ClothBlue1")): "voxel.armor.cloth_blue.shoulder_1",
     //////////////
-    Armor(Chest("ClothGreen")): (
-        "voxel.armor.cloth_green.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("ClothGreen")): (
-        "voxel.armor.cloth_green.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("ClothGreen")): (
-        "voxel.armor.cloth_green.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("ClothGreen")): (
-        "voxel.armor.cloth_green.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("ClothGreen")): (
-        "voxel.armor.cloth_green.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("ClothGreen")): (
-        "voxel.armor.cloth_green.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("ClothGreen")): "voxel.armor.cloth_green.chest",
+    Armor(Pants("ClothGreen")): "voxel.armor.cloth_green.pants",
+    Armor(Belt("ClothGreen")): "voxel.armor.cloth_green.belt",
+    Armor(Foot("ClothGreen")): "voxel.armor.cloth_green.foot",
+    Armor(Hand("ClothGreen")): "voxel.armor.cloth_green.hand",
+    Armor(Shoulder("ClothGreen")): "voxel.armor.cloth_green.shoulder",
     //////
-    Armor(Chest("ClothPurple")): (
-        "voxel.armor.cloth_purple.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("ClothPurple")): (
-        "voxel.armor.cloth_purple.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("ClothPurple")): (
-        "voxel.armor.cloth_purple.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("ClothPurple")): (
-        "voxel.armor.cloth_purple.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("ClothPurple")): (
-        "voxel.armor.cloth_purple.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("ClothPurple")): (
-        "voxel.armor.cloth_purple.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("IronSpikes")): (
-        "voxel.armor.misc.shoulder.iron_spikes",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("IronLeather3")): (
-        "voxel.armor.misc.shoulder.leather_iron_3",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("IronLeather2")): (
-        "voxel.armor.misc.shoulder.leather_iron_2",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("IronLeather1")): (
-        "voxel.armor.misc.shoulder.leather_iron_1",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("IronLeather0")): (
-        "voxel.armor.misc.shoulder.leather_iron_0",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Shoulder("LeatherStrip")): (
-        "voxel.armor.misc.shoulder.leather_strip",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Foot("Jackalope")): (
-        "voxel.armor.misc.foot.jackalope",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("ClothPurple")): "voxel.armor.cloth_purple.chest",
+    Armor(Pants("ClothPurple")): "voxel.armor.cloth_purple.pants",
+    Armor(Belt("ClothPurple")): "voxel.armor.cloth_purple.belt",
+    Armor(Foot("ClothPurple")): "voxel.armor.cloth_purple.foot",
+    Armor(Hand("ClothPurple")): "voxel.armor.cloth_purple.hand",
+    Armor(Shoulder("ClothPurple")): "voxel.armor.cloth_purple.shoulder",
+    Armor(Shoulder("IronSpikes")): "voxel.armor.misc.shoulder.iron_spikes",
+    Armor(Shoulder("IronLeather3")): "voxel.armor.misc.shoulder.leather_iron_3",
+    Armor(Shoulder("IronLeather2")): "voxel.armor.misc.shoulder.leather_iron_2",
+    Armor(Shoulder("IronLeather1")): "voxel.armor.misc.shoulder.leather_iron_1",
+    Armor(Shoulder("IronLeather0")): "voxel.armor.misc.shoulder.leather_iron_0",
+    Armor(Shoulder("LeatherStrip")): "voxel.armor.misc.shoulder.leather_strip",
+    Armor(Foot("Jackalope")): "voxel.armor.misc.foot.jackalope",
     //Twig Set
-    Armor(Chest("Twigs")): (
-        "voxel.armor.twigs.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Twigs")): (
-        "voxel.armor.twigs.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Twigs")): (
-        "voxel.armor.twigs.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Twigs")): (
-        "voxel.armor.twigs.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Twigs")): (
-        "voxel.armor.twigs.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Twigs")): (
-        "voxel.armor.twigs.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("Twigs")): "voxel.armor.twigs.chest",
+    Armor(Pants("Twigs")): "voxel.armor.twigs.pants",
+    Armor(Belt("Twigs")): "voxel.armor.twigs.belt",
+    Armor(Foot("Twigs")): "voxel.armor.twigs.foot",
+    Armor(Hand("Twigs")): "voxel.armor.twigs.hand",
+    Armor(Shoulder("Twigs")): "voxel.armor.twigs.shoulder",
     //TwigsLeaves Set
-    Armor(Chest("TwigsLeaves")): (
-        "voxel.armor.twigsleaves.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("TwigsLeaves")): (
-        "voxel.armor.twigsleaves.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("TwigsLeaves")): (
-        "voxel.armor.twigsleaves.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("TwigsLeaves")): (
-        "voxel.armor.twigsleaves.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("TwigsLeaves")): (
-        "voxel.armor.twigsleaves.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("TwigsLeaves")): (
-        "voxel.armor.twigsleaves.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("TwigsLeaves")): "voxel.armor.twigsleaves.chest",
+    Armor(Pants("TwigsLeaves")): "voxel.armor.twigsleaves.pants",
+    Armor(Belt("TwigsLeaves")): "voxel.armor.twigsleaves.belt",
+    Armor(Foot("TwigsLeaves")): "voxel.armor.twigsleaves.foot",
+    Armor(Hand("TwigsLeaves")): "voxel.armor.twigsleaves.hand",
+    Armor(Shoulder("TwigsLeaves")): "voxel.armor.twigsleaves.shoulder",
     //TwigsFlowers Set
-    Armor(Chest("TwigsFlowers")): (
-        "voxel.armor.twigsflowers.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("TwigsFlowers")): (
-        "voxel.armor.twigsflowers.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("TwigsFlowers")): (
-        "voxel.armor.twigsflowers.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("TwigsFlowers")): (
-        "voxel.armor.twigsflowers.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("TwigsFlowers")): (
-        "voxel.armor.twigsflowers.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("TwigsFlowers")): (
-        "voxel.armor.twigsflowers.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("TwigsFlowers")): "voxel.armor.twigsflowers.chest",
+    Armor(Pants("TwigsFlowers")): "voxel.armor.twigsflowers.pants",
+    Armor(Belt("TwigsFlowers")): "voxel.armor.twigsflowers.belt",
+    Armor(Foot("TwigsFlowers")): "voxel.armor.twigsflowers.foot",
+    Armor(Hand("TwigsFlowers")): "voxel.armor.twigsflowers.hand",
+    Armor(Shoulder("TwigsFlowers")): "voxel.armor.twigsflowers.shoulder",
     //Tarasque Set
-    Armor(Chest("Tarasque")): (
-        "voxel.armor.tarasque.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Tarasque")): (
-        "voxel.armor.tarasque.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Tarasque")): (
-        "voxel.armor.tarasque.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Tarasque")): (
-        "voxel.armor.tarasque.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Tarasque")): (
-        "voxel.armor.tarasque.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Tarasque")): (
-        "voxel.armor.tarasque.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("Tarasque")): "voxel.armor.tarasque.chest",
+    Armor(Pants("Tarasque")): "voxel.armor.tarasque.pants",
+    Armor(Belt("Tarasque")): "voxel.armor.tarasque.belt",
+    Armor(Foot("Tarasque")): "voxel.armor.tarasque.foot",
+    Armor(Hand("Tarasque")): "voxel.armor.tarasque.hand",
+    Armor(Shoulder("Tarasque")): "voxel.armor.tarasque.shoulder",
     //Bonerattler Set
-    Armor(Chest("Bonerattler")): (
-        "voxel.armor.bonerattler.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Bonerattler")): (
-        "voxel.armor.bonerattler.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Bonerattler")): (
-        "voxel.armor.bonerattler.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Bonerattler")): (
-        "voxel.armor.bonerattler.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Bonerattler")): (
-        "voxel.armor.bonerattler.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Bonerattler")): (
-        "voxel.armor.bonerattler.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
+    Armor(Chest("Bonerattler")): "voxel.armor.bonerattler.chest",
+    Armor(Pants("Bonerattler")): "voxel.armor.bonerattler.pants",
+    Armor(Belt("Bonerattler")): "voxel.armor.bonerattler.belt",
+    Armor(Foot("Bonerattler")): "voxel.armor.bonerattler.foot",
+    Armor(Hand("Bonerattler")): "voxel.armor.bonerattler.hand",
+    Armor(Shoulder("Bonerattler")): "voxel.armor.bonerattler.shoulder",
     //Rawhide Set
-    Armor(Chest("Rawhide")): (
-        "voxel.armor.hide.rawhide.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Rawhide")): (
-        "voxel.armor.hide.rawhide.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Rawhide")): (
-        "voxel.armor.hide.rawhide.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Rawhide")): (
-        "voxel.armor.hide.rawhide.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Rawhide")): (
-        "voxel.armor.hide.rawhide.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Rawhide")): (
-        "voxel.armor.hide.rawhide.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Rawhide")): (
-        "voxel.armor.hide.rawhide.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Rawhide")): "voxel.armor.hide.rawhide.chest",
+    Armor(Pants("Rawhide")): "voxel.armor.hide.rawhide.pants",
+    Armor(Belt("Rawhide")): "voxel.armor.hide.rawhide.belt",
+    Armor(Foot("Rawhide")): "voxel.armor.hide.rawhide.foot",
+    Armor(Hand("Rawhide")): "voxel.armor.hide.rawhide.hand",
+    Armor(Shoulder("Rawhide")): "voxel.armor.hide.rawhide.shoulder",
+    Armor(Back("Rawhide")): "voxel.armor.hide.rawhide.back",
     //Leather set
-    Armor(Chest("Leather")): (
-        "voxel.armor.hide.leather.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Leather")): (
-        "voxel.armor.hide.leather.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Leather")): (
-        "voxel.armor.hide.leather.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Leather")): (
-        "voxel.armor.hide.leather.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Leather")): (
-        "voxel.armor.hide.leather.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Leather")): (
-        "voxel.armor.hide.leather.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Leather")): (
-        "voxel.armor.hide.leather.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Leather")): "voxel.armor.hide.leather.chest",
+    Armor(Pants("Leather")): "voxel.armor.hide.leather.pants",
+    Armor(Belt("Leather")): "voxel.armor.hide.leather.belt",
+    Armor(Foot("Leather")): "voxel.armor.hide.leather.foot",
+    Armor(Hand("Leather")): "voxel.armor.hide.leather.hand",
+    Armor(Shoulder("Leather")): "voxel.armor.hide.leather.shoulder",
+    Armor(Back("Leather")): "voxel.armor.hide.leather.back",
     //Scale Set
-    Armor(Chest("Scale")): (
-        "voxel.armor.hide.scale.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Scale")): (
-        "voxel.armor.hide.scale.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Scale")): (
-        "voxel.armor.hide.scale.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Scale")): (
-        "voxel.armor.hide.scale.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Scale")): (
-        "voxel.armor.hide.scale.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Scale")): (
-        "voxel.armor.hide.scale.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Scale")): (
-        "voxel.armor.hide.scale.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Scale")): "voxel.armor.hide.scale.chest",
+    Armor(Pants("Scale")): "voxel.armor.hide.scale.pants",
+    Armor(Belt("Scale")): "voxel.armor.hide.scale.belt",
+    Armor(Foot("Scale")): "voxel.armor.hide.scale.foot",
+    Armor(Hand("Scale")): "voxel.armor.hide.scale.hand",
+    Armor(Shoulder("Scale")): "voxel.armor.hide.scale.shoulder",
+    Armor(Back("Scale")): "voxel.armor.hide.scale.back",
     //Carapace Set
-    Armor(Chest("Carapace")): (
-        "voxel.armor.hide.carapace.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Carapace")): (
-        "voxel.armor.hide.carapace.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Carapace")): (
-        "voxel.armor.hide.carapace.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Carapace")): (
-        "voxel.armor.hide.carapace.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Carapace")): (
-        "voxel.armor.hide.carapace.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Carapace")): (
-        "voxel.armor.hide.carapace.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Carapace")): (
-        "voxel.armor.hide.carapace.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Carapace")): "voxel.armor.hide.carapace.chest",
+    Armor(Pants("Carapace")): "voxel.armor.hide.carapace.pants",
+    Armor(Belt("Carapace")): "voxel.armor.hide.carapace.belt",
+    Armor(Foot("Carapace")): "voxel.armor.hide.carapace.foot",
+    Armor(Hand("Carapace")): "voxel.armor.hide.carapace.hand",
+    Armor(Shoulder("Carapace")): "voxel.armor.hide.carapace.shoulder",
+    Armor(Back("Carapace")): "voxel.armor.hide.carapace.back",
     //Primal Set
-    Armor(Chest("Primal")): (
-        "voxel.armor.hide.primal.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Primal")): (
-        "voxel.armor.hide.primal.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Primal")): (
-        "voxel.armor.hide.primal.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Primal")): (
-        "voxel.armor.hide.primal.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Primal")): (
-        "voxel.armor.hide.primal.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Primal")): (
-        "voxel.armor.hide.primal.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Primal")): (
-        "voxel.armor.hide.primal.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Primal")): "voxel.armor.hide.primal.chest",
+    Armor(Pants("Primal")): "voxel.armor.hide.primal.pants",
+    Armor(Belt("Primal")): "voxel.armor.hide.primal.belt",
+    Armor(Foot("Primal")): "voxel.armor.hide.primal.foot",
+    Armor(Hand("Primal")): "voxel.armor.hide.primal.hand",
+    Armor(Shoulder("Primal")): "voxel.armor.hide.primal.shoulder",
+    Armor(Back("Primal")): "voxel.armor.hide.primal.back",
     //Dragonscale Set
-    Armor(Chest("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Dragonscale")): (
-        "voxel.armor.hide.dragonscale.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Dragonscale")): "voxel.armor.hide.dragonscale.chest",
+    Armor(Pants("Dragonscale")): "voxel.armor.hide.dragonscale.pants",
+    Armor(Belt("Dragonscale")): "voxel.armor.hide.dragonscale.belt",
+    Armor(Foot("Dragonscale")): "voxel.armor.hide.dragonscale.foot",
+    Armor(Hand("Dragonscale")): "voxel.armor.hide.dragonscale.hand",
+    Armor(Shoulder("Dragonscale")): "voxel.armor.hide.dragonscale.shoulder",
+    Armor(Back("Dragonscale")): "voxel.armor.hide.dragonscale.back",
     //Savage Set
-    Armor(Chest("Savage")): (
-        "voxel.armor.savage.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Savage")): (
-        "voxel.armor.savage.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Savage")): (
-        "voxel.armor.savage.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Savage")): (
-        "voxel.armor.savage.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Savage")): (
-        "voxel.armor.savage.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Savage")): (
-        "voxel.armor.savage.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Savage")): (
-        "voxel.armor.savage.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Savage")): "voxel.armor.savage.chest",
+    Armor(Pants("Savage")): "voxel.armor.savage.pants",
+    Armor(Belt("Savage")): "voxel.armor.savage.belt",
+    Armor(Foot("Savage")): "voxel.armor.savage.foot",
+    Armor(Hand("Savage")): "voxel.armor.savage.hand",
+    Armor(Shoulder("Savage")): "voxel.armor.savage.shoulder",
+    Armor(Back("Savage")): "voxel.armor.savage.back",
     //Linen Set
-    Armor(Chest("Linen")): (
-        "voxel.armor.cloth.linen.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Linen")): (
-        "voxel.armor.cloth.linen.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Linen")): (
-        "voxel.armor.cloth.linen.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Linen")): (
-        "voxel.armor.cloth.linen.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Linen")): (
-        "voxel.armor.cloth.linen.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Linen")): (
-        "voxel.armor.cloth.linen.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Linen")): (
-        "voxel.armor.cloth.linen.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Linen")): "voxel.armor.cloth.linen.chest",
+    Armor(Pants("Linen")): "voxel.armor.cloth.linen.pants",
+    Armor(Belt("Linen")): "voxel.armor.cloth.linen.belt",
+    Armor(Foot("Linen")): "voxel.armor.cloth.linen.foot",
+    Armor(Hand("Linen")): "voxel.armor.cloth.linen.hand",
+    Armor(Shoulder("Linen")): "voxel.armor.cloth.linen.shoulder",
+    Armor(Back("Linen")): "voxel.armor.cloth.linen.back",
     //Woolen Set
-    Armor(Chest("Woolen")): (
-        "voxel.armor.cloth.woolen.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Woolen")): (
-        "voxel.armor.cloth.woolen.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Woolen")): (
-        "voxel.armor.cloth.woolen.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Woolen")): (
-        "voxel.armor.cloth.woolen.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Woolen")): (
-        "voxel.armor.cloth.woolen.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Woolen")): (
-        "voxel.armor.cloth.woolen.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Woolen")): (
-        "voxel.armor.cloth.woolen.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Woolen")): "voxel.armor.cloth.woolen.chest",
+    Armor(Pants("Woolen")): "voxel.armor.cloth.woolen.pants",
+    Armor(Belt("Woolen")): "voxel.armor.cloth.woolen.belt",
+    Armor(Foot("Woolen")): "voxel.armor.cloth.woolen.foot",
+    Armor(Hand("Woolen")): "voxel.armor.cloth.woolen.hand",
+    Armor(Shoulder("Woolen")): "voxel.armor.cloth.woolen.shoulder",
+    Armor(Back("Woolen")): "voxel.armor.cloth.woolen.back",
     //Silken Set
-    Armor(Chest("Silken")): (
-        "voxel.armor.cloth.silken.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Silken")): (
-        "voxel.armor.cloth.silken.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Silken")): (
-        "voxel.armor.cloth.silken.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Silken")): (
-        "voxel.armor.cloth.silken.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Silken")): (
-        "voxel.armor.cloth.silken.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Silken")): (
-        "voxel.armor.cloth.silken.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Silken")): (
-        "voxel.armor.cloth.silken.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Silken")): "voxel.armor.cloth.silken.chest",
+    Armor(Pants("Silken")): "voxel.armor.cloth.silken.pants",
+    Armor(Belt("Silken")): "voxel.armor.cloth.silken.belt",
+    Armor(Foot("Silken")): "voxel.armor.cloth.silken.foot",
+    Armor(Hand("Silken")): "voxel.armor.cloth.silken.hand",
+    Armor(Shoulder("Silken")): "voxel.armor.cloth.silken.shoulder",
+    Armor(Back("Silken")): "voxel.armor.cloth.silken.back",
     //Druid Set
-    Armor(Chest("Druid")): (
-        "voxel.armor.cloth.druid.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Druid")): (
-        "voxel.armor.cloth.druid.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Druid")): (
-        "voxel.armor.cloth.druid.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Druid")): (
-        "voxel.armor.cloth.druid.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Druid")): (
-        "voxel.armor.cloth.druid.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Druid")): (
-        "voxel.armor.cloth.druid.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Druid")): (
-        "voxel.armor.cloth.druid.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Druid")): "voxel.armor.cloth.druid.chest",
+    Armor(Pants("Druid")): "voxel.armor.cloth.druid.pants",
+    Armor(Belt("Druid")): "voxel.armor.cloth.druid.belt",
+    Armor(Foot("Druid")): "voxel.armor.cloth.druid.foot",
+    Armor(Hand("Druid")): "voxel.armor.cloth.druid.hand",
+    Armor(Shoulder("Druid")): "voxel.armor.cloth.druid.shoulder",
+    Armor(Back("Druid")): "voxel.armor.cloth.druid.back",
     //Moonweave Set
-    Armor(Chest("Moonweave")): (
-        "voxel.armor.cloth.moonweave.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Moonweave")): (
-        "voxel.armor.cloth.moonweave.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Moonweave")): (
-        "voxel.armor.cloth.moonweave.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Moonweave")): (
-        "voxel.armor.cloth.moonweave.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Moonweave")): (
-        "voxel.armor.cloth.moonweave.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Moonweave")): (
-        "voxel.armor.cloth.moonweave.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Moonweave")): (
-        "voxel.armor.cloth.moonweave.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Moonweave")): "voxel.armor.cloth.moonweave.chest",
+    Armor(Pants("Moonweave")): "voxel.armor.cloth.moonweave.pants",
+    Armor(Belt("Moonweave")): "voxel.armor.cloth.moonweave.belt",
+    Armor(Foot("Moonweave")): "voxel.armor.cloth.moonweave.foot",
+    Armor(Hand("Moonweave")): "voxel.armor.cloth.moonweave.hand",
+    Armor(Shoulder("Moonweave")): "voxel.armor.cloth.moonweave.shoulder",
+    Armor(Back("Moonweave")): "voxel.armor.cloth.moonweave.back",
     //Sunsilk Set
-    Armor(Chest("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Sunsilk")): (
-        "voxel.armor.cloth.sunsilk.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Sunsilk")): "voxel.armor.cloth.sunsilk.chest",
+    Armor(Pants("Sunsilk")): "voxel.armor.cloth.sunsilk.pants",
+    Armor(Belt("Sunsilk")): "voxel.armor.cloth.sunsilk.belt",
+    Armor(Foot("Sunsilk")): "voxel.armor.cloth.sunsilk.foot",
+    Armor(Hand("Sunsilk")): "voxel.armor.cloth.sunsilk.hand",
+    Armor(Shoulder("Sunsilk")): "voxel.armor.cloth.sunsilk.shoulder",
+    Armor(Back("Sunsilk")): "voxel.armor.cloth.sunsilk.back",
     //Bronze Set
-    Armor(Chest("Bronze")): (
-        "voxel.armor.mail.bronze.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Bronze")): (
-        "voxel.armor.mail.bronze.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Bronze")): (
-        "voxel.armor.mail.bronze.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Bronze")): (
-        "voxel.armor.mail.bronze.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Bronze")): (
-        "voxel.armor.mail.bronze.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Bronze")): (
-        "voxel.armor.mail.bronze.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Bronze")): (
-        "voxel.armor.mail.bronze.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Bronze")): "voxel.armor.mail.bronze.chest",
+    Armor(Pants("Bronze")): "voxel.armor.mail.bronze.pants",
+    Armor(Belt("Bronze")): "voxel.armor.mail.bronze.belt",
+    Armor(Foot("Bronze")): "voxel.armor.mail.bronze.foot",
+    Armor(Hand("Bronze")): "voxel.armor.mail.bronze.hand",
+    Armor(Shoulder("Bronze")): "voxel.armor.mail.bronze.shoulder",
+    Armor(Back("Bronze")): "voxel.armor.mail.bronze.back",
     //Iron Set
-    Armor(Chest("Iron")): (
-        "voxel.armor.mail.iron.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Iron")): (
-        "voxel.armor.mail.iron.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Iron")): (
-        "voxel.armor.mail.iron.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Iron")): (
-        "voxel.armor.mail.iron.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Iron")): (
-        "voxel.armor.mail.iron.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Iron")): (
-        "voxel.armor.mail.iron.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Iron")): (
-        "voxel.armor.mail.iron.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Iron")): "voxel.armor.mail.iron.chest",
+    Armor(Pants("Iron")): "voxel.armor.mail.iron.pants",
+    Armor(Belt("Iron")): "voxel.armor.mail.iron.belt",
+    Armor(Foot("Iron")): "voxel.armor.mail.iron.foot",
+    Armor(Hand("Iron")): "voxel.armor.mail.iron.hand",
+    Armor(Shoulder("Iron")): "voxel.armor.mail.iron.shoulder",
+    Armor(Back("Iron")): "voxel.armor.mail.iron.back",
     //Steel Set
-    Armor(Chest("Steel")): (
-        "voxel.armor.mail.steel.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Steel")): (
-        "voxel.armor.mail.steel.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Steel")): (
-        "voxel.armor.mail.steel.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Steel")): (
-        "voxel.armor.mail.steel.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Steel")): (
-        "voxel.armor.mail.steel.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Steel")): (
-        "voxel.armor.mail.steel.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Steel")): (
-        "voxel.armor.mail.steel.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Steel")): "voxel.armor.mail.steel.chest",
+    Armor(Pants("Steel")): "voxel.armor.mail.steel.pants",
+    Armor(Belt("Steel")): "voxel.armor.mail.steel.belt",
+    Armor(Foot("Steel")): "voxel.armor.mail.steel.foot",
+    Armor(Hand("Steel")): "voxel.armor.mail.steel.hand",
+    Armor(Shoulder("Steel")): "voxel.armor.mail.steel.shoulder",
+    Armor(Back("Steel")): "voxel.armor.mail.steel.back",
     //Cobalt Set
-    Armor(Chest("Cobalt")): (
-        "voxel.armor.mail.cobalt.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Cobalt")): (
-        "voxel.armor.mail.cobalt.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Cobalt")): (
-        "voxel.armor.mail.cobalt.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Cobalt")): (
-        "voxel.armor.mail.cobalt.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Cobalt")): (
-        "voxel.armor.mail.cobalt.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Cobalt")): (
-        "voxel.armor.mail.cobalt.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Cobalt")): (
-        "voxel.armor.mail.cobalt.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Cobalt")): "voxel.armor.mail.cobalt.chest",
+    Armor(Pants("Cobalt")): "voxel.armor.mail.cobalt.pants",
+    Armor(Belt("Cobalt")): "voxel.armor.mail.cobalt.belt",
+    Armor(Foot("Cobalt")): "voxel.armor.mail.cobalt.foot",
+    Armor(Hand("Cobalt")): "voxel.armor.mail.cobalt.hand",
+    Armor(Shoulder("Cobalt")): "voxel.armor.mail.cobalt.shoulder",
+    Armor(Back("Cobalt")): "voxel.armor.mail.cobalt.back",
     //Bloodsteel Set
-    Armor(Chest("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Bloodsteel")): (
-        "voxel.armor.mail.bloodsteel.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Bloodsteel")): "voxel.armor.mail.bloodsteel.chest",
+    Armor(Pants("Bloodsteel")): "voxel.armor.mail.bloodsteel.pants",
+    Armor(Belt("Bloodsteel")): "voxel.armor.mail.bloodsteel.belt",
+    Armor(Foot("Bloodsteel")): "voxel.armor.mail.bloodsteel.foot",
+    Armor(Hand("Bloodsteel")): "voxel.armor.mail.bloodsteel.hand",
+    Armor(Shoulder("Bloodsteel")): "voxel.armor.mail.bloodsteel.shoulder",
+    Armor(Back("Bloodsteel")): "voxel.armor.mail.bloodsteel.back",
     //Orichalcum Set
-    Armor(Chest("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.chest",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.pants",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Belt("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.belt",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Foot("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.foot",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.hand",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.shoulder",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Back("Orichalcum")): (
-        "voxel.armor.mail.orichalcum.back",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Chest("Orichalcum")): "voxel.armor.mail.orichalcum.chest",
+    Armor(Pants("Orichalcum")): "voxel.armor.mail.orichalcum.pants",
+    Armor(Belt("Orichalcum")): "voxel.armor.mail.orichalcum.belt",
+    Armor(Foot("Orichalcum")): "voxel.armor.mail.orichalcum.foot",
+    Armor(Hand("Orichalcum")): "voxel.armor.mail.orichalcum.hand",
+    Armor(Shoulder("Orichalcum")): "voxel.armor.mail.orichalcum.shoulder",
+    Armor(Back("Orichalcum")): "voxel.armor.mail.orichalcum.back",
     //misc
-    Armor(Pants("Hunting")): (
-        "voxel.armor.misc.pants.grayscale",
-        (-2.5, -2.5, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Pants("Hunting")): "voxel.armor.misc.pants.grayscale",
     // Backs
-    Armor(Back("Short0")): (
-        "voxel.armor.misc.back.short-0",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Back("Short1")): (
-        "voxel.armor.misc.back.short-1",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Back("Admin")): (
-        "voxel.armor.misc.back.admin",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Back("DungeonPurple")): (
-        "voxel.armor.misc.back.dungeon_purple",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Back("LeatherBlue")): (
-        "voxel.armor.leather_blue.back",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Back("Backpack")): (
-        "voxel.armor.misc.back.backpack",
-        (-3.0, 0.0, -5.0), (-75.0, 45.0,0.0), 0.9,
-    ),
-    Armor(Back("BackpackBlue")): (
-        "voxel.armor.misc.back.backpack",
-        (-3.0, 0.0, -5.0), (-120.0, 210.0,15.0), 0.9,
-    ),
+    Armor(Back("Short0")): "voxel.armor.misc.back.short-0",
+    Armor(Back("Short1")): "voxel.armor.misc.back.short-1",
+    Armor(Back("Admin")): "voxel.armor.misc.back.admin",
+    Armor(Back("DungeonPurple")): "voxel.armor.misc.back.dungeon_purple",
+    Armor(Back("LeatherBlue")): "voxel.armor.leather_blue.back",
+    Armor(Back("Backpack")): "voxel.armor.misc.back.backpack",
+    Armor(Back("BackpackBlue")): "voxel.armor.misc.back.backpack",
     //Hats
-    Armor(Head("Witch")): (
-        "voxel.armor.witch.hat",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Head("HogHood")): (
-        "voxel.armor.misc.head.hog_hood",
-        (-10.0, -10.0, 0.0), (-110.0, 210.0,15.0), 1.4,
-    ),
-    Armor(Head("BambooTwig")): (
-        "voxel.armor.misc.head.bamboo_twig",
-        (-10.0, -10.0, 0.0), (-120.0, -240.0,1.0), 2.3,
-    ),
-    Armor(Head("Pirate")): (
-        "voxel.armor.pirate.hat",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.0,
-    ),
-    Armor(Head("Thief")): (
-        "voxel.armor.misc.head.bandana.thief",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.9,
-    ),
-	Armor(Head("WanderersHat")): (
-        "voxel.armor.misc.head.wanderers_hat",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Head("Red")): (
-        "voxel.armor.misc.head.bandana.red",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.9,
-    ),
-    Armor(Head("Straw")): (
-        "voxel.armor.misc.head.straw",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Head("Hood")): (
-        "voxel.armor.misc.head.hood",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("DarkHood")): (
-        "voxel.armor.misc.head.hood_dark",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("Crown")): (
-        "voxel.armor.misc.head.crown",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("Mitre")): (
-        "voxel.armor.misc.head.mitre",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("Spikeguard")): (
-        "voxel.armor.misc.head.spikeguard",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("WingedCoronet")): (
-        "voxel.armor.misc.head.winged_coronet",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("BorealWarhelm")): (
-        "voxel.armor.misc.head.boreal_warhelm",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("WoollyWintercap")): (
-        "voxel.armor.misc.head.woolly_wintercap",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
-    Armor(Head("Helmet")): (
-        "voxel.armor.misc.head.helmet",
-        (-10.0, -10.0, 0.0), (-120.0, 210.0,15.0), 1.3,
-    ),
+    Armor(Head("Witch")): "voxel.armor.witch.hat",
+    Armor(Head("HogHood")): "voxel.armor.misc.head.hog_hood",
+    Armor(Head("BambooTwig")): "voxel.armor.misc.head.bamboo_twig",
+    Armor(Head("Pirate")): "voxel.armor.pirate.hat",
+    Armor(Head("Thief")): "voxel.armor.misc.head.bandana.thief",
+	Armor(Head("WanderersHat")): "voxel.armor.misc.head.wanderers_hat",
+    Armor(Head("Red")): "voxel.armor.misc.head.bandana.red",
+    Armor(Head("Straw")): "voxel.armor.misc.head.straw",
+    Armor(Head("Hood")): "voxel.armor.misc.head.hood",
+    Armor(Head("DarkHood")): "voxel.armor.misc.head.hood_dark",
+    Armor(Head("Crown")): "voxel.armor.misc.head.crown",
+    Armor(Head("Mitre")): "voxel.armor.misc.head.mitre",
+    Armor(Head("Spikeguard")): "voxel.armor.misc.head.spikeguard",
+    Armor(Head("WingedCoronet")): "voxel.armor.misc.head.winged_coronet",
+    Armor(Head("BorealWarhelm")): "voxel.armor.misc.head.boreal_warhelm",
+    Armor(Head("WoollyWintercap")): "voxel.armor.misc.head.woolly_wintercap",
+    Armor(Head("Helmet")): "voxel.armor.misc.head.helmet",
     // Rings
-    Armor(Ring("Scratched")): (
-        "voxel.armor.misc.ring.scratched",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Gold")): (
-        "voxel.armor.misc.ring.gold",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Topaz")): (
-        "voxel.armor.misc.ring.topaz",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Amethyst")): (
-        "voxel.armor.misc.ring.amethyst",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Sapphire")): (
-        "voxel.armor.misc.ring.sapphire",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Emerald")): (
-        "voxel.armor.misc.ring.emerald",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Ruby")): (
-        "voxel.armor.misc.ring.ruby",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Diamond")): (
-        "voxel.armor.misc.ring.diamond",
-        (-2.5, -2.5, 0.0), (45.0, 20.0, 0.0), 0.9,
-    ),
-    Armor(Ring("Cultist")): (
-        "voxel.armor.cultist.ring",
-        (-2.5, -2.5, 0.0), (45.0, 15.0, 0.0), 0.9,
-    ),
+    Armor(Ring("Scratched")): "voxel.armor.misc.ring.scratched",
+    Armor(Ring("Gold")): "voxel.armor.misc.ring.gold",
+    Armor(Ring("Topaz")): "voxel.armor.misc.ring.topaz",
+    Armor(Ring("Amethyst")): "voxel.armor.misc.ring.amethyst",
+    Armor(Ring("Sapphire")): "voxel.armor.misc.ring.sapphire",
+    Armor(Ring("Emerald")): "voxel.armor.misc.ring.emerald",
+    Armor(Ring("Ruby")): "voxel.armor.misc.ring.ruby",
+    Armor(Ring("Diamond")): "voxel.armor.misc.ring.diamond",
+    Armor(Ring("Cultist")): "voxel.armor.cultist.ring",
     // Necks
-    Armor(Neck("Ankh")): (
-        "voxel.armor.misc.neck.ankh_of_life",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Carcanet")): (
-        "voxel.armor.misc.neck.carcanet_of_wrath",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Fang")): (
-        "voxel.armor.misc.neck.fang",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Honeycomb")): (
-        "voxel.armor.misc.neck.honeycomb_pendant",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Haniwa")): (
-        "voxel.armor.misc.neck.haniwa_talisman",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Pendant")): (
-        "voxel.armor.misc.neck.pendant_of_protection",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("ResilienceGem")): (
-        "voxel.armor.misc.neck.resilience_gem",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Shell")): (
-        "voxel.armor.misc.neck.shell",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Amethyst")): (
-        "voxel.armor.misc.neck.amethyst",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Diamond")): (
-        "voxel.armor.misc.neck.diamond",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Cultist")): (
-        "voxel.armor.cultist.necklace",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Ruby")): (
-        "voxel.armor.misc.neck.ruby",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Topaz")): (
-        "voxel.armor.misc.neck.topaz",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Emerald")): (
-        "voxel.armor.misc.neck.emerald",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Gold")): (
-        "voxel.armor.misc.neck.gold",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Sapphire")): (
-        "voxel.armor.misc.neck.sapphire",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-    Armor(Neck("Scratched")): (
-        "voxel.armor.misc.neck.scratched",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
-
+    Armor(Neck("Ankh")): "voxel.armor.misc.neck.ankh_of_life",
+    Armor(Neck("Carcanet")): "voxel.armor.misc.neck.carcanet_of_wrath",
+    Armor(Neck("Fang")): "voxel.armor.misc.neck.fang",
+    Armor(Neck("Honeycomb")): "voxel.armor.misc.neck.honeycomb_pendant",
+    Armor(Neck("Haniwa")): "voxel.armor.misc.neck.haniwa_talisman",
+    Armor(Neck("Pendant")): "voxel.armor.misc.neck.pendant_of_protection",
+    Armor(Neck("ResilienceGem")): "voxel.armor.misc.neck.resilience_gem",
+    Armor(Neck("Shell")): "voxel.armor.misc.neck.shell",
+    Armor(Neck("Amethyst")): "voxel.armor.misc.neck.amethyst",
+    Armor(Neck("Diamond")): "voxel.armor.misc.neck.diamond",
+    Armor(Neck("Cultist")): "voxel.armor.cultist.necklace",
+    Armor(Neck("Ruby")): "voxel.armor.misc.neck.ruby",
+    Armor(Neck("Topaz")): "voxel.armor.misc.neck.topaz",
+    Armor(Neck("Emerald")): "voxel.armor.misc.neck.emerald",
+    Armor(Neck("Gold")): "voxel.armor.misc.neck.gold",
+    Armor(Neck("Sapphire")): "voxel.armor.misc.neck.sapphire",
+    Armor(Neck("Scratched")): "voxel.armor.misc.neck.scratched",
     // Tabards
-    Armor(Tabard("Admin")): (
-        "voxel.armor.tabard_admin",
-        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
-    ),
+    Armor(Tabard("Admin")): "voxel.armor.tabard_admin",
     // Heads
-    Armor(Head("Leather")): (
-        "voxel.armor.misc.head.leather-0",
-        (-2.5, -2.5, 0.0), (-90.0, 180.0, 0.0), 1.0,
-    ),
-    Armor(Head("Assassin")): (
-        "voxel.armor.misc.head.assa_mask-0",
-        (-2.5, -2.5, 0.0), (-90.0, 180.0, 0.0), 1.0,
-    ),
-    Armor(Head("Exclamation")): (
-        "voxel.armor.misc.head.exclamation",
-        (0.0, 15.0, 0.0), (-75.0, 135.0, 0.0), 3.0,
-    ),
+    Armor(Head("Leather")): "voxel.armor.misc.head.leather-0",
+    Armor(Head("Assassin")): "voxel.armor.misc.head.assa_mask-0",
+    Armor(Head("Exclamation")): "voxel.armor.misc.head.exclamation",
     // Bags
-    Armor(Bag("RedFace")): (
-        "voxel.armor.misc.bag.soulkeeper_cursed",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("BlackHole")): (
-        "voxel.armor.misc.bag.admin_black_hole",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("BlueFace")): (
-        "voxel.armor.misc.bag.soulkeeper_pure",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("PurpleSkull")): (
-        "voxel.armor.misc.bag.mindflayer_spellbag",
-        (0.0, 0.1, 0.0), (-75.0, 20.0, 5.0), 0.8,
-    ),
-    Armor(Bag("GreenLarge")): (
-        "voxel.armor.misc.bag.troll_hide_pack",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("LeatherLarge")): (
-        "voxel.armor.misc.bag.reliable_backpack",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("GreenMid")): (
-        "voxel.armor.misc.bag.liana_kit",
-        (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("LeatherSmall")): (
-        "voxel.armor.misc.bag.tiny_leather_pouch",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.8,
-    ),
-    Armor(Bag("RedLarge")): (
-        "voxel.armor.misc.bag.sturdy_red_backpack",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("RedMed")): (
-        "voxel.armor.misc.bag.woven_red_bag",
-        (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("RedSmall")): (
-        "voxel.armor.misc.bag.knitted_red_pouch",
-        (0.3, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
-    ),
-    Armor(Bag("RedTiny")): (
-        "voxel.armor.misc.bag.tiny_red_pouch",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
-    Armor(Bag("BluePouch")): (
-        "voxel.armor.misc.bag.heavy_seabag",
-        (-2.5, -2.5, 0.0), (-75.0, 20.0, 5.0), 0.9,
-    ),
+    Armor(Bag("RedFace")): "voxel.armor.misc.bag.soulkeeper_cursed",
+    Armor(Bag("BlackHole")): "voxel.armor.misc.bag.admin_black_hole",
+    Armor(Bag("BlueFace")): "voxel.armor.misc.bag.soulkeeper_pure",
+    Armor(Bag("PurpleSkull")): "voxel.armor.misc.bag.mindflayer_spellbag",
+    Armor(Bag("GreenLarge")): "voxel.armor.misc.bag.troll_hide_pack",
+    Armor(Bag("LeatherLarge")): "voxel.armor.misc.bag.reliable_backpack",
+    Armor(Bag("GreenMid")): "voxel.armor.misc.bag.liana_kit",
+    Armor(Bag("LeatherSmall")): "voxel.armor.misc.bag.tiny_leather_pouch",
+    Armor(Bag("RedLarge")): "voxel.armor.misc.bag.sturdy_red_backpack",
+    Armor(Bag("RedMed")): "voxel.armor.misc.bag.woven_red_bag",
+    Armor(Bag("RedSmall")): "voxel.armor.misc.bag.knitted_red_pouch",
+    Armor(Bag("RedTiny")): "voxel.armor.misc.bag.tiny_red_pouch",
+    Armor(Bag("BluePouch")): "voxel.armor.misc.bag.heavy_seabag",
     // Consumables
-    Consumable("common.items.food.apple"): (
-        "voxel.object.apple_half",
-        (-5.0, -5.0, 0.0), (-60.0, -45.0, -15.0), 0.9,
-    ),
-    Consumable("common.items.food.coconut"): (
-        "voxel.object.coconut_half",
-        (-5.0, -5.0, 0.0), (-55.0, 30.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.food.cactus_colada"): (
-        "voxel.object.cactus_drink",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.consumable.potion_med"): (
-        "voxel.object.potion_red",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.7,
-    ),
-    Consumable("common.items.consumable.potion_minor"): (
-        "voxel.object.potion_red",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.5,
-    ),
-    Consumable("common.items.consumable.potion_big"): (
-        "voxel.object.potion_red",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.boss_drops.potions"): (
-        "voxel.object.potion_red",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.cheese"): (
-        "voxel.object.cheese",
-        (-5.0, -5.0, 0.0), (-60.0, 27.0, 17.0), 0.7,
-    ),
-    Consumable("common.items.food.blue_cheese"): (
-        "voxel.object.blue_cheese",
-        (-5.0, -5.0, 0.0), (-60.0, -10.0, 0.0), 0.8,
-    ),
-    Consumable("common.items.food.mushroom"): (
-        "voxel.sprite.mushrooms.mushroom-10",
-        (-5.0, -5.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
-    ),
-    Ingredient("Velorite"): (
-        "voxel.sprite.velorite.velorite_ore",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Ingredient("VeloriteFrag"): (
-        "voxel.sprite.velorite.velorite_1",
-        (-5.0, -5.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.food.apple_mushroom_curry"): (
-        "voxel.object.mushroom_curry",
-        (-5.0, -5.0, 0.0), (-50.0, 20.0, 17.0), 0.9,
-    ),
-    Consumable("common.items.food.spore_corruption"): (
-        "voxel.sprite.spore.corruption_spore",
-        (-5.0, -5.0, 0.0), (-30.0, 30.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.food.apple_stick"): (
-        "voxel.object.apple_stick",
-        (-0.5, -0.3, 0.0), (-55.0, 60.0, 5.0), 1.0,
-    ),
-    Consumable("common.items.food.mushroom_stick"): (
-        "voxel.object.mushroom_stick",
-        (0.3, 0.0, 0.0), (-55.0, 60.0, 5.0), 1.0,
-    ),
-    Consumable("common.items.food.sunflower_icetea"): (
-        "voxel.object.sunflower_ice_tea",
-        (-5.0, -5.0, 0.0), (-50.0, -60.0, -35.0), 0.9,
-    ),
-    Consumable("common.items.food.carrot"): (
-        "voxel.sprite.carrot.carrot",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.tomato"): (
-        "voxel.sprite.tomato.tomato",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.food.lettuce"): (
-        "voxel.sprite.cabbage.cabbage",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.food.meat.fish_raw"): (
-        "voxel.sprite.food.meat.fish_raw",
-        (0.1, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.fish_cooked"): (
-        "voxel.sprite.food.meat.fish_cooked",
-        (0.1, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.bird_raw"): (
-        "voxel.sprite.food.meat.bird_raw",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.bird_cooked"): (
-        "voxel.sprite.food.meat.bird_cooked",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.bird_large_raw"): (
-        "voxel.sprite.food.meat.bird_large_raw",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.bird_large_cooked"): (
-        "voxel.sprite.food.meat.bird_large_cooked",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.beast_small_raw"): (
-        "voxel.sprite.food.meat.beast_small_raw",
-        (1.1, 0.0, 0.0), (-50.0, 30.0, 0.0), 1.0,
-    ),
-    Consumable("common.items.food.meat.beast_small_cooked"): (
-        "voxel.sprite.food.meat.beast_small_cooked",
-        (1.1, 0.0, 0.0), (-50.0, 30.0, 0.0), 1.0,
-    ),
-    Consumable("common.items.food.meat.tough_raw"): (
-        "voxel.sprite.food.meat.tough_raw",
-        (-5.0, -5.0, 0.0), (-50.0, 10.0, 0.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.tough_cooked"): (
-        "voxel.sprite.food.meat.tough_cooked",
-        (-5.0, -5.0, 0.0), (-50.0, 20.0, 0.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.beast_large_raw"): (
-        "voxel.sprite.food.meat.beast_large_raw",
-        (0.4, 0.0, 0.0), (-60.0, 35.0, 0.0), 0.9,
-    ),
-    Consumable("common.items.food.meat.beast_large_cooked"): (
-        "voxel.sprite.food.meat.beast_large_cooked",
-        (0.4, 0.0, 0.0), (-60.0, 35.0, 0.0), 0.9,
-    ),
-    Consumable("common.items.food.plainsalad"): (
-        "voxel.sprite.food.salad_plain",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Consumable("common.items.food.tomatosalad"): (
-        "voxel.sprite.food.salad_tomato",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
+    Consumable("common.items.food.apple"): "voxel.object.apple_half",
+    Consumable("common.items.food.coconut"): "voxel.object.coconut_half",
+    Consumable("common.items.food.cactus_colada"): "voxel.object.cactus_drink",
+    Consumable("common.items.consumable.potion_med"): "voxel.object.potion_red",
+    Consumable("common.items.consumable.potion_minor"): "voxel.object.potion_red",
+    Consumable("common.items.consumable.potion_big"): "voxel.object.potion_red",
+    Consumable("common.items.boss_drops.potions"): "voxel.object.potion_red",
+    Consumable("common.items.food.cheese"): "voxel.object.cheese",
+    Consumable("common.items.food.blue_cheese"): "voxel.object.blue_cheese",
+    Consumable("common.items.food.mushroom"): "voxel.sprite.mushrooms.mushroom-10",
+    Ingredient("Velorite"): "voxel.sprite.velorite.velorite_ore",
+    Ingredient("VeloriteFrag"): "voxel.sprite.velorite.velorite_1",
+    Consumable("common.items.food.apple_mushroom_curry"): "voxel.object.mushroom_curry",
+    Consumable("common.items.food.spore_corruption"): "voxel.sprite.spore.corruption_spore",
+    Consumable("common.items.food.apple_stick"): "voxel.object.apple_stick",
+    Consumable("common.items.food.mushroom_stick"): "voxel.object.mushroom_stick",
+    Consumable("common.items.food.sunflower_icetea"): "voxel.object.sunflower_ice_tea",
+    Consumable("common.items.food.carrot"): "voxel.sprite.carrot.carrot",
+    Consumable("common.items.food.tomato"): "voxel.sprite.tomato.tomato",
+    Consumable("common.items.food.lettuce"): "voxel.sprite.cabbage.cabbage",
+    Consumable("common.items.food.meat.fish_raw"): "voxel.sprite.food.meat.fish_raw",
+    Consumable("common.items.food.meat.fish_cooked"): "voxel.sprite.food.meat.fish_cooked",
+    Consumable("common.items.food.meat.bird_raw"): "voxel.sprite.food.meat.bird_raw",
+    Consumable("common.items.food.meat.bird_cooked"): "voxel.sprite.food.meat.bird_cooked",
+    Consumable("common.items.food.meat.bird_large_raw"): "voxel.sprite.food.meat.bird_large_raw",
+    Consumable("common.items.food.meat.bird_large_cooked"): "voxel.sprite.food.meat.bird_large_cooked",
+    Consumable("common.items.food.meat.beast_small_raw"): "voxel.sprite.food.meat.beast_small_raw",
+    Consumable("common.items.food.meat.beast_small_cooked"): "voxel.sprite.food.meat.beast_small_cooked",
+    Consumable("common.items.food.meat.tough_raw"): "voxel.sprite.food.meat.tough_raw",
+    Consumable("common.items.food.meat.tough_cooked"): "voxel.sprite.food.meat.tough_cooked",
+    Consumable("common.items.food.meat.beast_large_raw"): "voxel.sprite.food.meat.beast_large_raw",
+    Consumable("common.items.food.meat.beast_large_cooked"): "voxel.sprite.food.meat.beast_large_cooked",
+    Consumable("common.items.food.plainsalad"): "voxel.sprite.food.salad_plain",
+    Consumable("common.items.food.tomatosalad"): "voxel.sprite.food.salad_tomato",
     // Throwables
-    Throwable(Bomb): (
-        "voxel.object.bomb",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(Firework(Blue)): (
-        "voxel.weapon.projectile.fireworks_blue-0",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(Firework(Green)): (
-        "voxel.weapon.projectile.fireworks_green-0",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(Firework(Purple)): (
-        "voxel.weapon.projectile.fireworks_purple-0",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(Firework(Red)): (
-        "voxel.weapon.projectile.fireworks_red-0",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(Firework(White)): (
-        "voxel.weapon.projectile.fireworks_white-0",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(Firework(Yellow)): (
-        "voxel.weapon.projectile.fireworks_yellow-0",
-        (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Throwable(TrainingDummy): (
-        "voxel.object.training_dummy",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
+    Throwable(Bomb): "voxel.object.bomb",
+    Throwable(Firework(Blue)): "voxel.weapon.projectile.fireworks_blue-0",
+    Throwable(Firework(Green)): "voxel.weapon.projectile.fireworks_green-0",
+    Throwable(Firework(Purple)): "voxel.weapon.projectile.fireworks_purple-0",
+    Throwable(Firework(Red)): "voxel.weapon.projectile.fireworks_red-0",
+    Throwable(Firework(White)): "voxel.weapon.projectile.fireworks_white-0",
+    Throwable(Firework(Yellow)): "voxel.weapon.projectile.fireworks_yellow-0",
+    Throwable(TrainingDummy): "voxel.object.training_dummy",
     // Ingredients
-    Tool("common.items.tool.craftsman_hammer"): (
-        "voxel.weapon.hammer.craftsman",
-        (-4.5, -5.0, -5.0), (-135.0, 90.0, 0.0), 0.9,
-    ),
-    Ingredient("SewingSet"): (
-        "voxel.object.sewing_set",
-        (0.0, -0.1, 0.0), (-45.0, 15.0, 15.0), 1.0,
-    ),
-    Ingredient("Flower"): (
-        "voxel.sprite.flowers.sunflower_1",
-        (-2.0, -0.5, -1.0), (-60.0, 40.0, 20.0), 1.1,
-    ),
-    Ingredient("FlowerRed"): (
-        "voxel.sprite.flowers.flower_red-4",
-        (0.0, 0.5, 0.0), (-70.0, 10.0, 0.0), 0.8,
-    ),
-    Ingredient("Sunflower"): (
-        "voxel.sprite.flowers.sunflower_1",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Ingredient("Grass"): (
-        "voxel.sprite.grass.grass_long_5",
-        (-5.0, -5.0, 0.0), (-90.0, 50.0, 0.0), 1.0,
-    ),
-    Ingredient("Stones"): (
-        "voxel.sprite.rocks.rock-0",
-        (-5.0, -5.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Ingredient("Cactus"): (
-        "voxel.sprite.cacti.flat_cactus_med",
-        (-5.0, -5.0, 0.0), (-50.0, 40.0, 20.0), 0.9,
-    ),
-    Ingredient("Seashells"): (
-        "voxel.sprite.seashells.shell-0",
-        (-5.0, -5.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Ingredient("IcyShard"): (
-        "voxel.object.ice_shard",
-        (-5.0, -5.0, 0.0), (10.0, -20.0, 30.0), 1.0,
-    ),
-    Ingredient("FlayerBagDamaged"): (
-        "voxel.object.glowing_remains",
-        (-5.0, -5.0, 0.0), (-20.0, 20.0, .0), 0.9,
-    ),
-    Ingredient("RaptorFeather"): (
-        "voxel.object.raptor_feather",
-        (-0.2, 0.0, 0.0), (10.0, 30.0, -2.0), 1.0,
-    ),
-    Ingredient("Twigs"): (
-        "voxel.sprite.twigs.twigs-0",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("AnimalHide"): (
-        "voxel.sprite.crafting_ing.hide.animal_hide",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("ToughHide"): (
-        "voxel.sprite.crafting_ing.hide.tough_hide",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("RuggedHide"): (
-        "voxel.sprite.crafting_ing.hide.rugged_hide",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("SimpleLeather"): (
-        "voxel.sprite.crafting_ing.leather.simple_leather",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("ThickLeather"): (
-        "voxel.sprite.crafting_ing.leather.thick_leather",
-        (-0.3, 0.0, 0.0), (-20.0, 15.0, 20.0), 0.9,
-    ),
-    Ingredient("RigidLeather"): (
-        "voxel.sprite.crafting_ing.leather.rigid_leather",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("TrollLeather"): (
-        "voxel.sprite.crafting_ing.hide.troll_hide",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("LeatherStrips"): (
-        "voxel.sprite.crafting_ing.leather.leather_strips",
-        (0.5, 0.0, 0.0), (-20.0, 10.0, 60.0), 1.0,
-    ),
-    Ingredient("Plate"): (
-        "voxel.sprite.crafting_ing.hide.plate",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
-    ),
-    Ingredient("Carapace"): (
-        "voxel.sprite.crafting_ing.hide.carapace",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("Scale"): (
-        "voxel.sprite.crafting_ing.hide.scale",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
-    ),
-    Ingredient("DragonScale"): (
-        "voxel.sprite.crafting_ing.hide.dragon_scale",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("Claw"): (
-        "voxel.sprite.crafting_ing.animal_misc.claw",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("VenomSac"): (
-        "voxel.sprite.crafting_ing.animal_misc.venom_sac",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("LivelyVine"): (
-        "voxel.sprite.crafting_ing.animal_misc.lively_vine",
-        (-5.0, -5.0, 0.0), (-40.0, -40.0, 20.0), 1.2,
-    ),
-    Ingredient("SharpFang"): (
-        "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
-    ),
-    Ingredient("Fur"): (
-        "voxel.sprite.crafting_ing.animal_misc.fur",
-        (-5.0, -5.0, 0.0), (-40.0, -10.0, 10.0), 1.0,
-    ),
-    Ingredient("LargeHorn"): (
-        "voxel.sprite.crafting_ing.animal_misc.large_horn",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("GrimEyeball"): (
-        "voxel.sprite.crafting_ing.animal_misc.grim_eyeball",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
-    ),
-    Ingredient("PlantFiber"): (
-        "voxel.sprite.crafting_ing.plant_fiber",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("Moonbell"): (
-        "voxel.sprite.flowers.moonbell",
-        (-5.0, -5.0, 0.0), (-65.0, 40.0, 20.0), 0.9,
-    ),
-    Ingredient("Pyrebloom"): (
-        "voxel.sprite.flowers.pyrebloom",
-        (-5.0, -5.0, 0.0), (-75.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("WildFlax"): (
-        "voxel.sprite.flowers.flax",
-        (-5.0, -5.0, 0.0), (-75.0, 0.0, 20.0), 0.8,
-    ),
-    Ingredient("CottonBoll"): (
-        "voxel.sprite.crafting_ing.cotton_boll",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("Cotton"): (
-        "voxel.sprite.crafting_ing.cloth.cotton",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("Linen"): (
-        "voxel.sprite.crafting_ing.cloth.linen",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("Wool"): (
-        "voxel.sprite.crafting_ing.cloth.wool",
-        (-5.0, -5.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
-    ),
-    Ingredient("Silk"): (
-        "voxel.sprite.crafting_ing.cloth.silk",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("Lifecloth"): (
-        "voxel.sprite.crafting_ing.cloth.lifecloth",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("Moonweave"): (
-        "voxel.sprite.crafting_ing.cloth.moonweave",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("Sunsilk"): (
-        "voxel.sprite.crafting_ing.cloth.sunsilk",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("LinenRed"): (
-        "voxel.sprite.crafting_ing.cloth.linen_red",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("StickyThread"): (
-        "voxel.sprite.crafting_ing.sticky_thread",
-        (-5.0, -5.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
-    ),
-    Ingredient("SilverIngot"): (
-        "voxel.sprite.mineral.ingot.silver",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("GoldIngot"): (
-        "voxel.sprite.mineral.ingot.gold",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("OrichalcumIngot"): (
-        "voxel.sprite.mineral.ingot.orichalcum",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("BloodsteelIngot"): (
-        "voxel.sprite.mineral.ingot.bloodsteel",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("BronzeIngot"): (
-        "voxel.sprite.mineral.ingot.bronze",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("CobaltIngot"): (
-        "voxel.sprite.mineral.ingot.cobalt",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("CopperIngot"): (
-        "voxel.sprite.mineral.ingot.copper",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("IronIngot"): (
-        "voxel.sprite.mineral.ingot.iron",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("SteelIngot"): (
-        "voxel.sprite.mineral.ingot.steel",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("TinIngot"): (
-        "voxel.sprite.mineral.ingot.tin",
-        (-5.0, -5.0, 0.0), (70.0, 30.0, 170.0), 0.85,
-    ),
-    Ingredient("GoldOre"): (
-        "voxel.sprite.mineral.ore.gold",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("SilverOre"): (
-        "voxel.sprite.mineral.ore.silver",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("BloodstoneOre"): (
-        "voxel.sprite.mineral.ore.bloodstone",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("CobaltOre"): (
-        "voxel.sprite.mineral.ore.cobalt",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("CopperOre"): (
-        "voxel.sprite.mineral.ore.copper",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("IronOre"): (
-        "voxel.sprite.mineral.ore.iron",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("TinOre"): (
-        "voxel.sprite.mineral.ore.tin",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("Coal"): (
-        "voxel.sprite.mineral.ore.coal",
-        (-5.0, -5.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
-    ),
-    Ingredient("Honey"): (
-        "voxel.object.honey",
-        (-5.0, -5.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
-    ),
-    Ingredient("MortarPestle"): (
-        "voxel.object.mortar_pestle",
-        (-5.0, -5.0, 0.0), (-40.0, 15.0, 17.0), 0.8,
-    ),
-    Ingredient("EmptyVial"): (
-        "voxel.object.potion_empty",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Ingredient("Bowl"): (
-        "voxel.sprite.crafting_ing.bowl",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Ingredient("Oil"): (
-        "voxel.sprite.crafting_ing.oil",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Ingredient("ViscousOoze"): (
-        "voxel.sprite.crafting_ing.animal_misc.viscous_ooze",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
-    ),
-    Ingredient("PhoenixFeather"): (
-        "voxel.sprite.crafting_ing.animal_misc.phoenix_feather",
-        (-5.0, -5.0, 0.0), (-50.0, 30.0, 20.0), 1.2,
-    ),
+    Tool("common.items.tool.craftsman_hammer"): "voxel.weapon.hammer.craftsman",
+    Ingredient("SewingSet"): "voxel.object.sewing_set",
+    Ingredient("Flower"): "voxel.sprite.flowers.sunflower_1",
+    Ingredient("FlowerRed"): "voxel.sprite.flowers.flower_red-4",
+    Ingredient("Sunflower"): "voxel.sprite.flowers.sunflower_1",
+    Ingredient("Grass"): "voxel.sprite.grass.grass_long_5",
+    Ingredient("Stones"): "voxel.sprite.rocks.rock-0",
+    Ingredient("Cactus"): "voxel.sprite.cacti.flat_cactus_med",
+    Ingredient("Seashells"): "voxel.sprite.seashells.shell-0",
+    Ingredient("IcyShard"): "voxel.object.ice_shard",
+    Ingredient("FlayerBagDamaged"): "voxel.object.glowing_remains",
+    Ingredient("RaptorFeather"): "voxel.object.raptor_feather",
+    Ingredient("Twigs"): "voxel.sprite.twigs.twigs-0",
+    Ingredient("AnimalHide"): "voxel.sprite.crafting_ing.hide.animal_hide",
+    Ingredient("ToughHide"): "voxel.sprite.crafting_ing.hide.tough_hide",
+    Ingredient("RuggedHide"): "voxel.sprite.crafting_ing.hide.rugged_hide",
+    Ingredient("SimpleLeather"): "voxel.sprite.crafting_ing.leather.simple_leather",
+    Ingredient("ThickLeather"): "voxel.sprite.crafting_ing.leather.thick_leather",
+    Ingredient("RigidLeather"): "voxel.sprite.crafting_ing.leather.rigid_leather",
+    Ingredient("TrollLeather"): "voxel.sprite.crafting_ing.hide.troll_hide",
+    Ingredient("LeatherStrips"): "voxel.sprite.crafting_ing.leather.leather_strips",
+    Ingredient("Plate"): "voxel.sprite.crafting_ing.hide.plate",
+    Ingredient("Carapace"): "voxel.sprite.crafting_ing.hide.carapace",
+    Ingredient("Scale"): "voxel.sprite.crafting_ing.hide.scale",
+    Ingredient("DragonScale"): "voxel.sprite.crafting_ing.hide.dragon_scale",
+    Ingredient("Claw"): "voxel.sprite.crafting_ing.animal_misc.claw",
+    Ingredient("VenomSac"): "voxel.sprite.crafting_ing.animal_misc.venom_sac",
+    Ingredient("LivelyVine"): "voxel.sprite.crafting_ing.animal_misc.lively_vine",
+    Ingredient("SharpFang"): "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
+    Ingredient("Fur"): "voxel.sprite.crafting_ing.animal_misc.fur",
+    Ingredient("LargeHorn"): "voxel.sprite.crafting_ing.animal_misc.large_horn",
+    Ingredient("GrimEyeball"): "voxel.sprite.crafting_ing.animal_misc.grim_eyeball",
+    Ingredient("PlantFiber"): "voxel.sprite.crafting_ing.plant_fiber",
+    Ingredient("Moonbell"): "voxel.sprite.flowers.moonbell",
+    Ingredient("Pyrebloom"): "voxel.sprite.flowers.pyrebloom",
+    Ingredient("WildFlax"): "voxel.sprite.flowers.flax",
+    Ingredient("CottonBoll"): "voxel.sprite.crafting_ing.cotton_boll",
+    Ingredient("Cotton"): "voxel.sprite.crafting_ing.cloth.cotton",
+    Ingredient("Linen"): "voxel.sprite.crafting_ing.cloth.linen",
+    Ingredient("Wool"): "voxel.sprite.crafting_ing.cloth.wool",
+    Ingredient("Silk"): "voxel.sprite.crafting_ing.cloth.silk",
+    Ingredient("Lifecloth"): "voxel.sprite.crafting_ing.cloth.lifecloth",
+    Ingredient("Moonweave"): "voxel.sprite.crafting_ing.cloth.moonweave",
+    Ingredient("Sunsilk"): "voxel.sprite.crafting_ing.cloth.sunsilk",
+    Ingredient("LinenRed"): "voxel.sprite.crafting_ing.cloth.linen_red",
+    Ingredient("StickyThread"): "voxel.sprite.crafting_ing.sticky_thread",
+    Ingredient("SilverIngot"): "voxel.sprite.mineral.ingot.silver",
+    Ingredient("GoldIngot"): "voxel.sprite.mineral.ingot.gold",
+    Ingredient("OrichalcumIngot"): "voxel.sprite.mineral.ingot.orichalcum",
+    Ingredient("BloodsteelIngot"): "voxel.sprite.mineral.ingot.bloodsteel",
+    Ingredient("BronzeIngot"): "voxel.sprite.mineral.ingot.bronze",
+    Ingredient("CobaltIngot"): "voxel.sprite.mineral.ingot.cobalt",
+    Ingredient("CopperIngot"): "voxel.sprite.mineral.ingot.copper",
+    Ingredient("IronIngot"): "voxel.sprite.mineral.ingot.iron",
+    Ingredient("SteelIngot"): "voxel.sprite.mineral.ingot.steel",
+    Ingredient("TinIngot"): "voxel.sprite.mineral.ingot.tin",
+    Ingredient("GoldOre"): "voxel.sprite.mineral.ore.gold",
+    Ingredient("SilverOre"): "voxel.sprite.mineral.ore.silver",
+    Ingredient("BloodstoneOre"): "voxel.sprite.mineral.ore.bloodstone",
+    Ingredient("CobaltOre"): "voxel.sprite.mineral.ore.cobalt",
+    Ingredient("CopperOre"): "voxel.sprite.mineral.ore.copper",
+    Ingredient("IronOre"): "voxel.sprite.mineral.ore.iron",
+    Ingredient("TinOre"): "voxel.sprite.mineral.ore.tin",
+    Ingredient("Coal"): "voxel.sprite.mineral.ore.coal",
+    Ingredient("Honey"): "voxel.object.honey",
+    Ingredient("MortarPestle"): "voxel.object.mortar_pestle",
+    Ingredient("EmptyVial"): "voxel.object.potion_empty",
+    Ingredient("Bowl"): "voxel.sprite.crafting_ing.bowl",
+    Ingredient("Oil"): "voxel.sprite.crafting_ing.oil",
+    Ingredient("ViscousOoze"): "voxel.sprite.crafting_ing.animal_misc.viscous_ooze",
+    Ingredient("PhoenixFeather"): "voxel.sprite.crafting_ing.animal_misc.phoenix_feather",
     // Gliders
-    Glider("Starter"): (
-        "voxel.glider.starter",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
-    ),
-    Glider("PlainCloth"): (
-        "voxel.glider.basic_white",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
-    ),
-    Glider("RedCloth"): (
-        "voxel.glider.basic_red",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
-    ),
-    Glider("Blue0"): (
-        "voxel.glider.blue",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("ButterflyMorpho"): (
-        "voxel.glider.butterfly1",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("ButterflyMonarch"): (
-        "voxel.glider.butterfly2",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("ButterflyLove"): (
-        "voxel.glider.butterfly3",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("MothLuna"): (
-        "voxel.glider.moth",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("SandRaptor"): (
-        "voxel.glider.sandraptor",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("SnowRaptor"): (
-        "voxel.glider.snowraptor",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("WoodRaptor"): (
-        "voxel.glider.woodraptor",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("Sunset"): (
-        "voxel.glider.sunset",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("Moonrise"): (
-        "voxel.glider.moonrise",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("Purple0"): (
-        "voxel.glider.cultists",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
-    Glider("Leaves"): (
-        "voxel.glider.leaves",
-        (-25.0, -25.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
-    ),
+    Glider("Starter"): "voxel.glider.starter",
+    Glider("PlainCloth"): "voxel.glider.basic_white",
+    Glider("RedCloth"): "voxel.glider.basic_red",
+    Glider("Blue0"): "voxel.glider.blue",
+    Glider("ButterflyMorpho"): "voxel.glider.butterfly1",
+    Glider("ButterflyMonarch"): "voxel.glider.butterfly2",
+    Glider("ButterflyLove"): "voxel.glider.butterfly3",
+    Glider("MothLuna"): "voxel.glider.moth",
+    Glider("SandRaptor"): "voxel.glider.sandraptor",
+    Glider("SnowRaptor"): "voxel.glider.snowraptor",
+    Glider("WoodRaptor"): "voxel.glider.woodraptor",
+    Glider("Sunset"): "voxel.glider.sunset",
+    Glider("Moonrise"): "voxel.glider.moonrise",
+    Glider("Purple0"): "voxel.glider.cultists",
+    Glider("Leaves"): "voxel.glider.leaves",
     // Debug Items
-    Tool("common.items.debug.admin_stick"): (
-        "voxel.weapon.tool.broom_belzeshrub_purple",
-        (-2.5, -2.5, 0.0), (-135.0, 90.0, 0.0), 1.1,
-    ),
+    Tool("common.items.debug.admin_stick"): "voxel.weapon.tool.broom_belzeshrub_purple",
     // Misc
-    Tool("common.items.weapons.tool.golf_club"): (
-        "voxel.weapon.tool.golf_club",
-        (2.0, -1.0, 0.0), (-135.0, 25.0, 0.0), 1.1,
-    ),
+    Tool("common.items.weapons.tool.golf_club"): "voxel.weapon.tool.golf_club",
     // Gems
-    Ingredient("Amethyst"): (
-        "voxel.sprite.mineral.gem.amethystgem",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.7,
-    ),
-    Ingredient("Topaz"): (
-        "voxel.sprite.mineral.gem.topazgem",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.7,
-    ),
-    Ingredient("Sapphire"): (
-        "voxel.sprite.mineral.gem.sapphiregem",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.6,
-    ),
-    Ingredient("Emerald"): (
-        "voxel.sprite.mineral.gem.emeraldgem",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.7,
-    ),
-    Ingredient("Ruby"): (
-        "voxel.sprite.mineral.gem.rubygem",
-        (-2.5, -2.5, 0.0), (-50.0, 30.0, 20.0), 0.7,
-    ),
-    Ingredient("Diamond"): (
-        "voxel.sprite.mineral.gem.diamondgem",
-        (-2.5, -2.5, 0.0), (-55.0, 30.0, 20.0), 0.6,
-    ),
-    ModularComponent("common.items.crafting_ing.modular.damage.sword.tier5"): (
-        "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_blade",
-        (-2.5, -2.5, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    ModularComponent("common.items.crafting_ing.modular.held.sword.tier5"): (
-        "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_handle",
-        (-2.5, -2.5, 0.0), (-135.0, 90.0, 0.0), 1.5,
-    ),
-    Empty: (
-        "voxel.armor.empty",
-        (0.0, 0.0, 0.0), (0.0, 0.0, 0.0), 1.5,
-    ),
+    Ingredient("Amethyst"): "voxel.sprite.mineral.gem.amethystgem",
+    Ingredient("Topaz"): "voxel.sprite.mineral.gem.topazgem",
+    Ingredient("Sapphire"): "voxel.sprite.mineral.gem.sapphiregem",
+    Ingredient("Emerald"): "voxel.sprite.mineral.gem.emeraldgem",
+    Ingredient("Ruby"): "voxel.sprite.mineral.gem.rubygem",
+    Ingredient("Diamond"): "voxel.sprite.mineral.gem.diamondgem",
+    ModularComponent("common.items.crafting_ing.modular.damage.sword.tier5"): "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_blade",
+    ModularComponent("common.items.crafting_ing.modular.held.sword.tier5"): "voxel.weapon_components.sword.cultist.cultist_purp_2h-0_handle",
+    Empty: "voxel.armor.empty",
 })
