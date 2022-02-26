@@ -456,4 +456,6 @@ pub enum ExperimentalShader {
     /// Removes as many effects (including lighting) as possible in the name of
     /// performance.
     BareMinimum,
+    /// Lowers strength of the glow effect for lights near the camera.
+    LowGlowNearCamera,
 }
