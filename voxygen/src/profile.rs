@@ -214,7 +214,7 @@ mod tests {
     #[test]
     fn test_get_slots_with_empty_profile() {
         let profile = Profile::default();
-        let slots = profile.get_hotbar_slots("TestServer", 12345);
+        let slots = profile.get_hotbar_slots("TestServer", Some(12345));
         assert_eq!(slots, [(); 10].map(|()| None))
     }
 
@@ -222,6 +222,6 @@ mod tests {
     fn test_set_slots_with_empty_profile() {
         let mut profile = Profile::default();
         let slots = [(); 10].map(|()| None);
-        profile.set_hotbar_slots("TestServer", 12345, slots);
+        profile.set_hotbar_slots("TestServer", Some(12345), slots);
     }
 }
