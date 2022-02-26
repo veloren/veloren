@@ -57,7 +57,7 @@ impl Sys {
                     common::comp::DisconnectReason::ClientRequested,
                 ));
             },
-            _ => unreachable!("not a client_general msg"),
+            _ => tracing::error!("not a client_general msg"),
         }
         Ok(())
     }
