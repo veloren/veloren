@@ -4084,171 +4084,171 @@
     // Bows
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.bow.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.composite.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.greatbow.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.longbow.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.ornate.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.shortbow.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.wood")): VoxTrans(
         "voxel.weapon.component.bow.warbow.wood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.bow.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.composite.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.greatbow.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.longbow.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.ornate.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.shortbow.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.bamboo")): VoxTrans(
         "voxel.weapon.component.bow.warbow.bamboo",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.bow.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.composite.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.greatbow.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.longbow.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.ornate.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.shortbow.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.hardwood")): VoxTrans(
         "voxel.weapon.component.bow.warbow.hardwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.bow.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.composite.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.greatbow.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.longbow.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.ornate.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.shortbow.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.ironwood")): VoxTrans(
         "voxel.weapon.component.bow.warbow.ironwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.bow.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.composite.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.greatbow.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.longbow.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.ornate.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.shortbow.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.frostwood")): VoxTrans(
         "voxel.weapon.component.bow.warbow.frostwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.bow.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.composite.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.greatbow.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.longbow.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.ornate.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.shortbow.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.eldwood")): VoxTrans(
         "voxel.weapon.component.bow.warbow.eldwood",
-        (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
     // Staffs
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.wood")): VoxTrans(

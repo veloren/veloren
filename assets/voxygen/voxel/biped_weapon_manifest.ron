@@ -1719,7 +1719,7 @@
         vox_spec: ("weapon.biped_small.axe.strategian", (-0.5, -6.0, -4.0)),
         color: None
     ),
-    "common.items.npc_weapons.biped_small.mandragora": (
+    Tool("common.items.npc_weapons.biped_small.mandragora"): (
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
         color: None
     ),
