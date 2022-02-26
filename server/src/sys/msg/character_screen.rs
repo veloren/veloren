@@ -175,7 +175,7 @@ impl Sys {
                     );
                 }
             },
-            _ => unreachable!("not a client_character_screen msg"),
+            _ => tracing::error!("not a client_character_screen msg"),
         }
         Ok(())
     }
