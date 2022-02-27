@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Waypoints saved between sessions and shared with group members.
 - New rocks
 - Weapon trails
+- Hostile agent will now abort pursuing their target based on multiple metrics
 
 ### Changed
 

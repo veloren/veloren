@@ -15,7 +15,7 @@ use crate::{
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
             aim_projectile, can_see_tgt, get_entity_by_id, is_dead, is_dead_or_invulnerable,
-            is_invulnerable, try_owner_alignment,
+            is_invulnerable, stop_pursuing, try_owner_alignment,
         },
     },
 };
@@ -613,6 +613,20 @@ impl<'a> AgentData<'a> {
 
             if let Some(tgt_pos) = read_data.positions.get(target) {
                 let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
+                let origin_dist_sqrd = match agent.patrol_origin {
+                    Some(pos) => pos.distance_squared(self.pos.0),
+                    None => 1.0,
+                };
+
+                let own_health_fraction = match self.health {
+                    Some(val) => val.fraction(),
+                    None => 1.0,
+                };
+                let target_health_fraction = match read_data.healths.get(target) {
+                    Some(val) => val.fraction(),
+                    None => 1.0,
+                };
+
                 let in_aggro_range = agent
                     .psyche
                     .aggro_dist
@@ -645,7 +659,16 @@ impl<'a> AgentData<'a> {
                     self.exclaim_relief_about_enemy_dead(agent, event_emitter);
                     agent.target = None;
                     self.idle(agent, controller, read_data, rng);
-                } else if is_invulnerable(target, read_data) {
+                } else if is_invulnerable(target, read_data)
+                    || stop_pursuing(
+                        dist_sqrd,
+                        origin_dist_sqrd,
+                        own_health_fraction,
+                        target_health_fraction,
+                        read_data.time.0 - selected_at,
+                        &agent.psyche,
+                    )
+                {
                     agent.target = None;
                     self.idle(agent, controller, read_data, rng);
                 } else {
