@@ -1,5 +1,4 @@
 use specs::{world::WorldExt, Builder, Entity as EcsEntity, Join};
-use tracing::error;
 use vek::*;
 
 use common::{
@@ -9,8 +8,6 @@ use common::{
         agent::{AgentEvent, Sound, SoundKind},
         dialogue::Subject,
         inventory::slot::EquipSlot,
-        item,
-        slot::Slot,
         tool::ToolKind,
         Inventory, Pos, SkillGroupKind,
     },
@@ -22,14 +19,9 @@ use common::{
     uid::Uid,
     vol::ReadVol,
 };
-use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
+use common_net::sync::WorldSyncExt;
 
-use crate::{
-    client::Client,
-    presence::{Presence, RegionSubscription},
-    state_ext::StateExt,
-    Server,
-};
+use crate::{state_ext::StateExt, Server};
 
 use crate::pet::tame_pet;
 use hashbrown::{HashMap, HashSet};
@@ -141,144 +133,6 @@ pub fn handle_mount(server: &mut Server, rider: EcsEntity, mount: EcsEntity) {
 pub fn handle_unmount(server: &mut Server, rider: EcsEntity) {
     let state = server.state_mut();
     state.ecs().write_storage::<Is<Rider>>().remove(rider);
-}
-
-/// FIXME: This code is dangerous and needs to be refactored.  We can't just
-/// comment it out, but it needs to be fixed for a variety of reasons.  Get rid
-/// of this ASAP!
-pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possesse_uid: Uid) {
-    let ecs = server.state.ecs();
-    if let (Some(possessor), Some(possesse)) = (
-        ecs.entity_from_uid(possessor_uid.into()),
-        ecs.entity_from_uid(possesse_uid.into()),
-    ) {
-        // Check that entities still exist
-        if !possessor.gen().is_alive()
-            || !ecs.is_alive(possessor)
-            || !possesse.gen().is_alive()
-            || !ecs.is_alive(possesse)
-        {
-            error!(
-                "Error possessing! either the possessor entity or possesse entity no longer exists"
-            );
-            return;
-        }
-
-        if ecs.read_storage::<Client>().get(possesse).is_some() {
-            error!("can't possess other players");
-            return;
-        }
-
-        match (|| -> Option<Result<(), specs::error::Error>> {
-            let mut clients = ecs.write_storage::<Client>();
-            let c = clients.remove(possessor)?;
-            clients.insert(possesse, c).ok()?;
-            let playerlist_messages = if let Some(client) = clients.get(possesse) {
-                client.send_fallible(ServerGeneral::SetPlayerEntity(possesse_uid));
-                // If a player is posessing non player, add possesse to playerlist as player and
-                // remove old player
-                if let Some(possessor_player) = ecs.read_storage::<comp::Player>().get(possessor) {
-                    let admins = ecs.read_storage::<comp::Admin>();
-                    let entity_possession_msg = ServerGeneral::PlayerListUpdate(
-                        common_net::msg::server::PlayerListUpdate::Add(
-                            possesse_uid,
-                            common_net::msg::server::PlayerInfo {
-                                player_alias: possessor_player.alias.clone(),
-                                is_online: true,
-                                is_moderator: admins.get(possessor).is_some(),
-                                character: ecs.read_storage::<comp::Stats>().get(possesse).map(
-                                    |s| common_net::msg::CharacterInfo {
-                                        name: s.name.clone(),
-                                    },
-                                ),
-                            },
-                        ),
-                    );
-                    let remove_old_player_msg = ServerGeneral::PlayerListUpdate(
-                        common_net::msg::server::PlayerListUpdate::Remove(possessor_uid),
-                    );
-
-                    // Send msg to new possesse client now because it is not yet considered a player
-                    // and will be missed by notify_players
-                    client.send_fallible(entity_possession_msg.clone());
-                    client.send_fallible(remove_old_player_msg.clone());
-                    Some((remove_old_player_msg, entity_possession_msg))
-                } else {
-                    None
-                }
-            } else {
-                None
-            };
-            drop(clients);
-            if let Some((remove_player, possess_entity)) = playerlist_messages {
-                server.state().notify_players(possess_entity);
-                server.state().notify_players(remove_player);
-            }
-            //optional entities
-            let mut players = ecs.write_storage::<comp::Player>();
-            let mut presence = ecs.write_storage::<Presence>();
-            let mut subscriptions = ecs.write_storage::<RegionSubscription>();
-            let mut admins = ecs.write_storage::<comp::Admin>();
-            let mut waypoints = ecs.write_storage::<comp::Waypoint>();
-            players
-                .remove(possessor)
-                .map(|p| players.insert(possesse, p).ok()?);
-            presence
-                .remove(possessor)
-                .map(|p| presence.insert(possesse, p).ok()?);
-            subscriptions
-                .remove(possessor)
-                .map(|s| subscriptions.insert(possesse, s).ok()?);
-            admins
-                .remove(possessor)
-                .map(|a| admins.insert(possesse, a).ok()?);
-            waypoints
-                .remove(possessor)
-                .map(|w| waypoints.insert(possesse, w).ok()?);
-
-            Some(Ok(()))
-        })() {
-            Some(Ok(())) => (),
-            Some(Err(e)) => {
-                error!(?e, ?possesse, "Error inserting component during possession");
-                return;
-            },
-            None => {
-                error!(?possessor, "Error removing component during possession");
-                return;
-            },
-        }
-
-        // Put possess item into loadout
-        let mut inventories = ecs.write_storage::<Inventory>();
-        let mut inventory = inventories
-            .entry(possesse)
-            .expect("Nobody has &mut World, so there's no way to delete an entity.")
-            .or_insert(Inventory::new_empty());
-
-        let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
-        if let item::ItemKind::Tool(_) = debug_item.kind() {
-            assert!(
-                inventory
-                    .swap(
-                        Slot::Equip(EquipSlot::ActiveMainhand),
-                        Slot::Equip(EquipSlot::InactiveMainhand),
-                    )
-                    .first()
-                    .is_none(),
-                "Swapping active and inactive mainhands never results in leftover items",
-            );
-
-            inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
-        }
-
-        // Remove will of the entity
-        ecs.write_storage::<comp::Agent>().remove(possesse);
-        // Reset controller of former shell
-        ecs.write_storage::<comp::Controller>()
-            .get_mut(possessor)
-            .map(|c| c.reset());
-    }
 }
 
 fn within_mounting_range(player_position: Option<&Pos>, mount_position: Option<&Pos>) -> bool {

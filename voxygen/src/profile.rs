@@ -35,7 +35,7 @@ impl Default for CharacterProfile {
 pub struct ServerProfile {
     /// A map of character's by id to their CharacterProfile.
     pub characters: HashMap<CharacterId, CharacterProfile>,
-    // Selected character in the chararacter selection screen
+    /// Selected character in the chararacter selection screen
     pub selected_character: Option<CharacterId>,
 }
 
@@ -53,18 +53,14 @@ impl Default for ServerProfile {
 /// Initially it is just for persisting things that don't belong in
 /// settings.ron - like the state of hotbar and any other character level
 /// configuration.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 #[serde(default)]
 pub struct Profile {
     pub servers: HashMap<String, ServerProfile>,
-}
-
-impl Default for Profile {
-    fn default() -> Self {
-        Profile {
-            servers: HashMap::new(),
-        }
-    }
+    /// Temporary character profile, used when it should
+    /// not be persisted to the disk.
+    #[serde(skip)]
+    pub transient_character: Option<CharacterProfile>,
 }
 
 impl Profile {
@@ -112,17 +108,22 @@ impl Profile {
     /// # Arguments
     ///
     /// * server - current server the character is on.
-    /// * character_id - id of the character.
+    /// * character_id - id of the character, passing `None` indicates the
+    ///   transient character profile should be used.
     pub fn get_hotbar_slots(
         &self,
         server: &str,
-        character_id: CharacterId,
+        character_id: Option<CharacterId>,
     ) -> [Option<hud::HotbarSlotContents>; 10] {
-        self.servers
-            .get(server)
-            .and_then(|s| s.characters.get(&character_id))
-            .map(|c| c.hotbar_slots.clone())
-            .unwrap_or_else(default_slots)
+        match character_id {
+            Some(character_id) => self
+                .servers
+                .get(server)
+                .and_then(|s| s.characters.get(&character_id)),
+            None => self.transient_character.as_ref(),
+        }
+        .map(|c| c.hotbar_slots.clone())
+        .unwrap_or_else(default_slots)
     }
 
     /// Set the hotbar_slots for the requested character_id.
@@ -133,22 +134,26 @@ impl Profile {
     /// # Arguments
     ///
     /// * server - current server the character is on.
-    /// * character_id - id of the character.
+    /// * character_id - id of the character, passing `None` indicates the
+    ///   transient character profile should be used.
     /// * slots - array of hotbar_slots to save.
     pub fn set_hotbar_slots(
         &mut self,
         server: &str,
-        character_id: CharacterId,
+        character_id: Option<CharacterId>,
         slots: [Option<hud::HotbarSlotContents>; 10],
     ) {
-        self.servers
-            .entry(server.to_string())
-            .or_insert(ServerProfile::default())
-            // Get or update the CharacterProfile.
-            .characters
-            .entry(character_id)
-            .or_insert(CharacterProfile::default())
-            .hotbar_slots = slots;
+        match character_id {
+            Some(character_id) => self.servers
+              .entry(server.to_string())
+              .or_insert(ServerProfile::default())
+              // Get or update the CharacterProfile.
+              .characters
+              .entry(character_id)
+              .or_default(),
+            None => self.transient_character.get_or_insert_default(),
+        }
+        .hotbar_slots = slots;
     }
 
     /// Get the selected_character for the provided server.
@@ -209,7 +214,7 @@ mod tests {
     #[test]
     fn test_get_slots_with_empty_profile() {
         let profile = Profile::default();
-        let slots = profile.get_hotbar_slots("TestServer", 12345);
+        let slots = profile.get_hotbar_slots("TestServer", Some(12345));
         assert_eq!(slots, [(); 10].map(|()| None))
     }
 
@@ -217,6 +222,6 @@ mod tests {
     fn test_set_slots_with_empty_profile() {
         let mut profile = Profile::default();
         let slots = [(); 10].map(|()| None);
-        profile.set_hotbar_slots("TestServer", 12345, slots);
+        profile.set_hotbar_slots("TestServer", Some(12345), slots);
     }
 }

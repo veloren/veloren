@@ -18,11 +18,11 @@ use group_manip::handle_group;
 use information::handle_site_info;
 use interaction::{
     handle_create_sprite, handle_lantern, handle_mine_block, handle_mount, handle_npc_interaction,
-    handle_possess, handle_sound, handle_unmount,
+    handle_sound, handle_unmount,
 };
 use inventory_manip::handle_inventory;
 use invite::{handle_invite, handle_invite_response};
-use player::{handle_client_disconnect, handle_exit_ingame};
+use player::{handle_client_disconnect, handle_exit_ingame, handle_possess};
 use specs::{Builder, Entity as EcsEntity, WorldExt};
 use trade::{cancel_trade_for, handle_process_trade_action};
 

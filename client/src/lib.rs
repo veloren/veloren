@@ -1828,9 +1828,31 @@ impl Client {
             },
             ServerGeneral::SetPlayerEntity(uid) => {
                 if let Some(entity) = self.state.ecs().entity_from_uid(uid.0) {
-                    *self.state.ecs_mut().write_resource() = PlayerEntity(Some(entity));
+                    let old_player_entity = core::mem::replace(
+                        &mut *self.state.ecs_mut().write_resource(),
+                        PlayerEntity(Some(entity)),
+                    );
+                    if let Some(old_entity) = old_player_entity.0 {
+                        // Transfer controller to the new entity.
+                        let mut controllers = self.state.ecs().write_storage::<Controller>();
+                        if let Some(controller) = controllers.remove(old_entity) {
+                            if let Err(e) = controllers.insert(entity, controller) {
+                                error!(
+                                    ?e,
+                                    "Failed to insert controller when setting new player entity!"
+                                );
+                            }
+                        }
+                    }
+                    if let Some(presence) = self.presence {
+                        self.presence = Some(match presence {
+                            PresenceKind::Spectator => PresenceKind::Spectator,
+                            PresenceKind::Character(_) => PresenceKind::Possessor,
+                            PresenceKind::Possessor => PresenceKind::Possessor,
+                        });
+                    }
                 } else {
-                    return Err(Error::Other("Failed to find entity from uid.".to_owned()));
+                    return Err(Error::Other("Failed to find entity from uid.".into()));
                 }
             },
             ServerGeneral::TimeOfDay(time_of_day, calendar) => {

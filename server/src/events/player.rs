@@ -271,8 +271,235 @@ fn persist_entity(state: &mut State, entity: EcsEntity) -> EcsEntity {
                 );
             },
             PresenceKind::Spectator => { /* Do nothing, spectators do not need persisting */ },
+            PresenceKind::Possessor => { /* Do nothing, possessor's are not persisted */ },
         };
     }
 
     entity
+}
+
+/// FIXME: This code is dangerous and needs to be refactored.  We can't just
+/// comment it out, but it needs to be fixed for a variety of reasons.  Get rid
+/// of this ASAP!
+pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Uid) {
+    use crate::presence::RegionSubscription;
+    use common::{
+        comp::{inventory::slot::EquipSlot, item, slot::Slot, Inventory},
+        region::RegionMap,
+    };
+    use common_net::sync::WorldSyncExt;
+
+    let state = server.state_mut();
+    let mut delete_entity = None;
+
+    if let (Some(possessor), Some(possessee)) = (
+        state.ecs().entity_from_uid(possessor_uid.into()),
+        state.ecs().entity_from_uid(possessee_uid.into()),
+    ) {
+        // In this section we check various invariants and can return early if any of
+        // them are not met.
+        {
+            let ecs = state.ecs();
+            // Check that entities still exist
+            if !possessor.gen().is_alive()
+                || !ecs.is_alive(possessor)
+                || !possessee.gen().is_alive()
+                || !ecs.is_alive(possessee)
+            {
+                error!(
+                    "Error possessing! either the possessor entity or possessee entity no longer \
+                     exists"
+                );
+                return;
+            }
+
+            let clients = ecs.read_storage::<Client>();
+            let players = ecs.read_storage::<comp::Player>();
+
+            if clients.contains(possessee) || players.contains(possessee) {
+                error!("Can't possess other players!");
+                return;
+            }
+
+            if !clients.contains(possessor) {
+                error!("Error posessing, no `Client` component on the possessor!");
+                return;
+            }
+
+            // Limit possessible entities to those in the client's subscribed regions (so
+            // that the entity already exists on the client, this reduces the
+            // amount of syncing edge cases to consider).
+            let subscriptions = ecs.read_storage::<RegionSubscription>();
+            let region_map = ecs.read_resource::<RegionMap>();
+            let possessee_in_subscribed_region = subscriptions
+                .get(possessor)
+                .iter()
+                .flat_map(|s| s.regions.iter())
+                .filter_map(|key| region_map.get(*key))
+                .any(|region| region.entities().contains(possessee.id()));
+            if !possessee_in_subscribed_region {
+                return;
+            }
+
+            // No early returns allowed after this.
+        }
+
+        // Sync the player's character data to the database. This must be done before
+        // moving any components from the entity.
+        //
+        // NOTE: Below we delete old entity (if PresenceKind::Character) as if logging
+        // out. This is to prevent any potential for item duplication (although
+        // it would only be possible if the player could repossess their entity,
+        // hand off some items, and then crash the server in a particular time
+        // window, and only admins should have access to the item with this ability
+        // in the first place (though that isn't foolproof)). We could potentially fix
+        // this but it would require some tweaks to the CharacterUpdater code
+        // (to be able to deque the pending persistence request issued here if
+        // repossesing the original character), and it seems prudent to be more
+        // conservative with making changes there to support this feature.
+        let possessor = persist_entity(state, possessor);
+        let ecs = state.ecs();
+
+        let mut clients = ecs.write_storage::<Client>();
+
+        // Transfer client component. Note: we require this component for possession.
+        let client = clients
+            .remove(possessor)
+            .expect("Checked client component was present above!");
+        client.send_fallible(ServerGeneral::SetPlayerEntity(possessee_uid));
+        // Note: we check that the `possessor` and `possessee` entities exist above, so
+        // this should never panic.
+        clients
+            .insert(possessee, client)
+            .expect("Checked entity was alive!");
+
+        // Other components to transfer if they exist.
+        fn transfer_component<C: specs::Component>(
+            storage: &mut specs::WriteStorage<'_, C>,
+            possessor: EcsEntity,
+            possessee: EcsEntity,
+            transform: impl FnOnce(C) -> C,
+        ) {
+            if let Some(c) = storage.remove(possessor) {
+                // Note: we check that the `possessor` and `possessee` entities exist above, so
+                // this should never panic.
+                storage
+                    .insert(possessee, transform(c))
+                    .expect("Checked entity was alive!");
+            }
+        }
+
+        let mut players = ecs.write_storage::<comp::Player>();
+        let mut presence = ecs.write_storage::<Presence>();
+        let mut subscriptions = ecs.write_storage::<RegionSubscription>();
+        let mut admins = ecs.write_storage::<comp::Admin>();
+        let mut waypoints = ecs.write_storage::<comp::Waypoint>();
+
+        transfer_component(&mut players, possessor, possessee, |x| x);
+        transfer_component(&mut presence, possessor, possessee, |mut presence| {
+            presence.kind = match presence.kind {
+                PresenceKind::Spectator => PresenceKind::Spectator,
+                // This prevents persistence from overwriting original character info with stuff
+                // from the new character.
+                PresenceKind::Character(_) => {
+                    delete_entity = Some(possessor);
+                    PresenceKind::Possessor
+                },
+                PresenceKind::Possessor => PresenceKind::Possessor,
+            };
+
+            presence
+        });
+        transfer_component(&mut subscriptions, possessor, possessee, |x| x);
+        transfer_component(&mut admins, possessor, possessee, |x| x);
+        transfer_component(&mut waypoints, possessor, possessee, |x| x);
+
+        // If a player is posessing, add possessee to playerlist as player and remove
+        // old player.
+        // Fetches from possessee entity here since we have transferred over the
+        // `Player` component.
+        if let Some(player) = players.get(possessee) {
+            use common_net::msg;
+
+            let add_player_msg = ServerGeneral::PlayerListUpdate(
+                msg::server::PlayerListUpdate::Add(possessee_uid, msg::server::PlayerInfo {
+                    player_alias: player.alias.clone(),
+                    is_online: true,
+                    is_moderator: admins.contains(possessee),
+                    character: ecs.read_storage::<comp::Stats>().get(possessee).map(|s| {
+                        msg::CharacterInfo {
+                            name: s.name.clone(),
+                        }
+                    }),
+                }),
+            );
+            let remove_player_msg = ServerGeneral::PlayerListUpdate(
+                msg::server::PlayerListUpdate::Remove(possessor_uid),
+            );
+
+            drop((clients, players)); // need to drop so we can use `notify_players` below
+            state.notify_players(remove_player_msg);
+            state.notify_players(add_player_msg);
+        }
+
+        // Put possess item into loadout
+        let mut inventories = ecs.write_storage::<Inventory>();
+        let mut inventory = inventories
+            .entry(possessee)
+            .expect("Nobody has &mut World, so there's no way to delete an entity.")
+            .or_insert(Inventory::new_empty());
+
+        let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
+        if let item::ItemKind::Tool(_) = debug_item.kind() {
+            let leftover_items = inventory.swap(
+                Slot::Equip(EquipSlot::ActiveMainhand),
+                Slot::Equip(EquipSlot::InactiveMainhand),
+            );
+            assert!(
+                leftover_items.is_empty(),
+                "Swapping active and inactive mainhands never results in leftover items"
+            );
+            inventory.replace_loadout_item(EquipSlot::ActiveMainhand, Some(debug_item));
+        }
+        drop(inventories);
+
+        // Remove will of the entity
+        ecs.write_storage::<comp::Agent>().remove(possessee);
+        // Reset controller of former shell
+        if let Some(c) = ecs.write_storage::<comp::Controller>().get_mut(possessor) {
+            *c = Default::default();
+        }
+
+        // Send client new `SyncFrom::ClientEntity` components and tell it to
+        // deletes these on the old entity.
+        let clients = ecs.read_storage::<Client>();
+        let client = clients
+            .get(possessee)
+            .expect("We insert this component above and have exclusive access to the world.");
+        use crate::sys::sentinel::TrackedStorages;
+        use specs::SystemData;
+        let tracked_storages = TrackedStorages::fetch(ecs);
+        let comp_sync_package = tracked_storages.create_sync_from_client_entity_switch(
+            possessor_uid,
+            possessee_uid,
+            possessee,
+        );
+        if !comp_sync_package.is_empty() {
+            client.send_fallible(ServerGeneral::CompSync(comp_sync_package));
+        }
+    }
+
+    // Outside block above to prevent borrow conflicts (i.e. convenient to let
+    // everything drop at the end of the block rather than doing it manually for
+    // this). See note on `persist_entity` call above for why we do this.
+    if let Some(entity) = delete_entity {
+        // Delete old entity
+        if let Err(e) = state.delete_entity_recorded(entity) {
+            error!(
+                ?e,
+                ?entity,
+                "Failed to delete entity when removing character during possession."
+            );
+        }
+    }
 }

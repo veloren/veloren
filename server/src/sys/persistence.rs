@@ -100,7 +100,7 @@ impl<'a> System<'a> for Sys {
                                     map_marker,
                                 ))
                             },
-                            PresenceKind::Spectator => None,
+                            PresenceKind::Spectator | PresenceKind::Possessor => None,
                         },
                     ),
             );
