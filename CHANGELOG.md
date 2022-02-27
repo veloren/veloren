@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Improved site placement
+- [Server] Kick clients who send messages on the wrong stream
 
 ### Removed
 

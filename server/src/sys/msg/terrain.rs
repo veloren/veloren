@@ -1,6 +1,7 @@
 use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest};
 use common::{
     comp::Pos,
+    event::{EventBus, ServerEvent},
     spiral::Spiral2d,
     terrain::{TerrainChunkSize, TerrainGrid},
     vol::RectVolSize,
@@ -8,7 +9,7 @@ use common::{
 use common_ecs::{Job, Origin, ParMode, Phase, System};
 use common_net::msg::{ClientGeneral, SerializedTerrainChunk, ServerGeneral};
 use rayon::iter::ParallelIterator;
-use specs::{Entities, Join, ParJoin, ReadExpect, ReadStorage, Write};
+use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, Write};
 use tracing::{debug, trace};
 
 /// This system will handle new messages from clients
@@ -17,6 +18,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
+        Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, NetworkRequestMetrics>,
         Write<'a, Vec<ChunkRequest>>,
@@ -33,6 +35,7 @@ impl<'a> System<'a> for Sys {
         job: &mut Job<Self>,
         (
             entities,
+            server_event_bus,
             terrain,
             network_metrics,
             mut chunk_requests,
@@ -47,6 +50,8 @@ impl<'a> System<'a> for Sys {
             .map(|(entity, client, maybe_presence)| {
                 let mut chunk_requests = Vec::new();
                 let _ = super::try_recv_all(client, 5, |client, msg| {
+                    // TODO: Refactor things (https://gitlab.com/veloren/veloren/-/merge_requests/3245#note_856538056)
+                    let mut server_emitter = server_event_bus.emitter();
                     let presence = match maybe_presence {
                         Some(g) => g,
                         None => {
@@ -96,7 +101,16 @@ impl<'a> System<'a> for Sys {
                                 network_metrics.chunks_request_dropped.inc();
                             }
                         },
-                        _ => tracing::error!("not a client_terrain msg"),
+                        _ => {
+                            debug!(
+                                "Kicking possibly misbehaving client due to invalud terrain \
+                                 request"
+                            );
+                            server_emitter.emit(ServerEvent::ClientDisconnect(
+                                entity,
+                                common::comp::DisconnectReason::NetworkError,
+                            ));
+                        },
                     }
                     Ok(())
                 });

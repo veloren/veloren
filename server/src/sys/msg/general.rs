@@ -57,7 +57,13 @@ impl Sys {
                     common::comp::DisconnectReason::ClientRequested,
                 ));
             },
-            _ => tracing::error!("not a client_general msg"),
+            _ => {
+                debug!("Kicking possible misbehaving client due to invalid message request");
+                server_emitter.emit(ServerEvent::ClientDisconnect(
+                    entity,
+                    common::comp::DisconnectReason::NetworkError,
+                ));
+            },
         }
         Ok(())
     }

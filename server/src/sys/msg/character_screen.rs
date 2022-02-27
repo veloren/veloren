@@ -175,7 +175,13 @@ impl Sys {
                     );
                 }
             },
-            _ => tracing::error!("not a client_character_screen msg"),
+            _ => {
+                debug!("Kicking possibly misbehaving client due to invalid character request");
+                server_emitter.emit(ServerEvent::ClientDisconnect(
+                    entity,
+                    common::comp::DisconnectReason::NetworkError,
+                ));
+            },
         }
         Ok(())
     }

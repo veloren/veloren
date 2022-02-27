@@ -297,7 +297,13 @@ impl Sys {
             | ClientGeneral::TerrainChunkRequest { .. }
             | ClientGeneral::ChatMsg(_)
             | ClientGeneral::Command(..)
-            | ClientGeneral::Terminate => tracing::error!("not a client_in_game msg"),
+            | ClientGeneral::Terminate => {
+                debug!("Kicking possibly misbehaving client due to invalid client in game request");
+                server_emitter.emit(ServerEvent::ClientDisconnect(
+                    entity,
+                    common::comp::DisconnectReason::NetworkError,
+                ));
+            },
         }
         Ok(())
     }
