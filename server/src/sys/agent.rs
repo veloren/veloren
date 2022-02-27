@@ -1440,34 +1440,18 @@ impl<'a> AgentData<'a> {
         let mut aggro_on = false;
 
         let worth_choosing = |entity| {
-            read_data
-                .positions
-                .get(entity)
-                .and_then(|pos| read_data.healths.get(entity).map(|h| (pos, h)))
-                .and_then(|(pos, health)| {
-                    read_data
-                        .stats
-                        .get(entity)
-                        .map(|stats| (pos, health, stats))
-                })
-                .and_then(|(pos, health, stats)| {
-                    read_data
-                        .inventories
-                        .get(entity)
-                        .map(|inventory| (pos, health, stats, inventory))
-                })
-                .map(|(pos, health, stats, inventory)| {
-                    (
-                        entity,
-                        pos,
-                        health,
-                        stats,
-                        inventory,
-                        read_data.alignments.get(entity),
-                        read_data.char_states.get(entity),
-                        read_data.bodies.get(entity),
-                    )
-                })
+            read_data.positions.get(entity).and_then(|pos| {
+                Some((
+                    entity,
+                    pos,
+                    read_data.healths.get(entity)?,
+                    read_data.stats.get(entity)?,
+                    read_data.inventories.get(entity)?,
+                    read_data.alignments.get(entity),
+                    read_data.char_states.get(entity),
+                    read_data.bodies.get(entity),
+                ))
+            })
         };
 
         let max_search_dist = agent.psyche.search_dist();
