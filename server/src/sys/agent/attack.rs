@@ -35,7 +35,7 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Primary);
             controller.inputs.move_dir = Vec2::zero();
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Full, None);
             if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
                 && self.body.map(|b| b.is_humanoid()).unwrap_or(false)
@@ -72,7 +72,7 @@ impl<'a> AgentData<'a> {
             .unwrap_or_default();
         let dist = attack_data.dist_sqrd.sqrt();
 
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         let in_front_of_target = target_ori.dot(self.pos.0 - tgt_pos) > 0.0;
         if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
             // If in front of the target, circle to try and get behind, else just make a
@@ -119,7 +119,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         let elevation = self.pos.0.z - tgt_pos.z;
         const PREF_DIST: f32 = 30_f32;
         if attack_data.angle_xy < 30.0
@@ -224,7 +224,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Separate, None);
             if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
                 if attack_data.dist_sqrd < 32.0f32.powi(2)
@@ -285,7 +285,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Separate, None);
 
             if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
@@ -320,7 +320,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.in_min_range() && attack_data.angle < 45.0 {
             controller.inputs.move_dir = Vec2::zero();
             if self
@@ -376,7 +376,7 @@ impl<'a> AgentData<'a> {
         const MIN_CHARGE_FRAC: f32 = 0.5;
         const OPTIMAL_TARGET_VELOCITY: f32 = 5.0;
         const DESIRED_ENERGY_LEVEL: f32 = 50.0;
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         // Logic to use abilities
         if let CharacterState::ChargedRanged(c) = self.char_state {
             if !matches!(c.stage_section, StageSection::Recover) {
@@ -590,7 +590,7 @@ impl<'a> AgentData<'a> {
         }
         // Logic to move. Intentionally kept separate from ability logic so duplicated
         // work is less necessary.
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -722,7 +722,7 @@ impl<'a> AgentData<'a> {
         }
         // Logic to move. Intentionally kept separate from ability logic where possible
         // so duplicated work is less necessary.
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2) {
             // Attempt to move away from target if too close
             if let Some((bearing, speed)) = agent.chaser.chase(
@@ -793,7 +793,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.in_min_range() && attack_data.angle < 90.0 {
             controller.inputs.move_dir = Vec2::zero();
             controller.push_basic_input(InputKind::Primary);
@@ -857,7 +857,7 @@ impl<'a> AgentData<'a> {
             }
             if agent.action_state.counter < circle_time as f32 {
                 // circle if circle timer not ready
-                let tgt_pos = &tgt_data.pos.0;
+                let tgt_pos = tgt_data.pos.0;
                 let move_dir = match agent.action_state.int_counter {
                     1 =>
                     // circle left if counter is 1
@@ -903,7 +903,7 @@ impl<'a> AgentData<'a> {
             }
             // activating charge once circle timer expires is handled above
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
                 // if too far away from target, move towards them
                 Path::Separate
@@ -922,7 +922,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.dist_sqrd < (3.0 * attack_data.min_attack_dist).powi(2)
             && attack_data.angle < 90.0
         {
@@ -994,7 +994,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -1028,7 +1028,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -1073,7 +1073,7 @@ impl<'a> AgentData<'a> {
                 agent.action_state.timer += read_data.dt.0;
             }
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             let path = if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
                 Path::Separate
             } else {
@@ -1091,7 +1091,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (1.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -1126,7 +1126,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.angle < 90.0 && attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
             if agent.action_state.timer < 2.0 {
@@ -1153,7 +1153,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.angle < 90.0
             && attack_data.dist_sqrd < (2.5 * attack_data.min_attack_dist).powi(2)
         {
@@ -1199,7 +1199,7 @@ impl<'a> AgentData<'a> {
         tgt_data: &TargetData,
         read_data: &ReadData,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.angle < 90.0 && attack_data.in_min_range() {
             controller.inputs.move_dir = Vec2::zero();
             controller.push_basic_input(InputKind::Primary);
@@ -1310,7 +1310,7 @@ impl<'a> AgentData<'a> {
             agent.action_state.condition = true;
         }
 
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if agent.action_state.counter > health_fraction {
             // Summon minions at particular thresholds of health
             controller.push_basic_input(InputKind::Ability(2));
@@ -1397,7 +1397,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.dist_sqrd > 30.0_f32.powi(2) {
             let small_chance = rng.gen_bool(0.05);
 
@@ -1512,7 +1512,7 @@ impl<'a> AgentData<'a> {
     ) {
         // Set fly to false
         controller.push_cancel_input(InputKind::Fly);
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.dist_sqrd > 30.0_f32.powi(2) {
             if rng.gen_bool(0.05)
                 && can_see_tgt(
@@ -1625,7 +1625,7 @@ impl<'a> AgentData<'a> {
         // Increase action timer
         agent.action_state.timer += read_data.dt.0;
         // If higher than 2 blocks
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if !read_data
             .terrain
             .ray(self.pos.0, self.pos.0 - (Vec3::unit_z() * 2.0))
@@ -1695,7 +1695,7 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir = Vec2::zero();
             controller.push_basic_input(InputKind::Primary);
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
         }
     }
@@ -1709,7 +1709,7 @@ impl<'a> AgentData<'a> {
         read_data: &ReadData,
     ) {
         agent.action_state.timer += read_data.dt.0;
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if agent.action_state.timer > 6.0
             && attack_data.dist_sqrd < (2.0 * attack_data.min_attack_dist).powi(2)
         {
@@ -1814,7 +1814,7 @@ impl<'a> AgentData<'a> {
         {
             controller.push_basic_input(InputKind::Ability(0));
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
         }
     }
@@ -1843,7 +1843,7 @@ impl<'a> AgentData<'a> {
             controller.inputs.move_dir = Vec2::zero();
             controller.push_basic_input(InputKind::Primary);
         } else {
-            let tgt_pos = &tgt_data.pos.0;
+            let tgt_pos = tgt_data.pos.0;
             self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
         }
     }
@@ -1900,7 +1900,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // Make minotaur move towards target
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Separate, None);
     }
 
@@ -1977,7 +1977,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // Make clay golem move towards target
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Separate, None);
     }
 
@@ -2048,7 +2048,7 @@ impl<'a> AgentData<'a> {
             }
         }
         // Always attempt to path towards target
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
     }
 
@@ -2096,7 +2096,7 @@ impl<'a> AgentData<'a> {
         }
 
         // Always attempt to path towards target
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
     }
 
@@ -2159,7 +2159,7 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Ability(1));
         }
         // Always attempt to path towards target
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
     }
 
@@ -2173,7 +2173,7 @@ impl<'a> AgentData<'a> {
     ) {
         const BEAM_RANGE: f32 = 20.0;
         const BEAM_TIME: Duration = Duration::from_secs(3);
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         // action_state.condition controls whether or not deadwood should beam or dash
         if matches!(self.char_state, CharacterState::DashMelee(s) if s.stage_section != StageSection::Recover)
         {
@@ -2244,7 +2244,7 @@ impl<'a> AgentData<'a> {
                 )
             {
                 // If in pathing range and can see target, move towards them
-                let tgt_pos = &tgt_data.pos.0;
+                let tgt_pos = tgt_data.pos.0;
                 self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Partial, None);
             } else {
                 // Otherwise, go back to sleep
@@ -2272,7 +2272,7 @@ impl<'a> AgentData<'a> {
             agent.action_state.timer = 0.0;
         }
 
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         if attack_data.in_min_range() {
             // If in minimum range
             if agent.action_state.timer > SPIN_WAIT_TIME {
@@ -2384,7 +2384,7 @@ impl<'a> AgentData<'a> {
             agent.action_state.counter += read_data.dt.0 * 3.3;
         }
 
-        let tgt_pos = &tgt_data.pos.0;
+        let tgt_pos = tgt_data.pos.0;
         self.path_toward_target(agent, controller, tgt_pos, read_data, Path::Full, None);
     }
 }
