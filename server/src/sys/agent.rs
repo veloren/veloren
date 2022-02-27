@@ -2268,7 +2268,7 @@ impl<'a> AgentData<'a> {
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
-        tgt_data: &TargetData,
+        tgt_pos: Vec3<f32>,
         read_data: &ReadData,
         path: Path,
         speed_multiplier: Option<f32>,
@@ -2277,7 +2277,7 @@ impl<'a> AgentData<'a> {
         let target_position = |vec3: Vec3<f32>| {
             pos + PARTIAL_PATH_DIST * vec3.try_normalized().unwrap_or_else(Vec3::zero)
         };
-        let distance_to_target = tgt_data.pos.0 - pos;
+        let distance_to_target = tgt_pos - pos;
         let pathing_pos = match path {
             Path::Full => {
                 let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
@@ -2312,7 +2312,7 @@ impl<'a> AgentData<'a> {
                     sep_vec * SEPARATION_BIAS + distance_to_target * (1.0 - SEPARATION_BIAS),
                 )
             },
-            Path::Separate => tgt_data.pos.0,
+            Path::Separate => tgt_pos,
             Path::Partial => target_position(distance_to_target),
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
