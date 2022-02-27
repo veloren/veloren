@@ -419,6 +419,7 @@ fn create_interface_pipelines(
 fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
+    // TODO: Reduce the boilerplate in this file
     tasks: [Task; 15],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
@@ -723,8 +724,12 @@ fn create_ingame_and_shadow_pipelines(
 
     let j1 = || pool.join(create_debug, || pool.join(create_skybox, create_figure));
     let j2 = || pool.join(create_terrain, || pool.join(create_fluid, create_bloom));
-    let j3 = || pool.join(create_sprite, || pool.join(create_particle, create_trail));
-    let j4 = || pool.join(create_lod_terrain, create_clouds);
+    let j3 = || pool.join(create_sprite, create_particle);
+    let j4 = || {
+        pool.join(create_lod_terrain, || {
+            pool.join(create_clouds, create_trail)
+        })
+    };
     let j5 = || pool.join(create_postprocess, create_point_shadow);
     let j6 = || {
         pool.join(
@@ -737,7 +742,7 @@ fn create_ingame_and_shadow_pipelines(
     let (
         (
             ((debug, (skybox, figure)), (terrain, (fluid, bloom))),
-            ((sprite, (particle, trail)), (lod_terrain, clouds)),
+            ((sprite, particle), (lod_terrain, (clouds, trail))),
         ),
         ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
     ) = pool.join(

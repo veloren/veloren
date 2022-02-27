@@ -23,7 +23,7 @@ pub struct TrailMgr {
     offset: usize,
 
     /// Dynamic model to upload to GPU
-    dynamic_model: DynamicModel<TrailVertex>,
+    dynamic_model: Option<DynamicModel<TrailVertex>>,
 
     /// Used to create sub model from dynamic model
     model_len: u32,
@@ -33,12 +33,12 @@ const TRAIL_DYNAMIC_MODEL_SIZE: usize = 15;
 const TRAIL_SHRINKAGE: f32 = 0.8;
 
 impl TrailMgr {
-    pub fn new(renderer: &mut Renderer) -> Self {
+    pub fn new(_renderer: &mut Renderer) -> Self {
         Self {
             entity_meshes: HashMap::new(),
             pos_cache: HashMap::new(),
             offset: 0,
-            dynamic_model: renderer.create_dynamic_model(0),
+            dynamic_model: None,
             model_len: 0,
         }
     }
@@ -118,12 +118,12 @@ impl TrailMgr {
 
             // Clear meshes for entities that only have zero quads in mesh
             self.entity_meshes
-                .retain(|_, (mesh, _)| mesh.iter().any(|vert| *vert != TrailVertex::zero()));
-            // .retain(|_, (_mesh, last_updated)| *last_updated == self.offset);
+                .retain(|_, (_mesh, last_updated)| *last_updated != self.offset);
 
             // TODO: as an optimization we can keep this big mesh around between frames and
-            // write directly to it for each entity. Create big mesh from
-            // currently existing meshes that is used to update dynamic model
+            // write directly to it for each entity.
+            // Create big mesh from currently existing meshes that is used to update dynamic
+            // model
             let mut big_mesh = Mesh::new();
             self.entity_meshes
                 .values()
@@ -139,24 +139,29 @@ impl TrailMgr {
 
             // If dynamic model too small, resize, with room for 10 additional entities to
             // avoid needing to resize frequently
-            if self.dynamic_model.len() < big_mesh.len() {
-                self.dynamic_model = renderer
-                    .create_dynamic_model(big_mesh.len() + TRAIL_DYNAMIC_MODEL_SIZE * 4 * 10);
-            };
-            renderer.update_model(&self.dynamic_model, &big_mesh, 0);
+            if self.dynamic_model.as_ref().map_or(0, |model| model.len()) < big_mesh.len() {
+                self.dynamic_model = Some(
+                    renderer
+                        .create_dynamic_model(big_mesh.len() + TRAIL_DYNAMIC_MODEL_SIZE * 4 * 10),
+                );
+            }
+            if let Some(dynamic_model) = &self.dynamic_model {
+                renderer.update_model(dynamic_model, &big_mesh, 0);
+            }
             self.model_len = big_mesh.len() as u32;
         } else {
             self.entity_meshes.clear();
             // Clear dynamic model to free memory
-            self.dynamic_model = renderer.create_dynamic_model(0);
+            self.dynamic_model = None;
         }
     }
 
     pub fn render<'a>(&'a self, drawer: &mut TrailDrawer<'_, 'a>, scene_data: &SceneData) {
         span!(_guard, "render", "TrailMgr::render");
         if scene_data.weapon_trails_enabled {
-            // drawer.draw(&self.dynamic_model, self.model_len);
-            drawer.draw(self.dynamic_model.submodel(0..self.model_len))
+            if let Some(dynamic_model) = &self.dynamic_model {
+                drawer.draw(dynamic_model.submodel(0..self.model_len))
+            }
         }
     }
 
@@ -172,6 +177,7 @@ impl TrailMgr {
         &mut self
             .entity_meshes
             .entry(key)
+            .and_modify(|(_mesh, offset)| *offset = self.offset)
             .or_insert((Self::default_trail_mesh(), self.offset))
             .0
     }

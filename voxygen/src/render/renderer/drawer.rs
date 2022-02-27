@@ -606,6 +606,7 @@ impl<'frame> Drop for Drawer<'frame> {
 }
 
 // Shadow pass
+#[must_use]
 pub struct ShadowPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
@@ -636,6 +637,7 @@ impl<'pass> ShadowPassDrawer<'pass> {
     }
 }
 
+#[must_use]
 pub struct FigureShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
@@ -653,6 +655,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureShadowDrawer<'pass_ref, 'pass> {
     }
 }
 
+#[must_use]
 pub struct TerrainShadowDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
@@ -671,6 +674,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainShadowDrawer<'pass_ref, 'pass> {
 }
 
 // First pass
+#[must_use]
 pub struct FirstPassDrawer<'pass> {
     pub(super) render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
@@ -769,6 +773,7 @@ impl<'pass> FirstPassDrawer<'pass> {
     }
 }
 
+#[must_use]
 pub struct DebugDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
     shadows: &'pass ShadowTexturesBindGroup,
@@ -794,6 +799,8 @@ impl<'pass_ref, 'pass: 'pass_ref> Drop for DebugDrawer<'pass_ref, 'pass> {
             .set_bind_group(1, &self.shadows.bind_group, &[]);
     }
 }
+
+#[must_use]
 pub struct FigureDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
@@ -815,6 +822,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FigureDrawer<'pass_ref, 'pass> {
     }
 }
 
+#[must_use]
 pub struct TerrainDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
     col_lights: Option<&'pass_ref Arc<ColLights<terrain::Locals>>>,
@@ -845,6 +853,7 @@ impl<'pass_ref, 'pass: 'pass_ref> TerrainDrawer<'pass_ref, 'pass> {
     }
 }
 
+#[must_use]
 pub struct ParticleDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
@@ -866,18 +875,7 @@ impl<'pass_ref, 'pass: 'pass_ref> ParticleDrawer<'pass_ref, 'pass> {
     }
 }
 
-pub struct TrailDrawer<'pass_ref, 'pass: 'pass_ref> {
-    render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
-}
-
-impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
-    pub fn draw(&mut self, submodel: SubModel<'pass, trail::Vertex>) {
-        self.render_pass.set_vertex_buffer(0, submodel.buf());
-        self.render_pass
-            .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
-    }
-}
-
+#[must_use]
 pub struct SpriteDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
     globals: &'pass GlobalsBindGroup,
@@ -910,6 +908,7 @@ impl<'pass_ref, 'pass: 'pass_ref> Drop for SpriteDrawer<'pass_ref, 'pass> {
     }
 }
 
+#[must_use]
 pub struct FluidDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
@@ -928,6 +927,7 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
 }
 
 // Second pass: clouds
+#[must_use]
 pub struct SecondPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
@@ -943,17 +943,33 @@ impl<'pass> SecondPassDrawer<'pass> {
         self.render_pass.draw(0..3, 0..1);
     }
 
-    pub fn draw_trails(&mut self) -> TrailDrawer<'_, 'pass> {
+    pub fn draw_trails(&mut self) -> Option<TrailDrawer<'_, 'pass>> {
         let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.trail.pipeline);
         set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
 
-        TrailDrawer { render_pass }
+        render_pass.set_bind_group(1, &self.borrow.shadow?.bind.bind_group, &[]);
+
+        Some(TrailDrawer { render_pass })
+    }
+}
+
+#[must_use]
+pub struct TrailDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> TrailDrawer<'pass_ref, 'pass> {
+    pub fn draw(&mut self, submodel: SubModel<'pass, trail::Vertex>) {
+        self.render_pass.set_vertex_buffer(0, submodel.buf());
+        self.render_pass
+            .draw_indexed(0..submodel.len() / 4 * 6, 0, 0..1);
     }
 }
 
 /// Third pass: postprocess + ui
+#[must_use]
 pub struct ThirdPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
@@ -986,10 +1002,12 @@ impl<'pass> ThirdPassDrawer<'pass> {
     }
 }
 
+#[must_use]
 pub struct UiDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
 }
 
+#[must_use]
 pub struct PreparedUiDrawer<'pass_ref, 'pass: 'pass_ref> {
     render_pass: &'pass_ref mut wgpu::RenderPass<'pass>,
 }

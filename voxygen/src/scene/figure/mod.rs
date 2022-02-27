@@ -6446,18 +6446,15 @@ impl<S: Skeleton> FigureState<S> {
         // Handle weapon trails
         fn handle_weapon_trails(
             trail_mgr: &mut TrailMgr,
-            new_weapon_trail_mat: Option<(
-                anim::vek::Mat4<f32>,
-                fn(Option<ToolKind>) -> (anim::vek::Vec4<f32>, anim::vek::Vec4<f32>),
-            )>,
+            new_weapon_trail_mat: Option<(anim::vek::Mat4<f32>, anim::TrailSource)>,
             old_abs_trail_points: &mut Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
             entity: EcsEntity,
             is_main_weapon: bool,
             pos: anim::vek::Vec3<f32>,
-            tools: (Option<ToolKind>, Option<ToolKind>),
+            tool: Option<ToolKind>,
         ) {
-            let weapon_offsets = new_weapon_trail_mat.map(|(mat, offsets)| {
-                let (trail_start, trail_end) = offsets(tools.0);
+            let weapon_offsets = new_weapon_trail_mat.map(|(mat, trail)| {
+                let (trail_start, trail_end) = trail.relative_offsets(tool);
                 ((mat * trail_start).xyz(), (mat * trail_end).xyz())
             });
             let new_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
@@ -6482,7 +6479,7 @@ impl<S: Skeleton> FigureState<S> {
                 *entity,
                 true,
                 *pos,
-                *tools,
+                tools.0,
             );
             handle_weapon_trails(
                 trail_mgr,
@@ -6491,7 +6488,7 @@ impl<S: Skeleton> FigureState<S> {
                 *entity,
                 false,
                 *pos,
-                *tools,
+                tools.1,
             );
         }
 

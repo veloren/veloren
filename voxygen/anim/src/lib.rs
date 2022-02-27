@@ -104,8 +104,50 @@ pub fn init() { lazy_static::initialize(&LIB); }
 pub struct Offsets {
     pub lantern: Option<Vec3<f32>>,
     pub mount_bone: Transform<f32, f32, f32>,
-    pub primary_trail_mat: Option<(Mat4<f32>, fn(Option<ToolKind>) -> (Vec4<f32>, Vec4<f32>))>,
-    pub secondary_trail_mat: Option<(Mat4<f32>, fn(Option<ToolKind>) -> (Vec4<f32>, Vec4<f32>))>,
+    pub primary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
+    pub secondary_trail_mat: Option<(Mat4<f32>, TrailSource)>,
+}
+
+#[derive(Clone, Copy)]
+pub enum TrailSource {
+    Weapon,
+    GliderLeft,
+    GliderRight,
+}
+
+impl TrailSource {
+    pub fn relative_offsets(&self, tool: Option<ToolKind>) -> (Vec4<f32>, Vec4<f32>) {
+        // Offsets
+        const GLIDER_VERT: f32 = 5.0;
+        const GLIDER_HORIZ: f32 = 15.0;
+        // Trail width
+        const GLIDER_WIDTH: f32 = 1.0;
+
+        match self {
+            Self::Weapon => {
+                let lengths = match tool {
+                    Some(ToolKind::Sword) => (0.0, 29.25),
+                    Some(ToolKind::Axe) => (10.0, 19.25),
+                    Some(ToolKind::Hammer) => (10.0, 19.25),
+                    Some(ToolKind::Staff) => (10.0, 19.25),
+                    Some(ToolKind::Sceptre) => (10.0, 19.25),
+                    _ => (0.0, 0.0),
+                };
+                (
+                    Vec4::new(0.0, 0.0, lengths.0, 1.0),
+                    Vec4::new(0.0, 0.0, lengths.1, 1.0),
+                )
+            },
+            Self::GliderLeft => (
+                Vec4::new(GLIDER_HORIZ, 0.0, GLIDER_VERT, 1.0),
+                Vec4::new(GLIDER_HORIZ + GLIDER_WIDTH, 0.0, GLIDER_VERT, 1.0),
+            ),
+            Self::GliderRight => (
+                Vec4::new(-GLIDER_HORIZ, 0.0, GLIDER_VERT, 1.0),
+                Vec4::new(-(GLIDER_HORIZ + GLIDER_WIDTH), 0.0, GLIDER_VERT, 1.0),
+            ),
+        }
+    }
 }
 
 pub trait Skeleton: Send + Sync + 'static {
