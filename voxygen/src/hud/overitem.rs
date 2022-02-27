@@ -171,7 +171,7 @@ impl<'a> Widget for Overitem<'a> {
             .set(state.ids.name, ui);
 
         // Interaction hints
-        if !self.interaction_options.is_empty() {
+        if !self.interaction_options.is_empty() && self.properties.active {
             let text = self
                 .interaction_options
                 .iter()
