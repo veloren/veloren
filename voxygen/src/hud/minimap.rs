@@ -796,16 +796,15 @@ impl<'a> Widget for MiniMap<'a> {
             {
                 let factor = 1.2;
 
-                Button::image(self.imgs.location_marker)
+                Image::new(self.imgs.location_marker)
                     .x_y_position_relative_to(
                         state.ids.map_layers[0],
                         position::Relative::Scalar(rpos.x as f64),
                         position::Relative::Scalar(rpos.y as f64 + 8.0 * factor),
                     )
                     .w_h(16.0 * factor, 16.0 * factor)
-                    //.image_color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
-                    .floating(true)
-                    .set(state.ids.location_marker, ui);
+                    .parent(ui.window)
+                    .set(state.ids.location_marker, ui)
             }
             // Indicator
             let ind_scale = 0.4;
@@ -818,7 +817,7 @@ impl<'a> Widget for MiniMap<'a> {
                 .middle_of(state.ids.map_layers[0])
                 .w_h(32.0 * ind_scale, 37.0 * ind_scale)
                 .color(Some(UI_HIGHLIGHT_0))
-                .floating(true)
+                .parent(ui.window)
                 .set(state.ids.indicator, ui);
 
             // Compass directions
