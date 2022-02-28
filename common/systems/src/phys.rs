@@ -2,8 +2,8 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
-        Body, CharacterState, Collider, Density, Mass, Ori, PhysicsState, Pos, PosVelOriDefer,
-        PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
+        Body, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState, Pos,
+        PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
     consts::{AIR_DENSITY, FRIC_GROUND, GRAVITY},
     event::{EventBus, ServerEvent},
@@ -110,6 +110,7 @@ pub struct PhysicsRead<'a> {
     event_bus: Read<'a, EventBus<ServerEvent>>,
     scales: ReadStorage<'a, Scale>,
     stickies: ReadStorage<'a, Sticky>,
+    immovables: ReadStorage<'a, Immovable>,
     masses: ReadStorage<'a, Mass>,
     colliders: ReadStorage<'a, Collider>,
     is_ridings: ReadStorage<'a, Is<Rider>>,
@@ -327,6 +328,7 @@ impl<'a> PhysicsData<'a> {
             &read.colliders,
             read.is_ridings.maybe(),
             read.stickies.maybe(),
+            read.immovables.maybe(),
             &mut write.physics_states,
             // TODO: if we need to avoid collisions for other things consider
             // moving whether it should interact into the collider component
@@ -350,11 +352,13 @@ impl<'a> PhysicsData<'a> {
                     collider,
                     is_riding,
                     sticky,
+                    immovable,
                     physics,
                     projectile,
                     char_state_maybe,
                 )| {
                     let is_sticky = sticky.is_some();
+                    let is_immovable = immovable.is_some();
                     let is_mid_air = physics.on_surface().is_none();
                     let mut entity_entity_collision_checks = 0;
                     let mut entity_entity_collisions = 0;
@@ -459,6 +463,7 @@ impl<'a> PhysicsData<'a> {
                                         // physics flags
                                         is_mid_air,
                                         is_sticky,
+                                        is_immovable,
                                         is_projectile,
                                         // entity we colliding with
                                         *other,
@@ -1789,6 +1794,7 @@ fn resolve_e2e_collision(
     // physics flags
     is_mid_air: bool,
     is_sticky: bool,
+    is_immovable: bool,
     is_projectile: bool,
     // entity we colliding with
     other: Uid,
@@ -1861,17 +1867,18 @@ fn resolve_e2e_collision(
     // or if we're colliding with a terrain-like entity,
     // or if we are a terrain-like entity.
     //
-    // Don't apply force when entity is a sticky which is on the ground
-    // (or on the wall).
+    // Don't apply force when entity is immovable, or a sticky which is on the
+    // ground (or on the wall).
     if !forced_movement
         && (!is_sticky || is_mid_air)
         && diff.magnitude_squared() > 0.0
         && !is_projectile
+        && !is_immovable
         && !other_data.collider.is_voxel()
         && !our_data.collider.is_voxel()
     {
         const ELASTIC_FORCE_COEFFICIENT: f32 = 400.0;
-        let mass_coefficient = our_data.mass.0 / (our_data.mass.0 + our_data.mass.0);
+        let mass_coefficient = other_data.mass.0 / (our_data.mass.0 + other_data.mass.0);
         let distance_coefficient = collision_dist - diff.magnitude();
         let force = ELASTIC_FORCE_COEFFICIENT * distance_coefficient * mass_coefficient;
 

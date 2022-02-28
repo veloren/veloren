@@ -166,6 +166,13 @@ impl Component for Sticky {
     type Storage = DerefFlaggedStorage<Self, NullStorage<Self>>;
 }
 
+#[derive(Copy, Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
+pub struct Immovable;
+
+impl Component for Immovable {
+    type Storage = DerefFlaggedStorage<Self, NullStorage<Self>>;
+}
+
 // PhysicsState
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PhysicsState {

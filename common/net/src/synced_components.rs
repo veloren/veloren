@@ -37,6 +37,7 @@ macro_rules! synced_components {
             density: Density,
             collider: Collider,
             sticky: Sticky,
+            immovable: Immovable,
             character_state: CharacterState,
             shockwave: Shockwave,
             beam_segment: BeamSegment,
@@ -185,6 +186,10 @@ impl NetSync for Collider {
 }
 
 impl NetSync for Sticky {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
+}
+
+impl NetSync for Immovable {
     const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }
 
