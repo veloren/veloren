@@ -249,7 +249,11 @@ impl Civs {
                         SiteKind::ChapelSite,
                     ),
                     44..=49 => (
-                        find_site_loc(&mut ctx, (&this.gnarling_enemies(), 40), SiteKind::Adlet)?,
+                        find_site_loc(
+                            &mut ctx,
+                            &ProximityRequirements::new().avoid_all_of(this.gnarling_enemies(), 40),
+                            SiteKind::Adlet,
+                        )?,
                         SiteKind::Adlet,
                     ),
                     _ => (
@@ -1270,7 +1274,7 @@ impl Civs {
         })
     }
 
-    fn adlet_enemies(&self) -> Vec<Vec2<i32>> {
+    fn adlet_enemies(&self) -> impl Iterator<Item = Vec2<i32>> + '_ {
         self.sites().filter_map(|s| match s.kind {
             SiteKind::Tree | SiteKind::GiantTree => None,
             _ => Some(s.center),
@@ -1690,7 +1694,7 @@ impl SiteKind {
                         && (-0.3..0.4).contains(&chunk.temp)
                         && chunk.tree_density > 0.75
                 },
-                SiteKind::Adlet => (-0.8..0.2).contains(&chunk.temp) && chunk.tree_density > 0.2,
+                SiteKind::Adlet => chunk.temp < -0.2 && chunk.cliff_height > 25.0,
                 SiteKind::GiantTree | SiteKind::Tree => {
                     on_land()
                         && on_flat_terrain()
