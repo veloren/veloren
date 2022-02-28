@@ -149,6 +149,7 @@ impl State {
         ecs.register::<comp::Density>();
         ecs.register::<comp::Collider>();
         ecs.register::<comp::Sticky>();
+        ecs.register::<comp::Immovable>();
         ecs.register::<comp::CharacterState>();
         ecs.register::<comp::Object>();
         ecs.register::<comp::Group>();
