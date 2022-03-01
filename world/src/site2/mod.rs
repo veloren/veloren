@@ -1404,7 +1404,8 @@ impl Site {
 
                     for x in aabb.min.x..aabb.max.x {
                         for y in aabb.min.y..aabb.max.y {
-                            let col_tile = self.wpos_tile(Vec2::new(x, y));
+                            let wpos = Vec2::new(x, y);
+                            let col_tile = self.wpos_tile(wpos);
                             if
                             /* col_tile.is_building() && */
                             col_tile
@@ -1416,12 +1417,16 @@ impl Site {
                                 continue;
                             }
                             let mut last_block = None;
+
+                            // TODO: Don't unwrap here
+                            let col = canvas.col(wpos).unwrap().get_info();
+
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
                                 canvas.map(pos, |block| {
                                     let current_block =
-                                        fill.sample_at(&prim_tree, prim, pos, &info, block);
+                                        fill.sample_at(&prim_tree, prim, pos, &info, block, &col);
                                     if let (Some(last_block), None) = (last_block, current_block) {
                                         spawn(pos, last_block);
                                     }

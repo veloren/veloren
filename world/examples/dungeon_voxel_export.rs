@@ -51,12 +51,14 @@ fn main() -> Result {
 
                     for x in aabb.min.x..aabb.max.x {
                         for y in aabb.min.y..aabb.max.y {
+                            // TODO: remove unwrap
+                            let col = canvas.col(Vec2::new(x, y)).unwrap().get_info();
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
                                 let _ = volume.map(pos, |block| {
                                     if let Some(block) =
-                                        fill.sample_at(&prim_tree, prim, pos, canvas, block)
+                                        fill.sample_at(&prim_tree, prim, pos, canvas, block, &col)
                                     {
                                         block
                                     } else {

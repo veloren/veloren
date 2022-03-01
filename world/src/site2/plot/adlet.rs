@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
-    util::{attempt, sampler::Sampler, RandomField},
+    util::{attempt, sampler::Sampler, FastNoise, RandomField},
     Land,
 };
 use common::{
@@ -84,8 +84,8 @@ impl AdletStronghold {
 
         // Go 50% below minimum height needed, unless entrance already below that height
         // TODO: Get better heuristic for this
-        let cavern_alt = (land.get_alt_approx(origin) - cavern_radius as f32 * 1.5)
-            .min(land.get_alt_approx(entrance));
+        let cavern_alt =
+            (land.get_alt_approx(origin) - cavern_radius as f32).min(land.get_alt_approx(entrance));
 
         Self {
             name,
@@ -155,6 +155,31 @@ impl Structure for AdletStronghold {
                 min: (self.origin - self.cavern_radius).with_z(self.cavern_alt as i32),
                 max: self.origin.with_z(self.cavern_alt as i32) + self.cavern_radius,
             }))
+            .sample_with_column({
+                let origin = self.origin.with_z(self.cavern_alt as i32);
+                let radius_sqr = self.cavern_radius * self.cavern_radius;
+                move |pos, col| {
+                    let alt = col.basement - col.cliff_offset;
+                    let sphere_alt = ((radius_sqr - origin.xy().distance_squared(pos.xy())) as f32)
+                        .sqrt()
+                        + origin.z as f32;
+                    // Some sort of smooth min
+                    let alt = if alt < sphere_alt {
+                        alt
+                    } else if sphere_alt - alt < 10.0 {
+                        f32::lerp(sphere_alt, alt, 1.0 / (alt - sphere_alt).max(1.0))
+                    } else {
+                        sphere_alt
+                    };
+
+                    let noise = FastNoise::new(333);
+                    let alt_offset = noise.get(pos.with_z(0).as_() / 5.0).powi(2) * 15.0;
+
+                    let alt = alt - alt_offset;
+
+                    pos.z < alt as i32
+                }
+            })
             .clear();
 
         // Create outer wall
@@ -310,16 +335,16 @@ mod tests {
 
     #[test]
     fn test_creating_entities() {
-        let pos = Vec3::zero();
-        let mut rng = thread_rng();
+        // let pos = Vec3::zero();
+        // let mut rng = thread_rng();
 
-        gnarling_mugger(pos, &mut rng);
-        gnarling_stalker(pos, &mut rng);
-        gnarling_logger(pos, &mut rng);
-        gnarling_chieftain(pos, &mut rng);
-        deadwood(pos, &mut rng);
-        mandragora(pos, &mut rng);
-        wood_golem(pos, &mut rng);
-        harvester_boss(pos, &mut rng);
+        // gnarling_mugger(pos, &mut rng);
+        // gnarling_stalker(pos, &mut rng);
+        // gnarling_logger(pos, &mut rng);
+        // gnarling_chieftain(pos, &mut rng);
+        // deadwood(pos, &mut rng);
+        // mandragora(pos, &mut rng);
+        // wood_golem(pos, &mut rng);
+        // harvester_boss(pos, &mut rng);
     }
 }
