@@ -222,7 +222,12 @@ impl Tile {
 
     pub fn is_empty(&self) -> bool { self.kind == TileKind::Empty }
 
-    pub fn is_natural(&self) -> bool { matches!(self.kind, TileKind::Empty | TileKind::Hazard(_)) }
+    pub fn is_natural(&self) -> bool {
+        matches!(
+            self.kind,
+            TileKind::Empty | TileKind::Hazard(_) | TileKind::AdletStronghold
+        )
+    }
 
     pub fn is_road(&self) -> bool {
         matches!(

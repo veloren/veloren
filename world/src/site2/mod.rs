@@ -105,7 +105,7 @@ impl Site {
             .filter_map(|plot| match &plot.kind {
                 PlotKind::Dungeon(d) => Some(d.spawn_rules(wpos)),
                 PlotKind::Gnarling(g) => Some(g.spawn_rules(wpos)),
-                PlotKind::Adlet(g) => Some(g.spawn_rules(wpos)),
+                PlotKind::Adlet(a) => Some(a.spawn_rules(wpos)),
                 _ => None,
             })
             .fold(base_spawn_rules, |a, b| a.combine(b))
@@ -480,10 +480,13 @@ impl Site {
         site.demarcate_obstacles(land);
         let adlet_stronghold = plot::AdletStronghold::generate(origin, land, &mut rng);
         site.name = adlet_stronghold.name().to_string();
+
+        // TODO: Update this to also blit tiles near entrance when entrance has stuff
         let size = adlet_stronghold.radius() / tile::TILE_SIZE as i32;
+        let offset = (adlet_stronghold.origin() - origin) / tile::TILE_SIZE as i32;
         let aabr = Aabr {
-            min: Vec2::broadcast(-size),
-            max: Vec2::broadcast(size),
+            min: Vec2::broadcast(-size) + offset,
+            max: Vec2::broadcast(size) + offset,
         };
         let plot = site.create_plot(Plot {
             kind: PlotKind::Adlet(adlet_stronghold),
@@ -1450,7 +1453,7 @@ impl Site {
             match &plot.kind {
                 PlotKind::Dungeon(d) => d.apply_supplement(dynamic_rng, wpos2d, supplement),
                 PlotKind::Gnarling(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
-                PlotKind::Adlet(g) => g.apply_supplement(dynamic_rng, wpos2d, supplement),
+                PlotKind::Adlet(a) => a.apply_supplement(dynamic_rng, wpos2d, supplement),
                 _ => {},
             }
         }
