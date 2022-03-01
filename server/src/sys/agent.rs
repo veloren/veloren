@@ -2274,8 +2274,8 @@ impl<'a> AgentData<'a> {
         speed_multiplier: Option<f32>,
     ) -> bool {
         let pos = self.pos.0;
-        let partial_path_tgt_pos = |vec3: Vec3<f32>| {
-            pos + PARTIAL_PATH_DIST * vec3.try_normalized().unwrap_or_else(Vec3::zero)
+        let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
+            pos + PARTIAL_PATH_DIST * pos_difference.try_normalized().unwrap_or_else(Vec3::zero)
         };
         let pos_difference = tgt_pos - pos;
         let pathing_pos = match path {
