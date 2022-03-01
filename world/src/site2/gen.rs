@@ -77,9 +77,10 @@ pub enum Primitive {
     Rotate(Id<Primitive>, Mat3<i32>),
     Translate(Id<Primitive>, Vec3<i32>),
     Scale(Id<Primitive>, Vec3<f32>),
+    RotateAbout(Id<Primitive>, Mat3<i32>, Vec3<i32>),
     /// Repeat a primitive a number of times in a given direction, overlapping
     /// between repeats are unspecified.
-    Repeat(Id<Primitive>, Vec3<i32>, i32),
+    Repeat(Id<Primitive>, Vec3<i32>, u32),
 }
 
 impl std::fmt::Debug for Primitive {
@@ -141,6 +142,12 @@ impl std::fmt::Debug for Primitive {
                 f.debug_tuple("Translate").field(&a).field(&vec).finish()
             },
             Primitive::Scale(a, vec) => f.debug_tuple("Scale").field(&a).field(&vec).finish(),
+            Primitive::RotateAbout(a, mat, vec) => f
+                .debug_tuple("RotateAround")
+                .field(&a)
+                .field(&mat)
+                .field(&vec)
+                .finish(),
             Primitive::Repeat(a, offset, n) => f
                 .debug_tuple("Repeat")
                 .field(&a)
@@ -180,7 +187,11 @@ impl Primitive {
         Self::Scale(a.into(), scale)
     }
 
-    pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: i32) -> Self {
+    pub fn rotate_about(a: impl Into<Id<Primitive>>, rot: Mat3<i32>, point: Vec3<i32>) -> Self {
+        Self::RotateAbout(a.into(), rot, point)
+    }
+
+    pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: u32) -> Self {
         Self::Repeat(a.into(), offset, count)
     }
 }
@@ -385,6 +396,9 @@ impl Fill {
                     .as_::<i32>();
                 self.contains_at(tree, *prim, spos)
             },
+            Primitive::RotateAbout(prim, mat, vec) => {
+                self.contains_at(tree, *prim, vec + *mat * (pos - vec))
+            },
             Primitive::Repeat(prim, offset, count) => {
                 let aabb = self.get_bounds(tree, *prim);
                 let aabb_corner = {
@@ -396,7 +410,7 @@ impl Fill {
                 let min = diff
                     .map2(*offset, |a, b| if b == 0 { i32::MAX } else { a / b })
                     .reduce_min()
-                    .min(*count);
+                    .clamp(0, *count as i32);
                 let pos = pos - offset * min;
                 self.contains_at(tree, *prim, pos)
             },
@@ -596,12 +610,29 @@ impl Fill {
                     }
                 })
                 .collect(),
+            Primitive::RotateAbout(prim, mat, vec) => self
+                .get_bounds_inner(tree, *prim)
+                .into_iter()
+                .map(|aabb| {
+                    let mut new_aabb: Aabb<i32> = Aabb {
+                        min: vec + *mat * (aabb.min - vec),
+                        max: vec + *mat * (aabb.max - 1 - vec),
+                    }
+                    .made_valid();
+                    new_aabb.max += 1;
+                    new_aabb
+                })
+                .collect(),
             Primitive::Repeat(prim, offset, count) => self
                 .get_bounds_inner(tree, *prim)
                 .into_iter()
                 .map(|aabb| Aabb {
-                    min: aabb.min.map2(aabb.min + offset * count, |a, b| a.min(b)),
-                    max: aabb.max.map2(aabb.max + offset * count, |a, b| a.max(b)),
+                    min: aabb
+                        .min
+                        .map2(aabb.min + offset * *count as i32, |a, b| a.min(b)),
+                    max: aabb
+                        .max
+                        .map2(aabb.max + offset * *count as i32, |a, b| a.max(b)),
                 })
                 .collect(),
         }
@@ -659,6 +690,7 @@ impl Painter {
                 | Primitive::Rotate(a, _)
                 | Primitive::Translate(a, _)
                 | Primitive::Scale(a, _)
+                | Primitive::RotateAbout(a, _, _)
                 | Primitive::Repeat(a, _, _) => aux(prims, a, 1 + prev_depth),
 
                 Primitive::Intersect(a, b) | Primitive::Union(a, b) | Primitive::Without(a, b) => {
@@ -1040,26 +1072,6 @@ impl<'a> PrimitiveRef<'a> {
         self.painter.prim(Primitive::without(self, other))
     }
 
-    /// Translates the primitive along the vector `trans`.
-    #[must_use]
-    pub fn translate(self, trans: Vec3<i32>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::translate(self, trans))
-    }
-
-    /// Rotates the primitive about the minimum position of the primitive by
-    /// multiplying each block position by the provided rotation matrix.
-    #[must_use]
-    pub fn rotate(self, rot: Mat3<i32>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::rotate(self, rot))
-    }
-
-    /// Scales the primitive along each axis by the x, y, and z components of
-    /// the `scale` vector respectively.
-    #[must_use]
-    pub fn scale(self, scale: Vec3<f32>) -> PrimitiveRef<'a> {
-        self.painter.prim(Primitive::scale(self, scale))
-    }
-
     /// Fills the primitive with `fill` and paints it into the world.
     pub fn fill(self, fill: Fill) { self.painter.fill(self, fill); }
 
@@ -1075,13 +1087,96 @@ impl<'a> PrimitiveRef<'a> {
         self.painter
             .prim(Primitive::sampling(self, Box::new(sampling)))
     }
+}
 
+/// A trait to more easily manipulate groups of primitives.
+pub trait PrimitiveTransform {
+    /// Translates the primitive along the vector `trans`.
+    #[must_use]
+    fn translate(self, trans: Vec3<i32>) -> Self;
+    /// Rotates the primitive about the minimum position of the primitive by
+    /// multiplying each block position by the provided rotation matrix.
+    #[must_use]
+    fn rotate(self, rot: Mat3<i32>) -> Self;
+    /// Rotates the primitive about the given point of the primitive by
+    /// multiplying each block position by the provided rotation matrix.
+    #[must_use]
+    fn rotate_about(self, rot: Mat3<i32>, point: Vec3<i32>) -> Self;
+    /// Scales the primitive along each axis by the x, y, and z components of
+    /// the `scale` vector respectively.
+    #[must_use]
+    fn scale(self, scale: Vec3<f32>) -> Self;
     /// Returns a `PrimitiveRef` of the primitive in addition to the same
     /// primitive translated by `offset` and repeated `count` times, each time
     /// translated by an additional offset.
     #[must_use]
-    pub fn repeat(self, offset: Vec3<i32>, count: i32) -> PrimitiveRef<'a> {
+    fn repeat(self, offset: Vec3<i32>, count: u32) -> Self;
+}
+
+impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
+    fn translate(self, trans: Vec3<i32>) -> Self {
+        self.painter.prim(Primitive::translate(self, trans))
+    }
+
+    fn rotate(self, rot: Mat3<i32>) -> Self { self.painter.prim(Primitive::rotate(self, rot)) }
+
+    fn rotate_about(self, rot: Mat3<i32>, point: Vec3<i32>) -> Self {
+        self.painter.prim(Primitive::rotate_about(self, rot, point))
+    }
+
+    fn scale(self, scale: Vec3<f32>) -> Self { self.painter.prim(Primitive::scale(self, scale)) }
+
+    fn repeat(self, offset: Vec3<i32>, count: u32) -> Self {
         self.painter.prim(Primitive::repeat(self, offset, count))
+    }
+}
+
+impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
+    fn translate(mut self, trans: Vec3<i32>) -> Self {
+        for prim in &mut self {
+            *prim = prim.translate(trans);
+        }
+        self
+    }
+
+    fn rotate(mut self, rot: Mat3<i32>) -> Self {
+        for prim in &mut self {
+            *prim = prim.rotate(rot);
+        }
+        self
+    }
+
+    fn rotate_about(mut self, rot: Mat3<i32>, point: Vec3<i32>) -> Self {
+        for prim in &mut self {
+            *prim = prim.rotate_about(rot, point);
+        }
+        self
+    }
+
+    fn scale(mut self, scale: Vec3<f32>) -> Self {
+        for prim in &mut self {
+            *prim = prim.scale(scale);
+        }
+        self
+    }
+
+    fn repeat(mut self, offset: Vec3<i32>, count: u32) -> Self {
+        for prim in &mut self {
+            *prim = prim.repeat(offset, count);
+        }
+        self
+    }
+}
+
+pub trait PrimitiveGroupFill<const N: usize> {
+    fn fill_many(self, fills: [Fill; N]);
+}
+
+impl<const N: usize> PrimitiveGroupFill<N> for [PrimitiveRef<'_>; N] {
+    fn fill_many(self, fills: [Fill; N]) {
+        for i in 0..N {
+            self[i].fill(fills[i].clone());
+        }
     }
 }
 
