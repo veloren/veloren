@@ -2279,7 +2279,7 @@ impl<'a> AgentData<'a> {
         };
         let pos_difference = tgt_pos - pos;
         let pathing_pos = match path {
-            Path::Full => {
+            Path::Separate => {
                 let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
 
                 for entity in read_data
@@ -2312,7 +2312,7 @@ impl<'a> AgentData<'a> {
                     sep_vec * SEPARATION_BIAS + pos_difference * (1.0 - SEPARATION_BIAS),
                 )
             },
-            Path::Separate => tgt_pos,
+            Path::Full => tgt_pos,
             Path::Partial => partial_path_tgt_pos(pos_difference),
         };
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
