@@ -1016,11 +1016,10 @@ impl<'a> From<PrimitiveRef<'a>> for Id<Primitive> {
     fn from(r: PrimitiveRef<'a>) -> Self { r.id }
 }
 
-// TODO: Enable this
-#[allow(clippy::return_self_not_must_use)]
 impl<'a> PrimitiveRef<'a> {
     /// Joins two primitives together by returning the total of the blocks of
     /// both primitives. In boolean logic this is an `OR` operation.
+    #[must_use]
     pub fn union(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         let (a, b) = self.painter.order_by_depth(self, other);
         self.painter.prim(Primitive::union(a, b))
@@ -1028,6 +1027,7 @@ impl<'a> PrimitiveRef<'a> {
 
     /// Joins two primitives together by returning only overlapping blocks. In
     /// boolean logic this is an `AND` operation.
+    #[must_use]
     pub fn intersect(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         let (a, b) = self.painter.order_by_depth(self, other);
         self.painter.prim(Primitive::intersect(a, b))
@@ -1035,23 +1035,27 @@ impl<'a> PrimitiveRef<'a> {
 
     /// Subtracts the blocks of the `other` primitive from `self`. In boolean
     /// logic this is a `NOT` operation.
+    #[must_use]
     pub fn without(self, other: impl Into<Id<Primitive>>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::without(self, other))
     }
 
     /// Translates the primitive along the vector `trans`.
+    #[must_use]
     pub fn translate(self, trans: Vec3<i32>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::translate(self, trans))
     }
 
     /// Rotates the primitive about the minimum position of the primitive by
     /// multiplying each block position by the provided rotation matrix.
+    #[must_use]
     pub fn rotate(self, rot: Mat3<i32>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::rotate(self, rot))
     }
 
     /// Scales the primitive along each axis by the x, y, and z components of
     /// the `scale` vector respectively.
+    #[must_use]
     pub fn scale(self, scale: Vec3<f32>) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::scale(self, scale))
     }
@@ -1066,6 +1070,7 @@ impl<'a> PrimitiveRef<'a> {
 
     /// Returns a `PrimitiveRef` that conforms to the provided sampling
     /// function.
+    #[must_use]
     pub fn sample(self, sampling: impl Fn(Vec3<i32>) -> bool + 'static) -> PrimitiveRef<'a> {
         self.painter
             .prim(Primitive::sampling(self, Box::new(sampling)))
@@ -1074,6 +1079,7 @@ impl<'a> PrimitiveRef<'a> {
     /// Returns a `PrimitiveRef` of the primitive in addition to the same
     /// primitive translated by `offset` and repeated `count` times, each time
     /// translated by an additional offset.
+    #[must_use]
     pub fn repeat(self, offset: Vec3<i32>, count: i32) -> PrimitiveRef<'a> {
         self.painter.prim(Primitive::repeat(self, offset, count))
     }
