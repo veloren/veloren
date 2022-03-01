@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     assets::AssetHandle,
-    site2::util::Dir,
+    site2::{gen::PrimitiveTransform, util::Dir},
     util::{attempt, sampler::Sampler, RandomField},
     Land,
 };
