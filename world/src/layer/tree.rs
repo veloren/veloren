@@ -177,6 +177,19 @@ pub fn apply_trees_to(
                                 StructureBlock::PineLeaves,
                             );
                         },
+                        ForestKind::Redwood => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::redwood(
+                                        &mut RandomPerm::new(seed),
+                                        scale,
+                                        calendar,
+                                    ),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::PineLeaves,
+                            );
+                        },
                         ForestKind::Birch => {
                             break 'model TreeModel::Procedural(
                                 ProceduralTree::generate(
@@ -641,10 +654,10 @@ impl TreeConfig {
             branch_child_radius_lerp: false,
             leaf_radius: 1.9..2.1,
             leaf_radius_scaled: 1.5 * log_scale,
-            straightness: 0.0,
+            straightness: -0.25,
             max_depth: 1,
             splits: 34.0 * scale..35.0 * scale,
-            split_range: 0.165..1.2,
+            split_range: 0.2..1.2,
             branch_len_bias: 0.75,
             leaf_vertical_scale: 0.3,
             proportionality: 1.0,
@@ -655,6 +668,31 @@ impl TreeConfig {
                 &[(0.0001, SpriteKind::Beehive)]
             },
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 35, 15)),
+        }
+    }
+
+    pub fn redwood(rng: &mut impl Rng, scale: f32, calendar: Option<&Calendar>) -> Self {
+        let scale = scale * (1.0 + rng.gen::<f32>().powi(4) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 80.0 * scale,
+            trunk_radius: 3.25 * scale,
+            branch_child_len: 0.25 / scale,
+            branch_child_radius: 0.0,
+            branch_child_radius_lerp: false,
+            leaf_radius: 2.0..3.0,
+            leaf_radius_scaled: 1.5 * log_scale,
+            straightness: -0.3,
+            max_depth: 1,
+            splits: 45.0 * scale..50.0 * scale,
+            split_range: 0.45..1.2,
+            branch_len_bias: 0.75,
+            leaf_vertical_scale: 0.45,
+            proportionality: 1.0,
+            inhabited: false,
+            hanging_sprites: &[(0.001, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(110, 55, 10)),
         }
     }
 
