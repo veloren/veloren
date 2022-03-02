@@ -2124,6 +2124,7 @@ impl WorldSim {
         )
     }
 
+    /// WARNING: Not currently used by the tree layer. Needs to be reworked.
     /// Return an iterator over candidate tree positions (note that only some of
     /// these will become trees since environmental parameters may forbid
     /// them spawning).

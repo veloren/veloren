@@ -2,6 +2,7 @@ use super::{RandomField, Sampler};
 use rayon::prelude::*;
 use vek::*;
 
+#[derive(Clone)]
 pub struct StructureGen2d {
     freq: u32,
     spread: u32,

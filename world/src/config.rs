@@ -81,6 +81,7 @@ pub const CONFIG: Config = Config {
 pub struct Features {
     pub caverns: bool,
     pub caves: bool,
+    pub rocks: bool,
     pub shrubs: bool,
     pub trees: bool,
     pub scatter: bool,

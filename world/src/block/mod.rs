@@ -77,7 +77,7 @@ impl<'a> BlockGen<'a> {
             marble: _,
             marble_mid: _,
             marble_small: _,
-            rock,
+            rock_density: _,
             // temp,
             // humidity,
             stone_col,
@@ -184,28 +184,6 @@ impl<'a> BlockGen<'a> {
             None
         }
         .or_else(|| {
-            // Rocks
-            if (height + 2.5 - wposf.z as f32).div(7.5).abs().powi(2) < rock {
-                let field0 = RandomField::new(world.seed + 0);
-                let field1 = RandomField::new(world.seed + 1);
-                let field2 = RandomField::new(world.seed + 2);
-
-                Some(Block::new(
-                    BlockKind::WeakRock,
-                    stone_col.map2(
-                        Rgb::new(
-                            field0.get(wpos) as u8 % 16,
-                            field1.get(wpos) as u8 % 16,
-                            field2.get(wpos) as u8 % 16,
-                        ),
-                        |stone, x| stone.saturating_sub(x),
-                    ),
-                ))
-            } else {
-                None
-            }
-        })
-        .or_else(|| {
             let over_water = height < water_height;
             // Water
             if over_water && (wposf.z as f32 - water_height).abs() < ice_depth {
@@ -232,11 +210,9 @@ impl<'a> ZCache<'a> {
             - self.sample.cliff_offset.max(0.0);
         let min = min - 4.0;
 
-        let rocks = if self.sample.rock > 0.0 { 12.0 } else { 0.0 };
-
         let warp = self.sample.chaos * 32.0;
 
-        let ground_max = self.sample.alt + warp + rocks + 2.0;
+        let ground_max = self.sample.alt + warp + 2.0;
 
         let max = ground_max.max(self.sample.water_level + 2.0 + self.sample.ice_depth);
 

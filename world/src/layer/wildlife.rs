@@ -137,7 +137,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         // **Tundra**
         // Rock animals
         ("world.wildlife.spawn.tundra.rock", |c, col| {
-            close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * col.rock * 1.0
+            close(c.temp, CONFIG.snow_temp, 0.15) * BASE_DENSITY * col.rock_density * 1.0
         }),
         // Core animals
         ("world.wildlife.spawn.tundra.core", |c, _col| {
@@ -282,7 +282,7 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
         }),
         // Rock animals
         ("world.wildlife.spawn.tropical.rock", |c, col| {
-            close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock * BASE_DENSITY * 5.0
+            close(c.temp, CONFIG.tropical_temp + 0.1, 0.5) * col.rock_density * BASE_DENSITY * 5.0
         }),
         // **Desert**
         // Area animals
