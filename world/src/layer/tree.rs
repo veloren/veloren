@@ -141,6 +141,15 @@ pub fn apply_trees_to(
                                 StructureBlock::TemperateLeaves,
                             );
                         },
+                        ForestKind::Dead => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::dead(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::TemperateLeaves,
+                            );
+                        },
                         ForestKind::Chestnut => {
                             break 'model TreeModel::Procedural(
                                 ProceduralTree::generate(
@@ -392,6 +401,31 @@ impl TreeConfig {
             inhabited: false,
             hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
             trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(90, 45, 15)),
+        }
+    }
+
+    pub fn dead(rng: &mut impl Rng, scale: f32) -> Self {
+        let scale = scale * (0.8 + rng.gen::<f32>().powi(2) * 0.5);
+        let log_scale = 1.0 + scale.log2().max(0.0);
+
+        Self {
+            trunk_len: 9.0 * scale,
+            trunk_radius: 2.0 * scale,
+            branch_child_len: 0.9,
+            branch_child_radius: 0.7,
+            branch_child_radius_lerp: true,
+            leaf_radius: 0.0..0.1,
+            leaf_radius_scaled: 0.0,
+            straightness: 0.35,
+            max_depth: 3,
+            splits: 2.25..3.25,
+            split_range: 0.75..1.5,
+            branch_len_bias: 0.0,
+            leaf_vertical_scale: 1.0,
+            proportionality: 0.0,
+            inhabited: false,
+            hanging_sprites: &[(0.0002, SpriteKind::Apple), (0.00007, SpriteKind::Beehive)],
+            trunk_block: StructureBlock::Filled(BlockKind::Wood, Rgb::new(55, 34, 32)),
         }
     }
 
