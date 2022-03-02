@@ -318,7 +318,7 @@ impl Fill {
                 let a: f32 = aabb.max.x as f32 - center.x - 0.5;
                 let b: f32 = aabb.max.y as f32 - center.y - 0.5;
                 let c: f32 = aabb.max.z as f32 - center.z - 0.5;
-                let rpos = pos.as_::<f32>() - center;
+                let rpos = pos.as_::<f32>() + 0.5 - center;
                 aabb_contains(*aabb, pos)
                     && (rpos.x / a).abs().powf(degree)
                         + (rpos.y / b).abs().powf(degree)

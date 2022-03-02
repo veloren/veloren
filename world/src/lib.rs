@@ -7,7 +7,12 @@
 )]
 #![allow(clippy::branches_sharing_code)] // TODO: evaluate
 #![deny(clippy::clone_on_ref_ptr)]
-#![feature(option_zip, arbitrary_enum_discriminant)]
+#![feature(
+    option_zip,
+    arbitrary_enum_discriminant,
+    int_log,
+    map_first_last,
+)]
 
 mod all;
 mod block;
@@ -156,6 +161,7 @@ impl World {
                                 // TODO: Maybe change?
                                 civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,
                                 civ::SiteKind::ChapelSite => world_msg::SiteKind::ChapelSite,
+                                civ::SiteKind::Citadel => world_msg::SiteKind::Castle,
                             },
                             wpos: site.center * TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
                         }

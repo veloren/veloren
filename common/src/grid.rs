@@ -77,9 +77,9 @@ impl<T> Grid<T> {
         &self,
         pos: Vec2<i32>,
         size: Vec2<i32>,
-    ) -> impl Iterator<Item = Option<(Vec2<i32>, &T)>> + '_ {
+    ) -> impl Iterator<Item = (Vec2<i32>, &T)> + '_ {
         (0..size.x).flat_map(move |x| {
-            (0..size.y).map(move |y| {
+            (0..size.y).flat_map(move |y| {
                 Some((
                     pos + Vec2::new(x, y),
                     &self.cells[self.idx(pos + Vec2::new(x, y))?],
