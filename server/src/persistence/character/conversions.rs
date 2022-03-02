@@ -420,7 +420,7 @@ pub fn convert_inventory_from_database_items(
 
     // Some items may have had components added, so update the item config of each
     // item to ensure that it correctly accounts for components that were added
-    inventory.persistence_update_all_item_configs(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
+    inventory.persistence_update_all_item_states(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
 
     Ok(inventory)
 }
@@ -483,7 +483,7 @@ pub fn convert_loadout_from_database_items(
 
     // Some items may have had components added, so update the item config of each
     // item to ensure that it correctly accounts for components that were added
-    loadout.persistence_update_all_item_configs(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
+    loadout.persistence_update_all_item_states(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
 
     Ok(loadout)
 }

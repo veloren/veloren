@@ -369,7 +369,7 @@ use std::hash::{Hash, Hasher};
 impl Hash for Item {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.item_definition_id().hash(state);
-        self.components.hash(state);
+        self.components.iter().for_each(|comp| comp.hash(state));
     }
 }
 
@@ -666,23 +666,17 @@ impl Item {
         ability_map: &AbilityMap,
         msm: &MaterialStatManifest,
     ) -> Self {
-        let item_hash = {
-            let mut s = DefaultHasher::new();
-            inner_item.item_definition_id().hash(&mut s);
-            components.hash(&mut s);
-            s.finish()
-        };
-
         let mut item = Item {
             item_id: Arc::new(AtomicCell::new(None)),
             amount: NonZeroU32::new(1).unwrap(),
             components,
             slots: vec![None; inner_item.num_slots() as usize],
             item_base: inner_item,
+            // Updated immediately below
             item_config: None,
-            hash: item_hash,
+            hash: 0,
         };
-        item.update_item_config(ability_map, msm);
+        item.update_item_state(ability_map, msm);
         item
     }
 
@@ -828,10 +822,20 @@ impl Item {
         self.components.get_mut(index)
     }
 
-    pub fn update_item_config(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+    /// Updates state of an item (important for creation of new items,
+    /// persistence, and if components are ever added to items after initial
+    /// creation)
+    pub fn update_item_state(&mut self, ability_map: &AbilityMap, msm: &MaterialStatManifest) {
+        // Updates item config of an item
         if let Ok(item_config) = ItemConfig::try_from((&*self, ability_map, msm)) {
             self.item_config = Some(Box::new(item_config));
         }
+        // Updates hash of an item
+        self.hash = {
+            let mut s = DefaultHasher::new();
+            self.hash(&mut s);
+            s.finish()
+        };
     }
 
     /// Returns an iterator that drains items contained within the item's slots

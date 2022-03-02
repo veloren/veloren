@@ -403,14 +403,14 @@ impl Loadout {
         }
     }
 
-    pub fn persistence_update_all_item_configs(
+    pub fn persistence_update_all_item_states(
         &mut self,
         ability_map: &item::tool::AbilityMap,
         msm: &item::tool::MaterialStatManifest,
     ) {
         self.slots.iter_mut().for_each(|slot| {
             if let Some(item) = &mut slot.slot {
-                item.update_item_config(ability_map, msm);
+                item.update_item_state(ability_map, msm);
             }
         });
     }
