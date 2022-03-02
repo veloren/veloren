@@ -1,4 +1,5 @@
 pub mod fast_noise;
+pub mod gen_cache;
 pub mod map_array;
 pub mod map_vec;
 pub mod math;
@@ -62,6 +63,35 @@ pub const NEIGHBORS: [Vec2<i32>; 8] = [
     Vec2::new(-1, -1),
     Vec2::new(0, -1),
     Vec2::new(1, -1),
+];
+
+pub const NEIGHBORS3: [Vec3<i32>; 26] = [
+    Vec3::new(0, 0, -1),
+    Vec3::new(0, 0, 1),
+    Vec3::new(0, -1, 0),
+    Vec3::new(0, -1, -1),
+    Vec3::new(0, -1, 1),
+    Vec3::new(0, 1, 0),
+    Vec3::new(0, 1, -1),
+    Vec3::new(0, 1, 1),
+    Vec3::new(-1, 0, 0),
+    Vec3::new(-1, 0, -1),
+    Vec3::new(-1, 0, 1),
+    Vec3::new(-1, -1, 0),
+    Vec3::new(-1, -1, -1),
+    Vec3::new(-1, -1, 1),
+    Vec3::new(-1, 1, 0),
+    Vec3::new(-1, 1, -1),
+    Vec3::new(-1, 1, 1),
+    Vec3::new(1, 0, 0),
+    Vec3::new(1, 0, -1),
+    Vec3::new(1, 0, 1),
+    Vec3::new(1, -1, 0),
+    Vec3::new(1, -1, -1),
+    Vec3::new(1, -1, 1),
+    Vec3::new(1, 1, 0),
+    Vec3::new(1, 1, -1),
+    Vec3::new(1, 1, 1),
 ];
 
 pub const LOCALITY: [Vec2<i32>; 9] = [

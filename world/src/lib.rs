@@ -366,6 +366,9 @@ impl World {
         if index.features.caves {
             layer::apply_caves_to(&mut canvas, &mut dynamic_rng);
         }
+        if index.features.rocks {
+            layer::apply_rocks_to(&mut canvas, &mut dynamic_rng);
+        }
         if index.features.shrubs {
             layer::apply_shrubs_to(&mut canvas, &mut dynamic_rng);
         }

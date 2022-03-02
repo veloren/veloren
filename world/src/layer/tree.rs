@@ -2,7 +2,7 @@ use crate::{
     all::*,
     block::block_from_structure,
     column::ColumnGen,
-    util::{RandomPerm, Sampler, UnitChooser},
+    util::{gen_cache::StructureGenCache, RandomPerm, Sampler, UnitChooser},
     Canvas,
 };
 use common::{
@@ -14,7 +14,6 @@ use common::{
     },
     vol::ReadVol,
 };
-use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::{f32, ops::Range};
@@ -51,174 +50,161 @@ pub fn apply_trees_to(
         model: TreeModel,
         seed: u32,
         units: (Vec2<i32>, Vec2<i32>),
+        lights: bool,
     }
 
-    let mut tree_cache = HashMap::new();
-
     let info = canvas.info();
+    let mut tree_cache = StructureGenCache::new(info.chunks().gen_ctx.structure_gen.clone());
+
     canvas.foreach_col(|canvas, wpos2d, col| {
-        let trees = info.chunks().get_near_trees(wpos2d);
+        let trees = tree_cache.get(wpos2d, |wpos, seed| {
+            let scale = 1.0;
+            let inhabited = false;
+            let forest_kind = *info
+                .chunks()
+                .make_forest_lottery(wpos)
+                .choose_seeded(seed)
+                .as_ref()?;
 
-        for TreeAttr {
-            pos,
-            seed,
-            scale,
-            forest_kind,
-            inhabited,
-        } in trees
-        {
-            let tree = if let Some(tree) = tree_cache.entry(pos).or_insert_with(|| {
-                let col = ColumnGen::new(info.chunks()).get((pos, info.index(), calendar))?;
+            let col = ColumnGen::new(info.chunks()).get((wpos, info.index(), calendar))?;
 
-                // Ensure that it's valid to place a *thing* here
-                if col.alt < col.water_level
-                    || col.spawn_rate < 0.9
-                    || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
-                    || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
-                {
-                    return None;
-                }
+            // Ensure that it's valid to place a *thing* here
+            if col.alt < col.water_level
+                || col.spawn_rate < 0.9
+                || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
+                || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
+            {
+                return None;
+            }
 
-                // Ensure that it's valid to place a tree here
-                if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
-                    return None;
-                }
+            // Ensure that it's valid to place a tree here
+            if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
+                return None;
+            }
 
-                Some(Tree {
-                    pos: Vec3::new(pos.x, pos.y, col.alt as i32),
-                    model: 'model: {
-                        let models: AssetHandle<_> = match forest_kind {
-                            ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => {
-                                *OAK_STUMPS
-                            },
-                            ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::apple(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::TemperateLeaves,
-                                );
-                            },
-                            ForestKind::Palm => *PALMS,
-                            ForestKind::Acacia => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::acacia(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::Acacia,
-                                );
-                            },
-                            ForestKind::Baobab => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::baobab(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::Baobab,
-                                );
-                            },
-                            ForestKind::Oak => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::oak(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::TemperateLeaves,
-                                );
-                            },
-                            ForestKind::Chestnut => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::chestnut(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::Chestnut,
-                                );
-                            },
-                            ForestKind::Pine => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::pine(
-                                            &mut RandomPerm::new(seed),
-                                            scale,
-                                            calendar,
-                                        ),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::PineLeaves,
-                                );
-                            },
-                            ForestKind::Cedar => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::cedar(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::PineLeaves,
-                                );
-                            },
-                            ForestKind::Birch => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::birch(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::TemperateLeaves,
-                                );
-                            },
-                            ForestKind::Frostpine => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::frostpine(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::FrostpineLeaves,
-                                );
-                            },
+            Some(Tree {
+                pos: Vec3::new(wpos.x, wpos.y, col.alt as i32),
+                model: 'model: {
+                    let models: AssetHandle<_> = match forest_kind {
+                        ForestKind::Oak if QUIRKY_RAND.chance(seed + 1, 1.0 / 16.0) => *OAK_STUMPS,
+                        ForestKind::Oak if QUIRKY_RAND.chance(seed + 2, 1.0 / 20.0) => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::apple(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::TemperateLeaves,
+                            );
+                        },
+                        ForestKind::Palm => *PALMS,
+                        ForestKind::Acacia => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::acacia(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::Acacia,
+                            );
+                        },
+                        ForestKind::Baobab => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::baobab(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::Baobab,
+                            );
+                        },
+                        ForestKind::Oak => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::oak(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::TemperateLeaves,
+                            );
+                        },
+                        ForestKind::Chestnut => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::chestnut(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::Chestnut,
+                            );
+                        },
+                        ForestKind::Pine => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::pine(&mut RandomPerm::new(seed), scale, calendar),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::PineLeaves,
+                            );
+                        },
+                        ForestKind::Cedar => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::cedar(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::PineLeaves,
+                            );
+                        },
+                        ForestKind::Birch => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::birch(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::TemperateLeaves,
+                            );
+                        },
+                        ForestKind::Frostpine => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::frostpine(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::FrostpineLeaves,
+                            );
+                        },
 
-                            ForestKind::Mangrove => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::jungle(&mut RandomPerm::new(seed), scale),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::Mangrove,
-                                );
-                            },
-                            ForestKind::Swamp => *SWAMP_TREES,
-                            ForestKind::Giant => {
-                                break 'model TreeModel::Procedural(
-                                    ProceduralTree::generate(
-                                        TreeConfig::giant(
-                                            &mut RandomPerm::new(seed),
-                                            scale,
-                                            inhabited,
-                                        ),
-                                        &mut RandomPerm::new(seed),
-                                    ),
-                                    StructureBlock::TemperateLeaves,
-                                );
-                            },
-                        };
+                        ForestKind::Mangrove => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::jungle(&mut RandomPerm::new(seed), scale),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::Mangrove,
+                            );
+                        },
+                        ForestKind::Swamp => *SWAMP_TREES,
+                        ForestKind::Giant => {
+                            break 'model TreeModel::Procedural(
+                                ProceduralTree::generate(
+                                    TreeConfig::giant(&mut RandomPerm::new(seed), scale, inhabited),
+                                    &mut RandomPerm::new(seed),
+                                ),
+                                StructureBlock::TemperateLeaves,
+                            );
+                        },
+                    };
 
-                        let models = models.read();
-                        TreeModel::Structure(
-                            models[(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize
-                                % models.len()]
-                            .clone(),
-                        )
-                    },
-                    seed,
-                    units: UNIT_CHOOSER.get(seed),
-                })
-            }) {
-                tree
-            } else {
-                continue;
-            };
+                    let models = models.read();
+                    TreeModel::Structure(
+                        models
+                            [(MODEL_RAND.get(seed.wrapping_mul(17)) / 13) as usize % models.len()]
+                        .clone(),
+                    )
+                },
+                seed,
+                units: UNIT_CHOOSER.get(seed),
+                lights: inhabited,
+            })
+        });
 
+        for tree in trees {
             let bounds = match &tree.model {
                 TreeModel::Structure(s) => s.get_bounds(),
                 TreeModel::Procedural(t, _) => t.get_bounds().map(|e| e as i32),
@@ -279,7 +265,7 @@ pub fn apply_trees_to(
                 )
                 .map(|block| {
                     // Add lights to the tree
-                    if inhabited
+                    if tree.lights
                         && last_block.is_air()
                         && block.kind() == BlockKind::Wood
                         && dynamic_rng.gen_range(0..256) == 0

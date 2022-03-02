@@ -841,17 +841,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let alt = alt + riverless_alt_delta;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
-
-        let rock = (sim.gen_ctx.small_nz.get(
-            Vec3::new(wposf.x, wposf.y, alt as f64)
-                .div(100.0)
-                .into_array(),
-        ) as f32)
-            //.mul(water_dist.map(|wd| (wd / 2.0).clamped(0.0, 1.0).sqrt()).unwrap_or(1.0))
-            .mul(rockiness)
-            .sub(0.4)
-            .max(0.0)
-            .mul(8.0);
+        // Adjust this to make rock placement better
+        let rock_density = rockiness;
 
         // Columns near water have a more stable temperature and so get pushed towards
         // the average (0)
@@ -1182,7 +1173,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             marble,
             marble_mid,
             marble_small,
-            rock,
+            rock_density,
             temp,
             humidity,
             spawn_rate,
@@ -1217,7 +1208,7 @@ pub struct ColumnSample<'a> {
     pub marble: f32,
     pub marble_mid: f32,
     pub marble_small: f32,
-    pub rock: f32,
+    pub rock_density: f32,
     pub temp: f32,
     pub humidity: f32,
     pub spawn_rate: f32,
