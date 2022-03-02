@@ -4,8 +4,8 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, bloom, debug, figure, fluid, lod_terrain, particle, shadow, skybox, sprite,
-            terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
+            sprite, terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -214,11 +214,6 @@ impl<'frame> Drawer<'frame> {
 
     /// Returns None if the clouds pipeline is not available
     pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
-        let pipelines = super::SecondPassPipelines {
-            clouds: &self.borrow.pipelines.all()?.clouds,
-            trail: &self.borrow.pipelines.all()?.trail,
-        };
-
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -232,7 +227,11 @@ impl<'frame> Drawer<'frame> {
                         store: true,
                     },
                 }],
-                depth_stencil_attachment: None,
+                depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                    view: &self.borrow.views.tgt_depth,
+                    depth_ops: None,
+                    stencil_ops: None,
+                }),
             });
 
         render_pass.set_bind_group(0, &self.globals.bind_group, &[]);
@@ -240,7 +239,8 @@ impl<'frame> Drawer<'frame> {
         Some(SecondPassDrawer {
             render_pass,
             borrow: &self.borrow,
-            pipelines,
+            clouds_pipeline: &self.borrow.pipelines.all()?.clouds,
+            trail_pipeline: &self.borrow.pipelines.all()?.trail,
         })
     }
 
@@ -931,13 +931,14 @@ impl<'pass_ref, 'pass: 'pass_ref> FluidDrawer<'pass_ref, 'pass> {
 pub struct SecondPassDrawer<'pass> {
     render_pass: OwningScope<'pass, wgpu::RenderPass<'pass>>,
     borrow: &'pass RendererBorrow<'pass>,
-    pipelines: super::SecondPassPipelines<'pass>,
+    clouds_pipeline: &'pass clouds::CloudsPipeline,
+    trail_pipeline: &'pass trail::TrailPipeline,
 }
 
 impl<'pass> SecondPassDrawer<'pass> {
     pub fn draw_clouds(&mut self) {
         self.render_pass
-            .set_pipeline(&self.pipelines.clouds.pipeline);
+            .set_pipeline(&self.clouds_pipeline.pipeline);
         self.render_pass
             .set_bind_group(1, &self.borrow.locals.clouds_bind.bind_group, &[]);
         self.render_pass.draw(0..3, 0..1);
@@ -946,7 +947,7 @@ impl<'pass> SecondPassDrawer<'pass> {
     pub fn draw_trails(&mut self) -> Option<TrailDrawer<'_, 'pass>> {
         let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
 
-        render_pass.set_pipeline(&self.pipelines.trail.pipeline);
+        render_pass.set_pipeline(&self.trail_pipeline.pipeline);
         set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
 
         render_pass.set_bind_group(1, &self.borrow.shadow?.bind.bind_group, &[]);

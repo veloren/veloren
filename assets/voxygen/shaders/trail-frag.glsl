@@ -34,77 +34,10 @@ void main() {
     vec3 trail_color = vec3(.55, .92, 1.0);
     float trail_alpha = 0.05;
     // Controls how much light affects alpha variation. TODO: Maybe a better name?
-    float light_variable = 1.0;
-
-    #ifdef EXPERIMENTAL_BAREMINIMUM
-        tgt_color = vec4(trail_color, trail_alpha);
-        return;
-    #endif
-
-    // Using this as norm seems to work, so...
-    vec3 f_norm = vec3(0, 0, -1);
-    vec3 cam_to_frag = normalize(f_pos - cam_pos.xyz);
-    vec3 view_dir = -cam_to_frag;
-
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP || FLUID_MODE == FLUID_MODE_SHINY)
-    float f_alt = alt_at(f_pos.xy);
-#elif (SHADOW_MODE == SHADOW_MODE_NONE || FLUID_MODE == FLUID_MODE_CHEAP)
-    float f_alt = f_pos.z;
-#endif
-
-#if (SHADOW_MODE == SHADOW_MODE_CHEAP || SHADOW_MODE == SHADOW_MODE_MAP)
-    vec4 f_shadow = textureBicubic(t_horizon, s_horizon, pos_to_tex(f_pos.xy));
-    float sun_shade_frac = horizon_at2(f_shadow, f_alt, f_pos, sun_dir);
-#elif (SHADOW_MODE == SHADOW_MODE_NONE)
-    float sun_shade_frac = 1.0;
-#endif
-    float moon_shade_frac = 1.0;
-
-    float point_shadow = shadow_at(f_pos, f_norm);
-    DirectionalLight sun_info = get_sun_info(sun_dir, point_shadow * sun_shade_frac, f_pos);
-    DirectionalLight moon_info = get_moon_info(moon_dir, point_shadow * moon_shade_frac);
-
-    float alpha = 1.0;
-    const float n2 = 1.5;
-    const float R_s2s0 = pow((1.0 - n2) / (1.0 + n2), 2);
-    const float R_s1s0 = pow((1.3325 - n2) / (1.3325 + n2), 2);
-    const float R_s2s1 = pow((1.0 - 1.3325) / (1.0 + 1.3325), 2);
-    const float R_s1s2 = pow((1.3325 - 1.0) / (1.3325 + 1.0), 2);
-    float R_s = (f_pos.z < f_alt) ? mix(R_s2s1 * R_s1s0, R_s1s0, medium.x) : mix(R_s2s0, R_s1s2 * R_s2s0, medium.x);
-
-    vec3 k_a = vec3(1.0);
-    vec3 k_d = vec3(1.0);
-    vec3 k_s = vec3(R_s);
-
-    vec3 emitted_light, reflected_light;
-
-    // TODO: Look into using the same light parameter that is used for figures
-    // Comment on this method copy-pasted from particle shader:
-    // This is a bit of a hack. Because we can't find the volumetric lighting of each particle (they don't talk to the
-    // CPU) we need to some how find an approximation of how much the sun is blocked. We do this by fading out the sun
-    // as the particle moves underground. This isn't perfect, but it does at least mean that particles don't look like
-    // they're exposed to the sun when in dungeons
-    const float SUN_FADEOUT_DIST = 20.0;
-    sun_info.block *= clamp((f_pos.z - f_alt) / SUN_FADEOUT_DIST + 1, 0, 1);
-
-    // To account for prior saturation.
-    float max_light = 0.0;
-
-    vec3 cam_attenuation = vec3(1);
-    float fluid_alt = max(f_pos.z + 1, floor(f_alt + 1));
-    vec3 mu = medium.x == MEDIUM_WATER ? MU_WATER : vec3(0.0);
-    #if (FLUID_MODE == FLUID_MODE_SHINY)
-        cam_attenuation =
-            medium.x == MEDIUM_WATER ? compute_attenuation_point(cam_pos.xyz, view_dir, MU_WATER, fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/f_pos)
-            : compute_attenuation_point(f_pos, -view_dir, vec3(0), fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
-    #endif
-
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
-
-    max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    float light_variable = 0.075;
 
     // Make less faint at day (relative to night) by adding light to alpha. Probably hacky but looks fine.
-    trail_alpha += max_light * light_variable;
+    trail_alpha += get_sun_brightness() * light_variable;
 
     tgt_color = vec4(trail_color, trail_alpha);
 }
