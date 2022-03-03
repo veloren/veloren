@@ -309,7 +309,7 @@ impl Scene {
             select_pos: None,
             light_data: Vec::new(),
             particle_mgr: ParticleMgr::new(renderer),
-            trail_mgr: TrailMgr::new(renderer),
+            trail_mgr: TrailMgr::default(),
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::default(),

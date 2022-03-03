@@ -12,6 +12,7 @@ struct MeshKey {
     is_main_weapon: bool,
 }
 
+#[derive(Default)]
 pub struct TrailMgr {
     /// Meshes for each entity, usize is the last offset tick it was updated
     entity_meshes: HashMap<MeshKey, (Mesh<TrailVertex>, usize)>,
@@ -33,16 +34,6 @@ const TRAIL_DYNAMIC_MODEL_SIZE: usize = 15;
 const TRAIL_SHRINKAGE: f32 = 0.8;
 
 impl TrailMgr {
-    pub fn new(_renderer: &mut Renderer) -> Self {
-        Self {
-            entity_meshes: HashMap::new(),
-            pos_cache: HashMap::new(),
-            offset: 0,
-            dynamic_model: None,
-            model_len: 0,
-        }
-    }
-
     pub fn maintain(&mut self, renderer: &mut Renderer, scene_data: &SceneData) {
         span!(_guard, "maintain", "TrailMgr::maintain");
 

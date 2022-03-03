@@ -1551,15 +1551,13 @@ impl PlayState for SessionState {
         };
 
         // Render world
-        {
-            self.scene.render(
-                drawer,
-                client.state(),
-                client.entity(),
-                client.get_tick(),
-                &scene_data,
-            );
-        }
+        self.scene.render(
+            drawer,
+            client.state(),
+            client.entity(),
+            client.get_tick(),
+            &scene_data,
+        );
 
         if let Some(mut second_pass) = drawer.second_pass() {
             // Clouds

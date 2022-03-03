@@ -214,6 +214,7 @@ impl<'frame> Drawer<'frame> {
 
     /// Returns None if the clouds pipeline is not available
     pub fn second_pass(&mut self) -> Option<SecondPassDrawer> {
+        let pipelines = &self.borrow.pipelines.all()?;
         let encoder = self.encoder.as_mut().unwrap();
         let device = self.borrow.device;
         let mut render_pass =
@@ -239,8 +240,8 @@ impl<'frame> Drawer<'frame> {
         Some(SecondPassDrawer {
             render_pass,
             borrow: &self.borrow,
-            clouds_pipeline: &self.borrow.pipelines.all()?.clouds,
-            trail_pipeline: &self.borrow.pipelines.all()?.trail,
+            clouds_pipeline: &pipelines.clouds,
+            trail_pipeline: &pipelines.trail,
         })
     }
 
@@ -945,12 +946,14 @@ impl<'pass> SecondPassDrawer<'pass> {
     }
 
     pub fn draw_trails(&mut self) -> Option<TrailDrawer<'_, 'pass>> {
+        let shadow = &self.borrow.shadow?;
+
         let mut render_pass = self.render_pass.scope("trails", self.borrow.device);
 
         render_pass.set_pipeline(&self.trail_pipeline.pipeline);
         set_quad_index_buffer::<trail::Vertex>(&mut render_pass, self.borrow);
 
-        render_pass.set_bind_group(1, &self.borrow.shadow?.bind.bind_group, &[]);
+        render_pass.set_bind_group(1, &shadow.bind.bind_group, &[]);
 
         Some(TrailDrawer { render_pass })
     }

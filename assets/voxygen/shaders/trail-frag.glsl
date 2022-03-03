@@ -37,6 +37,7 @@ void main() {
     float light_variable = 0.075;
 
     // Make less faint at day (relative to night) by adding light to alpha. Probably hacky but looks fine.
+    // TODO: Trails should also eventually account for shadows, nearby lights, attenuation of sunlight in water, and block based lighting. Note: many of these will require alternative methods that don't require a normal.
     trail_alpha += get_sun_brightness() * light_variable;
 
     tgt_color = vec4(trail_color, trail_alpha);
