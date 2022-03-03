@@ -49,6 +49,8 @@ impl Skeleton for ObjectSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

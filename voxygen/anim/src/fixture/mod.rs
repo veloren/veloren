@@ -37,6 +37,8 @@ impl Skeleton for FixtureSkeleton {
         Offsets {
             lantern: None,
             mount_bone: Transform::default(),
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

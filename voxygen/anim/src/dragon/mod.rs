@@ -81,6 +81,8 @@ impl Skeleton for DragonSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

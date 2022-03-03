@@ -148,6 +148,7 @@ impl Scene {
                         .create_figure(renderer, greedy.finalize(), (opaque_mesh, bounds), [range]);
                 let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
                 let common_params = FigureUpdateCommonParameters {
+                    entity: None,
                     pos: anim::vek::Vec3::zero(),
                     ori: anim::vek::Quaternion::rotation_from_to_3d(
                         anim::vek::Vec3::unit_y(),
@@ -156,6 +157,7 @@ impl Scene {
                     scale: 1.0,
                     mount_transform_pos: None,
                     body: None,
+                    tools: (None, None),
                     col: Rgba::broadcast(1.0),
                     dt: 15.0, // Want to get there immediately.
                     _lpindex: 0,
@@ -165,7 +167,15 @@ impl Scene {
                     terrain: None,
                     ground_vel: Vec3::zero(),
                 };
-                state.update(renderer, &mut buf, &common_params, 1.0, Some(&model), ());
+                state.update(
+                    renderer,
+                    None,
+                    &mut buf,
+                    &common_params,
+                    1.0,
+                    Some(&model),
+                    (),
+                );
                 (model, state)
             }),
             col_lights,
@@ -330,6 +340,7 @@ impl Scene {
                 .0;
             let mut buf = [Default::default(); anim::MAX_BONE_COUNT];
             let common_params = FigureUpdateCommonParameters {
+                entity: None,
                 pos: anim::vek::Vec3::zero(),
                 ori: anim::vek::Quaternion::rotation_from_to_3d(
                     anim::vek::Vec3::unit_y(),
@@ -338,6 +349,7 @@ impl Scene {
                 scale: 1.0,
                 mount_transform_pos: None,
                 body: None,
+                tools: (None, None),
                 col: Rgba::broadcast(1.0),
                 dt: scene_data.delta_time,
                 _lpindex: 0,
@@ -348,7 +360,7 @@ impl Scene {
                 ground_vel: Vec3::zero(),
             };
 
-            figure_state.update(renderer, &mut buf, &common_params, 1.0, model, body);
+            figure_state.update(renderer, None, &mut buf, &common_params, 1.0, model, body);
         }
     }
 

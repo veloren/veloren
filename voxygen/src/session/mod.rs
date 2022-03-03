@@ -1474,6 +1474,7 @@ impl PlayState for SessionState {
                     sprite_render_distance: global_state.settings.graphics.sprite_render_distance
                         as f32,
                     particles_enabled: global_state.settings.graphics.particles_enabled,
+                    weapon_trails_enabled: global_state.settings.graphics.weapon_trails_enabled,
                     figure_lod_render_distance: global_state
                         .settings
                         .graphics
@@ -1527,43 +1528,51 @@ impl PlayState for SessionState {
     fn render<'a>(&'a self, drawer: &mut Drawer<'a>, settings: &Settings) {
         span!(_guard, "render", "<Session as PlayState>::render");
 
+        let client = self.client.borrow();
+
+        let scene_data = SceneData {
+            client: &client,
+            state: client.state(),
+            player_entity: client.entity(),
+            // Only highlight if interactable
+            target_entity: self.interactable.and_then(Interactable::entity),
+            loaded_distance: client.loaded_distance(),
+            view_distance: client.view_distance().unwrap_or(1),
+            tick: client.get_tick(),
+            gamma: settings.graphics.gamma,
+            exposure: settings.graphics.exposure,
+            ambiance: settings.graphics.ambiance,
+            mouse_smoothing: settings.gameplay.smooth_pan_enable,
+            sprite_render_distance: settings.graphics.sprite_render_distance as f32,
+            figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
+            particles_enabled: settings.graphics.particles_enabled,
+            weapon_trails_enabled: settings.graphics.weapon_trails_enabled,
+            is_aiming: self.is_aiming,
+        };
+
         // Render world
-        {
-            let client = self.client.borrow();
+        self.scene.render(
+            drawer,
+            client.state(),
+            client.entity(),
+            client.get_tick(),
+            &scene_data,
+        );
 
-            let scene_data = SceneData {
-                client: &client,
-                state: client.state(),
-                player_entity: client.entity(),
-                // Only highlight if interactable
-                target_entity: self.interactable.and_then(Interactable::entity),
-                loaded_distance: client.loaded_distance(),
-                view_distance: client.view_distance().unwrap_or(1),
-                tick: client.get_tick(),
-                gamma: settings.graphics.gamma,
-                exposure: settings.graphics.exposure,
-                ambiance: settings.graphics.ambiance,
-                mouse_smoothing: settings.gameplay.smooth_pan_enable,
-                sprite_render_distance: settings.graphics.sprite_render_distance as f32,
-                figure_lod_render_distance: settings.graphics.figure_lod_render_distance as f32,
-                particles_enabled: settings.graphics.particles_enabled,
-                is_aiming: self.is_aiming,
-            };
-
-            self.scene.render(
-                drawer,
-                client.state(),
-                client.entity(),
-                client.get_tick(),
-                &scene_data,
-            );
-        }
-
-        // Clouds
-        {
-            prof_span!("clouds");
-            if let Some(mut second_pass) = drawer.second_pass() {
+        if let Some(mut second_pass) = drawer.second_pass() {
+            // Clouds
+            {
+                prof_span!("clouds");
                 second_pass.draw_clouds();
+            }
+            // Trails
+            {
+                prof_span!("trails");
+                if let Some(mut trail_drawer) = second_pass.draw_trails() {
+                    self.scene
+                        .trail_mgr()
+                        .render(&mut trail_drawer, &scene_data);
+                }
             }
         }
         // Bloom (call does nothing if bloom is off)

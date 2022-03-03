@@ -60,6 +60,8 @@ impl Skeleton for FishMediumSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

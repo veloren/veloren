@@ -43,6 +43,8 @@ impl Skeleton for ItemDropSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

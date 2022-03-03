@@ -137,6 +137,8 @@ impl Skeleton for BipedLargeSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

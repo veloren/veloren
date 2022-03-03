@@ -9,15 +9,15 @@ pub use volume::VolumeKey;
 use crate::{
     ecs::comp::Interpolated,
     render::{
-        pipelines::{self, ColLights},
+        pipelines::{self, trail, ColLights},
         ColLightInfo, FigureBoneData, FigureDrawer, FigureLocals, FigureModel, FigureShadowDrawer,
-        Mesh, RenderError, Renderer, SubModel, TerrainVertex,
+        Mesh, Quad, RenderError, Renderer, SubModel, TerrainVertex,
     },
     scene::{
         camera::{Camera, CameraMode, Dependents},
         math,
         terrain::Terrain,
-        SceneData,
+        SceneData, TrailMgr,
     },
 };
 use anim::{
@@ -571,6 +571,7 @@ impl FigureMgr {
     pub fn maintain(
         &mut self,
         renderer: &mut Renderer,
+        trail_mgr: &mut TrailMgr,
         scene_data: &SceneData,
         // Visible chunk data.
         visible_psr_bounds: math::Aabr<f32>,
@@ -814,7 +815,7 @@ impl FigureMgr {
                 .unwrap_or_else(|| vek::Rgba::broadcast(1.0))
             // Highlight targeted collectible entities
             * if item.is_some() && scene_data.target_entity.map_or(false, |e| e == entity) {
-                vek::Rgba::new(5.0, 5.0, 5.0, 1.0)
+                vek::Rgba::new(1.5, 1.5, 1.5, 1.0)
             } else {
                 vek::Rgba::one()
             };
@@ -854,12 +855,17 @@ impl FigureMgr {
 
             let body = *body;
 
+            // Only use trail manager when trails are enabled
+            let trail_mgr = scene_data.weapon_trails_enabled.then(|| &mut *trail_mgr);
+
             let common_params = FigureUpdateCommonParameters {
+                entity: Some(entity),
                 pos: pos.0,
                 ori,
                 scale,
                 mount_transform_pos,
                 body: Some(body),
+                tools: (active_tool_kind, second_tool_kind),
                 col,
                 dt,
                 _lpindex: lpindex,
@@ -1759,6 +1765,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -1958,6 +1965,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -2274,6 +2282,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -2631,6 +2640,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -2734,6 +2744,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -2816,6 +2827,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -3342,6 +3354,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -3428,6 +3441,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -3606,6 +3620,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -3897,6 +3912,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -4219,6 +4235,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -4301,6 +4318,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_base, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -4922,6 +4940,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -5162,6 +5181,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -5289,6 +5309,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -5351,6 +5372,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -5385,6 +5407,7 @@ impl FigureMgr {
 
                         state.update(
                             renderer,
+                            trail_mgr,
                             &mut update_buf,
                             &common_params,
                             state_animation_rate,
@@ -5478,6 +5501,7 @@ impl FigureMgr {
                     state.skeleton = anim::vek::Lerp::lerp(&state.skeleton, &target_bones, dt_lerp);
                     state.update(
                         renderer,
+                        trail_mgr,
                         &mut update_buf,
                         &common_params,
                         state_animation_rate,
@@ -6170,6 +6194,8 @@ impl FigureColLights {
 
 pub struct FigureStateMeta {
     lantern_offset: Option<anim::vek::Vec3<f32>>,
+    main_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+    off_abs_trail_points: Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
     // Animation to be applied to rider of this entity
     mount_transform: anim::vek::Transform<f32, f32, f32>,
     // Contains the position of this figure or if it is a rider it will contain the mount's
@@ -6218,11 +6244,13 @@ impl<S> DerefMut for FigureState<S> {
 /// Parameters that don't depend on the body variant or animation results and
 /// are also not mutable
 pub struct FigureUpdateCommonParameters<'a> {
+    pub entity: Option<EcsEntity>,
     pub pos: anim::vek::Vec3<f32>,
     pub ori: anim::vek::Quaternion<f32>,
     pub scale: f32,
     pub mount_transform_pos: Option<(anim::vek::Transform<f32, f32, f32>, anim::vek::Vec3<f32>)>,
     pub body: Option<Body>,
+    pub tools: (Option<ToolKind>, Option<ToolKind>),
     pub col: vek::Rgba<f32>,
     pub dt: f32,
     // TODO: evaluate unused variable
@@ -6245,6 +6273,8 @@ impl<S: Skeleton> FigureState<S> {
         Self {
             meta: FigureStateMeta {
                 lantern_offset: offsets.lantern,
+                main_abs_trail_points: None,
+                off_abs_trail_points: None,
                 mount_transform: offsets.mount_bone,
                 mount_world_pos: anim::vek::Vec3::zero(),
                 state_time: 0.0,
@@ -6266,13 +6296,16 @@ impl<S: Skeleton> FigureState<S> {
     pub fn update<const N: usize>(
         &mut self,
         renderer: &mut Renderer,
+        trail_mgr: Option<&mut TrailMgr>,
         buf: &mut [anim::FigureBoneData; anim::MAX_BONE_COUNT],
         FigureUpdateCommonParameters {
+            entity,
             pos,
             ori,
             scale,
             mount_transform_pos,
             body,
+            tools,
             col,
             dt,
             _lpindex,
@@ -6410,6 +6443,55 @@ impl<S: Skeleton> FigureState<S> {
 
         renderer.update_consts(&mut self.meta.bound.1, &new_bone_consts[0..S::BONE_COUNT]);
         self.lantern_offset = offsets.lantern;
+        // Handle weapon trails
+        fn handle_weapon_trails(
+            trail_mgr: &mut TrailMgr,
+            new_weapon_trail_mat: Option<(anim::vek::Mat4<f32>, anim::TrailSource)>,
+            old_abs_trail_points: &mut Option<(anim::vek::Vec3<f32>, anim::vek::Vec3<f32>)>,
+            entity: EcsEntity,
+            is_main_weapon: bool,
+            pos: anim::vek::Vec3<f32>,
+            tool: Option<ToolKind>,
+        ) {
+            let weapon_offsets = new_weapon_trail_mat.map(|(mat, trail)| {
+                let (trail_start, trail_end) = trail.relative_offsets(tool);
+                ((mat * trail_start).xyz(), (mat * trail_end).xyz())
+            });
+            let new_abs_trail_points = weapon_offsets.map(|(a, b)| (a + pos, b + pos));
+            if let (Some((p1, p2)), Some((p4, p3))) = (&old_abs_trail_points, new_abs_trail_points)
+            {
+                let trail_mgr_offset = trail_mgr.offset();
+                let quad_mesh = trail_mgr.entity_mesh_or_insert(entity, is_main_weapon);
+                let vertex = |p: anim::vek::Vec3<f32>| trail::Vertex {
+                    pos: p.into_array(),
+                };
+                let quad = Quad::new(vertex(*p1), vertex(*p2), vertex(p3), vertex(p4));
+                quad_mesh.replace_quad(trail_mgr_offset * 4, quad);
+            }
+            *old_abs_trail_points = new_abs_trail_points;
+        }
+
+        if let (Some(trail_mgr), Some(entity)) = (trail_mgr, entity) {
+            handle_weapon_trails(
+                trail_mgr,
+                offsets.primary_trail_mat,
+                &mut self.main_abs_trail_points,
+                *entity,
+                true,
+                *pos,
+                tools.0,
+            );
+            handle_weapon_trails(
+                trail_mgr,
+                offsets.secondary_trail_mat,
+                &mut self.off_abs_trail_points,
+                *entity,
+                false,
+                *pos,
+                tools.1,
+            );
+        }
+
         // TODO: compute the mount bone only when it is needed
         self.mount_transform = offsets.mount_bone;
         self.mount_world_pos = mount_transform_pos.map_or(*pos, |(_, pos)| pos);

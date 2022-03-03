@@ -109,6 +109,10 @@ impl<V: Vertex> Mesh<V> {
     pub fn iter_mut(&mut self, vertex_range: Range<usize>) -> std::slice::IterMut<V> {
         self.verts[vertex_range].iter_mut()
     }
+
+    pub fn len(&self) -> usize { self.verts.len() }
+
+    pub fn is_empty(&self) -> bool { self.len() == 0 }
 }
 
 impl<V: Vertex> IntoIterator for Mesh<V> {

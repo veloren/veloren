@@ -84,6 +84,8 @@ impl Skeleton for TheropodSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

@@ -49,7 +49,7 @@ pub use self::{
     stunned::StunnedAnimation, swim::SwimAnimation, swimwield::SwimWieldAnimation,
     talk::TalkAnimation, wallrun::WallrunAnimation, wield::WieldAnimation,
 };
-use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton};
+use super::{make_bone, vek::*, FigureBoneData, Offsets, Skeleton, TrailSource};
 use common::comp;
 use core::{convert::TryFrom, f32::consts::PI};
 
@@ -78,6 +78,10 @@ skeleton_impls!(struct CharacterSkeleton {
     control_r,
     :: // Begin non-bone fields
     holding_lantern: bool,
+    main_weapon_trail: bool,
+    off_weapon_trail: bool,
+    // Cannot exist at same time as weapon trails. Since gliding and attacking are mutually exclusive, should never be a concern.
+    glider_trails: bool,
 });
 
 impl CharacterSkeleton {
@@ -125,6 +129,9 @@ impl Skeleton for CharacterSkeleton {
         } else {
             shorts_mat
         } * Mat4::<f32>::from(self.lantern);
+        let main_mat = control_l_mat * Mat4::<f32>::from(self.main);
+        let second_mat = control_r_mat * Mat4::<f32>::from(self.second);
+        let glider_mat = chest_mat * Mat4::<f32>::from(self.glider);
 
         *(<&mut [_; Self::BONE_COUNT]>::try_from(&mut buf[0..Self::BONE_COUNT]).unwrap()) = [
             make_bone(head_mat),
@@ -138,13 +145,14 @@ impl Skeleton for CharacterSkeleton {
             make_bone(torso_mat * Mat4::<f32>::from(self.foot_r)),
             make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_l)),
             make_bone(chest_mat * Mat4::<f32>::from(self.shoulder_r)),
-            make_bone(chest_mat * Mat4::<f32>::from(self.glider)),
-            make_bone(control_l_mat * Mat4::<f32>::from(self.main)),
-            make_bone(control_r_mat * Mat4::<f32>::from(self.second)),
+            make_bone(glider_mat),
+            make_bone(main_mat),
+            make_bone(second_mat),
             make_bone(lantern_mat),
             // FIXME: Should this be control_l_mat?
             make_bone(control_mat * hand_l_mat * Mat4::<f32>::from(self.hold)),
         ];
+        let weapon_trails = self.main_weapon_trail || self.off_weapon_trail;
         Offsets {
             lantern: Some((lantern_mat * Vec4::new(0.0, 0.5, -6.0, 1.0)).xyz()),
             // TODO: see quadruped_medium for how to animate this
@@ -154,6 +162,20 @@ impl Skeleton for CharacterSkeleton {
                     .into_tuple()
                     .into(),
                 ..Default::default()
+            },
+            primary_trail_mat: if weapon_trails {
+                self.main_weapon_trail
+                    .then_some((main_mat, TrailSource::Weapon))
+            } else {
+                self.glider_trails
+                    .then_some((glider_mat, TrailSource::GliderLeft))
+            },
+            secondary_trail_mat: if weapon_trails {
+                self.off_weapon_trail
+                    .then_some((second_mat, TrailSource::Weapon))
+            } else {
+                self.glider_trails
+                    .then_some((glider_mat, TrailSource::GliderRight))
             },
         }
     }

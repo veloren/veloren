@@ -86,6 +86,7 @@ pub enum Graphics {
     ChangeFullscreenMode(FullScreenSettings),
     ToggleParticlesEnabled(bool),
     ToggleLossyTerrainCompression(bool),
+    ToggleWeaponTrailsEnabled(bool),
     AdjustWindowSize([u16; 2]),
 
     ResetGraphicsSettings,
@@ -401,6 +402,9 @@ impl SettingsChange {
                             .client
                             .borrow_mut()
                             .request_lossy_terrain_compression(lossy_terrain_compression);
+                    },
+                    Graphics::ToggleWeaponTrailsEnabled(weapon_trails_enabled) => {
+                        settings.graphics.weapon_trails_enabled = weapon_trails_enabled;
                     },
                     Graphics::AdjustWindowSize(new_size) => {
                         global_state.window.set_size(new_size.into());

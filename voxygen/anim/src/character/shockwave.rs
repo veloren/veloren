@@ -43,6 +43,13 @@ impl Animation for ShockwaveAnimation {
             _ => (0.0, 0.0, 0.0),
         };
 
+        if matches!(
+            stage_section,
+            Some(StageSection::Action | StageSection::Recover)
+        ) {
+            next.main_weapon_trail = true;
+            next.off_weapon_trail = true;
+        }
         next.head.position = Vec3::new(0.0, s_a.head.0, s_a.head.1);
 
         next.hand_l.position = Vec3::new(s_a.sthl.0, s_a.sthl.1, s_a.sthl.2);

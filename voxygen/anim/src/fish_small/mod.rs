@@ -51,6 +51,8 @@ impl Skeleton for FishSmallSkeleton {
                     .into(),
                 ..Default::default()
             },
+            primary_trail_mat: None,
+            secondary_trail_mat: None,
         }
     }
 }

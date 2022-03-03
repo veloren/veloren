@@ -63,6 +63,8 @@ impl assets::Compound for Shaders {
             "sprite-frag",
             "particle-vert",
             "particle-frag",
+            "trail-vert",
+            "trail-frag",
             "ui-vert",
             "ui-frag",
             "lod-terrain-vert",
