@@ -1,5 +1,6 @@
 use crate::{
     assets::{self, AssetExt},
+    comp::item::Item,
     lottery::LootSpec,
     recipe::{default_recipe_book, RecipeInput},
     trade::Good,
@@ -9,66 +10,208 @@ use hashbrown::HashMap;
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::cmp::Ordering;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 const PRICING_DEBUG: bool = false;
 
 #[derive(Default, Debug)]
 pub struct TradePricing {
-    // items of different good kinds
-    tools: Entries,
-    armor: Entries,
-    potions: Entries,
-    food: Entries,
-    ingredients: Entries,
-    other: Entries,
-
-    // good_scaling of coins
-    coin_scale: f32,
-
-    // get amount of material per item
-    material_cache: HashMap<String, (Good, f32)>,
+    items: PriceEntries,
     equality_set: EqualitySet,
 }
 
-// item asset specifier, probability, whether it's sellable by merchants
-type Entry = (String, f32, bool);
+// combination logic:
+// price is the inverse of frequency
+// you can use either equivalent A or B => add frequency
+// you need both equivalent A and B => add price
 
-#[derive(Default, Debug)]
-struct Entries {
-    entries: Vec<Entry>,
+/// Material equivalent for an item (price)
+#[derive(Default, Debug, Clone)]
+pub struct MaterialUse(Vec<(f32, Good)>);
+
+impl std::ops::Mul<f32> for MaterialUse {
+    type Output = Self;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        Self(self.0.iter().map(|v| (v.0 * rhs, v.1)).collect())
+    }
 }
 
-impl Entries {
-    fn add(&mut self, eqset: &EqualitySet, item_name: &str, probability: f32, can_sell: bool) {
-        let canonical_itemname = eqset.canonical(item_name);
-
-        let old = self
-            .entries
+// used by the add variants
+fn vector_add_eq(result: &mut Vec<(f32, Good)>, rhs: &[(f32, Good)]) {
+    for (amount, good) in rhs {
+        if result
             .iter_mut()
-            .find(|(name, _, _)| *name == *canonical_itemname);
+            .find(|(_amount2, good2)| *good == *good2)
+            .map(|elem| elem.0 += *amount)
+            .is_none()
+        {
+            result.push((*amount, *good));
+        }
+    }
+}
 
-        // Increase probability if already in entries, or add new entry
-        if let Some((asset, ref mut old_probability, _)) = old {
-            if PRICING_DEBUG {
-                info!("Update {} {}+{}", asset, old_probability, probability);
-            }
-            *old_probability += probability;
+impl std::ops::Add for MaterialUse {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut result = self;
+        vector_add_eq(&mut result.0, &rhs.0);
+        result
+    }
+}
+
+impl std::ops::Deref for MaterialUse {
+    type Target = [(f32, Good)];
+
+    fn deref(&self) -> &Self::Target { self.0.deref() }
+}
+
+/// Frequency
+#[derive(Default, Debug, Clone)]
+pub struct MaterialFrequency(Vec<(f32, Good)>);
+
+// to compute price from frequency:
+// price[i] = 1/frequency[i] * 1/sum(frequency) * 1/sum(1/frequency)
+// scaling individual components so that ratio is inverted and the sum of all
+// inverted elements is equivalent to inverse of the original sum
+fn vector_invert(result: &mut Vec<(f32, Good)>) {
+    let mut oldsum: f32 = 0.0;
+    let mut newsum: f32 = 0.0;
+    for (value, _good) in result.iter_mut() {
+        oldsum += *value;
+        *value = 1.0 / *value;
+        newsum += *value;
+    }
+    let scale = 1.0 / (oldsum * newsum);
+    for (value, _good) in result.iter_mut() {
+        *value *= scale;
+    }
+}
+
+impl From<MaterialUse> for MaterialFrequency {
+    fn from(u: MaterialUse) -> Self {
+        let mut result = Self(u.0);
+        vector_invert(&mut result.0);
+        result
+    }
+}
+
+// identical computation
+impl From<MaterialFrequency> for MaterialUse {
+    fn from(u: MaterialFrequency) -> Self {
+        let mut result = Self(u.0);
+        vector_invert(&mut result.0);
+        result
+    }
+}
+
+impl std::ops::Add for MaterialFrequency {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut result = self;
+        vector_add_eq(&mut result.0, &rhs.0);
+        result
+    }
+}
+
+impl std::ops::AddAssign for MaterialFrequency {
+    fn add_assign(&mut self, rhs: Self) { vector_add_eq(&mut self.0, &rhs.0); }
+}
+
+#[derive(Default, Debug)]
+struct PriceEntry {
+    // item asset specifier
+    name: String,
+    price: MaterialUse,
+    // sellable by merchants
+    sell: bool,
+    stackable: bool,
+}
+#[derive(Default, Debug)]
+struct FreqEntry {
+    name: String,
+    freq: MaterialFrequency,
+    sell: bool,
+    stackable: bool,
+}
+
+#[derive(Default, Debug)]
+struct PriceEntries(Vec<PriceEntry>);
+#[derive(Default, Debug)]
+struct FreqEntries(Vec<FreqEntry>);
+
+impl PriceEntries {
+    fn add_alternative(&mut self, b: PriceEntry) {
+        // alternatives are added in frequency (gets more frequent)
+        let already = self.0.iter_mut().find(|i| i.name == b.name);
+        if let Some(entry) = already {
+            let entry_freq: MaterialFrequency = std::mem::take(&mut entry.price).into();
+            let b_freq: MaterialFrequency = b.price.into();
+            let result = entry_freq + b_freq;
+            entry.price = result.into();
         } else {
+            self.0.push(b);
+        }
+    }
+}
+
+impl FreqEntries {
+    fn add(
+        &mut self,
+        eqset: &EqualitySet,
+        item_name: &str,
+        good: Good,
+        probability: f32,
+        can_sell: bool,
+    ) {
+        let canonical_itemname = eqset.canonical(item_name);
+        let old = self
+            .0
+            .iter_mut()
+            .find(|elem| elem.name == *canonical_itemname);
+        let new_freq = MaterialFrequency(vec![(probability, good)]);
+        // Increase probability if already in entries, or add new entry
+        if let Some(FreqEntry {
+            name: asset,
+            freq: ref mut old_probability,
+            sell: old_can_sell,
+            stackable: _,
+        }) = old
+        {
             if PRICING_DEBUG {
-                info!("New {} {}", item_name, probability);
+                info!("Update {} {:?}+{:?}", asset, old_probability, probability);
             }
-            self.entries
-                .push((canonical_itemname.to_owned(), probability, can_sell));
+            if !can_sell && *old_can_sell {
+                *old_can_sell = false;
+            }
+            *old_probability += new_freq;
+        } else {
+            let item = Item::new_from_asset_expect(canonical_itemname);
+            let stackable = item.is_stackable();
+            let new_mat_prob: FreqEntry = FreqEntry {
+                name: canonical_itemname.to_owned(),
+                freq: new_freq,
+                sell: can_sell,
+                stackable,
+            };
+            if PRICING_DEBUG {
+                info!("New {:?}", new_mat_prob);
+            }
+            self.0.push(new_mat_prob);
         }
 
         // Add the non-canonical item so that it'll show up in merchant inventories
         // It will have infinity as its price, but it's fine,
         // because we determine all prices based on canonical value
-        if canonical_itemname != item_name
-            && !self.entries.iter().any(|(name, _, _)| name == item_name)
-        {
-            self.entries.push((item_name.to_owned(), 0.0, can_sell));
+        if canonical_itemname != item_name && !self.0.iter().any(|elem| elem.name == *item_name) {
+            self.0.push(FreqEntry {
+                name: item_name.to_owned(),
+                freq: Default::default(),
+                sell: can_sell,
+                stackable: false,
+            });
         }
     }
 }
@@ -197,25 +340,8 @@ impl assets::Compound for EqualitySet {
 struct RememberedRecipe {
     output: String,
     amount: u32,
-    material_cost: f32,
+    material_cost: Option<f32>,
     input: Vec<(String, u32)>,
-}
-
-fn sort_and_normalize(entryvec: &mut [Entry], scale: f32) {
-    if !entryvec.is_empty() {
-        entryvec.sort_by(|a, b| {
-            a.1.partial_cmp(&b.1)
-                .unwrap_or(Ordering::Equal)
-                .then_with(|| a.0.partial_cmp(&b.0).unwrap_or(Ordering::Equal))
-        });
-        if let Some((_, max_scale, _)) = entryvec.last() {
-            // most common item has frequency max_scale.  avoid NaN
-            let rescale = scale / max_scale;
-            for i in entryvec.iter_mut() {
-                i.1 *= rescale;
-            }
-        }
-    }
 }
 
 fn get_scaling(contents: &AssetGuard<TradingPriceFile>, good: Good) -> f32 {
@@ -231,135 +357,109 @@ impl TradePricing {
     const CRAFTING_FACTOR: f32 = 0.95;
     // increase price a bit compared to sum of ingredients
     const INVEST_FACTOR: f32 = 0.33;
-    const UNAVAILABLE_PRICE: f32 = 1_000_000.0;
 
-    // add this much of a non-consumed crafting tool price
-
-    fn get_list(&self, good: Good) -> &[Entry] {
-        match good {
-            Good::Armor => &self.armor.entries,
-            Good::Tools => &self.tools.entries,
-            Good::Potions => &self.potions.entries,
-            Good::Food => &self.food.entries,
-            Good::Ingredients => &self.ingredients.entries,
-            _ => &[],
-        }
-    }
-
-    fn get_list_mut(&mut self, good: Good) -> &mut [Entry] {
-        match good {
-            Good::Armor => &mut self.armor.entries,
-            Good::Tools => &mut self.tools.entries,
-            Good::Potions => &mut self.potions.entries,
-            Good::Food => &mut self.food.entries,
-            Good::Ingredients => &mut self.ingredients.entries,
-            _ => &mut [],
-        }
-    }
-
-    fn get_list_by_path(&self, name: &str) -> &[Entry] {
+    fn good_from_item(name: &str) -> Good {
         match name {
-            // Armor
-            _ if name.starts_with("common.items.armor.") => &self.armor.entries,
-            // Tools
-            _ if name.starts_with("common.items.weapons.") => &self.tools.entries,
-            _ if name.starts_with("common.items.tool.") => &self.tools.entries,
-            // Ingredients
-            _ if name.starts_with("common.items.crafting_ing.") => &self.ingredients.entries,
-            _ if name.starts_with("common.items.mineral.") => &self.ingredients.entries,
-            _ if name.starts_with("common.items.flowers.") => &self.ingredients.entries,
-            // Potions
-            _ if name.starts_with("common.items.consumable.") => &self.potions.entries,
-            // Food
-            _ if name.starts_with("common.items.food.") => &self.food.entries,
-            // Other
-            _ if name.starts_with("common.items.glider.") => &self.other.entries,
-            _ if name.starts_with("common.items.utility.") => &self.other.entries,
-            _ if name.starts_with("common.items.boss_drops.") => &self.other.entries,
-            _ if name.starts_with("common.items.crafting_tools.") => &self.other.entries,
-            _ if name.starts_with("common.items.lantern.") => &self.other.entries,
+            _ if name.starts_with("common.items.armor.") => Good::Armor,
+
+            _ if name.starts_with("common.items.weapons.") => Good::Tools,
+            _ if name.starts_with("common.items.tool.") => Good::Tools,
+
+            _ if name.starts_with("common.items.crafting_ing.") => Good::Ingredients,
+            _ if name.starts_with("common.items.mineral.") => Good::Ingredients,
+            _ if name.starts_with("common.items.flowers.") => Good::Ingredients,
+
+            _ if name.starts_with("common.items.consumable.") => Good::Potions,
+
+            _ if name.starts_with("common.items.food.") => Good::Food,
+
+            Self::COIN_ITEM => Good::Coin,
+
+            _ if name.starts_with("common.items.glider.") => Good::default(),
+            _ if name.starts_with("common.items.utility.") => Good::default(),
+            _ if name.starts_with("common.items.boss_drops.") => Good::default(),
+            _ if name.starts_with("common.items.crafting_tools.") => Good::default(),
+            _ if name.starts_with("common.items.lantern.") => Good::default(),
             _ => {
                 warn!("unknown loot item {}", name);
-                &self.other.entries
-            },
-        }
-    }
-
-    fn get_list_by_path_mut(&mut self, name: &str) -> &mut Entries {
-        match name {
-            // Armor
-            _ if name.starts_with("common.items.armor.") => &mut self.armor,
-            // Tools
-            _ if name.starts_with("common.items.weapons.") => &mut self.tools,
-            _ if name.starts_with("common.items.tool.") => &mut self.tools,
-            // Ingredients
-            _ if name.starts_with("common.items.crafting_ing.") => &mut self.ingredients,
-            _ if name.starts_with("common.items.mineral.") => &mut self.ingredients,
-            _ if name.starts_with("common.items.flowers.") => &mut self.ingredients,
-            // Potions
-            _ if name.starts_with("common.items.consumable.") => &mut self.potions,
-            // Food
-            _ if name.starts_with("common.items.food.") => &mut self.food,
-            // Other
-            _ if name.starts_with("common.items.glider.") => &mut self.other,
-            _ if name.starts_with("common.items.utility.") => &mut self.other,
-            _ if name.starts_with("common.items.boss_drops.") => &mut self.other,
-            _ if name.starts_with("common.items.crafting_tools.") => &mut self.other,
-            _ if name.starts_with("common.items.lantern.") => &mut self.other,
-            _ => {
-                warn!("unknown loot item {}", name);
-                &mut self.other
+                Good::default()
             },
         }
     }
 
     // look up price (inverse frequency) of an item
-    fn price_lookup(&self, eqset: &EqualitySet, requested_name: &str) -> f32 {
-        let canonical_name = eqset.canonical(requested_name);
-
-        let goods = self.get_list_by_path(canonical_name);
-        // even if we multiply by INVEST_FACTOR we need to remain
-        // above UNAVAILABLE_PRICE (add 1.0 to compensate rounding errors)
-        goods
+    fn price_lookup(&self, requested_name: &str) -> Option<&MaterialUse> {
+        let canonical_name = self.equality_set.canonical(requested_name);
+        self.items
+            .0
             .iter()
-            .find(|(name, _, _)| name == canonical_name)
-            .map_or(
-                Self::UNAVAILABLE_PRICE / Self::INVEST_FACTOR + 1.0,
-                |(_, freq, _)| 1.0 / freq,
-            )
+            .find(|e| e.name == canonical_name)
+            .map(|e| &e.price)
     }
 
-    #[allow(clippy::cast_precision_loss)]
-    fn calculate_material_cost(&self, r: &RememberedRecipe, eqset: &EqualitySet) -> f32 {
+    fn calculate_material_cost(&self, r: &RememberedRecipe) -> Option<MaterialUse> {
         r.input
             .iter()
             .map(|(name, amount)| {
-                self.price_lookup(eqset, name) * (*amount as f32).max(Self::INVEST_FACTOR)
+                self.price_lookup(name).map(|x| {
+                    x.clone()
+                        * (if *amount > 0 {
+                            *amount as f32
+                        } else {
+                            Self::INVEST_FACTOR
+                        })
+                })
             })
-            .sum()
+            .try_fold(MaterialUse::default(), |acc, elem| Some(acc + elem?))
+    }
+
+    fn calculate_material_cost_sum(&self, r: &RememberedRecipe) -> Option<f32> {
+        self.calculate_material_cost(r)?
+            .iter()
+            .fold(None, |acc, elem| Some(acc.unwrap_or_default() + elem.0))
     }
 
     // re-look up prices and sort the vector by ascending material cost, return
     // whether first cost is finite
-    fn sort_by_price(&self, recipes: &mut Vec<RememberedRecipe>, eqset: &EqualitySet) -> bool {
+    fn sort_by_price(&self, recipes: &mut Vec<RememberedRecipe>) -> bool {
         for recipe in recipes.iter_mut() {
-            recipe.material_cost = self.calculate_material_cost(recipe, eqset);
+            recipe.material_cost = self.calculate_material_cost_sum(recipe);
         }
-        recipes.sort_by(|a, b| a.material_cost.partial_cmp(&b.material_cost).unwrap());
-        //info!(?recipes);
+        // put None to the end
+        recipes.sort_by(|a, b| {
+            if a.material_cost.is_some() {
+                if b.material_cost.is_some() {
+                    a.material_cost
+                        .partial_cmp(&b.material_cost)
+                        .unwrap_or(Ordering::Equal)
+                } else {
+                    Ordering::Less
+                }
+            } else if b.material_cost.is_some() {
+                Ordering::Greater
+            } else {
+                Ordering::Equal
+            }
+        });
+        if PRICING_DEBUG {
+            tracing::debug!("{:?}", recipes);
+        }
+        //info!(? recipes);
         recipes
             .first()
-            .filter(|recipe| recipe.material_cost < Self::UNAVAILABLE_PRICE)
+            .filter(|recipe| recipe.material_cost.is_some())
             .is_some()
     }
 
-    #[allow(clippy::cast_precision_loss)]
+    // #[allow(clippy::cast_precision_loss)]
     fn read() -> Self {
         let mut result = Self::default();
+        let mut freq = FreqEntries::default();
         let price_config =
             TradingPriceFile::load_expect("common.trading.item_price_calculation").read();
-        let eqset = EqualitySet::load_expect("common.trading.item_price_equality").read();
-        result.equality_set = eqset.clone();
+        result.equality_set = EqualitySet::load_expect("common.trading.item_price_equality")
+            .read()
+            .clone();
         for table in &price_config.loot_tables {
             if PRICING_DEBUG {
                 info!(?table);
@@ -367,13 +467,54 @@ impl TradePricing {
             let (frequency, can_sell, asset_path) = table;
             let loot = ProbabilityFile::load_expect(asset_path);
             for (p, item_asset, amount) in &loot.read().content {
-                result.get_list_by_path_mut(item_asset).add(
-                    &eqset,
+                let good = Self::good_from_item(item_asset);
+                let scaling = get_scaling(&price_config, good);
+                freq.add(
+                    &result.equality_set,
                     item_asset,
-                    frequency * p * *amount,
+                    good,
+                    frequency * p * *amount * scaling,
                     *can_sell,
                 );
             }
+        }
+        freq.add(
+            &result.equality_set,
+            Self::COIN_ITEM,
+            Good::Coin,
+            get_scaling(&price_config, Good::Coin),
+            true,
+        );
+        // convert frequency to price
+        result.items.0.extend(freq.0.iter().map(|elem| {
+            if elem.freq.0.is_empty() {
+                // likely equality
+                let canonical_name = result.equality_set.canonical(&elem.name);
+                let can_freq = freq.0.iter().find(|i| i.name == canonical_name);
+                can_freq
+                    .map(|e| PriceEntry {
+                        name: elem.name.clone(),
+                        price: MaterialUse::from(e.freq.clone()),
+                        sell: elem.sell && e.sell,
+                        stackable: elem.stackable,
+                    })
+                    .unwrap_or(PriceEntry {
+                        name: elem.name.clone(),
+                        price: MaterialUse::from(elem.freq.clone()),
+                        sell: elem.sell,
+                        stackable: elem.stackable,
+                    })
+            } else {
+                PriceEntry {
+                    name: elem.name.clone(),
+                    price: MaterialUse::from(elem.freq.clone()),
+                    sell: elem.sell,
+                    stackable: elem.stackable,
+                }
+            }
+        }));
+        if PRICING_DEBUG {
+            tracing::debug!("{:?}", result.items.0);
         }
 
         // Apply recipe book
@@ -384,7 +525,7 @@ impl TradePricing {
             ordered_recipes.push(RememberedRecipe {
                 output: asset_path.id().into(),
                 amount,
-                material_cost: Self::UNAVAILABLE_PRICE,
+                material_cost: None,
                 input: recipe
                     .inputs
                     .iter()
@@ -406,106 +547,130 @@ impl TradePricing {
 
         // re-evaluate prices based on crafting tables
         // (start with cheap ones to avoid changing material prices after evaluation)
-        while result.sort_by_price(&mut ordered_recipes, &eqset) {
+        while result.sort_by_price(&mut ordered_recipes) {
             ordered_recipes.retain(|recipe| {
-                if recipe.material_cost < 1e-5 {
+                if recipe.material_cost.map_or(false, |p| p < 1e-5) {
+                    // don't handle recipes which have no raw materials
                     false
-                } else if recipe.material_cost < Self::UNAVAILABLE_PRICE {
-                    let actual_cost = result.calculate_material_cost(recipe, &eqset);
-                    let output_tradeable = recipe.input.iter().all(|(input, _)| {
-                        result
-                            .get_list_by_path(input)
-                            .iter()
-                            .find(|(item, _, _)| item == input)
-                            .map_or(false, |(_, _, tradeable)| *tradeable)
-                    });
-                    result.get_list_by_path_mut(&recipe.output).add(
-                        &eqset,
-                        &recipe.output,
-                        (recipe.amount as f32) / actual_cost * Self::CRAFTING_FACTOR,
-                        output_tradeable,
-                    );
+                } else if recipe.material_cost.is_some() {
+                    let actual_cost = result.calculate_material_cost(recipe);
+                    if let Some(usage) = actual_cost {
+                        let output_tradeable = recipe.input.iter().all(|(input, _)| {
+                            result
+                                .items
+                                .0
+                                .iter()
+                                .find(|item| item.name == *input)
+                                .map_or(false, |item| item.sell)
+                        });
+                        let item = Item::new_from_asset_expect(&recipe.output);
+                        let stackable = item.is_stackable();
+                        result.items.add_alternative(PriceEntry {
+                            name: recipe.output.clone(),
+                            price: usage * (recipe.amount as f32) * Self::CRAFTING_FACTOR,
+                            sell: output_tradeable,
+                            stackable,
+                        });
+                    } else {
+                        error!("Recipe {:?} incomplete confusion", recipe);
+                    }
                     false
                 } else {
+                    // handle incomplete recipes later
                     true
                 }
             });
             //info!(?ordered_recipes);
         }
-
-        let good_list = [
-            Good::Armor,
-            Good::Tools,
-            Good::Potions,
-            Good::Food,
-            Good::Ingredients,
-        ];
-
-        for good in &good_list {
-            sort_and_normalize(
-                result.get_list_mut(*good),
-                get_scaling(&price_config, *good),
-            );
-            let mut materials = result
-                .get_list(*good)
-                .iter()
-                .map(|i| (i.0.clone(), (*good, 1.0 / i.1)))
-                .collect::<Vec<_>>();
-            result.material_cache.extend(materials.drain(..));
-        }
-        result.coin_scale = get_scaling(&price_config, Good::Coin);
         result
     }
 
-    #[allow(
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss,
-        clippy::cast_precision_loss
-    )]
-    fn random_item_impl(&self, good: Good, amount: f32, selling: bool) -> Option<String> {
-        if good == Good::Coin {
-            Some(Self::COIN_ITEM.into())
-        } else {
-            let table = self.get_list(good);
-            if table.is_empty()
-                || (selling && table.iter().filter(|(_, _, can_sell)| *can_sell).count() == 0)
-            {
-                warn!("Good: {:?}, was unreachable.", good);
-                return None;
-            }
-            let upper = table.len();
-            let lower = table
-                .iter()
-                .enumerate()
-                .find(|i| i.1.1 * amount >= 1.0)
-                .map_or(upper - 1, |i| i.0);
-            loop {
-                let index =
-                    (rand::random::<f32>() * ((upper - lower) as f32)).floor() as usize + lower;
-                if table.get(index).map_or(false, |i| !selling || i.2) {
-                    break table.get(index).map(|i| i.0.clone());
-                }
+    // TODO: optimize repeated use
+    fn random_items_impl(
+        &self,
+        stockmap: &mut HashMap<Good, f32>,
+        mut number: u32,
+        selling: bool,
+        always_coin: bool,
+        limit: u32,
+    ) -> Vec<(String, u32)> {
+        let mut candidates: Vec<&PriceEntry> = self
+            .items
+            .0
+            .iter()
+            .filter(|i| {
+                let excess = i
+                    .price
+                    .iter()
+                    .find(|j| j.0 >= stockmap.get(&j.1).cloned().unwrap_or_default());
+                excess.is_none()
+                    && (!selling || i.sell)
+                    && (!always_coin || i.name != Self::COIN_ITEM)
+            })
+            .collect();
+        let mut result = Vec::new();
+        if always_coin && number > 0 {
+            let amount = stockmap.get(&Good::Coin).copied().unwrap_or_default() as u32;
+            if amount > 0 {
+                result.push((Self::COIN_ITEM.into(), amount));
+                number -= 1;
             }
         }
+        for _ in 0..number {
+            candidates.retain(|i| {
+                let excess = i
+                    .price
+                    .iter()
+                    .find(|j| j.0 >= stockmap.get(&j.1).cloned().unwrap_or_default());
+                excess.is_none()
+            });
+            if candidates.is_empty() {
+                break;
+            }
+            let index = (rand::random::<f32>() * candidates.len() as f32).floor() as usize;
+            let result2 = candidates[index];
+            let amount: u32 = if result2.stackable {
+                let max_amount = result2
+                    .price
+                    .iter()
+                    .map(|e| {
+                        stockmap
+                            .get_mut(&e.1)
+                            .map(|stock| *stock / e.0.max(0.001))
+                            .unwrap_or_default()
+                    })
+                    .fold(f32::INFINITY, f32::min)
+                    .min(limit as f32);
+                (rand::random::<f32>() * (max_amount - 1.0)).floor() as u32 + 1
+            } else {
+                1
+            };
+            for i in result2.price.iter() {
+                stockmap.get_mut(&i.1).map(|v| *v -= i.0 * (amount as f32));
+            }
+            result.push((result2.name.clone(), amount));
+            // avoid duplicates
+            candidates.remove(index);
+        }
+        result
+    }
+
+    fn get_materials_impl(&self, item: &str) -> Option<&MaterialUse> { self.price_lookup(item) }
+
+    #[must_use]
+    pub fn random_items(
+        stock: &mut HashMap<Good, f32>,
+        number: u32,
+        selling: bool,
+        always_coin: bool,
+        limit: u32,
+    ) -> Vec<(String, u32)> {
+        TRADE_PRICING.random_items_impl(stock, number, selling, always_coin, limit)
     }
 
     #[must_use]
-    pub fn random_item(good: Good, amount: f32, selling: bool) -> Option<String> {
-        TRADE_PRICING.random_item_impl(good, amount, selling)
-    }
-
-    #[must_use]
-    pub fn get_material(item: &str) -> (Good, f32) {
-        if item == Self::COIN_ITEM {
-            (Good::Coin, 1.0)
-        } else {
-            let item = TRADE_PRICING.equality_set.canonical(item);
-
-            TRADE_PRICING.material_cache.get(item).copied().map_or(
-                (Good::Terrain(crate::terrain::BiomeKind::Void), 0.0),
-                |(a, b)| (a, b * TRADE_PRICING.coin_scale),
-            )
-        }
+    pub fn get_materials(item: &str) -> Option<&MaterialUse> {
+        TRADE_PRICING.get_materials_impl(item)
     }
 
     #[cfg(test)]
@@ -513,69 +678,32 @@ impl TradePricing {
 
     #[cfg(test)]
     fn print_sorted(&self) {
-        use crate::comp::item::{armor, tool, Item, ItemKind};
-
-        // we pass the item and the inverse of the price to the closure
-        fn printvec<F>(good_kind: &str, entries: &[(String, f32, bool)], f: F, unit: &str)
-        where
-            F: Fn(&Item, f32) -> String,
-        {
-            for (item_id, p, can_sell) in entries.iter() {
-                let it = Item::new_from_asset_expect(item_id);
-                let price = 1.0 / p;
-                println!(
-                    "{}, {}, {:>4.2}, {}, {:?}, {}, {},",
-                    item_id,
-                    if *can_sell { "yes" } else { "no" },
-                    price,
-                    good_kind,
-                    it.quality,
-                    f(&it, *p),
-                    unit,
-                );
-            }
-        }
+        use crate::comp::item::{armor, tool, ItemKind};
 
         println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
 
-        printvec(
-            "Armor",
-            &self.armor.entries,
-            |i, p| {
-                if let ItemKind::Armor(a) = &i.kind {
+        fn more_information(i: &Item, p: f32) -> (String, &'static str) {
+            if let ItemKind::Armor(a) = &i.kind {
+                (
                     match a.protection() {
                         Some(armor::Protection::Invincible) => "Invincible".into(),
                         Some(armor::Protection::Normal(x)) => format!("{:.4}", x * p),
                         None => "0.0".into(),
-                    }
-                } else {
-                    format!("{:?}", i.kind)
-                }
-            },
-            "prot/val",
-        );
-        printvec(
-            "Tools",
-            &self.tools.entries,
-            |i, p| {
-                if let ItemKind::Tool(t) = &i.kind {
+                    },
+                    "prot/val",
+                )
+            } else if let ItemKind::Tool(t) = &i.kind {
+                (
                     match &t.stats {
                         tool::StatKind::Direct(d) => {
                             format!("{:.4}", d.power * d.speed * p)
                         },
                         tool::StatKind::Modular => "Modular".into(),
-                    }
-                } else {
-                    format!("{:?}", i.kind)
-                }
-            },
-            "dps/val",
-        );
-        printvec(
-            "Potions",
-            &self.potions.entries,
-            |i, p| {
-                if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                    },
+                    "dps/val",
+                )
+            } else if let ItemKind::Consumable { kind: _, effects } = &i.kind {
+                (
                     effects
                         .iter()
                         .map(|e| {
@@ -586,43 +714,53 @@ impl TradePricing {
                             }
                         })
                         .collect::<Vec<String>>()
-                        .join(" ")
-                } else {
-                    format!("{:?}", i.kind)
-                }
+                        .join(" "),
+                    "str/val",
+                )
+            } else {
+                (Default::default(), "")
+            }
+        }
+        let mut sorted: Vec<(f32, &PriceEntry)> = self
+            .items
+            .0
+            .iter()
+            .map(|e| (e.price.iter().map(|i| i.0.to_owned()).sum(), e))
+            .collect();
+        sorted.sort_by(|(p, e), (p2, e2)| {
+            p2.partial_cmp(p)
+                .unwrap_or(Ordering::Equal)
+                .then(e.name.cmp(&e2.name))
+        });
+
+        for (
+            pricesum,
+            PriceEntry {
+                name: item_id,
+                price: mat_use,
+                sell: can_sell,
+                stackable: _,
             },
-            "str/val",
-        );
-        printvec(
-            "Food",
-            &self.food.entries,
-            |i, p| {
-                if let ItemKind::Consumable { kind: _, effects } = &i.kind {
-                    effects
-                        .iter()
-                        .map(|e| {
-                            if let crate::effect::Effect::Buff(b) = e {
-                                format!("{:.2}", b.data.strength * p)
-                            } else {
-                                format!("{:?}", e)
-                            }
-                        })
-                        .collect::<Vec<String>>()
-                        .join(" ")
-                } else {
-                    format!("{:?}", i.kind)
-                }
-            },
-            "str/val",
-        );
-        printvec(
-            "Ingredients",
-            &self.ingredients.entries,
-            |_i, _p| String::new(),
-            "",
-        );
-        printvec("Other", &self.other.entries, |_i, _p| String::new(), "");
-        println!("{}, yes, {}, Coin, ,,,", Self::COIN_ITEM, self.coin_scale);
+        ) in sorted.iter()
+        {
+            let it = Item::new_from_asset_expect(item_id);
+            //let price = mat_use.iter().map(|(amount, _good)| *amount).sum::<f32>();
+            let prob = 1.0 / pricesum;
+            let (info, unit) = more_information(&it, prob);
+            let materials = mat_use
+                .iter()
+                .fold(String::new(), |agg, i| agg + &format!("{:?}.", i.1));
+            println!(
+                "{}, {}, {:>4.2}, {}, {:?}, {}, {},",
+                &item_id,
+                if *can_sell { "yes" } else { "no" },
+                pricesum,
+                materials,
+                it.quality,
+                info,
+                unit,
+            );
+        }
     }
 }
 
@@ -684,10 +822,19 @@ mod tests {
         init();
         info!("init");
 
-        for _ in 0..5 {
-            if let Some(item_id) = TradePricing::random_item(Good::Armor, 5.0, false) {
-                info!("Armor 5 {}", item_id);
-            }
+        let mut stock: hashbrown::HashMap<Good, f32> = vec![
+            (Good::Ingredients, 50.0),
+            (Good::Tools, 10.0),
+            (Good::Armor, 10.0),
+            //(Good::Ores, 20.0),
+        ]
+        .iter()
+        .copied()
+        .collect();
+
+        let loadout = TradePricing::random_items(&mut stock, 20, false, false, 999);
+        for i in loadout.iter() {
+            info!("Random item {}*{}", i.0, i.1);
         }
     }
 
