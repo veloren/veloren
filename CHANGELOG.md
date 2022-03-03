@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Improved site placement
 - [Server] Kick clients who send messages on the wrong stream
+- Reworked Merchant trade price calculation, Merchants offer more wares
 
 ### Removed
 

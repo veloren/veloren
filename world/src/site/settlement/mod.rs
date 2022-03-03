@@ -35,12 +35,7 @@ use fxhash::FxHasher64;
 use hashbrown::{HashMap, HashSet};
 use rand::prelude::*;
 use serde::Deserialize;
-use std::{
-    cmp::{self, min},
-    collections::VecDeque,
-    f32,
-    hash::BuildHasherDefault,
-};
+use std::{collections::VecDeque, f32, hash::BuildHasherDefault};
 use vek::*;
 
 #[derive(Deserialize)]
@@ -1019,236 +1014,96 @@ pub fn merchant_loadout(
 ) -> LoadoutBuilder {
     let rng = &mut rand::thread_rng();
 
-    // Fill backpack with ingredients and coins
-    let backpack = ingredient_backpack(economy, rng);
-
-    // Fill bags with stuff
-    let (food_bag, potion_bag) = consumable_bags(economy, rng);
-    let weapon_bag = weapon_bag(economy);
-    let armor_bag = armor_bag(economy);
-
-    loadout_builder
-        .with_asset_expect("common.loadout.village.merchant", rng)
-        .back(Some(backpack))
-        .bag(ArmorSlot::Bag1, Some(food_bag))
-        .bag(ArmorSlot::Bag2, Some(potion_bag))
-        .bag(ArmorSlot::Bag3, Some(weapon_bag))
-        .bag(ArmorSlot::Bag4, Some(armor_bag))
-}
-
-fn sort_bag(bag: &mut Item) {
-    bag.slots_mut().sort_by(|a, b| match (a, b) {
-        (Some(a), Some(b)) => a.quality().cmp(&b.quality()),
-        (None, Some(_)) => cmp::Ordering::Greater,
-        (Some(_), None) => cmp::Ordering::Less,
-        (None, None) => cmp::Ordering::Equal,
-    });
-}
-
-fn armor_bag(economy: Option<&trade::SiteInformation>) -> Item {
-    #![warn(clippy::pedantic)]
-
-    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
-
-    let armor_items = economy
-        .and_then(|e| e.unconsumed_stock.get(&Good::Armor))
-        .copied();
-
-    // If we have some uncomsumed armor, stock
-    if let Some(armor_good) = armor_items {
-        if armor_good < f32::EPSILON {
-            return bag;
-        }
-        for slot in bag.slots_mut() {
-            let amount = armor_good / 10.0;
-            if let Some(item_id) = TradePricing::random_item(Good::Armor, amount, true) {
-                *slot = Some(Item::new_from_asset_expect(&item_id));
-            }
-        }
-    }
-    sort_bag(&mut bag);
-
-    bag
-}
-
-fn weapon_bag(economy: Option<&trade::SiteInformation>) -> Item {
-    #![warn(clippy::pedantic)]
-
-    let mut bag = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
-
-    let weapons = economy
-        .and_then(|e| e.unconsumed_stock.get(&Good::Tools))
-        .copied();
-
-    // If we have some uncomsumed weapons, stock
-    if let Some(weapon_good) = weapons {
-        if weapon_good < f32::EPSILON {
-            return bag;
-        }
-        for slot in bag.slots_mut() {
-            let amount = weapon_good / 10.0;
-            if let Some(item_id) = TradePricing::random_item(Good::Tools, amount, true) {
-                *slot = Some(Item::new_from_asset_expect(&item_id));
-            }
-        }
-    }
-    sort_bag(&mut bag);
-
-    bag
-}
-
-fn ingredient_backpack(economy: Option<&trade::SiteInformation>, rng: &mut impl Rng) -> Item {
-    #![warn(clippy::pedantic)]
-
-    let mut bag = Item::new_from_asset_expect("common.items.armor.merchant.back");
-    let slots = bag.slots_mut();
-
-    // It's safe to truncate here, because coins clamped to 3000 max
-    // also we don't really want negative values here
-    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-    let coins = economy
-        .and_then(|e| e.unconsumed_stock.get(&Good::Coin))
-        .copied()
-        .map(|cs| cs.min(rand::thread_rng().gen_range(1000.0..3000.0)) as u32);
-    let ingredients = economy
-        .and_then(|e| e.unconsumed_stock.get(&Good::Ingredients))
-        .copied();
-
-    // `to_skip` is ideologicaly boolean flag either to start from 0-th or 1-th slot
-    let mut to_skip = 0;
-    if let Some(coins) = coins.filter(|c| *c > 0) {
-        let mut coin_item = Item::new_from_asset_expect("common.items.utility.coins");
-        coin_item
-            .set_amount(coins)
-            .expect("coins should be stackable");
-
-        if let Some(slot) = slots.first_mut() {
-            *slot = Some(coin_item);
-        } else {
-            common_base::dev_panic!("Merchant backpack doesn't have slots");
-        }
-        // as we've placed coins, start from second slot
-        to_skip = 1;
-    }
-
-    // If we have some uncomsumed ingredients, trade
-    if let Some(ingredients_good) = ingredients {
-        let mut supply = ingredients_good / 10.0;
-        let tries = slots.len() - to_skip;
-        let good_map = gather_merged_goods(Good::Ingredients, &mut supply, tries, rng);
-
-        for (i, item) in good_map.into_iter().enumerate() {
-            // As we have at most (slots.len() - to_skip) items
-            // index won't panic
-            slots[i + to_skip] = Some(item);
-        }
-    }
-    sort_bag(&mut bag);
-
-    bag
-}
-
-fn consumable_bags(economy: Option<&trade::SiteInformation>, rng: &mut impl Rng) -> (Item, Item) {
-    #![warn(clippy::pedantic)]
-
-    let (mut bag3, mut bag4) = (
-        Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack"),
-        Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack"),
-    );
+    let mut backpack = Item::new_from_asset_expect("common.items.armor.misc.back.backpack");
+    let mut bag1 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag2 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag3 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let mut bag4 = Item::new_from_asset_expect("common.items.armor.misc.bag.sturdy_red_backpack");
+    let slots = backpack.slots().len() + 4 * bag1.slots().len();
+    let mut stockmap: HashMap<Good, f32> = economy
+        .map(|e| e.unconsumed_stock.clone())
+        .unwrap_or_default();
+    // modify stock for better gameplay
 
     // TODO: currently econsim spends all its food on population, resulting in none
     // for the players to buy; the `.max` is temporary to ensure that there's some
     // food for sale at every site, to be used until we have some solution like NPC
     // houses as a limit on econsim population growth
-    let mut food = economy
-        .and_then(|e| e.unconsumed_stock.get(&Good::Food))
-        .copied()
-        .map_or(Some(10_000.0), |food| Some(food.max(10_000.0)));
+    stockmap
+        .entry(Good::Food)
+        .and_modify(|e| *e = e.max(10_000.0))
+        .or_insert(10_000.0);
     // Reduce amount of potions so merchants do not oversupply potions.
     // TODO: Maybe remove when merchants and their inventories are rtsim?
-    let mut potions = economy
-        .and_then(|e| e.unconsumed_stock.get(&Good::Potions))
-        .copied()
-        .map(|potions| potions.powf(0.25));
+    // Note: Likely without effect now that potions are counted as food
+    stockmap
+        .entry(Good::Potions)
+        .and_modify(|e| *e = e.powf(0.25));
+    // It's safe to truncate here, because coins clamped to 3000 max
+    // also we don't really want negative values here
+    stockmap
+        .entry(Good::Coin)
+        .and_modify(|e| *e = e.min(rng.gen_range(1000.0..3000.0)));
+    // assume roughly 10 merchants sharing a town's stock (other logic for coins)
+    stockmap
+        .iter_mut()
+        .filter(|(good, _amount)| **good != Good::Coin)
+        .for_each(|(_good, amount)| *amount *= 0.1);
+    // Fill bags with stuff according to unclaimed stock
+    let mut wares: Vec<Item> =
+        TradePricing::random_items(&mut stockmap, slots as u32, true, true, 16)
+            .iter()
+            .map(|(n, a)| {
+                let mut i = Item::new_from_asset_expect(n);
+                i.set_amount(*a)
+                    .map_err(|_| tracing::error!("merchant loadout amount failure"))
+                    .ok();
+                i
+            })
+            .collect();
+    sort_wares(&mut wares);
+    transfer(&mut wares, &mut backpack);
+    transfer(&mut wares, &mut bag1);
+    transfer(&mut wares, &mut bag2);
+    transfer(&mut wares, &mut bag3);
+    transfer(&mut wares, &mut bag4);
 
-    let goods = [
-        (Good::Food, &mut food, &mut bag3),
-        (Good::Potions, &mut potions, &mut bag4),
-    ];
-
-    for (good_kind, goods, bag) in goods {
-        // Try to get goods as many times as we have slots
-        let mut supply = goods.unwrap_or(0.0) / 10.0;
-        let tries = bag.slots().len();
-        let good_map = gather_merged_goods(good_kind, &mut supply, tries, rng);
-
-        // Place them to the bags
-        let slots = bag.slots_mut();
-        for (i, item) in good_map.into_iter().enumerate() {
-            // As we have at most `slots.len()` items
-            // index won't panic
-            slots[i] = Some(item);
-        }
-        sort_bag(bag);
-    }
-    (bag3, bag4)
+    loadout_builder
+        .with_asset_expect("common.loadout.village.merchant", rng)
+        .back(Some(backpack))
+        .bag(ArmorSlot::Bag1, Some(bag1))
+        .bag(ArmorSlot::Bag2, Some(bag2))
+        .bag(ArmorSlot::Bag3, Some(bag3))
+        .bag(ArmorSlot::Bag4, Some(bag4))
 }
 
-/// Returns vector of `tries` to gather given `good_kind` with given `supply`
-/// Merges items if possible
-#[warn(clippy::pedantic)]
-fn gather_merged_goods(
-    good_kind: Good,
-    supply: &mut f32,
-    tries: usize,
-    rng: &mut impl Rng,
-) -> Vec<Item> {
-    let mut good_map: Vec<Item> = Vec::new();
-    // NOTE: Conversion to and from f32 works fine
-    // because we make sure the
-    // number we're converting is 1..100.
-    #[allow(
-        clippy::cast_possible_truncation,
-        clippy::cast_sign_loss,
-        clippy::cast_precision_loss
-    )]
-    for _ in 0..tries {
-        if let Some(item_id) = TradePricing::random_item(good_kind, *supply, true) {
-            if *supply > 0.0 {
-                // clamp it with 1..n items per slot
-                // where n < stack_size, n < 16, n < supply
-                let mut new_item = Item::new_from_asset_expect(&item_id);
-                let supported_amount = new_item.max_amount();
-                let max = min(*supply as u32, min(16, supported_amount));
-                let n = if new_item.is_stackable() {
-                    rng.gen_range(1..cmp::max(2, max))
-                } else {
-                    1
-                };
+fn sort_wares(bag: &mut Vec<Item>) {
+    use common::comp::item::TagExampleInfo;
 
-                // Try to merge with item we already have
-                let old_item = good_map.iter_mut().find(|old_item| {
-                    old_item.item_definition_id() == new_item.item_definition_id()
-                });
-                let mut updated = false;
-                if let Some(item) = old_item {
-                    if item.set_amount(item.amount() + n).is_ok() {
-                        updated = true;
-                    }
-                }
+    bag.sort_by(|a, b| {
+        a.quality()
+            .cmp(&b.quality())
+        // sort by kind
+        .then(
+            Ord::cmp(
+                a.tags.first().map_or("", |tag| tag.name()),
+                b.tags.first().map_or("", |tag| tag.name()),
+            )
+        )
+        // sort by name
+        .then(Ord::cmp(a.name(), b.name()))
+    });
+}
 
-                // Push new pair if can't merge
-                if !updated {
-                    let _ = new_item.set_amount(n);
-                    good_map.push(new_item);
-                }
-                // Don't forget to cut supply
-                *supply -= n as f32;
-            }
-        }
+fn transfer(wares: &mut Vec<Item>, bag: &mut Item) {
+    let capacity = bag.slots().len();
+    for (s, w) in bag
+        .slots_mut()
+        .iter_mut()
+        .zip(wares.drain(0..wares.len().min(capacity)))
+    {
+        *s = Some(w);
     }
-
-    good_map
 }
 
 #[derive(Copy, Clone, PartialEq)]
