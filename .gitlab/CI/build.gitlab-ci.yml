@@ -170,6 +170,12 @@ linux-x86_64:
     - .release
   tags: ["veloren/veloren", "build", "publish", "trusted"]
 
+linux-aarch64:
+  extends:
+    - .tlinux-aarch64
+    - .release
+  tags: ["veloren/veloren", "build", "publish", "trusted"]
+
 windows-x86_64:
   extends:
     - .twindows-x86_64
