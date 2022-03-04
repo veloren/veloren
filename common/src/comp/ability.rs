@@ -1974,7 +1974,13 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 exhausted: false,
                 skip_recover: false,
                 timer: Duration::default(),
-                stage_section: Some(StageSection::Buildup),
+                // If ability is a stance, enter the stance without beginning a strike, otherwise
+                // immediately begin the strike
+                stage_section: if *is_stance {
+                    None
+                } else {
+                    Some(StageSection::Buildup)
+                },
                 completed_strikes: 0,
             }),
             CharacterAbility::LeapMelee {

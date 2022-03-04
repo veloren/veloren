@@ -158,7 +158,8 @@ impl CharacterBehavior for Data {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
                 } else if self.skip_recover {
-                    next_strike(&mut update)
+                    end_strike(&mut update);
+                    next_strike(&mut update);
                 } else {
                     // Transitions to recover section of stage
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
@@ -175,6 +176,7 @@ impl CharacterBehavior for Data {
                     }
                 } else {
                     // If is a stance, stay in combo melee, otherwise return to wielding
+                    end_strike(&mut update);
                     if self.static_data.is_stance {
                         if let CharacterState::ComboMelee2(c) = &mut update.character {
                             c.timer = Duration::default();
@@ -223,12 +225,17 @@ impl CharacterBehavior for Data {
     }
 }
 
+fn end_strike(update: &mut StateUpdate) {
+    if let CharacterState::ComboMelee2(c) = &mut update.character {
+        c.completed_strikes += 1;
+    }
+}
+
 fn next_strike(update: &mut StateUpdate) {
     if let CharacterState::ComboMelee2(c) = &mut update.character {
         c.exhausted = false;
         c.skip_recover = false;
         c.timer = Duration::default();
         c.stage_section = Some(StageSection::Buildup);
-        c.completed_strikes += 1;
     }
 }
