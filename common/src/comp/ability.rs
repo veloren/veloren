@@ -506,6 +506,7 @@ pub enum CharacterAbility {
     ComboMelee2 {
         strikes: Vec<combo_melee2::Strike<f32>>,
         is_stance: bool,
+        energy_cost_per_strike: f32,
         #[serde(default)]
         meta: AbilityMeta,
     },
@@ -744,6 +745,22 @@ impl CharacterAbility {
                     | !*scales_with_combo)
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
+            CharacterAbility::ComboMelee2 {
+                is_stance,
+                energy_cost_per_strike,
+                ..
+            } => {
+                // If it is a stance, just check that enough energy is present, otherwise
+                // consume the required energy now
+                if *is_stance {
+                    update.energy.current() > *energy_cost_per_strike
+                } else {
+                    update
+                        .energy
+                        .try_change_by(-*energy_cost_per_strike)
+                        .is_ok()
+                }
+            },
             CharacterAbility::FinisherMelee {
                 energy_cost,
                 minimum_combo,
@@ -753,7 +770,6 @@ impl CharacterAbility {
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::ComboMelee { .. }
-            | CharacterAbility::ComboMelee2 { .. }
             | CharacterAbility::Boost { .. }
             | CharacterAbility::BasicBeam { .. }
             | CharacterAbility::Blink { .. }
@@ -920,8 +936,10 @@ impl CharacterAbility {
             ComboMelee2 {
                 ref mut strikes,
                 is_stance: _,
+                ref mut energy_cost_per_strike,
                 meta: _,
             } => {
+                *energy_cost_per_strike /= stats.energy_efficiency;
                 *strikes = strikes
                     .iter_mut()
                     .map(|s| s.adjusted_by_stats(stats))
@@ -1208,7 +1226,11 @@ impl CharacterAbility {
             | BasicAura { energy_cost, .. }
             | BasicBlock { energy_cost, .. }
             | SelfBuff { energy_cost, .. }
-            | FinisherMelee { energy_cost, .. } => *energy_cost,
+            | FinisherMelee { energy_cost, .. }
+            | ComboMelee2 {
+                energy_cost_per_strike: energy_cost,
+                ..
+            } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1218,7 +1240,6 @@ impl CharacterAbility {
             },
             Boost { .. }
             | ComboMelee { .. }
-            | ComboMelee2 { .. }
             | Blink { .. }
             | Music { .. }
             | BasicSummon { .. }
@@ -1963,12 +1984,14 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
             }),
             CharacterAbility::ComboMelee2 {
                 strikes,
+                energy_cost_per_strike,
                 is_stance,
                 meta: _,
             } => CharacterState::ComboMelee2(combo_melee2::Data {
                 static_data: combo_melee2::StaticData {
                     strikes: strikes.iter().map(|s| s.to_duration()).collect(),
                     is_stance: *is_stance,
+                    energy_cost_per_strike: *energy_cost_per_strike,
                     ability_info,
                 },
                 exhausted: false,

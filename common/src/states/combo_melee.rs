@@ -309,9 +309,13 @@ impl CharacterBehavior for Data {
                     );
 
                     // Forward movement
-                    handle_forced_movement(data, &mut update, ForcedMovement::Forward {
-                        strength: self.static_data.stage_data[stage_index].forward_movement,
-                    });
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Forward(
+                            self.static_data.stage_data[stage_index].forward_movement,
+                        ),
+                    );
 
                     // Swings
                     update.character = CharacterState::ComboMelee(Data {

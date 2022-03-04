@@ -408,7 +408,7 @@ pub fn handle_forced_movement(
     movement: ForcedMovement,
 ) {
     match movement {
-        ForcedMovement::Forward { strength } => {
+        ForcedMovement::Forward(strength) => {
             let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
             if let Some(accel) = data.physics.on_ground.map(|block| {
                 // FRIC_GROUND temporarily used to normalize things around expected values
@@ -416,7 +416,7 @@ pub fn handle_forced_movement(
             }) {
                 update.vel.0 += Vec2::broadcast(data.dt.0)
                     * accel
-                    * (data.inputs.move_dir * 0.5 + Vec2::from(update.ori) * 1.5)
+                    * Vec2::from(update.ori)
                     * strength;
             }
         },
@@ -1202,9 +1202,7 @@ pub enum StageSection {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ForcedMovement {
-    Forward {
-        strength: f32,
-    },
+    Forward(f32),
     Leap {
         vertical: f32,
         forward: f32,

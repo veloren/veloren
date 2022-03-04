@@ -3,7 +3,7 @@ ComboMelee2(
         (
             melee_constructor: (
                 kind: Slash(
-                    damage: 15,
+                    damage: 12,
                     poise: 0,
                     knockback: 0,
                     energy_regen: 5,
@@ -15,11 +15,11 @@ ComboMelee2(
             swing_duration: 0.1,
             hit_timing: 0.6,
             recover_duration: 0.5,
-            forward_movement: 0.0,
             ori_modifier: 0.6,
         ),
     ],
     is_stance: false,
+    energy_cost_per_strike: 5,
     meta: (
         kind: Some(Sword(Balanced)),
     ),

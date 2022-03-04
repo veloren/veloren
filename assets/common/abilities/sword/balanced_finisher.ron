@@ -14,4 +14,7 @@ FinisherMelee(
         angle: 15.0,
     ),
     minimum_combo: 10,
+    meta: (
+        kind: Some(Sword(Balanced)),
+    ),
 )

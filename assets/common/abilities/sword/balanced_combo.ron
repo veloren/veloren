@@ -15,7 +15,6 @@ ComboMelee2(
             swing_duration: 0.1,
             hit_timing: 0.5,
             recover_duration: 0.5,
-            forward_movement: 0.0,
             ori_modifier: 0.6,
         ),
         (
@@ -33,11 +32,11 @@ ComboMelee2(
             swing_duration: 0.1,
             hit_timing: 0.5,
             recover_duration: 0.3,
-            forward_movement: 0.0,
             ori_modifier: 0.6,
         ),
     ],
     is_stance: true,
+    energy_cost_per_strike: 0,
     meta: (
         kind: Some(Sword(Balanced)),
     ),

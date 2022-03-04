@@ -26,7 +26,7 @@ pub struct Strike<T> {
     /// Initial recover duration of stage (how long until character exits state)
     pub recover_duration: T,
     /// How much forward movement there is in the swing portion of the stage
-    pub forward_movement: f32,
+    pub movement: Option<ForcedMovement>,
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
 }
@@ -39,7 +39,7 @@ impl Strike<f32> {
             swing_duration: Duration::from_secs_f32(self.swing_duration),
             hit_timing: self.hit_timing,
             recover_duration: Duration::from_secs_f32(self.recover_duration),
-            forward_movement: self.forward_movement,
+            movement: self.movement,
             ori_modifier: self.ori_modifier,
         }
     }
@@ -52,7 +52,7 @@ impl Strike<f32> {
             swing_duration: self.swing_duration / stats.speed,
             hit_timing: self.hit_timing,
             recover_duration: self.recover_duration / stats.speed,
-            forward_movement: self.forward_movement,
+            movement: self.movement,
             ori_modifier: self.ori_modifier,
         }
     }
@@ -68,6 +68,8 @@ pub struct StaticData {
     /// Whether or not combo melee should function as a stance (where it remains
     /// in the character state after a strike has finished)
     pub is_stance: bool,
+    /// The amount of energy consumed with each swing
+    pub energy_cost_per_strike: f32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -115,6 +117,9 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             Some(StageSection::Buildup) => {
+                if let Some(movement) = strike_data.movement {
+                    handle_forced_movement(data, &mut update, movement);
+                }
                 if self.timer < strike_data.buildup_duration {
                     // Build up
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
@@ -129,9 +134,13 @@ impl CharacterBehavior for Data {
                 }
             },
             Some(StageSection::Action) => {
+                if let Some(movement) = strike_data.movement {
+                    handle_forced_movement(data, &mut update, movement);
+                }
                 if input_is_pressed(data, ability_input) {
                     if let CharacterState::ComboMelee2(c) = &mut update.character {
-                        c.skip_recover = true;
+                        // Only allow recovery to be skipped if attack is a stance
+                        c.skip_recover = c.static_data.is_stance;
                     }
                 }
                 if self.timer.as_secs_f32()
@@ -233,9 +242,15 @@ fn end_strike(update: &mut StateUpdate) {
 
 fn next_strike(update: &mut StateUpdate) {
     if let CharacterState::ComboMelee2(c) = &mut update.character {
-        c.exhausted = false;
-        c.skip_recover = false;
-        c.timer = Duration::default();
-        c.stage_section = Some(StageSection::Buildup);
+        if update
+            .energy
+            .try_change_by(-c.static_data.energy_cost_per_strike)
+            .is_ok()
+        {
+            c.exhausted = false;
+            c.skip_recover = false;
+            c.timer = Duration::default();
+            c.stage_section = Some(StageSection::Buildup);
+        }
     }
 }

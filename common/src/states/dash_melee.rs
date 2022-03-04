@@ -89,9 +89,13 @@ impl CharacterBehavior for Data {
                     .min(1.0);
 
                     handle_orientation(data, &mut update, self.static_data.ori_modifier, None);
-                    handle_forced_movement(data, &mut update, ForcedMovement::Forward {
-                        strength: self.static_data.forward_speed * charge_frac.sqrt(),
-                    });
+                    handle_forced_movement(
+                        data,
+                        &mut update,
+                        ForcedMovement::Forward(
+                            self.static_data.forward_speed * charge_frac.sqrt(),
+                        ),
+                    );
 
                     // This logic basically just decides if a charge should end,
                     // and prevents the character state spamming attacks
