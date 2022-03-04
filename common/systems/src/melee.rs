@@ -83,6 +83,9 @@ impl<'a> System<'a> for Sys {
             // TODO: use Capsule Prisms instead of Cylinders
             let rad = body.max_radius() * scale;
 
+            let melee_z = pos.0.z + 0.5 * body.height();
+            let melee_z_range = (melee_z - melee_attack.range)..(melee_z + melee_attack.range);
+
             // Mine blocks broken by the attack
             if let Some((block_pos, tool)) = melee_attack.break_block {
                 // Check distance to block
@@ -127,8 +130,10 @@ impl<'a> System<'a> for Sys {
                 // Check if it is a hit
                 if attacker != target
                     && !health_b.is_dead
-                    // Spherical wedge shaped attack field
-                    && pos.0.distance_squared(pos_b.0) < (rad + rad_b + scale * melee_attack.range).powi(2)
+                    // Cylindrical wedge shaped attack field
+                    && pos2.distance_squared(pos_b2) < (rad + rad_b + scale * melee_attack.range).powi(2)
+                    // Checks if feet or head of b is contained in range of melee attack, or if melee attack origin is contained between feet and head of b (for large bodies/small melee attacks)
+                    && (melee_z_range.contains(&pos_b.0.z) || melee_z_range.contains(&(pos_b.0.z + body_b.height())) || (pos_b.0.z..(pos_b.0.z + body_b.height())).contains(&melee_z))
                     && ori2.angle_between(pos_b2 - pos2) < melee_attack.max_angle + (rad_b / pos2.distance(pos_b2)).atan()
                 {
                     // See if entities are in the same group
