@@ -52,7 +52,7 @@
         )),
         Individual((
             title: "Raising Below Like Thunder",
-            path: "voxygen.audio.soundtrack.town.raising_below_like_thunder",
+            path: "voxygen.audio.soundtrack.overworld.raising_below_like_thunder",
             length: 120.0,
             timing: Some(Night),
             biomes: [
