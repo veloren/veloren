@@ -43,8 +43,7 @@ impl<'a> AgentData<'a> {
                 Path::Full,
                 None,
             );
-            if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2)
-                && self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
                 && attack_data.dist_sqrd < 16.0f32.powi(2)
                 && rng.gen::<f32>() < 0.02
             {
@@ -250,25 +249,24 @@ impl<'a> AgentData<'a> {
                 Path::Separate,
                 None,
             );
-            if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-                if attack_data.dist_sqrd < 32.0f32.powi(2)
-                    && has_leap()
-                    && has_energy(50.0)
-                    && can_see_tgt(
-                        &read_data.terrain,
-                        self.pos,
-                        tgt_data.pos,
-                        attack_data.dist_sqrd,
-                    )
-                {
-                    use_leap(controller);
-                }
-                if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                    && attack_data.dist_sqrd < 16.0f32.powi(2)
-                    && rng.gen::<f32>() < 0.02
-                {
-                    controller.push_basic_input(InputKind::Roll);
-                }
+
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(50.0)
+                && can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                use_leap(controller);
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && rng.gen::<f32>() < 0.02
+            {
+                controller.push_basic_input(InputKind::Roll);
             }
         }
     }
@@ -318,25 +316,23 @@ impl<'a> AgentData<'a> {
                 None,
             );
 
-            if attack_data.dist_sqrd < MAX_PATH_DIST.powi(2) {
-                if attack_data.dist_sqrd < 32.0f32.powi(2)
-                    && has_leap()
-                    && has_energy(50.0)
-                    && can_see_tgt(
-                        &read_data.terrain,
-                        self.pos,
-                        tgt_data.pos,
-                        attack_data.dist_sqrd,
-                    )
-                {
-                    use_leap(controller);
-                }
-                if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
-                    && attack_data.dist_sqrd < 16.0f32.powi(2)
-                    && rng.gen::<f32>() < 0.02
-                {
-                    controller.push_basic_input(InputKind::Roll);
-                }
+            if attack_data.dist_sqrd < 32.0f32.powi(2)
+                && has_leap()
+                && has_energy(50.0)
+                && can_see_tgt(
+                    &read_data.terrain,
+                    self.pos,
+                    tgt_data.pos,
+                    attack_data.dist_sqrd,
+                )
+            {
+                use_leap(controller);
+            }
+            if self.body.map(|b| b.is_humanoid()).unwrap_or(false)
+                && attack_data.dist_sqrd < 16.0f32.powi(2)
+                && rng.gen::<f32>() < 0.02
+            {
+                controller.push_basic_input(InputKind::Roll);
             }
         }
     }
