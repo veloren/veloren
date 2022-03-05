@@ -571,7 +571,7 @@ impl TradePricing {
                         let stackable = item.is_stackable();
                         let new_entry = PriceEntry {
                             name: recipe.output.clone(),
-                            price: usage * (1.0 / (recipe.amount as f32) * Self::CRAFTING_FACTOR),
+                            price: usage * (1.0 / (recipe.amount as f32 * Self::CRAFTING_FACTOR)),
                             sell: output_tradeable,
                             stackable,
                         };
