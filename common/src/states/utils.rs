@@ -420,6 +420,16 @@ pub fn handle_forced_movement(
                     * strength;
             }
         },
+        ForcedMovement::Reverse(strength) => {
+            let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
+            if let Some(accel) = data.physics.on_ground.map(|block| {
+                // FRIC_GROUND temporarily used to normalize things around expected values
+                data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
+            }) {
+                update.vel.0 +=
+                    Vec2::broadcast(data.dt.0) * accel * -Vec2::from(update.ori) * strength;
+            }
+        },
         ForcedMovement::Leap {
             vertical,
             forward,
@@ -1063,12 +1073,16 @@ pub fn handle_interrupts(
                     matches!(stage_section, StageSection::Buildup)
                 });
             let interruptible = data.character.ability_info().map_or(false, |info| {
-                info.ability_meta.capabilities.contains(Capability::ROLL)
+                info.ability_meta
+                    .capabilities
+                    .contains(Capability::ROLL_INTERRUPT)
             });
             in_buildup || interruptible
         };
         let can_block = data.character.ability_info().map_or(false, |info| {
-            info.ability_meta.capabilities.contains(Capability::BLOCK)
+            info.ability_meta
+                .capabilities
+                .contains(Capability::BLOCK_INTERRUPT)
         });
         if can_dodge {
             handle_dodge_input(data, update);
@@ -1203,6 +1217,7 @@ pub enum StageSection {
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub enum ForcedMovement {
     Forward(f32),
+    Reverse(f32),
     Leap {
         vertical: f32,
         forward: f32,

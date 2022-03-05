@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Strike<T> {
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
@@ -26,7 +27,8 @@ pub struct Strike<T> {
     /// Initial recover duration of stage (how long until character exits state)
     pub recover_duration: T,
     /// How much forward movement there is in the swing portion of the stage
-    pub movement: Option<ForcedMovement>,
+    #[serde(default)]
+    pub movement: StrikeMovement,
     /// Adjusts turning rate during the attack
     pub ori_modifier: f32,
 }
@@ -56,6 +58,14 @@ impl Strike<f32> {
             ori_modifier: self.ori_modifier,
         }
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
+pub struct StrikeMovement {
+    pub buildup: Option<ForcedMovement>,
+    pub swing: Option<ForcedMovement>,
+    pub recover: Option<ForcedMovement>,
 }
 
 // TODO: Completely rewrite this with skill tree rework. Don't bother converting
@@ -117,7 +127,7 @@ impl CharacterBehavior for Data {
 
         match self.stage_section {
             Some(StageSection::Buildup) => {
-                if let Some(movement) = strike_data.movement {
+                if let Some(movement) = strike_data.movement.buildup {
                     handle_forced_movement(data, &mut update, movement);
                 }
                 if self.timer < strike_data.buildup_duration {
@@ -134,7 +144,7 @@ impl CharacterBehavior for Data {
                 }
             },
             Some(StageSection::Action) => {
-                if let Some(movement) = strike_data.movement {
+                if let Some(movement) = strike_data.movement.swing {
                     handle_forced_movement(data, &mut update, movement);
                 }
                 if input_is_pressed(data, ability_input) {
@@ -178,6 +188,9 @@ impl CharacterBehavior for Data {
                 }
             },
             Some(StageSection::Recover) => {
+                if let Some(movement) = strike_data.movement.recover {
+                    handle_forced_movement(data, &mut update, movement);
+                }
                 if self.timer < strike_data.recover_duration {
                     // Recovery
                     if let CharacterState::ComboMelee2(c) = &mut update.character {

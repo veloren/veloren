@@ -2477,7 +2477,7 @@ pub enum SwordStance {
 bitflags::bitflags! {
     #[derive(Default, Serialize, Deserialize)]
     pub struct Capability: u8 {
-        const ROLL  = 0b00000001;
-        const BLOCK = 0b00000010;
+        const ROLL_INTERRUPT  = 0b00000001;
+        const BLOCK_INTERRUPT = 0b00000010;
     }
 }
