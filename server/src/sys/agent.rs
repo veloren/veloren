@@ -2273,11 +2273,11 @@ impl<'a> AgentData<'a> {
         path: Path,
         speed_multiplier: Option<f32>,
     ) -> bool {
-        let pos = self.pos.0;
         let partial_path_tgt_pos = |pos_difference: Vec3<f32>| {
-            pos + PARTIAL_PATH_DIST * pos_difference.try_normalized().unwrap_or_else(Vec3::zero)
+            self.pos.0
+                + PARTIAL_PATH_DIST * pos_difference.try_normalized().unwrap_or_else(Vec3::zero)
         };
-        let pos_difference = tgt_pos - pos;
+        let pos_difference = tgt_pos - self.pos.0;
         let pathing_pos = match path {
             Path::Separate => {
                 let mut sep_vec: Vec3<f32> = Vec3::<f32>::zero();
@@ -2285,7 +2285,7 @@ impl<'a> AgentData<'a> {
                 for entity in read_data
                     .cached_spatial_grid
                     .0
-                    .in_circle_aabr(pos.xy(), SEPARATION_DIST)
+                    .in_circle_aabr(self.pos.0.xy(), SEPARATION_DIST)
                 {
                     if let (Some(alignment), Some(other_alignment)) =
                         (self.alignment, read_data.alignments.get(entity))
@@ -2317,7 +2317,7 @@ impl<'a> AgentData<'a> {
         let speed_multiplier = speed_multiplier.unwrap_or(1.0).min(1.0);
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*read_data.terrain,
-            pos,
+            self.pos.0,
             self.vel.0,
             pathing_pos,
             TraversalConfig {
