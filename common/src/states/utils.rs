@@ -23,6 +23,7 @@ use core::hash::BuildHasherDefault;
 use fxhash::FxHasher64;
 use serde::{Deserialize, Serialize};
 use std::{
+    f32::consts::PI,
     ops::{Add, Div},
     time::Duration,
 };
@@ -426,6 +427,29 @@ pub fn handle_forced_movement(
             }) {
                 update.vel.0 +=
                     Vec2::broadcast(data.dt.0) * accel * -Vec2::from(update.ori) * strength;
+            }
+        },
+        ForcedMovement::Sideways(strength) => {
+            let strength = strength * data.stats.move_speed_modifier * data.stats.friction_modifier;
+            if let Some(accel) = data.physics.on_ground.map(|block| {
+                // FRIC_GROUND temporarily used to normalize things around expected values
+                data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
+            }) {
+                let direction = {
+                    // Left if positive, else right
+                    let side = Vec2::from(update.ori)
+                        .rotated_z(PI / 2.)
+                        .dot(data.inputs.move_dir)
+                        .signum();
+                    if side > 0.0 {
+                        Vec2::from(update.ori).rotated_z(PI / 2.)
+                    } else {
+                        -Vec2::from(update.ori).rotated_z(PI / 2.)
+                    }
+                };
+
+                update.vel.0 +=
+                    Vec2::broadcast(data.dt.0) * accel * direction * strength;
             }
         },
         ForcedMovement::Leap {
@@ -1216,6 +1240,7 @@ pub enum StageSection {
 pub enum ForcedMovement {
     Forward(f32),
     Reverse(f32),
+    Sideways(f32),
     Leap {
         vertical: f32,
         forward: f32,
