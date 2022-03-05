@@ -442,7 +442,9 @@ impl TradePricing {
             }
         });
         if PRICING_DEBUG {
-            tracing::debug!("{:?}", recipes);
+            for i in recipes.iter() {
+                tracing::debug!("{:?}", *i);
+            }
         }
         //info!(? recipes);
         recipes
@@ -514,7 +516,9 @@ impl TradePricing {
             }
         }));
         if PRICING_DEBUG {
-            tracing::debug!("{:?}", result.items.0);
+            for i in result.items.0.iter() {
+                tracing::debug!("before recipes {:?}", *i);
+            }
         }
 
         // Apply recipe book
@@ -549,7 +553,7 @@ impl TradePricing {
         // (start with cheap ones to avoid changing material prices after evaluation)
         while result.sort_by_price(&mut ordered_recipes) {
             ordered_recipes.retain(|recipe| {
-                if recipe.material_cost.map_or(false, |p| p < 1e-5) {
+                if recipe.material_cost.map_or(false, |p| p < 1e-5) || recipe.amount == 0 {
                     // don't handle recipes which have no raw materials
                     false
                 } else if recipe.material_cost.is_some() {
@@ -565,12 +569,16 @@ impl TradePricing {
                         });
                         let item = Item::new_from_asset_expect(&recipe.output);
                         let stackable = item.is_stackable();
-                        result.items.add_alternative(PriceEntry {
+                        let new_entry = PriceEntry {
                             name: recipe.output.clone(),
-                            price: usage * (recipe.amount as f32) * Self::CRAFTING_FACTOR,
+                            price: usage * (1.0 / (recipe.amount as f32) * Self::CRAFTING_FACTOR),
                             sell: output_tradeable,
                             stackable,
-                        });
+                        };
+                        if PRICING_DEBUG {
+                            tracing::trace!("Recipe {:?}", new_entry);
+                        }
+                        result.items.add_alternative(new_entry);
                     } else {
                         error!("Recipe {:?} incomplete confusion", recipe);
                     }
