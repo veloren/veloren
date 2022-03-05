@@ -131,6 +131,9 @@ pub enum CharacterState {
     Music(music::Data),
     /// Melee attack that scales off and consumes combo
     FinisherMelee(finisher_melee::Data),
+    /// State entered when diving, melee attack triggered upon landing on the
+    /// ground
+    DiveMelee(dive_melee::Data),
 }
 
 impl CharacterState {
@@ -166,6 +169,7 @@ impl CharacterState {
                     ..
                 })
                 | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
         )
     }
 
@@ -206,6 +210,7 @@ impl CharacterState {
                 | CharacterState::BasicSummon(_)
                 | CharacterState::SpriteSummon(_)
                 | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
         )
     }
 
@@ -229,6 +234,7 @@ impl CharacterState {
                 | CharacterState::Wielding(_)
                 | CharacterState::Talk
                 | CharacterState::FinisherMelee(_)
+                | CharacterState::DiveMelee(_)
         )
     }
 
@@ -360,6 +366,7 @@ impl CharacterState {
             CharacterState::Skate(data) => data.behavior(j, output_events),
             CharacterState::Music(data) => data.behavior(j, output_events),
             CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
+            CharacterState::DiveMelee(data) => data.behavior(j, output_events),
         }
     }
 
@@ -410,6 +417,7 @@ impl CharacterState {
             CharacterState::Skate(data) => data.handle_event(j, output_events, action),
             CharacterState::Music(data) => data.handle_event(j, output_events, action),
             CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -459,7 +467,7 @@ impl CharacterState {
             CharacterState::SpriteInteract(_) => None,
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
-            CharacterState::Skate(_) => None,
+            CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -501,7 +509,7 @@ impl CharacterState {
             CharacterState::SpriteInteract(data) => Some(data.stage_section),
             CharacterState::FinisherMelee(data) => Some(data.stage_section),
             CharacterState::Music(data) => Some(data.stage_section),
-            CharacterState::Skate(_) => None,
+            CharacterState::DiveMelee(data) => Some(data.stage_section),
         }
     }
 }

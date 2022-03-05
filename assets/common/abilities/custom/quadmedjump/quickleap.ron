@@ -17,5 +17,4 @@ LeapMelee(
     ),
     forward_leap_strength: 20.0,
     vertical_leap_strength: 5.0,
-    damage_kind: Crushing,
 )

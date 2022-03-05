@@ -1,25 +1,21 @@
-// TODO: Make actual ability, just for testing right now
-BasicMelee(
-    energy_cost: 50,
-    buildup_duration: 0.3,
+DiveMelee(
+    energy_cost: 20,
+    vertical_speed: 15,
+    movement_duration: 5,
     swing_duration: 0.1,
-    recover_duration: 0.2,
+    recover_duration: 0.3,
     melee_constructor: (
-        kind: Stab(
-            damage: 10,
+        kind: Slash(
+            damage: 30,
             poise: 0,
             knockback: 0,
-            energy_regen: 0,
+            energy_regen: 10,
         ),
-        range: 5.0,
-        angle: 10.0,
+        range: 6.0,
+        angle: 15.0,
+        multi_target: true,
     ),
-    ori_modifier: 1.0,
     meta: (
-        kind: Some(Sword(Balanced)),
-        capabilities: (
-            // Block
-            bits: 0b00000010,
-        ),
+        kind: Some(Sword(Cleaving)),
     ),
 )

@@ -14,6 +14,7 @@ pub mod combo_melee;
 pub mod combo_melee2;
 pub mod dance;
 pub mod dash_melee;
+pub mod dive_melee;
 pub mod equipping;
 pub mod finisher_melee;
 pub mod glide;

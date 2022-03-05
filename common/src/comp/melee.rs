@@ -40,6 +40,7 @@ impl Component for Melee {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct MeleeConstructor {
     pub kind: MeleeConstructorKind,
     // This multiplied by a fraction is added to what is specified in kind

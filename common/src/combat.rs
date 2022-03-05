@@ -253,8 +253,10 @@ impl Attack {
                         if let Some(target_energy) = target.energy {
                             let energy_change = applied_damage * SLASHING_ENERGY_FRACTION;
                             if energy_change > target_energy.current() {
+                                let health_damage = energy_change - target_energy.current();
+                                accumulated_damage += health_damage;
                                 let health_change = HealthChange {
-                                    amount: -(energy_change - target_energy.current()),
+                                    amount: -health_damage,
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
@@ -412,6 +414,18 @@ impl Attack {
                                 });
                             }
                         },
+                        CombatEffect::ResetMelee => {
+                            if let Some(attacker_entity) = attacker.map(|a| a.entity) {
+                                if target
+                                    .health
+                                    .map_or(false, |h| accumulated_damage > h.current())
+                                {
+                                    emit(ServerEvent::ResetMelee {
+                                        entity: attacker_entity,
+                                    });
+                                }
+                            }
+                        },
                     }
                 }
             }
@@ -559,6 +573,18 @@ impl Attack {
                             });
                         }
                     },
+                    CombatEffect::ResetMelee => {
+                        if let Some(attacker_entity) = attacker.map(|a| a.entity) {
+                            if target
+                                .health
+                                .map_or(false, |h| accumulated_damage > h.current())
+                            {
+                                emit(ServerEvent::ResetMelee {
+                                    entity: attacker_entity,
+                                });
+                            }
+                        }
+                    },
                 }
             }
         }
@@ -690,6 +716,8 @@ pub enum CombatEffect {
     Lifesteal(f32),
     Poise(f32),
     Combo(i32),
+    // If the attack kills the target, reset the melee attack
+    ResetMelee,
 }
 
 #[cfg(not(target_arch = "wasm32"))]

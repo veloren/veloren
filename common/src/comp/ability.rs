@@ -406,12 +406,14 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::Skate(_)
             | CharacterState::Wallrun(_)
             | CharacterState::ComboMelee2(_)
-            | CharacterState::FinisherMelee(_) => Self::Other,
+            | CharacterState::FinisherMelee(_)
+            | CharacterState::DiveMelee(_) => Self::Other,
         }
     }
 }
 
 #[derive(Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub enum CharacterAbility {
     BasicMelee {
         energy_cost: f32,
@@ -674,6 +676,16 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    DiveMelee {
+        energy_cost: f32,
+        vertical_speed: f32,
+        movement_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        melee_constructor: MeleeConstructor,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -767,6 +779,14 @@ impl CharacterAbility {
                 ..
             } => {
                 data.combo.map_or(false, |c| c.counter() >= *minimum_combo)
+                    && update.energy.try_change_by(-*energy_cost).is_ok()
+            },
+            CharacterAbility::DiveMelee {
+                energy_cost,
+                vertical_speed,
+                ..
+            } => {
+                data.vel.0.z < -*vertical_speed
                     && update.energy.try_change_by(-*energy_cost).is_ok()
             },
             CharacterAbility::ComboMelee { .. }
@@ -1206,6 +1226,20 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
+            DiveMelee {
+                ref mut energy_cost,
+                vertical_speed: _,
+                movement_duration: _,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut melee_constructor,
+                meta: _,
+            } => {
+                *swing_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+            },
         }
         self
     }
@@ -1230,7 +1264,8 @@ impl CharacterAbility {
             | ComboMelee2 {
                 energy_cost_per_strike: energy_cost,
                 ..
-            } => *energy_cost,
+            }
+            | DiveMelee { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1272,7 +1307,8 @@ impl CharacterAbility {
             | BasicSummon { meta, .. }
             | SpriteSummon { meta, .. }
             | FinisherMelee { meta, .. }
-            | Music { meta, .. } => *meta,
+            | Music { meta, .. }
+            | DiveMelee { meta, .. } => *meta,
         }
     }
 
@@ -2385,11 +2421,32 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),
+            CharacterAbility::DiveMelee {
+                movement_duration,
+                swing_duration,
+                recover_duration,
+                melee_constructor,
+                energy_cost: _,
+                vertical_speed: _,
+                meta: _,
+            } => CharacterState::DiveMelee(dive_melee::Data {
+                static_data: dive_melee::StaticData {
+                    movement_duration: Duration::from_secs_f32(*movement_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee_constructor: *melee_constructor,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Movement,
+                exhausted: false,
+            }),
         }
     }
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct AbilityMeta {
     pub kind: Option<AbilityKind>,
     #[serde(default)]

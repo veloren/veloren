@@ -293,6 +293,7 @@ fn empty_ability_info() -> states::utils::AbilityInfo {
         hand: None,
         input: InputKind::Primary,
         input_attr: None,
-        ability_meta: None,
+        ability_meta: Default::default(),
+        ability: None,
     }
 }

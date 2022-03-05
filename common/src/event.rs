@@ -226,6 +226,9 @@ pub enum ServerEvent {
         entity: EcsEntity,
         update: comp::MapMarkerChange,
     },
+    ResetMelee {
+        entity: EcsEntity,
+    },
 }
 
 pub struct EventBus<E> {
