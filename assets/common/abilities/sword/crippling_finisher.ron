@@ -1,25 +1,30 @@
-// TODO: Make actual ability, just for testing right now
-BasicMelee(
-    energy_cost: 50,
-    buildup_duration: 0.3,
+FinisherMelee(
+    energy_cost: 40,
+    buildup_duration: 0.4,
     swing_duration: 0.1,
-    recover_duration: 0.2,
+    recover_duration: 0.4,
     melee_constructor: (
-        kind: Stab(
+        kind: Slash(
             damage: 10,
             poise: 0,
             knockback: 0,
-            energy_regen: 0,
+            energy_regen: 10,
         ),
-        range: 5.0,
-        angle: 10.0,
+        range: 3.0,
+        angle: 15.0,
+        damage_effect: Some(Buff((
+            kind: Bleeding,
+            dur_secs: 5.0,
+            strength: DamageFraction(0.5),
+            chance: 1.0,
+        ))),
     ),
-    ori_modifier: 1.0,
+    scaling: Some((
+        target: Buff,
+        kind: Linear,
+    )),
+    minimum_combo: 10,
     meta: (
-        kind: Some(Sword(Balanced)),
-        capabilities: (
-            // Block
-            bits: 0b00000010,
-        ),
+        kind: Some(Sword(Crippling)),
     ),
 )
