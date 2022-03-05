@@ -61,6 +61,9 @@ buff-desc-wet = The ground rejects your feet, making it hard to stop.
 ## Ensnared
 buff-title-ensnared = Ensnared
 buff-desc-ensnared = Vines grasp at your legs, impeding your movement.
+## Fortitude
+buff-title-fortitude = Fortitude
+buff-desc-fortitude = You can withstand staggers.
 ## Util
 buff-text-over_seconds = over { $dur_secs } seconds
 buff-text-for_seconds = for { $dur_secs } seconds

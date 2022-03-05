@@ -414,10 +414,8 @@ pub fn handle_forced_movement(
                 // FRIC_GROUND temporarily used to normalize things around expected values
                 data.body.base_accel() * block.get_traction() * block.get_friction() / FRIC_GROUND
             }) {
-                update.vel.0 += Vec2::broadcast(data.dt.0)
-                    * accel
-                    * Vec2::from(update.ori)
-                    * strength;
+                update.vel.0 +=
+                    Vec2::broadcast(data.dt.0) * accel * Vec2::from(update.ori) * strength;
             }
         },
         ForcedMovement::Reverse(strength) => {

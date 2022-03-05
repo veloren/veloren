@@ -183,7 +183,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                 | BuffKind::Wet
                 | BuffKind::Ensnared
                 | BuffKind::Poisoned
-                | BuffKind::Hastened => Cow::Borrowed(""),
+                | BuffKind::Hastened
+                | BuffKind::Fortitude => Cow::Borrowed(""),
             };
 
             write!(&mut description, "{}", buff_desc).unwrap();
@@ -213,7 +214,8 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
                     | BuffKind::Wet
                     | BuffKind::Ensnared
                     | BuffKind::Poisoned
-                    | BuffKind::Hastened => Cow::Borrowed(""),
+                    | BuffKind::Hastened
+                    | BuffKind::Fortitude => Cow::Borrowed(""),
                 }
             } else if let BuffKind::Saturation | BuffKind::Regeneration | BuffKind::EnergyRegen =
                 buff.kind

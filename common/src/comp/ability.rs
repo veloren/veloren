@@ -2544,5 +2544,6 @@ bitflags::bitflags! {
         const ROLL_INTERRUPT  = 0b00000001;
         const BLOCK_INTERRUPT = 0b00000010;
         const BUILDUP_PARRIES = 0b00000100;
+        const POISE_RESISTANT = 0b00001000;
     }
 }

@@ -286,7 +286,13 @@ impl Attack {
                         let reduced_damage =
                             applied_damage * damage_reduction / (1.0 - damage_reduction);
                         let poise = reduced_damage * CRUSHING_POISE_FRACTION;
-                        let change = -Poise::apply_poise_reduction(poise, target.inventory, msm);
+                        let change = -Poise::apply_poise_reduction(
+                            poise,
+                            target.inventory,
+                            msm,
+                            target.char_state,
+                            target.stats,
+                        );
                         let poise_change = PoiseChange {
                             amount: change,
                             impulse: *dir,
@@ -377,8 +383,13 @@ impl Attack {
                             }
                         },
                         CombatEffect::Poise(p) => {
-                            let change = -Poise::apply_poise_reduction(*p, target.inventory, msm)
-                                * strength_modifier;
+                            let change = -Poise::apply_poise_reduction(
+                                *p,
+                                target.inventory,
+                                msm,
+                                target.char_state,
+                                target.stats,
+                            ) * strength_modifier;
                             if change.abs() > Poise::POISE_EPSILON {
                                 let poise_change = PoiseChange {
                                     amount: change,
@@ -536,8 +547,13 @@ impl Attack {
                         }
                     },
                     CombatEffect::Poise(p) => {
-                        let change = -Poise::apply_poise_reduction(p, target.inventory, msm)
-                            * strength_modifier;
+                        let change = -Poise::apply_poise_reduction(
+                            p,
+                            target.inventory,
+                            msm,
+                            target.char_state,
+                            target.stats,
+                        ) * strength_modifier;
                         if change.abs() > Poise::POISE_EPSILON {
                             let poise_change = PoiseChange {
                                 amount: change,
@@ -1146,7 +1162,8 @@ pub fn combat_rating(
     // Normalized with a standard max poise of 100
     let poise_rating = poise.base_max() as f32
         / 100.0
-        / (1.0 - Poise::compute_poise_damage_reduction(inventory, msm)).max(0.00001);
+        / (1.0 - Poise::compute_poise_damage_reduction(Some(inventory), msm, None, None))
+            .max(0.00001);
 
     // Normalized with a standard crit multiplier of 1.2
     let crit_rating = compute_crit_mult(Some(inventory), msm) / 1.2;

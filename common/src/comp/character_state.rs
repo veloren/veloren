@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction, Density, Energy, InputAttr,
-        InputKind, Ori, Pos, Vel,
+        ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction,
+        Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
     states::{

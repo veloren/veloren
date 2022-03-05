@@ -466,6 +466,9 @@ fn execute_effect(
         BuffEffect::GroundFriction(gf) => {
             stat.friction_modifier *= *gf;
         },
+        BuffEffect::PoiseReduction(pr) => {
+            stat.poise_reduction = stat.poise_reduction.max(*pr).min(1.0);
+        },
     };
 }
 

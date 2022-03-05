@@ -4608,17 +4608,19 @@ pub fn get_buff_image(buff: BuffKind, imgs: &Imgs) -> conrod_core::image::Id {
         BuffKind::IncreaseMaxHealth { .. } => imgs.buff_healthplus_0,
         BuffKind::Invulnerability => imgs.buff_invincibility_0,
         BuffKind::ProtectingWard => imgs.buff_dmg_red_0,
-        BuffKind::Frenzied { .. } => imgs.buff_frenzy_0,
-        BuffKind::Hastened { .. } => imgs.buff_haste_0,
+        BuffKind::Frenzied => imgs.buff_frenzy_0,
+        BuffKind::Hastened => imgs.buff_haste_0,
+        // TODO: Get unique icon
+        BuffKind::Fortitude => imgs.buff_dmg_red_0,
         //  Debuffs
-        BuffKind::Bleeding { .. } => imgs.debuff_bleed_0,
-        BuffKind::Cursed { .. } => imgs.debuff_skull_0,
-        BuffKind::Burning { .. } => imgs.debuff_burning_0,
-        BuffKind::Crippled { .. } => imgs.debuff_crippled_0,
-        BuffKind::Frozen { .. } => imgs.debuff_frozen_0,
-        BuffKind::Wet { .. } => imgs.debuff_wet_0,
-        BuffKind::Ensnared { .. } => imgs.debuff_ensnared_0,
-        BuffKind::Poisoned { .. } => imgs.debuff_poisoned_0,
+        BuffKind::Bleeding => imgs.debuff_bleed_0,
+        BuffKind::Cursed => imgs.debuff_skull_0,
+        BuffKind::Burning => imgs.debuff_burning_0,
+        BuffKind::Crippled => imgs.debuff_crippled_0,
+        BuffKind::Frozen => imgs.debuff_frozen_0,
+        BuffKind::Wet => imgs.debuff_wet_0,
+        BuffKind::Ensnared => imgs.debuff_ensnared_0,
+        BuffKind::Poisoned => imgs.debuff_poisoned_0,
     }
 }
 
@@ -4640,6 +4642,7 @@ pub fn get_buff_title(buff: BuffKind, localized_strings: &Localization) -> Cow<s
         BuffKind::ProtectingWard => localized_strings.get_msg("buff-title-protectingward"),
         BuffKind::Frenzied => localized_strings.get_msg("buff-title-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-title-hastened"),
+        BuffKind::Fortitude => localized_strings.get_msg("buff-title-fortitude"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-title-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-title-cursed"),
@@ -4674,6 +4677,7 @@ pub fn get_buff_desc(buff: BuffKind, data: BuffData, localized_strings: &Localiz
         BuffKind::ProtectingWard => localized_strings.get_msg("buff-desc-protectingward"),
         BuffKind::Frenzied => localized_strings.get_msg("buff-desc-frenzied"),
         BuffKind::Hastened => localized_strings.get_msg("buff-desc-hastened"),
+        BuffKind::Fortitude => localized_strings.get_msg("buff-desc-fortitude"),
         // Debuffs
         BuffKind::Bleeding { .. } => localized_strings.get_msg("buff-desc-bleed"),
         BuffKind::Cursed { .. } => localized_strings.get_msg("buff-desc-cursed"),

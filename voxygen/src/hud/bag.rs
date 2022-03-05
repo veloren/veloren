@@ -956,7 +956,13 @@ impl<'a> Widget for Bag<'a> {
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
                 let stun_res_txt = format!(
                     "{}",
-                    (100.0 * Poise::compute_poise_damage_reduction(inventory, self.msm)) as i32
+                    (100.0
+                        * Poise::compute_poise_damage_reduction(
+                            Some(inventory),
+                            self.msm,
+                            None,
+                            None
+                        )) as i32
                 );
                 let stealth_txt = format!(
                     "{:.1}%",

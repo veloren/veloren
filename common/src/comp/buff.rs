@@ -51,6 +51,11 @@ pub enum BuffKind {
     /// Strength scales strength of both effects linearly. 0.5 is a 50%
     /// increase, 1.0 is a 100% increase.
     Hastened,
+    // TODO: Consider non linear scaling?
+    /// Increases resistance to incomin poise over time
+    /// Strength scales the resistance linearly, values over 1 will usually do
+    /// nothing. 0.5 is 50%, 1.0 is 100%.
+    Fortitude,
     // Debuffs
     /// Does damage to a creature over time
     /// Strength should be the DPS of the debuff
@@ -99,7 +104,8 @@ impl BuffKind {
             | BuffKind::IncreaseMaxHealth
             | BuffKind::Invulnerability
             | BuffKind::ProtectingWard
-            | BuffKind::Hastened => true,
+            | BuffKind::Hastened
+            | BuffKind::Fortitude => true,
             BuffKind::Bleeding
             | BuffKind::Cursed
             | BuffKind::Burning
@@ -181,6 +187,8 @@ pub enum BuffEffect {
     AttackSpeed(f32),
     /// Modifies ground friction of target
     GroundFriction(f32),
+    /// Reduces poise damage taken after armor is accounted for by this fraction
+    PoiseReduction(f32),
 }
 
 /// Actual de/buff.
@@ -376,6 +384,10 @@ impl Buff {
                     BuffEffect::MovementSpeed(1.0 + data.strength),
                     BuffEffect::AttackSpeed(1.0 + data.strength),
                 ],
+                data.duration,
+            ),
+            BuffKind::Fortitude => (
+                vec![BuffEffect::PoiseReduction(data.strength)],
                 data.duration,
             ),
         };

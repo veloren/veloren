@@ -2,8 +2,9 @@ use crate::{
     combat::{DamageContributor, DamageSource},
     comp::{
         self,
+        ability::Capability,
         inventory::item::{armor::Protection, ItemKind, MaterialStatManifest},
-        CharacterState, Inventory,
+        CharacterState, Inventory, Stats,
     },
     resources::Time,
     states,
@@ -234,39 +235,58 @@ impl Poise {
 
     /// Returns the total poise damage reduction provided by all equipped items
     pub fn compute_poise_damage_reduction(
-        inventory: &Inventory,
+        inventory: Option<&Inventory>,
         msm: &MaterialStatManifest,
+        char_state: Option<&CharacterState>,
+        stats: Option<&Stats>,
     ) -> f32 {
-        let protection = inventory
-            .equipped_items()
-            .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stats(msm).poise_resilience
-                } else {
-                    None
-                }
-            })
-            .map(|protection| match protection {
-                Protection::Normal(protection) => Some(protection),
-                Protection::Invincible => None,
-            })
-            .sum::<Option<f32>>();
-        match protection {
+        let protection = inventory.map_or(Some(0.0), |inv| {
+            inv.equipped_items()
+                .filter_map(|item| {
+                    if let ItemKind::Armor(armor) = &*item.kind() {
+                        armor.stats(msm).poise_resilience
+                    } else {
+                        None
+                    }
+                })
+                .map(|protection| match protection {
+                    Protection::Normal(protection) => Some(protection),
+                    Protection::Invincible => None,
+                })
+                .sum::<Option<f32>>()
+        });
+        let from_inventory = match protection {
             Some(dr) => dr / (60.0 + dr.abs()),
             None => 1.0,
-        }
+        };
+        let from_char = {
+            let resistant = char_state
+                .and_then(|cs| cs.ability_info())
+                .map_or(false, |a| {
+                    a.ability_meta
+                        .capabilities
+                        .contains(Capability::POISE_RESISTANT)
+                });
+            if resistant { 0.5 } else { 0.0 }
+        };
+        let from_stats = if let Some(stats) = stats {
+            stats.poise_reduction
+        } else {
+            0.0
+        };
+        1.0 - (1.0 - from_inventory) * (1.0 - from_char) * (1.0 - from_stats)
     }
 
-    /// Modifies a poise change when optionally given an inventory to aid in
-    /// calculation of poise damage reduction
+    /// Modifies a poise change when optionally given an inventory and character
+    /// state to aid in calculation of poise damage reduction
     pub fn apply_poise_reduction(
         value: f32,
         inventory: Option<&Inventory>,
         msm: &MaterialStatManifest,
+        char_state: Option<&CharacterState>,
+        stats: Option<&Stats>,
     ) -> f32 {
-        inventory.map_or(value, |inv| {
-            value * (1.0 - Poise::compute_poise_damage_reduction(inv, msm))
-        })
+        value * (1.0 - Poise::compute_poise_damage_reduction(inventory, msm, char_state, stats))
     }
 }
 

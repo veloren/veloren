@@ -552,6 +552,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
         let falldmg = impact_energy / 1000.0;
 
         let inventories = ecs.read_storage::<Inventory>();
+        let char_states = ecs.read_storage::<CharacterState>();
         let stats = ecs.read_storage::<Stats>();
         let time = ecs.read_resource::<Time>();
         let msm = ecs.read_resource::<MaterialStatManifest>();
@@ -583,8 +584,13 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
 
         // Emit poise change
         let poise_damage = -(mass.0 * vel.magnitude_squared() / 1500.0);
-        let poise_change =
-            Poise::apply_poise_reduction(poise_damage, inventories.get(entity), &msm);
+        let poise_change = Poise::apply_poise_reduction(
+            poise_damage,
+            inventories.get(entity),
+            &msm,
+            char_states.get(entity),
+            stats.get(entity),
+        );
         let poise_change = comp::PoiseChange {
             amount: poise_change,
             impulse: Vec3::unit_z(),

@@ -1190,8 +1190,12 @@ impl<'a> Widget for Diary<'a> {
                             }
                         },
                         "Stun-Resistance" => {
-                            let stun_res =
-                                Poise::compute_poise_damage_reduction(self.inventory, self.msm);
+                            let stun_res = Poise::compute_poise_damage_reduction(
+                                Some(self.inventory),
+                                self.msm,
+                                None,
+                                None,
+                            );
                             format!("{:.2}%", stun_res * 100.0)
                         },
                         "Crit-Power" => {

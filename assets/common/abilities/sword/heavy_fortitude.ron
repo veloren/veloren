@@ -1,25 +1,12 @@
-// TODO: Make actual ability, just for testing right now
-BasicMelee(
-    energy_cost: 50,
-    buildup_duration: 0.3,
-    swing_duration: 0.1,
-    recover_duration: 0.2,
-    melee_constructor: (
-        kind: Stab(
-            damage: 10,
-            poise: 0,
-            knockback: 0,
-            energy_regen: 0,
-        ),
-        range: 5.0,
-        angle: 10.0,
-    ),
-    ori_modifier: 1.0,
+SelfBuff(
+    buildup_duration: 0.2,
+    cast_duration: 0.2,
+    recover_duration: 0.6,
+    buff_kind: Fortitude,
+    buff_strength: 1.0,
+    buff_duration: Some(5.0),
+    energy_cost: 40,
     meta: (
-        kind: Some(Sword(Balanced)),
-        capabilities: (
-            // Block
-            bits: 0b00000010,
-        ),
+        kind: Some(Sword(Heavy)),
     ),
 )
