@@ -9,6 +9,12 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParryWindow {
+    pub buildup: bool,
+    pub recover: bool,
+}
+
 /// Separated out to condense update portions of character state
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct StaticData {
@@ -20,6 +26,8 @@ pub struct StaticData {
     pub max_angle: f32,
     /// What percentage incoming damage is reduced by
     pub block_strength: f32,
+    /// What durations are considered a parry
+    pub parry_window: ParryWindow,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
     /// Energy consumed to initiate the block
@@ -100,5 +108,15 @@ impl CharacterBehavior for Data {
         handle_interrupts(data, &mut update, None);
 
         update
+    }
+}
+
+impl Data {
+    pub fn is_parry(&self) -> bool {
+        match self.stage_section {
+            StageSection::Buildup => self.static_data.parry_window.buildup,
+            StageSection::Recover => self.static_data.parry_window.recover,
+            _ => false,
+        }
     }
 }

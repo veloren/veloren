@@ -1,7 +1,7 @@
 use crate::{
     comp::{
-        inventory::item::armor::Friction, item::ConsumableKind, ControlAction, Density, Energy,
-        InputAttr, InputKind, Ori, Pos, Vel,
+        ability::Capability, inventory::item::armor::Friction, item::ConsumableKind, ControlAction, Density, Energy, InputAttr,
+        InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
     states::{
@@ -134,6 +134,8 @@ pub enum CharacterState {
     /// State entered when diving, melee attack triggered upon landing on the
     /// ground
     DiveMelee(dive_melee::Data),
+    /// Attack that attempts to parry, and if it parries moves to an attack
+    RiposteMelee(riposte_melee::Data),
 }
 
 impl CharacterState {
@@ -170,6 +172,7 @@ impl CharacterState {
                 })
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
         )
     }
 
@@ -211,6 +214,7 @@ impl CharacterState {
                 | CharacterState::SpriteSummon(_)
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
         )
     }
 
@@ -235,6 +239,7 @@ impl CharacterState {
                 | CharacterState::Talk
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_)
         )
     }
 
@@ -251,7 +256,45 @@ impl CharacterState {
         )
     }
 
-    pub fn is_block(&self) -> bool { matches!(self, CharacterState::BasicBlock(_)) }
+    pub fn block_strength(&self) -> Option<f32> {
+        let strength = match self {
+            CharacterState::BasicBlock(c) => c.static_data.block_strength,
+            _ => return None,
+        };
+        Some(strength)
+    }
+
+    pub fn is_parry(&self) -> bool {
+        let from_capability =
+            if let Some(capabilities) = self.ability_info().map(|a| a.ability_meta.capabilities) {
+                capabilities.contains(Capability::BUILDUP_PARRIES)
+                    && matches!(self.stage_section(), Some(StageSection::Buildup))
+            } else {
+                false
+            };
+        let from_state = match self {
+            CharacterState::BasicBlock(c) => c.is_parry(),
+            CharacterState::RiposteMelee(c) => matches!(c.stage_section, StageSection::Buildup),
+            _ => false,
+        };
+        from_capability || from_state
+    }
+
+    /// In radians
+    pub fn block_angle(&self) -> f32 {
+        match self {
+            CharacterState::BasicBlock(c) => c.static_data.max_angle.to_radians(),
+            CharacterState::ComboMelee2(c) => {
+                let strike_data =
+                    c.static_data.strikes[c.completed_strikes % c.static_data.strikes.len()];
+                strike_data.melee_constructor.angle.to_radians()
+            },
+            CharacterState::RiposteMelee(c) => c.static_data.melee_constructor.angle.to_radians(),
+            // TODO: Add more here as needed, maybe look into having character state return the
+            // melee constructor if it has one and using that?
+            _ => 0.0,
+        }
+    }
 
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
 
@@ -302,6 +345,7 @@ impl CharacterState {
                 | CharacterState::UseItem(_)
                 | CharacterState::SpriteInteract(_)
                 | CharacterState::Music(_)
+                | CharacterState::RiposteMelee(_)
         )
     }
 
@@ -367,6 +411,7 @@ impl CharacterState {
             CharacterState::Music(data) => data.behavior(j, output_events),
             CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
             CharacterState::DiveMelee(data) => data.behavior(j, output_events),
+            CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
         }
     }
 
@@ -418,6 +463,7 @@ impl CharacterState {
             CharacterState::Music(data) => data.handle_event(j, output_events, action),
             CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -468,6 +514,7 @@ impl CharacterState {
             CharacterState::FinisherMelee(data) => Some(data.static_data.ability_info),
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -510,6 +557,7 @@ impl CharacterState {
             CharacterState::FinisherMelee(data) => Some(data.stage_section),
             CharacterState::Music(data) => Some(data.stage_section),
             CharacterState::DiveMelee(data) => Some(data.stage_section),
+            CharacterState::RiposteMelee(data) => Some(data.stage_section),
         }
     }
 }

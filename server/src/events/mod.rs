@@ -12,8 +12,9 @@ use entity_creation::{
 use entity_manipulation::{
     handle_aura, handle_bonk, handle_buff, handle_change_ability, handle_combo_change,
     handle_delete, handle_destroy, handle_energy_change, handle_entity_attacked_hook,
-    handle_explosion, handle_health_change, handle_knockback, handle_land_on_ground, handle_parry,
-    handle_poise, handle_reset_melee, handle_respawn, handle_teleport_to, handle_update_map_marker,
+    handle_explosion, handle_health_change, handle_knockback, handle_land_on_ground,
+    handle_parry_hook, handle_poise, handle_reset_melee, handle_respawn, handle_teleport_to,
+    handle_update_map_marker,
 };
 use group_manip::handle_group;
 use information::handle_site_info;
@@ -251,10 +252,9 @@ impl Server {
                 ServerEvent::ComboChange { entity, change } => {
                     handle_combo_change(self, entity, change)
                 },
-                ServerEvent::Parry {
-                    entity,
-                    energy_cost,
-                } => handle_parry(self, entity, energy_cost),
+                ServerEvent::ParryHook { defender, attacker } => {
+                    handle_parry_hook(self, defender, attacker)
+                },
                 ServerEvent::RequestSiteInfo { entity, id } => handle_site_info(self, entity, id),
                 ServerEvent::MineBlock { entity, pos, tool } => {
                     handle_mine_block(self, entity, pos, tool)

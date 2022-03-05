@@ -198,7 +198,8 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::SelfBuff(_)
                 | CharacterState::SpriteSummon(_)
                 | CharacterState::FinisherMelee(_)
-                | CharacterState::DiveMelee(_) => {
+                | CharacterState::DiveMelee(_)
+                | CharacterState::RiposteMelee(_) => {
                     if energy.regen_rate != 0.0 {
                         energy.regen_rate = 0.0
                     }

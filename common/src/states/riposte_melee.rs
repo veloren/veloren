@@ -1,7 +1,5 @@
 use crate::{
-    combat::{CombatBuff, CombatEffect},
     comp::{character_state::OutputEvents, CharacterState, Melee, MeleeConstructor, StateUpdate},
-    event::ServerEvent,
     states::{
         behavior::{CharacterBehavior, JoinData},
         utils::*,
@@ -22,12 +20,6 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Used to construct the Melee attack
     pub melee_constructor: MeleeConstructor,
-    /// Used to determine if and how scaling of the melee attack should happen
-    pub scaling: Option<Scaling>,
-    /// Minimum amount of combo needed to activate ability
-    pub minimum_combo: u32,
-    /// Amount of combo when ability was activated
-    pub combo_on_use: u32,
     /// What key is used to press ability
     pub ability_info: AbilityInfo,
 }
@@ -58,50 +50,20 @@ impl CharacterBehavior for Data {
             StageSection::Buildup => {
                 if self.timer < self.static_data.buildup_duration {
                     // Build up
-                    if let CharacterState::FinisherMelee(c) = &mut update.character {
+                    if let CharacterState::RiposteMelee(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
                 } else {
-                    // Transitions to swing section of stage
-                    if let CharacterState::FinisherMelee(c) = &mut update.character {
-                        c.timer = Duration::default();
-                        c.stage_section = StageSection::Action;
-                    }
+                    // If duration finishes with no pary occurring, end character state
+                    // Transition to action happens in parry hook server event
+                    update.character =
+                        CharacterState::Wielding(wielding::Data { is_sneaking: false });
                 }
             },
             StageSection::Action => {
                 if !self.exhausted {
-                    if let CharacterState::FinisherMelee(c) = &mut update.character {
+                    if let CharacterState::RiposteMelee(c) = &mut update.character {
                         c.exhausted = true;
-                    }
-
-                    // Consume combo
-                    output_events.emit_server(ServerEvent::ComboChange {
-                        entity: data.entity,
-                        change: -(self.static_data.combo_on_use as i32),
-                    });
-
-                    let mut melee_constructor = self.static_data.melee_constructor;
-
-                    if let Some(scaling) = self.static_data.scaling {
-                        let scaled_by = match scaling.kind {
-                            ScalingKind::Linear => {
-                                self.static_data.combo_on_use as f32
-                                    / self.static_data.minimum_combo as f32
-                            },
-                        };
-                        match scaling.target {
-                            ScalingTarget::Attack => {
-                                melee_constructor = melee_constructor.handle_scaling(scaled_by);
-                            },
-                            ScalingTarget::Buff => {
-                                if let Some(CombatEffect::Buff(CombatBuff { strength, .. })) =
-                                    &mut melee_constructor.damage_effect
-                                {
-                                    *strength *= scaled_by;
-                                }
-                            },
-                        }
                     }
 
                     let crit_data = get_crit_data(data, self.static_data.ability_info);
@@ -109,16 +71,18 @@ impl CharacterBehavior for Data {
 
                     data.updater.insert(
                         data.entity,
-                        melee_constructor.create_melee(crit_data, buff_strength),
+                        self.static_data
+                            .melee_constructor
+                            .create_melee(crit_data, buff_strength),
                     );
                 } else if self.timer < self.static_data.swing_duration {
                     // Swings
-                    if let CharacterState::FinisherMelee(c) = &mut update.character {
+                    if let CharacterState::RiposteMelee(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
                 } else {
                     // Transitions to recover section of stage
-                    if let CharacterState::FinisherMelee(c) = &mut update.character {
+                    if let CharacterState::RiposteMelee(c) = &mut update.character {
                         c.timer = Duration::default();
                         c.stage_section = StageSection::Recover
                     }
@@ -127,7 +91,7 @@ impl CharacterBehavior for Data {
             StageSection::Recover => {
                 if self.timer < self.static_data.recover_duration {
                     // Recovery
-                    if let CharacterState::FinisherMelee(c) = &mut update.character {
+                    if let CharacterState::RiposteMelee(c) = &mut update.character {
                         c.timer = tick_attack_or_default(data, self.timer, None);
                     }
                 } else {
@@ -148,23 +112,4 @@ impl CharacterBehavior for Data {
 
         update
     }
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum ScalingTarget {
-    Attack,
-    Buff,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum ScalingKind {
-    // Reaches a scaling of 1 when at minimum combo, and a scaling of 2 when at double minimum
-    // combo
-    Linear,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct Scaling {
-    pub target: ScalingTarget,
-    pub kind: ScalingKind,
 }

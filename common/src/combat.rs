@@ -12,7 +12,6 @@ use crate::{
     },
     event::ServerEvent,
     outcome::Outcome,
-    states::utils::StageSection,
     uid::{Uid, UidAllocator},
     util::Dir,
 };
@@ -129,6 +128,7 @@ impl Attack {
     pub fn effects(&self) -> impl Iterator<Item = &AttackEffect> { self.effects.iter() }
 
     pub fn compute_damage_reduction(
+        attacker: Option<&AttackerInfo>,
         target: &TargetInfo,
         source: AttackSource,
         dir: Dir,
@@ -141,25 +141,28 @@ impl Attack {
             Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
         let block_reduction = match source {
             AttackSource::Melee => {
-                if let (Some(CharacterState::BasicBlock(data)), Some(ori)) =
-                    (target.char_state, target.ori)
-                {
-                    if ori.look_vec().angle_between(-*dir) < data.static_data.max_angle.to_radians()
-                    {
-                        let parry = matches!(data.stage_section, StageSection::Buildup);
-                        emit_outcome(Outcome::Block {
-                            parry,
-                            pos: target.pos,
-                            uid: target.uid,
-                        });
-                        emit(ServerEvent::Parry {
-                            entity: target.entity,
-                            energy_cost: data.static_data.energy_cost,
-                        });
-                        if parry {
+                if let (Some(char_state), Some(ori)) = (target.char_state, target.ori) {
+                    if ori.look_vec().angle_between(-*dir) < char_state.block_angle() {
+                        if char_state.is_parry() {
+                            emit_outcome(Outcome::Block {
+                                parry: true,
+                                pos: target.pos,
+                                uid: target.uid,
+                            });
+                            emit(ServerEvent::ParryHook {
+                                defender: target.entity,
+                                attacker: attacker.map(|a| a.entity),
+                            });
                             1.0
+                        } else if let Some(block_strength) = char_state.block_strength() {
+                            emit_outcome(Outcome::Block {
+                                parry: false,
+                                pos: target.pos,
+                                uid: target.uid,
+                            });
+                            block_strength
                         } else {
-                            data.static_data.block_strength
+                            0.0
                         }
                     } else {
                         0.0
@@ -220,6 +223,7 @@ impl Attack {
         {
             is_applied = true;
             let damage_reduction = Attack::compute_damage_reduction(
+                attacker.as_ref(),
                 &target,
                 attack_source,
                 dir,

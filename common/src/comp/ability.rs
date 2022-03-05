@@ -407,7 +407,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::Wallrun(_)
             | CharacterState::ComboMelee2(_)
             | CharacterState::FinisherMelee(_)
-            | CharacterState::DiveMelee(_) => Self::Other,
+            | CharacterState::DiveMelee(_)
+            | CharacterState::RiposteMelee(_) => Self::Other,
         }
     }
 }
@@ -479,6 +480,7 @@ pub enum CharacterAbility {
         recover_duration: f32,
         max_angle: f32,
         block_strength: f32,
+        parry_window: basic_block::ParryWindow,
         energy_cost: f32,
         #[serde(default)]
         meta: AbilityMeta,
@@ -686,6 +688,15 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    RiposteMelee {
+        energy_cost: f32,
+        buildup_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        melee_constructor: MeleeConstructor,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -738,7 +749,8 @@ impl CharacterAbility {
             | CharacterAbility::ChargedMelee { energy_cost, .. }
             | CharacterAbility::Shockwave { energy_cost, .. }
             | CharacterAbility::BasicBlock { energy_cost, .. }
-            | CharacterAbility::SelfBuff { energy_cost, .. } => {
+            | CharacterAbility::SelfBuff { energy_cost, .. }
+            | CharacterAbility::RiposteMelee { energy_cost, .. } => {
                 update.energy.try_change_by(-*energy_cost).is_ok()
             },
             // Consumes energy within state, so value only checked before entering state
@@ -817,6 +829,10 @@ impl CharacterAbility {
             recover_duration: 0.2,
             max_angle: 60.0,
             block_strength: 0.5,
+            parry_window: basic_block::ParryWindow {
+                buildup: true,
+                recover: false,
+            },
             energy_cost: 2.5,
             meta: Default::default(),
         }
@@ -916,6 +932,7 @@ impl CharacterAbility {
                 max_angle: _,
                 // Block strength explicitly not modified by power, that will be a separate stat
                 block_strength: _,
+                parry_window: _,
                 ref mut energy_cost,
                 meta: _,
             } => {
@@ -1240,6 +1257,20 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
+            RiposteMelee {
+                ref mut energy_cost,
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut melee_constructor,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *swing_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+            },
         }
         self
     }
@@ -1265,7 +1296,8 @@ impl CharacterAbility {
                 energy_cost_per_strike: energy_cost,
                 ..
             }
-            | DiveMelee { energy_cost, .. } => *energy_cost,
+            | DiveMelee { energy_cost, .. }
+            | RiposteMelee { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1308,7 +1340,8 @@ impl CharacterAbility {
             | SpriteSummon { meta, .. }
             | FinisherMelee { meta, .. }
             | Music { meta, .. }
-            | DiveMelee { meta, .. } => *meta,
+            | DiveMelee { meta, .. }
+            | RiposteMelee { meta, .. } => *meta,
         }
     }
 
@@ -1321,10 +1354,20 @@ impl CharacterAbility {
                     const ENERGY_REDUCTION: f32 = 0.75;
                     use CharacterAbility::*;
                     match &mut self {
-                        BasicMelee { energy_cost, .. } => {
-                            *energy_cost *= ENERGY_REDUCTION;
-                        },
-                        FinisherMelee { energy_cost, .. } => {
+                        BasicMelee { energy_cost, .. }
+                        | ComboMelee2 {
+                            energy_cost_per_strike: energy_cost,
+                            ..
+                        }
+                        | FinisherMelee { energy_cost, .. }
+                        | DashMelee { energy_cost, .. }
+                        | SpinMelee { energy_cost, .. }
+                        | ChargedMelee { energy_cost, .. }
+                        | Shockwave { energy_cost, .. }
+                        | BasicBlock { energy_cost, .. }
+                        | SelfBuff { energy_cost, .. }
+                        | DiveMelee { energy_cost, .. }
+                        | RiposteMelee { energy_cost, .. } => {
                             *energy_cost *= ENERGY_REDUCTION;
                         },
                         _ => {},
@@ -1953,6 +1996,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 recover_duration,
                 max_angle,
                 block_strength,
+                parry_window,
                 energy_cost,
                 meta: _,
             } => CharacterState::BasicBlock(basic_block::Data {
@@ -1961,6 +2005,7 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     recover_duration: Duration::from_secs_f32(*recover_duration),
                     max_angle: *max_angle,
                     block_strength: *block_strength,
+                    parry_window: *parry_window,
                     energy_cost: *energy_cost,
                     ability_info,
                 },
@@ -2441,6 +2486,25 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                 stage_section: StageSection::Movement,
                 exhausted: false,
             }),
+            CharacterAbility::RiposteMelee {
+                energy_cost: _,
+                buildup_duration,
+                swing_duration,
+                recover_duration,
+                melee_constructor,
+                meta: _,
+            } => CharacterState::RiposteMelee(riposte_melee::Data {
+                static_data: riposte_melee::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee_constructor: *melee_constructor,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                exhausted: false,
+            }),
         }
     }
 }
@@ -2479,5 +2543,6 @@ bitflags::bitflags! {
     pub struct Capability: u8 {
         const ROLL_INTERRUPT  = 0b00000001;
         const BLOCK_INTERRUPT = 0b00000010;
+        const BUILDUP_PARRIES = 0b00000100;
     }
 }

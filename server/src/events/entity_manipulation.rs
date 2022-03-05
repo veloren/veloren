@@ -26,6 +26,7 @@ use common::{
     outcome::{HealthChangeInfo, Outcome},
     resources::Time,
     rtsim::RtSimEntity,
+    states::utils::StageSection,
     terrain::{Block, BlockKind, TerrainGrid},
     uid::{Uid, UidAllocator},
     util::Dir,
@@ -41,7 +42,7 @@ use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
-use std::{collections::HashMap, iter};
+use std::{collections::HashMap, iter, time::Duration};
 use tracing::{debug, error};
 use vek::{Vec2, Vec3};
 
@@ -1217,15 +1218,35 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     }
 }
 
-pub fn handle_parry(server: &Server, entity: EcsEntity, energy_cost: f32) {
+pub fn handle_parry_hook(server: &Server, defender: EcsEntity, _attacker: Option<EcsEntity>) {
     let ecs = &server.state.ecs();
-    if let Some(mut character) = ecs.write_storage::<CharacterState>().get_mut(entity) {
-        *character =
-            CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
+    // Reset character state of defender
+    if let Some(mut char_state) = ecs
+        .write_storage::<comp::CharacterState>()
+        .get_mut(defender)
+    {
+        match &mut *char_state {
+            // If in combo melee and a stance, reset to stance mode
+            CharacterState::ComboMelee2(c) if c.static_data.is_stance => {
+                c.stage_section = None;
+                c.timer = Duration::default();
+            },
+            CharacterState::RiposteMelee(c) => {
+                c.stage_section = StageSection::Action;
+                c.timer = Duration::default();
+            },
+            char_state => {
+                *char_state =
+                    CharacterState::Wielding(common::states::wielding::Data { is_sneaking: false });
+            },
+        }
     };
-    if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(entity) {
-        energy.change_by(energy_cost);
+    // Reward some energy to defender for successful parry
+    if let Some(mut energy) = ecs.write_storage::<Energy>().get_mut(defender) {
+        const PARRY_REWARD: f32 = 5.0;
+        energy.change_by(PARRY_REWARD);
     }
+    // TODO: Some penalties for attacker
 }
 
 pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_range: Option<f32>) {
