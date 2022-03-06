@@ -1678,6 +1678,8 @@ impl ParticleMgr {
                         }
                     }
                 },
+                // TODO: Maybe look into weapon trails?
+                FrontendSpecifier::AirSlash => {},
             }
         }
     }
