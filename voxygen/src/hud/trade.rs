@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use conrod_core::{
     color,
     position::Relative,
@@ -11,7 +13,7 @@ use client::Client;
 use common::{
     comp::{
         inventory::item::{ItemDesc, MaterialStatManifest, Quality},
-        Inventory, Item, Stats,
+        Inventory, Stats,
     },
     trade::{PendingTrade, SitePrices, TradeAction, TradePhase, VoxygenUpdate},
 };
@@ -547,7 +549,7 @@ impl<'a> Trade<'a> {
                     .inventories()
                     .get(t_s.entity)?
                     .get(slot)
-                    .and_then(|item| Some((t_s.ours, slot, item.amount(), who)))
+                    .map(|item| (t_s.ours, slot, item.amount(), who))
             }),
             _ => None,
         });
@@ -568,9 +570,8 @@ impl<'a> Trade<'a> {
             // Text for the amount of items offered.
             let input = trade.offers[who]
                 .get(&slot)
-                .and_then(|u| Some(format!("{}", u)))
-                .unwrap_or(String::new())
-                .clone();
+                .map(|u| format!("{}", u))
+                .unwrap_or_else(String::new);
             Text::new(&input)
                 .top_left_with_margins_on(state.ids.amount_bg, 0.0, 22.0)
                 .font_id(self.fonts.cyri.conrod_id)
@@ -595,7 +596,7 @@ impl<'a> Trade<'a> {
                 .graphics_for(state.ids.amount_open_btn)
                 .set(state.ids.amount_open_ovlay, ui);
         } else if let Some(key) = &mut self.show.trade_amount_input_key {
-            if selected.is_some() || (!Hud::_typing(&ui) && key.input_painted) {
+            if selected.is_some() || (!Hud::_typing(ui) && key.input_painted) {
                 event = Some(TradeAction::Voxygen(Clear));
             }
             key.input_painted = true;
@@ -624,28 +625,14 @@ impl<'a> Trade<'a> {
                     key.input = new_input.trim().to_owned();
                     if !key.input.is_empty() {
                         // trade amount can change with (shift||ctrl)-click
-                        let amount = trade.offers[key.who].get(&key.slot).unwrap_or(&0).clone();
+                        let amount = trade.offers[key.who].get(&key.slot).unwrap_or(&0);
                         match key.input.parse::<i32>() {
                             Ok(new_amount) => {
                                 key.input = format!("{}", new_amount);
                                 if new_amount > -1 && new_amount <= key.inv as i32 {
                                     key.err = None;
-                                    let delta = new_amount - amount as i32;
-                                    event = if delta > 0 {
-                                        Some(TradeAction::AddItem {
-                                            item: key.slot,
-                                            ours: key.ours,
-                                            quantity: delta as u32,
-                                        })
-                                    } else if delta < 0 {
-                                        Some(TradeAction::RemoveItem {
-                                            item: key.slot,
-                                            ours: key.ours,
-                                            quantity: (delta * -1) as u32,
-                                        })
-                                    } else {
-                                        None
-                                    }
+                                    let delta = new_amount - *amount as i32;
+                                    event = TradeAction::delta_item(key.slot, delta, key.ours);
                                 } else {
                                     key.err = Some("out of range".to_owned());
                                 }
@@ -690,7 +677,7 @@ impl<'a> Trade<'a> {
 }
 
 impl<'a> Widget for Trade<'a> {
-    type Event = Option<TradeAction>;
+    type Event = Result<TradeAction, VoxygenUpdate>;
     type State = State;
     type Style = ();
 

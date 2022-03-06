@@ -1,3 +1,5 @@
+use std::{cmp::Ordering, sync::atomic::Ordering};
+
 use crate::{
     comp::inventory::{slot::InvSlotId, trade_pricing::TradePricing, Inventory},
     terrain::BiomeKind,
@@ -95,6 +97,24 @@ impl TradePhase {
             TradePhase::Mutate => TradePhase::Review,
             TradePhase::Review => TradePhase::Complete,
             TradePhase::Complete => TradePhase::Complete,
+        }
+    }
+}
+
+impl TradeAction {
+    pub fn delta_item(item: InvSlotId, delta: i32, ours: bool) -> Option<Self> {
+        match delta.cmp(&0) {
+            Ordering::Equal => None,
+            Ordering::Less => Some(TradeAction::RemoveItem {
+                item,
+                ours,
+                quantity: delta as u32,
+            }),
+            Ordering::Greater => Some(TradeAction::AddItem {
+                item,
+                ours,
+                quantity: delta as u32,
+            }),
         }
     }
 }
