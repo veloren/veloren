@@ -1,8 +1,10 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+
 (
     string_map: {
         // Texts used in multiple locations with the same formatting
-        "common.username": "nazwa konta",
+        "common.username": "Nazwa konta",
         "common.singleplayer": "Tryb jednoosobowy",
         "common.multiplayer": "Tryb wieloosobowy",
         "common.servers": "Serwery",
@@ -34,6 +36,8 @@
         "common.automatic": "Automatyczne",
         "common.random": "Losowo",
         "common.empty": "Pusty",
+        "common.confirm": "Potwierdź",
+        "common.delete_server": "Usuń serwer",
 
         // Settings Window title
         "common.interface_settings": "Ustawienia interfejsu",
@@ -42,6 +46,7 @@
         "common.video_settings": "Ustawienia grafiki",
         "common.sound_settings": "Ustawienia dźwięku",
         "common.language_settings": "Ustawienia języka",
+        "common.chat_settings": "Ustawienia czatu",
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Stracono połączenia!
@@ -57,6 +62,8 @@ Czy masz aktualną wersję gry?"#,
 
         "common.weapons.axe": "Siekiera",
         "common.weapons.sword": "Miecz",
+        "common.weapons.greatsword": "Długi miecz",
+        "common.weapons.shortswords": "Krótki miecz"
         "common.weapons.staff": "Kostur maga",
         "common.weapons.bow": "Łuk",
         "common.weapons.hammer": "Młot",
@@ -73,6 +80,8 @@ Czy masz aktualną wersję gry?"#,
         "common.tool.debug": "Debug",
         "common.tool.farming": "Narzędzie do uprawy",
         "common.tool.pick": "Kilof",
+        "common.tool.mining": "Wydobycie
+                "common.delete_server": "Delete Server",",
         "common.kind.modular_component": "Modularny komponent",
         "common.kind.glider": "Lotnia",
         "common.kind.consumable": "Jadalne",
@@ -90,11 +99,24 @@ Czy masz aktualną wersję gry?"#,
         "common.stats.power": "Moc",
         "common.stats.speed": "Prędkość",
         "common.stats.poise": "Odp. na ogłu.",
-        "common.stats.crit_chance": "Krytyczne%",
-        "common.stats.crit_mult": "Krytytyczne*",
+        "common.stats.crit_chance": "% na kryt.",
+        "common.stats.crit_mult": "Mnożnik kryt.",
         "common.stats.armor": "Obrona",
         "common.stats.poise_res": "Odp. na ogłu.",
+        "common.stats.energy_max": "Maksymalna energia",
+        "common.stats.energy_reward": "Odnowa energii",
+        "common.stats.crit_power": "Moc ciosu kryt.",
+        "common.stats.stealth": "Umiejętność skradania",
         "common.stats.slots": "Sloty",
+        "common.tool.mining": "Mining",
+        
+        "common.material.metal": "Metal",
+        "common.material.wood": "Drewno",
+        "common.material.stone": "Kamień",
+        "common.material.cloth": "Płótno",
+        "common.material.hide": "Skóra",
+        
+        "common.sprite.chest": "Skrzynia",
     },
 
 
