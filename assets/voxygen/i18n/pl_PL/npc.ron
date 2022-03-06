@@ -29,7 +29,7 @@
             "Wiesz może dlaczego Świecące Resztki (Glowing Remains) świecą?",
             "Myślę, że czas na drugie śniadanie!",
             "Złapałeś kiedyś ważkę?", // forma
-            "Nie mogę zrozumieć skąd przychodzą te Sauroki (Sauroks).",
+            "Nie mogę zrozumieć skąd przychodzą te Sauroki.",
             "Chciałbym by ktoś przeganiał wilki.", /// forma
             "Miałem cudowny sen ostatniej nocy. Ciekawe co oznaczał?", /// forma
             "Zostawiłem trochę sera z moim bratem. Teraz nie wiem czy ser dalej istnieje czy nie. Nazywam to serem Schrödingera.", /// forma
@@ -119,9 +119,9 @@
             "Straże! Pomocy!",
             "Nie ujdzie Ci to płazem! Straże!",
             /// "You fiend!",
-            /// "Help me!",
-            /// "Help! Please!",
-            /// "Ouch! Guards! Help!",
+            "Pomóżcie mi!",
+            "Proszę pomóżcie!",
+            "Ała! Straże!",
             "Idą po mnie!",
             /// "Help! Help! I'm being repressed!",
             /// "Ah, now we see the violence inherent in the system.",
@@ -171,5 +171,26 @@
             "Poszczuję tarasqa (tarasque) na ciebie!",
             "Dlaczego ja?",
         ],
-    },
+        "npc.speech.villager_enemy_killed": [
+            "Pokonałem wroga!",
+            "Wreszcie spokój!",
+            "Więc... co robiłem?",
+        ],
+        "npc.speech.menacing": [
+            "Ostrzegam cię!",
+            "Podejdź bliżej a zaatakuję!",
+            "Nie boję się ciebie!",
+            "Idź stąd!",
+            "W tył zwrot jeżeli chcesz żyć!",
+            "Nie jesteś tu mile widziany!",
+        ],
+        "npc.speech.cultist_low_health_fleeing": [
+            "Wycofać się!",
+            "Odwrót!",
+            "Przeklinam cię!",
+            "Przeklnę cię po śmieci!",
+            "Muszę odpocząć!",
+            "Są zbyt mocni!",
+        ]
+    }
 )
