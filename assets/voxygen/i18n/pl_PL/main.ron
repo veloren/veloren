@@ -8,6 +8,7 @@
         "main.connecting": "Łączenie",
         "main.creating_world": "Tworzenie świata",
         "main.tip": "Porada:",
+        "main.unbound_key_tip": "Rozwiązanie",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Witaj w alfie Veloren!
@@ -39,6 +40,7 @@ Konto możesz stworzyć wchodząc na
 https://veloren.net/account/."#,
         "main.login.server_not_found": "Serwer nie został znaleziony",
         "main.login.authentication_error": "Błąd autoryzacji na serwerze",
+        "main.login.internal_error": "Błąd wewnętrzny klienta (najprawdopodobniej postać została usunięta)",
         "main.login.failed_auth_server_url_invalid": "Błąd w łączeniu się z serwerem kont",
         /// "The auth Scheme HTTP is NOT supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds",
         "main.login.insecure_auth_scheme": "Autoryzacja poprzez HTTP nie jest wspierana. HTTP jest dopuszczalne jedynie w kontekście 'localhost' i lokalnych kompilacji do użytku testowego. (The auth Scheme HTTP is NOT supported. It's insecure! For development purposes, HTTP is allowed for 'localhost' or debug builds)",
@@ -56,11 +58,27 @@ https://veloren.net/account/."#,
         "main.login.banned": "Konto zostało zbanowane z powodu:",
         "main.login.kicked": "Sesja została wyrzucona z powodu:",
         "main.login.select_language": "Wybierz język",
-
-        "main.servers.select_server": "Wybierz serwer",
+        "main.login.client_version": "Wersja klienta",
         "main.login.server_version": "Wersja serwera",
-        "main.login.internal_error": "Błąd wewnętrzny klienta (najprawdopodobniej postać została usunięta)",
-        "main.login.client_version": "Wersja klienta"
+        "main.login.client_init_failed": "Client failed to initialize: {init_fail_reason}",
+        "main.login.username_bad_characters": "Username contains invalid characters! (Only alphanumeric, '_' and '-' are allowed)",
+        "main.login.username_too_long": "Username is too long! Max length is: {max_len}",
+        "main.servers.select_server": "Wybierz serwer",
+        "main.servers.singleplayer_error": "Nie udało się połączyć z serwerem: {sp_error}",
+        "main.servers.network_error": "Błąd sieci/gniazda serwera: {raw_error}",
+        "main.servers.participant_error": "Rozłączenie uczestnika / błąd protokołu: {raw_error}",
+        "main.servers.stream_error": "Połączenie klienta / błąd (de)serializacji: {raw_error}",
+        "main.servers.database_error": "Błąd bazy danych serwera: {raw_error}",
+        "main.servers.persistence_error": "Błąd trwałości serwera (Prawdopodobnie dane postaci/zasobów): {raw_error}",
+        "main.servers.other_error": "Ogólny błąd serwera: {raw_error}",
+        
+        // Credits screen
+        "main.credits": "Autorzy",
+        "main.credits.created_by": "Stworzone przez",
+        "main.credits.music": "Muzyka",
+        "main.credits.fonts": "Czcionka",
+        "main.credits.other_art": "Inne dzieła",
+        "main.credits.contributors": "Współtwórcy",
         /// End Main screen section
     },
 
@@ -86,6 +104,9 @@ https://veloren.net/account/."#,
             "Możesz przełączać typ paska zdrowia w opcjach.",
             "Usiądź obok ogniska (używając '{gameinput.sit}') by powoli wyleczyć się z obrażeń.",
             "Potrzebujesz więcej slotów w ekwipunku, albo nowego uzbrojenia? Wciśnij '{gameinput.crafting}' aby otworzyć menu tworzenia!",
+            "Wciścnij '{gameinput.roll}' aby się turlać. Turlanie pomaga w unikaniu ciosów przeciwników i szybszym poruszaniu się.",
+            "Zastanawiasz się do czego służy dany przedmiot? Wyszukaj 'input:<item name>' w oknie tworzenia aby zobaczyć w jakich recepturach jest on wykorzystywany.",
+            "Znalazłeś coś fajnego? Zrób tego zdjęcie wciskając '{gameinput.screenshot}'."
         ],
     }
 )
