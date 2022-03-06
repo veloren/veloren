@@ -1935,6 +1935,52 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
+                        CharacterState::RiposteMelee(s) => {
+                            let stage_time = s.timer.as_secs_f32();
+                            match s.stage_section {
+                                StageSection::Buildup => {
+                                    let stage_progress =
+                                        stage_time / s.static_data.buildup_duration.as_secs_f32();
+                                    anim::character::BlockAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            hands,
+                                            active_tool_kind,
+                                            second_tool_kind,
+                                            rel_vel,
+                                            time,
+                                            Some(StageSection::Buildup),
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                                _ => {
+                                    let stage_progress = match s.stage_section {
+                                        StageSection::Action => {
+                                            stage_time / s.static_data.swing_duration.as_secs_f32()
+                                        },
+                                        StageSection::Recover => {
+                                            stage_time
+                                                / s.static_data.recover_duration.as_secs_f32()
+                                        },
+                                        _ => 0.0,
+                                    };
+                                    anim::character::AlphaAnimation::update_skeleton(
+                                        &target_base,
+                                        (
+                                            hands,
+                                            Some(s.stage_section),
+                                            (Some(s.static_data.ability_info), active_tool_spec),
+                                        ),
+                                        stage_progress,
+                                        &mut state_animation_rate,
+                                        skeleton_attr,
+                                    )
+                                },
+                            }
+                        },
                         _ => target_base,
                     };
 
