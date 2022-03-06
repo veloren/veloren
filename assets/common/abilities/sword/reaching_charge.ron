@@ -1,25 +1,30 @@
-// TODO: Make actual ability, just for testing right now
-BasicMelee(
-    energy_cost: 50,
-    buildup_duration: 0.3,
-    swing_duration: 0.1,
-    recover_duration: 0.2,
+DashMelee(
+    energy_cost: 10,
     melee_constructor: (
-        kind: Stab(
-            damage: 10,
+        kind: Slash(
+            damage: 4,
+            poise: 0,
+            knockback: 0,
+            energy_regen: 5,
+        ),
+        scaled: Some(Slash(
+            damage: 12,
             poise: 0,
             knockback: 0,
             energy_regen: 0,
-        ),
-        range: 5.0,
-        angle: 10.0,
+        )),
+        range: 4,
+        angle: 45.0,
     ),
-    ori_modifier: 1.0,
+    energy_drain: 20,
+    forward_speed: 3,
+    buildup_duration: 0.5,
+    charge_duration: 1.0,
+    swing_duration: 0.1,
+    recover_duration: 1.0,
+    ori_modifier: 0.1,
+    charge_through: false,
     meta: (
-        kind: Some(Sword(Balanced)),
-        capabilities: (
-            // Block
-            bits: 0b00000010,
-        ),
+        kind: Some(Sword(Reaching)),
     ),
 )

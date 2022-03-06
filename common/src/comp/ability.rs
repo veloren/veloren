@@ -408,7 +408,8 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::ComboMelee2(_)
             | CharacterState::FinisherMelee(_)
             | CharacterState::DiveMelee(_)
-            | CharacterState::RiposteMelee(_) => Self::Other,
+            | CharacterState::RiposteMelee(_)
+            | CharacterState::RapidMelee(_) => Self::Other,
         }
     }
 }
@@ -697,6 +698,16 @@ pub enum CharacterAbility {
         #[serde(default)]
         meta: AbilityMeta,
     },
+    RapidMelee {
+        buildup_duration: f32,
+        swing_duration: f32,
+        recover_duration: f32,
+        energy_cost: f32,
+        max_strikes: u32,
+        melee_constructor: MeleeConstructor,
+        #[serde(default)]
+        meta: AbilityMeta,
+    },
 }
 
 impl Default for CharacterAbility {
@@ -750,7 +761,8 @@ impl CharacterAbility {
             | CharacterAbility::Shockwave { energy_cost, .. }
             | CharacterAbility::BasicBlock { energy_cost, .. }
             | CharacterAbility::SelfBuff { energy_cost, .. }
-            | CharacterAbility::RiposteMelee { energy_cost, .. } => {
+            | CharacterAbility::RiposteMelee { energy_cost, .. }
+            | CharacterAbility::RapidMelee { energy_cost, .. } => {
                 update.energy.try_change_by(-*energy_cost).is_ok()
             },
             // Consumes energy within state, so value only checked before entering state
@@ -1271,6 +1283,21 @@ impl CharacterAbility {
                 *energy_cost /= stats.energy_efficiency;
                 *melee_constructor = melee_constructor.adjusted_by_stats(stats);
             },
+            RapidMelee {
+                ref mut buildup_duration,
+                ref mut swing_duration,
+                ref mut recover_duration,
+                ref mut energy_cost,
+                ref mut melee_constructor,
+                max_strikes: _,
+                meta: _,
+            } => {
+                *buildup_duration /= stats.speed;
+                *swing_duration /= stats.speed;
+                *recover_duration /= stats.speed;
+                *energy_cost /= stats.energy_efficiency;
+                *melee_constructor = melee_constructor.adjusted_by_stats(stats);
+            },
         }
         self
     }
@@ -1297,7 +1324,8 @@ impl CharacterAbility {
                 ..
             }
             | DiveMelee { energy_cost, .. }
-            | RiposteMelee { energy_cost, .. } => *energy_cost,
+            | RiposteMelee { energy_cost, .. }
+            | RapidMelee { energy_cost, .. } => *energy_cost,
             BasicBeam { energy_drain, .. } => {
                 if *energy_drain > f32::EPSILON {
                     1.0
@@ -1341,7 +1369,8 @@ impl CharacterAbility {
             | FinisherMelee { meta, .. }
             | Music { meta, .. }
             | DiveMelee { meta, .. }
-            | RiposteMelee { meta, .. } => *meta,
+            | RiposteMelee { meta, .. }
+            | RapidMelee { meta, .. } => *meta,
         }
     }
 
@@ -1367,7 +1396,8 @@ impl CharacterAbility {
                         | BasicBlock { energy_cost, .. }
                         | SelfBuff { energy_cost, .. }
                         | DiveMelee { energy_cost, .. }
-                        | RiposteMelee { energy_cost, .. } => {
+                        | RiposteMelee { energy_cost, .. }
+                        | RapidMelee { energy_cost, .. } => {
                             *energy_cost *= ENERGY_REDUCTION;
                         },
                         _ => {},
@@ -2502,6 +2532,29 @@ impl From<(&CharacterAbility, AbilityInfo, &JoinData<'_>)> for CharacterState {
                     ability_info,
                 },
                 timer: Duration::default(),
+                stage_section: StageSection::Buildup,
+                exhausted: false,
+            }),
+            CharacterAbility::RapidMelee {
+                buildup_duration,
+                swing_duration,
+                recover_duration,
+                melee_constructor,
+                energy_cost,
+                max_strikes,
+                meta: _,
+            } => CharacterState::RapidMelee(rapid_melee::Data {
+                static_data: rapid_melee::StaticData {
+                    buildup_duration: Duration::from_secs_f32(*buildup_duration),
+                    swing_duration: Duration::from_secs_f32(*swing_duration),
+                    recover_duration: Duration::from_secs_f32(*recover_duration),
+                    melee_constructor: *melee_constructor,
+                    energy_cost: *energy_cost,
+                    max_strikes: *max_strikes,
+                    ability_info,
+                },
+                timer: Duration::default(),
+                current_strike: 1,
                 stage_section: StageSection::Buildup,
                 exhausted: false,
             }),

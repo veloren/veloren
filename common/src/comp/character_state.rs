@@ -136,6 +136,9 @@ pub enum CharacterState {
     DiveMelee(dive_melee::Data),
     /// Attack that attempts to parry, and if it parries moves to an attack
     RiposteMelee(riposte_melee::Data),
+    /// A series of consecutive, identical attacks that only go through buildup
+    /// and recover once for the entire state
+    RapidMelee(rapid_melee::Data),
 }
 
 impl CharacterState {
@@ -173,6 +176,7 @@ impl CharacterState {
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -215,6 +219,7 @@ impl CharacterState {
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -240,6 +245,7 @@ impl CharacterState {
                 | CharacterState::FinisherMelee(_)
                 | CharacterState::DiveMelee(_)
                 | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -346,6 +352,7 @@ impl CharacterState {
                 | CharacterState::SpriteInteract(_)
                 | CharacterState::Music(_)
                 | CharacterState::RiposteMelee(_)
+                | CharacterState::RapidMelee(_)
         )
     }
 
@@ -412,6 +419,7 @@ impl CharacterState {
             CharacterState::FinisherMelee(data) => data.behavior(j, output_events),
             CharacterState::DiveMelee(data) => data.behavior(j, output_events),
             CharacterState::RiposteMelee(data) => data.behavior(j, output_events),
+            CharacterState::RapidMelee(data) => data.behavior(j, output_events),
         }
     }
 
@@ -464,6 +472,7 @@ impl CharacterState {
             CharacterState::FinisherMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::DiveMelee(data) => data.handle_event(j, output_events, action),
             CharacterState::RiposteMelee(data) => data.handle_event(j, output_events, action),
+            CharacterState::RapidMelee(data) => data.handle_event(j, output_events, action),
         }
     }
 
@@ -515,6 +524,7 @@ impl CharacterState {
             CharacterState::Music(data) => Some(data.static_data.ability_info),
             CharacterState::DiveMelee(data) => Some(data.static_data.ability_info),
             CharacterState::RiposteMelee(data) => Some(data.static_data.ability_info),
+            CharacterState::RapidMelee(data) => Some(data.static_data.ability_info),
         }
     }
 
@@ -558,6 +568,7 @@ impl CharacterState {
             CharacterState::Music(data) => Some(data.stage_section),
             CharacterState::DiveMelee(data) => Some(data.stage_section),
             CharacterState::RiposteMelee(data) => Some(data.stage_section),
+            CharacterState::RapidMelee(data) => Some(data.stage_section),
         }
     }
 }

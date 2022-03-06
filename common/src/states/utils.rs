@@ -448,8 +448,7 @@ pub fn handle_forced_movement(
                     }
                 };
 
-                update.vel.0 +=
-                    Vec2::broadcast(data.dt.0) * accel * direction * strength;
+                update.vel.0 += Vec2::broadcast(data.dt.0) * accel * direction * strength;
             }
         },
         ForcedMovement::Leap {

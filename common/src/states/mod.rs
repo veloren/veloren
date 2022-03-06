@@ -22,6 +22,7 @@ pub mod glide_wield;
 pub mod idle;
 pub mod leap_melee;
 pub mod music;
+pub mod rapid_melee;
 pub mod repeater_ranged;
 pub mod riposte_melee;
 pub mod roll;
