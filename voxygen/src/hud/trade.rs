@@ -1,5 +1,3 @@
-use std::cmp::Ordering;
-
 use conrod_core::{
     color,
     position::Relative,
@@ -15,7 +13,7 @@ use common::{
         inventory::item::{ItemDesc, MaterialStatManifest, Quality},
         Inventory, Stats,
     },
-    trade::{PendingTrade, SitePrices, TradeAction, TradePhase, VoxygenUpdate},
+    trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
 };
 use common_net::sync::WorldSyncExt;
 use i18n::Localization;
@@ -35,6 +33,12 @@ use super::{
     slots::{SlotKind, SlotManager, TradeSlot},
     Hud, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
+
+#[derive(Debug)]
+pub enum HudUpdate {
+    Focus(widget::Id),
+    Clear,
+}
 
 pub struct State {
     ids: Ids,
@@ -173,7 +177,7 @@ impl<'a> Trade<'a> {
         trade: &'a PendingTrade,
         prices: &'a Option<SitePrices>,
         ours: bool,
-    ) -> <Self as Widget>::Event {
+    ) -> Option<TradeAction> {
         let inventories = self.client.inventories();
         let check_if_us = |who: usize| -> Option<_> {
             let uid = trade.parties[who];
@@ -483,7 +487,7 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
-    ) -> <Self as Widget>::Event {
+    ) -> Option<TradeAction> {
         let mut event = None;
         let (hover_img, press_img, accept_button_luminance) = if trade.is_empty_trade() {
             //Darken the accept button if the trade is empty.
@@ -540,7 +544,6 @@ impl<'a> Trade<'a> {
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
     ) -> <Self as Widget>::Event {
-        use VoxygenUpdate::*;
         let mut event = None;
         let selected = self.slot_manager.selected().and_then(|s| match s {
             SlotKind::Trade(t_s) => t_s.invslot.and_then(|slot| {
@@ -586,7 +589,7 @@ impl<'a> Trade<'a> {
                 .set(state.ids.amount_open_btn, ui)
                 .was_clicked()
             {
-                event = Some(TradeAction::Voxygen(Focus(state.ids.amount_input.index())));
+                event = Some(Err(HudUpdate::Focus(state.ids.amount_input)));
                 self.slot_manager.idle();
                 self.show.trade_amount_input_key =
                     Some(TradeAmountInput::new(slot, input, inv, ours, who));
@@ -597,7 +600,7 @@ impl<'a> Trade<'a> {
                 .set(state.ids.amount_open_ovlay, ui);
         } else if let Some(key) = &mut self.show.trade_amount_input_key {
             if selected.is_some() || (!Hud::_typing(ui) && key.input_painted) {
-                event = Some(TradeAction::Voxygen(Clear));
+                event = Some(Err(HudUpdate::Clear));
             }
             key.input_painted = true;
 
@@ -609,7 +612,7 @@ impl<'a> Trade<'a> {
                 .set(state.ids.amount_btn, ui)
                 .was_clicked()
             {
-                event = Some(TradeAction::Voxygen(Clear));
+                event = Some(Err(HudUpdate::Clear));
             }
             // Input for making TradeAction requests
             let text_color = key.err.as_ref().and(Some(color::RED)).unwrap_or(TEXT_COLOR);
@@ -625,14 +628,14 @@ impl<'a> Trade<'a> {
                     key.input = new_input.trim().to_owned();
                     if !key.input.is_empty() {
                         // trade amount can change with (shift||ctrl)-click
-                        let amount = trade.offers[key.who].get(&key.slot).unwrap_or(&0);
+                        let amount = *trade.offers[key.who].get(&key.slot).unwrap_or(&0);
                         match key.input.parse::<i32>() {
                             Ok(new_amount) => {
                                 key.input = format!("{}", new_amount);
                                 if new_amount > -1 && new_amount <= key.inv as i32 {
                                     key.err = None;
-                                    let delta = new_amount - *amount as i32;
-                                    event = TradeAction::delta_item(key.slot, delta, key.ours);
+                                    let delta = new_amount - amount as i32;
+                                    event = TradeAction::item(key.slot, delta, key.ours).map(Ok);
                                 } else {
                                     key.err = Some("out of range".to_owned());
                                 }
@@ -677,7 +680,7 @@ impl<'a> Trade<'a> {
 }
 
 impl<'a> Widget for Trade<'a> {
-    type Event = Result<TradeAction, VoxygenUpdate>;
+    type Event = Option<Result<TradeAction, HudUpdate>>;
     type State = State;
     type Style = ();
 
@@ -700,7 +703,7 @@ impl<'a> Widget for Trade<'a> {
         let mut event = None;
         let (trade, prices) = match self.client.pending_trade() {
             Some((_, trade, prices)) => (trade, prices),
-            None => return Some(TradeAction::Decline),
+            None => return Some(Ok(TradeAction::Decline)),
         };
 
         if state.ids.inv_alignment.len() < 2 {
@@ -729,7 +732,9 @@ impl<'a> Widget for Trade<'a> {
         event = self.item_pane(state, ui, trade, prices, true).or(event);
         event = self.accept_decline_buttons(state, ui, trade).or(event);
         event = self.close_button(state, ui).or(event);
-        event = self.input_item_amount(state, ui, trade).or(event);
+        let event = self
+            .input_item_amount(state, ui, trade)
+            .or_else(|| event.map(Ok));
         event
     }
 }

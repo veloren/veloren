@@ -2854,13 +2854,12 @@ impl Hud {
             )
             .set(self.ids.trade, ui_widgets)
             {
-                use common::trade::VoxygenUpdate::*;
                 match action {
-                    TradeAction::Voxygen(update) => match update {
-                        Focus(idx) => self.to_focus = Some(Some(widget::Id::new(idx))),
-                        Clear => self.show.trade_amount_input_key = None,
+                    Err(update) => match update {
+                        trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
+                        trade::HudUpdate::Clear => self.show.trade_amount_input_key = None,
                     },
-                    _ => {
+                    Ok(action) => {
                         if let TradeAction::Decline = action {
                             self.show.stats = false;
                             self.show.trade(false);

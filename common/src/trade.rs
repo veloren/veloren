@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, sync::atomic::Ordering};
+use std::cmp::Ordering;
 
 use crate::{
     comp::inventory::{slot::InvSlotId, trade_pricing::TradePricing, Inventory},
@@ -37,13 +37,8 @@ pub enum TradeAction {
     /// multiple times
     Accept(TradePhase),
     Decline,
-    Voxygen(VoxygenUpdate),
 }
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub enum VoxygenUpdate {
-    Focus(usize),
-    Clear,
-}
+
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TradeResult {
     Completed,
@@ -102,13 +97,13 @@ impl TradePhase {
 }
 
 impl TradeAction {
-    pub fn delta_item(item: InvSlotId, delta: i32, ours: bool) -> Option<Self> {
+    pub fn item(item: InvSlotId, delta: i32, ours: bool) -> Option<Self> {
         match delta.cmp(&0) {
             Ordering::Equal => None,
             Ordering::Less => Some(TradeAction::RemoveItem {
                 item,
                 ours,
-                quantity: delta as u32,
+                quantity: -delta as u32,
             }),
             Ordering::Greater => Some(TradeAction::AddItem {
                 item,
