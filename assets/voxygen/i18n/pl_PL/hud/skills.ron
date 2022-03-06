@@ -58,6 +58,8 @@
         "hud.skill.sc_heal_heal": "Zwiększa leczenie innych o {boost}%{SP}",
         "hud.skill.sc_heal_cost_title": "Koszt Wytrzymałości",
         "hud.skill.sc_heal_cost": "Leczenie innych kosztuje {boost}% mniej Wytrzymałości{SP}",
+        "hud.skill.sc_heal_duration_title": "Długość",
+        "hud.skill.sc_heal_duration": "Efekt aury leczącej trwa {boost}% dłużej{SP}",
         "hud.skill.sc_heal_range_title": "Zasięg",
         "hud.skill.sc_heal_range": "Promień dociera {boost}% dalej{SP}",
         "hud.skill.sc_wardaura_unlock_title": "Sfera obronna",
@@ -236,6 +238,16 @@
         "hud.skill.axe_leap_cost": "Zmniejsza koszt doskoku o {boost}%{SP}",
         "hud.skill.axe_leap_distance_title": "Doskok - dystans",
         "hud.skill.axe_leap_distance": "Zwiększa dystans doskoku o {boost}%{SP}",
+        // Mining
+        "hud.skill.mining_title": "Górnictwo",
+        "hud.skill.pick_strike_title": "Wykorzystanie kilofa",
+        "hud.skill.pick_strike": "Niszcz skały kilofem zby zdobywać rudy, kryształy i doświadczenie",
+        "hud.skill.pick_strike_speed_title": "Szybkość uderzania kilofem",
+        "hud.skill.pick_strike_speed": "Kop szybciej{SP}",
+        "hud.skill.pick_strike_oregain_title": "Wydajność kopania rud",
+        "hud.skill.pick_strike_oregain": "Szansa na zdobycie dodatkowej rudy ({boost}% per level){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Wydajność kopania kryształów",
+        "hud.skill.pick_strike_gemgain": "Szansa na zdobycie dodadkowego kryształu ({boost}% per level){SP}",
     },
 
 
