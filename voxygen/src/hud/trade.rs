@@ -1,7 +1,7 @@
 use conrod_core::{
     color,
     position::Relative,
-    widget::{self, Button, Image, Rectangle, State as ConrodState, Text},
+    widget::{self, Button, Image, Rectangle, State as ConrodState, Text, TextEdit},
     widget_ids, Color, Colorable, Labelable, Positionable, Sizeable, UiCell, Widget, WidgetCommon,
 };
 use specs::Entity as EcsEntity;
@@ -11,9 +11,9 @@ use client::Client;
 use common::{
     comp::{
         inventory::item::{ItemDesc, MaterialStatManifest, Quality},
-        Inventory, Stats,
+        Inventory, Item, Stats,
     },
-    trade::{PendingTrade, SitePrices, TradeAction, TradePhase},
+    trade::{PendingTrade, SitePrices, TradeAction, TradePhase, VoxygenUpdate},
 };
 use common_net::sync::WorldSyncExt;
 use i18n::Localization;
@@ -30,8 +30,8 @@ use crate::{
 use super::{
     img_ids::{Imgs, ImgsRot},
     item_imgs::ItemImgs,
-    slots::{SlotManager, TradeSlot},
-    TEXT_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
+    slots::{SlotKind, SlotManager, TradeSlot},
+    Hud, Show, TradeAmountInput, TEXT_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 
 pub struct State {
@@ -55,6 +55,13 @@ widget_ids! {
         accept_button,
         decline_button,
         inventory_scroller,
+        amount_bg,
+        amount_notice,
+        amount_open_label,
+        amount_open_btn,
+        amount_open_ovlay,
+        amount_input,
+        amount_btn,
     }
 }
 
@@ -72,6 +79,7 @@ pub struct Trade<'a> {
     localized_strings: &'a Localization,
     msm: &'a MaterialStatManifest,
     pulse: f32,
+    show: &'a mut Show,
 }
 
 impl<'a> Trade<'a> {
@@ -86,6 +94,7 @@ impl<'a> Trade<'a> {
         localized_strings: &'a Localization,
         msm: &'a MaterialStatManifest,
         pulse: f32,
+        show: &'a mut Show,
     ) -> Self {
         Self {
             client,
@@ -99,6 +108,7 @@ impl<'a> Trade<'a> {
             localized_strings,
             msm,
             pulse,
+            show,
         }
     }
 }
@@ -522,11 +532,149 @@ impl<'a> Trade<'a> {
         event
     }
 
+    fn input_item_amount(
+        &mut self,
+        state: &mut ConrodState<'_, State>,
+        ui: &mut UiCell<'_>,
+        trade: &'a PendingTrade,
+    ) -> <Self as Widget>::Event {
+        use VoxygenUpdate::*;
+        let mut event = None;
+        let selected = self.slot_manager.selected().and_then(|s| match s {
+            SlotKind::Trade(t_s) => t_s.invslot.and_then(|slot| {
+                let who: usize = trade.offers[0].get(&slot).and(Some(0)).unwrap_or(1);
+                self.client
+                    .inventories()
+                    .get(t_s.entity)?
+                    .get(slot)
+                    .and_then(|item| Some((t_s.ours, slot, item.amount(), who)))
+            }),
+            _ => None,
+        });
+        Rectangle::fill([132.0, 20.0])
+            .bottom_right_with_margins_on(state.ids.bg_frame, 16.0, 32.0)
+            .hsla(
+                0.0,
+                0.0,
+                0.0,
+                if self.show.trade_amount_input_key.is_some() {
+                    0.75
+                } else {
+                    0.35
+                },
+            )
+            .set(state.ids.amount_bg, ui);
+        if let Some((ours, slot, inv, who)) = selected {
+            // Text for the amount of items offered.
+            let input = trade.offers[who]
+                .get(&slot)
+                .and_then(|u| Some(format!("{}", u)))
+                .unwrap_or(String::new())
+                .clone();
+            Text::new(&input)
+                .top_left_with_margins_on(state.ids.amount_bg, 0.0, 22.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(TEXT_COLOR.alpha(0.7))
+                .set(state.ids.amount_open_label, ui);
+            if Button::image(self.imgs.edit_btn)
+                .hover_image(self.imgs.edit_btn_hover)
+                .press_image(self.imgs.edit_btn_press)
+                .mid_left_with_margin_on(state.ids.amount_bg, 2.0)
+                .w_h(16.0, 16.0)
+                .set(state.ids.amount_open_btn, ui)
+                .was_clicked()
+            {
+                event = Some(TradeAction::Voxygen(Focus(state.ids.amount_input.index())));
+                self.slot_manager.idle();
+                self.show.trade_amount_input_key =
+                    Some(TradeAmountInput::new(slot, input, inv, ours, who));
+            }
+            Rectangle::fill_with([132.0, 20.0], color::TRANSPARENT)
+                .top_left_of(state.ids.amount_bg)
+                .graphics_for(state.ids.amount_open_btn)
+                .set(state.ids.amount_open_ovlay, ui);
+        } else if let Some(key) = &mut self.show.trade_amount_input_key {
+            if selected.is_some() || (!Hud::_typing(&ui) && key.input_painted) {
+                event = Some(TradeAction::Voxygen(Clear));
+            }
+            key.input_painted = true;
+
+            if Button::image(self.imgs.close_btn)
+                .hover_image(self.imgs.close_btn_hover)
+                .press_image(self.imgs.close_btn_press)
+                .mid_left_with_margin_on(state.ids.amount_bg, 2.0)
+                .w_h(16.0, 16.0)
+                .set(state.ids.amount_btn, ui)
+                .was_clicked()
+            {
+                event = Some(TradeAction::Voxygen(Clear));
+            }
+            // Input for making TradeAction requests
+            let text_color = key.err.as_ref().and(Some(color::RED)).unwrap_or(TEXT_COLOR);
+            if let Some(new_input) = TextEdit::new(&key.input)
+                .mid_left_with_margin_on(state.ids.amount_bg, 22.0)
+                .w_h(138.0, 20.0)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(text_color)
+                .set(state.ids.amount_input, ui)
+            {
+                if new_input != key.input {
+                    key.input = new_input.trim().to_owned();
+                    if !key.input.is_empty() {
+                        // trade amount can change with (shift||ctrl)-click
+                        let amount = trade.offers[key.who].get(&key.slot).unwrap_or(&0).clone();
+                        match key.input.parse::<i32>() {
+                            Ok(new_amount) => {
+                                key.input = format!("{}", new_amount);
+                                if new_amount > -1 && new_amount <= key.inv as i32 {
+                                    key.err = None;
+                                    let delta = new_amount - amount as i32;
+                                    event = if delta > 0 {
+                                        Some(TradeAction::AddItem {
+                                            item: key.slot,
+                                            ours: key.ours,
+                                            quantity: delta as u32,
+                                        })
+                                    } else if delta < 0 {
+                                        Some(TradeAction::RemoveItem {
+                                            item: key.slot,
+                                            ours: key.ours,
+                                            quantity: (delta * -1) as u32,
+                                        })
+                                    } else {
+                                        None
+                                    }
+                                } else {
+                                    key.err = Some("out of range".to_owned());
+                                }
+                            },
+                            Err(_) => {
+                                key.err = Some("bad quantity".to_owned());
+                            },
+                        }
+                    }
+                }
+            }
+        } else {
+            // TODO i18n
+            // placeholder text when no trade slot is selected
+            Text::new("Select an item")
+                .middle_of(state.ids.amount_bg)
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(14))
+                .color(TEXT_GRAY_COLOR.alpha(0.25))
+                .set(state.ids.amount_notice, ui);
+        }
+        event
+    }
+
     fn close_button(
         &mut self,
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
-    ) -> <Self as Widget>::Event {
+    ) -> Option<TradeAction> {
         if Button::image(self.imgs.close_btn)
             .w_h(24.0, 25.0)
             .hover_image(self.imgs.close_btn_hover)
@@ -595,7 +743,7 @@ impl<'a> Widget for Trade<'a> {
         event = self.item_pane(state, ui, trade, prices, true).or(event);
         event = self.accept_decline_buttons(state, ui, trade).or(event);
         event = self.close_button(state, ui).or(event);
-
+        event = self.input_item_amount(state, ui, trade).or(event);
         event
     }
 }

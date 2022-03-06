@@ -645,6 +645,32 @@ pub struct MapMarkers {
     group: HashMap<Uid, Vec2<i32>>,
 }
 
+/// (target slot, input value, inventory quantity, is our inventory, error,
+/// trade.offers index of trade slot)
+pub struct TradeAmountInput {
+    slot: InvSlotId,
+    input: String,
+    inv: u32,
+    ours: bool,
+    err: Option<String>,
+    who: usize,
+    input_painted: bool,
+}
+
+impl TradeAmountInput {
+    pub fn new(slot: InvSlotId, input: String, inv: u32, ours: bool, who: usize) -> Self {
+        Self {
+            slot,
+            input,
+            inv,
+            ours,
+            who,
+            err: None,
+            input_painted: false,
+        }
+    }
+}
+
 pub struct Show {
     ui: bool,
     intro: bool,
@@ -676,6 +702,7 @@ pub struct Show {
     prompt_dialog: Option<PromptDialogSettings>,
     location_markers: MapMarkers,
     salvage: bool,
+    trade_amount_input_key: Option<TradeAmountInput>,
 }
 impl Show {
     fn bag(&mut self, open: bool) {
@@ -1089,6 +1116,7 @@ impl Hud {
                 prompt_dialog: None,
                 location_markers: MapMarkers::default(),
                 salvage: false,
+                trade_amount_input_key: None,
             },
             to_focus: None,
             //never_show: false,
@@ -2811,7 +2839,7 @@ impl Hud {
         }
         // Trade window
         if self.show.trade {
-            match Trade::new(
+            if let Some(action) = Trade::new(
                 client,
                 &self.imgs,
                 &self.item_imgs,
@@ -2822,23 +2850,30 @@ impl Hud {
                 i18n,
                 &msm,
                 self.pulse,
+                &mut self.show,
             )
             .set(self.ids.trade, ui_widgets)
             {
-                Some(action) => {
-                    if let TradeAction::Decline = action {
-                        self.show.stats = false;
-                        self.show.trade(false);
-                        if !self.show.social {
-                            self.show.want_grab = true;
-                            self.force_ungrab = false;
-                        } else {
-                            self.force_ungrab = true
-                        };
-                    }
-                    events.push(Event::TradeAction(action));
-                },
-                None => {},
+                use common::trade::VoxygenUpdate::*;
+                match action {
+                    TradeAction::Voxygen(update) => match update {
+                        Focus(idx) => self.to_focus = Some(Some(widget::Id::new(idx))),
+                        Clear => self.show.trade_amount_input_key = None,
+                    },
+                    _ => {
+                        if let TradeAction::Decline = action {
+                            self.show.stats = false;
+                            self.show.trade(false);
+                            if !self.show.social {
+                                self.show.want_grab = true;
+                                self.force_ungrab = false;
+                            } else {
+                                self.force_ungrab = true
+                            };
+                        }
+                        events.push(Event::TradeAction(action));
+                    },
+                }
             }
         }
 
@@ -3859,11 +3894,13 @@ impl Hud {
         scale_mode
     }
 
-    // Checks if a TextEdit widget has the keyboard captured.
-    fn typing(&self) -> bool {
-        if let Some(id) = self.ui.widget_capturing_keyboard() {
-            self.ui
-                .widget_graph()
+    /// Checks if a TextEdit widget has the keyboard captured.
+    fn typing(&self) -> bool { Hud::_typing(&self.ui.ui) }
+
+    /// reusable function, avoids duplicating code
+    fn _typing(ui: &conrod_core::Ui) -> bool {
+        if let Some(id) = ui.global_input().current.widget_capturing_keyboard {
+            ui.widget_graph()
                 .widget(id)
                 .filter(|c| {
                     c.type_id == std::any::TypeId::of::<<widget::TextEdit as Widget>::State>()

@@ -35,8 +35,13 @@ pub enum TradeAction {
     /// multiple times
     Accept(TradePhase),
     Decline,
+    Voxygen(VoxygenUpdate),
 }
-
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum VoxygenUpdate {
+    Focus(usize),
+    Clear,
+}
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub enum TradeResult {
     Completed,
@@ -175,7 +180,7 @@ impl PendingTrade {
                     self.accept_flags = [false, false];
                 }
             },
-            Decline => {},
+            _ => {},
         }
     }
 }

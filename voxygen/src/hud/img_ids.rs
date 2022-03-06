@@ -448,6 +448,12 @@ image_ids! {
         search_btn: "voxygen.element.ui.generic.buttons.search_btn",
         search_btn_hover: "voxygen.element.ui.generic.buttons.search_btn_hover",
         search_btn_press: "voxygen.element.ui.generic.buttons.search_btn_press",
+
+        // Edit-Button
+        edit_btn: "voxygen.element.ui.char_select.icons.pen",
+        edit_btn_hover: "voxygen.element.ui.char_select.icons.pen_hover",
+        edit_btn_press: "voxygen.element.ui.char_select.icons.pen_press",
+
         // Inventory
         collapse_btn: "voxygen.element.ui.bag.buttons.inv_collapse",
         collapse_btn_hover: "voxygen.element.ui.bag.buttons.inv_collapse_hover",
