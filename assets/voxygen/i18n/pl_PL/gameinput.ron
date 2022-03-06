@@ -1,7 +1,7 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 (
     string_map: {
-        "gameinput.primary": "Prosty atak",
+        "gameinput.primary": "Atak podstawowy",
         "gameinput.secondary": "Atak alternatywny",
         "gameinput.block": "Blok",
         "gameinput.slot1": "Skrót 1",
@@ -63,7 +63,10 @@
         "gameinput.swimup": "Wynurz",
         "gameinput.mapzoomin": "Przybliż mapę",
         "gameinput.mapzoomout": "Oddal mapę",
+        "gameinput.greet": "Pozdrów",
+        "gameinput.map.locationmarkerbutton": "Ustaw znacznik na mapie"
     },
+
 
     vector_map: {
     }
