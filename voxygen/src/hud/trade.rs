@@ -658,9 +658,8 @@ impl<'a> Trade<'a> {
                 }
             }
         } else {
-            // TODO i18n
             // placeholder text when no trade slot is selected
-            Text::new("Select an item")
+            Text::new(self.localized_strings.get("hud.trade.amount_input"))
                 .middle_of(state.ids.amount_bg)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(14))
