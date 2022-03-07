@@ -1,10 +1,12 @@
 #![allow(dead_code)] // TODO: Remove this when rtsim is fleshed out
 
 mod chunks;
-mod entity;
+pub(crate) mod entity;
 mod load_chunks;
 mod tick;
 mod unload_chunks;
+
+use crate::rtsim::entity::{Personality, Travel};
 
 use self::chunks::Chunks;
 use common::{
@@ -134,7 +136,14 @@ pub fn init(
                 controller: RtSimController::default(),
                 last_time_ticked: 0.0,
                 kind: RtSimEntityKind::Wanderer,
-                brain: Default::default(),
+                brain: Brain {
+                    begin: None,
+                    tgt: None,
+                    route: Travel::Lost,
+                    last_visited: None,
+                    memories: Vec::new(),
+                    personality: Personality::random(&mut thread_rng()),
+                },
             });
         }
         for (site_id, site) in world
@@ -190,7 +199,7 @@ pub fn init(
                                     controller: RtSimController::default(),
                                     last_time_ticked: 0.0,
                                     kind: RtSimEntityKind::Cultist,
-                                    brain: Brain::raid(site_id, nearest_village),
+                                    brain: Brain::raid(site_id, nearest_village, &mut thread_rng()),
                                 });
                             }
                         }
@@ -214,7 +223,7 @@ pub fn init(
                             controller: RtSimController::default(),
                             last_time_ticked: 0.0,
                             kind: RtSimEntityKind::Villager,
-                            brain: Brain::villager(site_id),
+                            brain: Brain::villager(site_id, &mut thread_rng()),
                         });
                     }
 
@@ -238,7 +247,7 @@ pub fn init(
                             controller: RtSimController::default(),
                             last_time_ticked: 0.0,
                             kind: RtSimEntityKind::TownGuard,
-                            brain: Brain::town_guard(site_id),
+                            brain: Brain::town_guard(site_id, &mut thread_rng()),
                         });
                     }
 
@@ -262,7 +271,7 @@ pub fn init(
                             controller: RtSimController::default(),
                             last_time_ticked: 0.0,
                             kind: RtSimEntityKind::Merchant,
-                            brain: Brain::merchant(site_id),
+                            brain: Brain::merchant(site_id, &mut thread_rng()),
                         });
                     }
                 },
@@ -287,7 +296,7 @@ pub fn init(
                             controller: RtSimController::default(),
                             last_time_ticked: 0.0,
                             kind: RtSimEntityKind::Merchant,
-                            brain: Brain::merchant(site_id),
+                            brain: Brain::merchant(site_id, &mut thread_rng()),
                         });
                     }
                 },

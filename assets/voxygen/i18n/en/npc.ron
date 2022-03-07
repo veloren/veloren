@@ -7,39 +7,87 @@
 
     vector_map: {
         "npc.speech.villager": [
-            "Isn't it such a lovely day?",
-            "How are you today?",
-            "Top of the morning to you!",
+            "I love cheese.",
+        ],
+        "npc.speech.villager_open": [
             "I wonder what the Catoblepas thinks when it eats grass.",
-            "What do you think about this weather?",
-            "Thinking about those dungeons makes me scared. I hope someone will clear them out.",
-            "I'd like to go spelunking in a cave when I'm stronger.",
-            "Have you seen my cat?",
+            "What do you suppose makes Glowing Remains glow?",
             "Have you ever heard of the ferocious Land Sharks? I hear they live in deserts.",
+            "I wonder what is on the other side of the mountains.",
+            "I left some cheese with my sibling. Now I don't know if it exists or not. I call it Schrödinger's cheese.",
+            "Have you ever caught a firefly?",
             "They say shiny gems of all kinds can be found in caves.",
-            "I'm just crackers about cheese!",
-            "Won't you come in? We were just about to have some cheese!",
+            "I just can't understand where those Sauroks keep coming from.",
+        ],
+        "npc.speech.villager_adventurous": [
+            "I hope to make my own glider someday.",
+            "I'd like to go spelunking in a cave when I'm stronger.",
+        ],
+        "npc.speech.villager_closed": [
+            "You're not from around here are you?",
+            "Don't you think our village is the best?",
             "They say mushrooms are good for your health. Never eat them myself.",
+            "To be, or not to be? I think I'll be a farmer.",
+        ],
+        "npc.speech.villager_conscientious": [
+            "I keep busy. There's always something to do.",
+            "I hope it rains soon. Would be good for the crops.",
+        ],
+        "npc.speech.villager_busybody": [
+            "People should talk less and work more.",
+        ],
+        "npc.speech.villager_unconscientious": [
+            "I think it's time for second breakfast!",
+            "I wish was my house wasn't such a mess. But then I'd have to tidy up! Haha!",
+            "Now where did I leave that thing...",
+        ],
+        "npc.speech.villager_extroverted": [
+            "You won't believe what I did this weekend!",
+            "Top of the morning to you!",
+            "What do you think about this weather?",
+            "I'm just crackers about cheese!",
             "Don't forget the crackers!",
             "I simply adore dwarven cheese. I wish I could make it.",
-            "I wonder what is on the other side of the mountains.",
-            "I hope to make my own glider someday.",
-            "Would you like to see my garden? Okay, maybe some other time.",
-            "Lovely day for a stroll in the woods!",
-            "To be, or not to be? I think I'll be a farmer.",
-            "Don't you think our village is the best?",
-            "What do you suppose makes Glowing Remains glow?",
-            "I think it's time for second breakfast!",
-            "Have you ever caught a firefly?",
-            "I just can't understand where those Sauroks keep coming from.",
-            "I wish someone would keep the wolves away from the village.",
             "I had a wonderful dream about cheese last night. What does it mean?",
-            "I left some cheese with my brother. Now I don't know if it exists or not. I call it Schrödinger's cheese.",
-            "I left some cheese with my sister. Now I don't know if it exists or not. I call it Schrödinger's cheese.",
-            "Someone should do something about those cultists. Preferably not me.",
-            "I hope it rains soon. Would be good for the crops.",
             "I love honey! And I hate bees.",
+        ],
+        "npc.speech.villager_sociable": [
+            "Won't you come in? We were just about to have some cheese!",
+            "Would you like to see my garden? Okay, maybe some other time.",
+        ],
+        "npc.speech.villager_introverted": [
+            "Hi.",
+            "Oh me? I'm nothing special.",
+        ],
+        "npc.speech.villager_agreeable": [
+            "How are you today?",
+            "Just tell me if you need anything.",
+            "Have you seen my cat?",
+        ],
+        "npc.speech.villager_worried": [
+            "Be careful, alright? There are so many dangers out there.",
+        ],
+        "npc.speech.villager_disagreeable": [
+            "I say it like it is. If people don't like that, too bad.",
+            "People are too easily offended.",
+        ],
+        "npc.speech.villager_neurotic": [
+            "Thinking about those dungeons makes me scared. I hope someone will clear them out.",
+            "Someone should do something about those cultists. Preferably not me.",
+            "I have the feeling something bad will happen.",
+            "I wish someone would keep the wolves away from the village.",
+        ],
+        "npc.speech.villager_sad_loner": [
+            "I'm so lonely.",
+            "... Sorry about this awkward silence. I'm not so good with people.",
+        ],
+        "npc.speech.villager_seeker": [
             "I want to see the world one day. There's got to be more to life than this village.",
+        ],
+        "npc.speech.villager_stable": [
+            "Isn't it such a lovely day?",
+            "Life's not too bad.",
+            "Lovely day for a stroll in the woods!",
         ],
         "npc.speech.villager_decline_trade": [
             "Sorry, I don't have anything to trade.",
@@ -52,12 +100,14 @@
             "I have plenty of goods, Do you want to take a look?"
         ],
         "npc.speech.merchant_busy": [
-            "Hey, wait your turn.",
             "Please wait, I'm only one person.",
-            "Do you see the other person in front of you?",
             "Just a moment, let me finish.",
-            "No cutting in line.",
             "I'm busy, come back later."
+        ],
+        "npc.speech.merchant_busy_rude": [
+            "Hey, wait your turn.",
+            "Do you see the other person in front of you?",
+            "No cutting in line.",
         ],
         "npc.speech.merchant_trade_successful": [
             "Thank you for trading with me!",
