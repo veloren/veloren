@@ -369,6 +369,7 @@ widget_ids! {
         mmap_site_icons[],
         member_indicators[],
         location_marker,
+        location_marker_group[],
         voxel_minimap,
     }
 }
@@ -785,6 +786,37 @@ impl<'a> Widget for MiniMap<'a> {
                     .w_h(16.0 * factor, 16.0 * factor)
                     .image_color(Color::Rgba(1.0, 1.0, 1.0, 1.0))
                     .set(state.ids.member_indicators[i], ui);
+                }
+            }
+
+            // Group location markers
+            if state.ids.location_marker_group.len() < self.location_markers.group.len() {
+                state.update(|s| {
+                    s.ids.location_marker_group.resize(
+                        self.location_markers.group.len(),
+                        &mut ui.widget_id_generator(),
+                    )
+                })
+            };
+            for (i, (&uid, &rpos)) in self.location_markers.group.iter().enumerate() {
+                let lm = rpos.as_();
+                if let Some(rpos) = wpos_to_rpos(lm, true) {
+                    let (image_id, factor) = match self.client.group_info().map(|info| info.1) {
+                        Some(leader) if leader == uid => {
+                            (self.imgs.location_marker_group_leader, 1.2)
+                        },
+                        _ => (self.imgs.location_marker_group, 1.0),
+                    };
+
+                    Image::new(image_id)
+                        .x_y_position_relative_to(
+                            state.ids.map_layers[0],
+                            position::Relative::Scalar(rpos.x as f64),
+                            position::Relative::Scalar(rpos.y as f64 + 8.0 * factor),
+                        )
+                        .w_h(16.0 * factor, 16.0 * factor)
+                        .parent(ui.window)
+                        .set(state.ids.location_marker_group[i], ui)
                 }
             }
 
