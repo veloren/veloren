@@ -1232,11 +1232,6 @@ pub fn handle_parry_hook(server: &Server, defender: EcsEntity, _attacker: Option
         .get_mut(defender)
     {
         match &mut *char_state {
-            // If in combo melee and a stance, reset to stance mode
-            CharacterState::ComboMelee2(c) if c.static_data.is_stance => {
-                c.stage_section = None;
-                c.timer = Duration::default();
-            },
             CharacterState::RiposteMelee(c) => {
                 c.stage_section = StageSection::Action;
                 c.timer = Duration::default();

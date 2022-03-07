@@ -1,25 +1,26 @@
-ComboMelee2(
-    strikes: [
-        (
-            melee_constructor: (
-                kind: Slash(
-                    damage: 12,
-                    poise: 0,
-                    knockback: 0,
-                    energy_regen: 5,
-                ),
-                range: 6.0,
-                angle: 5.0,
-            ),
-            buildup_duration: 0.3,
-            swing_duration: 0.1,
-            hit_timing: 0.6,
-            recover_duration: 0.5,
-            ori_modifier: 0.6,
+ChargedMelee(
+    energy_cost: 0,
+    energy_drain: 0,
+    melee_constructor: (
+        kind: Slash(
+            damage: 3,
+            poise: 0,
+            knockback: 0,
+            energy_regen: 2,
         ),
-    ],
-    is_stance: false,
-    energy_cost_per_strike: 5,
+        scaled: Some(Slash(
+            damage: 12,
+            poise: 0,
+            knockback: 0,
+            energy_regen: 8,
+        )),
+        range: 4.5,
+        angle: 10.0,
+    ),
+    charge_duration: 0.7,
+    swing_duration: 0.1,
+    hit_timing: 0.2,
+    recover_duration: 0.4,
     meta: (
         kind: Some(Sword(Balanced)),
     ),
