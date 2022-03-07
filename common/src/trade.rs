@@ -195,7 +195,7 @@ impl PendingTrade {
                     self.accept_flags = [false, false];
                 }
             },
-            _ => {},
+            Decline => {},
         }
     }
 }

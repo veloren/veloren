@@ -599,7 +599,11 @@ impl<'a> Trade<'a> {
                 .graphics_for(state.ids.amount_open_btn)
                 .set(state.ids.amount_open_ovlay, ui);
         } else if let Some(key) = &mut self.show.trade_amount_input_key {
-            if selected.is_some() || (!Hud::_typing(ui) && key.input_painted) {
+            if selected.is_some()
+                || (!Hud::is_captured::<widget::TextEdit>(ui) && key.input_painted)
+            {
+                // If the user has selected an item, or if the text edit is not captured, then
+                // we can close the text edit.
                 event = Some(Err(HudUpdate::Clear));
             }
             key.input_painted = true;

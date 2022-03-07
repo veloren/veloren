@@ -3893,17 +3893,16 @@ impl Hud {
         scale_mode
     }
 
-    /// Checks if a TextEdit widget has the keyboard captured.
-    fn typing(&self) -> bool { Hud::_typing(&self.ui.ui) }
 
-    /// reusable function, avoids duplicating code
-    fn _typing(ui: &conrod_core::Ui) -> bool {
+    /// Checks if a TextEdit widget has the keyboard captured.
+    fn typing(&self) -> bool { Hud::is_captured::<widget::TextEdit>(&self.ui.ui) }
+
+    /// Checks if a widget of type `W` has captured the keyboard
+    fn is_captured<W: Widget>(ui: &conrod_core::Ui) -> bool {
         if let Some(id) = ui.global_input().current.widget_capturing_keyboard {
             ui.widget_graph()
                 .widget(id)
-                .filter(|c| {
-                    c.type_id == std::any::TypeId::of::<<widget::TextEdit as Widget>::State>()
-                })
+                .filter(|c| c.type_id == std::any::TypeId::of::<<W as Widget>::State>())
                 .is_some()
         } else {
             false
