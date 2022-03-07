@@ -56,6 +56,15 @@ impl Asset for SkillPrerequisitesMap {
     const EXTENSION: &'static str = "ron";
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct SkillCostMap(HashMap<Skill, u16>);
+
+impl Asset for SkillCostMap {
+    type Loader = assets::RonLoader;
+
+    const EXTENSION: &'static str = "ron";
+}
+
 lazy_static! {
     // Determines the skills that comprise each skill group.
     //
@@ -114,6 +123,12 @@ lazy_static! {
             hashes.insert(*skill_group_kind, hash_result.iter().copied().collect());
         }
         hashes
+    };
+    // Loads the cost in skill points per level needed to purchase a skill
+    pub static ref SKILL_COST: HashMap<Skill, u16> = {
+        SkillCostMap::load_expect_cloned(
+            "common.skill_trees.skill_cost",
+        ).0
     };
 }
 
