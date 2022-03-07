@@ -3893,7 +3893,6 @@ impl Hud {
         scale_mode
     }
 
-
     /// Checks if a TextEdit widget has the keyboard captured.
     fn typing(&self) -> bool { Hud::is_captured::<widget::TextEdit>(&self.ui.ui) }
 
