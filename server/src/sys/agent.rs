@@ -524,7 +524,7 @@ impl<'a> AgentData<'a> {
                 match sound {
                     Some(AgentEvent::ServerSound(sound)) => {
                         agent.sounds_heard.push(sound);
-                        agent.awareness += sound.vol;
+                        agent.awareness += sound.vol / 2.0;
                     },
                     Some(AgentEvent::Hurt) => {
                         // Hurt utterances at random upon receiving damage
@@ -2165,36 +2165,23 @@ impl<'a> AgentData<'a> {
             if let Some(agent_stats) = read_data.stats.get(*self.entity) {
                 let sound_pos = Pos(sound.pos);
                 let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
+                let close_enough_to_react = dist_sqrd < 35.0_f32.powi(2);
+                let too_far_to_investigate = dist_sqrd > 10.0_f32.powi(2);
 
                 // FIXME: We need to be able to change the name of a guard without breaking this
-                // logic The `Mark` enum from common::agent could be used to
+                // logic. The `Mark` enum from common::agent could be used to
                 // match with `agent::Mark::Guard`
                 let is_village_guard = agent_stats.name == *"Guard".to_string();
                 let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
 
-                if is_enemy {
-                    let far_enough = dist_sqrd > 10.0_f32.powi(2);
+                let sound_was_loud = sound.vol >= 10.0;
+                let sound_was_threatening = sound_was_loud
+                    || matches!(sound.kind, SoundKind::Utterance(UtteranceKind::Scream, _));
 
-                    if far_enough {
-                        self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                    } else {
-                        // TODO: Change this to a search action instead of idle
-                        self.idle(agent, controller, read_data, rng);
-                    }
-                } else if is_village_guard {
+                if (is_enemy || is_village_guard) && too_far_to_investigate {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                } else if !is_village_guard {
-                    let flee_health = agent.psyche.flee_health;
-                    let close_enough = dist_sqrd < 35.0_f32.powi(2);
-                    let sound_was_loud = sound.vol >= 10.0;
-
-                    if close_enough
-                        && (flee_health <= 0.7 || (flee_health <= 0.5 && sound_was_loud))
-                    {
-                        self.flee(agent, controller, &read_data.terrain, &sound_pos);
-                    } else {
-                        self.idle(agent, controller, read_data, rng);
-                    }
+                } else if sound_was_threatening && close_enough_to_react {
+                    self.flee(agent, controller, &read_data.terrain, &sound_pos);
                 } else {
                     // TODO: Change this to a search action instead of idle
                     self.idle(agent, controller, read_data, rng);
@@ -2354,7 +2341,7 @@ impl<'a> AgentData<'a> {
                 sound: Sound::new(
                     SoundKind::Utterance(UtteranceKind::Scream, *body),
                     self.pos.0,
-                    100.0,
+                    13.0,
                     time,
                 ),
             });

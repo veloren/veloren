@@ -81,7 +81,7 @@ impl<'a> System<'a> for Sys {
             let mut rng = thread_rng();
             if physics.on_surface().is_none() && rng.gen_bool(0.05) {
                 server_emitter.emit(ServerEvent::Sound {
-                    sound: Sound::new(SoundKind::Projectile, pos.0, 2.0, read_data.time.0),
+                    sound: Sound::new(SoundKind::Projectile, pos.0, 4.0, read_data.time.0),
                 });
             }
 

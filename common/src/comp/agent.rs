@@ -347,13 +347,13 @@ impl Sound {
 #[derive(Copy, Clone, Debug)]
 pub enum SoundKind {
     Unknown,
+    Utterance(UtteranceKind, Body),
     Movement,
     Melee,
     Projectile,
     Explosion,
     Beam,
     Shockwave,
-    Utterance(UtteranceKind, Body),
 }
 
 #[derive(Clone, Copy, Debug)]
