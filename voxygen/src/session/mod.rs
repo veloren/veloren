@@ -599,7 +599,8 @@ impl PlayState for SessionState {
                                 }
                             },
                             GameInput::Sneak => {
-                                if state {
+                                let is_trading = self.client.borrow().is_trading();
+                                if state && !is_trading {
                                     self.stop_auto_walk();
                                     self.client.borrow_mut().toggle_sneak();
                                 }
@@ -629,7 +630,8 @@ impl PlayState for SessionState {
                                 self.key_state.right = state
                             },
                             GameInput::Glide => {
-                                if state {
+                                let is_trading = self.client.borrow().is_trading();
+                                if state && !is_trading {
                                     if global_state.settings.gameplay.stop_auto_walk_on_input {
                                         self.stop_auto_walk();
                                     }
