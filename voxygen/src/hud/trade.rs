@@ -37,7 +37,7 @@ use super::{
 #[derive(Debug)]
 pub enum HudUpdate {
     Focus(widget::Id),
-    Clear,
+    Submit,
 }
 
 pub struct State {
@@ -543,7 +543,7 @@ impl<'a> Trade<'a> {
         state: &mut ConrodState<'_, State>,
         ui: &mut UiCell<'_>,
         trade: &'a PendingTrade,
-    ) -> <Self as Widget>::Event {
+    ) -> Option<HudUpdate> {
         let mut event = None;
         let selected = self.slot_manager.selected().and_then(|s| match s {
             SlotKind::Trade(t_s) => t_s.invslot.and_then(|slot| {
@@ -570,6 +570,7 @@ impl<'a> Trade<'a> {
             )
             .set(state.ids.amount_bg, ui);
         if let Some((ours, slot, inv, who)) = selected {
+            self.show.trade_amount_input_key = None;
             // Text for the amount of items offered.
             let input = trade.offers[who]
                 .get(&slot)
@@ -589,7 +590,7 @@ impl<'a> Trade<'a> {
                 .set(state.ids.amount_open_btn, ui)
                 .was_clicked()
             {
-                event = Some(Err(HudUpdate::Focus(state.ids.amount_input)));
+                event = Some(HudUpdate::Focus(state.ids.amount_input));
                 self.slot_manager.idle();
                 self.show.trade_amount_input_key =
                     Some(TradeAmountInput::new(slot, input, inv, ours, who));
@@ -599,14 +600,10 @@ impl<'a> Trade<'a> {
                 .graphics_for(state.ids.amount_open_btn)
                 .set(state.ids.amount_open_ovlay, ui);
         } else if let Some(key) = &mut self.show.trade_amount_input_key {
-            if selected.is_some()
-                || (!Hud::is_captured::<widget::TextEdit>(ui) && key.input_painted)
-            {
-                // If the user has selected an item, or if the text edit is not captured, then
-                // we can close the text edit.
-                event = Some(Err(HudUpdate::Clear));
+            if !Hud::is_captured::<widget::TextEdit>(ui) && key.input_painted {
+                // If the text edit is not captured submit the amount.
+                event = Some(HudUpdate::Submit);
             }
-            key.input_painted = true;
 
             if Button::image(self.imgs.close_btn)
                 .hover_image(self.imgs.close_btn_hover)
@@ -616,9 +613,10 @@ impl<'a> Trade<'a> {
                 .set(state.ids.amount_btn, ui)
                 .was_clicked()
             {
-                event = Some(Err(HudUpdate::Clear));
+                event = Some(HudUpdate::Submit);
             }
             // Input for making TradeAction requests
+            key.input_painted = true;
             let text_color = key.err.as_ref().and(Some(color::RED)).unwrap_or(TEXT_COLOR);
             if let Some(new_input) = TextEdit::new(&key.input)
                 .mid_left_with_margin_on(state.ids.amount_bg, 22.0)
@@ -639,15 +637,20 @@ impl<'a> Trade<'a> {
                                 if new_amount > -1 && new_amount <= key.inv as i32 {
                                     key.err = None;
                                     let delta = new_amount - amount as i32;
-                                    event = TradeAction::item(key.slot, delta, key.ours).map(Ok);
+                                    key.submit_action =
+                                        TradeAction::item(key.slot, delta, key.ours);
                                 } else {
                                     key.err = Some("out of range".to_owned());
+                                    key.submit_action = None;
                                 }
                             },
                             Err(_) => {
                                 key.err = Some("bad quantity".to_owned());
+                                key.submit_action = None;
                             },
                         }
+                    } else {
+                        key.submit_action = None;
                     }
                 }
             }
@@ -736,9 +739,8 @@ impl<'a> Widget for Trade<'a> {
         event = self.item_pane(state, ui, trade, prices, true).or(event);
         event = self.accept_decline_buttons(state, ui, trade).or(event);
         event = self.close_button(state, ui).or(event);
-        let event = self
-            .input_item_amount(state, ui, trade)
-            .or_else(|| event.map(Ok));
-        event
+        self.input_item_amount(state, ui, trade)
+            .map(Err)
+            .or_else(|| event.map(Ok))
     }
 }

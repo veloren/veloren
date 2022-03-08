@@ -655,6 +655,7 @@ pub struct TradeAmountInput {
     err: Option<String>,
     who: usize,
     input_painted: bool,
+    submit_action: Option<TradeAction>,
 }
 
 impl TradeAmountInput {
@@ -667,6 +668,7 @@ impl TradeAmountInput {
             who,
             err: None,
             input_painted: false,
+            submit_action: None,
         }
     }
 }
@@ -2857,7 +2859,14 @@ impl Hud {
                 match action {
                     Err(update) => match update {
                         trade::HudUpdate::Focus(idx) => self.to_focus = Some(Some(idx)),
-                        trade::HudUpdate::Clear => self.show.trade_amount_input_key = None,
+                        trade::HudUpdate::Submit => {
+                            let key = self.show.trade_amount_input_key.take();
+                            key.map(|k| {
+                                k.submit_action.map(|action| {
+                                    self.events.push(Event::TradeAction(action));
+                                });
+                            });
+                        },
                     },
                     Ok(action) => {
                         if let TradeAction::Decline = action {
