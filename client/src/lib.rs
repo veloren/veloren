@@ -1116,6 +1116,8 @@ impl Client {
         &self.pending_trade
     }
 
+    pub fn is_trading(&self) -> bool { self.pending_trade.is_some() }
+
     pub fn send_invite(&mut self, invitee: Uid, kind: InviteKind) {
         self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InitiateInvite(
             invitee, kind,
