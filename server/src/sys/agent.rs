@@ -7,10 +7,9 @@ use crate::{
     rtsim::RtSim,
     sys::agent::{
         consts::{
-            AVG_FOLLOW_DIST, AWARENESS_INVESTIGATE_THRESHOLD, DAMAGE_MEMORY_DURATION,
-            DEFAULT_ATTACK_RANGE, FLEE_DURATION, HEALING_ITEM_THRESHOLD,
-            IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST, PARTIAL_PATH_DIST,
-            RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS, SEPARATION_DIST,
+            AVG_FOLLOW_DIST, DAMAGE_MEMORY_DURATION, DEFAULT_ATTACK_RANGE, FLEE_DURATION,
+            HEALING_ITEM_THRESHOLD, IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST,
+            PARTIAL_PATH_DIST, RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS, SEPARATION_DIST,
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
@@ -503,7 +502,6 @@ impl<'a> AgentData<'a> {
         rng: &mut impl Rng,
     ) {
         agent.decrement_awareness(read_data.dt.0);
-        agent.forget_old_sounds(read_data.time.0);
 
         let small_chance = rng.gen_bool(0.1);
         // Set owner if no target
@@ -524,7 +522,6 @@ impl<'a> AgentData<'a> {
                 match sound {
                     Some(AgentEvent::ServerSound(sound)) => {
                         agent.sounds_heard.push(sound);
-                        agent.awareness += sound.vol / 2.0;
                     },
                     Some(AgentEvent::Hurt) => {
                         // Hurt utterances at random upon receiving damage
@@ -572,10 +569,8 @@ impl<'a> AgentData<'a> {
 
                 if rng.gen::<f32>() < 0.1 {
                     self.choose_target(agent, controller, read_data, event_emitter);
-                } else if agent.awareness > AWARENESS_INVESTIGATE_THRESHOLD {
-                    self.handle_elevated_awareness(agent, controller, read_data, rng);
                 } else {
-                    self.idle(agent, controller, read_data, rng);
+                    self.handle_sounds_heard(agent, controller, read_data, rng);
                 }
             },
         }
@@ -2149,43 +2144,48 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn handle_elevated_awareness(
+    fn handle_sounds_heard(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
-        if is_invulnerable(*self.entity, read_data) {
-            self.idle(agent, controller, read_data, rng);
-            return;
-        }
+        agent.forget_old_sounds(read_data.time.0);
 
         if let Some(sound) = agent.sounds_heard.last() {
-            if let Some(agent_stats) = read_data.stats.get(*self.entity) {
-                let sound_pos = Pos(sound.pos);
-                let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
-                let close_enough_to_react = dist_sqrd < 35.0_f32.powi(2);
-                let too_far_to_investigate = dist_sqrd > 10.0_f32.powi(2);
+            let sound_pos = Pos(sound.pos);
+            let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
+            let close_enough_to_react = dist_sqrd < 35.0_f32.powi(2);
+            let too_far_to_investigate = dist_sqrd > 10.0_f32.powi(2);
 
-                // FIXME: We need to be able to change the name of a guard without breaking this
-                // logic. The `Mark` enum from common::agent could be used to
-                // match with `agent::Mark::Guard`
-                let is_village_guard = agent_stats.name == *"Guard".to_string();
-                let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+            let sound_was_loud = sound.vol >= 10.0;
+            let sound_was_threatening = sound_was_loud
+                || matches!(sound.kind, SoundKind::Utterance(UtteranceKind::Scream, _));
 
-                let sound_was_loud = sound.vol >= 10.0;
-                let sound_was_threatening = sound_was_loud
-                    || matches!(sound.kind, SoundKind::Utterance(UtteranceKind::Scream, _));
+            let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+            // FIXME: We need to be able to change the name of a guard without breaking this
+            // logic. The `Mark` enum from common::agent could be used to match with
+            // `agent::Mark::Guard`
+            let is_village_guard = read_data
+                .stats
+                .get(*self.entity)
+                .map_or(false, |stats| stats.name == *"Guard".to_string());
 
-                if (is_enemy || is_village_guard) && too_far_to_investigate {
-                    self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                } else if sound_was_threatening && close_enough_to_react {
-                    self.flee(agent, controller, &read_data.terrain, &sound_pos);
-                } else {
-                    // TODO: Change this to a search action instead of idle
-                    self.idle(agent, controller, read_data, rng);
-                }
+            // TODO: Awareness currently doesn't influence anything.
+            agent.awareness += 0.5 * sound.vol;
+
+            if is_invulnerable(*self.entity, read_data) {
+                self.idle(agent, controller, read_data, rng);
+                return;
+            }
+
+            if (is_enemy || is_village_guard) && too_far_to_investigate {
+                self.follow(agent, controller, &read_data.terrain, &sound_pos);
+            } else if sound_was_threatening && close_enough_to_react {
+                self.flee(agent, controller, &read_data.terrain, &sound_pos);
+            } else {
+                self.idle(agent, controller, read_data, rng);
             }
         }
     }
