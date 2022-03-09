@@ -6,6 +6,7 @@ use crate::{
     CanvasInfo,
 };
 use common::{
+    generation::EntityInfo,
     store::{Id, Store},
     terrain::{
         structure::{Structure as PrefabStructure, StructureBlock},
@@ -665,6 +666,7 @@ impl Fill {
 pub struct Painter {
     prims: RefCell<Store<Primitive>>,
     fills: RefCell<Vec<(Id<Primitive>, Fill)>>,
+    entities: RefCell<Vec<EntityInfo>>,
     render_area: Aabr<i32>,
 }
 
@@ -1035,7 +1037,15 @@ impl Painter {
         }
     }
 
+    /// The area that the canvas is currently rendering.
     pub fn render_aabr(&self) -> Aabr<i32> { self.render_area }
+
+    /// Spawns an entity if it is in the render_aabr, otherwise does nothing.
+    pub fn spawn(&self, entity: EntityInfo) {
+        if self.render_area.contains_point(entity.pos.xy().as_()) {
+            self.entities.borrow_mut().push(entity)
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -1188,10 +1198,15 @@ pub trait Structure {
         &self,
         site: &Site,
         canvas: &CanvasInfo,
-    ) -> (Store<Primitive>, Vec<(Id<Primitive>, Fill)>) {
+    ) -> (
+        Store<Primitive>,
+        Vec<(Id<Primitive>, Fill)>,
+        Vec<EntityInfo>,
+    ) {
         let painter = Painter {
             prims: RefCell::new(Store::default()),
             fills: RefCell::new(Vec::new()),
+            entities: RefCell::new(Vec::new()),
             render_area: Aabr {
                 min: canvas.wpos,
                 max: canvas.wpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
@@ -1199,7 +1214,11 @@ pub trait Structure {
         };
 
         self.render(site, &canvas.land(), &painter);
-        (painter.prims.into_inner(), painter.fills.into_inner())
+        (
+            painter.prims.into_inner(),
+            painter.fills.into_inner(),
+            painter.entities.into_inner(),
+        )
     }
 }
 /// Extend a 2d AABR to a 3d AABB

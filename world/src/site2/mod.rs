@@ -984,7 +984,7 @@ impl Site {
         let info = canvas.info();
 
         for plot in plots_to_render {
-            let (prim_tree, fills) = match &self.plots[plot].kind {
+            let (prim_tree, fills, entities) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, canvas),
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
@@ -993,6 +993,10 @@ impl Site {
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
                 _ => continue,
             };
+
+            for entity in entities {
+                canvas.spawn(entity);
+            }
 
             for (prim, fill) in fills {
                 for mut aabb in fill.get_bounds_disjoint(&prim_tree, prim) {
