@@ -21,11 +21,11 @@ macro_rules! plot {
 #[cfg(feature = "tracy")]
 #[macro_export]
 macro_rules! plot {
-    ($name:expr, $value:expr) => {
+    ($name:expr, $value:expr) => {{
         use $crate::tracy_client::{create_plot, Plot};
         static PLOT: Plot = create_plot!($name);
         PLOT.point($value);
-    };
+    }};
 }
 
 // Panic in debug or tests, warn in release
