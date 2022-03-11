@@ -1031,7 +1031,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
             for y in (-radius)..radius {
                 let check_loc =
                     loc + Vec2::new(x, y).map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32);
-                if sim.get(check_loc).map_or(true, |c| !c.sites.is_empty()) {
+                if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
                     return false;
                 }
             }
