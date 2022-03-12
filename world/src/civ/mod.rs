@@ -481,7 +481,7 @@ impl Civs {
     ) -> Option<Id<Civ>> {
         let kind = SiteKind::Refactor;
         let site = attempt(100, || {
-            let loc = find_site_loc(ctx, (start_locations, 60), 1, kind)?;
+            let loc = find_site_loc(ctx, (start_locations, 60), 0, kind)?;
             start_locations.push(loc);
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
