@@ -1277,7 +1277,7 @@ impl SiteKind {
                     + (trading_score as f32 + 1.0).log2();
                 has_potable_water
                     && has_building_materials
-                    && industry_score > 6.0
+                    && industry_score > 6.7
                     && warm_or_firewood
             },
             _ => true,
