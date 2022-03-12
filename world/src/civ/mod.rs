@@ -109,16 +109,16 @@ impl Civs {
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (kind, size, avoid) = match ctx.rng.gen_range(0..64) {
-                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 20)),
+                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 40)),
                     28..=31 => {
                         if index.features().site2_giant_trees {
-                            (SiteKind::GiantTree, 4, (&tree_enemies, 20))
+                            (SiteKind::GiantTree, 4, (&tree_enemies, 40))
                         } else {
-                            (SiteKind::Tree, 4, (&tree_enemies, 20))
+                            (SiteKind::Tree, 4, (&tree_enemies, 40))
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 20)),
-                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 20)),
+                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 40)),
+                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 40)),
                 };
                 let loc = find_site_loc(&mut ctx, avoid, size, kind)?;
                 match kind {
