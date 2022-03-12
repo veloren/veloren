@@ -2171,6 +2171,7 @@ impl<'a> AgentData<'a> {
                 .stats
                 .get(*self.entity)
                 .map_or(false, |stats| stats.name == *"Guard".to_string());
+            let follows_threatening_sounds = is_enemy || is_village_guard;
 
             // TODO: Awareness currently doesn't influence anything.
             agent.awareness += 0.5 * sound.vol;
@@ -2180,10 +2181,14 @@ impl<'a> AgentData<'a> {
                 return;
             }
 
-            if (is_enemy || is_village_guard) && too_far_to_investigate {
-                self.follow(agent, controller, &read_data.terrain, &sound_pos);
-            } else if sound_was_threatening && close_enough_to_react {
-                self.flee(agent, controller, &read_data.terrain, &sound_pos);
+            if sound_was_threatening {
+                if follows_threatening_sounds && too_far_to_investigate {
+                    self.follow(agent, controller, &read_data.terrain, &sound_pos);
+                } else if !follows_threatening_sounds && close_enough_to_react {
+                    self.flee(agent, controller, &read_data.terrain, &sound_pos);
+                } else {
+                    self.idle(agent, controller, read_data, rng);
+                }
             } else {
                 self.idle(agent, controller, read_data, rng);
             }
