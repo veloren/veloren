@@ -109,16 +109,16 @@ impl Civs {
         for _ in 0..initial_civ_count * 3 {
             attempt(5, || {
                 let (kind, size, avoid) = match ctx.rng.gen_range(0..64) {
-                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 20)),
+                    0..=5 => (SiteKind::Castle, 3, (&castle_enemies, 40)),
                     28..=31 => {
                         if index.features().site2_giant_trees {
-                            (SiteKind::GiantTree, 4, (&tree_enemies, 20))
+                            (SiteKind::GiantTree, 4, (&tree_enemies, 40))
                         } else {
-                            (SiteKind::Tree, 4, (&tree_enemies, 20))
+                            (SiteKind::Tree, 4, (&tree_enemies, 40))
                         }
                     },
-                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 20)),
-                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 20)),
+                    32..=37 => (SiteKind::Gnarling, 5, (&gnarling_enemies, 40)),
+                    _ => (SiteKind::Dungeon, 0, (&dungeon_enemies, 40)),
                 };
                 let loc = find_site_loc(&mut ctx, avoid, size, kind)?;
                 match kind {
@@ -481,7 +481,7 @@ impl Civs {
     ) -> Option<Id<Civ>> {
         let kind = SiteKind::Refactor;
         let site = attempt(100, || {
-            let loc = find_site_loc(ctx, (start_locations, 40), 1, kind)?;
+            let loc = find_site_loc(ctx, (start_locations, 60), 0, kind)?;
             start_locations.push(loc);
             Some(self.establish_site(ctx, loc, |place| Site {
                 kind,
@@ -1031,7 +1031,7 @@ fn loc_suitable_for_site(sim: &WorldSim, loc: Vec2<i32>, site_kind: SiteKind) ->
             for y in (-radius)..radius {
                 let check_loc =
                     loc + Vec2::new(x, y).map2(TerrainChunkSize::RECT_SIZE, |e, sz| e * sz as i32);
-                if sim.get(check_loc).map_or(true, |c| !c.sites.is_empty()) {
+                if sim.get(check_loc).map_or(false, |c| !c.sites.is_empty()) {
                     return false;
                 }
             }
@@ -1277,7 +1277,7 @@ impl SiteKind {
                     + (trading_score as f32 + 1.0).log2();
                 has_potable_water
                     && has_building_materials
-                    && industry_score > 6.0
+                    && industry_score > 6.7
                     && warm_or_firewood
             },
             _ => true,

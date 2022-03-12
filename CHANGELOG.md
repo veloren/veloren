@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fixed bug that would sometimes cause taking a screenshot to panic because a buffer was mapped a the wrong time.
 - Players can no longer push waypoints around
+- Sites will now also be placed near the edge of the map
 
 ## [0.12.0] - 2022-02-19
 
