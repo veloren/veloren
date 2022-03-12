@@ -618,8 +618,7 @@ impl<'a> AgentData<'a> {
                 }
                 let aggro_on = *aggro_on;
 
-                let should_flee = self.damage.min(1.0) < agent.psyche.flee_health;
-                if should_flee {
+                if self.below_flee_health(agent) {
                     let has_opportunity_to_flee = agent.action_state.timer < FLEE_DURATION;
                     let within_flee_distance = dist_sqrd < MAX_FLEE_DIST.powi(2);
 
@@ -1921,8 +1920,8 @@ impl<'a> AgentData<'a> {
             angle_xy,
         };
 
-        // Match on tactic. Each tactic has different controls
-        // depending on the distance from the agent to the target
+        // Match on tactic. Each tactic has different controls depending on the distance
+        // from the agent to the target.
         match tactic {
             Tactic::SimpleMelee => {
                 self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
@@ -2182,9 +2181,14 @@ impl<'a> AgentData<'a> {
             }
 
             if sound_was_threatening {
-                if follows_threatening_sounds && too_far_to_investigate {
+                if !self.below_flee_health(agent)
+                    && follows_threatening_sounds
+                    && too_far_to_investigate
+                {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                } else if !follows_threatening_sounds && close_enough_to_react {
+                } else if self.below_flee_health(agent)
+                    || (!follows_threatening_sounds && close_enough_to_react)
+                {
                     self.flee(agent, controller, &read_data.terrain, &sound_pos);
                 } else {
                     self.idle(agent, controller, read_data, rng);
@@ -2388,5 +2392,9 @@ impl<'a> AgentData<'a> {
                 event_emitter,
             );
         }
+    }
+
+    fn below_flee_health(&self, agent: &Agent) -> bool {
+        self.damage.min(1.0) < agent.psyche.flee_health
     }
 }
