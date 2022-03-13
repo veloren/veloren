@@ -116,7 +116,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
     #if (CLOUD_MODE >= CLOUD_MODE_LOW)
         cloud += max(noise_3d((wind_pos) / 25000.0 / cloud_scale) - 0.75 + noise_3d((wind_pos) / 2500.0 / cloud_scale) * 0.1, 0)
             * 0.1
-            / (abs(pos.z - cloud_alt) / 500.0 + 0.1);
+            / (abs(pos.z - cloud_alt) / 500.0 + 0.2);
     #endif
 
     // Keeping this because it's something I'm likely to reenable later
@@ -303,7 +303,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                     surf_color = mix(
                         surf_color,
                         mix(colors[rainbow_c], colors[rainbow_c + 1], rainbow_t),
-                        rain * sun_access * sun_access * get_sun_brightness() * pow(min(cdist / 500.0, 1.0), 2.0),
+                        rain * sun_access * sun_access * get_sun_brightness() * pow(min(cdist / 500.0, 1.0), 2.0)
                     );
                 }
             #endif
