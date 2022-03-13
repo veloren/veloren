@@ -887,16 +887,16 @@ impl Structure for GnarlingFortification {
                             (wpos - 19).with_z(alt + raise),
                             2.0,
                         )
-                        .repeat(Vec3::new(37, 0, 0), 1)
-                        .repeat(Vec3::new(0, 37, 0), 1);
+                        .repeat(Vec3::new(37, 0, 0), 2)
+                        .repeat(Vec3::new(0, 37, 0), 2);
 
                     let supports_inner = painter
                         .aabb(Aabb {
                             min: (wpos - 19).with_z(alt - 10) + Vec3::unit_y() * 17,
                             max: (wpos - 15).with_z(alt + raise) + Vec3::unit_y() * 17,
                         })
-                        .repeat(Vec3::new(17, 17, 0), 1)
-                        .repeat(Vec3::new(17, -17, 0), 1);
+                        .repeat(Vec3::new(17, 17, 0), 2)
+                        .repeat(Vec3::new(17, -17, 0), 2);
                     // let support_inner_2 = support_inner_1.translate(Vec3::new(34, 0, 0));
                     // let support_inner_3 = support_inner_1.translate(Vec3::new(17, 17, 0));
                     // let support_inner_4 = support_inner_1.translate(Vec3::new(17, -17, 0));
@@ -970,11 +970,11 @@ impl Structure for GnarlingFortification {
                         .union(wall2roof);
 
                     let roof_support_2 =
-                        roof_support_1.rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1));
+                        roof_support_1.rotate_about_min(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1));
                     let roof_support_3 =
-                        roof_support_1.rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
+                        roof_support_1.rotate_about_min(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
                     let roof_support_4 =
-                        roof_support_1.rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1));
+                        roof_support_1.rotate_about_min(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1));
                     let roof_support = roof_support_1
                         .union(roof_support_2)
                         .union(roof_support_3)
@@ -989,12 +989,13 @@ impl Structure for GnarlingFortification {
                         (wpos + rad_2 as i32).with_z(alt + raise + height_1 as i32 + 8),
                         1.3,
                     );
-                    let spike_low = spike_high.rotate(Mat3::new(1, 0, 0, 0, 1, 0, 0, 0, -1));
+                    let spike_low =
+                        spike_high.rotate_about_min(Mat3::new(1, 0, 0, 0, 1, 0, 0, 0, -1));
                     let spike_1 = centerspot.union(spike_low).union(spike_high);
 
-                    let spike_2 = spike_1.rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1));
-                    let spike_3 = spike_1.rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
-                    let spike_4 = spike_1.rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1));
+                    let spike_2 = spike_1.rotate_about_min(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1));
+                    let spike_3 = spike_1.rotate_about_min(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
+                    let spike_4 = spike_1.rotate_about_min(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1));
                     let spikes = spike_1.union(spike_2).union(spike_3).union(spike_4);
 
                     painter.fill(
@@ -1219,13 +1220,13 @@ impl Structure for GnarlingFortification {
                         let leg3 = leg1.translate(Vec3::new(width * 2 - 2, 0, 0));
                         let leg4 = leg1.translate(Vec3::new(width * 2 - 2, width * 2 - 2, 0));
                         let legsupport2 = legsupport1
-                            .rotate(Mat3::new(0, 1, 0, -1, 0, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(0, 1, 0, -1, 0, 0, 0, 0, 1))
                             .translate(Vec3::new(1, width * 2 + 1, 0));
                         let legsupport3 = legsupport1
-                            .rotate(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
                             .translate(Vec3::new(width * 2 + 1, 1, 0));
                         let legsupport4 = legsupport1
-                            .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
                             .translate(Vec3::new(width * 2 + 2, width * 2 + 2, 0));
 
                         let legsupports = legsupport1
@@ -1249,11 +1250,11 @@ impl Structure for GnarlingFortification {
                         );
                         let spikes = spike1.union(spike2);
                         let spikesalt = spikes
-                            .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
                             .translate(Vec3::new(26, 8, 0));
                         let spikeshalf = spikes.union(spikesalt);
                         let spikesotherhalf = spikeshalf
-                            .rotate(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
                             .translate(Vec3::new(16, -9, 0));
                         let spikesall = spikeshalf.union(spikesotherhalf);
 
@@ -1423,13 +1424,13 @@ impl Structure for GnarlingFortification {
                             1.0,
                         );
                         let support_2 = support_1
-                            .rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
                             .translate(Vec3::new(0, 13, 0));
                         let support_3 = support_1
-                            .rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1))
                             .translate(Vec3::new(13, 0, 0));
                         let support_4 = support_1
-                            .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
                             .translate(Vec3::new(13, 13, 0));
 
                         let supports = support_1.union(support_2).union(support_3).union(support_4);
@@ -1607,22 +1608,22 @@ impl Structure for GnarlingFortification {
                             ));
                         let skirt2 = skirt1
                             .translate(Vec3::new(6, 0, 0))
-                            .rotate(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
+                            .rotate_about_min(Mat3::new(-1, 0, 0, 0, 1, 0, 0, 0, 1));
                         let skirt3 = skirt2.translate(Vec3::new(3, 0, 0));
 
                         let skirtside1 = skirt1.union(skirt2).union(skirt3);
                         let skirtside2 = skirtside1
-                            .rotate(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
-                            .translate(Vec3::new(-1, 2, 0));
+                            .rotate_about_min(Mat3::new(0, -1, 0, 1, 0, 0, 0, 0, 1))
+                            .translate(Vec3::new(0, 1, 0));
 
                         let skirtcorner1 = skirtside1.union(skirtside2);
                         let skirtcorner2 = skirtcorner1
-                            .rotate(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
-                            .translate(Vec3::new(13, 11, 0));
+                            .rotate_about_min(Mat3::new(-1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .translate(Vec3::new(11, 11, 0));
 
                         let skirt1 = skirtcorner1.union(skirtcorner2);
                         let skirt2 = skirt1
-                            .rotate(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
+                            .rotate_about_min(Mat3::new(1, 0, 0, 0, -1, 0, 0, 0, 1))
                             .translate(Vec3::new(0, 11, 6));
 
                         let skirt = skirt1.union(skirt2).union(roof);

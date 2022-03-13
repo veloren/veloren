@@ -13,7 +13,7 @@ use rayon::ThreadPoolBuilder;
 use vek::{Vec2, Vec3};
 use veloren_world::{
     sim::{FileOpts, WorldOpts, DEFAULT_WORLD_MAP},
-    site2::{plot::PlotKind, Structure},
+    site2::{plot::PlotKind, Fill, Structure},
     CanvasInfo, Land, World,
 };
 
@@ -47,7 +47,7 @@ fn main() -> Result {
                 let (prim_tree, fills, _entities) = dungeon.render_collect(&site, canvas);
 
                 for (prim, fill) in fills {
-                    let aabb = fill.get_bounds(&prim_tree, prim);
+                    let aabb = Fill::get_bounds(&prim_tree, prim);
 
                     for x in aabb.min.x..aabb.max.x {
                         for y in aabb.min.y..aabb.max.y {
