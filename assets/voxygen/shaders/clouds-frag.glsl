@@ -112,7 +112,7 @@ void main() {
         vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
         vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
-        float rain_density = rain_density_at(cam_wpos.xy) * 100.0;
+        float rain_density = rain_density_at(cam_wpos.xy) * 10.0;
         if (rain_density > 0) {
             float rain_dist = 50.0;
             for (int i = 0; i < 5; i ++) {
@@ -125,7 +125,7 @@ void main() {
                     continue;
                 }
 
-                float drop_density = 3;
+                vec2 drop_density = vec2(30, 3);
                 vec2 drop_size = vec2(0.0015, 0.17);
 
                 vec2 rain_pos = (view_pos * rain_dist);

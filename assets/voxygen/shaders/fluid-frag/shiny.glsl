@@ -152,7 +152,7 @@ void main() {
     #ifdef EXPERIMENTAL_RAIN
         float rain_density = rain_density_at(cam_pos.xy + focus_off.xy) * 100.0;
         if (rain_density > 0 && surf_norm.z > 0.5) {
-            vec3 drop_density = vec3(2, 2, 1);
+            vec3 drop_density = vec3(2, 2, 2);
             vec3 drop_pos = wave_pos + vec3(0, 0, -time_of_day.x * 0.025);
             drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;
             vec2 cell2d = floor(drop_pos.xy * drop_density.xy);

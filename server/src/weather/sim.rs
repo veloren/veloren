@@ -176,9 +176,11 @@ impl WeatherSim {
         for (point, cell) in self.weather.iter_mut() {
             let wpos = cell_to_wpos(point);
 
-            let space_scale = 7500.0;
-            let time_scale = 25000.0;
-            let spos = (wpos.as_::<f64>() / space_scale).with_z(time as f64 / time_scale);
+            let pos = wpos.as_::<f64>() + time as f64 * 0.25;
+
+            let space_scale = 7_500.0;
+            let time_scale = 100_000.0;
+            let spos = (pos / space_scale).with_z(time as f64 / time_scale);
 
             let pressure = (base_nz.get(spos.into_array()) * 0.5 + 1.0).clamped(0.0, 1.0) as f32;
 
@@ -187,7 +189,8 @@ impl WeatherSim {
             cell.wind = Vec2::new(
                 rain_nz.get(spos.into_array()) as f32,
                 rain_nz.get((spos + 1.0).into_array()) as f32,
-            ) * 250.0 * (1.0 - pressure);
+            ) * 250.0
+                * (1.0 - pressure);
         }
         /*
         let mut swap = Grid::new(self.cells.size(), Cell::default());
