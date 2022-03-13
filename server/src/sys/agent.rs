@@ -2155,8 +2155,11 @@ impl<'a> AgentData<'a> {
         if let Some(sound) = agent.sounds_heard.last() {
             let sound_pos = Pos(sound.pos);
             let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
-            let close_enough_to_react = dist_sqrd < 35.0_f32.powi(2);
-            let too_far_to_investigate = dist_sqrd > 10.0_f32.powi(2);
+            // NOTE: There is an implicit distance requirement given that sound volume
+            // disipates as it travels, but we will not want to flee if a sound is super
+            // loud but heard from a great distance, regardless of how loud it was.
+            // `is_close` is this limiter.
+            let is_close = dist_sqrd < 35.0_f32.powi(2);
 
             let sound_was_loud = sound.vol >= 10.0;
             let sound_was_threatening = sound_was_loud
@@ -2180,15 +2183,10 @@ impl<'a> AgentData<'a> {
                 return;
             }
 
-            if sound_was_threatening {
-                if !self.below_flee_health(agent)
-                    && follows_threatening_sounds
-                    && too_far_to_investigate
-                {
+            if sound_was_threatening && is_close {
+                if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                } else if self.below_flee_health(agent)
-                    || (!follows_threatening_sounds && close_enough_to_react)
-                {
+                } else if self.below_flee_health(agent) || !follows_threatening_sounds {
                     self.flee(agent, controller, &read_data.terrain, &sound_pos);
                 } else {
                     self.idle(agent, controller, read_data, rng);
