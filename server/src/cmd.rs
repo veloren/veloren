@@ -443,9 +443,26 @@ fn edit_setting_feedback<S: EditableSetting>(
 macro_rules! parse_args {
     ($args:expr, $($t:ty),* $(, ..$tail:ty)? $(,)?) => {
         {
-            let mut args = $args.into_iter();
+            let mut args = $args.into_iter().peekable();
             (
-                $(args.next().and_then(|s| s.parse::<$t>().ok())),*
+                // We only consume the input argument when parsing is successful. If this fails, we
+                // will then attempt to parse it as the next argument type. This is done regardless
+                // of whether the argument is optional because that information is not available
+                // here. Nevertheless, if the caller only precedes to use the parsed arguments when
+                // all required arguments parse successfully to `Some(val)` this should not create
+                // any unexpected behavior.
+                //
+                // This does mean that optional arguments will be included in the trailing args or
+                // that one optional arg could be interpreted as another, if the user makes a
+                // mistake that causes an optional arg to fail to parse. But there is no way to
+                // discern this in the current model with the optional args and trailing arg being
+                // solely position based.
+                $({
+                    let parsed = args.peek().and_then(|s| s.parse::<$t>().ok());
+                    // Consume successfully parsed arg.
+                    if parsed.is_some() { args.next(); }
+                    parsed
+                }),*
                 $(, args.map(|s| s.to_string()).collect::<$tail>())?
             )
         }
