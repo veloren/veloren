@@ -179,7 +179,7 @@ impl MovementEventMapper {
         }
     }
 
-    /// Voxygen has an existing list of character states however that list does
+    /// Voxygen has an existing list of character states; however that list does
     /// not provide enough resolution to target specific entity events, such
     /// as opening or closing the glider. These methods translate those
     /// entity states with some additional data into more specific
@@ -220,14 +220,7 @@ impl MovementEventMapper {
         // Match all other Movemement and Action states
         match (previous_state.event.clone(), character_state) {
             (_, CharacterState::Climb { .. }) => SfxEvent::Climb,
-            (SfxEvent::Glide, CharacterState::Idle { .. }) => SfxEvent::GliderClose,
-            (previous_event, CharacterState::Glide { .. }) => {
-                if previous_event != SfxEvent::GliderOpen && previous_event != SfxEvent::Glide {
-                    SfxEvent::GliderOpen
-                } else {
-                    SfxEvent::Glide
-                }
-            },
+            (_, CharacterState::Glide { .. }) => SfxEvent::Glide,
             _ => SfxEvent::Idle,
         }
     }

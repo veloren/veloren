@@ -259,19 +259,26 @@
             files: [
                 "voxygen.audio.sfx.character.glider_open",
             ],
-            threshold: 0.5,
+            threshold: 0.1,
         ),
-        //Glide: (
-        //    files: [
-        //        // Event Missing or not implemented?
-        //    ],
-        //    threshold: 0.5,
-        //),
         GliderClose: (
             files: [
                 "voxygen.audio.sfx.character.glider_close",
             ],
-            threshold: 0.5,
+            threshold: 0.1,
+        ),
+        Glide: (
+            files: [
+                "voxygen.audio.sfx.character.catch_air_1",
+                "voxygen.audio.sfx.character.catch_air_2",
+                "voxygen.audio.sfx.character.catch_air_3",
+                "voxygen.audio.sfx.character.catch_air_4",
+                "voxygen.audio.sfx.character.catch_air_5",
+                "voxygen.audio.sfx.character.catch_air_6",
+                "voxygen.audio.sfx.character.catch_air_7",
+                "voxygen.audio.sfx.character.catch_air_8",
+            ],
+            threshold: 0.85,
         ),
 
         //
