@@ -81,6 +81,10 @@ pub enum Outcome {
         body: comp::Body,
         kind: UtteranceKind,
     },
+    Glider {
+        pos: Vec3<f32>,
+        wielded: bool,
+    },
 }
 
 impl Outcome {
@@ -97,7 +101,8 @@ impl Outcome {
             | Outcome::Block { pos, .. }
             | Outcome::PoiseChange { pos, .. }
             | Outcome::GroundSlam { pos }
-            | Outcome::Utterance { pos, .. } => Some(*pos),
+            | Outcome::Utterance { pos, .. }
+            | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } => None,
         }

@@ -161,6 +161,7 @@ pub enum SfxEvent {
     GliderOpen,
     Glide,
     GliderClose,
+    CatchAir,
     Jump,
     Fall,
     ExperienceGained,
@@ -569,6 +570,15 @@ impl SfxMgr {
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
             | Outcome::SummonedCreature { .. } => {},
+            Outcome::Glider { pos, wielded } => {
+                if *wielded {
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GliderOpen);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), false);
+                } else {
+                    let sfx_trigger_item = triggers.get_key_value(&SfxEvent::GliderClose);
+                    audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), false);
+                }
+            },
         }
     }
 

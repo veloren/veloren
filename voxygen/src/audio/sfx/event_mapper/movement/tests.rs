@@ -234,25 +234,6 @@ fn maps_land_on_ground_to_run() {
 }
 
 #[test]
-fn maps_glider_open() {
-    let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Glide(states::glide::Data::new(10.0, 1.0, Ori::default())),
-        &Default::default(),
-        &PreviousEntityState {
-            event: SfxEvent::Jump,
-            time: Instant::now(),
-            on_ground: false,
-            in_water: false,
-            distance_travelled: 0.0,
-        },
-        Vec3::zero(),
-        BlockKind::Grass,
-    );
-
-    assert_eq!(result, SfxEvent::GliderOpen);
-}
-
-#[test]
 fn maps_glide() {
     let result = MovementEventMapper::map_movement_event(
         &CharacterState::Glide(states::glide::Data::new(10.0, 1.0, Ori::default())),
@@ -269,48 +250,6 @@ fn maps_glide() {
     );
 
     assert_eq!(result, SfxEvent::Glide);
-}
-
-#[test]
-fn maps_glider_close_when_closing_mid_flight() {
-    let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
-        &Default::default(),
-        &PreviousEntityState {
-            event: SfxEvent::Glide,
-            time: Instant::now(),
-            on_ground: false,
-            in_water: false,
-            distance_travelled: 0.0,
-        },
-        Vec3::zero(),
-        BlockKind::Grass,
-    );
-
-    assert_eq!(result, SfxEvent::GliderClose);
-}
-
-#[test]
-#[ignore]
-fn maps_glider_close_when_landing() {
-    let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
-        &PhysicsState {
-            on_ground: Some(Block::empty()),
-            ..Default::default()
-        },
-        &PreviousEntityState {
-            event: SfxEvent::Glide,
-            time: Instant::now(),
-            on_ground: false,
-            in_water: false,
-            distance_travelled: 0.0,
-        },
-        Vec3::zero(),
-        BlockKind::Grass,
-    );
-
-    assert_eq!(result, SfxEvent::GliderClose);
 }
 
 #[test]

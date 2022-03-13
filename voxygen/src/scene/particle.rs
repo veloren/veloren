@@ -265,7 +265,8 @@ impl ParticleMgr {
             | Outcome::ComboChange { .. }
             | Outcome::Damage { .. }
             | Outcome::PoiseChange { .. }
-            | Outcome::Utterance { .. } => {},
+            | Outcome::Utterance { .. }
+            | Outcome::Glider { .. } => {},
         }
     }
 

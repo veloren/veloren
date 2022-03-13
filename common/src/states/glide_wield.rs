@@ -4,6 +4,8 @@ use crate::{
         character_state::OutputEvents, slot::EquipSlot, CharacterState, InventoryAction, Ori,
         StateUpdate,
     },
+    event::LocalEvent,
+    outcome::Outcome,
     states::{
         behavior::{CharacterBehavior, JoinData},
         glide, idle,
@@ -90,8 +92,12 @@ impl CharacterBehavior for Data {
         update
     }
 
-    fn unwield(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
+    fn unwield(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
+        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Glider {
+            pos: data.pos.0,
+            wielded: false,
+        }));
         update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         update
     }

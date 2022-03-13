@@ -13,6 +13,7 @@ use crate::{
     },
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
+    outcome::Outcome,
     states::{behavior::JoinData, *},
     util::Dir,
     vol::ReadVol,
@@ -837,7 +838,11 @@ pub fn handle_manipulate_loadout(
 }
 
 /// Checks that player can wield the glider and updates `CharacterState` if so
-pub fn attempt_glide_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
+pub fn attempt_glide_wield(
+    data: &JoinData<'_>,
+    update: &mut StateUpdate,
+    output_events: &mut OutputEvents,
+) {
     if data
         .inventory
         .and_then(|inv| inv.equipped(EquipSlot::Glider))
@@ -849,6 +854,10 @@ pub fn attempt_glide_wield(data: &JoinData<'_>, update: &mut StateUpdate) {
             .unwrap_or(false)
         && data.body.is_humanoid()
     {
+        output_events.emit_local(LocalEvent::CreateOutcome(Outcome::Glider {
+            pos: data.pos.0,
+            wielded: true,
+        }));
         update.character = CharacterState::GlideWield(glide_wield::Data::from(data));
     }
 }
