@@ -48,52 +48,53 @@ where
     // means that if you need lower level logging for a specific module, then
     // put it in the environment in the correct format i.e. DEBUG logging for
     // this crate would be veloren_voxygen=debug.
-    let base_exceptions = |env: EnvFilter| {
-        env.add_directive("dot_vox::parser=warn".parse().unwrap())
-            .add_directive("veloren_common::trade=info".parse().unwrap())
-            .add_directive("veloren_world::sim=info".parse().unwrap())
-            .add_directive("veloren_world::civ=info".parse().unwrap())
-            .add_directive(
-                "veloren_server::events::entity_manipulation=info"
-                    .parse()
-                    .unwrap(),
-            )
-            .add_directive("hyper=info".parse().unwrap())
-            .add_directive("prometheus_hyper=info".parse().unwrap())
-            .add_directive("mio::pool=info".parse().unwrap())
-            .add_directive("mio::sys::windows=info".parse().unwrap())
-            .add_directive("h2=info".parse().unwrap())
-            .add_directive("tokio_util=info".parse().unwrap())
-            .add_directive("rustls=info".parse().unwrap())
-            .add_directive("naga=info".parse().unwrap())
-            .add_directive("gfx_backend_vulkan=info".parse().unwrap())
-            .add_directive("wgpu_core=info".parse().unwrap())
-            .add_directive("wgpu_core::device=warn".parse().unwrap())
-            .add_directive("wgpu_core::swap_chain=info".parse().unwrap())
-            .add_directive("veloren_network_protocol=info".parse().unwrap())
-            .add_directive("quinn_proto::connection=info".parse().unwrap())
-            .add_directive(
-                "veloren_server::persistence::character=info"
-                    .parse()
-                    .unwrap(),
-            )
-            .add_directive("veloren_server::settings=info".parse().unwrap())
-            .add_directive(LevelFilter::INFO.into())
-    };
 
-    let filter = match std::env::var_os(RUST_LOG_ENV).map(|s| s.into_string()) {
-        Some(Ok(env)) => {
-            let mut filter = base_exceptions(EnvFilter::new(""));
+    let mut filter = EnvFilter::default().add_directive(LevelFilter::INFO.into());
+
+    let default_directives = [
+        "dot_vox::parser=warn",
+        "veloren_common::trade=info",
+        "veloren_world::sim=info",
+        "veloren_world::civ=info",
+        "veloren_server::events::entity_manipulation=info",
+        "hyper=info",
+        "prometheus_hyper=info",
+        "mio::pool=info",
+        "mio::sys::windows=info",
+        "h2=info",
+        "tokio_util=info",
+        "rustls=info",
+        "naga=info",
+        "gfx_backend_vulkan=info",
+        "wgpu_core=info",
+        "wgpu_core::device=warn",
+        "wgpu_core::swap_chain=info",
+        "veloren_network_protocol=info",
+        "quinn_proto::connection=info",
+        "veloren_server::persistence::character=info",
+        "veloren_server::settings=info",
+    ];
+
+    for s in default_directives {
+        filter = filter.add_directive(s.parse().unwrap());
+    }
+
+    match std::env::var(RUST_LOG_ENV) {
+        Ok(env) => {
             for s in env.split(',') {
                 match s.parse() {
                     Ok(d) => filter = filter.add_directive(d),
-                    Err(err) => println!("WARN ignoring log directive: `{}`: {}", s, err),
-                };
+                    Err(err) => eprintln!("WARN ignoring log directive: `{s}`: {err}"),
+                }
             }
-            filter
         },
-        _ => base_exceptions(EnvFilter::from_env(RUST_LOG_ENV)),
+        Err(std::env::VarError::NotUnicode(os_string)) => {
+            eprintln!("WARN ignoring log directives due to non-unicode data: {os_string:?}");
+        },
+        Err(std::env::VarError::NotPresent) => {},
     };
+
+    let filter = filter; // mutation is done
 
     let registry = registry();
     #[cfg(not(feature = "tracy"))]
