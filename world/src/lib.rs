@@ -296,7 +296,7 @@ impl World {
             sim_chunk
                 .sites
                 .iter()
-                .any(|site| matches!(index.sites[*site].kind, SiteKind::Settlement(_))),
+                .any(|site| matches!(index.sites[*site].kind, SiteKind::Refactor(_))),
             sim_chunk
                 .sites
                 .iter()
