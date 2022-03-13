@@ -443,9 +443,14 @@ fn edit_setting_feedback<S: EditableSetting>(
 macro_rules! parse_args {
     ($args:expr, $($t:ty),* $(, ..$tail:ty)? $(,)?) => {
         {
-            let mut args = $args.into_iter();
+            let mut args = $args.into_iter().peekable();
             (
-                $(args.next().and_then(|s| s.parse::<$t>().ok())),*
+                $({
+                    let parsed = args.peek().and_then(|s| s.parse::<$t>().ok());
+                    // Consume successfully parsed arg.
+                    if parsed.is_some() { args.next(); }
+                    parsed
+                }),*
                 $(, args.map(|s| s.to_string()).collect::<$tail>())?
             )
         }
