@@ -232,7 +232,7 @@ void main() {
     vec3 k_s = vec3(R_s);
 
     #ifdef EXPERIMENTAL_RAIN
-        float rain_density = rain_density_at(cam_pos.xy + focus_off.xy) * 100.0;
+        float rain_density = rain_density_at(cam_pos.xy + focus_off.xy) * 50.0;
         if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
             vec3 pos = f_pos + focus_off.xyz;
             vec3 drop_density = vec3(2, 2, 2);
