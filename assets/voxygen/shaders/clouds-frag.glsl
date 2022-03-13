@@ -112,7 +112,7 @@ void main() {
         vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
         vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
-        float rain_density = rain_density_at(cam_wpos.xy);
+        float rain_density = rain_density_at(cam_wpos.xy) * 100.0;
         if (rain_density > 0) {
             float rain_dist = 50.0;
             for (int i = 0; i < 5; i ++) {
@@ -132,7 +132,7 @@ void main() {
                 rain_pos += vec2(0, tick.x * fall_rate + cam_wpos.z);
 
                 vec2 cell = floor(rain_pos * drop_density) / drop_density;
-                if (hash(fract(vec4(cell, rain_dist, 0) * 0.01)) > rain_density) {
+                if (fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
                     continue;
                 }
                 vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
