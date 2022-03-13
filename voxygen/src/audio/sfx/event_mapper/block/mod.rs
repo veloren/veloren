@@ -98,10 +98,17 @@ impl EventMapper for BlockEventMapper {
                 cond: |st| st.get_day_period().is_dark(),
             },
             BlockSounds {
-                blocks: |boi| &boi.river,
+                blocks: |boi| &boi.slow_river,
                 range: 1,
-                sfx: SfxEvent::RunningWater,
+                sfx: SfxEvent::RunningWaterSlow,
                 volume: 1.5,
+                cond: |_| true,
+            },
+            BlockSounds {
+                blocks: |boi| &boi.fast_river,
+                range: 1,
+                sfx: SfxEvent::RunningWaterFast,
+                volume: 2.5,
                 cond: |_| true,
             },
             //BlockSounds {
@@ -188,7 +195,9 @@ impl EventMapper for BlockEventMapper {
                         Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
 
                     // Replace all RunningWater blocks with just one random one per tick
-                    let blocks = if sounds.sfx == SfxEvent::RunningWater {
+                    let blocks = if sounds.sfx == SfxEvent::RunningWaterSlow
+                        || sounds.sfx == SfxEvent::RunningWaterFast
+                    {
                         blocks
                             .choose(&mut thread_rng())
                             .map(std::slice::from_ref)
@@ -205,7 +214,8 @@ impl EventMapper for BlockEventMapper {
                         if ((sounds.sfx == SfxEvent::Birdcall || sounds.sfx == SfxEvent::Owl)
                             && thread_rng().gen_bool(0.999))
                             || (sounds.sfx == SfxEvent::Frog && thread_rng().gen_bool(0.75))
-                            || (sounds.sfx == SfxEvent::RunningWater && thread_rng().gen_bool(0.5))
+                            || (sounds.sfx == SfxEvent::RunningWaterSlow
+                                && thread_rng().gen_bool(0.5))
                         {
                             continue;
                         }

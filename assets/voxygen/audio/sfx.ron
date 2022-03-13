@@ -53,7 +53,7 @@
             ],
             threshold: 15.0,
         ),
-        RunningWater: (
+        RunningWaterSlow: (
             files: [
                 "voxygen.audio.sfx.ambient.river_sounds.running_water-001",
                 "voxygen.audio.sfx.ambient.river_sounds.running_water-002",
@@ -84,6 +84,35 @@
                 "voxygen.audio.sfx.ambient.river_sounds.running_water-027",
             ],
             threshold: 7.0,
+        ),
+        RunningWaterFast: (
+            files: [
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-001",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-002",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-003",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-004",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-005",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-006",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-007",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-008",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-009",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-010",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-011",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-012",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-013",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-014",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-015",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-016",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-017",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-018",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-019",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-020",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-021",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-022",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-023",
+                "voxygen.audio.sfx.ambient.river_sounds.fast_water-024",
+            ],
+            threshold: 5.0,
         ),
         //
         // Character States

@@ -291,6 +291,7 @@ impl World {
             sim_chunk.tree_density,
             sim_chunk.cave.1.alt != 0.0,
             sim_chunk.river.is_river(),
+            sim_chunk.river.velocity,
             sim_chunk.temp,
             sim_chunk
                 .sites

@@ -17,7 +17,8 @@ pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
     pub drip: Vec<Vec3<i32>>,
     pub grass: Vec<Vec3<i32>>,
-    pub river: Vec<Vec3<i32>>,
+    pub slow_river: Vec<Vec3<i32>>,
+    pub fast_river: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
     pub smokers: Vec<Vec3<i32>>,
     pub beehives: Vec<Vec3<i32>>,
@@ -43,7 +44,8 @@ impl BlocksOfInterest {
         let mut leaves = Vec::new();
         let mut drip = Vec::new();
         let mut grass = Vec::new();
-        let mut river = Vec::new();
+        let mut slow_river = Vec::new();
+        let mut fast_river = Vec::new();
         let mut fires = Vec::new();
         let mut smokers = Vec::new();
         let mut beehives = Vec::new();
@@ -61,6 +63,8 @@ impl BlocksOfInterest {
 
         let mut rng = ChaCha8Rng::from_seed(thread_rng().gen());
 
+        let river_speed_sq = chunk.meta().river_velocity().magnitude_squared();
+
         chunk.iter_changed().for_each(|(pos, block)| {
             match block.kind() {
                 BlockKind::Leaves if rng.gen_range(0..16) == 0 => leaves.push(pos),
@@ -76,7 +80,9 @@ impl BlocksOfInterest {
                         _ => {},
                     }
                 },
-                BlockKind::Water if chunk.meta().contains_river() => river.push(pos),
+                // Assign a river speed to water blocks depending on river velocity
+                BlockKind::Water if river_speed_sq > 0.9_f32.powi(2) => fast_river.push(pos),
+                BlockKind::Water if river_speed_sq > 0.3_f32.powi(2) => slow_river.push(pos),
                 BlockKind::Snow if rng.gen_range(0..16) == 0 => snow.push(pos),
                 BlockKind::Lava if rng.gen_range(0..5) == 0 => fires.push(pos + Vec3::unit_z()),
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
@@ -153,7 +159,8 @@ impl BlocksOfInterest {
             leaves,
             drip,
             grass,
-            river,
+            slow_river,
+            fast_river,
             fires,
             smokers,
             beehives,
