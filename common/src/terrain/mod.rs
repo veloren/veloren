@@ -86,6 +86,7 @@ pub struct TerrainChunkMeta {
     tree_density: f32,
     contains_cave: bool,
     contains_river: bool,
+    river_velocity: Vec3<f32>,
     temp: f32,
     contains_settlement: bool,
     contains_dungeon: bool,
@@ -99,6 +100,7 @@ impl TerrainChunkMeta {
         tree_density: f32,
         contains_cave: bool,
         contains_river: bool,
+        river_velocity: Vec3<f32>,
         temp: f32,
         contains_settlement: bool,
         contains_dungeon: bool,
@@ -110,6 +112,7 @@ impl TerrainChunkMeta {
             tree_density,
             contains_cave,
             contains_river,
+            river_velocity,
             temp,
             contains_settlement,
             contains_dungeon,
@@ -124,6 +127,7 @@ impl TerrainChunkMeta {
             tree_density: 0.0,
             contains_cave: false,
             contains_river: false,
+            river_velocity: Vec3::zero(),
             temp: 0.0,
             contains_settlement: false,
             contains_dungeon: false,
@@ -141,6 +145,8 @@ impl TerrainChunkMeta {
     pub fn contains_cave(&self) -> bool { self.contains_cave }
 
     pub fn contains_river(&self) -> bool { self.contains_river }
+
+    pub fn river_velocity(&self) -> Vec3<f32> { self.river_velocity }
 
     pub fn contains_settlement(&self) -> bool { self.contains_settlement }
 
