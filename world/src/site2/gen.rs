@@ -75,10 +75,9 @@ pub enum Primitive {
     // Not commutative
     Without(Id<Primitive>, Id<Primitive>),
     // Operators
-    Rotate(Id<Primitive>, Mat3<i32>),
     Translate(Id<Primitive>, Vec3<i32>),
     Scale(Id<Primitive>, Vec3<f32>),
-    RotateAbout(Id<Primitive>, Mat3<i32>, Vec3<i32>),
+    RotateAbout(Id<Primitive>, Mat3<i32>, Vec3<f32>),
     /// Repeat a primitive a number of times in a given direction, overlapping
     /// between repeats are unspecified.
     Repeat(Id<Primitive>, Vec3<i32>, u32),
@@ -138,13 +137,12 @@ impl std::fmt::Debug for Primitive {
             Primitive::Intersect(a, b) => f.debug_tuple("Intersect").field(&a).field(&b).finish(),
             Primitive::Union(a, b) => f.debug_tuple("Union").field(&a).field(&b).finish(),
             Primitive::Without(a, b) => f.debug_tuple("Without").field(&a).field(&b).finish(),
-            Primitive::Rotate(a, mat) => f.debug_tuple("Rotate").field(&a).field(&mat).finish(),
             Primitive::Translate(a, vec) => {
                 f.debug_tuple("Translate").field(&a).field(&vec).finish()
             },
             Primitive::Scale(a, vec) => f.debug_tuple("Scale").field(&a).field(&vec).finish(),
             Primitive::RotateAbout(a, mat, vec) => f
-                .debug_tuple("RotateAround")
+                .debug_tuple("RotateAbout")
                 .field(&a)
                 .field(&mat)
                 .field(&vec)
@@ -176,10 +174,6 @@ impl Primitive {
         Self::Sampling(a.into(), f)
     }
 
-    pub fn rotate(a: impl Into<Id<Primitive>>, rot: Mat3<i32>) -> Self {
-        Self::Rotate(a.into(), rot)
-    }
-
     pub fn translate(a: impl Into<Id<Primitive>>, trans: Vec3<i32>) -> Self {
         Self::Translate(a.into(), trans)
     }
@@ -188,8 +182,12 @@ impl Primitive {
         Self::Scale(a.into(), scale)
     }
 
-    pub fn rotate_about(a: impl Into<Id<Primitive>>, rot: Mat3<i32>, point: Vec3<i32>) -> Self {
-        Self::RotateAbout(a.into(), rot, point)
+    pub fn rotate_about(
+        a: impl Into<Id<Primitive>>,
+        rot: Mat3<i32>,
+        point: Vec3<impl AsPrimitive<f32>>,
+    ) -> Self {
+        Self::RotateAbout(a.into(), rot, point.as_())
     }
 
     pub fn repeat(a: impl Into<Id<Primitive>>, offset: Vec3<i32>, count: u32) -> Self {
@@ -212,7 +210,7 @@ pub enum Fill {
 }
 
 impl Fill {
-    fn contains_at(&self, tree: &Store<Primitive>, prim: Id<Primitive>, pos: Vec3<i32>) -> bool {
+    fn contains_at(tree: &Store<Primitive>, prim: Id<Primitive>, pos: Vec3<i32>) -> bool {
         // Custom closure because vek's impl of `contains_point` is inclusive :(
         let aabb_contains = |aabb: Aabb<i32>, pos: Vec3<i32>| {
             (aabb.min.x..aabb.max.x).contains(&pos.x)
@@ -369,51 +367,53 @@ impl Fill {
                 let z_check = (projected_z..=(projected_z + height)).contains(&(pos.z as f32));
                 xy_check && z_check
             },
-            Primitive::Sampling(a, f) => self.contains_at(tree, *a, pos) && f(pos),
+            Primitive::Sampling(a, f) => Self::contains_at(tree, *a, pos) && f(pos),
             Primitive::Prefab(p) => !matches!(p.get(pos), Err(_) | Ok(StructureBlock::None)),
             Primitive::Intersect(a, b) => {
-                self.contains_at(tree, *a, pos) && self.contains_at(tree, *b, pos)
+                Self::contains_at(tree, *a, pos) && Self::contains_at(tree, *b, pos)
             },
             Primitive::Union(a, b) => {
-                self.contains_at(tree, *a, pos) || self.contains_at(tree, *b, pos)
+                Self::contains_at(tree, *a, pos) || Self::contains_at(tree, *b, pos)
             },
             Primitive::Without(a, b) => {
-                self.contains_at(tree, *a, pos) && !self.contains_at(tree, *b, pos)
-            },
-            Primitive::Rotate(prim, mat) => {
-                let aabb = self.get_bounds(tree, *prim);
-                let diff = pos - (aabb.min + mat.cols.map(|x| x.reduce_min()));
-                self.contains_at(tree, *prim, aabb.min + mat.transposed() * diff)
+                Self::contains_at(tree, *a, pos) && !Self::contains_at(tree, *b, pos)
             },
             Primitive::Translate(prim, vec) => {
-                self.contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
+                Self::contains_at(tree, *prim, pos.map2(*vec, i32::saturating_sub))
             },
             Primitive::Scale(prim, vec) => {
                 let center =
-                    self.get_bounds(tree, *prim).center().as_::<f32>() - Vec3::broadcast(0.5);
+                    Self::get_bounds(tree, *prim).center().as_::<f32>() - Vec3::broadcast(0.5);
                 let fpos = pos.as_::<f32>();
                 let spos = (center + ((center - fpos) / vec))
                     .map(|x| x.round())
                     .as_::<i32>();
-                self.contains_at(tree, *prim, spos)
+                Self::contains_at(tree, *prim, spos)
             },
             Primitive::RotateAbout(prim, mat, vec) => {
-                self.contains_at(tree, *prim, vec + *mat * (pos - vec))
+                let mat = mat.as_::<f32>().transposed();
+                let vec = vec - 0.5;
+                Self::contains_at(tree, *prim, (vec + mat * (pos.as_::<f32>() - vec)).as_())
             },
             Primitive::Repeat(prim, offset, count) => {
-                let aabb = self.get_bounds(tree, *prim);
-                let aabb_corner = {
-                    let min_red = aabb.min.map2(*offset, |a, b| if b < 0 { 0 } else { a });
-                    let max_red = aabb.max.map2(*offset, |a, b| if b < 0 { a } else { 0 });
-                    min_red + max_red
-                };
-                let diff = pos - aabb_corner;
-                let min = diff
-                    .map2(*offset, |a, b| if b == 0 { i32::MAX } else { a / b })
-                    .reduce_min()
-                    .clamp(0, *count as i32);
-                let pos = pos - offset * min;
-                self.contains_at(tree, *prim, pos)
+                if count == &0 {
+                    false
+                } else {
+                    let count = count - 1;
+                    let aabb = Self::get_bounds(tree, *prim);
+                    let aabb_corner = {
+                        let min_red = aabb.min.map2(*offset, |a, b| if b < 0 { 0 } else { a });
+                        let max_red = aabb.max.map2(*offset, |a, b| if b < 0 { a } else { 0 });
+                        min_red + max_red
+                    };
+                    let diff = pos - aabb_corner;
+                    let min = diff
+                        .map2(*offset, |a, b| if b == 0 { i32::MAX } else { a / b })
+                        .reduce_min()
+                        .clamp(0, count as i32);
+                    let pos = pos - offset * min;
+                    Self::contains_at(tree, *prim, pos)
+                }
             },
         }
     }
@@ -426,7 +426,7 @@ impl Fill {
         canvas_info: &crate::CanvasInfo,
         old_block: Block,
     ) -> Option<Block> {
-        if self.contains_at(tree, prim, pos) {
+        if Self::contains_at(tree, prim, pos) {
             match self {
                 Fill::Block(block) => Some(*block),
                 Fill::Sprite(sprite) => Some(if old_block.is_filled() {
@@ -471,7 +471,7 @@ impl Fill {
         }
     }
 
-    fn get_bounds_inner(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Vec<Aabb<i32>> {
+    fn get_bounds_inner(tree: &Store<Primitive>, prim: Id<Primitive>) -> Vec<Aabb<i32>> {
         fn or_zip_with<T, F: FnOnce(T, T) -> T>(a: Option<T>, b: Option<T>, f: F) -> Option<T> {
             match (a, b) {
                 (Some(a), Some(b)) => Some(f(a, b)),
@@ -538,11 +538,11 @@ impl Fill {
                 };
                 vec![Aabb { min, max }]
             },
-            Primitive::Sampling(a, _) => self.get_bounds_inner(tree, *a),
+            Primitive::Sampling(a, _) => Self::get_bounds_inner(tree, *a),
             Primitive::Prefab(p) => vec![p.get_bounds()],
             Primitive::Intersect(a, b) => or_zip_with(
-                self.get_bounds_opt(tree, *a),
-                self.get_bounds_opt(tree, *b),
+                Self::get_bounds_opt(tree, *a),
+                Self::get_bounds_opt(tree, *b),
                 |a, b| a.intersection(b),
             )
             .into_iter()
@@ -555,8 +555,8 @@ impl Fill {
                     s_intersection / s_union
                 }
                 let mut inputs = Vec::new();
-                inputs.extend(self.get_bounds_inner(tree, *a));
-                inputs.extend(self.get_bounds_inner(tree, *b));
+                inputs.extend(Self::get_bounds_inner(tree, *a));
+                inputs.extend(Self::get_bounds_inner(tree, *b));
                 let mut results = Vec::new();
                 if let Some(aabb) = inputs.pop() {
                     results.push(aabb);
@@ -579,29 +579,15 @@ impl Fill {
                     results
                 }
             },
-            Primitive::Without(a, _) => self.get_bounds_inner(tree, *a),
-            Primitive::Rotate(prim, mat) => self
-                .get_bounds_inner(tree, *prim)
-                .into_iter()
-                .map(|aabb| {
-                    let extent = *mat * Vec3::from(aabb.size());
-                    let new_aabb: Aabb<i32> = Aabb {
-                        min: aabb.min,
-                        max: aabb.min + extent,
-                    };
-                    new_aabb.made_valid()
-                })
-                .collect(),
-            Primitive::Translate(prim, vec) => self
-                .get_bounds_inner(tree, *prim)
+            Primitive::Without(a, _) => Self::get_bounds_inner(tree, *a),
+            Primitive::Translate(prim, vec) => Self::get_bounds_inner(tree, *prim)
                 .into_iter()
                 .map(|aabb| Aabb {
                     min: aabb.min.map2(*vec, i32::saturating_add),
                     max: aabb.max.map2(*vec, i32::saturating_add),
                 })
                 .collect(),
-            Primitive::Scale(prim, vec) => self
-                .get_bounds_inner(tree, *prim)
+            Primitive::Scale(prim, vec) => Self::get_bounds_inner(tree, *prim)
                 .into_iter()
                 .map(|aabb| {
                     let center = aabb.center();
@@ -611,55 +597,58 @@ impl Fill {
                     }
                 })
                 .collect(),
-            Primitive::RotateAbout(prim, mat, vec) => self
-                .get_bounds_inner(tree, *prim)
+            Primitive::RotateAbout(prim, mat, vec) => Self::get_bounds_inner(tree, *prim)
                 .into_iter()
                 .map(|aabb| {
-                    let mut new_aabb: Aabb<i32> = Aabb {
-                        min: vec + *mat * (aabb.min - vec),
-                        max: vec + *mat * (aabb.max - 1 - vec),
+                    let mat = mat.as_::<f32>();
+                    // - 0.5 because we want the point to be at the minimum of the voxel
+                    let vec = vec - 0.5;
+                    let new_aabb = Aabb::<f32> {
+                        min: vec + mat * (aabb.min.as_() - vec),
+                        // - 1 becuase we want the AABB to be inclusive when we rotate it, we then
+                        //   add 1 back to make it exclusive again
+                        max: vec + mat * ((aabb.max - 1).as_() - vec),
                     }
                     .made_valid();
-                    new_aabb.max += 1;
-                    new_aabb
+                    Aabb::<i32> {
+                        min: new_aabb.min.as_(),
+                        max: new_aabb.max.as_() + 1,
+                    }
                 })
                 .collect(),
-            Primitive::Repeat(prim, offset, count) => self
-                .get_bounds_inner(tree, *prim)
-                .into_iter()
-                .map(|aabb| Aabb {
-                    min: aabb
-                        .min
-                        .map2(aabb.min + offset * *count as i32, |a, b| a.min(b)),
-                    max: aabb
-                        .max
-                        .map2(aabb.max + offset * *count as i32, |a, b| a.max(b)),
-                })
-                .collect(),
+            Primitive::Repeat(prim, offset, count) => {
+                if count == &0 {
+                    vec![]
+                } else {
+                    let count = count - 1;
+                    Self::get_bounds_inner(tree, *prim)
+                        .into_iter()
+                        .map(|aabb| Aabb {
+                            min: aabb
+                                .min
+                                .map2(aabb.min + offset * count as i32, |a, b| a.min(b)),
+                            max: aabb
+                                .max
+                                .map2(aabb.max + offset * count as i32, |a, b| a.max(b)),
+                        })
+                        .collect()
+                }
+            },
         }
     }
 
-    pub fn get_bounds_disjoint(
-        &self,
-        tree: &Store<Primitive>,
-        prim: Id<Primitive>,
-    ) -> Vec<Aabb<i32>> {
-        self.get_bounds_inner(tree, prim)
+    pub fn get_bounds_disjoint(tree: &Store<Primitive>, prim: Id<Primitive>) -> Vec<Aabb<i32>> {
+        Self::get_bounds_inner(tree, prim)
     }
 
-    pub fn get_bounds_opt(
-        &self,
-        tree: &Store<Primitive>,
-        prim: Id<Primitive>,
-    ) -> Option<Aabb<i32>> {
-        self.get_bounds_inner(tree, prim)
+    pub fn get_bounds_opt(tree: &Store<Primitive>, prim: Id<Primitive>) -> Option<Aabb<i32>> {
+        Self::get_bounds_inner(tree, prim)
             .into_iter()
             .reduce(|a, b| a.union(b))
     }
 
-    pub fn get_bounds(&self, tree: &Store<Primitive>, prim: Id<Primitive>) -> Aabb<i32> {
-        self.get_bounds_opt(tree, prim)
-            .unwrap_or_else(|| Aabb::new_empty(Vec3::zero()))
+    pub fn get_bounds(tree: &Store<Primitive>, prim: Id<Primitive>) -> Aabb<i32> {
+        Self::get_bounds_opt(tree, prim).unwrap_or_else(|| Aabb::new_empty(Vec3::zero()))
     }
 }
 
@@ -689,7 +678,6 @@ impl Painter {
                 | Primitive::SegmentPrism { .. }
                 | Primitive::Prefab(_) => prev_depth,
                 Primitive::Sampling(a, _)
-                | Primitive::Rotate(a, _)
                 | Primitive::Translate(a, _)
                 | Primitive::Scale(a, _)
                 | Primitive::RotateAbout(a, _, _)
@@ -1097,6 +1085,13 @@ impl<'a> PrimitiveRef<'a> {
         self.painter
             .prim(Primitive::sampling(self, Box::new(sampling)))
     }
+
+    /// Rotates a primitive about it's own's bounds minimum point,
+    #[must_use]
+    pub fn rotate_about_min(self, mat: Mat3<i32>) -> PrimitiveRef<'a> {
+        let point = Fill::get_bounds(&self.painter.prims.borrow(), self.into()).min;
+        self.rotate_about(mat, point)
+    }
 }
 
 /// A trait to more easily manipulate groups of primitives.
@@ -1104,14 +1099,10 @@ pub trait PrimitiveTransform {
     /// Translates the primitive along the vector `trans`.
     #[must_use]
     fn translate(self, trans: Vec3<i32>) -> Self;
-    /// Rotates the primitive about the minimum position of the primitive by
-    /// multiplying each block position by the provided rotation matrix.
-    #[must_use]
-    fn rotate(self, rot: Mat3<i32>) -> Self;
     /// Rotates the primitive about the given point of the primitive by
     /// multiplying each block position by the provided rotation matrix.
     #[must_use]
-    fn rotate_about(self, rot: Mat3<i32>, point: Vec3<i32>) -> Self;
+    fn rotate_about(self, rot: Mat3<i32>, point: Vec3<impl AsPrimitive<f32>>) -> Self;
     /// Scales the primitive along each axis by the x, y, and z components of
     /// the `scale` vector respectively.
     #[must_use]
@@ -1128,9 +1119,7 @@ impl<'a> PrimitiveTransform for PrimitiveRef<'a> {
         self.painter.prim(Primitive::translate(self, trans))
     }
 
-    fn rotate(self, rot: Mat3<i32>) -> Self { self.painter.prim(Primitive::rotate(self, rot)) }
-
-    fn rotate_about(self, rot: Mat3<i32>, point: Vec3<i32>) -> Self {
+    fn rotate_about(self, rot: Mat3<i32>, point: Vec3<impl AsPrimitive<f32>>) -> Self {
         self.painter.prim(Primitive::rotate_about(self, rot, point))
     }
 
@@ -1149,14 +1138,7 @@ impl<'a, const N: usize> PrimitiveTransform for [PrimitiveRef<'a>; N] {
         self
     }
 
-    fn rotate(mut self, rot: Mat3<i32>) -> Self {
-        for prim in &mut self {
-            *prim = prim.rotate(rot);
-        }
-        self
-    }
-
-    fn rotate_about(mut self, rot: Mat3<i32>, point: Vec3<i32>) -> Self {
+    fn rotate_about(mut self, rot: Mat3<i32>, point: Vec3<impl AsPrimitive<f32>>) -> Self {
         for prim in &mut self {
             *prim = prim.rotate_about(rot, point);
         }

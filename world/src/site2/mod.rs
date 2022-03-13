@@ -999,7 +999,7 @@ impl Site {
             }
 
             for (prim, fill) in fills {
-                for mut aabb in fill.get_bounds_disjoint(&prim_tree, prim) {
+                for mut aabb in Fill::get_bounds_disjoint(&prim_tree, prim) {
                     aabb.min = Vec2::max(aabb.min.xy(), chunk_aabr.min).with_z(aabb.min.z);
                     aabb.max = Vec2::min(aabb.max.xy(), chunk_aabr.max).with_z(aabb.max.z);
 
