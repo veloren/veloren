@@ -247,10 +247,12 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
         int i;
 
         #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+        #ifdef EXPERIMENTAL_RAINBOWS
             // TODO: Make it a double rainbow
             float rainbow_t = (0.7 - dot(sun_dir.xyz, dir)) * 8 / 0.05;
             int rainbow_c = int(floor(rainbow_t));
             rainbow_t = fract(rainbow_t);
+        #endif
         #endif
 
         for (i = 0; cdist > min_dist && i < 250; i ++) {
@@ -287,6 +289,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
 
             // Rainbow
             #if (CLOUD_MODE >= CLOUD_MODE_MEDIUM)
+            #ifdef EXPERIMENTAL_RAINBOWS
                 if (rainbow_c >= 0 && rainbow_c < 8) {
                     float rain = rain_density_at(pos.xy);
                     vec3 colors[9] = {
@@ -306,6 +309,7 @@ vec3 get_cloud_color(vec3 surf_color, vec3 dir, vec3 origin, const float time_of
                         rain * sun_access * sun_access * get_sun_brightness() * pow(min(cdist / 500.0, 1.0), 2.0)
                     );
                 }
+            #endif
             #endif
         }
     #ifdef IS_POSTPROCESS
