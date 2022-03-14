@@ -1,6 +1,6 @@
 use crate::sys::agent::{AgentData, ReadData};
 use common::{
-    comp::{buff::BuffKind, Alignment, Pos},
+    comp::{agent::Psyche, buff::BuffKind, Alignment, Pos},
     consts::GRAVITY,
     terrain::{Block, TerrainGrid},
     util::Dir,
@@ -78,4 +78,46 @@ impl<'a> AgentData<'a> {
             .get(*self.entity)
             .map_or(false, |b| b.kinds.contains_key(&buff))
     }
+}
+
+/// Calculates whether the agent should continue chase or let the target escape.
+///
+/// Will return true when score of letting target escape is higher then the
+/// score of continuing the pursue, false otherwise.
+pub fn stop_pursuing(
+    dist_to_target_sqrd: f32,
+    dist_to_home_sqrd: f32,
+    own_health_fraction: f32,
+    target_health_fraction: f32,
+    dur_since_last_attacked: f64,
+    psyche: &Psyche,
+) -> bool {
+    should_let_target_escape(
+        dist_to_home_sqrd,
+        dur_since_last_attacked,
+        own_health_fraction,
+    ) > should_continue_to_pursue(dist_to_target_sqrd, psyche, target_health_fraction)
+}
+
+/// Scores the benefit of continuing the pursue in value from 0 to infinity.
+fn should_continue_to_pursue(
+    dist_to_target_sqrd: f32,
+    psyche: &Psyche,
+    target_health_fraction: f32,
+) -> f32 {
+    let aggression_score = (1.0 / psyche.flee_health.max(0.25))
+        * psyche.aggro_dist.unwrap_or(psyche.sight_dist)
+        * psyche.sight_dist;
+
+    (100.0 * aggression_score) / (dist_to_target_sqrd * target_health_fraction)
+}
+
+/// Scores the benefit of letting the target escape in a value from 0 to
+/// infinity.
+fn should_let_target_escape(
+    dist_to_home_sqrd: f32,
+    dur_since_last_attacked: f64,
+    own_health_fraction: f32,
+) -> f32 {
+    (dist_to_home_sqrd / own_health_fraction) * dur_since_last_attacked as f32 * 0.005
 }
