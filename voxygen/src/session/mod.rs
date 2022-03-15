@@ -245,7 +245,7 @@ impl SessionState {
                     let sfx_triggers = self.scene.sfx_mgr.triggers.read();
 
                     let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
-                    global_state.audio.emit_sfx_item(sfx_trigger_item);
+                    global_state.audio.emit_sfx_item(sfx_trigger_item, Some(1.0));
 
                     match inv_event {
                         InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
@@ -358,6 +358,7 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
             (client.presence(), client.registered())
         };
+        
         if client_presence.is_some() {
             let camera = self.scene.camera_mut();
 
@@ -1174,6 +1175,7 @@ impl PlayState for SessionState {
                     HudEvent::Logout => {
                         self.client.borrow_mut().logout();
                         global_state.audio.stop_ambient_sounds();
+                        global_state.audio.stop_all_sfx();
                         return PlayStateResult::Pop;
                     },
                     HudEvent::Quit => {
@@ -1575,11 +1577,12 @@ impl PlayState for SessionState {
                         &scene_data,
                         &client,
                     );
+                    
 
                     // Process outcomes from client
                     for outcome in outcomes {
                         self.scene
-                            .handle_outcome(&outcome, &scene_data, &mut global_state.audio);
+                            .handle_outcome(&outcome, &scene_data, &mut global_state.audio, &client.state(), cam_pos);
                         self.hud
                             .handle_outcome(&outcome, scene_data.client, global_state);
                     }

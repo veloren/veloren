@@ -7,7 +7,7 @@ pub mod music;
 pub mod sfx;
 pub mod soundcache;
 
-use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel};
+use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel, UIChannel};
 use fader::Fader;
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
@@ -43,6 +43,7 @@ pub struct AudioFrontend {
     music_channels: Vec<MusicChannel>,
     ambient_channels: Vec<AmbientChannel>,
     sfx_channels: Vec<SfxChannel>,
+    ui_channels: Vec<UIChannel>,
     sfx_volume: f32,
     music_volume: f32,
     master_volume: f32,
@@ -53,7 +54,7 @@ pub struct AudioFrontend {
 
 impl AudioFrontend {
     /// Construct with given device
-    pub fn new(/* dev: String, */ num_sfx_channels: usize) -> Self {
+    pub fn new(/* dev: String, */ num_sfx_channels: usize, num_ui_channels: usize) -> Self {
         // Commented out until audio device switcher works
         //let audio_device = get_device_raw(&dev);
 
@@ -81,6 +82,11 @@ impl AudioFrontend {
             sfx_channels.resize_with(num_sfx_channels, || SfxChannel::new(audio_stream));
         };
 
+        let mut ui_channels = Vec::with_capacity(num_ui_channels);
+        if let Some(audio_stream) = &audio_stream {
+            ui_channels.resize_with(num_ui_channels, || UIChannel::new(audio_stream))
+        }
+
         Self {
             // The following is for the disabled device switcher
             //device,
@@ -90,6 +96,7 @@ impl AudioFrontend {
             audio_stream,
             music_channels: Vec::new(),
             sfx_channels,
+            ui_channels,
             ambient_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
@@ -119,6 +126,7 @@ impl AudioFrontend {
             audio_stream: None,
             music_channels: Vec::new(),
             sfx_channels: Vec::new(),
+            ui_channels: Vec::new(),
             ambient_channels: Vec::new(),
             sfx_volume: 1.0,
             music_volume: 1.0,
@@ -142,6 +150,19 @@ impl AudioFrontend {
         if self.audio_stream.is_some() {
             let sfx_volume = self.get_sfx_volume();
             if let Some(channel) = self.sfx_channels.iter_mut().find(|c| c.is_done()) {
+                channel.set_volume(sfx_volume);
+
+                return Some(channel);
+            }
+        }
+
+        None
+    }
+
+    fn get_ui_channel(&mut self) -> Option<&mut UIChannel> {
+        if self.audio_stream.is_some() {
+            let sfx_volume = self.get_sfx_volume();
+            if let Some(channel) = self.ui_channels.iter_mut().find(|c| c.is_done()) {
                 channel.set_volume(sfx_volume);
 
                 return Some(channel);
@@ -195,7 +216,7 @@ impl AudioFrontend {
 
     /// Function to play sfx from external places. Useful for UI and
     /// inventory events
-    pub fn emit_sfx_item(&mut self, trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>) {
+    pub fn emit_sfx_item(&mut self, trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>, vol: Option<f32>) {
         if let Some((event, item)) = trigger_item {
             let sfx_file = match item.files.len() {
                 0 => {
@@ -213,8 +234,7 @@ impl AudioFrontend {
                 },
             };
 
-            // TODO: Should this take `underwater` into consideration?
-            match self.play_sfx(sfx_file, self.listener.pos, None, false) {
+            match self.play_ui_sfx(sfx_file, vol) {
                 Ok(_) => {},
                 Err(e) => warn!("Failed to play sfx '{:?}'. {}", sfx_file, e),
             }
@@ -282,6 +302,21 @@ impl AudioFrontend {
                 } else {
                     channel.play(sound);
                 }
+            } 
+        }
+        Ok(())
+    }
+
+    pub fn play_ui_sfx(
+        &mut self,
+        sound: &str,
+        vol: Option<f32>,
+    ) -> Result<(), rodio::decoder::DecoderError> {
+        if self.audio_stream.is_some() {
+            let sound = load_ogg(sound).amplify(vol.unwrap_or(1.0));
+
+            if let Some(channel) = self.get_ui_channel() {
+                channel.play(sound);
             }
         }
         Ok(())
@@ -467,6 +502,15 @@ impl AudioFrontend {
 
     pub fn stop_ambient_sounds(&mut self) {
         for channel in self.ambient_channels.iter_mut() {
+            channel.stop()
+        }
+    }
+
+    pub fn stop_all_sfx(&mut self) {
+        for channel in self.sfx_channels.iter_mut() {
+            channel.stop()
+        }
+        for channel in self.ui_channels.iter_mut() {
             channel.stop()
         }
     }

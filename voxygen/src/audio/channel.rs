@@ -255,6 +255,8 @@ impl SfxChannel {
 
     pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
 
+    pub fn stop(&mut self) { self.sink.stop(); }
+
     pub fn is_done(&self) -> bool { self.sink.empty() }
 
     pub fn set_pos(&mut self, pos: Vec3<f32>) { self.pos = pos; }
@@ -262,11 +264,40 @@ impl SfxChannel {
     pub fn update(&mut self, listener: &Listener) {
         const FALLOFF: f32 = 0.13;
 
-        self.sink
-            .set_emitter_position(((self.pos - listener.pos) * FALLOFF).into_array());
+        self.sink.set_emitter_position(
+            ((self.pos - listener.pos) * FALLOFF).into_array(),
+        );
         self.sink
             .set_left_ear_position(listener.ear_left_rpos.into_array());
         self.sink
             .set_right_ear_position(listener.ear_right_rpos.into_array());
     }
+}
+
+pub struct UIChannel {
+    sink: Sink,
+}
+
+impl UIChannel {
+    pub fn new(stream: &OutputStreamHandle) -> Self {
+        Self {
+            sink: Sink::try_new(stream).unwrap()
+        }
+    }
+
+    pub fn play<S>(&mut self, source: S)
+    where
+        S: Source + Send + 'static,
+        S::Item: Sample,
+        S::Item: Send,
+        <S as std::iter::Iterator>::Item: std::fmt::Debug,
+    {
+        self.sink.append(source);
+    }
+
+    pub fn set_volume(&mut self, volume: f32) { self.sink.set_volume(volume); }
+
+    pub fn stop(&mut self) { self.sink.stop(); }
+
+    pub fn is_done(&self) -> bool { self.sink.empty() }
 }

@@ -379,23 +379,16 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
         exp_awards.iter().for_each(|(attacker, exp_reward, _)| {
             // Process the calculated EXP rewards
-            if let (
-                Some(mut attacker_skill_set),
-                Some(attacker_uid),
-                Some(attacker_inventory),
-                Some(pos),
-            ) = (
+            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory)) = (
                 skill_sets.get_mut(*attacker),
                 uids.get(*attacker),
                 inventories.get(*attacker),
-                positions.get(*attacker),
             ) {
                 handle_exp_gain(
                     *exp_reward,
                     attacker_inventory,
                     &mut attacker_skill_set,
                     attacker_uid,
-                    pos,
                     &mut outcomes,
                 );
             }
@@ -1178,7 +1171,6 @@ fn handle_exp_gain(
     inventory: &Inventory,
     skill_set: &mut SkillSet,
     uid: &Uid,
-    pos: &Pos,
     outcomes: &mut EventBus<Outcome>,
 ) {
     use comp::inventory::{item::ItemKind, slot::EquipSlot};
@@ -1219,7 +1211,6 @@ fn handle_exp_gain(
                 uid: *uid,
                 skill_tree: *pool,
                 total_points: level_outcome,
-                pos: pos.0,
             });
         }
     }

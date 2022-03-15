@@ -409,11 +409,18 @@ impl Scene {
         outcome: &Outcome,
         scene_data: &SceneData,
         audio: &mut AudioFrontend,
+        state: &State,
+        cam_pos: Vec3<f32>,
     ) {
         span!(_guard, "handle_outcome", "Scene::handle_outcome");
+        let underwater = state
+                        .terrain()
+                        .get(cam_pos.map(|e| e.floor() as i32))
+                        .map(|b| b.is_liquid())
+                        .unwrap_or(false); 
         self.particle_mgr.handle_outcome(outcome, scene_data);
         self.sfx_mgr
-            .handle_outcome(outcome, audio, scene_data.client);
+            .handle_outcome(outcome, audio, scene_data.client, state, underwater);
 
         match outcome {
             Outcome::Explosion {
