@@ -22,8 +22,8 @@ use crate::audio::{
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
 use serde::Deserialize;
-use strum::EnumIter;
 use std::time::Instant;
+use strum::EnumIter;
 use tracing::warn;
 use vek::*;
 

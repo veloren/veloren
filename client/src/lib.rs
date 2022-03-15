@@ -166,11 +166,13 @@ impl WeatherLerp {
     fn update(&mut self) {
         let old = &self.old.0;
         let new = &self.new.0;
-        if old.size() != new.size() {
-            if self.current.size() != new.size() {
-                self.current = new.clone();
-            }
-        } else {
+        if new.size() == Vec2::zero() {
+            return;
+        }
+        if self.current.size() != new.size() {
+            self.current = new.clone();
+        }
+        if old.size() == new.size() {
             // Assume updates are regular
             let t = (self.new.1.elapsed().as_secs_f32()
                 / self.new.1.duration_since(self.old.1).as_secs_f32())

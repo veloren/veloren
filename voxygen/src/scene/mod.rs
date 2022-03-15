@@ -22,8 +22,8 @@ use crate::{
     audio::{ambient, ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_skybox_mesh, CloudsLocals, Consts, Drawer, GlobalModel, Globals, GlobalsBindGroup,
-        Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow, ShadowLocals,
-        SkyboxVertex,
+        Light, Model, PointLightMatrix, PostProcessLocals, RainOcclusionLocals, Renderer, Shadow,
+        ShadowLocals, SkyboxVertex,
     },
     settings::Settings,
     window::{AnalogGameInput, Event},
@@ -282,6 +282,8 @@ impl Scene {
             lights: renderer.create_consts(&[Light::default(); MAX_LIGHT_COUNT]),
             shadows: renderer.create_consts(&[Shadow::default(); MAX_SHADOW_COUNT]),
             shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
+            rain_occlusion_mats: renderer
+                .create_rain_occlusion_bound_locals(&[RainOcclusionLocals::default()]),
             point_light_matrices: Box::new([PointLightMatrix::default(); MAX_LIGHT_COUNT * 6 + 6]),
         };
 
@@ -1010,6 +1012,13 @@ impl Scene {
                 );
 
                 renderer.update_consts(&mut self.data.shadow_mats, &[shadow_locals]);
+
+                let rain_occlusion_locals = RainOcclusionLocals::new(
+                    directed_proj_mat * shadow_all_mat,
+                    directed_texture_proj_mat * shadow_all_mat,
+                );
+                renderer
+                    .update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
             }
             directed_shadow_mats.push(light_view_mat);
             // This leaves us with five dummy slots, which we push as defaults.
@@ -1138,6 +1147,21 @@ impl Scene {
                     &self.data.point_light_matrices,
                     self.terrain.chunks_for_point_shadows(focus_pos),
                 )
+            }
+            // Render rain occlusion texture
+            {
+                prof_span!("rain occlusion");
+                if let Some(mut occlusion_pass) = drawer.rain_occlusion_pass() {
+                    self.terrain
+                        .render_shadows(&mut occlusion_pass.draw_terrain_shadows(), focus_pos);
+
+                    self.figure_mgr.render_shadows(
+                        &mut occlusion_pass.draw_figure_shadows(),
+                        state,
+                        tick,
+                        camera_data,
+                    );
+                }
             }
         }
 

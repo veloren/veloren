@@ -1,3 +1,5 @@
+use crate::render::pipelines::rain_occlusion;
+
 use super::{
     super::{
         pipelines::{
@@ -60,9 +62,16 @@ pub struct ShadowPipelines {
     pub figure: Option<shadow::ShadowFigurePipeline>,
 }
 
+pub struct RainOcclusionPipelines {
+    pub terrain: Option<rain_occlusion::RainOcclusionPipeline>,
+    pub figure: Option<rain_occlusion::RainOcclusionFigurePipeline>,
+}
+
+// TODO: Find a better name for this?
 pub struct IngameAndShadowPipelines {
     pub ingame: IngamePipelines,
     pub shadow: ShadowPipelines,
+    pub rain_occlusion: RainOcclusionPipelines,
 }
 
 /// Pipelines neccesary to display the UI and take screenshots
@@ -131,6 +140,8 @@ struct ShaderModules {
     point_light_shadows_vert: wgpu::ShaderModule,
     light_shadows_directed_vert: wgpu::ShaderModule,
     light_shadows_figure_vert: wgpu::ShaderModule,
+    rain_occlusion_directed_vert: wgpu::ShaderModule,
+    rain_occlusion_figure_vert: wgpu::ShaderModule,
 }
 
 impl ShaderModules {
@@ -151,6 +162,7 @@ impl ShaderModules {
         let random = shaders.get("include.random").unwrap();
         let lod = shaders.get("include.lod").unwrap();
         let shadows = shaders.get("include.shadows").unwrap();
+        let rain_occlusion = shaders.get("include.rain_occlusion").unwrap();
         let point_glow = shaders.get("include.point_glow").unwrap();
 
         // We dynamically add extra configuration settings to the constants file.
@@ -252,6 +264,7 @@ impl ShaderModules {
                     "constants.glsl" => constants.clone(),
                     "globals.glsl" => globals.0.to_owned(),
                     "shadows.glsl" => shadows.0.to_owned(),
+                    "rain_occlusion.glsl" => rain_occlusion.0.to_owned(),
                     "sky.glsl" => sky.0.to_owned(),
                     "light.glsl" => light.0.to_owned(),
                     "srgb.glsl" => srgb.0.to_owned(),
@@ -330,6 +343,14 @@ impl ShaderModules {
             )?,
             light_shadows_figure_vert: create_shader(
                 "light-shadows-figure-vert",
+                ShaderKind::Vertex,
+            )?,
+            rain_occlusion_directed_vert: create_shader(
+                "rain-occlusion-directed-vert",
+                ShaderKind::Vertex,
+            )?,
+            rain_occlusion_figure_vert: create_shader(
+                "rain-occlusion-figure-vert",
                 ShaderKind::Vertex,
             )?,
         })
@@ -422,7 +443,7 @@ fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
     // TODO: Reduce the boilerplate in this file
-    tasks: [Task; 16],
+    tasks: [Task; 18],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -454,6 +475,8 @@ fn create_ingame_and_shadow_pipelines(
         point_shadow_task,
         terrain_directed_shadow_task,
         figure_directed_shadow_task,
+        terrain_directed_rain_occlusion_task,
+        figure_directed_rain_occlusion_task,
     ] = tasks;
 
     // TODO: pass in format of target color buffer
@@ -739,6 +762,36 @@ fn create_ingame_and_shadow_pipelines(
             "figure directed shadow pipeline creation",
         )
     };
+    // Pipeline for rendering directional light terrain rain occlusion maps.
+    let create_terrain_directed_rain_occlusion = || {
+        terrain_directed_rain_occlusion_task.run(
+            || {
+                rain_occlusion::RainOcclusionPipeline::new(
+                    device,
+                    &shaders.rain_occlusion_directed_vert,
+                    &layouts.global,
+                    &layouts.terrain,
+                    pipeline_modes.aa,
+                )
+            },
+            "terrain directed rain occlusion pipeline creation",
+        )
+    };
+    // Pipeline for rendering directional light figure rain occlusion maps.
+    let create_figure_directed_rain_occlusion = || {
+        figure_directed_rain_occlusion_task.run(
+            || {
+                rain_occlusion::RainOcclusionFigurePipeline::new(
+                    device,
+                    &shaders.rain_occlusion_figure_vert,
+                    &layouts.global,
+                    &layouts.figure,
+                    pipeline_modes.aa,
+                )
+            },
+            "figure directed rain occlusion pipeline creation",
+        )
+    };
 
     let j1 = || pool.join(create_debug, || pool.join(create_skybox, create_figure));
     let j2 = || pool.join(create_terrain, || pool.join(create_fluid, create_bloom));
@@ -755,7 +808,14 @@ fn create_ingame_and_shadow_pipelines(
             create_figure_directed_shadow,
         )
     };
-    let j7 = create_lod_object;
+    let j7 = || {
+        pool.join(create_lod_object, || {
+            pool.join(
+                create_terrain_directed_rain_occlusion,
+                create_figure_directed_rain_occlusion,
+            )
+        })
+    };
 
     // Ignore this
     let (
@@ -765,7 +825,7 @@ fn create_ingame_and_shadow_pipelines(
         ),
         (
             ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
-            lod_object,
+            (lod_object, (terrain_directed_rain_occlusion, figure_directed_rain_occlusion)),
         ),
     ) = pool.join(
         || pool.join(|| pool.join(j1, j2), || pool.join(j3, j4)),
@@ -794,6 +854,10 @@ fn create_ingame_and_shadow_pipelines(
             point: Some(point_shadow),
             directed: Some(terrain_directed_shadow),
             figure: Some(figure_directed_shadow),
+        },
+        rain_occlusion: RainOcclusionPipelines {
+            terrain: Some(terrain_directed_rain_occlusion),
+            figure: Some(figure_directed_rain_occlusion),
         },
     }
 }
@@ -887,6 +951,7 @@ pub(super) fn recreate_pipelines(
         (
             Pipelines,
             ShadowPipelines,
+            RainOcclusionPipelines,
             Arc<postprocess::PostProcessLayout>,
         ),
         RenderError,
@@ -952,14 +1017,18 @@ pub(super) fn recreate_pipelines(
         let interface = create_interface_pipelines(needs, pool, interface_tasks);
 
         // Create the rest of the pipelines
-        let IngameAndShadowPipelines { ingame, shadow } =
-            create_ingame_and_shadow_pipelines(needs, pool, ingame_and_shadow_tasks);
+        let IngameAndShadowPipelines {
+            ingame,
+            shadow,
+            rain_occlusion,
+        } = create_ingame_and_shadow_pipelines(needs, pool, ingame_and_shadow_tasks);
 
         // Send them
         result_send
             .send(Ok((
                 Pipelines::consolidate(interface, ingame),
                 shadow,
+                rain_occlusion,
                 layouts.postprocess,
             )))
             .expect("Channel disconnected");

@@ -1,6 +1,6 @@
 use crate::render::{
-    GlobalModel, Globals, GlobalsBindGroup, Light, LodData, PointLightMatrix, Renderer, Shadow,
-    ShadowLocals,
+    GlobalModel, Globals, GlobalsBindGroup, Light, LodData, PointLightMatrix, RainOcclusionLocals,
+    Renderer, Shadow, ShadowLocals,
 };
 
 pub struct Scene {
@@ -14,6 +14,8 @@ impl Scene {
             lights: renderer.create_consts(&[Light::default(); 32]),
             shadows: renderer.create_consts(&[Shadow::default(); 32]),
             shadow_mats: renderer.create_shadow_bound_locals(&[ShadowLocals::default()]),
+            rain_occlusion_mats: renderer
+                .create_rain_occlusion_bound_locals(&[RainOcclusionLocals::default()]),
             point_light_matrices: Box::new([PointLightMatrix::default(); 126]),
         };
 

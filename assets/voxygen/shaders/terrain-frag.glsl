@@ -232,9 +232,11 @@ void main() {
     vec3 k_s = vec3(R_s);
 
     #ifdef EXPERIMENTAL_RAIN
-        float rain_density = rain_density_at(cam_pos.xy + focus_off.xy) * 50.0;
+        vec3 pos = f_pos + focus_off.xyz;
+        float rain_density = rain_density_at(pos.xy) * rain_occlusion_at(f_pos.xyz) * 50.0;
+        // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
+        // return;
         if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
-            vec3 pos = f_pos + focus_off.xyz;
             vec3 drop_density = vec3(2, 2, 2);
             vec3 drop_pos = pos + vec3(pos.zz, 0) + vec3(0, 0, -tick.x * 1.0);
             drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;

@@ -30,6 +30,7 @@ pub use self::{
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
         postprocess::Locals as PostProcessLocals,
+        rain_occlusion::Locals as RainOcclusionLocals,
         shadow::{Locals as ShadowLocals, PointLightMatrix},
         skybox::{create_mesh as create_skybox_mesh, Vertex as SkyboxVertex},
         sprite::{
@@ -120,6 +121,10 @@ pub enum CloudMode {
     /// Lots of detail with good-but-costly derivation of parameters.
     #[serde(other)]
     High,
+}
+
+impl CloudMode {
+    pub fn is_enabled(&self) -> bool { *self != CloudMode::None }
 }
 
 impl Default for CloudMode {
@@ -398,7 +403,7 @@ impl RenderMode {
 #[derive(PartialEq, Clone, Debug)]
 pub struct PipelineModes {
     aa: AaMode,
-    cloud: CloudMode,
+    pub cloud: CloudMode,
     fluid: FluidMode,
     lighting: LightingMode,
     pub shadow: ShadowMode,

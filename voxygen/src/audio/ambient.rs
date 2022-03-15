@@ -13,8 +13,8 @@ use common::{
 };
 use common_state::State;
 use serde::Deserialize;
-use strum::IntoEnumIterator;
 use std::time::Instant;
+use strum::IntoEnumIterator;
 use tracing::warn;
 use vek::*;
 
@@ -66,14 +66,17 @@ impl AmbientMgr {
                     if index >= audio.ambient_channels.len() {
                         println!("Creating audio channel with this tag: {:?}", tag);
                         audio.new_ambient_channel(tag);
-                        break
+                        break;
                     }
                 }
-                // even if the conditions don't warrant the creation of a channel
-                // with that tag, but a channel with that tag remains
-                // nonetheless, run the code
+                // even if the conditions don't warrant the creation of a
+                // channel with that tag, but a channel with
+                // that tag remains nonetheless, run the code
             } else if audio.get_ambient_channel(tag).is_some() {
-                println!("Channel for {:?} is actually present, performing volume code", tag);
+                println!(
+                    "Channel for {:?} is actually present, performing volume code",
+                    tag
+                );
                 for index in 0..AmbientChannelTag::iter().len() {
                     // update with sfx volume
                     audio.ambient_channels[index].set_volume(sfx_volume);
@@ -121,7 +124,11 @@ impl AmbientMgr {
 
                         // remove channel if not playing
                         if audio.ambient_channels[index].get_multiplier() == 0.0 {
-                            println!("Removing channel {:?} with tag {:?}", index, audio.ambient_channels[index].get_tag());
+                            println!(
+                                "Removing channel {:?} with tag {:?}",
+                                index,
+                                audio.ambient_channels[index].get_tag()
+                            );
                             audio.ambient_channels[index].stop();
                             audio.ambient_channels.remove(index);
                         };
@@ -182,8 +189,8 @@ impl AmbientMgr {
         // Tree density factors into wind volume. The more trees,
         // the lower wind volume. The trees make more of an impact
         // the closer the camera is to the ground.
-        let tree_multiplier =
-            1.0 - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0));
+        let tree_multiplier = 1.0
+            - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0));
 
         return tree_multiplier > 0.05;
     }
@@ -264,10 +271,13 @@ impl AmbientChannel {
         let tree_multiplier =
             ((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0);
 
-        // Lastly, we of course have to take into account actual wind speed from weathersim
+        // Lastly, we of course have to take into account actual wind speed from
+        // weathersim
         let wind_speed_multiplier = (client_wind_speed_sq / 30.0_f32.powi(2)).min(1.0);
 
-        return alt_multiplier * tree_multiplier * (wind_speed_multiplier + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0);
+        return alt_multiplier
+            * tree_multiplier
+            * (wind_speed_multiplier + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0);
     }
 
     fn get_rain_volume(&mut self, client: &Client) -> f32 {
@@ -301,8 +311,8 @@ impl AmbientChannel {
         // Tree density factors into wind volume. The more trees,
         // the lower wind volume. The trees make more of an impact
         // the closer the camera is to the ground.
-        let tree_multiplier =
-            1.0 - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0));
+        let tree_multiplier = 1.0
+            - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0));
 
         if tree_multiplier > 0.05 {
             tree_multiplier

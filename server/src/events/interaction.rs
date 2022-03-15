@@ -186,7 +186,9 @@ pub fn handle_mine_block(
                     ) {
                         let skill_group = SkillGroupKind::Weapon(tool);
                         let outcome_bus = state.ecs().read_resource::<EventBus<Outcome>>();
-                        if let Some(level_outcome) = skillset.add_experience(skill_group, exp_reward) {
+                        if let Some(level_outcome) =
+                            skillset.add_experience(skill_group, exp_reward)
+                        {
                             outcome_bus.emit_now(Outcome::SkillPointGain {
                                 uid,
                                 skill_tree: skill_group,
