@@ -1,7 +1,7 @@
 use std::fmt;
 
 use serde::{Deserialize, Serialize};
-use vek::Vec2;
+use vek::{Lerp, Vec2};
 
 pub const CHUNKS_PER_CELL: u32 = 16;
 // Weather::default is Clear, 0 degrees C and no wind
@@ -29,6 +29,14 @@ impl Weather {
             (_, 1..=10, _) => WeatherKind::Rain,
             (4..=10, _, _) => WeatherKind::Cloudy,
             _ => WeatherKind::Clear,
+        }
+    }
+
+    pub fn lerp(from: &Self, to: &Self, t: f32) -> Self {
+        Self {
+            cloud: f32::lerp(from.cloud, to.cloud, t),
+            rain: f32::lerp(from.rain, to.rain, t),
+            wind: Vec2::<f32>::lerp(from.wind, to.wind, t),
         }
     }
 }

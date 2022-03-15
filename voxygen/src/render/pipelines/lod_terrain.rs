@@ -1,6 +1,7 @@
 use super::super::{AaMode, GlobalsLayouts, Renderer, Texture, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
-use std::mem;
+use common::{grid::Grid, weather::Weather};
+use std::{mem, time::Instant};
 use vek::*;
 
 #[repr(C)]
@@ -31,12 +32,77 @@ impl VertexTrait for Vertex {
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
+pub struct WeatherTexture {
+    a: (Grid<Weather>, Instant),
+    b: (Grid<Weather>, Instant),
+    pub tex: Texture,
+}
+
+impl WeatherTexture {
+    fn new(tex: Texture) -> Self {
+        Self {
+            a: (Grid::new(Vec2::zero(), Default::default()), Instant::now()),
+            b: (Grid::new(Vec2::zero(), Default::default()), Instant::now()),
+            tex,
+        }
+    }
+
+    pub fn update_weather(&mut self, weather: Grid<Weather>) {
+        self.a = mem::replace(&mut self.b, (weather, Instant::now()));
+    }
+
+    pub fn update_texture(&self, renderer: &mut Renderer) {
+        let a = &self.a.0;
+        let b = &self.b.0;
+        let size = self.b.0.size().as_::<u32>();
+        if a.size() != b.size() {
+            renderer.update_texture(
+                &self.tex,
+                [0, 0],
+                [size.x, size.y],
+                &b.iter()
+                    .map(|(_, w)| {
+                        [
+                            (w.cloud * 255.0) as u8,
+                            (w.rain * 255.0) as u8,
+                            (w.wind.x + 128.0).clamp(0.0, 255.0) as u8,
+                            (w.wind.y + 128.0).clamp(0.0, 255.0) as u8,
+                        ]
+                    })
+                    .collect::<Vec<_>>(),
+            );
+        } else {
+            // Assume updates are regular
+            let t = (self.b.1.elapsed().as_secs_f32()
+                / self.b.1.duration_since(self.a.1).as_secs_f32())
+            .clamp(0.0, 1.0);
+            renderer.update_texture(
+                &self.tex,
+                [0, 0],
+                [size.x, size.y],
+                &a.iter()
+                    .zip(b.iter())
+                    .map(|((_, a), (_, b))| {
+                        let w = Weather::lerp(a, b, t);
+                        [
+                            (w.cloud * 255.0) as u8,
+                            (w.rain * 255.0) as u8,
+                            (w.wind.x + 128.0).clamp(0.0, 255.0) as u8,
+                            (w.wind.y + 128.0).clamp(0.0, 255.0) as u8,
+                        ]
+                    })
+                    .collect::<Vec<_>>(),
+            );
+        }
+    }
+}
+
 pub struct LodData {
     pub map: Texture,
     pub alt: Texture,
     pub horizon: Texture,
     pub tgt_detail: u32,
-    pub clouds: Texture,
+    pub weather: WeatherTexture,
 }
 
 impl LodData {
@@ -135,7 +201,7 @@ impl LodData {
         );
         //             SamplerInfo {
         //                 border: [1.0, 0.0, 1.0, 0.0].into(),
-        let clouds = {
+        let weather = {
             let texture_info = wgpu::TextureDescriptor {
                 label: None,
                 size: wgpu::Extent3d {
@@ -185,7 +251,7 @@ impl LodData {
             alt,
             horizon,
             tgt_detail,
-            clouds,
+            weather: WeatherTexture::new(weather),
         }
     }
 }
