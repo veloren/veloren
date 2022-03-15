@@ -104,7 +104,7 @@ void main() {
 
         float fall_rate = 70.0;
 
-        dir.xy += wind_vel * dir.z / fall_rate * 0;
+        dir.xy += wind_vel * dir.z / fall_rate;
         dir = normalize(dir);
 
         float z = (-1 / (abs(dir.z) - 1) - 1) * sign(dir.z);
