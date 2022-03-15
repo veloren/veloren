@@ -176,7 +176,7 @@ impl WeatherSim {
         for (point, cell) in self.weather.iter_mut() {
             let wpos = cell_to_wpos(point);
 
-            let pos = wpos.as_::<f64>() + time as f64 * 0.25;
+            let pos = wpos.as_::<f64>() + time as f64 * 0.1;
 
             let space_scale = 7_500.0;
             let time_scale = 100_000.0;
@@ -185,7 +185,7 @@ impl WeatherSim {
             let pressure = (base_nz.get(spos.into_array()) * 0.5 + 1.0).clamped(0.0, 1.0) as f32;
 
             cell.cloud = (1.0 - pressure) * 0.5;
-            cell.rain = (1.0 - pressure - 0.2).max(0.0).powf(1.5);
+            cell.rain = (1.0 - pressure - 0.15).max(0.0).powf(1.5);
             cell.wind = Vec2::new(
                 rain_nz.get(spos.into_array()) as f32,
                 rain_nz.get((spos + 1.0).into_array()) as f32,

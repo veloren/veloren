@@ -115,7 +115,7 @@ void main() {
         float rain_density = rain_density_at(cam_wpos.xy) * 10.0;
         if (rain_density > 0) {
             float rain_dist = 150.0;
-            for (int i = 0; i < 6; i ++) {
+            for (int i = 0; i < 7; i ++) {
                 rain_dist *= 0.3;
 
                 vec3 rpos = vec3(vec2(dir_2d), view_pos.y) * rain_dist;
@@ -125,7 +125,7 @@ void main() {
                     continue;
                 }
 
-                if (dot(rpos * vec3(1, 1, 0.3), rpos) < 1) {
+                if (dot(rpos * vec3(1, 1, 0.5), rpos) < 1.0) {
                     break;
                 }
 
