@@ -247,18 +247,13 @@
         //    ],
         //    threshold: 0.5,
         //),
-        LevelUp:(
-            files: [
-                "voxygen.audio.sfx.character.level_up_sound_-_shorter_wind_up",
-            ],
-            threshold: 0.5,
-        ),
-        //Jump: (
+        // unused for now
+        // Jump: (
         //    files: [
-        //        // Event not implemented?
+        //        "voxygen.audio.sfx.utterance.humanmale_hurt1"
         //    ],
         //    threshold: 0.25,
-        //),
+        // ),
         //Fall: (
         //    files: [
         //        // Event not implemented?
@@ -272,18 +267,17 @@
             ],
             threshold: 0.25,
         ),
-        //Climb: (
-        //    files: [
-        //         TODO: sync with animation
-        //        "voxygen.audio.sfx.footsteps.stepgrass_1",
-        //        "voxygen.audio.sfx.footsteps.stepgrass_2",
-        //        "voxygen.audio.sfx.footsteps.stepgrass_3",
-        //        "voxygen.audio.sfx.footsteps.stepgrass_4",
-        //        "voxygen.audio.sfx.footsteps.stepgrass_5",
-        //        "voxygen.audio.sfx.footsteps.stepgrass_6",
-        //    ],
-        //    threshold: 0.25,
-        //),
+        Climb: (
+           files: [
+                // TODO: sync with animation
+                "voxygen.audio.sfx.footsteps.stepdirt_1",
+                "voxygen.audio.sfx.footsteps.stepdirt_2",
+                "voxygen.audio.sfx.footsteps.stepdirt_3",
+                "voxygen.audio.sfx.footsteps.stepdirt_4",
+                "voxygen.audio.sfx.footsteps.stepdirt_5",
+           ],
+           threshold: 1.2,
+        ),
         GliderOpen: (
             files: [
                 "voxygen.audio.sfx.character.glider_open",
@@ -619,37 +613,37 @@
         ),
         Inventory(CollectedItem("Diamond")): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.inventory.collect_gemstone",
             ],
             threshold: 0.3,
         ),
         Inventory(CollectedItem("Ruby")): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.inventory.collect_gemstone",
             ],
             threshold: 0.3,
         ),
         Inventory(CollectedItem("Emerald")): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.inventory.collect_gemstone",
             ],
             threshold: 0.3,
         ),
         Inventory(CollectedItem("Sapphire")): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.inventory.collect_gemstone",
             ],
             threshold: 0.3,
         ),
         Inventory(CollectedItem("Topaz")): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.inventory.collect_gemstone",
             ],
             threshold: 0.3,
         ),
         Inventory(CollectedItem("Amethyst")): (
             files: [
-                "voxygen.audio.sfx.weapon.staff_out",
+                "voxygen.audio.sfx.inventory.collect_gemstone",
             ],
             threshold: 0.3,
         ),
