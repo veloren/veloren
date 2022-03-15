@@ -647,19 +647,23 @@ impl Renderer {
             );
             self.views = views;
 
-            // appease borrow check (TODO: remove after Rust 2021)
-            let device = &self.device;
-            let queue = &self.queue;
-            let views = &self.views;
             let bloom_params = self
                 .views
                 .bloom_tgts
                 .as_ref()
                 .map(|tgts| locals::BloomParams {
                     locals: bloom_sizes.map(|size| {
-                        Self::create_consts_inner(device, queue, &[bloom::Locals::new(size)])
+                        Self::create_consts_inner(&self.device, &self.queue, &[bloom::Locals::new(
+                            size,
+                        )])
                     }),
-                    src_views: [&views.tgt_color_pp, &tgts[1], &tgts[2], &tgts[3], &tgts[4]],
+                    src_views: [
+                        &self.views.tgt_color_pp,
+                        &tgts[1],
+                        &tgts[2],
+                        &tgts[3],
+                        &tgts[4],
+                    ],
                     final_tgt_view: &tgts[0],
                 });
 
