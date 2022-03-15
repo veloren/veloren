@@ -578,11 +578,11 @@ impl GlobalsLayouts {
             },
             wgpu::BindGroupEntry {
                 binding: 12,
-                resource: wgpu::BindingResource::TextureView(&lod_data.weather.tex.view),
+                resource: wgpu::BindingResource::TextureView(&lod_data.weather.view),
             },
             wgpu::BindGroupEntry {
                 binding: 13,
-                resource: wgpu::BindingResource::Sampler(&lod_data.weather.tex.sampler),
+                resource: wgpu::BindingResource::Sampler(&lod_data.weather.sampler),
             },
         ]
     }

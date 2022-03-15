@@ -107,7 +107,6 @@ pub enum Event {
     CharacterEdited(CharacterId),
     CharacterError(String),
     MapMarker(comp::MapMarkerUpdate),
-    WeatherUpdate,
 }
 
 pub struct WorldData {
@@ -153,13 +152,60 @@ pub struct SiteInfoRich {
     pub economy: Option<EconomyInfo>,
 }
 
+struct WeatherLerp {
+    old: (Grid<Weather>, Instant),
+    new: (Grid<Weather>, Instant),
+    current: Grid<Weather>,
+}
+
+impl WeatherLerp {
+    fn weather_update(&mut self, weather: Grid<Weather>) {
+        self.old = mem::replace(&mut self.new, (weather, Instant::now()));
+    }
+
+    fn update(&mut self) {
+        let old = &self.old.0;
+        let new = &self.new.0;
+        if old.size() != new.size() {
+            if self.current.size() != new.size() {
+                self.current = new.clone();
+            }
+        } else {
+            // Assume updates are regular
+            let t = (self.new.1.elapsed().as_secs_f32()
+                / self.new.1.duration_since(self.old.1).as_secs_f32())
+            .clamp(0.0, 1.0);
+
+            old.iter().zip(new.iter()).for_each(|((p, old), (_, new))| {
+                self.current[p] = Weather::lerp(old, new, t);
+            });
+        }
+    }
+}
+
+impl Default for WeatherLerp {
+    fn default() -> Self {
+        Self {
+            old: (
+                Grid::new(Vec2::new(0, 0), Weather::default()),
+                Instant::now(),
+            ),
+            new: (
+                Grid::new(Vec2::new(0, 0), Weather::default()),
+                Instant::now(),
+            ),
+            current: Grid::new(Vec2::new(0, 0), Weather::default()),
+        }
+    }
+}
+
 pub struct Client {
     registered: bool,
     presence: Option<PresenceKind>,
     runtime: Arc<Runtime>,
     server_info: ServerInfo,
     world_data: WorldData,
-    weather: Grid<Weather>,
+    weather: WeatherLerp,
     player_list: HashMap<Uid, PlayerInfo>,
     character_list: CharacterList,
     sites: HashMap<SiteId, SiteInfoRich>,
@@ -611,7 +657,7 @@ impl Client {
                 lod_horizon,
                 map: world_map,
             },
-            weather: Grid::new(Vec2::new(1, 1), Weather::default()),
+            weather: WeatherLerp::default(),
             player_list: HashMap::new(),
             character_list: CharacterList::default(),
             sites: sites
@@ -1417,23 +1463,45 @@ impl Client {
             .map(|v| v.0)
     }
 
-    pub fn get_weather(&self) -> &Grid<Weather> { &self.weather }
+    pub fn get_weather(&self) -> &Grid<Weather> { &self.weather.current }
 
     pub fn current_weather(&self) -> Weather {
-        if let Some(position) = self.position() {
-            let cell_pos = (position.xy()
-                / ((TerrainChunkSize::RECT_SIZE * weather::CHUNKS_PER_CELL).as_()))
-            .as_();
-            *self.weather.get(cell_pos).unwrap_or(&Weather::default())
-        } else {
-            Weather::default()
-        }
+        self.position()
+            .map(|wpos| self.current_weather_wpos(wpos.xy()))
+            .unwrap_or_default()
     }
 
     pub fn current_weather_wpos(&self, wpos: Vec2<f32>) -> Weather {
-        let cell_pos =
-            (wpos / ((TerrainChunkSize::RECT_SIZE * weather::CHUNKS_PER_CELL).as_())).as_();
-        *self.weather.get(cell_pos).unwrap_or(&Weather::default())
+        let cell_pos = wpos / ((TerrainChunkSize::RECT_SIZE * weather::CHUNKS_PER_CELL).as_());
+        let rpos = cell_pos.map(|e| e.fract());
+        let cell_pos = cell_pos.map(|e| e.floor());
+
+        let wpos = cell_pos.as_::<i32>();
+        Weather::lerp(
+            &Weather::lerp(
+                self.weather
+                    .current
+                    .get(wpos)
+                    .unwrap_or(&Weather::default()),
+                self.weather
+                    .current
+                    .get(wpos + Vec2::unit_x())
+                    .unwrap_or(&Weather::default()),
+                rpos.x,
+            ),
+            &Weather::lerp(
+                self.weather
+                    .current
+                    .get(wpos + Vec2::unit_x())
+                    .unwrap_or(&Weather::default()),
+                self.weather
+                    .current
+                    .get(wpos + Vec2::one())
+                    .unwrap_or(&Weather::default()),
+                rpos.x,
+            ),
+            rpos.y,
+        )
     }
 
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
@@ -1681,6 +1749,8 @@ impl Client {
 
         // 5) Terrain
         self.tick_terrain()?;
+        // TODO: put this somewhere else?
+        self.weather.update();
 
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {
@@ -2217,8 +2287,7 @@ impl Client {
                 frontend_events.push(Event::MapMarker(event));
             },
             ServerGeneral::WeatherUpdate(weather) => {
-                self.weather = weather;
-                frontend_events.push(Event::WeatherUpdate);
+                self.weather.weather_update(weather);
             },
             _ => unreachable!("Not a in_game message"),
         }

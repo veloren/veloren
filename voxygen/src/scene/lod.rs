@@ -10,11 +10,9 @@ use crate::{
 use client::Client;
 use common::{
     assets::{AssetExt, ObjAsset},
-    grid::Grid,
     lod,
     spiral::Spiral2d,
     util::srgba_to_linear,
-    weather::Weather,
 };
 use hashbrown::HashMap;
 use std::ops::Range;
@@ -79,10 +77,6 @@ impl Lod {
 
     pub fn get_data(&self) -> &LodData { &self.data }
 
-    pub fn update_weather(&mut self, weather: Grid<Weather>) {
-        self.data.weather.update_weather(weather);
-    }
-
     pub fn set_detail(&mut self, detail: u32) {
         // Make sure the recorded detail is even.
         self.data.tgt_detail = (detail - detail % 2).max(100).min(2500);
@@ -95,7 +89,6 @@ impl Lod {
         focus_pos: Vec3<f32>,
         camera: &Camera,
     ) {
-        self.data.weather.update_texture(renderer);
         // Update LoD terrain mesh according to detail
         if self
             .model
@@ -188,6 +181,25 @@ impl Lod {
                 }
             }
         }
+        // Update weather texture
+        let weather = client.get_weather();
+        let size = weather.size().as_::<u32>();
+        renderer.update_texture(
+            &self.data.weather,
+            [0, 0],
+            [size.x, size.y],
+            &weather
+                .iter()
+                .map(|(_, w)| {
+                    [
+                        (w.cloud * 255.0) as u8,
+                        (w.rain * 255.0) as u8,
+                        (w.wind.x + 128.0).clamp(0.0, 255.0) as u8,
+                        (w.wind.y + 128.0).clamp(0.0, 255.0) as u8,
+                    ]
+                })
+                .collect::<Vec<_>>(),
+        );
     }
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {

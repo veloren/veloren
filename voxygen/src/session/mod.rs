@@ -324,9 +324,6 @@ impl SessionState {
                 client::Event::MapMarker(event) => {
                     self.hud.show.update_map_markers(event);
                 },
-                client::Event::WeatherUpdate => {
-                    self.scene.lod.update_weather(client.get_weather().clone());
-                },
             }
         }
 
