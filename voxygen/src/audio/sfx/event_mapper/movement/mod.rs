@@ -168,6 +168,7 @@ impl MovementEventMapper {
             if &previous_state.event == event {
                 match event {
                     SfxEvent::Run(_) => previous_state.distance_travelled >= item.threshold,
+                    SfxEvent::Climb => previous_state.distance_travelled >= item.threshold,
                     SfxEvent::QuadRun(_) => previous_state.distance_travelled >= item.threshold,
                     _ => previous_state.time.elapsed().as_secs_f32() >= item.threshold,
                 }

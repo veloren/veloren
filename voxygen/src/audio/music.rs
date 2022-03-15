@@ -319,11 +319,11 @@ impl MusicMgr {
             if matches!(music_state, MusicState::Activity(MusicActivity::Explore))
                 && matches!(client.current_site(), SitesKind::Settlement)
             {
-                rng.gen_range(90.0..180.0)
+                rng.gen_range(100.0..130.0)
             } else if matches!(music_state, MusicState::Activity(MusicActivity::Explore)) {
-                rng.gen_range(60.0..120.0)
+                rng.gen_range(90.0..180.0)
             } else {
-                0.0
+                rng.gen_range(30.0..60.0)
             };
 
         let is_dark = (state.get_day_period().is_dark()) as bool;

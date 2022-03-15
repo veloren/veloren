@@ -11,6 +11,30 @@
     tracks: 
             [
         Individual((
+            title: "Follow the Signs",
+            path: "voxygen.audio.soundtrack.town.follow_the_signs",
+            length: 154.0,
+            timing: Some(Night),
+            biomes: [
+                (Forest, 1),
+            ],
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "Oolnokk",
+        )),
+        Individual((
+            title: "Travel By Night",
+            path: "voxygen.audio.soundtrack.town.travel_by_night",
+            length: 66.0,
+            timing: Some(Night),
+            biomes: [
+                (Forest, 2),
+            ],
+            site: Some(Void),
+            music_state: Activity(Explore),
+            artist: "Oolnokk",
+        )),
+        Individual((
             title: "Cobbled Halls",
             path: "voxygen.audio.soundtrack.dungeon.cobbled_halls",
             length: 240.0,
@@ -193,7 +217,7 @@
             length: 169.0,
             timing: Some(Day),
             biomes: [
-                (Forest, 1),
+                (Forest, 2),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -332,7 +356,7 @@
             length: 206.0,
             timing: Some(Night),
             biomes: [
-                (Forest, 1),
+                (Forest, 2),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -344,7 +368,7 @@
             length: 184.0,
             timing: Some(Night),
             biomes: [
-                (Forest, 1),
+                (Forest, 2),
                 (Jungle, 1),
             ],
             site: Some(Void),
@@ -358,7 +382,7 @@
             timing: Some(Day),
             biomes: [
                 (Grassland, 1),
-                (Forest, 1),
+                (Forest, 2),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -442,7 +466,7 @@
             length: 100.0,
             timing: Some(Night),
             biomes: [
-                (Forest, 1),
+                (Forest, 2),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
@@ -476,7 +500,7 @@
             length: 175.0,
             timing: Some(Day),
             biomes: [
-                (Forest, 1),
+                (Forest, 2),
             ],
             site: Some(Void),
             music_state: Activity(Explore),
