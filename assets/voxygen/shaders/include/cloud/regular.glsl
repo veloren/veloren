@@ -61,7 +61,7 @@ vec4 cloud_at(vec3 pos, float dist, out vec3 emission, out float not_underground
         ;
     }
 
-    float cloud_alt = alt + 1500;
+    float cloud_alt = alt + 1800;
 
     //vec2 cloud_attr = get_cloud_heights(wind_pos.xy);
     float sun_access = 0.0;

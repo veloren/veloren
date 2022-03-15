@@ -184,8 +184,9 @@ impl WeatherSim {
 
             let pressure = (base_nz.get(spos.into_array()) * 0.5 + 1.0).clamped(0.0, 1.0) as f32;
 
+            const RAIN_CLOUD_THRESHOLD: f32 = 0.26;
             cell.cloud = (1.0 - pressure) * 0.5;
-            cell.rain = (1.0 - pressure - 0.15).max(0.0).powf(1.5);
+            cell.rain = (1.0 - pressure - RAIN_CLOUD_THRESHOLD).max(0.0).powf(1.0);
             cell.wind = Vec2::new(
                 rain_nz.get(spos.into_array()) as f32,
                 rain_nz.get((spos + 1.0).into_array()) as f32,
