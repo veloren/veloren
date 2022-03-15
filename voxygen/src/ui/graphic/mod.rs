@@ -181,19 +181,15 @@ impl GraphicCache {
             return;
         }
 
-        // TODO: remove with Rust 2021 edition
-        let cache_map = &mut self.cache_map;
-        let textures = &mut self.textures;
-
         // Remove from caches
         // Maybe make this more efficient if replace graphic is used more often
-        cache_map.retain(|&(key_id, _key_dims), details| {
+        self.cache_map.retain(|&(key_id, _key_dims), details| {
             // If the entry does not reference id, or it does but we can successfully
             // invalidate, retain the entry; otherwise, discard this entry completely.
             key_id != id
                 || details
                     .invalidate()
-                    .map_err(|index| textures.remove(index))
+                    .map_err(|index| self.textures.remove(index))
                     .is_ok()
         });
     }

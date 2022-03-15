@@ -125,13 +125,13 @@ impl ItemTooltipManager {
     {
         let mp_h = MOUSE_PAD_Y / self.logical_scale_factor;
 
-        let tooltip_ids = &mut self.tooltip_ids; // TODO: remove with Rust 2021
-        let mut id_walker = tooltip_ids.walk();
+        let mut id_walker = self.tooltip_ids.walk();
 
         let tooltip = |transparency, mouse_pos: [f64; 2], ui: &mut UiCell| {
             let mut prev_id = None;
             for item in items {
-                let tooltip_id = id_walker.next(tooltip_ids, &mut ui.widget_id_generator());
+                let tooltip_id =
+                    id_walker.next(&mut self.tooltip_ids, &mut ui.widget_id_generator());
                 // Fill in text and the potential image beforehand to get an accurate size for
                 // spacing
                 let tooltip = tooltip
