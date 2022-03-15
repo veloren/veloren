@@ -6426,10 +6426,12 @@ impl<S: Skeleton> FigureState<S> {
         self.last_glow.0 = vek::Lerp::lerp(self.last_glow.0, glow.0, 16.0 * dt);
         self.last_glow.1 = vek::Lerp::lerp(self.last_glow.1, glow.1, 16.0 * dt);
 
+        let pos_with_mount_offset = mount_transform_pos.map_or(*pos, |(_, pos)| pos);
+
         let locals = FigureLocals::new(
             mat,
             col.rgb(),
-            mount_transform_pos.map_or(*pos, |(_, pos)| pos),
+            pos_with_mount_offset,
             vek::Vec2::new(atlas_offs.x, atlas_offs.y),
             *is_player,
             self.last_light,
@@ -6478,7 +6480,7 @@ impl<S: Skeleton> FigureState<S> {
                 &mut self.main_abs_trail_points,
                 *entity,
                 true,
-                *pos,
+                pos_with_mount_offset,
                 tools.0,
             );
             handle_weapon_trails(
@@ -6487,14 +6489,14 @@ impl<S: Skeleton> FigureState<S> {
                 &mut self.off_abs_trail_points,
                 *entity,
                 false,
-                *pos,
+                pos_with_mount_offset,
                 tools.1,
             );
         }
 
         // TODO: compute the mount bone only when it is needed
         self.mount_transform = offsets.mount_bone;
-        self.mount_world_pos = mount_transform_pos.map_or(*pos, |(_, pos)| pos);
+        self.mount_world_pos = pos_with_mount_offset;
 
         let smoothing = (5.0 * dt).min(1.0);
         if let Some(last_pos) = self.last_pos {
