@@ -928,171 +928,171 @@
     ),
     // Bows
     Modular(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.bow.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.bow.wood", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.composite.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.composite.wood", (0.5, -3.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.greatbow.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.greatbow.wood", (0.5, -4.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.longbow.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.longbow.wood", (0.5, -4.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.ornate.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.ornate.wood", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.shortbow.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.shortbow.wood", (0.5, -4.5, -9.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.bow.warbow.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.warbow.wood", (0.5, -4.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.bow.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.bow.bamboo", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.composite.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.composite.bamboo", (0.5, -3.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.greatbow.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.greatbow.bamboo", (0.5, -4.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.longbow.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.longbow.bamboo", (0.5, -3.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.ornate.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.ornate.bamboo", (0.5, -5.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.shortbow.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.shortbow.bamboo", (0.5, -4.5, -9.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.bow.warbow.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.warbow.bamboo", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.bow.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.bow.hardwood", (0.5, -3.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.composite.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.composite.hardwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.greatbow.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.greatbow.hardwood", (-0.5, -2.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.longbow.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.longbow.hardwood", (0.5, -2.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.ornate.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.ornate.hardwood", (0.5, -4.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.shortbow.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.shortbow.hardwood", (0.5, -4.5, -9.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.bow.warbow.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.warbow.hardwood", (0.5, -3.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.bow.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.bow.ironwood", (-0.5, -4.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.composite.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.composite.ironwood", (-0.5, -3.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.greatbow.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.greatbow.ironwood", (-0.5, -3.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.longbow.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.longbow.ironwood", (-0.5, -4.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.ornate.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.ornate.ironwood", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.shortbow.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.shortbow.ironwood", (-0.5, -4.5, -9.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.bow.warbow.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.warbow.ironwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.bow.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.bow.frostwood", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.composite.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.composite.frostwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.greatbow.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.greatbow.frostwood", (-0.5, -5.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.longbow.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.longbow.frostwood", (0.5, -4.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.ornate.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.ornate.frostwood", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.shortbow.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.shortbow.frostwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.bow.warbow.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.warbow.frostwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.bow.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.bow.eldwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.composite.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.composite.eldwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.greatbow", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.greatbow.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.greatbow.eldwood", (-0.5, -4.5, -11.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.longbow", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.longbow.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.longbow.eldwood", (-0.5, -4.5, -12.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.ornate.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.ornate.eldwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.shortbow.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.shortbow.eldwood", (0.5, -4.5, -10.5)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.bow.warbow.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.bow.warbow.eldwood", (-0.5, -4.5, -10.5)),
         color: None
     ),
     Tool("common.items.weapons.bow.sagitta"): (
