@@ -124,7 +124,7 @@ float cloud_tendency_at(vec2 pos) {
 const float RAIN_CLOUD = 0.05;
 
 float rain_density_at(vec2 pos) {
-    return 1.0; //sample_weather(pos).g;
+    return sample_weather(pos).g;
     //return clamp((cloud_tendency_at(pos) - RAIN_CLOUD) * 10, 0, 1);
 }
 

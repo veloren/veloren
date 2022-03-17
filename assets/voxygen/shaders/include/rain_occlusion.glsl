@@ -17,15 +17,6 @@ uniform u_rain_occlusion {
 float rain_occlusion_at(in vec3 fragPos)
 {
     float bias = -0.2;
-    float diskRadius = 0.01;
-    const vec3 sampleOffsetDirections[20] = vec3[]
-    (
-       vec3( 1,  1,  1), vec3( 1, -1,  1), vec3(-1, -1,  1), vec3(-1,  1,  1),
-       vec3( 1,  1, -1), vec3( 1, -1, -1), vec3(-1, -1, -1), vec3(-1,  1, -1),
-       vec3( 1,  1,  0), vec3( 1, -1,  0), vec3(-1, -1,  0), vec3(-1,  1,  0),
-       vec3( 1,  0,  1), vec3(-1,  0,  1), vec3( 1,  0, -1), vec3(-1,  0, -1),
-       vec3( 0,  1,  1), vec3( 0, -1,  1), vec3( 0, -1, -1), vec3( 0,  1, -1)
-    );
 
     vec4 rain_pos = occlusion_texture_mat * vec4(fragPos, 1.0) - vec4(0, 0, bias, 0);
 

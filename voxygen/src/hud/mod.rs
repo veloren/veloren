@@ -494,7 +494,6 @@ pub struct DebugInfo {
     pub num_figures_visible: u32,
     pub num_particles: u32,
     pub num_particles_visible: u32,
-    pub weather: Weather,
 }
 
 pub struct HudInfo {

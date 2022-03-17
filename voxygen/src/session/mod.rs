@@ -1104,7 +1104,6 @@ impl PlayState for SessionState {
                     num_particles: self.scene.particle_mgr().particle_count() as u32,
                     num_particles_visible: self.scene.particle_mgr().particle_count_visible()
                         as u32,
-                    weather: client.current_weather(),
                 }
             });
 

@@ -102,8 +102,8 @@ void main() {
     #ifdef EXPERIMENTAL_RAIN
         vec3 old_color = color.rgb;
 
+        // If this value is changed also change it in voxygen/src/scene/mod.rs
         float fall_rate = 70.0;
-
         dir.xy += wind_vel * dir.z / fall_rate;
         dir = normalize(dir);
 
