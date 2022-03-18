@@ -287,8 +287,7 @@ impl ParticleMgr {
             | Outcome::HealthChange { .. }
             | Outcome::PoiseChange { .. }
             | Outcome::Utterance { .. }
-            | Outcome::Glider { .. }
-            | Outcome::Jump { .. } => {},
+            | Outcome::Glider { .. } => {},
         }
     }
 

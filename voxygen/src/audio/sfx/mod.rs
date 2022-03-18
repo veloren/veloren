@@ -590,11 +590,6 @@ impl SfxMgr {
                     audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), underwater);
                 }
             },
-            // unused for now
-            Outcome::Jump { pos } => {
-                let sfx_trigger_item = triggers.get_key_value(&SfxEvent::Jump);
-                audio.emit_sfx(sfx_trigger_item, *pos, Some(1.0), underwater)
-            },
             Outcome::ExpChange { .. }
             | Outcome::ComboChange { .. }
             | Outcome::SummonedCreature { .. } => {},

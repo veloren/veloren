@@ -93,9 +93,6 @@ pub enum Outcome {
         pos: Vec3<f32>,
         wielded: bool,
     },
-    Jump {
-        pos: Vec3<f32>,
-    }
 }
 
 impl Outcome {
@@ -112,8 +109,7 @@ impl Outcome {
             | Outcome::PoiseChange { pos, .. }
             | Outcome::GroundSlam { pos }
             | Outcome::Utterance { pos, .. }
-            | Outcome::Glider { pos, .. }
-            | Outcome::Jump { pos, .. } => Some(*pos),
+            | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
             Outcome::ExpChange { .. } | Outcome::ComboChange { .. } | Outcome::SkillPointGain { .. } => None,
         }

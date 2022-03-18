@@ -239,27 +239,6 @@
             ],
             threshold: 0.8,
         ),
-        //ExperienceGained: (
-        //    files: [
-        //        "voxygen.audio.sfx.character.experience_gained_1",
-        //        "voxygen.audio.sfx.character.experience_gained_2",
-        //        "voxygen.audio.sfx.character.experience_gained_3",
-        //    ],
-        //    threshold: 0.5,
-        //),
-        // unused for now
-        // Jump: (
-        //    files: [
-        //        "voxygen.audio.sfx.utterance.humanmale_hurt1"
-        //    ],
-        //    threshold: 0.25,
-        // ),
-        //Fall: (
-        //    files: [
-        //        // Event not implemented?
-        //    ],
-        //    threshold: 0.25,
-        //),
         Roll: (
             files: [
                 "voxygen.audio.sfx.character.dive_roll_1",
@@ -269,7 +248,7 @@
         ),
         Climb: (
            files: [
-                // TODO: sync with animation
+                // TODO: sync with animation, make actual sfx
                 "voxygen.audio.sfx.footsteps.stepdirt_1",
                 "voxygen.audio.sfx.footsteps.stepdirt_2",
                 "voxygen.audio.sfx.footsteps.stepdirt_3",
