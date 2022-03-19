@@ -19,12 +19,7 @@ pub use self::{
     trail::TrailMgr,
 };
 use crate::{
-    audio::{
-        ambient::{AmbientRainMgr, AmbientWindMgr},
-        music::MusicMgr,
-        sfx::SfxMgr,
-        AudioFrontend,
-    },
+    audio::{ambient, ambient::AmbientMgr, music::MusicMgr, sfx::SfxMgr, AudioFrontend},
     render::{
         create_skybox_mesh, CloudsLocals, Consts, Drawer, GlobalModel, Globals, GlobalsBindGroup,
         Light, Model, PointLightMatrix, PostProcessLocals, Renderer, Shadow, ShadowLocals,
@@ -107,8 +102,9 @@ pub struct Scene {
     figure_mgr: FigureMgr,
     pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
-    ambient_wind_mgr: AmbientWindMgr,
-    ambient_rain_mgr: AmbientRainMgr,
+    ambient_mgr: AmbientMgr,
+    // ambient_wind_mgr: AmbientWindMgr,
+    // ambient_rain_mgr: AmbientRainMgr,
 }
 
 pub struct SceneData<'a> {
@@ -320,8 +316,11 @@ impl Scene {
             figure_mgr: FigureMgr::new(renderer),
             sfx_mgr: SfxMgr::default(),
             music_mgr: MusicMgr::default(),
-            ambient_wind_mgr: AmbientWindMgr::default(),
-            ambient_rain_mgr: AmbientRainMgr::default(),
+            ambient_mgr: AmbientMgr {
+                ambience: ambient::load_ambience_items(),
+            },
+            // ambient_wind_mgr: AmbientWindMgr::default(),
+            // ambient_rain_mgr: AmbientRainMgr::default(),
         }
     }
 
@@ -414,10 +413,10 @@ impl Scene {
     ) {
         span!(_guard, "handle_outcome", "Scene::handle_outcome");
         let underwater = state
-                        .terrain()
-                        .get(cam_pos.map(|e| e.floor() as i32))
-                        .map(|b| b.is_liquid())
-                        .unwrap_or(false); 
+            .terrain()
+            .get(cam_pos.map(|e| e.floor() as i32))
+            .map(|b| b.is_liquid())
+            .unwrap_or(false);
         self.particle_mgr.handle_outcome(outcome, scene_data);
         self.sfx_mgr
             .handle_outcome(outcome, audio, scene_data.client, state, underwater);
@@ -1080,10 +1079,12 @@ impl Scene {
             client,
         );
         self.music_mgr.maintain(audio, scene_data.state, client);
-        self.ambient_wind_mgr
+        self.ambient_mgr
             .maintain(audio, scene_data.state, client, &self.camera);
-        self.ambient_rain_mgr
-            .maintain(audio, scene_data.state, client, &self.camera);
+        // self.ambient_wind_mgr
+        //     .maintain(audio, scene_data.state, client, &self.camera);
+        // self.ambient_rain_mgr
+        //     .maintain(audio, scene_data.state, client, &self.camera);
     }
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }

@@ -22,6 +22,8 @@ use crate::audio::{
 };
 use rodio::{OutputStreamHandle, Sample, Sink, Source, SpatialSink};
 use serde::Deserialize;
+use strum::EnumIter;
+use std::time::Instant;
 use tracing::warn;
 use vek::*;
 
@@ -157,7 +159,7 @@ impl MusicChannel {
 
 /// AmbientChannelTags are used for non-positional sfx. Currently the only use
 /// is for wind.
-#[derive(Debug, PartialEq, Clone, Copy, Deserialize)]
+#[derive(Debug, PartialEq, Clone, Copy, Deserialize, EnumIter)]
 pub enum AmbientChannelTag {
     Wind,
     Rain,
@@ -168,6 +170,8 @@ pub struct AmbientChannel {
     tag: AmbientChannelTag,
     multiplier: f32,
     sink: Sink,
+    began_playing: Instant,
+    next_track_change: f32,
 }
 
 impl AmbientChannel {
@@ -178,6 +182,8 @@ impl AmbientChannel {
                 tag,
                 multiplier,
                 sink,
+                began_playing: Instant::now(),
+                next_track_change: 0.0,
             },
             Err(_) => {
                 warn!("Failed to create rodio sink. May not play ambient sounds.");
@@ -185,6 +191,8 @@ impl AmbientChannel {
                     tag,
                     multiplier,
                     sink: Sink::new_idle().0,
+                    began_playing: Instant::now(),
+                    next_track_change: 0.0,
                 }
             },
         }
@@ -211,6 +219,20 @@ impl AmbientChannel {
     pub fn get_multiplier(&mut self) -> f32 { self.multiplier }
 
     pub fn get_tag(&self) -> AmbientChannelTag { self.tag }
+
+    pub fn set_tag(&mut self, tag: AmbientChannelTag) { self.tag = tag }
+
+    pub fn get_began_playing(&self) -> Instant { self.began_playing }
+
+    pub fn get_next_track_change(&self) -> f32 { self.next_track_change }
+
+    pub fn set_began_playing(&mut self, began_playing: Instant) {
+        self.began_playing = began_playing
+    }
+
+    pub fn set_next_track_change(&mut self, next_track_change: f32) {
+        self.next_track_change = next_track_change
+    }
 }
 
 /// An SfxChannel uses a positional audio sink, and is designed for short-lived
@@ -264,9 +286,8 @@ impl SfxChannel {
     pub fn update(&mut self, listener: &Listener) {
         const FALLOFF: f32 = 0.13;
 
-        self.sink.set_emitter_position(
-            ((self.pos - listener.pos) * FALLOFF).into_array(),
-        );
+        self.sink
+            .set_emitter_position(((self.pos - listener.pos) * FALLOFF).into_array());
         self.sink
             .set_left_ear_position(listener.ear_left_rpos.into_array());
         self.sink
@@ -281,7 +302,7 @@ pub struct UIChannel {
 impl UIChannel {
     pub fn new(stream: &OutputStreamHandle) -> Self {
         Self {
-            sink: Sink::try_new(stream).unwrap()
+            sink: Sink::try_new(stream).unwrap(),
         }
     }
 

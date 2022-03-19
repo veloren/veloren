@@ -111,7 +111,9 @@ impl Outcome {
             | Outcome::Utterance { pos, .. }
             | Outcome::Glider { pos, .. } => Some(*pos),
             Outcome::BreakBlock { pos, .. } => Some(pos.map(|e| e as f32 + 0.5)),
-            Outcome::ExpChange { .. } | Outcome::ComboChange { .. } | Outcome::SkillPointGain { .. } => None,
+            Outcome::ExpChange { .. }
+            | Outcome::ComboChange { .. }
+            | Outcome::SkillPointGain { .. } => None,
         }
     }
 }

@@ -82,7 +82,7 @@
 
 mod event_mapper;
 
-use specs::{WorldExt};
+use specs::WorldExt;
 
 use crate::{
     audio::AudioFrontend,

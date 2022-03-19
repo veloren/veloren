@@ -223,7 +223,10 @@ fn main() {
     // Setup audio
     let mut audio = match settings.audio.output {
         AudioOutput::Off => AudioFrontend::no_audio(),
-        AudioOutput::Automatic => AudioFrontend::new(settings.audio.num_sfx_channels, settings.audio.num_ui_channels),
+        AudioOutput::Automatic => AudioFrontend::new(
+            settings.audio.num_sfx_channels,
+            settings.audio.num_ui_channels,
+        ),
         //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };
 

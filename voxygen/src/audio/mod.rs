@@ -7,7 +7,9 @@ pub mod music;
 pub mod sfx;
 pub mod soundcache;
 
-use channel::{AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel, UIChannel};
+use channel::{
+    AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel, UIChannel,
+};
 use fader::Fader;
 use music::MusicTransitionManifest;
 use sfx::{SfxEvent, SfxTriggerItem};
@@ -38,16 +40,16 @@ pub struct AudioFrontend {
     //pub device_list: Vec<String>,
     //pub audio_device: Option<Device>,
     pub stream: Option<rodio::OutputStream>,
-    audio_stream: Option<rodio::OutputStreamHandle>,
+    pub audio_stream: Option<rodio::OutputStreamHandle>,
 
-    music_channels: Vec<MusicChannel>,
-    ambient_channels: Vec<AmbientChannel>,
-    sfx_channels: Vec<SfxChannel>,
-    ui_channels: Vec<UIChannel>,
-    sfx_volume: f32,
-    music_volume: f32,
-    master_volume: f32,
-    listener: Listener,
+    pub music_channels: Vec<MusicChannel>,
+    pub ambient_channels: Vec<AmbientChannel>,
+    pub sfx_channels: Vec<SfxChannel>,
+    pub ui_channels: Vec<UIChannel>,
+    pub sfx_volume: f32,
+    pub music_volume: f32,
+    pub master_volume: f32,
+    pub listener: Listener,
 
     mtm: AssetHandle<MusicTransitionManifest>,
 }
@@ -216,7 +218,11 @@ impl AudioFrontend {
 
     /// Function to play sfx from external places. Useful for UI and
     /// inventory events
-    pub fn emit_sfx_item(&mut self, trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>, vol: Option<f32>) {
+    pub fn emit_sfx_item(
+        &mut self,
+        trigger_item: Option<(&SfxEvent, &SfxTriggerItem)>,
+        vol: Option<f32>,
+    ) {
         if let Some((event, item)) = trigger_item {
             let sfx_file = match item.files.len() {
                 0 => {
@@ -302,7 +308,7 @@ impl AudioFrontend {
                 } else {
                     channel.play(sound);
                 }
-            } 
+            }
         }
         Ok(())
     }
@@ -371,29 +377,29 @@ impl AudioFrontend {
     }
 
     // sets the volume of the channel with the given tag to the given volume
-    fn set_ambient_volume(&mut self, channel_tag: AmbientChannelTag, volume_multiplier: f32) {
-        if self.audio_stream.is_some() {
-            let sfx_volume = self.get_sfx_volume();
-            if let Some(channel) = self.get_ambient_channel(channel_tag) {
-                channel.set_multiplier(volume_multiplier);
-                channel.set_volume(sfx_volume);
-            }
-        }
-    }
+    // fn set_ambient_volume(&mut self, channel_tag: AmbientChannelTag,
+    // volume_multiplier: f32) {     if self.audio_stream.is_some() {
+    //         let sfx_volume = self.get_sfx_volume();
+    //         if let Some(channel) = self.get_ambient_channel(channel_tag) {
+    //             channel.set_multiplier(volume_multiplier);
+    //             channel.set_volume(sfx_volume);
+    //         }
+    //     }
+    // }
 
     // retrieves volume (pre-sfx-setting) of the channel with a given tag
-    fn get_ambient_volume(&mut self, channel_tag: AmbientChannelTag) -> f32 {
-        if self.audio_stream.is_some() {
-            if let Some(channel) = self.get_ambient_channel(channel_tag) {
-                let channel_multiplier = channel.get_multiplier();
-                channel_multiplier
-            } else {
-                0.0
-            }
-        } else {
-            0.0
-        }
-    }
+    // fn get_ambient_volume(&mut self, channel_tag: AmbientChannelTag) -> f32 {
+    //     if self.audio_stream.is_some() {
+    //         if let Some(channel) = self.get_ambient_channel(channel_tag) {
+    //             let channel_multiplier = channel.get_multiplier();
+    //             channel_multiplier
+    //         } else {
+    //             0.0
+    //         }
+    //     } else {
+    //         0.0
+    //     }
+    // }
 
     fn play_music(&mut self, sound: &str, channel_tag: MusicChannelTag) {
         if self.music_enabled() {
