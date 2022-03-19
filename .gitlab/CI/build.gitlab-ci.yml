@@ -194,38 +194,6 @@ macos-aarch64:
     - .release
   tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
 
-# The air-* builds are the builds that Airshipper Server expects to find in the scheduled build webhook JSON.
-# Renaming these will break Airshipper downloads! build on schedule quickfix till airshipper 0.5
-air-linux-x86_64:
-  extends:
-    - .tlinux-x86_64
-    - .release-scheduled
-  tags: ["veloren/veloren", "build", "publish", "trusted"]
-
-air-linux-aarch64:
-  extends:
-    - .tlinux-aarch64
-    - .release-scheduled
-  tags: ["veloren/veloren", "build", "publish", "trusted"]
-
-air-windows-x86_64:
-  extends:
-    - .twindows-x86_64
-    - .release-scheduled
-  tags: ["veloren/veloren", "build", "publish", "trusted"]
-
-air-macos-x86_64:
-  extends:
-    - .tmacos-x86_64
-    - .release-scheduled
-  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
-
-air-macos-aarch64:
-  extends:
-    - .tmacos-aarch64
-    - .release-scheduled
-  tags: ["veloren/veloren:macos", "build", "publish", "trusted"]
-
 # if NOT release or master, allow optional builds
 opt-linux-x86_64:
   extends:
