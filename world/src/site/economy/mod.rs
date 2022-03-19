@@ -43,6 +43,8 @@ pub mod vergleich {
         pub fn context(&mut self, _: &str) -> Context { Context {} }
 
         pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
+
+        pub fn dummy() -> Self { Context {} }
     }
 }
 

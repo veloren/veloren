@@ -1,3 +1,4 @@
+use rayon::prelude::*;
 use std::{
     cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd},
     fmt, hash,
@@ -82,6 +83,15 @@ impl<T> Store<T> {
         } else {
             Some(Id::<T>(i, PhantomData))
         }
+    }
+}
+
+impl<T: Send + Sync> Store<T> {
+    pub fn par_iter_mut(&mut self) -> impl ParallelIterator<Item = (Id<T>, &mut T)> {
+        self.items
+            .par_iter_mut()
+            .enumerate()
+            .map(|(idx, obj)| (Id(idx as u64, PhantomData), obj))
     }
 }
 

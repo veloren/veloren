@@ -9,6 +9,7 @@ use crate::{
     },
     Index,
 };
+use rayon::prelude::*;
 use tracing::{debug, info};
 
 const TICK_PERIOD: f32 = 3.0 * DAYS_PER_MONTH; // 3 months
@@ -236,19 +237,20 @@ fn check_money(index: &mut Index) {
     );
 }
 
-pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32, mut vc: vergleich::Context) {
+pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32, _vc: vergleich::Context) {
     if INTER_SITE_TRADE {
         // move deliverables to recipient cities
         for (id, deliv) in index.trade.deliveries.drain() {
             index.sites.get_mut(id).economy.deliveries.extend(deliv);
         }
     }
-    for (site_id, site) in index.sites.iter_mut() {
+    index.sites.par_iter_mut().for_each(|(site_id, site)| {
         if site.do_economic_simulation() {
-            site.economy
-                .tick(site_id, dt, vc.context(&site_id.id().to_string()));
+            site.economy.tick(site_id, dt, vergleich::Context::dummy());
+            // helpful for debugging but not compatible with parallel execution
+            // vc.context(&site_id.id().to_string()));
         }
-    }
+    });
     if INTER_SITE_TRADE {
         // distribute orders (travelling merchants)
         for (_id, site) in index.sites.iter_mut() {
