@@ -169,7 +169,7 @@ impl Sub<Stats> for Stats {
             speed: self.speed - other.speed,
             crit_chance: self.crit_chance - other.crit_chance,
             range: self.range - other.range,
-            energy_efficiency: self.range - other.energy_efficiency,
+            energy_efficiency: self.energy_efficiency - other.energy_efficiency,
             buff_strength: self.buff_strength - other.buff_strength,
         }
     }

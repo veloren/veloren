@@ -122,7 +122,7 @@ pub fn stats_count(item: &dyn ItemDesc) -> usize {
                     + armor.stats.poise_resilience().is_some() as usize
             }
         },
-        ItemKind::Tool(_) => 4,
+        ItemKind::Tool(_) => 7,
         ItemKind::Consumable { effects, .. } => effects.len(),
         ItemKind::ModularComponent { .. } => 7,
         _ => 0,

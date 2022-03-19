@@ -12,6 +12,7 @@ use common::{
         item::{
             armor::{ArmorKind, Protection},
             item_key::ItemKey,
+            modular::ModularComponent,
             Item, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
         },
         Energy,
@@ -586,6 +587,9 @@ impl<'a> Widget for ItemTooltip<'a> {
                 let speed = tool.base_speed();
                 let effect_power = tool.base_effect_power() * 10.0;
                 let crit_chance = tool.base_crit_chance() * 100.0;
+                let range = tool.base_range();
+                let energy_efficiency = tool.base_energy_efficiency();
+                let buff_strength = tool.base_buff_strength();
                 let combat_rating = combat::weapon_rating(&item, self.msm) * 10.0;
 
                 // Combat Rating
@@ -663,8 +667,47 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.stats[2], V_PAD_STATS)
                 .set(state.ids.stats[3], ui);
 
+                // Range
+                widget::Text::new(&format!(
+                    "{} : {:+.0}%",
+                    i18n.get("common.stats.range"),
+                    (range - 1.0) * 100.0
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[3], V_PAD_STATS)
+                .set(state.ids.stats[4], ui);
+
+                // Energy Efficiency
+                widget::Text::new(&format!(
+                    "{} : {:+.0}%",
+                    i18n.get("common.stats.energy_efficiency"),
+                    (energy_efficiency - 1.0) * 100.0
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[4], V_PAD_STATS)
+                .set(state.ids.stats[5], ui);
+
+                // Buff Strength
+                widget::Text::new(&format!(
+                    "{} : {:+.0}%",
+                    i18n.get("common.stats.buff_strength"),
+                    (buff_strength - 1.0) * 100.0
+                ))
+                .graphics_for(id)
+                .parent(id)
+                .with_style(self.style.desc)
+                .color(text_color)
+                .down_from(state.ids.stats[5], V_PAD_STATS)
+                .set(state.ids.stats[6], ui);
+
                 if let Some(equipped_item) = first_equipped {
-                    if let ItemKind::Tool(equipped_tool) = equipped_item.kind() {
+                    if let ItemKind::Tool(equipped_tool) = &*equipped_item.kind() {
                         let tool_stats = tool.stats;
                         let equipped_tool_stats = equipped_tool.stats;
                         let diff = tool_stats - equipped_tool_stats;
@@ -679,6 +722,16 @@ impl<'a> Widget for ItemTooltip<'a> {
                         let crit_chance_diff = util::comparison(
                             tool_stats.crit_chance,
                             equipped_tool_stats.crit_chance,
+                        );
+                        let range_diff =
+                            util::comparison(tool_stats.range, equipped_tool_stats.range);
+                        let energy_efficiency_diff = util::comparison(
+                            tool_stats.energy_efficiency,
+                            equipped_tool_stats.energy_efficiency,
+                        );
+                        let buff_strength_diff = util::comparison(
+                            tool_stats.buff_strength,
+                            equipped_tool_stats.buff_strength,
                         );
                         let equipped_combat_rating =
                             combat::weapon_rating(&equipped_item, self.msm) * 10.0;
@@ -729,6 +782,26 @@ impl<'a> Widget for ItemTooltip<'a> {
                                 &diff.crit_chance * 100.0
                             );
                             diff_text(text, crit_chance_diff.1, 3)
+                        }
+                        if diff.range.abs() > f32::EPSILON {
+                            let text = format!("{} {:.1}%", &range_diff.0, &diff.range * 100.0);
+                            diff_text(text, range_diff.1, 4)
+                        }
+                        if diff.energy_efficiency.abs() > f32::EPSILON {
+                            let text = format!(
+                                "{} {:.1}%",
+                                &energy_efficiency_diff.0,
+                                &diff.energy_efficiency * 100.0
+                            );
+                            diff_text(text, energy_efficiency_diff.1, 5)
+                        }
+                        if diff.buff_strength.abs() > f32::EPSILON {
+                            let text = format!(
+                                "{} {:.1}%",
+                                &buff_strength_diff.0,
+                                &diff.buff_strength * 100.0
+                            );
+                            diff_text(text, buff_strength_diff.1, 6)
                         }
                     }
                 }
@@ -1099,19 +1172,26 @@ impl<'a> Widget for ItemTooltip<'a> {
             },
             ItemKind::ModularComponent(mc) => {
                 if let Some(stats) = mc.tool_stats(item.components(), self.msm) {
+                    let is_primary = matches!(mc, ModularComponent::ToolPrimaryComponent { .. });
+
                     // Power
-                    widget::Text::new(&format!(
-                        "{} : {:.1}",
-                        i18n.get("common.stats.power"),
-                        stats.power
-                    ))
-                    .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.item_frame, V_PAD)
-                    .set(state.ids.stats[0], ui);
+                    let power_text = if is_primary {
+                        format!("{} : {:.1}", i18n.get("common.stats.power"), stats.power)
+                    } else {
+                        format!(
+                            "{} : {:+.0}%",
+                            i18n.get("common.stats.power"),
+                            (stats.power - 1.0) * 100.0
+                        )
+                    };
+                    widget::Text::new(&power_text)
+                        .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.item_frame, V_PAD)
+                        .set(state.ids.stats[0], ui);
 
                     // Speed
                     widget::Text::new(&format!(
@@ -1129,34 +1209,52 @@ impl<'a> Widget for ItemTooltip<'a> {
                     // Effect Power
                     // TODO: Allow effect power to have different terminology based on what it is
                     // affecting.
-                    widget::Text::new(&format!(
-                        "{} : {:.1}",
-                        i18n.get("common.stats.poise"),
-                        stats.effect_power
-                    ))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.stats[1], V_PAD_STATS)
-                    .set(state.ids.stats[2], ui);
+                    let effect_power_text = if is_primary {
+                        format!(
+                            "{} : {:.1}",
+                            i18n.get("common.stats.poise"),
+                            stats.effect_power
+                        )
+                    } else {
+                        format!(
+                            "{} : {:+.0}%",
+                            i18n.get("common.stats.poise"),
+                            (stats.effect_power - 1.0) * 100.0
+                        )
+                    };
+                    widget::Text::new(&effect_power_text)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[1], V_PAD_STATS)
+                        .set(state.ids.stats[2], ui);
 
                     // Crit chance
-                    widget::Text::new(&format!(
-                        "{} : {:.1}%",
-                        i18n.get("common.stats.crit_chance"),
-                        stats.crit_chance
-                    ))
-                    .graphics_for(id)
-                    .parent(id)
-                    .with_style(self.style.desc)
-                    .color(text_color)
-                    .down_from(state.ids.stats[2], V_PAD_STATS)
-                    .set(state.ids.stats[3], ui);
+                    let crit_chance_text = if is_primary {
+                        format!(
+                            "{} : {:.1}%",
+                            i18n.get("common.stats.crit_chance"),
+                            stats.crit_chance * 100.0
+                        )
+                    } else {
+                        format!(
+                            "{} : {:+.0}%",
+                            i18n.get("common.stats.crit_chance"),
+                            (stats.crit_chance - 1.0) * 100.0
+                        )
+                    };
+                    widget::Text::new(&crit_chance_text)
+                        .graphics_for(id)
+                        .parent(id)
+                        .with_style(self.style.desc)
+                        .color(text_color)
+                        .down_from(state.ids.stats[2], V_PAD_STATS)
+                        .set(state.ids.stats[3], ui);
 
                     // Range
                     widget::Text::new(&format!(
-                        "{} : {:.1}%",
+                        "{} : {:+.0}%",
                         i18n.get("common.stats.range"),
                         (stats.range - 1.0) * 100.0
                     ))
@@ -1169,9 +1267,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                     // Energy Efficiency
                     widget::Text::new(&format!(
-                        "{} : {:.1}%",
+                        "{} : {:+.0}%",
                         i18n.get("common.stats.energy_efficiency"),
-                        stats.energy_efficiency
+                        (stats.energy_efficiency - 1.0) * 100.0
                     ))
                     .graphics_for(id)
                     .parent(id)
@@ -1182,9 +1280,9 @@ impl<'a> Widget for ItemTooltip<'a> {
 
                     // Buff Strength
                     widget::Text::new(&format!(
-                        "{} : {:.1}%",
+                        "{} : {:+.0}%",
                         i18n.get("common.stats.buff_strength"),
-                        stats.buff_strength
+                        (stats.buff_strength - 1.0) * 100.0
                     ))
                     .graphics_for(id)
                     .parent(id)
