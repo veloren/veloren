@@ -1098,19 +1098,101 @@ impl<'a> Widget for ItemTooltip<'a> {
                 }
             },
             ItemKind::ModularComponent(mc) => {
-                widget::Text::new(&util::modular_component_desc(
-                    mc,
-                    item.components(),
-                    self.msm,
-                    item.description(),
-                ))
-                .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
-                .graphics_for(id)
-                .parent(id)
-                .with_style(self.style.desc)
-                .color(text_color)
-                .down_from(state.ids.item_frame, V_PAD)
-                .set(state.ids.stats[0], ui);
+                if let Some(stats) = mc.tool_stats(item.components(), self.msm) {
+                    // Power
+                    widget::Text::new(&format!(
+                        "{} : {:.1}",
+                        i18n.get("common.stats.power"),
+                        stats.power
+                    ))
+                    .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.item_frame, V_PAD)
+                    .set(state.ids.stats[0], ui);
+
+                    // Speed
+                    widget::Text::new(&format!(
+                        "{} : {:+.0}%",
+                        i18n.get("common.stats.speed"),
+                        (stats.speed - 1.0) * 100.0
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[0], V_PAD_STATS)
+                    .set(state.ids.stats[1], ui);
+
+                    // Effect Power
+                    // TODO: Allow effect power to have different terminology based on what it is
+                    // affecting.
+                    widget::Text::new(&format!(
+                        "{} : {:.1}",
+                        i18n.get("common.stats.poise"),
+                        stats.effect_power
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[1], V_PAD_STATS)
+                    .set(state.ids.stats[2], ui);
+
+                    // Crit chance
+                    widget::Text::new(&format!(
+                        "{} : {:.1}%",
+                        i18n.get("common.stats.crit_chance"),
+                        stats.crit_chance
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[2], V_PAD_STATS)
+                    .set(state.ids.stats[3], ui);
+
+                    // Range
+                    widget::Text::new(&format!(
+                        "{} : {:.1}%",
+                        i18n.get("common.stats.range"),
+                        (stats.range - 1.0) * 100.0
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[3], V_PAD_STATS)
+                    .set(state.ids.stats[4], ui);
+
+                    // Energy Efficiency
+                    widget::Text::new(&format!(
+                        "{} : {:.1}%",
+                        i18n.get("common.stats.energy_efficiency"),
+                        stats.energy_efficiency
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[4], V_PAD_STATS)
+                    .set(state.ids.stats[5], ui);
+
+                    // Buff Strength
+                    widget::Text::new(&format!(
+                        "{} : {:.1}%",
+                        i18n.get("common.stats.buff_strength"),
+                        stats.buff_strength
+                    ))
+                    .graphics_for(id)
+                    .parent(id)
+                    .with_style(self.style.desc)
+                    .color(text_color)
+                    .down_from(state.ids.stats[5], V_PAD_STATS)
+                    .set(state.ids.stats[6], ui);
+                }
             },
             _ => (),
         }

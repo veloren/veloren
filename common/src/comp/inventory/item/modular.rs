@@ -237,6 +237,13 @@ impl ModularComponent {
             Self::ToolSecondaryComponent { stats, .. } => Some(*stats),
         }
     }
+
+    pub fn toolkind(&self) -> Option<ToolKind> {
+        match self {
+            Self::ToolPrimaryComponent { toolkind, .. }
+            | Self::ToolSecondaryComponent { toolkind, .. } => Some(*toolkind),
+        }
+    }
 }
 
 const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [

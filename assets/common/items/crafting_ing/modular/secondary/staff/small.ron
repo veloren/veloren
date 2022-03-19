@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Samll Fire Core",
+    name: "Small Fire Core",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
