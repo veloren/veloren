@@ -86,6 +86,7 @@ pub enum ChatCommand {
     PermitBuild,
     Players,
     Region,
+    ReloadChunks,
     RemoveLights,
     RevokeBuild,
     RevokeBuildAll,
@@ -531,6 +532,11 @@ impl ChatCommand {
                 Some(Admin),
             ),
             ChatCommand::Players => cmd(vec![], "Lists players currently online", None),
+            ChatCommand::ReloadChunks => cmd(
+                vec![],
+                "Reloads all chunks loaded on the server",
+                Some(Admin),
+            ),
             ChatCommand::RemoveLights => cmd(
                 vec![Float("radius", 20.0, Optional)],
                 "Removes all lights spawned by players",
@@ -715,6 +721,7 @@ impl ChatCommand {
             ChatCommand::PermitBuild => "permit_build",
             ChatCommand::Players => "players",
             ChatCommand::Region => "region",
+            ChatCommand::ReloadChunks => "reload_chunks",
             ChatCommand::RemoveLights => "remove_lights",
             ChatCommand::RevokeBuild => "revoke_build",
             ChatCommand::RevokeBuildAll => "revoke_build_all",

@@ -161,6 +161,7 @@ fn do_command(
         ChatCommand::PermitBuild => handle_permit_build,
         ChatCommand::Players => handle_players,
         ChatCommand::Region => handle_region,
+        ChatCommand::ReloadChunks => handle_reload_chunks,
         ChatCommand::RemoveLights => handle_remove_lights,
         ChatCommand::RevokeBuild => handle_revoke_build,
         ChatCommand::RevokeBuildAll => handle_revoke_build_all,
@@ -2966,6 +2967,18 @@ fn parse_skill_tree(skill_tree: &str) -> CmdResult<comp::skillset::SkillGroupKin
         "mining" => Ok(SkillGroupKind::Weapon(ToolKind::Pick)),
         _ => Err(format!("{} is not a skill group!", skill_tree)),
     }
+}
+
+fn handle_reload_chunks(
+    server: &mut Server,
+    _client: EcsEntity,
+    _target: EcsEntity,
+    _args: Vec<String>,
+    _action: &ChatCommand,
+) -> CmdResult<()> {
+    server.state.clear_terrain();
+
+    Ok(())
 }
 
 fn handle_remove_lights(
