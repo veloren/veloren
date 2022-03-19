@@ -501,7 +501,8 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<'_, ServerEvent>,
         rng: &mut impl Rng,
     ) {
-        agent.decrement_awareness(read_data.dt.0);
+        // TODO: Awareness currently doesn't influence anything.
+        //agent.decrement_awareness(read_data.dt.0);
 
         let small_chance = rng.gen_bool(0.1);
         // Set owner if no target
@@ -2152,6 +2153,11 @@ impl<'a> AgentData<'a> {
     ) {
         agent.forget_old_sounds(read_data.time.0);
 
+        if is_invulnerable(*self.entity, read_data) {
+            self.idle(agent, controller, read_data, rng);
+            return;
+        }
+
         if let Some(sound) = agent.sounds_heard.last() {
             let sound_pos = Pos(sound.pos);
             let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
@@ -2176,12 +2182,7 @@ impl<'a> AgentData<'a> {
             let follows_threatening_sounds = is_enemy || is_village_guard;
 
             // TODO: Awareness currently doesn't influence anything.
-            agent.awareness += 0.5 * sound.vol;
-
-            if is_invulnerable(*self.entity, read_data) {
-                self.idle(agent, controller, read_data, rng);
-                return;
-            }
+            //agent.awareness += 0.5 * sound.vol;
 
             if sound_was_threatening && is_close {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
