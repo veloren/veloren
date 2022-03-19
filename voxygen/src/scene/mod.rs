@@ -1070,17 +1070,23 @@ impl Scene {
         self.figure_mgr.clean(scene_data.tick);
 
         // Maintain audio
-        self.sfx_mgr.maintain(
-            audio,
-            scene_data.state,
-            scene_data.player_entity,
-            &self.camera,
-            &self.terrain,
-            client,
-        );
-        self.music_mgr.maintain(audio, scene_data.state, client);
-        self.ambient_mgr
-            .maintain(audio, scene_data.state, client, &self.camera);
+        if audio.sfx_enabled() {
+            self.sfx_mgr.maintain(
+                audio,
+                scene_data.state,
+                scene_data.player_entity,
+                &self.camera,
+                &self.terrain,
+                client,
+            );
+            self.ambient_mgr
+                .maintain(audio, scene_data.state, client, &self.camera);
+        }
+
+        if audio.music_enabled() {
+            self.music_mgr.maintain(audio, scene_data.state, client);
+        }
+
         // self.ambient_wind_mgr
         //     .maintain(audio, scene_data.state, client, &self.camera);
         // self.ambient_rain_mgr

@@ -48,68 +48,106 @@ impl AmbientMgr {
         let sfx_volume = audio.get_sfx_volume();
         // iterate through each tag
         for tag in AmbientChannelTag::iter() {
-            // iterate through the supposed number of channels - one for each tag
-            for index in 0..AmbientChannelTag::iter().len() {
-                // if index would exceed current number of channels, create a new one with
-                // current tag
-                if index >= audio.ambient_channels.len() {
-                    audio.new_ambient_channel(tag);
+            // check if current conditions necessitate the current tag at all
+            let should_create: bool = match tag {
+                AmbientChannelTag::Wind => self.check_wind_necessity(client, camera),
+                AmbientChannelTag::Rain => self.check_rain_necessity(client),
+            };
+            if should_create {
+                // iterate through the supposed number of channels - one for each tag
+                for index in 0..AmbientChannelTag::iter().len() {
+                    // if index would exceed current number of channels, create a new one with
+                    // current tag
+                    if index >= audio.ambient_channels.len() {
+                        audio.new_ambient_channel(tag);
+                    }
+                    // update with sfx volume
+                    audio.ambient_channels[index].set_volume(sfx_volume);
+                    // if current channel's tag is not the current tag, move on to next channel
+                    if audio.ambient_channels[index].get_tag() == tag {
+                        // maintain: get the correct multiplier of whatever the tag of the current
+                        // channel is
+                        let target_volume =
+                            audio.ambient_channels[index].maintain(state, client, camera);
+                        // get multiplier of the current channel
+                        let initial_volume = audio.ambient_channels[index].get_multiplier();
+
+                        // lerp multiplier of current channel
+                        audio.ambient_channels[index].set_multiplier(Lerp::lerp(
+                            initial_volume,
+                            target_volume,
+                            0.01,
+                        ));
+
+                        // set the duration of the loop to whatever the current value is (0.0 by
+                        // default)
+                        let next_track_change =
+                            audio.ambient_channels[index].get_next_track_change();
+
+                        // if the sound should loop at this point:
+                        if audio.ambient_channels[index]
+                            .get_began_playing()
+                            .elapsed()
+                            .as_secs_f32()
+                            > next_track_change
+                        {
+                            let ambience = self.ambience.read();
+                            let track = ambience.tracks.iter().find(|track| track.tag == tag);
+                            // set the track's start point at this instant
+                            audio.ambient_channels[index].set_began_playing(Instant::now());
+                            if let Some(track) = track {
+                                // set loop duration to the one specified in the ron
+                                audio.ambient_channels[index].set_next_track_change(track.length);
+                                // play the file of the current tag at the current multiplier
+                                let current_multiplier =
+                                    audio.ambient_channels[index].get_multiplier();
+                                audio.play_ambient(tag, &track.path, current_multiplier);
+                            }
+                        };
+
+                        // remove channel if not playing
+                        if audio.ambient_channels[index].get_multiplier() == 0.0 {
+                            audio.ambient_channels[index].stop();
+                            audio.ambient_channels.remove(index);
+                        };
+                        // move on to next tag
+                        break;
+                    } else {
+                        // channel tag and current tag don't match, move on to next channel
+                        continue;
+                    }
                 }
-                // update with sfx volume
-                audio.ambient_channels[index].set_volume(sfx_volume);
-                // if current channel's tag is not the current tag, move on to next channel
-                if audio.ambient_channels[index].get_tag() == tag {
-                    // maintain: get the correct multiplier of whatever the tag of the current
-                    // channel is
-                    let target_volume =
-                        audio.ambient_channels[index].maintain(state, client, camera);
-                    // get multiplier of the current channel
-                    let initial_volume = audio.ambient_channels[index].get_multiplier();
-
-                    // lerp multiplier of current channel
-                    audio.ambient_channels[index].set_multiplier(Lerp::lerp(
-                        initial_volume,
-                        target_volume,
-                        0.01,
-                    ));
-
-                    // set the duration of the loop to whatever the current value is (0.0 by
-                    // default)
-                    let next_track_change = audio.ambient_channels[index].get_next_track_change();
-
-                    // if the sound should loop at this point:
-                    if audio.ambient_channels[index]
-                        .get_began_playing()
-                        .elapsed()
-                        .as_secs_f32()
-                        > next_track_change
-                    {
-                        let ambience = self.ambience.read();
-                        let track = ambience.tracks.iter().find(|track| track.tag == tag);
-                        // set the track's start point at this instant
-                        audio.ambient_channels[index].set_began_playing(Instant::now());
-                        if let Some(track) = track {
-                            // set loop duration to the one specified in the ron
-                            audio.ambient_channels[index].set_next_track_change(track.length);
-                            // play the file of the current tag at the current multiplier
-                            let current_multiplier = audio.ambient_channels[index].get_multiplier();
-                            audio.play_ambient(tag, &track.path, current_multiplier);
-                        }
-                    };
-
-                    // remove channel if not playing
-                    if audio.ambient_channels[index].get_multiplier() == 0.0 {
-                        audio.ambient_channels[index].stop();
-                        audio.ambient_channels.remove(index);
-                    };
-                    // move on to next tag
-                    break;
-                } else {
-                    // channel tag and current tag don't match, move on to next channel
-                    continue;
-                }
+            } else {
+                // no need to run code at all, move on to the next tag
+                continue;
             }
         }
+    }
+
+    fn check_wind_necessity(&mut self, client: &Client, camera: &Camera) -> bool {
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
+        let cam_pos = camera.dependents().cam_pos + focus_off;
+
+        let (terrain_alt, tree_density) = if let Some(chunk) = client.current_chunk() {
+            (chunk.meta().alt(), chunk.meta().tree_density())
+        } else {
+            (0.0, 0.0)
+        };
+
+        // Wind volume increases with altitude
+        let alt_multiplier = (cam_pos.z / 1200.0).abs();
+
+        // Tree density factors into wind volume. The more trees,
+        // the lower wind volume. The trees make more of an impact
+        // the closer the camera is to the ground.
+        let tree_multiplier =
+            ((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0);
+
+        return alt_multiplier * tree_multiplier > 0.0;
+    }
+
+    fn check_rain_necessity(&mut self, client: &Client) -> bool {
+        client.current_weather().rain * 5.0 > 0.0
     }
 }
 
