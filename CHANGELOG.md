@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Players can no longer push waypoints around
 - Sites will now also be placed near the edge of the map
 - Fix a bug causing NPCs to jitter on interaction and randomly run away.
+- Harvester boss arenas should be more accessible and easier to exit
 
 ## [0.12.0] - 2022-02-19
 
