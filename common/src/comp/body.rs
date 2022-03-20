@@ -225,6 +225,13 @@ impl Body {
 
     pub fn is_campfire(&self) -> bool { matches!(self, Body::Object(object::Body::CampfireLit)) }
 
+    pub fn bleeds(&self) -> bool {
+        !matches!(
+            self,
+            Body::Object(_) | Body::Ship(_) | Body::ItemDrop(_) | Body::Golem(_)
+        )
+    }
+
     /// Average density of the body
     // Units are based on kg/m³
     pub fn density(&self) -> Density {

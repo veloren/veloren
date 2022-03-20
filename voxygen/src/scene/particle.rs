@@ -18,12 +18,13 @@ use common::{
     spiral::Spiral2d,
     states::{self, utils::StageSection},
     terrain::{Block, TerrainChunk, TerrainGrid},
+    uid::UidAllocator,
     vol::{ReadVol, RectRasterableVol, SizedVol},
 };
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
-use specs::{Join, WorldExt};
+use specs::{saveload::MarkerAllocator, Join, WorldExt};
 use std::{
     f32::consts::{PI, TAU},
     time::Duration,
@@ -218,10 +219,29 @@ impl ParticleMgr {
             },
             Outcome::ProjectileHit { pos, target, .. } => {
                 if target.is_some() {
-                    self.particles.resize_with(self.particles.len() + 30, || {
-                        Particle::new(Duration::from_millis(250), time, ParticleMode::Blood, *pos)
-                    });
-                }
+                    let ecs = scene_data.state.ecs();
+                    if target
+                        .and_then(|target| {
+                            ecs.read_resource::<UidAllocator>()
+                                .retrieve_entity_internal(target.0)
+                        })
+                        .and_then(|entity| {
+                            ecs.read_storage::<Body>()
+                                .get(entity)
+                                .map(|body| body.bleeds())
+                        })
+                        .unwrap_or(false)
+                    {
+                        self.particles.resize_with(self.particles.len() + 30, || {
+                            Particle::new(
+                                Duration::from_millis(250),
+                                time,
+                                ParticleMode::Blood,
+                                *pos,
+                            )
+                        })
+                    };
+                };
             },
             Outcome::Block { pos, parry, .. } => {
                 if *parry {
