@@ -2248,160 +2248,6 @@ impl Hud {
             }
         }
 
-        // Temporary Example Quest
-        let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
-        let show_intro = self.show.intro; // borrow check doesn't understand closures
-        if let Some(toggle_cursor_key) = global_state
-            .settings
-            .controls
-            .get_binding(GameInput::ToggleCursor)
-            .filter(|_| !show_intro)
-        {
-            prof_span!("temporary example quest");
-            match global_state.settings.interface.intro_show {
-                Intro::Show => {
-                    if Button::image(self.imgs.button)
-                        .w_h(200.0, 60.0)
-                        .hover_image(self.imgs.button_hover)
-                        .press_image(self.imgs.button_press)
-                        .bottom_left_with_margins_on(ui_widgets.window, 350.0, 150.0)
-                        .label(i18n.get("hud.tutorial_btn"))
-                        .label_font_id(self.fonts.cyri.conrod_id)
-                        .label_font_size(self.fonts.cyri.scale(18))
-                        .label_color(TEXT_COLOR)
-                        .label_y(conrod_core::position::Relative::Scalar(2.0))
-                        .image_color(ENEMY_HP_COLOR)
-                        .set(self.ids.intro_button, ui_widgets)
-                        .was_clicked()
-                    {
-                        self.show.intro = true;
-                        self.show.want_grab = true;
-                    }
-                    Image::new(self.imgs.sp_indicator_arrow)
-                        .w_h(20.0, 11.0)
-                        .mid_top_with_margin_on(self.ids.intro_button, -20.0 + arrow_ani as f64)
-                        .color(Some(QUALITY_LEGENDARY))
-                        .set(self.ids.tut_arrow, ui_widgets);
-                    Text::new(&i18n.get("hud.tutorial_click_here").replace(
-                        "{key}",
-                        toggle_cursor_key.display_string(key_layout).as_str(),
-                    ))
-                    .mid_top_with_margin_on(self.ids.tut_arrow, -40.0)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .center_justify()
-                    .color(BLACK)
-                    .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                    Text::new(&i18n.get("hud.tutorial_click_here").replace(
-                        "{key}",
-                        toggle_cursor_key.display_string(key_layout).as_str(),
-                    ))
-                    .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
-                    .center_justify()
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .color(QUALITY_LEGENDARY)
-                    .set(self.ids.tut_arrow_txt, ui_widgets);
-                },
-                Intro::Never => {
-                    self.show.intro = false;
-                },
-            }
-        }
-        // TODO: Add event/stat based tutorial system
-        if self.show.intro && !self.show.esc_menu {
-            prof_span!("intro show");
-            match global_state.settings.interface.intro_show {
-                Intro::Show => {
-                    if self.show.intro {
-                        self.show.want_grab = false;
-                        let quest_headline = i18n.get("hud.temp_quest_headline");
-                        let quest_text = i18n.get("hud.temp_quest_text");
-                        Image::new(self.imgs.quest_bg)
-                            .w_h(404.0, 858.0)
-                            .middle_of(ui_widgets.window)
-                            .set(self.ids.quest_bg, ui_widgets);
-
-                        Text::new(quest_headline)
-                            .mid_top_with_margin_on(self.ids.quest_bg, 310.0)
-                            .font_size(self.fonts.cyri.scale(30))
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_BG)
-                            .set(self.ids.q_headline_bg, ui_widgets);
-                        Text::new(quest_headline)
-                            .bottom_left_with_margins_on(self.ids.q_headline_bg, 1.0, 1.0)
-                            .font_size(self.fonts.cyri.scale(30))
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_COLOR)
-                            .set(self.ids.q_headline, ui_widgets);
-
-                        Text::new(quest_text)
-                            .mid_top_with_margin_on(self.ids.quest_bg, 360.0)
-                            .w(350.0)
-                            .font_size(self.fonts.cyri.scale(17))
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_BG)
-                            .set(self.ids.q_text_bg, ui_widgets);
-                        Text::new(quest_text)
-                            .bottom_left_with_margins_on(self.ids.q_text_bg, 1.0, 1.0)
-                            .w(350.0)
-                            .font_size(self.fonts.cyri.scale(17))
-                            .font_id(self.fonts.cyri.conrod_id)
-                            .color(TEXT_COLOR)
-                            .set(self.ids.q_text, ui_widgets);
-
-                        if Button::image(self.imgs.button)
-                            .w_h(212.0, 52.0)
-                            .hover_image(self.imgs.button_hover)
-                            .press_image(self.imgs.button_press)
-                            .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
-                            .label(i18n.get("common.close"))
-                            .label_font_id(self.fonts.cyri.conrod_id)
-                            .label_font_size(self.fonts.cyri.scale(22))
-                            .label_color(TEXT_COLOR)
-                            .label_y(conrod_core::position::Relative::Scalar(2.0))
-                            .set(self.ids.accept_button, ui_widgets)
-                            .was_clicked()
-                        {
-                            self.show.intro = false;
-                            events.push(Event::SettingsChange(
-                                InterfaceChange::Intro(Intro::Never).into(),
-                            ));
-                            self.show.want_grab = true;
-                        }
-                        if !self.show.crafting && !self.show.bag {
-                            Image::new(self.imgs.sp_indicator_arrow)
-                                .w_h(20.0, 11.0)
-                                .bottom_right_with_margins_on(
-                                    ui_widgets.window,
-                                    40.0 + arrow_ani as f64,
-                                    205.0,
-                                )
-                                .color(Some(QUALITY_LEGENDARY))
-                                .set(self.ids.tut_arrow, ui_widgets);
-                            Text::new(i18n.get("hud.tutorial_elements"))
-                                .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .font_size(self.fonts.cyri.scale(40))
-                                .color(BLACK)
-                                .floating(true)
-                                .set(self.ids.tut_arrow_txt_bg, ui_widgets);
-                            Text::new(i18n.get("hud.tutorial_elements"))
-                                .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
-                                .font_id(self.fonts.cyri.conrod_id)
-                                .font_size(self.fonts.cyri.scale(40))
-                                .color(QUALITY_LEGENDARY)
-                                .floating(true)
-                                .set(self.ids.tut_arrow_txt, ui_widgets);
-                        }
-                    }
-                },
-                Intro::Never => {
-                    self.show.intro = false;
-                },
-            }
-        }
-
         // Display debug window.
         // TODO:
         // Make it use i18n keys.
@@ -3818,6 +3664,160 @@ impl Hud {
             }
         }
         self.hotbar.maintain_abilities(client);
+
+        // Temporary Example Quest
+        let arrow_ani = (self.pulse * 4.0/* speed factor */).cos() * 0.5 + 0.8; //Animation timer
+        let show_intro = self.show.intro; // borrow check doesn't understand closures
+        if let Some(toggle_cursor_key) = global_state
+            .settings
+            .controls
+            .get_binding(GameInput::ToggleCursor)
+            .filter(|_| !show_intro)
+        {
+            prof_span!("temporary example quest");
+            match global_state.settings.interface.intro_show {
+                Intro::Show => {
+                    if Button::image(self.imgs.button)
+                        .w_h(200.0, 60.0)
+                        .hover_image(self.imgs.button_hover)
+                        .press_image(self.imgs.button_press)
+                        .bottom_left_with_margins_on(ui_widgets.window, 350.0, 150.0)
+                        .label(i18n.get("hud.tutorial_btn"))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .label_font_size(self.fonts.cyri.scale(18))
+                        .label_color(TEXT_COLOR)
+                        .label_y(conrod_core::position::Relative::Scalar(2.0))
+                        .image_color(ENEMY_HP_COLOR)
+                        .set(self.ids.intro_button, ui_widgets)
+                        .was_clicked()
+                    {
+                        self.show.intro = true;
+                        self.show.want_grab = true;
+                    }
+                    Image::new(self.imgs.sp_indicator_arrow)
+                        .w_h(20.0, 11.0)
+                        .mid_top_with_margin_on(self.ids.intro_button, -20.0 + arrow_ani as f64)
+                        .color(Some(QUALITY_LEGENDARY))
+                        .set(self.ids.tut_arrow, ui_widgets);
+                    Text::new(&i18n.get("hud.tutorial_click_here").replace(
+                        "{key}",
+                        toggle_cursor_key.display_string(key_layout).as_str(),
+                    ))
+                    .mid_top_with_margin_on(self.ids.tut_arrow, -40.0)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .center_justify()
+                    .color(BLACK)
+                    .set(self.ids.tut_arrow_txt_bg, ui_widgets);
+                    Text::new(&i18n.get("hud.tutorial_click_here").replace(
+                        "{key}",
+                        toggle_cursor_key.display_string(key_layout).as_str(),
+                    ))
+                    .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
+                    .center_justify()
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .color(QUALITY_LEGENDARY)
+                    .set(self.ids.tut_arrow_txt, ui_widgets);
+                },
+                Intro::Never => {
+                    self.show.intro = false;
+                },
+            }
+        }
+        // TODO: Add event/stat based tutorial system
+        if self.show.intro && !self.show.esc_menu {
+            prof_span!("intro show");
+            match global_state.settings.interface.intro_show {
+                Intro::Show => {
+                    if self.show.intro {
+                        self.show.want_grab = false;
+                        let quest_headline = i18n.get("hud.temp_quest_headline");
+                        let quest_text = i18n.get("hud.temp_quest_text");
+                        Image::new(self.imgs.quest_bg)
+                            .w_h(404.0, 858.0)
+                            .middle_of(ui_widgets.window)
+                            .set(self.ids.quest_bg, ui_widgets);
+
+                        Text::new(quest_headline)
+                            .mid_top_with_margin_on(self.ids.quest_bg, 310.0)
+                            .font_size(self.fonts.cyri.scale(30))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_BG)
+                            .set(self.ids.q_headline_bg, ui_widgets);
+                        Text::new(quest_headline)
+                            .bottom_left_with_margins_on(self.ids.q_headline_bg, 1.0, 1.0)
+                            .font_size(self.fonts.cyri.scale(30))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(self.ids.q_headline, ui_widgets);
+
+                        Text::new(quest_text)
+                            .mid_top_with_margin_on(self.ids.quest_bg, 360.0)
+                            .w(350.0)
+                            .font_size(self.fonts.cyri.scale(17))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_BG)
+                            .set(self.ids.q_text_bg, ui_widgets);
+                        Text::new(quest_text)
+                            .bottom_left_with_margins_on(self.ids.q_text_bg, 1.0, 1.0)
+                            .w(350.0)
+                            .font_size(self.fonts.cyri.scale(17))
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .color(TEXT_COLOR)
+                            .set(self.ids.q_text, ui_widgets);
+
+                        if Button::image(self.imgs.button)
+                            .w_h(212.0, 52.0)
+                            .hover_image(self.imgs.button_hover)
+                            .press_image(self.imgs.button_press)
+                            .mid_bottom_with_margin_on(self.ids.q_text_bg, -80.0)
+                            .label(i18n.get("common.close"))
+                            .label_font_id(self.fonts.cyri.conrod_id)
+                            .label_font_size(self.fonts.cyri.scale(22))
+                            .label_color(TEXT_COLOR)
+                            .label_y(conrod_core::position::Relative::Scalar(2.0))
+                            .set(self.ids.accept_button, ui_widgets)
+                            .was_clicked()
+                        {
+                            self.show.intro = false;
+                            events.push(Event::SettingsChange(
+                                InterfaceChange::Intro(Intro::Never).into(),
+                            ));
+                            self.show.want_grab = true;
+                        }
+                        if !self.show.crafting && !self.show.bag {
+                            Image::new(self.imgs.sp_indicator_arrow)
+                                .w_h(20.0, 11.0)
+                                .bottom_right_with_margins_on(
+                                    ui_widgets.window,
+                                    40.0 + arrow_ani as f64,
+                                    205.0,
+                                )
+                                .color(Some(QUALITY_LEGENDARY))
+                                .set(self.ids.tut_arrow, ui_widgets);
+                            Text::new(i18n.get("hud.tutorial_elements"))
+                                .mid_top_with_margin_on(self.ids.tut_arrow, -50.0)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .font_size(self.fonts.cyri.scale(40))
+                                .color(BLACK)
+                                .floating(true)
+                                .set(self.ids.tut_arrow_txt_bg, ui_widgets);
+                            Text::new(i18n.get("hud.tutorial_elements"))
+                                .bottom_right_with_margins_on(self.ids.tut_arrow_txt_bg, 1.0, 1.0)
+                                .font_id(self.fonts.cyri.conrod_id)
+                                .font_size(self.fonts.cyri.scale(40))
+                                .color(QUALITY_LEGENDARY)
+                                .floating(true)
+                                .set(self.ids.tut_arrow_txt, ui_widgets);
+                        }
+                    }
+                },
+                Intro::Never => {
+                    self.show.intro = false;
+                },
+            }
+        }
 
         events
     }
