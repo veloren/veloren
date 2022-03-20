@@ -163,6 +163,8 @@ impl MusicChannel {
 pub enum AmbientChannelTag {
     Wind,
     Rain,
+    Thunder,
+    Leaves,
 }
 /// A AmbientChannel uses a non-positional audio sink designed to play sounds
 /// which are always heard at the camera's position.
