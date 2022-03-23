@@ -22,6 +22,7 @@ pub enum Audio {
     AdjustInactiveMasterVolume(f32),
     AdjustMusicVolume(f32),
     AdjustSfxVolume(f32),
+    AdjustAmbienceVolume(f32),
     //ChangeAudioDevice(String),
     ResetAudioSettings,
 }
@@ -201,6 +202,11 @@ impl SettingsChange {
                         global_state.audio.set_sfx_volume(sfx_volume);
 
                         settings.audio.sfx_volume = sfx_volume;
+                    },
+                    Audio::AdjustAmbienceVolume(ambience_volume) => {
+                        global_state.audio.set_ambience_volume(ambience_volume);
+
+                        settings.audio.ambience_volume = ambience_volume;
                     },
                     //Audio::ChangeAudioDevice(name) => {
                     //    global_state.audio.set_device(name.clone());

@@ -1103,6 +1103,9 @@ impl Scene {
                 &self.terrain,
                 client,
             );
+        }
+
+        if audio.ambience_enabled() {
             self.ambient_mgr
                 .maintain(audio, scene_data.state, client, &self.camera);
         }
@@ -1110,11 +1113,6 @@ impl Scene {
         if audio.music_enabled() {
             self.music_mgr.maintain(audio, scene_data.state, client);
         }
-
-        // self.ambient_wind_mgr
-        //     .maintain(audio, scene_data.state, client, &self.camera);
-        // self.ambient_rain_mgr
-        //     .maintain(audio, scene_data.state, client, &self.camera);
     }
 
     pub fn global_bind_group(&self) -> &GlobalsBindGroup { &self.globals_bind_group }

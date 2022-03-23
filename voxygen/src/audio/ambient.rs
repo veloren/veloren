@@ -45,7 +45,7 @@ impl AmbientMgr {
         client: &Client,
         camera: &Camera,
     ) {
-        let sfx_volume = audio.get_sfx_volume();
+        let ambience_volume = audio.get_ambience_volume();
         // iterate through each tag
         for tag in AmbientChannelTag::iter() {
             // check if current conditions necessitate the current tag at all
@@ -72,7 +72,7 @@ impl AmbientMgr {
             } else if audio.get_ambient_channel(tag).is_some() {
                 for index in 0..AmbientChannelTag::iter().len() {
                     // update with sfx volume
-                    audio.ambient_channels[index].set_volume(sfx_volume);
+                    audio.ambient_channels[index].set_volume(ambience_volume);
                     // if current channel's tag is not the current tag, move on to next channel
                     if audio.ambient_channels[index].get_tag() == tag {
                         // maintain: get the correct multiplier of whatever the tag of the current
@@ -157,7 +157,7 @@ impl AmbientMgr {
     }
 
     fn check_rain_necessity(&mut self, client: &Client) -> bool {
-        client.current_weather().rain * 500.0 > 0.0
+        client.current_weather().rain > 0.001
     }
 
     fn check_thunder_necessity(&mut self, client: &Client) -> bool {
@@ -173,12 +173,9 @@ impl AmbientMgr {
         } else {
             (0.0, 0.0)
         };
-
-        // Tree density factors into wind volume. The more trees,
-        // the lower wind volume. The trees make more of an impact
-        // the closer the camera is to the ground.
-        let tree_multiplier =
-            1.0 - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2)).min(1.0));
+        let tree_multiplier = 1.0
+            - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2))
+                .min(1.0));
 
         return tree_multiplier > 0.1;
     }
@@ -202,7 +199,6 @@ impl AmbientChannel {
             AmbientChannelTag::Leaves => self.get_leaves_volume(client, camera),
         };
 
-        // TODO: make rain diminish with distance above terrain
         target_volume = self.check_camera(state, client, cam_pos, target_volume);
 
         return target_volume;
@@ -271,9 +267,10 @@ impl AmbientChannel {
     fn get_rain_volume(&mut self, client: &Client) -> f32 {
         // multipler at end will have to change depending on how intense rain normally
         // is
+        // TODO: make rain diminish with distance above terrain
         let rain_intensity = client.current_weather().rain * 500.0;
 
-        return rain_intensity;
+        return rain_intensity.min(0.9);
     }
 
     fn get_thunder_volume(&mut self, client: &Client) -> f32 {
@@ -296,11 +293,12 @@ impl AmbientChannel {
             (0.0, 0.0)
         };
 
-        // Tree density factors into wind volume. The more trees,
-        // the lower wind volume. The trees make more of an impact
-        // the closer the camera is to the ground.
-        let tree_multiplier =
-            1.0 - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2)).min(1.0));
+        // Tree density factors into leaves volume. The more trees,
+        // the higher volume. The trees make more of an impact
+        // the closer the camera is to the ground
+        let tree_multiplier = 1.0
+            - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2))
+                .min(1.0));
 
         if tree_multiplier > 0.1 {
             tree_multiplier

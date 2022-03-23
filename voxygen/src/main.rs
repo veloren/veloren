@@ -233,6 +233,7 @@ fn main() {
     audio.set_master_volume(settings.audio.master_volume);
     audio.set_music_volume(settings.audio.music_volume);
     audio.set_sfx_volume(settings.audio.sfx_volume);
+    audio.set_ambience_volume(settings.audio.ambience_volume);
 
     // Load the profile.
     let profile = Profile::load(&config_dir);

@@ -47,6 +47,7 @@ pub struct AudioFrontend {
     pub sfx_channels: Vec<SfxChannel>,
     pub ui_channels: Vec<UIChannel>,
     pub sfx_volume: f32,
+    pub ambience_volume: f32,
     pub music_volume: f32,
     pub master_volume: f32,
     pub listener: Listener,
@@ -101,6 +102,7 @@ impl AudioFrontend {
             ui_channels,
             ambient_channels: Vec::new(),
             sfx_volume: 1.0,
+            ambience_volume: 1.0,
             music_volume: 1.0,
             master_volume: 1.0,
             listener: Listener::default(),
@@ -131,6 +133,7 @@ impl AudioFrontend {
             ui_channels: Vec::new(),
             ambient_channels: Vec::new(),
             sfx_volume: 1.0,
+            ambience_volume: 1.0,
             music_volume: 1.0,
             master_volume: 1.0,
             listener: Listener::default(),
@@ -462,10 +465,15 @@ impl AudioFrontend {
     // this retrieves the current setting for sfx volume
     pub fn get_sfx_volume(&self) -> f32 { self.sfx_volume * self.master_volume }
 
+    // this retrieves the current setting for ambience volume
+    pub fn get_ambience_volume(&self) -> f32 { self.ambience_volume * self.master_volume }
+
     // this retrieves the current setting for music volume
     pub fn get_music_volume(&self) -> f32 { self.music_volume * self.master_volume }
 
     pub fn sfx_enabled(&self) -> bool { self.get_sfx_volume() > 0.0 }
+
+    pub fn ambience_enabled(&self) -> bool { self.get_ambience_volume() > 0.0 }
 
     pub fn music_enabled(&self) -> bool { self.get_music_volume() > 0.0 }
 
@@ -473,6 +481,14 @@ impl AudioFrontend {
         self.sfx_volume = sfx_volume;
 
         self.update_sfx_volumes();
+    }
+
+    pub fn set_ambience_volume(&mut self, ambience_volume: f32) {
+        self.ambience_volume = ambience_volume;
+
+        for channel in self.ambient_channels.iter_mut() {
+            channel.set_volume(ambience_volume)
+        }
     }
 
     pub fn set_music_volume(&mut self, music_volume: f32) {
@@ -498,10 +514,6 @@ impl AudioFrontend {
     fn update_sfx_volumes(&mut self) {
         let sfx_volume = self.get_sfx_volume();
         for channel in self.sfx_channels.iter_mut() {
-            channel.set_volume(sfx_volume);
-        }
-
-        for channel in self.ambient_channels.iter_mut() {
             channel.set_volume(sfx_volume);
         }
     }

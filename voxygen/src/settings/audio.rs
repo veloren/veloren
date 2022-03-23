@@ -25,6 +25,7 @@ pub struct AudioSettings {
     pub inactive_master_volume_perc: f32,
     pub music_volume: f32,
     pub sfx_volume: f32,
+    pub ambience_volume: f32,
     pub num_sfx_channels: usize,
     pub num_ui_channels: usize,
 
@@ -39,6 +40,7 @@ impl Default for AudioSettings {
             inactive_master_volume_perc: 0.5,
             music_volume: 0.3,
             sfx_volume: 0.6,
+            ambience_volume: 0.6,
             num_sfx_channels: 60,
             num_ui_channels: 10,
             output: AudioOutput::Automatic,

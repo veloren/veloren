@@ -175,16 +175,16 @@ impl SessionState {
         self.scene
             .maintain_debug_hitboxes(&client, &global_state.settings, &mut self.hitboxes);
 
-        // All this camera code is just to determine if it's underwater for the sfx filter
+        // All this camera code is just to determine if it's underwater for the sfx
+        // filter
         let camera = self.scene.camera_mut();
         camera.compute_dependents(&*client.state().terrain());
-        let camera::Dependents {
-            cam_pos, ..
-        } = self.scene.camera().dependents();
+        let camera::Dependents { cam_pos, .. } = self.scene.camera().dependents();
         let focus_pos = self.scene.camera().get_focus_pos();
         let focus_off = focus_pos.map(|e| e.trunc());
         let cam_pos = cam_pos + focus_off;
-        let underwater = client.state()
+        let underwater = client
+            .state()
             .terrain()
             .get(cam_pos.map(|e| e.floor() as i32))
             .map(|b| b.is_liquid())
@@ -262,7 +262,7 @@ impl SessionState {
                     let sfx_trigger_item = sfx_triggers.get_key_value(&SfxEvent::from(&inv_event));
 
                     match inv_event {
-                        InventoryUpdateEvent::Dropped 
+                        InventoryUpdateEvent::Dropped
                         | InventoryUpdateEvent::Swapped
                         | InventoryUpdateEvent::Given
                         | InventoryUpdateEvent::Collected(_)
@@ -272,13 +272,14 @@ impl SessionState {
                             global_state
                                 .audio
                                 .emit_sfx_item(sfx_trigger_item, Some(1.0));
-
-                        }
-                        _ => global_state
-                                .audio
-                                .emit_sfx(sfx_trigger_item, client.position().unwrap_or_default(), Some(1.0), underwater)
+                        },
+                        _ => global_state.audio.emit_sfx(
+                            sfx_trigger_item,
+                            client.position().unwrap_or_default(),
+                            Some(1.0),
+                            underwater,
+                        ),
                     }
-
 
                     match inv_event {
                         InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
