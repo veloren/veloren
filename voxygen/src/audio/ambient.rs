@@ -57,14 +57,11 @@ impl AmbientMgr {
             };
             // if the conditions warrant creating a channel of that tag
             if should_create && audio.get_ambient_channel(tag).is_none() {
-                println!("No audio channel with this tag: {:?}", tag);
                 // iterate through the supposed number of channels - one for each tag
                 for index in 0..AmbientChannelTag::iter().len() {
-                    println!("Iter on channel index {:?}", index);
                     // if index would exceed current number of channels, create a new one with
                     // current tag
                     if index >= audio.ambient_channels.len() {
-                        println!("Creating audio channel with this tag: {:?}", tag);
                         audio.new_ambient_channel(tag);
                         break;
                     }
@@ -73,10 +70,6 @@ impl AmbientMgr {
                 // channel with that tag, but a channel with
                 // that tag remains nonetheless, run the code
             } else if audio.get_ambient_channel(tag).is_some() {
-                println!(
-                    "Channel for {:?} is actually present, performing volume code",
-                    tag
-                );
                 for index in 0..AmbientChannelTag::iter().len() {
                     // update with sfx volume
                     audio.ambient_channels[index].set_volume(sfx_volume);
@@ -124,11 +117,6 @@ impl AmbientMgr {
 
                         // remove channel if not playing
                         if audio.ambient_channels[index].get_multiplier() == 0.0 {
-                            println!(
-                                "Removing channel {:?} with tag {:?}",
-                                index,
-                                audio.ambient_channels[index].get_tag()
-                            );
                             audio.ambient_channels[index].stop();
                             audio.ambient_channels.remove(index);
                         };
@@ -189,10 +177,10 @@ impl AmbientMgr {
         // Tree density factors into wind volume. The more trees,
         // the lower wind volume. The trees make more of an impact
         // the closer the camera is to the ground.
-        let tree_multiplier = 1.0
-            - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0));
+        let tree_multiplier =
+            1.0 - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2)).min(1.0));
 
-        return tree_multiplier > 0.05;
+        return tree_multiplier > 0.1;
     }
 }
 
@@ -311,10 +299,10 @@ impl AmbientChannel {
         // Tree density factors into wind volume. The more trees,
         // the lower wind volume. The trees make more of an impact
         // the closer the camera is to the ground.
-        let tree_multiplier = 1.0
-            - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0));
+        let tree_multiplier =
+            1.0 - (((1.0 - tree_density) + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2)).min(1.0));
 
-        if tree_multiplier > 0.05 {
+        if tree_multiplier > 0.1 {
             tree_multiplier
         } else {
             0.0

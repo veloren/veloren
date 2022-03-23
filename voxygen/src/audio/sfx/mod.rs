@@ -296,6 +296,7 @@ pub enum SfxInventoryEvent {
     Dropped,
     Given,
     Swapped,
+    Craft,
 }
 
 // TODO Move to a separate event mapper?
@@ -328,6 +329,7 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
             InventoryUpdateEvent::Dropped => SfxEvent::Inventory(SfxInventoryEvent::Dropped),
             InventoryUpdateEvent::Given => SfxEvent::Inventory(SfxInventoryEvent::Given),
             InventoryUpdateEvent::Swapped => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
+            InventoryUpdateEvent::Craft => SfxEvent::Inventory(SfxInventoryEvent::Craft),
             _ => SfxEvent::Inventory(SfxInventoryEvent::Swapped),
         }
     }
