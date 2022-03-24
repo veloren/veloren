@@ -21,7 +21,7 @@ impl GiantTree {
         let wpos = site.tile_center_wpos(center_tile);
         Self {
             name: format!("Tree of {}", NameGen::location(rng).generate()),
-            // Find the tree's altitude
+            // Get the tree's altitude
             wpos: wpos.with_z(land.get_alt_approx(wpos) as i32),
             tree: {
                 let config = TreeConfig::giant(rng, 4.0, true);
@@ -48,17 +48,17 @@ impl Structure for GiantTree {
             light,
             fast_noise.get((self.wpos.map(|e| e as f64) * 0.05) * 0.5 + 0.5),
         );
-        self.tree.walk(|branch, _| {
+        self.tree.walk(|branch, parent| {
             let aabr = Aabr {
                 min: self.wpos.xy() + branch.get_aabb().min.xy().as_(),
                 max: self.wpos.xy() + branch.get_aabb().max.xy().as_(),
             };
             if aabr.collides_with_aabr(painter.render_aabr().as_()) {
-                // TODO : Migrate to using Painter#line() instead
                 painter
-                    .line(
+                    .line_two_radius(
                         self.wpos + branch.get_line().start.as_(),
                         self.wpos + branch.get_line().end.as_(),
+                        parent.get_wood_radius(),
                         branch.get_wood_radius(),
                     )
                     .fill(Fill::Block(Block::new(
@@ -67,9 +67,10 @@ impl Structure for GiantTree {
                     )));
                 if branch.get_leaf_radius() > branch.get_wood_radius() {
                     painter
-                        .line(
+                        .line_two_radius(
                             self.wpos + branch.get_line().start.as_(),
                             self.wpos + branch.get_line().end.as_(),
+                            parent.get_leaf_radius(),
                             branch.get_leaf_radius(),
                         )
                         .fill(Fill::Block(Block::new(
