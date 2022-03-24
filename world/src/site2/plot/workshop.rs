@@ -3,7 +3,10 @@ use crate::{
     util::{RandomField, Sampler},
     Land,
 };
-use common::terrain::{Block, BlockKind, SpriteKind};
+use common::{
+    generation::EntityInfo,
+    terrain::{Block, BlockKind, SpriteKind},
+};
 use rand::prelude::*;
 use vek::*;
 
@@ -134,5 +137,10 @@ impl Structure for Workshop {
                 painter.sprite(position.with_z(base), cr_station);
             }
         }
+
+        painter.spawn(
+            EntityInfo::at(self.bounds.center().with_z(base).map(|e| e as f32 + 0.5))
+                .into_waypoint(),
+        );
     }
 }

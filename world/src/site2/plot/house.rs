@@ -1,5 +1,9 @@
 use super::*;
-use crate::{site2::util::Dir, Land};
+use crate::{
+    site2::util::Dir,
+    util::{RandomField, Sampler, DIRS},
+    Land,
+};
 use common::terrain::{Block, BlockKind, SpriteKind};
 use rand::prelude::*;
 use vek::*;
@@ -1529,6 +1533,100 @@ impl Structure for House {
                 painter.fill(
                     floor,
                     Fill::Block(Block::new(BlockKind::Rock, Rgb::new(89, 44, 14))),
+                );
+            }
+
+            // interior furniture sprites
+            let base = alt + (storey * (i as i32 - 1)).max(0);
+            if i % 2 == 0 {
+                // bedroom on even-leveled floors
+                let bed_pos = match self.front {
+                    1 => Vec2::new(half_x, quarter_y),
+                    2 => Vec2::new(three_quarter_x, half_y),
+                    _ => Vec2::new(half_x, half_y),
+                };
+                let nightstand_pos = Vec2::new(bed_pos.x + 2, bed_pos.y + 1);
+                painter.sprite(bed_pos.with_z(base), SpriteKind::Bed);
+                // drawer next to bed
+                painter.sprite(nightstand_pos.with_z(base), SpriteKind::DrawerSmall);
+                // collectible on top of drawer
+                let rng = RandomField::new(0).get(nightstand_pos.with_z(base + 1));
+                painter.sprite(nightstand_pos.with_z(base + 1), match rng % 5 {
+                    0 => SpriteKind::Lantern,
+                    1 => SpriteKind::PotionMinor,
+                    2 => SpriteKind::VialEmpty,
+                    3 => SpriteKind::Bowl,
+                    _ => SpriteKind::Empty,
+                });
+                // wardrobe along wall in corner of the room
+                let (wardrobe_pos, drawer_ori) = match self.front {
+                    0 => (Vec2::new(self.bounds.max.x - 2, self.bounds.min.y + 1), 4),
+                    1 => (Vec2::new(self.bounds.min.x + 6, self.bounds.max.y - 1), 0),
+                    2 => (Vec2::new(self.bounds.min.x + 2, self.bounds.max.y - 1), 0),
+                    _ => (Vec2::new(self.bounds.max.x - 6, self.bounds.max.y - 1), 0),
+                };
+                painter.rotated_sprite(
+                    wardrobe_pos.with_z(base),
+                    SpriteKind::WardrobeDouble,
+                    drawer_ori,
+                );
+            } else {
+                // living room with table + chairs + random
+                for dir in DIRS {
+                    // random accent pieces and loot
+                    let sprite_pos = self.bounds.center() + dir * 5;
+                    let rng = RandomField::new(0).get(sprite_pos.with_z(base));
+                    painter.sprite(sprite_pos.with_z(base), match rng % 32 {
+                        0..=2 => SpriteKind::Crate,
+                        3..=4 => SpriteKind::CoatRack,
+                        5..=7 => SpriteKind::Pot,
+                        8..=9 => SpriteKind::Lantern,
+                        _ => SpriteKind::Empty,
+                    });
+                }
+
+                if self.bounds.max.x - self.bounds.min.x < 16
+                    || self.bounds.max.y - self.bounds.min.y < 16
+                {
+                    let table_pos = Vec2::new(half_x, half_y);
+                    // room is smaller, so use small table
+                    painter.sprite(table_pos.with_z(base), SpriteKind::TableDining);
+                    for (idx, dir) in CARDINALS.iter().enumerate() {
+                        let chair_pos = table_pos + dir;
+                        painter.rotated_sprite(
+                            chair_pos.with_z(base),
+                            SpriteKind::ChairSingle,
+                            (idx * 2 + ((idx % 2) * 4)) as u8,
+                        );
+                    }
+                } else {
+                    // room is bigger, so use large table + chair positions
+                    let table_pos = match self.front {
+                        0 => Vec2::new(half_x, three_quarter_y),
+                        1 => Vec2::new(half_x, half_y),
+                        _ => Vec2::new(quarter_x, half_y),
+                    };
+                    painter.sprite(table_pos.with_z(base), SpriteKind::TableDouble);
+                    for (idx, dir) in CARDINALS.iter().enumerate() {
+                        let chair_pos = table_pos + dir * (1 + idx % 2) as i32;
+                        painter.rotated_sprite(
+                            chair_pos.with_z(base),
+                            SpriteKind::ChairSingle,
+                            (idx * 2 + ((idx % 2) * 4)) as u8,
+                        );
+                    }
+                }
+                // drawer along a wall
+                let (drawer_pos, drawer_ori) = match self.front {
+                    0 => (Vec2::new(self.bounds.max.x - 1, self.bounds.max.y - 2), 6),
+                    1 => (Vec2::new(self.bounds.max.x - 2, self.bounds.max.y - 1), 0),
+                    2 => (Vec2::new(self.bounds.max.x - 1, self.bounds.min.y + 2), 6),
+                    _ => (Vec2::new(self.bounds.min.x + 2, self.bounds.max.y - 1), 0),
+                };
+                painter.rotated_sprite(
+                    drawer_pos.with_z(base),
+                    SpriteKind::DrawerLarge,
+                    drawer_ori,
                 );
             }
 
