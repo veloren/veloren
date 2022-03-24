@@ -52,10 +52,12 @@ pub enum Primitive {
         degree: f32,
     },
     Plane(Aabr<i32>, Vec3<i32>, Vec2<f32>),
-    /// A line segment from start to finish point with a given radius
+    /// A line segment from start to finish point with a given radius for both
+    /// points
     Segment {
         segment: LineSegment3<f32>,
-        radius: f32,
+        r0: f32,
+        r1: f32,
     },
     /// A prism created by projecting a line segment with a given radius along
     /// the z axis up to a provided height
@@ -117,10 +119,11 @@ impl std::fmt::Debug for Primitive {
                 .field(&origin)
                 .field(&gradient)
                 .finish(),
-            Primitive::Segment { segment, radius } => f
+            Primitive::Segment { segment, r0, r1 } => f
                 .debug_tuple("Segment")
                 .field(&segment)
-                .field(&radius)
+                .field(&r0)
+                .field(&r1)
                 .finish(),
             Primitive::SegmentPrism {
                 segment,
@@ -333,8 +336,13 @@ impl Fill {
                                 .as_()
                                 .dot(*gradient) as i32)
             },
-            Primitive::Segment { segment, radius } => {
-                segment.distance_to_point(pos.map(|e| e as f32)) < radius - 0.25
+            // TODO: Aabb calculation could be improved here by only considering the relevant radius
+            Primitive::Segment { segment, r0, r1 } => {
+                let distance = segment.end - segment.start;
+                let length = pos - segment.start.as_();
+                let t =
+                    (length.as_().dot(distance) / distance.magnitude_squared()).clamped(0.0, 1.0);
+                segment.distance_to_point(pos.map(|e| e as f32)) < Lerp::lerp(r0, r1, t) - 0.25
             },
             Primitive::SegmentPrism {
                 segment,
@@ -507,15 +515,15 @@ impl Fill {
                 };
                 vec![aabb.made_valid()]
             },
-            Primitive::Segment { segment, radius } => {
+            Primitive::Segment { segment, r0, r1 } => {
                 let aabb = Aabb {
                     min: segment.start,
                     max: segment.end,
                 }
                 .made_valid();
                 vec![Aabb {
-                    min: (aabb.min - *radius).floor().as_(),
-                    max: (aabb.max + *radius).ceil().as_(),
+                    min: (aabb.min - r0.max(*r1)).floor().as_(),
+                    max: (aabb.max + r0.max(*r1)).ceil().as_(),
                 }]
             },
             Primitive::SegmentPrism {
@@ -815,7 +823,27 @@ impl Painter {
                 start: a.as_(),
                 end: b.as_(),
             },
-            radius,
+            r0: radius,
+            r1: radius,
+        })
+    }
+
+    /// Returns a `PrimitiveRef` of a 3-dimensional line segment with two
+    /// radius.
+    pub fn line_two_radius(
+        &self,
+        a: Vec3<impl AsPrimitive<f32>>,
+        b: Vec3<impl AsPrimitive<f32>>,
+        r0: f32,
+        r1: f32,
+    ) -> PrimitiveRef {
+        self.prim(Primitive::Segment {
+            segment: LineSegment3 {
+                start: a.as_(),
+                end: b.as_(),
+            },
+            r0,
+            r1,
         })
     }
 
