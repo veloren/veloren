@@ -666,6 +666,17 @@ impl ComponentRecipe {
             },
         }
     }
+
+    pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
+        let material = core::iter::once(&self.material);
+        let modifier = self.modifier.iter();
+        let additional_inputs = self.additional_inputs.iter();
+        material.chain(modifier.chain(additional_inputs))
+            .map(|(item_def, amount)| (item_def, *amount))
+            // Hack, not sure how to get exact size iterator from multiple chains.
+            .collect::<Vec<_>>()
+            .into_iter()
+    }
 }
 
 #[derive(Clone, Deserialize)]

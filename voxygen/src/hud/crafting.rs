@@ -806,7 +806,9 @@ impl<'a> Widget for Crafting<'a> {
             },
             None => None,
         } {
-            let title = if let Some((_recipe, modular_name)) = modular_entries.get(recipe_name) {
+            // TODO: Avoid reallocating string and appease borrow checker
+            let recipe_name = String::from(recipe_name);
+            let title = if let Some((_recipe, modular_name)) = modular_entries.get(&recipe_name) {
                 *modular_name
             } else {
                 &recipe.output.0.name
@@ -820,600 +822,643 @@ impl<'a> Widget for Crafting<'a> {
                 .parent(state.ids.window)
                 .set(state.ids.title_ing, ui);
 
-            if modular_entries.get(recipe_name).is_some() {
-                #[derive(Clone, Copy, Debug)]
-                enum RecipeKind {
-                    ModularWeapon,
-                    Component(ToolKind),
-                }
+            #[derive(Clone, Copy, Debug)]
+            enum RecipeKind {
+                ModularWeapon,
+                Component(ToolKind),
+                Simple,
+            }
 
-                let recipe_kind = match recipe_name {
-                    "veloren.core.pseudo_recipe.modular_weapon" => Some(RecipeKind::ModularWeapon),
-                    "veloren.core.pseudo_recipe.modular_weapon_component.sword" => {
-                        Some(RecipeKind::Component(ToolKind::Sword))
-                    },
-                    "veloren.core.pseudo_recipe.modular_weapon_component.axe" => {
-                        Some(RecipeKind::Component(ToolKind::Axe))
-                    },
-                    "veloren.core.pseudo_recipe.modular_weapon_component.hammer" => {
-                        Some(RecipeKind::Component(ToolKind::Hammer))
-                    },
-                    "veloren.core.pseudo_recipe.modular_weapon_component.bow" => {
-                        Some(RecipeKind::Component(ToolKind::Bow))
-                    },
-                    "veloren.core.pseudo_recipe.modular_weapon_component.staff" => {
-                        Some(RecipeKind::Component(ToolKind::Staff))
-                    },
-                    "veloren.core.pseudo_recipe.modular_weapon_component.sceptre" => {
-                        Some(RecipeKind::Component(ToolKind::Sceptre))
-                    },
-                    _ => None,
-                };
+            let recipe_kind = match recipe_name.as_str() {
+                "veloren.core.pseudo_recipe.modular_weapon" => RecipeKind::ModularWeapon,
+                "veloren.core.pseudo_recipe.modular_weapon_component.sword" => {
+                    RecipeKind::Component(ToolKind::Sword)
+                },
+                "veloren.core.pseudo_recipe.modular_weapon_component.axe" => {
+                    RecipeKind::Component(ToolKind::Axe)
+                },
+                "veloren.core.pseudo_recipe.modular_weapon_component.hammer" => {
+                    RecipeKind::Component(ToolKind::Hammer)
+                },
+                "veloren.core.pseudo_recipe.modular_weapon_component.bow" => {
+                    RecipeKind::Component(ToolKind::Bow)
+                },
+                "veloren.core.pseudo_recipe.modular_weapon_component.staff" => {
+                    RecipeKind::Component(ToolKind::Staff)
+                },
+                "veloren.core.pseudo_recipe.modular_weapon_component.sceptre" => {
+                    RecipeKind::Component(ToolKind::Sceptre)
+                },
+                _ => RecipeKind::Simple,
+            };
 
-                let mut slot_maker = SlotMaker {
-                    empty_slot: self.imgs.inv_slot,
-                    filled_slot: self.imgs.inv_slot,
-                    selected_slot: self.imgs.inv_slot_sel,
-                    background_color: Some(UI_MAIN),
-                    content_size: ContentSize {
-                        width_height_ratio: 1.0,
-                        max_fraction: 0.75,
-                    },
-                    selected_content_scale: 1.067,
-                    amount_font: self.fonts.cyri.conrod_id,
-                    amount_margins: Vec2::new(-4.0, 0.0),
-                    amount_font_size: self.fonts.cyri.scale(12),
-                    amount_text_color: TEXT_COLOR,
-                    content_source: self.inventory,
-                    image_source: self.item_imgs,
-                    slot_manager: Some(self.slot_manager),
-                    pulse: self.pulse,
-                };
+            let mut modular_slot_check_hack = (None, None);
 
-                if state.ids.modular_inputs.len() < 2 {
-                    state.update(|s| {
-                        s.ids
-                            .modular_inputs
-                            .resize(2, &mut ui.widget_id_generator());
-                    });
-                }
-                // Modular Weapon Crafting BG-Art
-                Image::new(self.imgs.crafting_modular_art)
-                    .mid_top_with_margin_on(state.ids.align_ing, 55.0)
-                    .w_h(168.0, 250.0)
-                    .set(state.ids.modular_art, ui);
-
-                let primary_slot = CraftSlot {
-                    index: 0,
-                    invslot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
-                    requirement: match recipe_kind {
-                        Some(RecipeKind::ModularWeapon) => |inv, slot| {
-                            inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                                matches!(
-                                    &*item.kind(),
-                                    ItemKind::ModularComponent(
-                                        ModularComponent::ToolPrimaryComponent { .. }
-                                    )
-                                )
-                            })
+            // Output slot, tags, and modular input slots
+            match recipe_kind {
+                RecipeKind::ModularWeapon | RecipeKind::Component(_) => {
+                    let mut slot_maker = SlotMaker {
+                        empty_slot: self.imgs.inv_slot,
+                        filled_slot: self.imgs.inv_slot,
+                        selected_slot: self.imgs.inv_slot_sel,
+                        background_color: Some(UI_MAIN),
+                        content_size: ContentSize {
+                            width_height_ratio: 1.0,
+                            max_fraction: 0.75,
                         },
-                        // TODO: Maybe try to figure out way to get this to work?
-                        // Captures self and toolkind which prevents it from becoming a function
-                        // Some(RecipeKind::Component(toolkind)) => |inv, slot| {
-                        //     inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                        //         self.client.component_recipe_book().iter().filter(|(key,
-                        // _recipe)| key.toolkind == toolkind).any(|(key, _recipe)| key.material ==
-                        // item.item_definition_id())     })
-                        // },
-                        Some(RecipeKind::Component(
-                            ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer,
-                        )) => |inv, slot| {
-                            inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                                matches!(&*item.kind(), ItemKind::Ingredient { .. })
-                                    && item
-                                        .tags()
-                                        .contains(&ItemTag::MaterialKind(MaterialKind::Metal))
-                                    && item
-                                        .tags()
-                                        .iter()
-                                        .any(|tag| matches!(tag, ItemTag::Material(_)))
-                            })
-                        },
-                        Some(RecipeKind::Component(
-                            ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre,
-                        )) => |inv, slot| {
-                            inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                                matches!(&*item.kind(), ItemKind::Ingredient { .. })
-                                    && item
-                                        .tags()
-                                        .contains(&ItemTag::MaterialKind(MaterialKind::Wood))
-                                    && item
-                                        .tags()
-                                        .iter()
-                                        .any(|tag| matches!(tag, ItemTag::Material(_)))
-                            })
-                        },
-                        Some(RecipeKind::Component(_)) | None => |_, _| false,
-                    },
-                };
+                        selected_content_scale: 1.067,
+                        amount_font: self.fonts.cyri.conrod_id,
+                        amount_margins: Vec2::new(-4.0, 0.0),
+                        amount_font_size: self.fonts.cyri.scale(12),
+                        amount_text_color: TEXT_COLOR,
+                        content_source: self.inventory,
+                        image_source: self.item_imgs,
+                        slot_manager: Some(self.slot_manager),
+                        pulse: self.pulse,
+                    };
 
-                let primary_slot_widget = slot_maker
-                    .fabricate(primary_slot, [40.0; 2])
-                    .top_left_with_margins_on(state.ids.modular_art, 4.0, 4.0)
-                    .parent(state.ids.align_ing);
-
-                if let Some(slot) = primary_slot.invslot {
-                    if let Some(item) = self.inventory.get(slot) {
-                        primary_slot_widget
-                            .with_item_tooltip(
-                                self.item_tooltip_manager,
-                                core::iter::once(item as &dyn ItemDesc),
-                                &None,
-                                &item_tooltip,
-                            )
-                            .set(state.ids.modular_inputs[0], ui);
-                    } else {
-                        primary_slot_widget.set(state.ids.modular_inputs[0], ui);
+                    if state.ids.modular_inputs.len() < 2 {
+                        state.update(|s| {
+                            s.ids
+                                .modular_inputs
+                                .resize(2, &mut ui.widget_id_generator());
+                        });
                     }
-                } else {
-                    primary_slot_widget.set(state.ids.modular_inputs[0], ui);
-                }
+                    // Modular Weapon Crafting BG-Art
+                    Image::new(self.imgs.crafting_modular_art)
+                        .mid_top_with_margin_on(state.ids.align_ing, 55.0)
+                        .w_h(168.0, 250.0)
+                        .set(state.ids.modular_art, ui);
 
-                // Not sure why it doesn't work, maybe revisit later?
-                // if let Some(item) = primary_slot.invslot.and_then(|slot|
-                // self.inventory.get(slot)) {     primary_slot_widget
-                //     .with_item_tooltip(
-                //         self.item_tooltip_manager,
-                //         core::iter::once(item as &dyn ItemDesc),
-                //         &None,
-                //         &item_tooltip,
-                //     )
-                //     .set(state.ids.modular_inputs[0], ui);
-                // } else {
-                //     primary_slot_widget
-                //         .set(state.ids.modular_inputs[0], ui);
-                // }
-
-                let secondary_slot = CraftSlot {
-                    index: 1,
-                    invslot: self.show.crafting_fields.recipe_inputs.get(&1).copied(),
-                    requirement: match recipe_kind {
-                        Some(RecipeKind::ModularWeapon) => |inv, slot| {
-                            inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                                matches!(
-                                    &*item.kind(),
-                                    ItemKind::ModularComponent(
-                                        ModularComponent::ToolSecondaryComponent { .. }
-                                    )
-                                )
-                            })
-                        },
-                        // TODO: Maybe try to figure out way to get this to work?
-                        // Captures self and toolkind which prevents it from becoming a function
-                        // Some(RecipeKind::Component(toolkind)) => |inv, slot| {
-                        //     inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                        //         self.client.component_recipe_book().iter().filter(|(key,
-                        // _recipe)| key.toolkind == toolkind).any(|(key, _recipe)| key.modifier ==
-                        // Some(item.item_definition_id()))     })
-                        // },
-                        Some(RecipeKind::Component(_)) => |inv, slot| {
-                            inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                                item.item_definition_id()
-                                    .starts_with("common.items.crafting_ing.animal_misc")
-                            })
-                        },
-                        None => |_, _| false,
-                    },
-                };
-
-                let secondary_slot_widget = slot_maker
-                    .fabricate(secondary_slot, [40.0; 2])
-                    .top_right_with_margins_on(state.ids.modular_art, 4.0, 4.0)
-                    .parent(state.ids.align_ing);
-
-                if let Some(slot) = secondary_slot.invslot {
-                    if let Some(item) = self.inventory.get(slot) {
-                        secondary_slot_widget
-                            .with_item_tooltip(
-                                self.item_tooltip_manager,
-                                core::iter::once(item as &dyn ItemDesc),
-                                &None,
-                                &item_tooltip,
-                            )
-                            .set(state.ids.modular_inputs[1], ui);
-                    } else {
-                        secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
-                    }
-                } else {
-                    secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
-                }
-
-                // if let Some(item) = secondary_slot.invslot.and_then(|slot|
-                // self.inventory.get(slot)) {     secondary_slot_widget
-                //     .with_item_tooltip(
-                //         self.item_tooltip_manager,
-                //         core::iter::once(item as &dyn ItemDesc),
-                //         &None,
-                //         &item_tooltip,
-                //     )
-                //     .set(state.ids.modular_inputs[1], ui);
-                // } else {
-                //     secondary_slot_widget
-                //         .set(state.ids.modular_inputs[1], ui);
-                // }
-
-                let can_perform = match recipe_kind {
-                    Some(RecipeKind::ModularWeapon) => {
-                        primary_slot.invslot.is_some() && secondary_slot.invslot.is_some()
-                    },
-                    Some(RecipeKind::Component(_)) => primary_slot.invslot.is_some(),
-                    None => false,
-                };
-
-                let prim_item_placed = primary_slot.invslot.is_some();
-                let sec_item_placed = secondary_slot.invslot.is_some();
-
-                // Craft button
-                if Button::image(self.imgs.button)
-                    .w_h(105.0, 25.0)
-                    .hover_image(
-                        can_perform
-                            .then_some(self.imgs.button_hover)
-                            .unwrap_or(self.imgs.button),
-                    )
-                    .press_image(
-                        can_perform
-                            .then_some(self.imgs.button_press)
-                            .unwrap_or(self.imgs.button),
-                    )
-                    .label(self.localized_strings.get("hud.crafting.craft"))
-                    .label_y(conrod_core::position::Relative::Scalar(1.0))
-                    .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .label_font_size(self.fonts.cyri.scale(12))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
-                    .parent(state.ids.window_frame)
-                    .set(state.ids.btn_craft, ui)
-                    .was_clicked()
-                {
-                    match recipe_kind {
-                        Some(RecipeKind::ModularWeapon) => {
-                            if let (Some(primary_slot), Some(secondary_slot)) =
-                                (primary_slot.invslot, secondary_slot.invslot)
-                            {
-                                events.push(Event::CraftModularWeapon {
-                                    primary_slot,
-                                    secondary_slot,
-                                });
-                            }
-                        },
-                        Some(RecipeKind::Component(toolkind)) => {
-                            if let Some(primary_slot) = primary_slot.invslot {
-                                events.push(Event::CraftModularWeaponComponent {
-                                    toolkind,
-                                    material: primary_slot,
-                                    modifier: secondary_slot.invslot,
-                                });
-                            }
-                        },
-                        None => {},
-                    }
-                }
-
-                // Output Image
-                Image::new(self.imgs.inv_slot)
-                    .w_h(80.0, 80.0)
-                    .mid_bottom_with_margin_on(state.ids.align_ing, 50.0)
-                    .parent(state.ids.align_ing)
-                    .set(state.ids.output_img_frame, ui);
-                let bg_col = Color::Rgba(1.0, 1.0, 1.0, 0.4);
-                if !prim_item_placed {
-                    Image::new(self.imgs.ing_ico_prim)
-                        .middle_of(state.ids.modular_inputs[0])
-                        .color(Some(bg_col))
-                        .w_h(34.0, 34.0)
-                        .graphics_for(state.ids.modular_inputs[0])
-                        .set(state.ids.modular_wep_ing_1_bg, ui);
-                }
-                if !sec_item_placed {
-                    Image::new(self.imgs.ing_ico_sec)
-                        .middle_of(state.ids.modular_inputs[1])
-                        .color(Some(bg_col))
-                        .w_h(50.0, 50.0)
-                        .graphics_for(state.ids.modular_inputs[1])
-                        .set(state.ids.modular_wep_ing_2_bg, ui);
-                }
-
-                let ability_map = &AbilityMap::load().read();
-                let msm = &MaterialStatManifest::load().read();
-
-                if let Some(output_item) = match recipe_kind {
-                    Some(RecipeKind::ModularWeapon) => {
-                        if let Some((primary_comp, toolkind)) = primary_slot
-                            .invslot
-                            .and_then(|slot| self.inventory.get(slot))
-                            .and_then(|item| {
-                                if let ItemKind::ModularComponent(
-                                    ModularComponent::ToolPrimaryComponent { toolkind, .. },
-                                ) = &*item.kind()
-                                {
-                                    Some((item, *toolkind))
-                                } else {
-                                    None
-                                }
-                            })
-                        {
-                            secondary_slot
-                                .invslot
-                                .and_then(|slot| self.inventory.get(slot))
-                                .filter(|item| {
+                    let primary_slot = CraftSlot {
+                        index: 0,
+                        invslot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
+                        requirement: match recipe_kind {
+                            RecipeKind::ModularWeapon => |inv, slot| {
+                                inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
                                     matches!(
                                         &*item.kind(),
                                         ItemKind::ModularComponent(
-                                            ModularComponent::ToolSecondaryComponent { toolkind: toolkind_b, .. }
-                                        ) if toolkind == *toolkind_b
+                                            ModularComponent::ToolPrimaryComponent { .. }
+                                        )
                                     )
                                 })
-                                .map(|secondary_comp| {
-                                    Item::new_from_item_base(
-                                        ItemBase::Modular(modular::ModularBase::Tool),
-                                        vec![
-                                            primary_comp.duplicate(ability_map, msm),
-                                            secondary_comp.duplicate(ability_map, msm),
-                                        ],
-                                        ability_map,
-                                        msm,
-                                    )
+                            },
+                            // TODO: Maybe try to figure out way to get this to work?
+                            // Captures self and toolkind which prevents it from becoming a function
+                            // Some(RecipeKind::Component(toolkind)) => |inv, slot| {
+                            //     inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
+                            //         self.client.component_recipe_book().iter().filter(|(key,
+                            // _recipe)| key.toolkind == toolkind).any(|(key, _recipe)| key.material
+                            // == item.item_definition_id())     })
+                            // },
+                            RecipeKind::Component(
+                                ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer,
+                            ) => |inv, slot| {
+                                inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
+                                    matches!(&*item.kind(), ItemKind::Ingredient { .. })
+                                        && item
+                                            .tags()
+                                            .contains(&ItemTag::MaterialKind(MaterialKind::Metal))
+                                        && item
+                                            .tags()
+                                            .iter()
+                                            .any(|tag| matches!(tag, ItemTag::Material(_)))
                                 })
+                            },
+                            RecipeKind::Component(
+                                ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre,
+                            ) => |inv, slot| {
+                                inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
+                                    matches!(&*item.kind(), ItemKind::Ingredient { .. })
+                                        && item
+                                            .tags()
+                                            .contains(&ItemTag::MaterialKind(MaterialKind::Wood))
+                                        && item
+                                            .tags()
+                                            .iter()
+                                            .any(|tag| matches!(tag, ItemTag::Material(_)))
+                                })
+                            },
+                            RecipeKind::Component(_) | RecipeKind::Simple => |_, _| false,
+                        },
+                    };
+
+                    let primary_slot_widget = slot_maker
+                        .fabricate(primary_slot, [40.0; 2])
+                        .top_left_with_margins_on(state.ids.modular_art, 4.0, 4.0)
+                        .parent(state.ids.align_ing);
+
+                    if let Some(slot) = primary_slot.invslot {
+                        if let Some(item) = self.inventory.get(slot) {
+                            primary_slot_widget
+                                .with_item_tooltip(
+                                    self.item_tooltip_manager,
+                                    core::iter::once(item as &dyn ItemDesc),
+                                    &None,
+                                    &item_tooltip,
+                                )
+                                .set(state.ids.modular_inputs[0], ui);
                         } else {
-                            None
+                            primary_slot_widget.set(state.ids.modular_inputs[0], ui);
                         }
-                    },
-                    Some(RecipeKind::Component(toolkind)) => {
-                        if let Some(material) = primary_slot
-                            .invslot
-                            .and_then(|slot| self.inventory.get(slot))
-                            .map(|item| String::from(item.item_definition_id()))
-                        {
-                            let component_key = ComponentKey {
-                                toolkind,
-                                material,
-                                modifier: secondary_slot
+                    } else {
+                        primary_slot_widget.set(state.ids.modular_inputs[0], ui);
+                    }
+
+                    // Not sure why it doesn't work, maybe revisit later?
+                    // if let Some(item) = primary_slot.invslot.and_then(|slot|
+                    // self.inventory.get(slot)) {     primary_slot_widget
+                    //     .with_item_tooltip(
+                    //         self.item_tooltip_manager,
+                    //         core::iter::once(item as &dyn ItemDesc),
+                    //         &None,
+                    //         &item_tooltip,
+                    //     )
+                    //     .set(state.ids.modular_inputs[0], ui);
+                    // } else {
+                    //     primary_slot_widget
+                    //         .set(state.ids.modular_inputs[0], ui);
+                    // }
+
+                    let secondary_slot = CraftSlot {
+                        index: 1,
+                        invslot: self.show.crafting_fields.recipe_inputs.get(&1).copied(),
+                        requirement: match recipe_kind {
+                            RecipeKind::ModularWeapon => |inv, slot| {
+                                inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
+                                    matches!(
+                                        &*item.kind(),
+                                        ItemKind::ModularComponent(
+                                            ModularComponent::ToolSecondaryComponent { .. }
+                                        )
+                                    )
+                                })
+                            },
+                            // TODO: Maybe try to figure out way to get this to work?
+                            // Captures self and toolkind which prevents it from becoming a function
+                            // Some(RecipeKind::Component(toolkind)) => |inv, slot| {
+                            //     inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
+                            //         self.client.component_recipe_book().iter().filter(|(key,
+                            // _recipe)| key.toolkind == toolkind).any(|(key, _recipe)| key.modifier
+                            // == Some(item.item_definition_id()))
+                            // }) },
+                            RecipeKind::Component(_) => |inv, slot| {
+                                inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
+                                    item.item_definition_id()
+                                        .starts_with("common.items.crafting_ing.animal_misc")
+                                })
+                            },
+                            RecipeKind::Simple => |_, _| false,
+                        },
+                    };
+
+                    let secondary_slot_widget = slot_maker
+                        .fabricate(secondary_slot, [40.0; 2])
+                        .top_right_with_margins_on(state.ids.modular_art, 4.0, 4.0)
+                        .parent(state.ids.align_ing);
+
+                    if let Some(slot) = secondary_slot.invslot {
+                        if let Some(item) = self.inventory.get(slot) {
+                            secondary_slot_widget
+                                .with_item_tooltip(
+                                    self.item_tooltip_manager,
+                                    core::iter::once(item as &dyn ItemDesc),
+                                    &None,
+                                    &item_tooltip,
+                                )
+                                .set(state.ids.modular_inputs[1], ui);
+                        } else {
+                            secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
+                        }
+                    } else {
+                        secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
+                    }
+
+                    // if let Some(item) = secondary_slot.invslot.and_then(|slot|
+                    // self.inventory.get(slot)) {     secondary_slot_widget
+                    //     .with_item_tooltip(
+                    //         self.item_tooltip_manager,
+                    //         core::iter::once(item as &dyn ItemDesc),
+                    //         &None,
+                    //         &item_tooltip,
+                    //     )
+                    //     .set(state.ids.modular_inputs[1], ui);
+                    // } else {
+                    //     secondary_slot_widget
+                    //         .set(state.ids.modular_inputs[1], ui);
+                    // }
+
+                    let prim_item_placed = primary_slot.invslot.is_some();
+                    let sec_item_placed = secondary_slot.invslot.is_some();
+
+                    // Output Image
+                    Image::new(self.imgs.inv_slot)
+                        .w_h(80.0, 80.0)
+                        .mid_bottom_with_margin_on(state.ids.align_ing, 50.0)
+                        .parent(state.ids.align_ing)
+                        .set(state.ids.output_img_frame, ui);
+                    let bg_col = Color::Rgba(1.0, 1.0, 1.0, 0.4);
+                    if !prim_item_placed {
+                        Image::new(self.imgs.ing_ico_prim)
+                            .middle_of(state.ids.modular_inputs[0])
+                            .color(Some(bg_col))
+                            .w_h(34.0, 34.0)
+                            .graphics_for(state.ids.modular_inputs[0])
+                            .set(state.ids.modular_wep_ing_1_bg, ui);
+                    }
+                    if !sec_item_placed {
+                        Image::new(self.imgs.ing_ico_sec)
+                            .middle_of(state.ids.modular_inputs[1])
+                            .color(Some(bg_col))
+                            .w_h(50.0, 50.0)
+                            .graphics_for(state.ids.modular_inputs[1])
+                            .set(state.ids.modular_wep_ing_2_bg, ui);
+                    }
+
+                    let ability_map = &AbilityMap::load().read();
+                    let msm = &MaterialStatManifest::load().read();
+
+                    if let Some(output_item) = match recipe_kind {
+                        RecipeKind::ModularWeapon => {
+                            if let Some((primary_comp, toolkind)) = primary_slot
+                                .invslot
+                                .and_then(|slot| self.inventory.get(slot))
+                                .and_then(|item| {
+                                    if let ItemKind::ModularComponent(
+                                        ModularComponent::ToolPrimaryComponent { toolkind, .. },
+                                    ) = &*item.kind()
+                                    {
+                                        Some((item, *toolkind))
+                                    } else {
+                                        None
+                                    }
+                                })
+                            {
+                                secondary_slot
                                     .invslot
                                     .and_then(|slot| self.inventory.get(slot))
-                                    .map(|item| String::from(item.item_definition_id())),
-                            };
-                            self.client.component_recipe_book().get(&component_key).map(
-                                |component_recipe| component_recipe.item_output(ability_map, msm),
-                            )
-                        } else {
-                            None
-                        }
-                    },
-                    None => None,
-                } {
+                                    .filter(|item| {
+                                        matches!(
+                                            &*item.kind(),
+                                            ItemKind::ModularComponent(
+                                                ModularComponent::ToolSecondaryComponent { toolkind: toolkind_b, .. }
+                                            ) if toolkind == *toolkind_b
+                                        )
+                                    })
+                                    .map(|secondary_comp| {
+                                        Item::new_from_item_base(
+                                            ItemBase::Modular(modular::ModularBase::Tool),
+                                            vec![
+                                                primary_comp.duplicate(ability_map, msm),
+                                                secondary_comp.duplicate(ability_map, msm),
+                                            ],
+                                            ability_map,
+                                            msm,
+                                        )
+                                    })
+                            } else {
+                                None
+                            }
+                        },
+                        RecipeKind::Component(toolkind) => {
+                            if let Some(material) = primary_slot
+                                .invslot
+                                .and_then(|slot| self.inventory.get(slot))
+                                .map(|item| String::from(item.item_definition_id()))
+                            {
+                                let component_key = ComponentKey {
+                                    toolkind,
+                                    material,
+                                    modifier: secondary_slot
+                                        .invslot
+                                        .and_then(|slot| self.inventory.get(slot))
+                                        .map(|item| String::from(item.item_definition_id())),
+                                };
+                                self.client.component_recipe_book().get(&component_key).map(
+                                    |component_recipe| {
+                                        component_recipe.item_output(ability_map, msm)
+                                    },
+                                )
+                            } else {
+                                None
+                            }
+                        },
+                        RecipeKind::Simple => None,
+                    } {
+                        Button::image(animate_by_pulse(
+                            &self
+                                .item_imgs
+                                .img_ids_or_not_found_img(ItemKey::from(&output_item)),
+                            self.pulse,
+                        ))
+                        .w_h(55.0, 55.0)
+                        .label(&output_item.name())
+                        .label_color(TEXT_COLOR)
+                        .label_font_size(self.fonts.cyri.scale(14))
+                        .label_font_id(self.fonts.cyri.conrod_id)
+                        .label_y(conrod_core::position::Relative::Scalar(-64.0))
+                        .label_x(conrod_core::position::Relative::Scalar(0.0))
+                        .middle_of(state.ids.output_img_frame)
+                        .with_item_tooltip(
+                            self.item_tooltip_manager,
+                            core::iter::once(&output_item as &dyn ItemDesc),
+                            &None,
+                            &item_tooltip,
+                        )
+                        .set(state.ids.output_img, ui);
+                    } else {
+                        Text::new(self.localized_strings.get("hud.crafting.modular_desc"))
+                            .mid_top_with_margin_on(state.ids.modular_art, -25.0)
+                            .font_id(self.fonts.cyri.conrod_id)
+                            .font_size(self.fonts.cyri.scale(13))
+                            .color(TEXT_COLOR)
+                            .set(state.ids.title_main, ui);
+                        Image::new(self.imgs.wep_ico)
+                            .middle_of(state.ids.output_img_frame)
+                            .color(Some(bg_col))
+                            .w_h(70.0, 70.0)
+                            .graphics_for(state.ids.output_img)
+                            .set(state.ids.modular_wep_empty_bg, ui);
+                    }
+
+                    modular_slot_check_hack = (primary_slot.invslot, secondary_slot.invslot);
+                },
+                RecipeKind::Simple => {
+                    // Output Image Frame
+                    let quality_col_img = match recipe.output.0.quality() {
+                        Quality::Low => self.imgs.inv_slot_grey,
+                        Quality::Common => self.imgs.inv_slot,
+                        Quality::Moderate => self.imgs.inv_slot_green,
+                        Quality::High => self.imgs.inv_slot_blue,
+                        Quality::Epic => self.imgs.inv_slot_purple,
+                        Quality::Legendary => self.imgs.inv_slot_gold,
+                        Quality::Artifact => self.imgs.inv_slot_orange,
+                        _ => self.imgs.inv_slot_red,
+                    };
+
+                    Image::new(quality_col_img)
+                        .w_h(60.0, 60.0)
+                        .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
+                        .parent(state.ids.align_ing)
+                        .set(state.ids.output_img_frame, ui);
+
+                    let output_text = format!("x{}", &recipe.output.1.to_string());
+                    // Output Image
                     Button::image(animate_by_pulse(
                         &self
                             .item_imgs
-                            .img_ids_or_not_found_img(ItemKey::from(&output_item)),
+                            .img_ids_or_not_found_img((&*recipe.output.0).into()),
                         self.pulse,
                     ))
                     .w_h(55.0, 55.0)
-                    .label(&output_item.name())
+                    .label(&output_text)
                     .label_color(TEXT_COLOR)
                     .label_font_size(self.fonts.cyri.scale(14))
                     .label_font_id(self.fonts.cyri.conrod_id)
-                    .label_y(conrod_core::position::Relative::Scalar(-64.0))
-                    .label_x(conrod_core::position::Relative::Scalar(0.0))
+                    .label_y(conrod_core::position::Relative::Scalar(-24.0))
+                    .label_x(conrod_core::position::Relative::Scalar(24.0))
                     .middle_of(state.ids.output_img_frame)
                     .with_item_tooltip(
                         self.item_tooltip_manager,
-                        core::iter::once(&output_item as &dyn ItemDesc),
+                        core::iter::once(&*recipe.output.0 as &dyn ItemDesc),
                         &None,
                         &item_tooltip,
                     )
                     .set(state.ids.output_img, ui);
-                } else {
-                    Text::new(self.localized_strings.get("hud.crafting.modular_desc"))
-                        .mid_top_with_margin_on(state.ids.modular_art, -25.0)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(13))
-                        .color(TEXT_COLOR)
-                        .set(state.ids.title_main, ui);
-                    Image::new(self.imgs.wep_ico)
-                        .middle_of(state.ids.output_img_frame)
-                        .color(Some(bg_col))
-                        .w_h(70.0, 70.0)
-                        .graphics_for(state.ids.output_img)
-                        .set(state.ids.modular_wep_empty_bg, ui);
-                }
-            } else {
-                let can_perform =
+
+                    // Tags
+                    if state.ids.tags_ing.len() < CraftingTab::iter().len() {
+                        state.update(|state| {
+                            state
+                                .ids
+                                .tags_ing
+                                .resize(CraftingTab::iter().len(), &mut ui.widget_id_generator())
+                        });
+                    }
+                    for (row, chunk) in CraftingTab::iter()
+                        .filter(|crafting_tab| match crafting_tab {
+                            CraftingTab::All => false,
+                            _ => crafting_tab.satisfies(recipe),
+                        })
+                        .filter(|crafting_tab| {
+                            crafting_tab != &self.show.crafting_fields.crafting_tab
+                        })
+                        .collect::<Vec<_>>()
+                        .chunks(3)
+                        .enumerate()
+                    {
+                        for (col, crafting_tab) in chunk.iter().rev().enumerate() {
+                            let i = 3 * row + col;
+                            let icon = Image::new(crafting_tab.img_id(self.imgs))
+                                .w_h(20.0, 20.0)
+                                .parent(state.ids.window);
+                            let icon = if col == 0 {
+                                icon.bottom_right_with_margins_on(
+                                    state.ids.output_img_frame,
+                                    -24.0 - 24.0 * (row as f64),
+                                    4.0,
+                                )
+                            } else {
+                                icon.left_from(state.ids.tags_ing[i - 1], 4.0)
+                            };
+                            icon.with_tooltip(
+                                self.tooltip_manager,
+                                self.localized_strings.get(crafting_tab.name_key()),
+                                "",
+                                &tabs_tooltip,
+                                TEXT_COLOR,
+                            )
+                            .set(state.ids.tags_ing[i], ui);
+                        }
+                    }
+                },
+            }
+
+            let can_perform = match recipe_kind {
+                RecipeKind::ModularWeapon => {
+                    modular_slot_check_hack.0.is_some() && modular_slot_check_hack.1.is_some()
+                },
+                RecipeKind::Component(_) => modular_slot_check_hack.0.is_some(),
+                RecipeKind::Simple => {
                     self.client
                         .available_recipes()
-                        .get(recipe_name)
+                        .get(&recipe_name)
                         .map_or(false, |cs| {
                             cs.map_or(true, |cs| {
                                 Some(cs) == self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
                             })
-                        });
+                        })
+                },
+            };
 
-                // Craft button
-                if Button::image(self.imgs.button)
-                    .w_h(105.0, 25.0)
-                    .hover_image(
-                        can_perform
-                            .then_some(self.imgs.button_hover)
-                            .unwrap_or(self.imgs.button),
-                    )
-                    .press_image(
-                        can_perform
-                            .then_some(self.imgs.button_press)
-                            .unwrap_or(self.imgs.button),
-                    )
-                    .label(self.localized_strings.get("hud.crafting.craft"))
-                    .label_y(conrod_core::position::Relative::Scalar(1.0))
-                    .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .label_font_size(self.fonts.cyri.scale(12))
-                    .label_font_id(self.fonts.cyri.conrod_id)
-                    .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
-                    .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
-                    .parent(state.ids.window_frame)
-                    .set(state.ids.btn_craft, ui)
-                    .was_clicked()
-                {
-                    events.push(Event::CraftRecipe(String::from(recipe_name)));
+            // Craft button
+            if Button::image(self.imgs.button)
+                .w_h(105.0, 25.0)
+                .hover_image(
+                    can_perform
+                        .then_some(self.imgs.button_hover)
+                        .unwrap_or(self.imgs.button),
+                )
+                .press_image(
+                    can_perform
+                        .then_some(self.imgs.button_press)
+                        .unwrap_or(self.imgs.button),
+                )
+                .label(self.localized_strings.get("hud.crafting.craft"))
+                .label_y(conrod_core::position::Relative::Scalar(1.0))
+                .label_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .label_font_size(self.fonts.cyri.scale(12))
+                .label_font_id(self.fonts.cyri.conrod_id)
+                .image_color(can_perform.then_some(TEXT_COLOR).unwrap_or(TEXT_GRAY_COLOR))
+                .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
+                .parent(state.ids.window_frame)
+                .set(state.ids.btn_craft, ui)
+                .was_clicked()
+            {
+                match recipe_kind {
+                    RecipeKind::ModularWeapon => {
+                        if let (Some(primary_slot), Some(secondary_slot)) = modular_slot_check_hack
+                        {
+                            events.push(Event::CraftModularWeapon {
+                                primary_slot,
+                                secondary_slot,
+                            });
+                        }
+                    },
+                    RecipeKind::Component(toolkind) => {
+                        if let Some(primary_slot) = modular_slot_check_hack.0 {
+                            events.push(Event::CraftModularWeaponComponent {
+                                toolkind,
+                                material: primary_slot,
+                                modifier: modular_slot_check_hack.1,
+                            });
+                        }
+                    },
+                    RecipeKind::Simple => {
+                        events.push(Event::CraftRecipe(recipe_name))
+                    },
                 }
+            }
 
-                // Output Image Frame
-                let quality_col_img = match recipe.output.0.quality() {
-                    Quality::Low => self.imgs.inv_slot_grey,
-                    Quality::Common => self.imgs.inv_slot,
-                    Quality::Moderate => self.imgs.inv_slot_green,
-                    Quality::High => self.imgs.inv_slot_blue,
-                    Quality::Epic => self.imgs.inv_slot_purple,
-                    Quality::Legendary => self.imgs.inv_slot_gold,
-                    Quality::Artifact => self.imgs.inv_slot_orange,
-                    _ => self.imgs.inv_slot_red,
+            // Crafting Station Info
+            if recipe.craft_sprite.is_some() {
+                let mut sprite_text = Text::new(
+                    self.localized_strings
+                        .get("hud.crafting.req_crafting_station"),
+                )
+                .font_id(self.fonts.cyri.conrod_id)
+                .font_size(self.fonts.cyri.scale(18))
+                .color(TEXT_COLOR);
+                match recipe_kind {
+                    RecipeKind::Simple => {
+                        sprite_text =
+                            sprite_text.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0);
+                    },
+                    RecipeKind::ModularWeapon | RecipeKind::Component(_) => {
+                        sprite_text =
+                            sprite_text.top_left_with_margins_on(state.ids.align_ing, 325.0, 5.0);
+                    },
+                }
+                sprite_text.set(state.ids.req_station_title, ui);
+                let station_img = match recipe.craft_sprite {
+                    Some(SpriteKind::Anvil) => "Anvil",
+                    Some(SpriteKind::Cauldron) => "Cauldron",
+                    Some(SpriteKind::CookingPot) => "CookingPot",
+                    Some(SpriteKind::CraftingBench) => "CraftingBench",
+                    Some(SpriteKind::Forge) => "Forge",
+                    Some(SpriteKind::Loom) => "Loom",
+                    Some(SpriteKind::SpinningWheel) => "SpinningWheel",
+                    Some(SpriteKind::TanningRack) => "TanningRack",
+                    Some(SpriteKind::DismantlingBench) => "DismantlingBench",
+                    None => "CraftsmanHammer",
+                    _ => "CraftsmanHammer",
                 };
-
-                Image::new(quality_col_img)
-                    .w_h(60.0, 60.0)
-                    .top_right_with_margins_on(state.ids.align_ing, 15.0, 10.0)
-                    .parent(state.ids.align_ing)
-                    .set(state.ids.output_img_frame, ui);
-
-                let output_text = format!("x{}", &recipe.output.1.to_string());
-                // Output Image
-                Button::image(animate_by_pulse(
+                Image::new(animate_by_pulse(
                     &self
                         .item_imgs
-                        .img_ids_or_not_found_img((&*recipe.output.0).into()),
+                        .img_ids_or_not_found_img(ItemKey::Tool(station_img.to_string())),
                     self.pulse,
                 ))
-                .w_h(55.0, 55.0)
-                .label(&output_text)
-                .label_color(TEXT_COLOR)
-                .label_font_size(self.fonts.cyri.scale(14))
-                .label_font_id(self.fonts.cyri.conrod_id)
-                .label_y(conrod_core::position::Relative::Scalar(-24.0))
-                .label_x(conrod_core::position::Relative::Scalar(24.0))
-                .middle_of(state.ids.output_img_frame)
-                .with_item_tooltip(
-                    self.item_tooltip_manager,
-                    core::iter::once(&*recipe.output.0 as &dyn ItemDesc),
-                    &None,
-                    &item_tooltip,
-                )
-                .set(state.ids.output_img, ui);
+                .w_h(25.0, 25.0)
+                .down_from(state.ids.req_station_title, 10.0)
+                .parent(state.ids.align_ing)
+                .set(state.ids.req_station_img, ui);
 
-                // Tags
-                if state.ids.tags_ing.len() < CraftingTab::iter().len() {
-                    state.update(|state| {
-                        state
-                            .ids
-                            .tags_ing
-                            .resize(CraftingTab::iter().len(), &mut ui.widget_id_generator())
-                    });
-                }
-                for (row, chunk) in CraftingTab::iter()
-                    .filter(|crafting_tab| match crafting_tab {
-                        CraftingTab::All => false,
-                        _ => crafting_tab.satisfies(recipe),
-                    })
-                    .filter(|crafting_tab| crafting_tab != &self.show.crafting_fields.crafting_tab)
-                    .collect::<Vec<_>>()
-                    .chunks(3)
-                    .enumerate()
-                {
-                    for (col, crafting_tab) in chunk.iter().rev().enumerate() {
-                        let i = 3 * row + col;
-                        let icon = Image::new(crafting_tab.img_id(self.imgs))
-                            .w_h(20.0, 20.0)
-                            .parent(state.ids.window);
-                        let icon = if col == 0 {
-                            icon.bottom_right_with_margins_on(
-                                state.ids.output_img_frame,
-                                -24.0 - 24.0 * (row as f64),
-                                4.0,
-                            )
-                        } else {
-                            icon.left_from(state.ids.tags_ing[i - 1], 4.0)
-                        };
-                        icon.with_tooltip(
-                            self.tooltip_manager,
-                            self.localized_strings.get(crafting_tab.name_key()),
-                            "",
-                            &tabs_tooltip,
-                            TEXT_COLOR,
-                        )
-                        .set(state.ids.tags_ing[i], ui);
-                    }
-                }
-                // Crafting Station Info
-                if recipe.craft_sprite.is_some() {
-                    Text::new(
-                        self.localized_strings
-                            .get("hud.crafting.req_crafting_station"),
-                    )
-                    .top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
+                let station_name = match recipe.craft_sprite {
+                    Some(SpriteKind::Anvil) => "hud.crafting.anvil",
+                    Some(SpriteKind::Cauldron) => "hud.crafting.cauldron",
+                    Some(SpriteKind::CookingPot) => "hud.crafting.cooking_pot",
+                    Some(SpriteKind::CraftingBench) => "hud.crafting.crafting_bench",
+                    Some(SpriteKind::Forge) => "hud.crafting.forge",
+                    Some(SpriteKind::Loom) => "hud.crafting.loom",
+                    Some(SpriteKind::SpinningWheel) => "hud.crafting.spinning_wheel",
+                    Some(SpriteKind::TanningRack) => "hud.crafting.tanning_rack",
+                    Some(SpriteKind::DismantlingBench) => "hud.crafting.salvaging_station",
+                    _ => "",
+                };
+                Text::new(self.localized_strings.get(station_name))
+                    .right_from(state.ids.req_station_img, 10.0)
                     .font_id(self.fonts.cyri.conrod_id)
-                    .font_size(self.fonts.cyri.scale(18))
-                    .color(TEXT_COLOR)
-                    .set(state.ids.req_station_title, ui);
-                    let station_img = match recipe.craft_sprite {
-                        Some(SpriteKind::Anvil) => "Anvil",
-                        Some(SpriteKind::Cauldron) => "Cauldron",
-                        Some(SpriteKind::CookingPot) => "CookingPot",
-                        Some(SpriteKind::CraftingBench) => "CraftingBench",
-                        Some(SpriteKind::Forge) => "Forge",
-                        Some(SpriteKind::Loom) => "Loom",
-                        Some(SpriteKind::SpinningWheel) => "SpinningWheel",
-                        Some(SpriteKind::TanningRack) => "TanningRack",
-                        Some(SpriteKind::DismantlingBench) => "DismantlingBench",
-                        None => "CraftsmanHammer",
-                        _ => "CraftsmanHammer",
-                    };
-                    Image::new(animate_by_pulse(
-                        &self
-                            .item_imgs
-                            .img_ids_or_not_found_img(ItemKey::Tool(station_img.to_string())),
-                        self.pulse,
-                    ))
-                    .w_h(25.0, 25.0)
-                    .down_from(state.ids.req_station_title, 10.0)
-                    .parent(state.ids.align_ing)
-                    .set(state.ids.req_station_img, ui);
+                    .font_size(self.fonts.cyri.scale(14))
+                    .color(
+                        if self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
+                            == recipe.craft_sprite
+                        {
+                            TEXT_COLOR
+                        } else {
+                            TEXT_DULL_RED_COLOR
+                        },
+                    )
+                    .set(state.ids.req_station_txt, ui);
+            }
+            // Ingredients Text
+            // Hack from Sharp to account for iterators not having the same type
+            let (mut iter_a, mut iter_b, mut iter_c);
+            let ingredients = match recipe_kind {
+                RecipeKind::Simple => {
+                    iter_a = recipe
+                        .inputs
+                        .iter()
+                        .map(|(recipe, amount, _)| (recipe, *amount));
+                    &mut iter_a as &mut dyn ExactSizeIterator<Item = (&RecipeInput, u32)>
+                },
+                RecipeKind::ModularWeapon => {
+                    iter_b = core::iter::empty();
+                    &mut iter_b
+                },
+                RecipeKind::Component(toolkind) => {
+                    if let Some(material) = modular_slot_check_hack
+                        .0
+                        .and_then(|slot| self.inventory.get(slot))
+                        .map(|item| String::from(item.item_definition_id()))
+                    {
+                        let component_key = ComponentKey {
+                            toolkind,
+                            material,
+                            modifier: modular_slot_check_hack
+                                .1
+                                .and_then(|slot| self.inventory.get(slot))
+                                .map(|item| String::from(item.item_definition_id())),
+                        };
+                        if let Some(comp_recipe) =
+                            self.client.component_recipe_book().get(&component_key)
+                        {
+                            iter_c = comp_recipe.inputs();
+                            &mut iter_c as &mut dyn ExactSizeIterator<Item = _>
+                        } else {
+                            iter_b = core::iter::empty();
+                            &mut iter_b
+                        }
+                    } else {
+                        iter_b = core::iter::empty();
+                        &mut iter_b
+                    }
+                },
+            };
 
-                    let station_name = match recipe.craft_sprite {
-                        Some(SpriteKind::Anvil) => "hud.crafting.anvil",
-                        Some(SpriteKind::Cauldron) => "hud.crafting.cauldron",
-                        Some(SpriteKind::CookingPot) => "hud.crafting.cooking_pot",
-                        Some(SpriteKind::CraftingBench) => "hud.crafting.crafting_bench",
-                        Some(SpriteKind::Forge) => "hud.crafting.forge",
-                        Some(SpriteKind::Loom) => "hud.crafting.loom",
-                        Some(SpriteKind::SpinningWheel) => "hud.crafting.spinning_wheel",
-                        Some(SpriteKind::TanningRack) => "hud.crafting.tanning_rack",
-                        Some(SpriteKind::DismantlingBench) => "hud.crafting.salvaging_station",
-                        _ => "",
-                    };
-                    Text::new(self.localized_strings.get(station_name))
-                        .right_from(state.ids.req_station_img, 10.0)
-                        .font_id(self.fonts.cyri.conrod_id)
-                        .font_size(self.fonts.cyri.scale(14))
-                        .color(
-                            if self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
-                                == recipe.craft_sprite
-                            {
-                                TEXT_COLOR
-                            } else {
-                                TEXT_DULL_RED_COLOR
-                            },
-                        )
-                        .set(state.ids.req_station_txt, ui);
-                }
-                // Ingredients Text
+            let num_ingredients = ingredients.len();
+            if num_ingredients > 0 {
                 let mut ing_txt = Text::new(self.localized_strings.get("hud.crafting.ingredients"))
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(18))
@@ -1426,49 +1471,49 @@ impl<'a> Widget for Crafting<'a> {
                 ing_txt.set(state.ids.ingredients_txt, ui);
 
                 // Ingredient images with tooltip
-                if state.ids.ingredient_frame.len() < recipe.inputs().len() {
+                if state.ids.ingredient_frame.len() < num_ingredients {
                     state.update(|state| {
                         state
                             .ids
                             .ingredient_frame
-                            .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
+                            .resize(num_ingredients, &mut ui.widget_id_generator())
                     });
                 };
-                if state.ids.ingredients.len() < recipe.inputs().len() {
+                if state.ids.ingredients.len() < num_ingredients {
                     state.update(|state| {
                         state
                             .ids
                             .ingredients
-                            .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
+                            .resize(num_ingredients, &mut ui.widget_id_generator())
                     });
                 };
-                if state.ids.ingredient_btn.len() < recipe.inputs().len() {
+                if state.ids.ingredient_btn.len() < num_ingredients {
                     state.update(|state| {
                         state
                             .ids
                             .ingredient_btn
-                            .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
+                            .resize(num_ingredients, &mut ui.widget_id_generator())
                     });
                 };
-                if state.ids.ingredient_img.len() < recipe.inputs().len() {
+                if state.ids.ingredient_img.len() < num_ingredients {
                     state.update(|state| {
                         state
                             .ids
                             .ingredient_img
-                            .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
+                            .resize(num_ingredients, &mut ui.widget_id_generator())
                     });
                 };
-                if state.ids.req_text.len() < recipe.inputs().len() {
+                if state.ids.req_text.len() < num_ingredients {
                     state.update(|state| {
                         state
                             .ids
                             .req_text
-                            .resize(recipe.inputs().len(), &mut ui.widget_id_generator())
+                            .resize(num_ingredients, &mut ui.widget_id_generator())
                     });
                 };
 
                 // Widget generation for every ingredient
-                for (i, (recipe_input, amount, _)) in recipe.inputs.iter().enumerate() {
+                for (i, (recipe_input, amount)) in ingredients.enumerate() {
                     let item_def = match recipe_input {
                         RecipeInput::Item(item_def) => Arc::clone(item_def),
                         RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => {
@@ -1477,7 +1522,7 @@ impl<'a> Widget for Crafting<'a> {
                                     .slots()
                                     .find_map(|slot| {
                                         slot.as_ref().and_then(|item| {
-                                            if item.matches_recipe_input(recipe_input, *amount) {
+                                            if item.matches_recipe_input(recipe_input, amount) {
                                                 Some(item.item_definition_id())
                                             } else {
                                                 None
@@ -1492,7 +1537,7 @@ impl<'a> Widget for Crafting<'a> {
                                 .slots()
                                 .find_map(|slot| {
                                     slot.as_ref().and_then(|item| {
-                                        if item.matches_recipe_input(recipe_input, *amount) {
+                                        if item.matches_recipe_input(recipe_input, amount) {
                                             Some(item.item_definition_id())
                                         } else {
                                             None
@@ -1511,7 +1556,7 @@ impl<'a> Widget for Crafting<'a> {
                     // Grey color for images and text if their amount is too low to craft the
                     // item
                     let item_count_in_inventory = self.inventory.item_count(&*item_def);
-                    let col = if item_count_in_inventory >= u64::from(*amount.max(&1)) {
+                    let col = if item_count_in_inventory >= u64::from(amount.max(1)) {
                         TEXT_COLOR
                     } else {
                         TEXT_DULL_RED_COLOR
@@ -1526,7 +1571,7 @@ impl<'a> Widget for Crafting<'a> {
                     // for Catalysts/Tools"
                     let frame_offset = if i == 0 {
                         10.0
-                    } else if *amount == 0 {
+                    } else if amount == 0 {
                         5.0
                     } else {
                         0.0
@@ -1542,7 +1587,7 @@ impl<'a> Widget for Crafting<'a> {
                         _ => self.imgs.inv_slot_red,
                     };
                     let frame = Image::new(quality_col_img).w_h(25.0, 25.0);
-                    let frame = if *amount == 0 {
+                    let frame = if amount == 0 {
                         frame.down_from(state.ids.req_text[i], 10.0 + frame_offset)
                     } else {
                         frame.down_from(frame_pos, 10.0 + frame_offset)
@@ -1587,10 +1632,15 @@ impl<'a> Widget for Crafting<'a> {
                     let in_inv: &str = &item_count_in_inventory.to_string();
                     // Show Ingredients
                     // Align "Required" Text below last ingredient
-                    if *amount == 0 {
+                    if amount == 0 {
                         // Catalysts/Tools
+                        let ref_widget = if i == 0 {
+                            state.ids.ingredients_txt
+                        } else {
+                            state.ids.ingredient_frame[i - 1]
+                        };
                         Text::new(self.localized_strings.get("hud.crafting.tool_cata"))
-                            .down_from(state.ids.ingredient_frame[i - 1], 20.0)
+                            .down_from(ref_widget, 20.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(14))
                             .color(TEXT_COLOR)
