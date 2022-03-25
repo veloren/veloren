@@ -668,14 +668,56 @@ impl ComponentRecipe {
     }
 
     pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
-        let material = core::iter::once(&self.material);
-        let modifier = self.modifier.iter();
-        let additional_inputs = self.additional_inputs.iter();
-        material.chain(modifier.chain(additional_inputs))
-            .map(|(item_def, amount)| (item_def, *amount))
-            // Hack, not sure how to get exact size iterator from multiple chains.
-            .collect::<Vec<_>>()
-            .into_iter()
+        pub struct ComponentRecipeInputsIterator<'a> {
+            material: bool,
+            modifier: bool,
+            index: usize,
+            recipe: &'a ComponentRecipe,
+        }
+
+        impl<'a> Iterator for ComponentRecipeInputsIterator<'a> {
+            type Item = &'a (RecipeInput, u32);
+
+            fn next(&mut self) -> Option<&'a (RecipeInput, u32)> {
+                if !self.material {
+                    self.material = true;
+                    Some(&self.recipe.material)
+                } else if !self.modifier {
+                    self.modifier = true;
+                    if self.recipe.modifier.is_some() {
+                        self.recipe.modifier.as_ref()
+                    } else {
+                        self.index += 1;
+                        self.recipe.additional_inputs.get(self.index - 1)
+                    }
+                } else {
+                    self.index += 1;
+                    self.recipe.additional_inputs.get(self.index - 1)
+                }
+            }
+        }
+
+        impl<'a> IntoIterator for &'a ComponentRecipe {
+            type IntoIter = ComponentRecipeInputsIterator<'a>;
+            type Item = &'a (RecipeInput, u32);
+
+            fn into_iter(self) -> Self::IntoIter {
+                ComponentRecipeInputsIterator {
+                    material: false,
+                    modifier: false,
+                    index: 0,
+                    recipe: self,
+                }
+            }
+        }
+
+        impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
+            fn len(&self) -> usize {
+                1 + self.recipe.modifier.is_some() as usize + self.recipe.additional_inputs.len()
+            }
+        }
+
+        self.into_iter().map(|(recipe, amount)| (recipe, *amount))
     }
 }
 

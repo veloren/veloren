@@ -1335,9 +1335,7 @@ impl<'a> Widget for Crafting<'a> {
                             });
                         }
                     },
-                    RecipeKind::Simple => {
-                        events.push(Event::CraftRecipe(recipe_name))
-                    },
+                    RecipeKind::Simple => events.push(Event::CraftRecipe(recipe_name)),
                 }
             }
 
