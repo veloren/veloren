@@ -450,7 +450,7 @@ pub fn handle_possess(server: &mut Server, possessor_uid: Uid, possessee_uid: Ui
             .or_insert(Inventory::new_empty());
 
         let debug_item = comp::Item::new_from_asset_expect("common.items.debug.admin_stick");
-        if let item::ItemKind::Tool(_) = debug_item.kind() {
+        if let item::ItemKind::Tool(_) = &*debug_item.kind() {
             let leftover_items = inventory.swap(
                 Slot::Equip(EquipSlot::ActiveMainhand),
                 Slot::Equip(EquipSlot::InactiveMainhand),
