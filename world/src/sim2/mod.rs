@@ -1,21 +1,21 @@
 use crate::{
     sim::WorldSim,
     site::{
-        economy::{good_list, vergleich, LaborIndex, COIN_INDEX, INTER_SITE_TRADE, MONTH, YEAR},
+        economy::{
+            good_list, vergleich, LaborIndex, COIN_INDEX, DAYS_PER_MONTH, DAYS_PER_YEAR,
+            INTER_SITE_TRADE,
+        },
         Site, SiteKind,
     },
     Index,
 };
-use common::store::Id;
+use rayon::prelude::*;
 use tracing::{debug, info};
 
-// const MONTH: f32 = 30.0;
-// const YEAR: f32 = 12.0 * MONTH;
-const TICK_PERIOD: f32 = 3.0 * MONTH; // 3 months
-const HISTORY_DAYS: f32 = 500.0 * YEAR; // 500 years
+const TICK_PERIOD: f32 = 3.0 * DAYS_PER_MONTH; // 3 months
+const HISTORY_DAYS: f32 = 500.0 * DAYS_PER_YEAR; // 500 years
 
 const GENERATE_CSV: bool = false;
-// const INTER_SITE_TRADE: bool = true;
 
 /// Statistics collector (min, max, avg)
 #[derive(Debug)]
@@ -129,8 +129,9 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?;
     vr.set_epsilon(0.1);
     for i in 0..(HISTORY_DAYS / TICK_PERIOD) as i32 {
-        if (index.time / YEAR) as i32 % 50 == 0 && (index.time % YEAR) as i32 == 0 {
-            debug!("Year {}", (index.time / YEAR) as i32);
+        if (index.time / DAYS_PER_YEAR) as i32 % 50 == 0 && (index.time % DAYS_PER_YEAR) as i32 == 0
+        {
+            debug!("Year {}", (index.time / DAYS_PER_YEAR) as i32);
         }
 
         tick(index, world, TICK_PERIOD, vr.context(&i.to_string()));
@@ -236,48 +237,45 @@ fn check_money(index: &mut Index) {
     );
 }
 
-pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32, mut vc: vergleich::Context) {
-    let site_ids = index.sites.ids().collect::<Vec<_>>();
-    for site in site_ids {
-        tick_site_economy(index, site, dt, vc.context(&site.id().to_string()));
-    }
+pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32, _vc: vergleich::Context) {
     if INTER_SITE_TRADE {
+        // move deliverables to recipient cities
+        for (id, deliv) in index.trade.deliveries.drain() {
+            index.sites.get_mut(id).economy.deliveries.extend(deliv);
+        }
+    }
+    index.sites.par_iter_mut().for_each(|(site_id, site)| {
+        if site.do_economic_simulation() {
+            site.economy.tick(site_id, dt, vergleich::Context::dummy());
+            // helpful for debugging but not compatible with parallel execution
+            // vc.context(&site_id.id().to_string()));
+        }
+    });
+    if INTER_SITE_TRADE {
+        // distribute orders (travelling merchants)
+        for (_id, site) in index.sites.iter_mut() {
+            for (i, mut v) in site.economy.orders.drain() {
+                index
+                    .trade
+                    .orders
+                    .entry(i)
+                    .or_insert(Vec::new())
+                    .append(&mut v);
+            }
+        }
+        // trade at sites
         for (&site, orders) in index.trade.orders.iter_mut() {
             let siteinfo = index.sites.get_mut(site);
             if siteinfo.do_economic_simulation() {
-                // let name: String = siteinfo.name().into();
-                siteinfo.economy.trade_at_site(
-                    site,
-                    orders,
-                    //                    &mut siteinfo.economy,
-                    &mut index.trade.deliveries,
-                );
+                siteinfo
+                    .economy
+                    .trade_at_site(site, orders, &mut index.trade.deliveries);
             }
         }
     }
     //check_money(index);
 
     index.time += dt;
-}
-
-pub fn tick_site_economy(index: &mut Index, site_id: Id<Site>, dt: f32, vc: vergleich::Context) {
-    let site = &mut index.sites[site_id];
-    if !site.do_economic_simulation() {
-        return;
-    }
-    let deliveries = index.trade.deliveries.get_mut(&site_id);
-
-    let economy = &mut site.economy;
-    economy.tick(deliveries, site_id, dt, vc);
-
-    for (i, mut v) in economy.orders.drain() {
-        index
-            .trade
-            .orders
-            .entry(i)
-            .or_insert(Vec::new())
-            .append(&mut v);
-    }
 }
 
 #[cfg(test)]

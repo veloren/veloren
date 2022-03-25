@@ -17,8 +17,8 @@ mod map_types;
 pub use map_types::{GoodIndex, GoodMap, Labor, LaborIndex, LaborMap, NaturalResources};
 
 pub const INTER_SITE_TRADE: bool = true;
-pub const MONTH: f32 = 30.0;
-pub const YEAR: f32 = 12.0 * MONTH;
+pub const DAYS_PER_MONTH: f32 = 30.0;
+pub const DAYS_PER_YEAR: f32 = 12.0 * DAYS_PER_MONTH;
 
 // this is an empty replacement for https://github.com/cpetig/vergleich
 // which can be used to compare values acros runs
@@ -43,6 +43,8 @@ pub mod vergleich {
         pub fn context(&mut self, _: &str) -> Context { Context {} }
 
         pub fn value(&mut self, _: &str, val: f32) -> f32 { val }
+
+        pub fn dummy() -> Self { Context {} }
     }
 }
 
@@ -115,6 +117,8 @@ pub struct Economy {
 
     /// outgoing trade, per provider
     pub orders: DHashMap<Id<Site>, Vec<TradeOrder>>,
+    /// incoming trade - only towards this site
+    pub deliveries: Vec<TradeDelivery>,
 }
 
 impl Default for Economy {
@@ -142,6 +146,7 @@ impl Default for Economy {
             unconsumed_stock: Default::default(),
 
             orders: Default::default(),
+            deliveries: Default::default(),
         }
     }
 }
@@ -652,7 +657,7 @@ impl Economy {
     fn collect_deliveries(
         // site: &mut Site,
         &mut self,
-        deliveries: &mut Vec<TradeDelivery>,
+        // deliveries: &mut Vec<TradeDelivery>,
         // ctx: &mut vergleich::Context,
     ) {
         // collect all the goods we shipped
@@ -664,7 +669,7 @@ impl Economy {
             0.0,
         );
         // TODO: properly rate benefits created by merchants (done below?)
-        for mut d in deliveries.drain(..) {
+        for mut d in self.deliveries.drain(..) {
             // let mut ictx = ctx.context(&format!("suppl {}", d.supplier.id()));
             for i in d.amount.iter() {
                 last_exports[i.0] -= *i.1;
@@ -685,9 +690,9 @@ impl Economy {
                 }
             }
         }
-        if !deliveries.is_empty() {
-            info!("non empty deliveries {:?}", deliveries);
-            deliveries.clear();
+        if !self.deliveries.is_empty() {
+            info!("non empty deliveries {:?}", self.deliveries);
+            self.deliveries.clear();
         }
         std::mem::swap(&mut last_exports, &mut self.last_exports);
         //self.active_exports.clear();
@@ -722,16 +727,16 @@ impl Economy {
 
     pub fn tick(
         &mut self,
-        deliveries: Option<&mut Vec<TradeDelivery>>,
+        //deliveries: Option<&mut Vec<TradeDelivery>>,
         site_id: Id<Site>,
         dt: f32,
         mut vc: vergleich::Context,
     ) {
         // collect goods from trading
         if INTER_SITE_TRADE {
-            if let Some(deliveries) = deliveries {
-                self.collect_deliveries(deliveries);
-            }
+            // if let Some(deliveries) = deliveries {
+            self.collect_deliveries();
+            // }
         }
 
         let orders = self.get_orders();
@@ -1068,7 +1073,10 @@ impl Economy {
         } else {
             0.0
         };
-        self.pop += vc.value("pop", dt / YEAR * self.pop * (birth_rate - DEATH_RATE));
+        self.pop += vc.value(
+            "pop",
+            dt / DAYS_PER_YEAR * self.pop * (birth_rate - DEATH_RATE),
+        );
 
         // calculate the new unclaimed stock
         //let next_orders = self.get_orders();
