@@ -30,6 +30,7 @@ pub enum RtSimEntityKind {
     Wanderer,
     Cultist,
     Villager,
+    TownGuard,
     Merchant,
     Blacksmith,
     Chef,
@@ -95,6 +96,7 @@ impl Entity {
             },
             RtSimEntityKind::Cultist
             | RtSimEntityKind::Villager
+            | RtSimEntityKind::TownGuard
             | RtSimEntityKind::Chef
             | RtSimEntityKind::Alchemist
             | RtSimEntityKind::Blacksmith
@@ -746,6 +748,16 @@ impl Brain {
         }
     }
 
+    pub fn town_guard(home_id: Id<Site>) -> Self {
+        Self {
+            begin: Some(home_id),
+            tgt: None,
+            route: Travel::Idle,
+            last_visited: None,
+            memories: Vec::new(),
+        }
+    }
+
     pub fn begin_site(&self) -> Option<Id<Site>> { self.begin }
 
     pub fn add_memory(&mut self, memory: Memory) { self.memories.push(memory); }
@@ -820,6 +832,7 @@ fn humanoid_config(kind: RtSimEntityKind, rank: TravelerRank) -> &'static str {
             TravelerRank::Rank3 => "common.entity.world.traveler3",
         },
         RtSimEntityKind::Villager => "common.entity.village.villager",
+        RtSimEntityKind::TownGuard => "common.entity.village.guard",
         RtSimEntityKind::Merchant => "common.entity.village.merchant",
         RtSimEntityKind::Blacksmith => "common.entity.village.blacksmith",
         RtSimEntityKind::Chef => "common.entity.village.chef",
