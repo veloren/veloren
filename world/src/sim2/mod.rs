@@ -282,24 +282,22 @@ pub fn tick(index: &mut Index, _world: &mut WorldSim, dt: f32, _vc: vergleich::C
 #[cfg(test)]
 mod tests {
     use crate::{sim, site::economy::GoodMap, util::seed_expan};
-    use common::trade::Good;
+    use common::{store::Id, terrain::BiomeKind, trade::Good};
     use rand::SeedableRng;
     use rand_chacha::ChaChaRng;
     use serde::{Deserialize, Serialize};
     use std::convert::TryInto;
     use tracing::{info, Level};
-    use tracing_subscriber::{
-        filter::{EnvFilter, LevelFilter},
-        FmtSubscriber,
-    };
+    use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
     use vek::Vec2;
 
     // enable info!
     fn init() {
         FmtSubscriber::builder()
-            .with_max_level(Level::ERROR)
-            .with_env_filter(EnvFilter::from_default_env().add_directive(LevelFilter::INFO.into()))
-            .init();
+            .with_max_level(Level::INFO)
+            .with_env_filter(EnvFilter::from_default_env())
+            .try_init()
+            .unwrap_or_default();
     }
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -443,5 +441,184 @@ mod tests {
             }
         }
         crate::sim2::simulate(&mut index, &mut sim);
+    }
+
+    struct Simenv {
+        index: crate::index::Index,
+        rng: ChaChaRng,
+        targets: hashbrown::HashMap<Id<crate::site::Site>, f32>,
+    }
+
+    #[test]
+    // test whether a site in moderate climate can survive on its own
+    fn test_economy_moderate_standalone() {
+        fn add_settlement(
+            env: &mut Simenv,
+            // index: &mut crate::index::Index,
+            // rng: &mut ChaCha20Rng,
+            _name: &str,
+            target: f32,
+            resources: &[(Good, f32)],
+        ) -> Id<crate::site::Site> {
+            let wpos = Vec2 { x: 42, y: 42 };
+            let mut settlement = crate::site::Site::settlement(crate::site::Settlement::generate(
+                wpos,
+                None,
+                &mut env.rng,
+                //Some(name),
+            ));
+            for (good, amount) in resources.iter() {
+                settlement.economy.natural_resources.chunks_per_resource
+                    [(*good).try_into().unwrap_or_default()] = *amount;
+                settlement.economy.natural_resources.average_yield_per_chunk
+                    [(*good).try_into().unwrap_or_default()] = 1.0;
+            }
+            let id = env.index.sites.insert(settlement);
+            env.targets.insert(id, target);
+            id
+        }
+
+        fn print_sorted(
+            prefix: &str,
+            mut list: Vec<(String, f32)>,
+            threshold: f32,
+            decimals: usize,
+        ) {
+            print!("{}", prefix);
+            list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
+            for i in list.iter() {
+                if i.1 >= threshold {
+                    print!("{}={:.*} ", i.0, decimals, i.1);
+                }
+            }
+            println!();
+        }
+
+        init();
+        let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
+        info!("init");
+        let seed = 59686;
+        let opts = sim::WorldOpts {
+            seed_elements: true,
+            world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
+            calendar: Default::default(),
+        };
+        let index = crate::index::Index::new(seed);
+        info!("Index created");
+        let mut sim = sim::WorldSim::generate(seed, opts, &threadpool);
+        info!("World loaded");
+        let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
+        let mut env = Simenv {
+            index,
+            rng,
+            targets: hashbrown::HashMap::new(),
+        };
+        add_settlement(&mut env, "Grass", 18.0, &[(
+            Good::Terrain(BiomeKind::Grassland),
+            100.0_f32,
+        )]);
+        add_settlement(&mut env, "Forest", 22.0, &[(
+            Good::Terrain(BiomeKind::Forest),
+            100.0_f32,
+        )]);
+        add_settlement(&mut env, "Mountain", 19.0, &[(
+            Good::Terrain(BiomeKind::Mountain),
+            100.0_f32,
+        )]);
+        add_settlement(&mut env, "Desert", 19.0, &[(
+            Good::Terrain(BiomeKind::Desert),
+            100.0_f32,
+        )]);
+        // add_settlement(&mut index, &mut rng, &[
+        //     (Good::Terrain(BiomeKind::Jungle), 100.0_f32),
+        // ]);
+        // add_settlement(&mut index, &mut rng, &[
+        //     (Good::Terrain(BiomeKind::Snowland), 100.0_f32),
+        // ]);
+        add_settlement(&mut env, "GrFoMo", 30.0, &[
+            (Good::Terrain(BiomeKind::Grassland), 100.0_f32),
+            (Good::Terrain(BiomeKind::Forest), 100.0_f32),
+            (Good::Terrain(BiomeKind::Mountain), 10.0_f32),
+        ]);
+        add_settlement(&mut env, "MountainCave", 19.0, &[
+            (Good::Terrain(BiomeKind::Mountain), 100.0_f32),
+            // (Good::CaveAccess, 100.0_f32),
+        ]);
+        crate::sim2::simulate(&mut env.index, &mut sim);
+        use crate::site::economy::good_list;
+        for (id, site) in env.index.sites.iter() {
+            println!("Site id {:?} name {}", id, site.name());
+            //assert!(site.economy.sanity_check());
+            print!(" Resources: ");
+            for i in good_list() {
+                let amount = site.economy.natural_resources.chunks_per_resource[i];
+                if amount > 0.0 {
+                    print!("{:?}={} ", i, amount);
+                }
+            }
+            println!();
+            println!(" Population {:.1}, limited by ?", site.economy.pop);
+            let idle: f32 =
+                site.economy.pop * (1.0 - site.economy.labors.iter().map(|(_, a)| *a).sum::<f32>());
+            print_sorted(
+                &format!(" Professions: idle={:.1} ", idle),
+                site.economy
+                    .labors
+                    .iter()
+                    .map(|(l, a)| (format!("{:?}", l), *a * site.economy.pop))
+                    .collect(),
+                site.economy.pop * 0.05,
+                1,
+            );
+            print_sorted(
+                " Stock: ",
+                site.economy
+                    .stocks
+                    .iter()
+                    .map(|(l, a)| (format!("{:?}", l), *a))
+                    .collect(),
+                1.0,
+                0,
+            );
+            print_sorted(
+                " Values: ",
+                site.economy
+                    .values
+                    .iter()
+                    .map(|(l, a)| {
+                        (
+                            format!("{:?}", l),
+                            a.map(|v| if v > 3.9 { 0.0 } else { v }).unwrap_or(0.0),
+                        )
+                    })
+                    .collect(),
+                0.1,
+                1,
+            );
+            print_sorted(
+                " Labor Values: ",
+                site.economy
+                    .labor_values
+                    .iter()
+                    .map(|(l, a)| (format!("{:?}", l), a.unwrap_or(0.0)))
+                    .collect(),
+                0.1,
+                1,
+            );
+            // print!(" Limited: ");
+            // for (limit, prod) in site
+            //     .economy
+            //     .limited_by
+            //     .iter()
+            //     .zip(site.economy.productivity.iter())
+            // {
+            //     if 0.01 <= *prod.1 && *prod.1 <= 0.99 {
+            //         print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
+            //     }
+            // }
+            // println!();
+            // check population (shrinks if economy gets broken)
+            // assert!(site.economy.pop >= env.targets[&id]);
+        }
     }
 }
