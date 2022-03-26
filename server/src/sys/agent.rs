@@ -7,10 +7,9 @@ use crate::{
     rtsim::RtSim,
     sys::agent::{
         consts::{
-            AVG_FOLLOW_DIST, AWARENESS_INVESTIGATE_THRESHOLD, DAMAGE_MEMORY_DURATION,
-            DEFAULT_ATTACK_RANGE, FLEE_DURATION, HEALING_ITEM_THRESHOLD,
-            IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST, PARTIAL_PATH_DIST,
-            RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS, SEPARATION_DIST,
+            AVG_FOLLOW_DIST, DAMAGE_MEMORY_DURATION, DEFAULT_ATTACK_RANGE, FLEE_DURATION,
+            HEALING_ITEM_THRESHOLD, IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST,
+            PARTIAL_PATH_DIST, RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS, SEPARATION_DIST,
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
@@ -502,8 +501,8 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<'_, ServerEvent>,
         rng: &mut impl Rng,
     ) {
-        agent.decrement_awareness(read_data.dt.0);
-        agent.forget_old_sounds(read_data.time.0);
+        // TODO: Awareness currently doesn't influence anything.
+        //agent.decrement_awareness(read_data.dt.0);
 
         let small_chance = rng.gen_bool(0.1);
         // Set owner if no target
@@ -524,7 +523,6 @@ impl<'a> AgentData<'a> {
                 match sound {
                     Some(AgentEvent::ServerSound(sound)) => {
                         agent.sounds_heard.push(sound);
-                        agent.awareness += sound.vol;
                     },
                     Some(AgentEvent::Hurt) => {
                         // Hurt utterances at random upon receiving damage
@@ -572,10 +570,8 @@ impl<'a> AgentData<'a> {
 
                 if rng.gen::<f32>() < 0.1 {
                     self.choose_target(agent, controller, read_data, event_emitter);
-                } else if agent.awareness > AWARENESS_INVESTIGATE_THRESHOLD {
-                    self.handle_elevated_awareness(agent, controller, read_data, rng);
                 } else {
-                    self.idle(agent, controller, read_data, rng);
+                    self.handle_sounds_heard(agent, controller, read_data, rng);
                 }
             },
         }
@@ -637,8 +633,7 @@ impl<'a> AgentData<'a> {
                 }
                 let aggro_on = *aggro_on;
 
-                let should_flee = self.damage.min(1.0) < agent.psyche.flee_health;
-                if should_flee {
+                if self.below_flee_health(agent) {
                     let has_opportunity_to_flee = agent.action_state.timer < FLEE_DURATION;
                     let within_flee_distance = dist_sqrd < MAX_FLEE_DIST.powi(2);
 
@@ -1949,8 +1944,8 @@ impl<'a> AgentData<'a> {
             angle_xy,
         };
 
-        // Match on tactic. Each tactic has different controls
-        // depending on the distance from the agent to the target
+        // Match on tactic. Each tactic has different controls depending on the distance
+        // from the agent to the target.
         match tactic {
             Tactic::SimpleMelee => {
                 self.handle_simple_melee(agent, controller, &attack_data, tgt_data, read_data, rng)
@@ -2172,56 +2167,56 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn handle_elevated_awareness(
+    fn handle_sounds_heard(
         &self,
         agent: &mut Agent,
         controller: &mut Controller,
         read_data: &ReadData,
         rng: &mut impl Rng,
     ) {
+        agent.forget_old_sounds(read_data.time.0);
+
         if is_invulnerable(*self.entity, read_data) {
             self.idle(agent, controller, read_data, rng);
             return;
         }
 
         if let Some(sound) = agent.sounds_heard.last() {
-            if let Some(agent_stats) = read_data.stats.get(*self.entity) {
-                let sound_pos = Pos(sound.pos);
-                let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
+            let sound_pos = Pos(sound.pos);
+            let dist_sqrd = self.pos.0.distance_squared(sound_pos.0);
+            // NOTE: There is an implicit distance requirement given that sound volume
+            // disipates as it travels, but we will not want to flee if a sound is super
+            // loud but heard from a great distance, regardless of how loud it was.
+            // `is_close` is this limiter.
+            let is_close = dist_sqrd < 35.0_f32.powi(2);
 
-                // FIXME: We need to be able to change the name of a guard without breaking this
-                // logic The `Mark` enum from common::agent could be used to
-                // match with `agent::Mark::Guard`
-                let is_village_guard = agent_stats.name == *"Guard".to_string();
-                let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+            let sound_was_loud = sound.vol >= 10.0;
+            let sound_was_threatening = sound_was_loud
+                || matches!(sound.kind, SoundKind::Utterance(UtteranceKind::Scream, _));
 
-                if is_enemy {
-                    let far_enough = dist_sqrd > 10.0_f32.powi(2);
+            let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+            // FIXME: We need to be able to change the name of a guard without breaking this
+            // logic. The `Mark` enum from common::agent could be used to match with
+            // `agent::Mark::Guard`
+            let is_village_guard = read_data
+                .stats
+                .get(*self.entity)
+                .map_or(false, |stats| stats.name == *"Guard".to_string());
+            let follows_threatening_sounds = is_enemy || is_village_guard;
 
-                    if far_enough {
-                        self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                    } else {
-                        // TODO: Change this to a search action instead of idle
-                        self.idle(agent, controller, read_data, rng);
-                    }
-                } else if is_village_guard {
+            // TODO: Awareness currently doesn't influence anything.
+            //agent.awareness += 0.5 * sound.vol;
+
+            if sound_was_threatening && is_close {
+                if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
-                } else if !is_village_guard {
-                    let flee_health = agent.psyche.flee_health;
-                    let close_enough = dist_sqrd < 35.0_f32.powi(2);
-                    let sound_was_loud = sound.vol >= 10.0;
-
-                    if close_enough
-                        && (flee_health <= 0.7 || (flee_health <= 0.5 && sound_was_loud))
-                    {
-                        self.flee(agent, controller, &read_data.terrain, &sound_pos);
-                    } else {
-                        self.idle(agent, controller, read_data, rng);
-                    }
+                } else if self.below_flee_health(agent) || !follows_threatening_sounds {
+                    self.flee(agent, controller, &read_data.terrain, &sound_pos);
                 } else {
-                    // TODO: Change this to a search action instead of idle
                     self.idle(agent, controller, read_data, rng);
                 }
+            } else {
+                self.idle(agent, controller, read_data, rng);
             }
         }
     }
@@ -2377,7 +2372,7 @@ impl<'a> AgentData<'a> {
                 sound: Sound::new(
                     SoundKind::Utterance(UtteranceKind::Scream, *body),
                     self.pos.0,
-                    100.0,
+                    13.0,
                     time,
                 ),
             });
@@ -2419,5 +2414,9 @@ impl<'a> AgentData<'a> {
                 event_emitter,
             );
         }
+    }
+
+    fn below_flee_health(&self, agent: &Agent) -> bool {
+        self.damage.min(1.0) < agent.psyche.flee_health
     }
 }

@@ -73,7 +73,7 @@ impl<'a> System<'a> for Sys {
                 continue;
             }
             server_emitter.emit(ServerEvent::Sound {
-                sound: Sound::new(SoundKind::Melee, pos.0, 3.0, read_data.time.0),
+                sound: Sound::new(SoundKind::Melee, pos.0, 2.0, read_data.time.0),
             });
             melee_attack.applied = true;
 

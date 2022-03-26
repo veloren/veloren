@@ -5,6 +5,7 @@ target
 
 **/.nvimrc
 **/*.vi
+**/*.vim
 **/*.swp
 **/*tags
 

@@ -597,7 +597,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
             .retrieve_entity_internal(uid.into())
     });
 
-    let explosion_volume = 2.5 * explosion.radius;
+    let explosion_volume = 6.25 * explosion.radius;
     let mut emitter = server_eventbus.emitter();
     emitter.emit(ServerEvent::Sound {
         sound: Sound::new(SoundKind::Explosion, pos, explosion_volume, time.0),
