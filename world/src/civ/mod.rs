@@ -1298,7 +1298,9 @@ impl SiteKind {
 impl Site {
     pub fn is_dungeon(&self) -> bool { matches!(self.kind, SiteKind::Dungeon) }
 
-    pub fn is_settlement(&self) -> bool { matches!(self.kind, SiteKind::Settlement) }
+    pub fn is_settlement(&self) -> bool {
+        matches!(self.kind, SiteKind::Settlement | SiteKind::Refactor)
+    }
 
     pub fn is_castle(&self) -> bool { matches!(self.kind, SiteKind::Castle) }
 }
