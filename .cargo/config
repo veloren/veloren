@@ -14,6 +14,8 @@ rustflags = [
 cmd-doc-gen = "run --features=bin_cmd_doc_gen --bin cmd_doc_gen"
 csv-export = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_export"
 csv-import = "run --manifest-path common/Cargo.toml --features=bin_csv --bin csv_import"
+dot-recipes = "run --manifest-path common/Cargo.toml --features=bin_graphviz --bin recipe_graphviz"
+dot-skills = "run --manifest-path common/Cargo.toml --features=bin_graphviz --bin skill_graphviz"
 # server-cli
 server = "run --bin veloren-server-cli"
 test-server = "run --bin veloren-server-cli --no-default-features --features simd"
