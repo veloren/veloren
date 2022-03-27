@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Hostile agent will now abort pursuing their target based on multiple metrics
 - Admin command to reload all chunks on the server
 - Furniture and waypoints in site2 towns
+- text input for trading
 
 ### Changed
 
