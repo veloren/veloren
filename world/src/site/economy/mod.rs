@@ -88,6 +88,7 @@ lazy_static! {
 pub struct Economy {
     /// Population
     pub pop: f32,
+    pub population_limited_by: GoodIndex,
 
     /// Total available amount of each good
     pub stocks: GoodMap<f32>,
@@ -110,9 +111,9 @@ pub struct Economy {
     // Per worker, per year, of their output good
     pub yields: LaborMap<f32>,
     pub productivity: LaborMap<f32>,
+    pub limited_by: LaborMap<GoodIndex>,
 
     pub natural_resources: NaturalResources,
-    // usize is distance
     pub neighbors: Vec<NeighborInformation>,
 
     /// outgoing trade, per provider
@@ -126,6 +127,7 @@ impl Default for Economy {
         let coin_index: GoodIndex = GoodIndex::try_from(Coin).unwrap_or_default();
         Self {
             pop: 32.0,
+            population_limited_by: GoodIndex::default(),
 
             stocks: GoodMap::from_list(&[(coin_index, Economy::STARTING_COIN)], 100.0),
             surplus: Default::default(),
@@ -140,6 +142,7 @@ impl Default for Economy {
             labors: LaborMap::from_default(0.01),
             yields: LaborMap::from_default(1.0),
             productivity: LaborMap::from_default(1.0),
+            limited_by: LaborMap::from_default(GoodIndex::default()),
 
             natural_resources: Default::default(),
             neighbors: Default::default(),
@@ -928,7 +931,7 @@ impl Economy {
             // available then we only need to consume 2/3rds
             // of other ingredients and leave the rest in stock
             // In effect, this is the productivity
-            let labor_productivity = orders
+            let (labor_productivity, limited_by) = orders
                 .iter()
                 .map(|(good, amount)| {
                     // What quantity is this order requesting?
@@ -936,13 +939,20 @@ impl Economy {
                     assert!(stocks_before[*good] >= 0.0);
                     assert!(demand[*good] >= 0.0);
                     // What proportion of this order is the economy able to satisfy?
-                    (stocks_before[*good] / demand[*good]).min(1.0)
+                    ((stocks_before[*good] / demand[*good]).min(1.0), *good)
                 })
-                .min_by(|a, b| a.partial_cmp(b).unwrap_or(Less))
+                .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(Less))
                 .unwrap_or_else(|| {
                     panic!("Industry {:?} requires at least one input order", labor)
                 });
             assert!(labor_productivity >= 0.0);
+            if let Some(labor) = labor {
+                self.limited_by[*labor] = if labor_productivity >= 1.0 {
+                    GoodIndex::default()
+                } else {
+                    limited_by
+                };
+            }
 
             let mut total_materials_cost = 0.0;
             for (good, amount) in orders {
@@ -1069,7 +1079,8 @@ impl Economy {
         // Births/deaths
         const NATURAL_BIRTH_RATE: f32 = 0.05;
         const DEATH_RATE: f32 = 0.005;
-        let birth_rate = if self.surplus[*FOOD_INDEX] > 0.0 {
+        let population_growth = self.surplus[*FOOD_INDEX] > 0.0;
+        let birth_rate = if population_growth {
             NATURAL_BIRTH_RATE
         } else {
             0.0
@@ -1078,6 +1089,11 @@ impl Economy {
             "pop",
             dt / DAYS_PER_YEAR * self.pop * (birth_rate - DEATH_RATE),
         );
+        self.population_limited_by = if population_growth {
+            GoodIndex::default()
+        } else {
+            *FOOD_INDEX
+        };
 
         // calculate the new unclaimed stock
         //let next_orders = self.get_orders();

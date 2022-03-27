@@ -557,7 +557,10 @@ mod tests {
                 }
             }
             println!();
-            println!(" Population {:.1}, limited by ?", site.economy.pop);
+            println!(
+                " Population {:.1}, limited by {:?}",
+                site.economy.pop, site.economy.population_limited_by
+            );
             let idle: f32 =
                 site.economy.pop * (1.0 - site.economy.labors.iter().map(|(_, a)| *a).sum::<f32>());
             print_sorted(
@@ -605,18 +608,18 @@ mod tests {
                 0.1,
                 1,
             );
-            // print!(" Limited: ");
-            // for (limit, prod) in site
-            //     .economy
-            //     .limited_by
-            //     .iter()
-            //     .zip(site.economy.productivity.iter())
-            // {
-            //     if 0.01 <= *prod.1 && *prod.1 <= 0.99 {
-            //         print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
-            //     }
-            // }
-            // println!();
+            print!(" Limited: ");
+            for (limit, prod) in site
+                .economy
+                .limited_by
+                .iter()
+                .zip(site.economy.productivity.iter())
+            {
+                if 0.01 <= *prod.1 && *prod.1 <= 0.99 {
+                    print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
+                }
+            }
+            println!();
             // check population (shrinks if economy gets broken)
             // assert!(site.economy.pop >= env.targets[&id]);
         }
