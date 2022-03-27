@@ -373,6 +373,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed entities with voxel colliders being off by one physics tick for collision.
 - Airships no longer oscillate dramatically into the sky due to mistaking velocity for acceleration.
 - The login and character selection screens no longer cause high GPU usage when the framerate limit is set to Unlimited.
+- Deadwood will now attack targets who are at different elevations than itself.
 
 ## [0.9.0] - 2021-03-20
 
