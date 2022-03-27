@@ -521,10 +521,10 @@ mod tests {
             Good::Terrain(BiomeKind::Grassland),
             100.0_f32,
         )]);
-        // add_settlement(&mut env, "Mountain", 19.0, &[(
-        //     Good::Terrain(BiomeKind::Mountain),
-        //     100.0_f32,
-        // )]);
+        add_settlement(&mut env, "Mountain", 19.0, &[(
+            Good::Terrain(BiomeKind::Mountain),
+            100.0_f32,
+        )]);
         // add_settlement(&mut env, "Desert", 19.0, &[(
         //     Good::Terrain(BiomeKind::Desert),
         //     100.0_f32,
@@ -540,10 +540,10 @@ mod tests {
             (Good::Terrain(BiomeKind::Forest), 100.0_f32),
             (Good::Terrain(BiomeKind::Mountain), 10.0_f32),
         ]);
-        add_settlement(&mut env, "Mountain", 19.0, &[
-            (Good::Terrain(BiomeKind::Mountain), 100.0_f32),
-            // (Good::CaveAccess, 100.0_f32),
-        ]);
+        // add_settlement(&mut env, "Mountain", 19.0, &[
+        //     (Good::Terrain(BiomeKind::Mountain), 100.0_f32),
+        //     // (Good::CaveAccess, 100.0_f32),
+        // ]);
         // connect to neighbors
         for i in 1..(env.index.sites.ids().count() as u64 - 1) {
             let previous = env.index.sites.recreate_id(i - 1);
