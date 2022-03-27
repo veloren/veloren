@@ -1146,171 +1146,171 @@
     ),
     // Staves
     Modular(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.brand.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.brand.wood", (-1.0, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.grandstaff.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.grandstaff.wood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.longpole", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.longpole.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.longpole.wood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.ornate", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.ornate.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.ornate.wood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.pole.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.pole.wood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.rod.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.rod.wood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.staff.staff.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.staff.wood", (-0.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.brand.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.brand.bamboo", (-0.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.grandstaff.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.grandstaff.bamboo", (-1.5, -5.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.longpole", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.longpole.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.longpole.bamboo", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.ornate", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.ornate.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.ornate.bamboo", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.pole.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.pole.bamboo", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.rod.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.rod.bamboo", (-1.5, -4.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.staff.staff.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.staff.bamboo", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.brand.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.brand.hardwood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.grandstaff.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.grandstaff.hardwood", (-1.5, -6.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.longpole", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.longpole.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.longpole.hardwood", (-1.5, -5.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.ornate", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.ornate.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.ornate.hardwood", (-1.5, -6.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.pole.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.pole.hardwood", (-1.5, -5.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.rod.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.rod.hardwood", (-2.5, -4.5, -7.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.staff.staff.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.staff.hardwood", (-1.5, -4.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.brand.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.brand.ironwood", (-1.5, -4.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.grandstaff.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.grandstaff.ironwood", (-2.5, -6.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.longpole", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.longpole.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.longpole.ironwood", (-2.5, -5.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.ornate", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.ornate.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.ornate.ironwood", (-2.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.pole.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.pole.ironwood", (-2.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.rod.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.rod.ironwood", (-3.5, -4.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.staff.staff.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.staff.ironwood", (-2.5, -2.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.brand.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.brand.frostwood", (-1.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.grandstaff.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.grandstaff.frostwood", (-1.5, -6.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.longpole", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.longpole.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.longpole.frostwood", (-1.5, -4.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.ornate", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.ornate.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.ornate.frostwood", (-1.5, -4.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.pole.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.pole.frostwood", (-3.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.rod.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.rod.frostwood", (-5.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.staff.staff.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.staff.frostwood", (-2.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.brand.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.brand.eldwood", (-1.5, -4.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.grandstaff.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.grandstaff.eldwood", (-1.5, -5.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.longpole", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.longpole.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.longpole.eldwood", (-1.5, -5.5, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.ornate", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.ornate.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.ornate.eldwood", (-1.5, -2.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.pole.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.pole.eldwood", (-0.5, -3.5, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.rod.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.rod.eldwood", (-2.5, -6.5, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.staff.staff.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.staff.staff.eldwood", (-2.5, -3.5, -4.0)),
         color: None
     ),
     Tool("common.items.weapons.staff.staff_1"): (
