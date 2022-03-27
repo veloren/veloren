@@ -2424,7 +2424,7 @@ impl<'a> AgentData<'a> {
             // If already dashing, keep dashing and have move_dir set to forward
             controller.push_basic_input(InputKind::Secondary);
             controller.inputs.move_dir = self.ori.look_vec().xy();
-        } else if attack_data.in_min_range() && attack_data.angle < 10.0 {
+        } else if attack_data.in_min_range() && attack_data.angle_xy < 10.0 {
             // If near target, dash at them and through them to get away
             controller.push_basic_input(InputKind::Secondary);
         } else if matches!(self.char_state, CharacterState::BasicBeam(s) if s.stage_section != StageSection::Recover && s.timer < BEAM_TIME)
@@ -2433,7 +2433,7 @@ impl<'a> AgentData<'a> {
             controller.push_basic_input(InputKind::Primary);
         } else if attack_data.dist_sqrd < BEAM_RANGE.powi(2) {
             // Else if in beam range, beam them
-            if attack_data.angle < 5.0 {
+            if attack_data.angle_xy < 5.0 {
                 controller.push_basic_input(InputKind::Primary);
             } else {
                 // If not in angle, apply slight movement so deadwood orients itself correctly
