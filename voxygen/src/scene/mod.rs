@@ -692,7 +692,10 @@ impl Scene {
             scene_data.ambiance,
             self.camera.get_mode(),
             scene_data.sprite_render_distance as f32 - 20.0,
-            client.current_weather_wpos(cam_pos.xy()).wind,
+            client
+                .state()
+                .weather_at(focus_off.xy() + cam_pos.xy())
+                .wind,
         )]);
         renderer.update_clouds_locals(CloudsLocals::new(proj_mat_inv, view_mat_inv));
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
@@ -704,13 +707,14 @@ impl Scene {
         self.debug.maintain(renderer);
 
         // Maintain the terrain.
-        let (_visible_bounds, visible_light_volume, visible_psr_bounds) = self.terrain.maintain(
-            renderer,
-            scene_data,
-            focus_pos,
-            self.loaded_distance,
-            &self.camera,
-        );
+        let (_visible_bounds, visible_light_volume, visible_psr_bounds, visible_occlusion_volume) =
+            self.terrain.maintain(
+                renderer,
+                scene_data,
+                focus_pos,
+                self.loaded_distance,
+                &self.camera,
+            );
 
         // Maintain the figures.
         let _figure_bounds = self.figure_mgr.maintain(
@@ -752,7 +756,8 @@ impl Scene {
             * Mat4::translation_3d(Vec3::new(1.0, -1.0, 0.0));
 
         let directed_mats = |d_view_mat: math::Mat4<f32>,
-                             d_dir: math::Vec3<f32>|
+                             d_dir: math::Vec3<f32>,
+                             volume: &Vec<math::Vec3<f32>>|
          -> (Mat4<f32>, Mat4<f32>) {
             // NOTE: Light view space, right-handed.
             let v_p_orig = math::Vec3::from(d_view_mat * math::Vec4::from_direction(new_dir));
@@ -765,7 +770,7 @@ impl Scene {
             // (right-handed).
             let bounds1 = math::fit_psr(
                 view_mat.map_cols(math::Vec4::from),
-                visible_light_volume.iter().copied(),
+                volume.iter().copied(),
                 math::Vec4::homogenized,
             );
             let n_e = f64::from(-bounds1.max.z);
@@ -997,17 +1002,15 @@ impl Scene {
             )
         };
 
-        let weather = client.current_weather_wpos(focus_off.xy() + cam_pos.xy());
+        let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
         if true || weather.rain > 0.001
         // TODO: check if rain map mode is on
         {
-            // If this value is changed also change it in cloud-frag.glsl
-            const FALL_RATE: f32 = 70.0;
-            let rain_dir =
-                math::Vec3::from(-Vec3::unit_z() + weather.wind / FALL_RATE).normalized();
+            let rain_dir = math::Vec3::from(weather.rain_dir());
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_dir, up);
 
-            let (shadow_mat, texture_mat) = directed_mats(rain_view_mat, rain_dir);
+            let (shadow_mat, texture_mat) =
+                directed_mats(rain_view_mat, rain_dir, &visible_occlusion_volume);
 
             let rain_occlusion_locals = RainOcclusionLocals::new(shadow_mat, texture_mat);
             renderer.update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
@@ -1029,7 +1032,8 @@ impl Scene {
             let mut directed_shadow_mats = Vec::with_capacity(6);
 
             let light_view_mat = math::Mat4::look_at_rh(look_at, look_at + directed_light_dir, up);
-            let (shadow_mat, texture_mat) = directed_mats(light_view_mat, directed_light_dir);
+            let (shadow_mat, texture_mat) =
+                directed_mats(light_view_mat, directed_light_dir, &visible_light_volume);
 
             let shadow_locals = ShadowLocals::new(shadow_mat, texture_mat);
 
@@ -1166,7 +1170,7 @@ impl Scene {
                 prof_span!("rain occlusion");
                 if let Some(mut occlusion_pass) = drawer.rain_occlusion_pass() {
                     self.terrain
-                        .render_shadows(&mut occlusion_pass.draw_terrain_shadows(), focus_pos);
+                        .render_occlusion(&mut occlusion_pass.draw_terrain_shadows(), cam_pos);
 
                     self.figure_mgr.render_shadows(
                         &mut occlusion_pass.draw_figure_shadows(),

@@ -157,11 +157,11 @@ impl AmbientMgr {
     }
 
     fn check_rain_necessity(&mut self, client: &Client) -> bool {
-        client.current_weather().rain > 0.001
+        client.weather_at_player().rain > 0.001
     }
 
     fn check_thunder_necessity(&mut self, client: &Client) -> bool {
-        client.current_weather().rain * 500.0 > 0.7
+        client.weather_at_player().rain * 500.0 > 0.7
     }
 
     fn check_leaves_necessity(&mut self, client: &Client, camera: &Camera) -> bool {
@@ -238,7 +238,7 @@ impl AmbientChannel {
         let focus_off = camera.get_focus_pos().map(f32::trunc);
         let cam_pos = camera.dependents().cam_pos + focus_off;
         // Float from around -30.0 to 30.0
-        let client_wind_speed_sq = client.current_weather().wind.magnitude_squared();
+        let client_wind_speed_sq = client.weather_at_player().wind.magnitude_squared();
 
         let (terrain_alt, tree_density) = if let Some(chunk) = client.current_chunk() {
             (chunk.meta().alt(), chunk.meta().tree_density())
@@ -268,13 +268,13 @@ impl AmbientChannel {
         // multipler at end will have to change depending on how intense rain normally
         // is
         // TODO: make rain diminish with distance above terrain
-        let rain_intensity = client.current_weather().rain * 500.0;
+        let rain_intensity = client.weather_at_player().rain * 500.0;
 
         return rain_intensity.min(0.9);
     }
 
     fn get_thunder_volume(&mut self, client: &Client) -> f32 {
-        let thunder_intensity = client.current_weather().rain * 500.0;
+        let thunder_intensity = client.weather_at_player().rain * 500.0;
 
         if thunder_intensity < 0.7 {
             0.0

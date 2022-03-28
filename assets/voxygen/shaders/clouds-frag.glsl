@@ -102,7 +102,7 @@ void main() {
     #ifdef EXPERIMENTAL_RAIN
         vec3 old_color = color.rgb;
 
-        // If this value is changed also change it in voxygen/src/scene/mod.rs
+        // If this value is changed also change it in common/src/weather.rs
         float fall_rate = 70.0;
         dir.xy += wind_vel * dir.z / fall_rate;
         dir = normalize(dir);
@@ -118,7 +118,6 @@ void main() {
             rain_dist *= 0.3;
 
             vec2 drop_density = vec2(30, 1);
-            vec2 drop_size = vec2(0.0008, 0.05);
 
             vec2 rain_pos = (view_pos * rain_dist);
             rain_pos += vec2(0, tick.x * fall_rate + cam_wpos.z);
@@ -140,6 +139,7 @@ void main() {
                 break;
             }
             float rain_density = rain_density_at(cam_wpos.xy + rpos.xy) * rain_occlusion_at(cam_pos.xyz + rpos.xyz) * 10.0;
+            vec2 drop_size = vec2(0.0008, 0.05);
 
             if (fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
                 continue;

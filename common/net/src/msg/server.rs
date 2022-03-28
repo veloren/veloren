@@ -15,7 +15,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
     uuid::Uuid,
-    weather::Weather,
+    weather::{Weather, WeatherGrid},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -198,7 +198,7 @@ pub enum ServerGeneral {
     /// Economic information about sites
     SiteEconomy(EconomyInfo),
     MapMarker(comp::MapMarkerUpdate),
-    WeatherUpdate(common::grid::Grid<Weather>),
+    WeatherUpdate(WeatherGrid),
 }
 
 impl ServerGeneral {

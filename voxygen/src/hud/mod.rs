@@ -2388,7 +2388,7 @@ impl Hud {
                 .font_size(self.fonts.cyri.scale(14))
                 .set(self.ids.time, ui_widgets);
 
-            let weather = client.current_weather();
+            let weather = client.weather_at_player();
             Text::new(&format!(
                 "Weather({kind:.5}): {{cloud: {cloud:.5}, rain: {rain:.5}, wind: <{wind_x:.5}, \
                  {wind_y:.2}>}}",

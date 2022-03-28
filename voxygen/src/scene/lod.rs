@@ -182,7 +182,7 @@ impl Lod {
             }
         }
         // Update weather texture
-        let weather = client.get_weather();
+        let weather = client.state().weather_grid();
         let size = weather.size().as_::<u32>();
         renderer.update_texture(
             &self.data.weather,

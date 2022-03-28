@@ -48,7 +48,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
-    weather::{self, Weather},
+    weather::{self, Weather, WeatherGrid},
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
@@ -153,24 +153,23 @@ pub struct SiteInfoRich {
 }
 
 struct WeatherLerp {
-    old: (Grid<Weather>, Instant),
-    new: (Grid<Weather>, Instant),
-    current: Grid<Weather>,
+    old: (WeatherGrid, Instant),
+    new: (WeatherGrid, Instant),
 }
 
 impl WeatherLerp {
-    fn weather_update(&mut self, weather: Grid<Weather>) {
+    fn weather_update(&mut self, weather: WeatherGrid) {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
 
-    fn update(&mut self) {
+    fn update(&mut self, to_update: &mut WeatherGrid) {
         let old = &self.old.0;
         let new = &self.new.0;
         if new.size() == Vec2::zero() {
             return;
         }
-        if self.current.size() != new.size() {
-            self.current = new.clone();
+        if to_update.size() != new.size() {
+            *to_update = new.clone();
         }
         if old.size() == new.size() {
             // Assume updates are regular
@@ -178,9 +177,12 @@ impl WeatherLerp {
                 / self.new.1.duration_since(self.old.1).as_secs_f32())
             .clamp(0.0, 1.0);
 
-            old.iter().zip(new.iter()).for_each(|((p, old), (_, new))| {
-                self.current[p] = Weather::lerp(old, new, t);
-            });
+            to_update
+                .iter_mut()
+                .zip(old.iter().zip(new.iter()))
+                .for_each(|((_, current), ((_, old), (_, new)))| {
+                    *current = Weather::lerp(old, new, t);
+                });
         }
     }
 }
@@ -188,15 +190,8 @@ impl WeatherLerp {
 impl Default for WeatherLerp {
     fn default() -> Self {
         Self {
-            old: (
-                Grid::new(Vec2::new(0, 0), Weather::default()),
-                Instant::now(),
-            ),
-            new: (
-                Grid::new(Vec2::new(0, 0), Weather::default()),
-                Instant::now(),
-            ),
-            current: Grid::new(Vec2::new(0, 0), Weather::default()),
+            old: (WeatherGrid::new(Vec2::broadcast(0)), Instant::now()),
+            new: (WeatherGrid::new(Vec2::broadcast(0)), Instant::now()),
         }
     }
 }
@@ -1465,45 +1460,10 @@ impl Client {
             .map(|v| v.0)
     }
 
-    pub fn get_weather(&self) -> &Grid<Weather> { &self.weather.current }
-
-    pub fn current_weather(&self) -> Weather {
+    pub fn weather_at_player(&self) -> Weather {
         self.position()
-            .map(|wpos| self.current_weather_wpos(wpos.xy()))
+            .map(|wpos| self.state.weather_at(wpos.xy()))
             .unwrap_or_default()
-    }
-
-    pub fn current_weather_wpos(&self, wpos: Vec2<f32>) -> Weather {
-        let cell_pos = wpos / ((TerrainChunkSize::RECT_SIZE * weather::CHUNKS_PER_CELL).as_());
-        let rpos = cell_pos.map(|e| e.fract());
-        let cell_pos = cell_pos.map(|e| e.floor());
-
-        let wpos = cell_pos.as_::<i32>();
-        Weather::lerp(
-            &Weather::lerp(
-                self.weather
-                    .current
-                    .get(wpos)
-                    .unwrap_or(&Weather::default()),
-                self.weather
-                    .current
-                    .get(wpos + Vec2::unit_x())
-                    .unwrap_or(&Weather::default()),
-                rpos.x,
-            ),
-            &Weather::lerp(
-                self.weather
-                    .current
-                    .get(wpos + Vec2::unit_x())
-                    .unwrap_or(&Weather::default()),
-                self.weather
-                    .current
-                    .get(wpos + Vec2::one())
-                    .unwrap_or(&Weather::default()),
-                rpos.x,
-            ),
-            rpos.y,
-        )
     }
 
     pub fn current_chunk(&self) -> Option<Arc<TerrainChunk>> {
@@ -1724,6 +1684,9 @@ impl Client {
             self.invite = None;
         }
 
+        // TODO: put this somewhere else? Otherwise update comments here.
+        self.weather.update(&mut self.state.weather_grid_mut());
+
         // Lerp towards the target time of day - this ensures a smooth transition for
         // large jumps in TimeOfDay such as when using /time
         if let Some(target_tod) = self.target_time_of_day {
@@ -1751,8 +1714,6 @@ impl Client {
 
         // 5) Terrain
         self.tick_terrain()?;
-        // TODO: put this somewhere else?
-        self.weather.update();
 
         // Send a ping to the server once every second
         if self.state.get_time() - self.last_server_ping > 1. {

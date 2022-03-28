@@ -1,4 +1,4 @@
-use common::resources::TimeOfDay;
+use common::{resources::TimeOfDay, weather::WeatherGrid};
 use common_ecs::{Origin, Phase, System};
 use specs::{Read, Write, WriteExpect};
 
@@ -13,6 +13,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Read<'a, TimeOfDay>,
         WriteExpect<'a, WeatherSim>,
+        WriteExpect<'a, WeatherGrid>,
         Write<'a, SysScheduler<Self>>,
     );
 
@@ -22,10 +23,13 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut common_ecs::Job<Self>,
-        (game_time, mut sim, mut scheduler): Self::SystemData,
+        (game_time, mut sim, mut grid, mut scheduler): Self::SystemData,
     ) {
         if scheduler.should_run() {
-            sim.tick(&*game_time);
+            if grid.size() != sim.size() {
+                *grid = WeatherGrid::new(sim.size());
+            }
+            sim.tick(&game_time, &mut grid);
         }
     }
 }

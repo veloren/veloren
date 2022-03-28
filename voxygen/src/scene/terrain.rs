@@ -812,7 +812,13 @@ impl<V: RectRasterableVol> Terrain<V> {
         focus_pos: Vec3<f32>,
         loaded_distance: f32,
         camera: &Camera,
-    ) -> (Aabb<f32>, Vec<math::Vec3<f32>>, math::Aabr<f32>) {
+    ) -> (
+        // TODO: Better return type?
+        Aabb<f32>,
+        Vec<math::Vec3<f32>>,
+        math::Aabr<f32>,
+        Vec<math::Vec3<f32>>,
+    ) {
         let camera::Dependents {
             view_mat,
             proj_mat_treeculler,
@@ -1395,11 +1401,56 @@ impl<V: RectRasterableVol> Terrain<V> {
             })
         };
         drop(guard);
+        span!(guard, "Rain occlusion magic");
+        let weather = scene_data.state.weather_at(focus_pos.xy());
+        let visible_occlusion_volume = if weather.rain > 0.0 {
+            let occlusion_box = Aabb {
+                min: visible_bounding_box
+                    .min
+                    .map2(focus_pos - 10.0, |a, b| a.max(b)),
+                max: visible_bounding_box
+                    .max
+                    .map2(focus_pos + 10.0, |a, b| a.min(b)),
+            };
+            let visible_bounding_box = math::Aabb::<f32> {
+                min: math::Vec3::from(occlusion_box.min - focus_off),
+                max: math::Vec3::from(occlusion_box.max - focus_off),
+            };
+            let visible_bounds_fine = math::Aabb {
+                min: math::Vec3::from(visible_bounding_box.min.as_::<f64>()),
+                max: math::Vec3::from(visible_bounding_box.max.as_::<f64>()),
+            };
+            // TODO: move out shared calculations
+            let inv_proj_view =
+                math::Mat4::from_col_arrays((proj_mat_treeculler * view_mat).into_col_arrays())
+                    .as_::<f64>()
+                    .inverted();
 
+            let ray_direction = math::Vec3::<f32>::from(weather.rain_dir());
+
+            // NOTE: We use proj_mat_treeculler here because
+            // calc_focused_light_volume_points makes the assumption that the
+            // near plane lies before the far plane.
+            let visible_occlusion_volume = math::calc_focused_light_volume_points(
+                inv_proj_view,
+                ray_direction.as_::<f64>(),
+                visible_bounds_fine,
+                1e-6,
+            )
+            .map(|v| v.as_::<f32>())
+            .collect::<Vec<_>>();
+
+            visible_occlusion_volume
+        } else {
+            Vec::new()
+        };
+
+        drop(guard);
         (
             visible_bounding_box,
             visible_light_volume,
             visible_psr_bounds,
+            visible_occlusion_volume,
         )
     }
 
@@ -1444,6 +1495,38 @@ impl<V: RectRasterableVol> Terrain<V> {
             .filter(|chunk| chunk.can_shadow_sun())
             .chain(self.shadow_chunks.iter().map(|(_, chunk)| chunk))
             .filter_map(|chunk| {
+                chunk
+                    .opaque_model
+                    .as_ref()
+                    .map(|model| (model, &chunk.locals))
+            })
+            .for_each(|(model, locals)| drawer.draw(model, locals));
+    }
+
+    pub fn render_occlusion<'a>(
+        &'a self,
+        drawer: &mut TerrainShadowDrawer<'_, 'a>,
+        focus_pos: Vec3<f32>,
+    ) {
+        span!(_guard, "render_occlusion", "Terrain::render_occlusion");
+        let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
+            (e as i32).div_euclid(sz as i32)
+        });
+        // For rain occlusion we only need to render the closest chunks.
+        // TODO: Is this a good value?
+        const RAIN_OCCLUSION_CHUNKS: usize = 16;
+        let chunk_iter = Spiral2d::new()
+            .filter_map(|rpos| {
+                let pos = focus_chunk + rpos;
+                self.chunks.get(&pos)
+            })
+            .take(self.chunks.len().min(RAIN_OCCLUSION_CHUNKS));
+
+        chunk_iter
+            // Find a way to keep this?
+            // .filter(|chunk| chunk.can_shadow_sun())
+            .filter_map(|chunk| {
+                // TODO: Should the fuid model also be considered here?
                 chunk
                     .opaque_model
                     .as_ref()

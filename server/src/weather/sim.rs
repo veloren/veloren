@@ -3,7 +3,7 @@ use common::{
     resources::TimeOfDay,
     terrain::TerrainChunkSize,
     vol::RectVolSize,
-    weather::{Weather, CHUNKS_PER_CELL},
+    weather::{Weather, WeatherGrid, CELL_SIZE, CHUNKS_PER_CELL},
 };
 use itertools::Itertools;
 use noise::{NoiseFn, SuperSimplex, Turbulence};
@@ -43,17 +43,8 @@ pub struct WeatherInfo {
 pub struct WeatherSim {
     cells: Grid<Cell>,       // The variables used for simulation
     consts: Grid<Constants>, // The constants from the world used for simulation
-    weather: Grid<Weather>,  // The current weather.
     info: Grid<WeatherInfo>,
 }
-
-/*
-const MAX_WIND_SPEED: f32 = 128.0;
-*/
-pub(crate) const CELL_SIZE: u32 = CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x;
-
-/// How often the weather is updated, in seconds
-pub(crate) const DT: f32 = 5.0; // CELL_SIZE as f32 / MAX_WIND_SPEED;
 
 fn sample_plane_normal(points: &[Vec3<f32>]) -> Option<Vec3<f32>> {
     if points.len() < 3 {
@@ -140,7 +131,6 @@ impl WeatherSim {
                     })
                     .collect_vec(),
             ),
-            weather: Grid::new(size, Weather::default()),
             info: Grid::new(size, WeatherInfo::default()),
         };
         this.cells.iter_mut().for_each(|(point, cell)| {
@@ -150,8 +140,6 @@ impl WeatherSim {
         this
     }
 
-    pub fn get_weather(&self) -> &Grid<Weather> { &self.weather }
-
     /*
     fn get_cell(&self, p: Vec2<i32>, time: f64) -> Cell {
         *self.cells.get(p).unwrap_or(&sample_cell(p, time))
@@ -160,7 +148,7 @@ impl WeatherSim {
 
     // https://minds.wisconsin.edu/bitstream/handle/1793/66950/LitzauSpr2013.pdf
     // Time step is cell size / maximum wind speed
-    pub fn tick(&mut self, time_of_day: &TimeOfDay) {
+    pub fn tick(&mut self, time_of_day: &TimeOfDay, out: &mut WeatherGrid) {
         let time = time_of_day.0;
 
         let base_nz = Turbulence::new(
@@ -173,7 +161,7 @@ impl WeatherSim {
 
         let rain_nz = SuperSimplex::new();
 
-        for (point, cell) in self.weather.iter_mut() {
+        for (point, cell) in out.iter_mut() {
             let wpos = cell_to_wpos(point);
 
             let pos = wpos.as_::<f64>() + time as f64 * 0.1;
@@ -391,4 +379,6 @@ impl WeatherSim {
         }
         */
     }
+
+    pub fn size(&self) -> Vec2<u32> { self.cells.size().as_() }
 }
