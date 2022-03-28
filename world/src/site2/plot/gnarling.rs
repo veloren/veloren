@@ -369,8 +369,10 @@ impl GnarlingFortification {
             }
         }
         if area.contains_point(self.tunnels.end.xy() - self.origin) {
+            let boss_room_offset = (self.tunnels.end.xy() - self.tunnels.start.xy())
+                .map(|e| if e < 0 { -20 } else { 20 });
             supplement.add_entity(harvester_boss(
-                self.tunnels.end - 5 * Vec3::unit_z(),
+                self.tunnels.end + boss_room_offset - 2 * Vec3::unit_z(),
                 dynamic_rng,
             ));
         }
@@ -1696,14 +1698,17 @@ impl Structure for GnarlingFortification {
             9.0,
         );
 
+        let boss_room_offset =
+            (self.tunnels.end.xy() - self.tunnels.start.xy()).map(|e| if e < 0 { -20 } else { 20 });
+
         let boss_room = painter.ellipsoid(Aabb {
-            min: (self.tunnels.end.xy() - 30).with_z(self.tunnels.end.z - 10),
-            max: (self.tunnels.end.xy() + 30).with_z(self.tunnels.end.z + 10),
+            min: (self.tunnels.end.xy() + boss_room_offset - 30).with_z(self.tunnels.end.z - 10),
+            max: (self.tunnels.end.xy() + boss_room_offset + 30).with_z(self.tunnels.end.z + 10),
         });
 
         let boss_room_clear = painter.ellipsoid(Aabb {
-            min: (self.tunnels.end.xy() - 29).with_z(self.tunnels.end.z - 9),
-            max: (self.tunnels.end.xy() + 29).with_z(self.tunnels.end.z + 9),
+            min: (self.tunnels.end.xy() + boss_room_offset - 29).with_z(self.tunnels.end.z - 9),
+            max: (self.tunnels.end.xy() + boss_room_offset + 29).with_z(self.tunnels.end.z + 9),
         });
 
         let random_field = RandomField::new(self.seed);
