@@ -622,4 +622,26 @@ impl<'a, R: Rng> NameGen<'a, R> {
         ];
         self.generate_theme_from_parts(&start, &middle, &vowel, &end)
     }
+
+    // arabic inspired location names for cliff towns
+    pub fn generate_cliff_town(mut self) -> String {
+        let start = [
+            "zor", "el", "mas", "yaz", "ra", "boh", "mah", "ah", "lam", "mak", "mol", "wa", "bisk",
+            "moj", "bis", "ay", "sha", "rez", "bakh", "ta", "je", "ki", "mos", "asj", "meh",
+        ];
+        let middle = [
+            "d", "ph", "r", "st", "t", "s", "p", "th", "br", "tr", "m", "k", "cr", "dr", "pl",
+            "ch", "l", "ap", "akr", "ak", "ar", "ath", "asp", "al", "aph", "aphr", "oph", "or",
+            "ok", "on", "od", "om", "ep", "er", "em", "eph", "eth", "yph", "ach", "yp", "ik", "is",
+            "iph", "ith", "pr", "as", "asph", "ps", "b", "n", "z", "x", "kr", "kt", "cht", "chr",
+            "thr", "dr", "pr", "pl", "h", "in", "g",
+        ];
+        let vowel = ["o", "e", "a", "i", "y", "ei", "ai", "io"];
+        let end = [
+            "wad", "tab", "med", "mad", "afa", "man", "oubi", "hir", "baz", "yen", "kh", "ah",
+            "dek", "fir", "ish", "rad", "iri", "am", "if", "van", "rik", "kat", "akan", "ikan",
+            "illah", "ulus", "fard",
+        ];
+        self.generate_theme_from_parts(&start, &middle, &vowel, &end)
+    }
 }

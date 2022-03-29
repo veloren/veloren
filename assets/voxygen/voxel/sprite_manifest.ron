@@ -3323,6 +3323,187 @@ Lantern: Some((
     ],
     wind_sway: 0.0,
 )),
+// CliffTown Decor
+WindowArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.window.window_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+BookshelfArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.bookshelf_arabic",
+           offset: (-22.0, -5.5, -6.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+DecorSetArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.decor_set_arabic-0",
+           offset: (-10.5, -10.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+SepareArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.separe_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CushionArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.cushion_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+JugArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.jug_arabic",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TableArabicSmall: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.table_arabic_small",
+           offset: (-7.5, -7.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+TableArabicLarge: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.table_arabic_large",
+           offset: (-21.0, -13.0, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CanapeArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.canape_arabic",
+           offset: (-12.5, -14.0, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CupboardArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.cupboard_arabic",
+           offset: (-9.5, -5.5, 4.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+WallTableArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.wall_table_arabic",
+           offset: (-15.0, -5.5, 2.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+JugAndBowlArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.jug_and_bowl_arabic",
+           offset: (-15.0, -7.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+MelonCut: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.melon_cut",
+           offset: (-15.0, -7.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+FountainArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.fountain_arabic",
+           offset: (-15.5, -15.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+OvenArabic: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.oven_arabic",
+           offset: (-6.5, -8.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Hearth: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.hearth",
+           offset: (-19.0, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+ForgeTools: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.forge_tools",
+           offset: (-19.0, -5.0, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+CliffDecorBlock: Some((
+    variations: [
+        (
+           model: "voxygen.voxel.sprite.furniture.cliff_decor_block",
+           offset: (-5.5, -5.5, 0.0),
+           lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 // Anvil
 Anvil: Some((
     variations: [

@@ -191,6 +191,24 @@ make_case_elim!(
         ChristmasOrnament = 0xA4,
         ChristmasWreath = 0xA5,
         EnsnaringWeb = 0xA6,
+        WindowArabic = 0xA7,
+        MelonCut = 0xA8,
+        BookshelfArabic = 0xA9,
+        DecorSetArabic = 0xAA,
+        SepareArabic = 0xAB,
+        CushionArabic = 0xAC,
+        JugArabic = 0xAD,
+        TableArabicSmall = 0xAE,
+        TableArabicLarge = 0xAF,
+        CanapeArabic = 0xB0,
+        CupboardArabic = 0xB1,
+        WallTableArabic = 0xB2,
+        JugAndBowlArabic = 0xB3,
+        OvenArabic = 0xB4,
+        FountainArabic = 0xB5,
+        Hearth = 0xB6,
+        ForgeTools = 0xB7,
+        CliffDecorBlock = 0xB8,
     }
 );
 
@@ -283,6 +301,23 @@ impl SpriteKind {
             | SpriteKind::CavernLillypadBlue
             | SpriteKind::EnsnaringWeb => 0.1,
             SpriteKind::LillyPads => 0.1,
+            SpriteKind::WindowArabic | SpriteKind::BookshelfArabic => 1.9,
+            SpriteKind::DecorSetArabic => 2.6,
+            SpriteKind::SepareArabic => 2.2,
+            SpriteKind::CushionArabic => 0.4,
+            SpriteKind::JugArabic => 1.4,
+            SpriteKind::TableArabicSmall => 0.9,
+            SpriteKind::TableArabicLarge => 1.0,
+            SpriteKind::CanapeArabic => 1.2,
+            SpriteKind::CupboardArabic => 4.5,
+            SpriteKind::WallTableArabic => 2.3,
+            SpriteKind::JugAndBowlArabic => 1.4,
+            SpriteKind::MelonCut => 0.7,
+            SpriteKind::OvenArabic => 3.2,
+            SpriteKind::FountainArabic => 2.4,
+            SpriteKind::Hearth => 2.3,
+            SpriteKind::ForgeTools => 2.8,
+            SpriteKind::CliffDecorBlock => 1.0,
             _ => return None,
         })
     }
@@ -458,6 +493,18 @@ impl SpriteKind {
                 | SpriteKind::DismantlingBench
                 | SpriteKind::ChristmasOrnament
                 | SpriteKind::ChristmasWreath
+                | SpriteKind::WindowArabic
+                | SpriteKind::BookshelfArabic
+                | SpriteKind::TableArabicLarge
+                | SpriteKind::CanapeArabic
+                | SpriteKind::CupboardArabic
+                | SpriteKind::WallTableArabic
+                | SpriteKind::JugAndBowlArabic
+                | SpriteKind::JugArabic
+                | SpriteKind::MelonCut
+                | SpriteKind::OvenArabic
+                | SpriteKind::Hearth
+                | SpriteKind::ForgeTools
         )
     }
 }
