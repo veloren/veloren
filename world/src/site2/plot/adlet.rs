@@ -76,14 +76,12 @@ impl AdletStronghold {
             unit_size * num_units + variation
         };
 
-        let tunnel_length = rng.gen_range(25_i32..40);
+        let tunnel_length = rng.gen_range(35_i32..50);
 
         let origin = entrance
             + (Vec2::new(angle.cos(), angle.sin()) * (tunnel_length as f32 + cavern_radius as f32))
                 .as_();
 
-        // Go 50% below minimum height needed, unless entrance already below that height
-        // TODO: Get better heuristic for this
         let cavern_alt =
             (land.get_alt_approx(origin) - cavern_radius as f32).min(land.get_alt_approx(entrance));
 
@@ -135,15 +133,26 @@ impl Structure for AdletStronghold {
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         // Tunnel
         let dist: f32 = self.origin.as_().distance(self.entrance.as_());
+        let tunnel_radius = 5.0;
         let tunnel_start = self
             .entrance
             .as_()
             .with_z(land.get_alt_approx(self.entrance));
+        // Adds cavern radius to ensure that tunnel fully bores into cavern
         let tunnel_end = ((self.origin.as_() - self.entrance.as_()) * self.tunnel_length as f32
             / dist)
-            .with_z(self.cavern_alt)
+            .with_z(self.cavern_alt + tunnel_radius - 1.0)
             + self.entrance.as_();
-        painter.line(tunnel_start, tunnel_end, 5.0).clear();
+        painter
+            .line(tunnel_start, tunnel_end, tunnel_radius)
+            .clear();
+        painter
+            .line(
+                tunnel_end,
+                self.origin.as_().with_z(self.cavern_alt + tunnel_radius),
+                tunnel_radius,
+            )
+            .clear();
 
         // Cavern
         painter
@@ -157,7 +166,7 @@ impl Structure for AdletStronghold {
             }))
             .sample_with_column({
                 let origin = self.origin.with_z(self.cavern_alt as i32);
-                let radius_sqr = self.cavern_radius * self.cavern_radius;
+                let radius_sqr = self.cavern_radius.pow(2);
                 move |pos, col| {
                     let alt = col.basement - col.cliff_offset;
                     let sphere_alt = ((radius_sqr - origin.xy().distance_squared(pos.xy())) as f32)
