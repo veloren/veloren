@@ -1052,6 +1052,26 @@ impl<'a> Widget for Crafting<'a> {
                     let prim_item_placed = primary_slot.invslot.is_some();
                     let sec_item_placed = secondary_slot.invslot.is_some();
 
+                    let prim_icon = match recipe_kind {
+                        RecipeKind::Component(ToolKind::Sword) => self.imgs.ing_ico_prim,
+                        RecipeKind::Component(ToolKind::Axe) => self.imgs.ing_ico_prim,
+                        RecipeKind::Component(ToolKind::Hammer) => self.imgs.ing_ico_prim,
+                        RecipeKind::Component(ToolKind::Bow) => self.imgs.ing_ico_prim,
+                        RecipeKind::Component(ToolKind::Staff) => self.imgs.ing_ico_prim,
+                        RecipeKind::Component(ToolKind::Sceptre) => self.imgs.ing_ico_prim,
+                        _ => self.imgs.ing_ico_prim,
+                    };
+
+                    let sec_icon = match recipe_kind {
+                        RecipeKind::Component(ToolKind::Sword) => self.imgs.ing_ico_sec,
+                        RecipeKind::Component(ToolKind::Axe) => self.imgs.ing_ico_sec,
+                        RecipeKind::Component(ToolKind::Hammer) => self.imgs.ing_ico_sec,
+                        RecipeKind::Component(ToolKind::Bow) => self.imgs.ing_ico_sec,
+                        RecipeKind::Component(ToolKind::Staff) => self.imgs.ing_ico_sec,
+                        RecipeKind::Component(ToolKind::Sceptre) => self.imgs.ing_ico_sec,
+                        _ => self.imgs.ing_ico_sec,
+                    };
+
                     // Output Image
                     Image::new(self.imgs.inv_slot)
                         .w_h(80.0, 80.0)
@@ -1060,7 +1080,7 @@ impl<'a> Widget for Crafting<'a> {
                         .set(state.ids.output_img_frame, ui);
                     let bg_col = Color::Rgba(1.0, 1.0, 1.0, 0.4);
                     if !prim_item_placed {
-                        Image::new(self.imgs.ing_ico_prim)
+                        Image::new(prim_icon)
                             .middle_of(state.ids.modular_inputs[0])
                             .color(Some(bg_col))
                             .w_h(34.0, 34.0)
@@ -1068,7 +1088,7 @@ impl<'a> Widget for Crafting<'a> {
                             .set(state.ids.modular_wep_ing_1_bg, ui);
                     }
                     if !sec_item_placed {
-                        Image::new(self.imgs.ing_ico_sec)
+                        Image::new(sec_icon)
                             .middle_of(state.ids.modular_inputs[1])
                             .color(Some(bg_col))
                             .w_h(50.0, 50.0)
