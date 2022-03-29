@@ -742,6 +742,51 @@ impl Site {
         site
     }
 
+    pub fn generate_cliff_town(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+        let mut rng = reseed(rng);
+
+        let mut site = Site {
+            origin,
+            name: NameGen::location(&mut rng).generate_cliff_town(),
+            ..Site::default()
+        };
+
+        site.make_plaza(land, &mut rng);
+        for _ in 0..30 {
+            // CliffTower
+            let size = (6.0 + rng.gen::<f32>().powf(5.0) * 1.0).round() as u32;
+            if let Some((aabr, door_tile, door_dir)) = attempt(32, || {
+                site.find_roadside_aabr(&mut rng, 6..(size + 1).pow(2), Extent2::broadcast(size))
+            }) {
+                let cliff_tower = plot::CliffTower::generate(
+                    land,
+                    &mut reseed(&mut rng),
+                    &site,
+                    door_tile,
+                    door_dir,
+                    aabr,
+                );
+                let cliff_tower_alt = cliff_tower.alt;
+                let plot = site.create_plot(Plot {
+                    kind: PlotKind::CliffTower(cliff_tower),
+                    root_tile: aabr.center(),
+                    tiles: aabr_tiles(aabr).collect(),
+                    seed: rng.gen(),
+                });
+
+                site.blit_aabr(aabr, Tile {
+                    kind: TileKind::Building,
+                    plot: Some(plot),
+                    hard_alt: Some(cliff_tower_alt),
+                });
+            } else {
+                site.make_plaza(land, &mut rng);
+            }
+        }
+
+        site
+    }
+
     pub fn wpos_tile_pos(&self, wpos2d: Vec2<i32>) -> Vec2<i32> {
         (wpos2d - self.origin).map(|e| e.div_euclid(TILE_SIZE as i32))
     }
@@ -991,6 +1036,7 @@ impl Site {
                 PlotKind::Dungeon(dungeon) => dungeon.render_collect(self, canvas),
                 PlotKind::Gnarling(gnarling) => gnarling.render_collect(self, canvas),
                 PlotKind::GiantTree(giant_tree) => giant_tree.render_collect(self, canvas),
+                PlotKind::CliffTower(cliff_tower) => cliff_tower.render_collect(self, canvas),
                 _ => continue,
             };
 

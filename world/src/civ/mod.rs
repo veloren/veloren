@@ -161,6 +161,7 @@ impl Civs {
                 SiteKind::Dungeon => (8i32, 3.0),
                 SiteKind::Castle => (16i32, 5.0),
                 SiteKind::Refactor => (32i32, 10.0),
+                SiteKind::CliffTown => (32i32, 10.0),
                 SiteKind::Tree => (12i32, 8.0),
                 SiteKind::GiantTree => (12i32, 8.0),
                 SiteKind::Gnarling => (16i32, 10.0),
@@ -235,6 +236,11 @@ impl Civs {
                     WorldSite::castle(Castle::generate(wpos, Some(ctx.sim), &mut rng))
                 },
                 SiteKind::Refactor => WorldSite::refactor(site2::Site::generate_city(
+                    &Land::from_sim(ctx.sim),
+                    &mut rng,
+                    wpos,
+                )),
+                SiteKind::CliffTown => WorldSite::cliff_town(site2::Site::generate_cliff_town(
                     &Land::from_sim(ctx.sim),
                     &mut rng,
                     wpos,
@@ -479,7 +485,11 @@ impl Civs {
         ctx: &mut GenCtx<impl Rng>,
         start_locations: &mut Vec<Vec2<i32>>,
     ) -> Option<Id<Civ>> {
-        let kind = SiteKind::Refactor;
+        // TODO: specify SiteKind based on where a suitable location is found
+        let kind = match ctx.rng.gen_range(0..64) {
+            0..=10 => SiteKind::CliffTown,
+            _ => SiteKind::Refactor,
+        };
         let site = attempt(100, || {
             let loc = find_site_loc(ctx, (start_locations, 60), 0, kind)?;
             start_locations.push(loc);
@@ -887,7 +897,10 @@ impl Civs {
             .filter(|(_, p)| {
                 matches!(
                     p.kind,
-                    SiteKind::Refactor | SiteKind::Settlement | SiteKind::Castle
+                    SiteKind::Refactor
+                        | SiteKind::Settlement
+                        | SiteKind::CliffTown
+                        | SiteKind::Castle
                 )
             })
             .map(|(id, p)| (id, (p.center.distance_squared(loc) as f32).sqrt()))
@@ -895,7 +908,8 @@ impl Civs {
             .collect::<Vec<_>>();
         nearby.sort_by_key(|(_, dist)| *dist as i32);
 
-        if let SiteKind::Refactor | SiteKind::Settlement | SiteKind::Castle = self.sites[site].kind
+        if let SiteKind::Refactor | SiteKind::Settlement | SiteKind::CliffTown | SiteKind::Castle =
+            self.sites[site].kind
         {
             for (nearby, _) in nearby.into_iter().take(5) {
                 // Find a novel path
@@ -1149,6 +1163,7 @@ pub enum SiteKind {
     Dungeon,
     Castle,
     Refactor,
+    CliffTown,
     Tree,
     GiantTree,
     Gnarling,
@@ -1156,36 +1171,8 @@ pub enum SiteKind {
 
 impl SiteKind {
     pub fn is_suitable_loc(&self, loc: Vec2<i32>, sim: &WorldSim) -> bool {
-        sim.get(loc).map_or(false, |chunk| match self {
-            SiteKind::Gnarling => (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75,
-            SiteKind::GiantTree | SiteKind::Tree => chunk.tree_density > 0.4,
-            SiteKind::Castle => {
-                if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
-                    return false;
-                }
-                const HILL_RADIUS: i32 = 3 * TERRAIN_CHUNK_BLOCKS_LG as i32;
-                for x in (-HILL_RADIUS)..HILL_RADIUS {
-                    for y in (-HILL_RADIUS)..HILL_RADIUS {
-                        let check_loc = loc + Vec2::new(x, y);
-                        if let Some(true) = sim
-                            .get_alt_approx(check_loc)
-                            .map(|surrounding_alt| surrounding_alt > chunk.alt + 1.0)
-                        {
-                            return false;
-                        }
-                        // Castles are really big, so to avoid parts of them ending up underwater or
-                        // in other awkward positions we have to do this
-                        if sim
-                            .get(check_loc)
-                            .map_or(true, |c| c.is_underwater() || c.near_cliffs())
-                        {
-                            return false;
-                        }
-                    }
-                }
-                true
-            },
-            SiteKind::Refactor | SiteKind::Settlement => {
+        sim.get(loc).map_or(false, |chunk| {
+            let suitable_for_town = |score_threshold: f32| -> bool {
                 const RESOURCE_RADIUS: i32 = 1;
                 let mut river_chunks = 0;
                 let mut lake_chunks = 0;
@@ -1277,10 +1264,49 @@ impl SiteKind {
                     + (trading_score as f32 + 1.0).log2();
                 has_potable_water
                     && has_building_materials
-                    && industry_score > 6.7
+                    && industry_score > score_threshold
                     && warm_or_firewood
-            },
-            _ => true,
+            };
+            match self {
+                SiteKind::Gnarling => {
+                    (-0.3..0.4).contains(&chunk.temp) && chunk.tree_density > 0.75
+                },
+                SiteKind::GiantTree | SiteKind::Tree => chunk.tree_density > 0.4,
+                SiteKind::CliffTown => {
+                    (-0.6..0.4).contains(&chunk.temp)
+                        && chunk.near_cliffs()
+                        && suitable_for_town(4.0)
+                },
+                SiteKind::Castle => {
+                    if chunk.tree_density > 0.4 || chunk.river.near_water() || chunk.near_cliffs() {
+                        return false;
+                    }
+                    const HILL_RADIUS: i32 = 3 * TERRAIN_CHUNK_BLOCKS_LG as i32;
+                    for x in (-HILL_RADIUS)..HILL_RADIUS {
+                        for y in (-HILL_RADIUS)..HILL_RADIUS {
+                            let check_loc = loc + Vec2::new(x, y);
+                            if let Some(true) = sim
+                                .get_alt_approx(check_loc)
+                                .map(|surrounding_alt| surrounding_alt > chunk.alt + 1.0)
+                            {
+                                return false;
+                            }
+                            // Castles are really big, so to avoid parts of them ending up
+                            // underwater or in other awkward positions
+                            // we have to do this
+                            if sim
+                                .get(check_loc)
+                                .map_or(true, |c| c.is_underwater() || c.near_cliffs())
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                    true
+                },
+                SiteKind::Refactor | SiteKind::Settlement => suitable_for_town(6.7),
+                _ => true,
+            }
         })
     }
 }

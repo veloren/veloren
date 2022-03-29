@@ -146,7 +146,7 @@ impl World {
                             name: site.site_tmp.map(|id| index.sites[id].name().to_string()),
                             // TODO: Probably unify these, at some point
                             kind: match &site.kind {
-                                civ::SiteKind::Settlement => world_msg::SiteKind::Town,
+                                civ::SiteKind::Settlement | civ::SiteKind::Refactor | civ::SiteKind::CliffTown => world_msg::SiteKind::Town,
                                 civ::SiteKind::Dungeon => world_msg::SiteKind::Dungeon {
                                     difficulty: match site.site_tmp.map(|id| &index.sites[id].kind) {
                                         Some(site::SiteKind::Dungeon(d)) => d.dungeon_difficulty().unwrap_or(0),
@@ -154,7 +154,6 @@ impl World {
                                     },
                                 },
                                 civ::SiteKind::Castle => world_msg::SiteKind::Castle,
-                                civ::SiteKind::Refactor => world_msg::SiteKind::Town,
                                 civ::SiteKind::Tree | civ::SiteKind::GiantTree => world_msg::SiteKind::Tree,
                                 // TODO: Maybe change?
                                 civ::SiteKind::Gnarling => world_msg::SiteKind::Gnarling,

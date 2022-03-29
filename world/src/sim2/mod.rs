@@ -166,11 +166,12 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
         for site in index.sites.ids() {
             let site = &index.sites[site];
             match site.kind {
+                SiteKind::Settlement(_) | SiteKind::Refactor(_) | SiteKind::CliffTown(_) => {
+                    towns += site.economy.pop
+                },
                 SiteKind::Dungeon(_) => dungeons += site.economy.pop,
-                SiteKind::Settlement(_) => towns += site.economy.pop,
                 SiteKind::Castle(_) => castles += site.economy.pop,
                 SiteKind::Tree(_) => (),
-                SiteKind::Refactor(_) => towns += site.economy.pop,
                 SiteKind::GiantTree(_) => (),
                 SiteKind::Gnarling(_) => {},
             }
@@ -360,7 +361,9 @@ mod tests {
                     resources,
                     neighbors,
                     kind: match i.kind {
-                        crate::site::SiteKind::Settlement(_) => {
+                        crate::site::SiteKind::Settlement(_)
+                        | crate::site::SiteKind::Refactor(_)
+                        | crate::site::SiteKind::CliffTown(_) => {
                             common::terrain::site::SitesKind::Settlement
                         },
                         crate::site::SiteKind::Dungeon(_) => {
@@ -368,9 +371,6 @@ mod tests {
                         },
                         crate::site::SiteKind::Castle(_) => {
                             common::terrain::site::SitesKind::Castle
-                        },
-                        crate::site::SiteKind::Refactor(_) => {
-                            common::terrain::site::SitesKind::Settlement
                         },
                         _ => common::terrain::site::SitesKind::Void,
                     },

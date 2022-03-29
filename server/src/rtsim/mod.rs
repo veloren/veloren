@@ -266,6 +266,31 @@ pub fn init(
                         });
                     }
                 },
+
+                SiteKind::CliffTown(site2) => {
+                    for _ in 0..(site2.plazas().len() as f32 * 1.5) as usize {
+                        rtsim.entities.insert(Entity {
+                            is_loaded: false,
+                            pos: site2
+                                .plazas()
+                                .choose(&mut thread_rng())
+                                .map_or(site.get_origin(), |p| {
+                                    site2.tile_center_wpos(site2.plot(p).root_tile())
+                                        + Vec2::new(
+                                            thread_rng().gen_range(-8..9),
+                                            thread_rng().gen_range(-8..9),
+                                        )
+                                })
+                                .with_z(0)
+                                .map(|e| e as f32),
+                            seed: thread_rng().gen(),
+                            controller: RtSimController::default(),
+                            last_time_ticked: 0.0,
+                            kind: RtSimEntityKind::Merchant,
+                            brain: Brain::merchant(site_id),
+                        });
+                    }
+                },
                 _ => {},
             }
         }
