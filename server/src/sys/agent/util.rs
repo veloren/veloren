@@ -1,8 +1,12 @@
 use crate::sys::agent::{AgentData, ReadData};
 use common::{
-    comp::{agent::Psyche, buff::BuffKind, Alignment, Pos},
+    combat::compute_stealth_coefficient,
+    comp::{
+        agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Agent, Alignment,
+        CharacterState, Controller, Pos,
+    },
     consts::GRAVITY,
-    terrain::{Block, TerrainGrid},
+    terrain::Block,
     util::Dir,
     vol::ReadVol,
 };
@@ -11,16 +15,6 @@ use specs::{
     Entity as EcsEntity,
 };
 use vek::*;
-
-pub fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) -> bool {
-    terrain
-        .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
-        .until(Block::is_opaque)
-        .cast()
-        .0
-        .powi(2)
-        >= dist_sqrd
-}
 
 pub fn is_dead_or_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     is_dead(entity, read_data) || is_invulnerable(entity, read_data)
@@ -39,8 +33,9 @@ pub fn is_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
 }
 
-/// Attempts to get alignment of owner if entity has Owned alignment
-pub fn try_owner_alignment<'a>(
+/// Gets alignment of owner if alignment given is `Owned`.
+/// Returns original alignment if not owned.
+pub fn owner_alignment<'a>(
     alignment: Option<&'a Alignment>,
     read_data: &'a ReadData,
 ) -> Option<&'a Alignment> {
@@ -122,7 +117,103 @@ fn should_let_target_escape(
     (dist_to_home_sqrd / own_health_fraction) * dur_since_last_attacked as f32 * 0.005
 }
 
+pub fn entity_looks_like_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
+    let number_of_cultist_items_equipped = read_data.inventories.get(entity).map_or(0, |inv| {
+        inv.equipped_items()
+            .filter(|item| item.tags().contains(&ItemTag::Cultist))
+            .count()
+    });
+
+    number_of_cultist_items_equipped > 2
+}
+
 // FIXME: `Alignment::Npc` doesn't necessarily mean villager.
 pub fn is_villager(alignment: Option<&Alignment>) -> bool {
     alignment.map_or(false, |alignment| matches!(alignment, Alignment::Npc))
+}
+
+pub fn is_entity_a_village_guard(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data
+        .stats
+        .get(entity)
+        .map_or(false, |stats| stats.name == "Guard")
+}
+
+pub fn are_our_owners_hostile(
+    our_alignment: Option<&Alignment>,
+    their_alignment: Option<&Alignment>,
+    read_data: &ReadData,
+) -> bool {
+    owner_alignment(our_alignment, read_data).map_or(false, |our_owners_alignment| {
+        owner_alignment(their_alignment, read_data).map_or(false, |their_owners_alignment| {
+            our_owners_alignment.hostile_towards(*their_owners_alignment)
+        })
+    })
+}
+
+pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadData) -> bool {
+    let dist_sqrd = pos_b.0.distance_squared(pos_a.0);
+
+    read_data
+        .terrain
+        .ray(pos_a.0 + Vec3::unit_z(), pos_b.0 + Vec3::unit_z())
+        .until(Block::is_opaque)
+        .cast()
+        .0
+        .powi(2)
+        >= dist_sqrd
+}
+
+pub fn does_entity_see_other(
+    agent: &Agent,
+    entity: EcsEntity,
+    other: EcsEntity,
+    controller: &Controller,
+    read_data: &ReadData,
+) -> bool {
+    let stealth_coefficient = {
+        let is_other_being_stealthy = read_data
+            .char_states
+            .get(other)
+            .map_or(false, CharacterState::is_stealthy);
+
+        if is_other_being_stealthy {
+            // TODO: We shouldn't have to check CharacterState. This should be factored in
+            // by the function (such as the one we're calling below) that supposedly
+            // computes a coefficient given stealthy-ness.
+            compute_stealth_coefficient(read_data.inventories.get(other))
+        } else {
+            1.0
+        }
+    };
+
+    if let (Some(pos), Some(other_pos)) = (
+        read_data.positions.get(entity),
+        read_data.positions.get(other),
+    ) {
+        let dist = other_pos.0 - pos.0;
+        let dist_sqrd = other_pos.0.distance_squared(pos.0);
+
+        let within_sight_dist = {
+            let sight_dist = agent.psyche.sight_dist / stealth_coefficient;
+            dist_sqrd < sight_dist.powi(2)
+        };
+
+        let within_fov = dist
+                .try_normalized()
+                // FIXME: Should this be map_or(false)?
+                .map_or(true, |v| v.dot(*controller.inputs.look_dir) > 0.15);
+
+        within_sight_dist && positions_have_line_of_sight(pos, other_pos, read_data) && within_fov
+    } else {
+        false
+    }
+}
+
+pub fn get_attacker_of_entity(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
+    read_data
+        .healths
+        .get(entity)
+        .and_then(|health| health.last_change.damage_by())
+        .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid().0, read_data))
 }

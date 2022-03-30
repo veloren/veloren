@@ -13,13 +13,14 @@ use crate::{
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
-            aim_projectile, can_see_tgt, get_entity_by_id, is_dead, is_dead_or_invulnerable,
-            is_invulnerable, is_villager, stop_pursuing, try_owner_alignment,
+            aim_projectile, are_our_owners_hostile, does_entity_see_other,
+            entity_looks_like_cultist, get_attacker_of_entity, get_entity_by_id, is_dead,
+            is_dead_or_invulnerable, is_entity_a_village_guard, is_invulnerable, is_villager,
+            stop_pursuing,
         },
     },
 };
 use common::{
-    combat,
     comp::{
         self,
         agent::{
@@ -29,7 +30,7 @@ use common::{
         buff::BuffKind,
         compass::{Direction, Distance},
         dialogue::{MoodContext, MoodState, Subject},
-        inventory::{item::ItemTag, slot::EquipSlot},
+        inventory::slot::EquipSlot,
         invite::{InviteKind, InviteResponse},
         item::{
             tool::{AbilitySpec, ToolKind},
@@ -37,7 +38,7 @@ use common::{
         },
         projectile::ProjectileConstructor,
         Agent, Alignment, BehaviorState, Body, CharacterState, ControlAction, ControlEvent,
-        Controller, Health, HealthChange, InputKind, Inventory, InventoryAction, Pos, Scale,
+        Controller, Health, HealthChange, InputKind, InventoryAction, Pos, Scale,
         UnresolvedChatMsg, UtteranceKind,
     },
     effect::{BuffEffect, Effect},
@@ -537,7 +538,7 @@ impl<'a> AgentData<'a> {
                 }
 
                 if rng.gen::<f32>() < 0.1 {
-                    self.choose_target(agent, controller, read_data);
+                    self.scan_for_new_hostile_target(agent, controller, read_data);
                 } else {
                     self.handle_sounds_heard(agent, controller, read_data, rng);
                 }
@@ -639,7 +640,7 @@ impl<'a> AgentData<'a> {
                         read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                     if !in_aggro_range && is_time_to_retarget {
-                        self.choose_target(agent, controller, read_data);
+                        self.scan_for_new_hostile_target(agent, controller, read_data);
                     }
 
                     if aggro_on {
@@ -709,14 +710,14 @@ impl<'a> AgentData<'a> {
         // Only emit event for agents that have a lantern equipped
         if lantern_equipped && rng.gen_bool(0.001) {
             if day_period.is_dark() && !lantern_turned_on {
-                // Agents with turned off lanterns turn them on randomly once it's
-                // nighttime and keep them on
+                // Agents with turned off lanterns turn them on randomly once it's nighttime and
+                // keep them on.
                 // Only emit event for agents that sill need to
-                // turn on their lantern
+                // turn on their lantern.
                 controller.push_event(ControlEvent::EnableLantern)
             } else if lantern_turned_on && day_period.is_light() {
                 // agents with turned on lanterns turn them off randomly once it's
-                // daytime and keep them off
+                // daytime and keep them off.
                 controller.push_event(ControlEvent::DisableLantern)
             }
         };
@@ -728,8 +729,8 @@ impl<'a> AgentData<'a> {
 
         agent.action_state.timer = 0.0;
         if let Some((travel_to, _destination)) = &agent.rtsim_controller.travel_to {
-            // if it has an rtsim destination and can fly then it should
-            // if it is flying and bumps something above it then it should move down
+            // If it has an rtsim destination and can fly, then it should.
+            // If it is flying and bumps something above it, then it should move down.
             if self.traversal_config.can_fly
                 && !read_data
                     .terrain
@@ -1432,11 +1433,10 @@ impl<'a> AgentData<'a> {
 
         if small_chance {
             controller.push_utterance(UtteranceKind::Angry);
-
             if is_villager(self.alignment) {
                 if self.remembers_fight_with(target, read_data) {
                     chat_villager_remembers_fighting();
-                } else if self.entity_looks_like_cultist(target, read_data) {
+                } else if entity_looks_like_cultist(target, read_data) {
                     chat("npc.speech.villager_cultist_alarm");
                 } else {
                     chat("npc.speech.menacing");
@@ -1445,6 +1445,14 @@ impl<'a> AgentData<'a> {
                 chat("npc.speech.menacing");
             }
         }
+
+        // Remember target.
+        self.rtsim_entity.is_some().then(|| {
+            read_data
+                .stats
+                .get(target)
+                .map(|stats| agent.add_fight_to_memory(&stats.name, read_data.time.0))
+        });
     }
 
     fn flee(
@@ -1539,172 +1547,76 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn choose_target(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
+    fn scan_for_new_hostile_target(
+        &self,
+        agent: &mut Agent,
+        controller: &mut Controller,
+        read_data: &ReadData,
+    ) {
         agent.action_state.timer = 0.0;
         let mut aggro_on = false;
 
-        let worth_choosing = |entity| {
-            read_data.positions.get(entity).and_then(|pos| {
-                Some((
-                    entity,
-                    pos,
-                    read_data.healths.get(entity)?,
-                    read_data.inventories.get(entity)?,
-                    read_data.alignments.get(entity),
-                    read_data.char_states.get(entity),
-                    read_data.bodies.get(entity),
-                ))
+        let get_pos = |entity| read_data.positions.get(entity);
+        let is_alignment_passive_towards_entity = |entity| {
+            self.alignment.map_or(false, |alignment| {
+                read_data
+                    .alignments
+                    .get(entity)
+                    .map_or(false, |entity_alignment| {
+                        alignment.passive_towards(*entity_alignment)
+                    })
             })
         };
-
-        let max_search_dist = agent.psyche.search_dist();
-        let max_sight_dist = agent.psyche.sight_dist;
-        let max_listen_dist = agent.psyche.listen_dist;
-        let in_sight_dist =
-            |e_pos: &Pos, e_char_state: Option<&CharacterState>, inventory: &Inventory| {
-                let search_dist = max_sight_dist
-                    / if e_char_state.map_or(false, CharacterState::is_stealthy) {
-                        combat::compute_stealth_coefficient(Some(inventory))
+        let get_enemy = |entity: EcsEntity| {
+            if self.is_entity_an_enemy(entity, read_data) {
+                Some(entity)
+            } else if self.defends_entity(entity, read_data) {
+                if let Some(attacker) = get_attacker_of_entity(entity, read_data) {
+                    if !is_alignment_passive_towards_entity(attacker) {
+                        // aggro_on: attack immediately, do not warn/menace.
+                        aggro_on = true;
+                        Some(attacker)
                     } else {
-                        1.0
-                    };
-                e_pos.0.distance_squared(self.pos.0) < search_dist.powi(2)
-            };
-
-        let within_fov = |e_pos: &Pos| {
-            (e_pos.0 - self.pos.0)
-                .try_normalized()
-                .map_or(true, |v| v.dot(*controller.inputs.look_dir) > 0.15)
-        };
-
-        let in_listen_dist =
-            |e_pos: &Pos, e_char_state: Option<&CharacterState>, inventory: &Inventory| {
-                let listen_dist = max_listen_dist
-                    / if e_char_state.map_or(false, CharacterState::is_stealthy) {
-                        combat::compute_stealth_coefficient(Some(inventory))
-                    } else {
-                        1.0
-                    };
-                // TODO implement proper sound system for agents
-                e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)
-            };
-
-        let within_reach =
-            |e_pos: &Pos, e_char_state: Option<&CharacterState>, e_inventory: &Inventory| {
-                (in_sight_dist(e_pos, e_char_state, e_inventory) && within_fov(e_pos))
-                    || in_listen_dist(e_pos, e_char_state, e_inventory)
-            };
-
-        let is_owner_hostile = |e_alignment: Option<&Alignment>| {
-            try_owner_alignment(self.alignment, read_data).map_or(false, |owner_alignment| {
-                try_owner_alignment(e_alignment, read_data).map_or(false, |e_owner_alignment| {
-                    owner_alignment.hostile_towards(*e_owner_alignment)
-                })
-            })
-        };
-
-        let guard_other =
-            |e_health: &Health, e_body: Option<&Body>, e_alignment: Option<&Alignment>| {
-                let i_am_a_guard = read_data
-                    .stats
-                    .get(*self.entity)
-                    .map_or(false, |stats| stats.name == "Guard");
-                let we_are_friendly: bool = self.alignment.map_or(false, |ma| {
-                    e_alignment.map_or(false, |ea| !ea.hostile_towards(*ma))
-                });
-                let we_share_species: bool = self.body.map_or(false, |mb| {
-                    e_body.map_or(false, |eb| {
-                        eb.is_same_species_as(mb) || (eb.is_humanoid() && mb.is_humanoid())
-                    })
-                });
-                let i_own_other =
-                    matches!(e_alignment, Some(Alignment::Owned(ouid)) if self.uid == ouid);
-                let other_has_taken_damage = read_data.time.0 - e_health.last_change.time.0 < 5.0;
-                let attacker_of = |health: &Health| health.last_change.damage_by();
-
-                let i_should_defend = other_has_taken_damage
-                    && ((we_are_friendly && we_share_species)
-                        || (i_am_a_guard && is_villager(e_alignment))
-                        || i_own_other);
-
-                i_should_defend
-                    .then(|| {
-                        attacker_of(e_health)
-                            .and_then(|damage_contributor| {
-                                get_entity_by_id(damage_contributor.uid().0, read_data)
-                            })
-                            .and_then(|attacker| {
-                                read_data.alignments.get(attacker).and_then(|aa| {
-                                    self.alignment.and_then({
-                                        |ma| {
-                                            if !ma.passive_towards(*aa) {
-                                                read_data
-                                                    .positions
-                                                    .get(attacker)
-                                                    .map(|a_pos| (attacker, *a_pos))
-                                            } else {
-                                                None
-                                            }
-                                        }
-                                    })
-                                })
-                            })
-                    })
-                    .flatten()
-            };
-
-        let possible_target =
-            |(entity, e_pos, e_health, e_inventory, e_alignment, e_char_state, e_body): (
-                EcsEntity,
-                &Pos,
-                &Health,
-                &Inventory,
-                Option<&Alignment>,
-                Option<&CharacterState>,
-                Option<&Body>,
-            )| {
-                let can_target = within_reach(e_pos, e_char_state, e_inventory)
-                    && entity != *self.entity
-                    && !e_health.is_dead
-                    && !is_invulnerable(entity, read_data);
-
-                if !can_target {
-                    None
-                } else if is_owner_hostile(e_alignment) {
-                    Some((entity, *e_pos))
-                } else if let Some(villain_info) = guard_other(e_health, e_body, e_alignment) {
-                    aggro_on = true;
-                    Some(villain_info)
-                } else if self.remembers_fight_with(entity, read_data)
-                    || is_villager(self.alignment)
-                        && self.entity_looks_like_cultist(entity, read_data)
-                {
-                    Some((entity, *e_pos))
+                        None
+                    }
                 } else {
                     None
                 }
-            };
+            } else {
+                None
+            }
+        };
+        let is_valid = |entity| {
+            read_data.healths.get(entity).map_or(false, |health| {
+                !health.is_dead && !is_invulnerable(entity, read_data)
+            })
+        };
+        let lost_target = |target: Option<EcsEntity>| agent.target.is_none() && target.is_some();
 
-        // Search area
-        // TODO choose target by more than just distance
+        // Search the area.
+        // TODO: choose target by more than just distance
         let common::CachedSpatialGrid(grid) = self.cached_spatial_grid;
-        let target = grid
-            .in_circle_aabr(self.pos.0.xy(), max_search_dist)
-            .filter_map(worth_choosing)
-            .filter_map(possible_target)
-            // TODO: This seems expensive. Cache this to avoid recomputing each tick
-            .filter(|(_, e_pos)| can_see_tgt(&read_data.terrain, self.pos, e_pos, e_pos.0.distance_squared(self.pos.0)))
-            .min_by_key(|(_, e_pos)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
-            .map(|(e, _)| e);
 
-        if agent.target.is_none() && target.is_some() {
+        let target = grid
+            .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
+            .filter(|entity| {
+                does_entity_see_other(agent, *self.entity, *entity, controller, read_data)
+                    && is_valid(*entity)
+            })
+            .filter_map(get_enemy)
+            .min_by_key(|entity| {
+                // TODO: This seems expensive. Cache this to avoid recomputing each tick
+                get_pos(*entity).map(|pos| (pos.0.distance_squared(self.pos.0) * 100.0) as i32)
+            });
+
+        if lost_target(target) {
             if aggro_on {
                 controller.push_utterance(UtteranceKind::Angry);
             } else {
                 controller.push_utterance(UtteranceKind::Surprised);
             }
         }
-
+        // Change target to new target.
         agent.target = target.map(|target| Target {
             target,
             hostile: true,
@@ -2090,13 +2002,9 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
-            Tactic::RotatingTurret => self.handle_rotating_turret_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-            ),
+            Tactic::RotatingTurret => {
+                self.handle_rotating_turret_attack(agent, controller, tgt_data, read_data)
+            },
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,
                 controller,
@@ -2475,16 +2383,6 @@ impl<'a> AgentData<'a> {
         })
     }
 
-    fn entity_looks_like_cultist(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
-        let number_of_cultist_items_equipped = read_data.inventories.get(entity).map_or(0, |inv| {
-            inv.equipped_items()
-                .filter(|item| item.tags().contains(&ItemTag::Cultist))
-                .count()
-        });
-
-        number_of_cultist_items_equipped > 2
-    }
-
     fn remembers_fight_with(&self, other: EcsEntity, read_data: &ReadData) -> bool {
         let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
 
@@ -2493,5 +2391,40 @@ impl<'a> AgentData<'a> {
                 rtsim_entity.brain.remembers_fight_with_character(&name)
             })
         })
+    }
+
+    fn is_entity_an_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        let alignment = read_data.alignments.get(entity);
+
+        (entity != *self.entity)
+            && (are_our_owners_hostile(self.alignment, alignment, read_data)
+                || self.remembers_fight_with(entity, read_data)
+                || self.is_villager_and_entity_is_cultist(entity, read_data))
+    }
+
+    fn defends_entity(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        let entity_alignment = read_data.alignments.get(entity);
+
+        let we_are_friendly = entity_alignment.map_or(false, |entity_alignment| {
+            self.alignment.map_or(false, |alignment| {
+                !alignment.hostile_towards(*entity_alignment)
+            })
+        });
+        let we_share_species = read_data.bodies.get(entity).map_or(false, |entity_body| {
+            self.body.map_or(false, |body| {
+                entity_body.is_same_species_as(body)
+                    || (entity_body.is_humanoid() && body.is_humanoid())
+            })
+        });
+        let self_owns_entity =
+            matches!(entity_alignment, Some(Alignment::Owned(ouid)) if *self.uid == *ouid);
+
+        (we_are_friendly && we_share_species)
+            || (is_entity_a_village_guard(*self.entity, read_data) && is_villager(entity_alignment))
+            || self_owns_entity
+    }
+
+    fn is_villager_and_entity_is_cultist(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        is_villager(self.alignment) && entity_looks_like_cultist(entity, read_data)
     }
 }
