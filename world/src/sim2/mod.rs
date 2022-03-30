@@ -420,7 +420,29 @@ mod tests {
     }
 
     #[test]
-    fn test_economy() {
+    fn test_economy0() {
+        init();
+        let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
+        info!("init");
+        let seed = 59686;
+        let opts = sim::WorldOpts {
+            seed_elements: true,
+            world_file: sim::FileOpts::LoadAsset(sim::DEFAULT_WORLD_MAP.into()),
+            //sim::FileOpts::LoadAsset("world.map.economy_8x8".into()),
+            calendar: None,
+        };
+        let mut index = crate::index::Index::new(seed);
+        info!("Index created");
+        let mut sim = sim::WorldSim::generate(seed, opts, &threadpool);
+        info!("World loaded");
+        let _civs = crate::civ::Civs::generate(seed, &mut sim, &mut index);
+        info!("Civs created");
+        crate::sim2::simulate(&mut index, &mut sim);
+        show_economy(&index.sites);
+    }
+
+    #[test]
+    fn test_economy1() {
         init();
         let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
         info!("init");
