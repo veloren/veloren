@@ -51,7 +51,7 @@ impl AmbientMgr {
             // check if current conditions necessitate the current tag at all
             let should_create: bool = match tag {
                 AmbientChannelTag::Wind => self.check_wind_necessity(client, camera),
-                AmbientChannelTag::Rain => self.check_rain_necessity(client),
+                AmbientChannelTag::Rain => self.check_rain_necessity(client, camera),
                 AmbientChannelTag::Thunder => self.check_thunder_necessity(client),
                 AmbientChannelTag::Leaves => self.check_leaves_necessity(client, camera),
             };
@@ -156,8 +156,19 @@ impl AmbientMgr {
         return alt_multiplier * tree_multiplier > 0.0;
     }
 
-    fn check_rain_necessity(&mut self, client: &Client) -> bool {
-        client.weather_at_player().rain > 0.001
+    fn check_rain_necessity(&mut self, client: &Client, camera: &Camera) -> bool {
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
+        let cam_pos = camera.dependents().cam_pos + focus_off;
+
+        let terrain_alt = if let Some(chunk) = client.current_chunk() {
+            chunk.meta().alt()
+        } else {
+            0.0
+        };
+        // make rain diminish with camera distance above terrain
+        let camera_multiplier = 1.0 - ((cam_pos.z - terrain_alt).abs() / 75.0).powi(2).min(1.0);
+
+        client.weather_at_player().rain > 0.001 || camera_multiplier > 0.0
     }
 
     fn check_thunder_necessity(&mut self, client: &Client) -> bool {
@@ -192,7 +203,7 @@ impl AmbientChannel {
             // Get target volume of wind
             AmbientChannelTag::Wind => self.get_wind_volume(client, camera),
             // Get target volume of rain
-            AmbientChannelTag::Rain => self.get_rain_volume(client),
+            AmbientChannelTag::Rain => self.get_rain_volume(client, camera),
             // Get target volume of thunder
             AmbientChannelTag::Thunder => self.get_thunder_volume(client),
             // Get target volume of leaves
@@ -264,11 +275,23 @@ impl AmbientChannel {
             * (wind_speed_multiplier + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2)).min(1.0);
     }
 
-    fn get_rain_volume(&mut self, client: &Client) -> f32 {
+    fn get_rain_volume(&mut self, client: &Client, camera: &Camera) -> f32 {
         // multipler at end will have to change depending on how intense rain normally
         // is
+
         // TODO: make rain diminish with distance above terrain
-        let rain_intensity = client.weather_at_player().rain * 500.0;
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
+        let cam_pos = camera.dependents().cam_pos + focus_off;
+
+        let terrain_alt = if let Some(chunk) = client.current_chunk() {
+            chunk.meta().alt()
+        } else {
+            0.0
+        };
+        // make rain diminish with camera distance above terrain
+        let camera_multiplier = 1.0 - ((cam_pos.z - terrain_alt).abs() / 75.0).powi(2).min(1.0);
+
+        let rain_intensity = (client.weather_at_player().rain * 500.0) * camera_multiplier;
 
         return rain_intensity.min(0.9);
     }
