@@ -315,6 +315,110 @@ mod tests {
         resources: Vec<ResourcesSetup>,
     }
 
+    fn print_sorted(
+        prefix: &str,
+        mut list: Vec<(String, f32)>,
+        threshold: f32,
+        decimals: usize,
+    ) {
+        print!("{}", prefix);
+        list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
+        for i in list.iter() {
+            if i.1 >= threshold {
+                print!("{}={:.*} ", i.0, decimals, i.1);
+            }
+        }
+        println!();
+    }
+
+    fn show_economy(sites: &common::store::Store<crate::site::Site>) {
+        use crate::site::economy::good_list;
+        for (id, site) in sites.iter() {
+            println!("Site id {:?} name {}", id, site.name());
+            //assert!(site.economy.sanity_check());
+            print!(" Resources: ");
+            for i in good_list() {
+                let amount = site.economy.natural_resources.chunks_per_resource[i];
+                if amount > 0.0 {
+                    print!("{:?}={} ", i, amount);
+                }
+            }
+            println!();
+            println!(
+                " Population {:.1}, limited by {:?}",
+                site.economy.pop, site.economy.population_limited_by
+            );
+            let idle: f32 =
+                site.economy.pop * (1.0 - site.economy.labors.iter().map(|(_, a)| *a).sum::<f32>());
+            print_sorted(
+                &format!(" Professions: idle={:.1} ", idle),
+                site.economy
+                    .labors
+                    .iter()
+                    .map(|(l, a)| (format!("{:?}", l), *a * site.economy.pop))
+                    .collect(),
+                site.economy.pop * 0.05,
+                1,
+            );
+            print_sorted(
+                " Stock: ",
+                site.economy
+                    .stocks
+                    .iter()
+                    .map(|(l, a)| (format!("{:?}", l), *a))
+                    .collect(),
+                1.0,
+                0,
+            );
+            print_sorted(
+                " Values: ",
+                site.economy
+                    .values
+                    .iter()
+                    .map(|(l, a)| {
+                        (
+                            format!("{:?}", l),
+                            a.map(|v| if v > 3.9 { 0.0 } else { v }).unwrap_or(0.0),
+                        )
+                    })
+                    .collect(),
+                0.1,
+                1,
+            );
+            print_sorted(
+                " Labor Values: ",
+                site.economy
+                    .labor_values
+                    .iter()
+                    .map(|(l, a)| (format!("{:?}", l), a.unwrap_or(0.0)))
+                    .collect(),
+                0.1,
+                1,
+            );
+            print!(" Limited: ");
+            for (limit, prod) in site
+                .economy
+                .limited_by
+                .iter()
+                .zip(site.economy.productivity.iter())
+            {
+                if 0.01 <= *prod.1 && *prod.1 <= 0.99 {
+                    print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
+                }
+            }
+            println!();
+            print!(" Trade: ");
+            for (g, &amt) in site.economy.active_exports.iter() {
+                if amt < -0.1 || amt > 0.1 {
+                    print!("{:?}={:.2} ", g, amt);
+                }
+            }
+            println!();
+            // check population (shrinks if economy gets broken)
+            // assert!(site.economy.pop >= env.targets[&id]);
+        }
+    }
+
     #[test]
     fn test_economy() {
         init();
@@ -441,6 +545,7 @@ mod tests {
             }
         }
         crate::sim2::simulate(&mut index, &mut sim);
+        show_economy(&index.sites);
     }
 
     struct Simenv {
@@ -476,22 +581,6 @@ mod tests {
             let id = env.index.sites.insert(settlement);
             env.targets.insert(id, target);
             id
-        }
-
-        fn print_sorted(
-            prefix: &str,
-            mut list: Vec<(String, f32)>,
-            threshold: f32,
-            decimals: usize,
-        ) {
-            print!("{}", prefix);
-            list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
-            for i in list.iter() {
-                if i.1 >= threshold {
-                    print!("{}={:.*} ", i.0, decimals, i.1);
-                }
-            }
-            println!();
         }
 
         init();
@@ -560,90 +649,6 @@ mod tests {
                 });
         }
         crate::sim2::simulate(&mut env.index, &mut sim);
-        use crate::site::economy::good_list;
-        for (id, site) in env.index.sites.iter() {
-            println!("Site id {:?} name {}", id, site.name());
-            //assert!(site.economy.sanity_check());
-            print!(" Resources: ");
-            for i in good_list() {
-                let amount = site.economy.natural_resources.chunks_per_resource[i];
-                if amount > 0.0 {
-                    print!("{:?}={} ", i, amount);
-                }
-            }
-            println!();
-            println!(
-                " Population {:.1}, limited by {:?}",
-                site.economy.pop, site.economy.population_limited_by
-            );
-            let idle: f32 =
-                site.economy.pop * (1.0 - site.economy.labors.iter().map(|(_, a)| *a).sum::<f32>());
-            print_sorted(
-                &format!(" Professions: idle={:.1} ", idle),
-                site.economy
-                    .labors
-                    .iter()
-                    .map(|(l, a)| (format!("{:?}", l), *a * site.economy.pop))
-                    .collect(),
-                site.economy.pop * 0.05,
-                1,
-            );
-            print_sorted(
-                " Stock: ",
-                site.economy
-                    .stocks
-                    .iter()
-                    .map(|(l, a)| (format!("{:?}", l), *a))
-                    .collect(),
-                1.0,
-                0,
-            );
-            print_sorted(
-                " Values: ",
-                site.economy
-                    .values
-                    .iter()
-                    .map(|(l, a)| {
-                        (
-                            format!("{:?}", l),
-                            a.map(|v| if v > 3.9 { 0.0 } else { v }).unwrap_or(0.0),
-                        )
-                    })
-                    .collect(),
-                0.1,
-                1,
-            );
-            print_sorted(
-                " Labor Values: ",
-                site.economy
-                    .labor_values
-                    .iter()
-                    .map(|(l, a)| (format!("{:?}", l), a.unwrap_or(0.0)))
-                    .collect(),
-                0.1,
-                1,
-            );
-            print!(" Limited: ");
-            for (limit, prod) in site
-                .economy
-                .limited_by
-                .iter()
-                .zip(site.economy.productivity.iter())
-            {
-                if 0.01 <= *prod.1 && *prod.1 <= 0.99 {
-                    print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
-                }
-            }
-            println!();
-            print!(" Trade: ");
-            for (g, &amt) in site.economy.active_exports.iter() {
-                if amt < -0.1 || amt > 0.1 {
-                    print!("{:?}={:.2} ", g, amt);
-                }
-            }
-            println!();
-            // check population (shrinks if economy gets broken)
-            // assert!(site.economy.pop >= env.targets[&id]);
-        }
+        show_economy(&env.index.sites);
     }
 }
