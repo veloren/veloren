@@ -501,7 +501,7 @@ impl<'a> AgentData<'a> {
                     // Unless cannot see target, then move towards them
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             }
@@ -635,7 +635,7 @@ impl<'a> AgentData<'a> {
                     // Unless cannot see target, then move towards them
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             }
@@ -764,7 +764,7 @@ impl<'a> AgentData<'a> {
                     // Unless cannot see target, then move towards them
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             }
@@ -973,12 +973,12 @@ impl<'a> AgentData<'a> {
                         agent.action_state.timer += read_data.dt.0;
                     }
                     controller.push_basic_input(InputKind::Secondary);
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 } else {
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             } else {
@@ -1503,7 +1503,7 @@ impl<'a> AgentData<'a> {
                     controller.inputs.move_z = 1.0;
                 } else {
                     // Jump
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             }
@@ -1618,7 +1618,7 @@ impl<'a> AgentData<'a> {
                     controller.push_basic_input(InputKind::Fly);
                     controller.inputs.move_z = 1.0;
                 } else {
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             }
@@ -1831,12 +1831,12 @@ impl<'a> AgentData<'a> {
                         agent.action_state.timer += read_data.dt.0;
                     }
                     controller.push_basic_input(InputKind::Ability(0));
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 } else {
                     controller.inputs.move_dir =
                         bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-                    self.jump_if(controller, bearing.z > 1.5);
+                    self.jump_if(bearing.z > 1.5, controller);
                     controller.inputs.move_z = bearing.z;
                 }
             } else {

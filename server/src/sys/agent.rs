@@ -575,7 +575,6 @@ impl<'a> AgentData<'a> {
         {
             let target = *target;
             let selected_at = *selected_at;
-
             if let Some(tgt_pos) = read_data.positions.get(target) {
                 let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
                 let origin_dist_sqrd = match agent.patrol_origin {
@@ -606,13 +605,12 @@ impl<'a> AgentData<'a> {
                     let has_opportunity_to_flee = agent.action_state.timer < FLEE_DURATION;
                     let within_flee_distance = dist_sqrd < MAX_FLEE_DIST.powi(2);
 
-                    // FIXME: Using the action state timer to see if an agent is allowed to speak is
-                    // a hack.
+                    // FIXME: Using action state timer to see if allowed to speak is a hack.
                     if agent.action_state.timer == 0.0 {
                         self.cry_out(agent, event_emitter, read_data);
                         agent.action_state.timer = 0.01;
                     } else if within_flee_distance && has_opportunity_to_flee {
-                        self.flee(agent, controller, &read_data.terrain, tgt_pos);
+                        self.flee_from_pos(tgt_pos, agent, controller, &read_data.terrain);
                         agent.action_state.timer += read_data.dt.0;
                     } else {
                         agent.action_state.timer = 0.0;
@@ -758,7 +756,7 @@ impl<'a> AgentData<'a> {
                 controller.inputs.move_dir =
                     bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
                         * speed.min(agent.rtsim_controller.speed_factor);
-                self.jump_if(controller, bearing.z > 1.5 || self.traversal_config.can_fly);
+                self.jump_if(bearing.z > 1.5 || self.traversal_config.can_fly, controller);
                 controller.inputs.climb = Some(comp::Climb::Up);
                 //.filter(|_| bearing.z > 0.1 || self.physics_state.in_liquid().is_some());
 
@@ -938,7 +936,7 @@ impl<'a> AgentData<'a> {
             let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
             controller.inputs.move_dir = bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
                 * speed.min(0.2 + (dist_sqrd - AVG_FOLLOW_DIST.powi(2)) / 8.0);
-            self.jump_if(controller, bearing.z > 1.5);
+            self.jump_if(bearing.z > 1.5, controller);
             controller.inputs.move_z = bearing.z;
         }
     }
@@ -1455,25 +1453,26 @@ impl<'a> AgentData<'a> {
         });
     }
 
-    fn flee(
+    fn flee_from_pos(
         &self,
+        pos: &Pos,
         agent: &mut Agent,
         controller: &mut Controller,
         terrain: &TerrainGrid,
-        tgt_pos: &Pos,
     ) {
         if let Some(body) = self.body {
             if body.can_strafe() && !self.is_gliding {
                 controller.push_action(ControlAction::Unwield);
             }
         }
+
         if let Some((bearing, speed)) = agent.chaser.chase(
             &*terrain,
             self.pos.0,
             self.vel.0,
             // Away from the target (ironically)
             self.pos.0
-                + (self.pos.0 - tgt_pos.0)
+                + (self.pos.0 - pos.0)
                     .try_normalized()
                     .unwrap_or_else(Vec3::unit_y)
                     * 50.0,
@@ -1484,7 +1483,7 @@ impl<'a> AgentData<'a> {
         ) {
             controller.inputs.move_dir =
                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed;
-            self.jump_if(controller, bearing.z > 1.5);
+            self.jump_if(bearing.z > 1.5, controller);
             controller.inputs.move_z = bearing.z;
         }
     }
@@ -2133,7 +2132,7 @@ impl<'a> AgentData<'a> {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
-                    self.flee(agent, controller, &read_data.terrain, &sound_pos);
+                    self.flee_from_pos(&sound_pos, agent, controller, &read_data.terrain);
                 } else {
                     self.idle(agent, controller, read_data, rng);
                 }
@@ -2259,7 +2258,7 @@ impl<'a> AgentData<'a> {
         ) {
             controller.inputs.move_dir =
                 bearing.xy().try_normalized().unwrap_or_else(Vec2::zero) * speed * speed_multiplier;
-            self.jump_if(controller, bearing.z > 1.5);
+            self.jump_if(bearing.z > 1.5, controller);
             controller.inputs.move_z = bearing.z;
             true
         } else {
@@ -2281,7 +2280,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn jump_if(&self, controller: &mut Controller, condition: bool) {
+    fn jump_if(&self, condition: bool, controller: &mut Controller) {
         if condition {
             controller.push_basic_input(InputKind::Jump);
         } else {
