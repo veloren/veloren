@@ -407,7 +407,7 @@ mod tests {
                 }
             }
             println!();
-            print!(" Trade: ");
+            print!(" Trade({}): ", site.economy.neighbors.len());
             for (g, &amt) in site.economy.active_exports.iter() {
                 if amt < -0.1 || amt > 0.1 {
                     print!("{:?}={:.2} ", g, amt);
