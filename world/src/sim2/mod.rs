@@ -635,6 +635,13 @@ mod tests {
                 }
             }
             println!();
+            print!(" Trade: ");
+            for (g, &amt) in site.economy.active_exports.iter() {
+                if amt < -0.1 || amt > 0.1 {
+                    print!("{:?}={:.2} ", g, amt);
+                }
+            }
+            println!();
             // check population (shrinks if economy gets broken)
             // assert!(site.economy.pop >= env.targets[&id]);
         }
