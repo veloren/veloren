@@ -5,7 +5,14 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
 };
-use veloren_common::comp::inventory::slot::{ArmorSlot, EquipSlot};
+use veloren_common::{
+    comp::{
+        agent::Alignment,
+        inventory::slot::{ArmorSlot, EquipSlot},
+        Body,
+    },
+    lottery::LootSpec,
+};
 
 /// Old version.
 mod loadout_v1 {
@@ -40,7 +47,7 @@ mod loadout_v2 {
     type Weight = u8;
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
-    enum Base {
+    pub enum Base {
         Asset(String),
         /// NOTE: If you have the same item in multiple configs,
         /// first one will have the priority
@@ -68,49 +75,49 @@ mod loadout_v2 {
     pub struct LoadoutSpecNew {
         // Meta fields
         #[serde(skip_serializing_if = "Option::is_none")]
-        inherit: Option<Base>,
+        pub inherit: Option<Base>,
         // Armor
         #[serde(skip_serializing_if = "Option::is_none")]
-        head: Option<ItemSpecNew>,
+        pub head: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        neck: Option<ItemSpecNew>,
+        pub neck: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        shoulders: Option<ItemSpecNew>,
+        pub shoulders: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        chest: Option<ItemSpecNew>,
+        pub chest: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        gloves: Option<ItemSpecNew>,
+        pub gloves: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        ring1: Option<ItemSpecNew>,
+        pub ring1: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        ring2: Option<ItemSpecNew>,
+        pub ring2: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        back: Option<ItemSpecNew>,
+        pub back: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        belt: Option<ItemSpecNew>,
+        pub belt: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        legs: Option<ItemSpecNew>,
+        pub legs: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        feet: Option<ItemSpecNew>,
+        pub feet: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        tabard: Option<ItemSpecNew>,
+        pub tabard: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        bag1: Option<ItemSpecNew>,
+        pub bag1: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        bag2: Option<ItemSpecNew>,
+        pub bag2: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        bag3: Option<ItemSpecNew>,
+        pub bag3: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        bag4: Option<ItemSpecNew>,
+        pub bag4: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        lantern: Option<ItemSpecNew>,
+        pub lantern: Option<ItemSpecNew>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        glider: Option<ItemSpecNew>,
+        pub glider: Option<ItemSpecNew>,
         // Weapons
         #[serde(skip_serializing_if = "Option::is_none")]
-        active_hands: Option<Hands>,
+        pub active_hands: Option<Hands>,
         #[serde(skip_serializing_if = "Option::is_none")]
-        inactive_hands: Option<Hands>,
+        pub inactive_hands: Option<Hands>,
     }
 
     impl From<(Option<ItemSpec>, Option<ItemSpec>)> for Hands {
@@ -188,25 +195,214 @@ mod loadout_v2 {
     }
 }
 
-mod v1 {
+mod entity_v1 {
     use super::*;
     pub type Config = EntityConfig;
+    type Weight = u8;
+
+    #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+    pub enum NameKind {
+        Name(String),
+        Automatic,
+        Uninit,
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+    pub enum BodyBuilder {
+        RandomWith(String),
+        Exact(Body),
+        Uninit,
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum AlignmentMark {
+        Alignment(Alignment),
+        Uninit,
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum Meta {
+        SkillSetAsset(String),
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum Hands {
+        TwoHanded(super::loadout_v1::ItemSpec),
+        Paired(super::loadout_v1::ItemSpec),
+        Mix {
+            mainhand: super::loadout_v1::ItemSpec,
+            offhand: super::loadout_v1::ItemSpec,
+        },
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum LoadoutAsset {
+        Loadout(String),
+        Choice(Vec<(Weight, String)>),
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum LoadoutKind {
+        FromBody,
+        Asset(LoadoutAsset),
+        Hands(Hands),
+        Extended {
+            hands: Hands,
+            base_asset: LoadoutAsset,
+            inventory: Vec<(u32, String)>,
+        },
+    }
 
     #[derive(Debug, Deserialize, Clone)]
-    pub struct EntityConfig;
+    pub struct EntityConfig {
+        pub name: NameKind,
+        pub body: BodyBuilder,
+        pub alignment: AlignmentMark,
+        pub loot: LootSpec<String>,
+        pub loadout: LoadoutKind,
+        #[serde(default)]
+        pub meta: Vec<Meta>,
+    }
 }
 
-mod v2 {
-    use super::*;
-    pub type OldConfig = super::v1::Config;
+mod entity_v2 {
+    use super::{
+        entity_v1::{Hands as OldHands, LoadoutAsset, LoadoutKind},
+        loadout_v1::ItemSpec,
+        loadout_v2::{Base, Hands, ItemSpecNew, LoadoutSpecNew},
+        *,
+    };
+    pub type OldConfig = super::entity_v1::Config;
     pub type Config = EntityConfig;
 
-    #[derive(Debug, Deserialize, Serialize, Clone, Default)]
-    pub struct EntityConfig;
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub enum LoadoutKindNew {
+        FromBody,
+        Asset(String),
+        Inline(super::loadout_v2::LoadoutSpecNew),
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub struct InventorySpec {
+        loadout: LoadoutKindNew,
+        #[serde(skip_serializing_if = "Vec::is_empty")]
+        items: Vec<(u32, String)>,
+    }
+
+    #[derive(Debug, Deserialize, Serialize, Clone)]
+    pub struct EntityConfig {
+        pub name: super::entity_v1::NameKind,
+        pub body: super::entity_v1::BodyBuilder,
+        pub alignment: super::entity_v1::AlignmentMark,
+        pub loot: LootSpec<String>,
+        pub inventory: InventorySpec,
+        #[serde(default)]
+        pub meta: Vec<super::entity_v1::Meta>,
+    }
+
+    impl From<LoadoutAsset> for LoadoutKindNew {
+        fn from(old: LoadoutAsset) -> Self {
+            match old {
+                LoadoutAsset::Loadout(s) => LoadoutKindNew::Asset(s),
+                LoadoutAsset::Choice(bases) => LoadoutKindNew::Inline(LoadoutSpecNew {
+                    inherit: Some(Base::Choice(
+                        bases
+                            .iter()
+                            .map(|(w, s)| (*w, Base::Asset(s.to_owned())))
+                            .collect(),
+                    )),
+                    ..Default::default()
+                }),
+            }
+        }
+    }
+
+    impl From<OldHands> for Hands {
+        fn from(old: OldHands) -> Self {
+            match old {
+                OldHands::TwoHanded(spec) => Hands::InHands((Some(spec.into()), None)),
+                OldHands::Mix { mainhand, offhand } => {
+                    Hands::InHands((Some(mainhand.into()), Some(offhand.into())))
+                },
+                OldHands::Paired(spec) => match spec {
+                    ItemSpec::Item(name) => Hands::InHands((
+                        Some(ItemSpecNew::Item(name.clone())),
+                        Some(ItemSpecNew::Item(name)),
+                    )),
+                    ItemSpec::Choice(choices) => {
+                        let smallest = choices
+                            .iter()
+                            .map(|(w, _)| *w)
+                            .min_by(|x, y| x.partial_cmp(y).expect("floats are evil"))
+                            .expect("choice shouldn't empty");
+                        // Very imprecise algo, but it works
+                        let new_choices = choices
+                            .into_iter()
+                            .map(|(w, i)| {
+                                let new_weight = (w / smallest) as u8;
+                                let choice =
+                                    Hands::InHands((i.clone().map(Into::into), i.map(Into::into)));
+
+                                (new_weight, choice)
+                            })
+                            .collect();
+
+                        Hands::Choice(new_choices)
+                    },
+                },
+            }
+        }
+    }
+
+    impl InventorySpec {
+        fn with_hands(
+            hands: OldHands,
+            loadout: Option<LoadoutAsset>,
+            items: Vec<(u32, String)>,
+        ) -> Self {
+            Self {
+                loadout: LoadoutKindNew::Inline(LoadoutSpecNew {
+                    inherit: loadout.map(|asset| match asset {
+                        LoadoutAsset::Loadout(s) => Base::Asset(s.to_owned()),
+                        LoadoutAsset::Choice(bases) => Base::Choice(
+                            bases
+                                .iter()
+                                .map(|(w, s)| (*w, Base::Asset(s.to_owned())))
+                                .collect(),
+                        ),
+                    }),
+                    active_hands: Some(hands.into()),
+                    ..Default::default()
+                }),
+                items,
+            }
+        }
+    }
 
     impl From<OldConfig> for Config {
         fn from(old: OldConfig) -> Self {
-            Self::default()
+            let just_loadout = |loadout| InventorySpec {
+                loadout,
+                items: Vec::new(),
+            };
+
+            Self {
+                name: old.name,
+                body: old.body,
+                alignment: old.alignment,
+                loot: old.loot,
+                inventory: match old.loadout {
+                    LoadoutKind::FromBody => just_loadout(LoadoutKindNew::FromBody),
+                    LoadoutKind::Asset(asset) => just_loadout(asset.into()),
+                    LoadoutKind::Hands(hands) => InventorySpec::with_hands(hands, None, Vec::new()),
+                    LoadoutKind::Extended {
+                        hands,
+                        base_asset,
+                        inventory,
+                    } => InventorySpec::with_hands(hands, Some(base_asset), inventory),
+                },
+                meta: old.meta,
+            }
         }
     }
 }
@@ -279,10 +475,17 @@ where
                 .extensions(ron::extensions::Extensions::IMPLICIT_SOME);
             let config_string =
                 ron::ser::to_string_pretty(&new, pretty_config).expect("serialize shouldn't fail");
-            let comments_string = comments.join("\n");
+            let comments_string = if comments.is_empty() {
+                String::new()
+            } else {
+                let mut comments = comments.join("\n");
+                // insert newline for other config content
+                comments.push_str("\n");
+                comments
+            };
 
             let mut target = fs::File::create(to.join(&path))?;
-            write!(&mut target, "{comments_string}\n{config_string}")
+            write!(&mut target, "{comments_string}{config_string}")
                 .expect("fail to write to the file");
             println!("{path:?} done");
         },
@@ -296,7 +499,12 @@ fn convert_loop(from: &str, to: &str) {
         path: Path::new("").to_owned(),
         content: walk_tree(root, root).unwrap(),
     };
-    walk_with_migrate::<v1::Config, v2::Config>(files, Path::new(from), Path::new(to)).unwrap();
+    walk_with_migrate::<entity_v1::Config, entity_v2::Config>(
+        files,
+        Path::new(from),
+        Path::new(to),
+    )
+    .unwrap();
 }
 
 fn input_string(prompt: &str) -> String { input_validated_string(prompt, &|_| true) }

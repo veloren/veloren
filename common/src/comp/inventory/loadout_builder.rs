@@ -82,7 +82,7 @@ impl Base {
 enum Hands {
     /// Allows to specify one pair
     // TODO: add link to tests with example
-    InHands((Option<ItemSpecNew>, Option<ItemSpecNew>)),
+    InHands((Option<ItemSpec>, Option<ItemSpec>)),
     /// Allows specify range of choices
     // TODO: add link to tests with example
     Choice(Vec<(Weight, Hands)>),
@@ -95,7 +95,7 @@ impl Hands {
     ) -> Result<(Option<Item>, Option<Item>), LoadoutBuilderError> {
         match self {
             Hands::InHands((mainhand, offhand)) => {
-                let mut from_spec = |i: &ItemSpecNew| i.try_to_item(rng);
+                let mut from_spec = |i: &ItemSpec| i.try_to_item(rng);
 
                 let mainhand = mainhand
                     .as_ref()
@@ -121,20 +121,20 @@ impl Hands {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-enum ItemSpecNew {
+enum ItemSpec {
     Item(String),
-    Choice(Vec<(Weight, Option<ItemSpecNew>)>),
+    Choice(Vec<(Weight, Option<ItemSpec>)>),
 }
 
-impl ItemSpecNew {
+impl ItemSpec {
     fn try_to_item(&self, rng: &mut impl Rng) -> Result<Option<Item>, LoadoutBuilderError> {
         match self {
-            ItemSpecNew::Item(item_asset) => {
+            ItemSpec::Item(item_asset) => {
                 let item = Item::new_from_asset(item_asset)
                     .map_err(LoadoutBuilderError::ItemAssetError)?;
                 Ok(Some(item))
             },
-            ItemSpecNew::Choice(items) => {
+            ItemSpec::Choice(items) => {
                 let (_, item_spec) = items
                     .choose_weighted(rng, |(weight, _)| *weight)
                     .map_err(LoadoutBuilderError::ItemChoiceError)?;
@@ -156,24 +156,24 @@ pub struct LoadoutSpec {
     // Meta fields
     inherit: Option<Base>,
     // Armor
-    head: Option<ItemSpecNew>,
-    neck: Option<ItemSpecNew>,
-    shoulders: Option<ItemSpecNew>,
-    chest: Option<ItemSpecNew>,
-    gloves: Option<ItemSpecNew>,
-    ring1: Option<ItemSpecNew>,
-    ring2: Option<ItemSpecNew>,
-    back: Option<ItemSpecNew>,
-    belt: Option<ItemSpecNew>,
-    legs: Option<ItemSpecNew>,
-    feet: Option<ItemSpecNew>,
-    tabard: Option<ItemSpecNew>,
-    bag1: Option<ItemSpecNew>,
-    bag2: Option<ItemSpecNew>,
-    bag3: Option<ItemSpecNew>,
-    bag4: Option<ItemSpecNew>,
-    lantern: Option<ItemSpecNew>,
-    glider: Option<ItemSpecNew>,
+    head: Option<ItemSpec>,
+    neck: Option<ItemSpec>,
+    shoulders: Option<ItemSpec>,
+    chest: Option<ItemSpec>,
+    gloves: Option<ItemSpec>,
+    ring1: Option<ItemSpec>,
+    ring2: Option<ItemSpec>,
+    back: Option<ItemSpec>,
+    belt: Option<ItemSpec>,
+    legs: Option<ItemSpec>,
+    feet: Option<ItemSpec>,
+    tabard: Option<ItemSpec>,
+    bag1: Option<ItemSpec>,
+    bag2: Option<ItemSpec>,
+    bag3: Option<ItemSpec>,
+    bag4: Option<ItemSpec>,
+    lantern: Option<ItemSpec>,
+    glider: Option<ItemSpec>,
     // Weapons
     active_hands: Option<Hands>,
     inactive_hands: Option<Hands>,
@@ -262,96 +262,6 @@ impl assets::Asset for LoadoutSpec {
     type Loader = assets::RonLoader;
 
     const EXTENSION: &'static str = "ron";
-}
-
-#[derive(Debug, Deserialize, Serialize, Clone)]
-pub enum ItemSpec {
-    /// One specific item.
-    /// Example:
-    /// Item("common.items.armor.steel.foot")
-    Item(String),
-    /// Choice from items with weights.
-    /// Example:
-    /// Choice([
-    ///  (1.0, Some(Item("common.items.lantern.blue_0"))),
-    ///  (1.0, None),
-    /// ])
-    Choice(Vec<(f32, Option<ItemSpec>)>),
-}
-
-impl ItemSpec {
-    pub fn try_to_item(&self, asset_specifier: &str, rng: &mut impl Rng) -> Option<Item> {
-        match self {
-            ItemSpec::Item(specifier) => Some(Item::new_from_asset_expect(specifier)),
-
-            ItemSpec::Choice(items) => {
-                choose(items, asset_specifier, rng)
-                    .as_ref()
-                    .and_then(|e| match e {
-                        entry @ ItemSpec::Item { .. } => entry.try_to_item(asset_specifier, rng),
-                        choice @ ItemSpec::Choice { .. } => {
-                            choice.try_to_item(asset_specifier, rng)
-                        },
-                    })
-            },
-        }
-    }
-
-    #[cfg(test)]
-    /// # Usage
-    /// Read everything and checks if it's loading
-    ///
-    /// # Panics
-    /// 1) If weights are invalid
-    /// 2) If item doesn't correspond to `EquipSlot`
-    pub fn validate(&self, equip_slot: EquipSlot) {
-        match self {
-            ItemSpec::Item(specifier) => {
-                let item = Item::new_from_asset_expect(specifier);
-                assert!(
-                    equip_slot.can_hold(&item.kind),
-                    "Tried to place {} into {:?}",
-                    specifier,
-                    equip_slot
-                );
-                std::mem::drop(item);
-            },
-            ItemSpec::Choice(items) => {
-                for (p, entry) in items {
-                    if p <= &0.0 {
-                        let err = format!(
-                            "Weight is less or equal to 0.0.\n ({:?}: {:?})",
-                            equip_slot, self
-                        );
-                        panic!("\n\n{}\n\n", err);
-                    } else {
-                        entry.as_ref().map(|e| e.validate(equip_slot));
-                    }
-                }
-            },
-        }
-    }
-}
-
-fn choose<'a>(
-    items: &'a [(f32, Option<ItemSpec>)],
-    asset_specifier: &str,
-    rng: &mut impl Rng,
-) -> &'a Option<ItemSpec> {
-    items.choose_weighted(rng, |item| item.0).map_or_else(
-        |err| match err {
-            WeightedError::NoItem | WeightedError::AllWeightsZero => &None,
-            WeightedError::InvalidWeight => {
-                let err = format!("Negative values of probability in {}.", asset_specifier);
-                common_base::dev_panic!(err, or return &None)
-            },
-            WeightedError::TooMany => {
-                let err = format!("More than u32::MAX values in {}.", asset_specifier);
-                common_base::dev_panic!(err, or return &None)
-            },
-        },
-        |(_p, itemspec)| itemspec,
-    )
 }
 
 #[must_use]
@@ -779,7 +689,7 @@ impl LoadoutBuilder {
         let spec = spec.eval(rng)?;
 
         // Utility function to unwrap our itemspec
-        let mut to_item = |maybe_item: Option<ItemSpecNew>| {
+        let mut to_item = |maybe_item: Option<ItemSpec>| {
             if let Some(item) = maybe_item {
                 item.try_to_item(rng)
             } else {

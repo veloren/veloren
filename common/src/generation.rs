@@ -2,7 +2,7 @@ use crate::{
     assets::{self, AssetExt, Error},
     comp::{
         self, agent, humanoid,
-        inventory::loadout_builder::{ItemSpec, LoadoutBuilder, LoadoutSpec},
+        inventory::loadout_builder::{LoadoutBuilder, LoadoutSpec},
         Alignment, Body, Item,
     },
     lottery::LootSpec,
@@ -38,7 +38,7 @@ impl Default for AlignmentMark {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-pub enum LoadoutKindNew {
+pub enum LoadoutKind {
     FromBody,
     Asset(String),
     Inline(LoadoutSpec),
@@ -46,41 +46,9 @@ pub enum LoadoutKindNew {
 
 #[derive(Debug, Deserialize, Clone)]
 pub struct InventorySpec {
-    loadout: LoadoutKindNew,
+    loadout: LoadoutKind,
     #[serde(default)]
     items: Vec<(u32, String)>,
-}
-
-/// - TwoHanded(ItemSpec) for one 2h or 1h weapon,
-/// - Paired(ItemSpec) for two 1h weapons aka berserker mode,
-/// - Mix { mainhand: ItemSpec, offhand: ItemSpec, }
-///  for two different 1h weapons.
-#[derive(Debug, Deserialize, Clone)]
-pub enum Hands {
-    TwoHanded(ItemSpec),
-    Paired(ItemSpec),
-    Mix {
-        mainhand: ItemSpec,
-        offhand: ItemSpec,
-    },
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub enum LoadoutAsset {
-    Loadout(String),
-    Choice(Vec<(u32, String)>),
-}
-
-#[derive(Debug, Deserialize, Clone)]
-pub enum LoadoutKind {
-    FromBody,
-    Asset(LoadoutAsset),
-    Hands(Hands),
-    Extended {
-        hands: Hands,
-        base_asset: LoadoutAsset,
-        inventory: Vec<(u32, String)>,
-    },
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -335,16 +303,16 @@ impl EntityInfo {
             .collect();
 
         match loadout {
-            LoadoutKindNew::FromBody => {
+            LoadoutKind::FromBody => {
                 self = self.with_default_equip();
             },
-            LoadoutKindNew::Asset(loadout) => {
+            LoadoutKind::Asset(loadout) => {
                 let loadout = LoadoutBuilder::from_asset(&loadout, rng).unwrap_or_else(|e| {
                     panic!("failed to load loadout for {config_asset}: {e:?}");
                 });
                 self.loadout = loadout;
             },
-            LoadoutKindNew::Inline(loadout_spec) => {
+            LoadoutKind::Inline(loadout_spec) => {
                 let loadout =
                     LoadoutBuilder::from_loadout_spec(loadout_spec, rng).unwrap_or_else(|e| {
                         panic!("failed to load loadout for {config_asset}: {e:?}");
