@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix agents not idling
 - Fixed an error where '{amount} Exp' floater did not use existing localizations
 - Fix villagers seeing cultists and familiar enemies through objects.
+- Menacing agents are now less spammy with their menacing messages
 
 ## [0.12.0] - 2022-02-19
 
@@ -49,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Shrubs, a system for spawning smaller tree-like plants into the world.
 - Waterfalls
 - Sailing boat (currently requires spawning in)
-- Added a filter search function for crafting menu, use "input:_____" to search for recipe inputs
+- Added a filter search function for crafting menu, use "input:______" to search for recipe inputs
 - Added catalan (Catalonia) language translation
 - Sneaking with weapons drawn
 - Stealth stat values on (some) armors
@@ -80,6 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Convert giant trees to site2
 - Add new upgraded travelers
 - Wallrunning
+- Add FOV check for agents scanning for targets they are hostile to
 
 ### Changed
 
