@@ -1053,23 +1053,20 @@ impl<'a> Widget for Crafting<'a> {
                     let sec_item_placed = secondary_slot.invslot.is_some();
 
                     let prim_icon = match recipe_kind {
-                        RecipeKind::Component(ToolKind::Sword) => self.imgs.ing_ico_prim,
-                        RecipeKind::Component(ToolKind::Axe) => self.imgs.ing_ico_prim,
-                        RecipeKind::Component(ToolKind::Hammer) => self.imgs.ing_ico_prim,
-                        RecipeKind::Component(ToolKind::Bow) => self.imgs.ing_ico_prim,
-                        RecipeKind::Component(ToolKind::Staff) => self.imgs.ing_ico_prim,
-                        RecipeKind::Component(ToolKind::Sceptre) => self.imgs.ing_ico_prim,
-                        _ => self.imgs.ing_ico_prim,
+                        RecipeKind::ModularWeapon => self.imgs.ing_ico_prim,
+                        RecipeKind::Component(ToolKind::Sword) => self.imgs.icon_ingot,
+                        RecipeKind::Component(ToolKind::Axe) => self.imgs.icon_ingot,
+                        RecipeKind::Component(ToolKind::Hammer) => self.imgs.icon_ingot,
+                        RecipeKind::Component(ToolKind::Bow) => self.imgs.icon_log,
+                        RecipeKind::Component(ToolKind::Staff) => self.imgs.icon_log,
+                        RecipeKind::Component(ToolKind::Sceptre) => self.imgs.icon_log,
+                        _ => self.imgs.not_found,
                     };
 
                     let sec_icon = match recipe_kind {
-                        RecipeKind::Component(ToolKind::Sword) => self.imgs.ing_ico_sec,
-                        RecipeKind::Component(ToolKind::Axe) => self.imgs.ing_ico_sec,
-                        RecipeKind::Component(ToolKind::Hammer) => self.imgs.ing_ico_sec,
-                        RecipeKind::Component(ToolKind::Bow) => self.imgs.ing_ico_sec,
-                        RecipeKind::Component(ToolKind::Staff) => self.imgs.ing_ico_sec,
-                        RecipeKind::Component(ToolKind::Sceptre) => self.imgs.ing_ico_sec,
-                        _ => self.imgs.ing_ico_sec,
+                        RecipeKind::ModularWeapon => self.imgs.ing_ico_sec,
+                        RecipeKind::Component(_) => self.imgs.icon_pelt,
+                        _ => self.imgs.not_found,
                     };
 
                     // Output Image
