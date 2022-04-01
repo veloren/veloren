@@ -58,34 +58,59 @@ impl EconStatistics {
 
 pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
     use std::io::Write;
+    use crate::site::economy::GoodIndex;
     write!(
         *f,
-        "{}, {}, {}, {},",
+        "{}, {}, {}, {:.1}, {},,",
         site.name(),
         site.get_origin().x,
         site.get_origin().y,
-        site.economy.pop
+        site.economy.pop,
+        site.economy.neighbors.len(),
     )?;
     for g in good_list() {
-        write!(*f, "{:?},", site.economy.values[g].unwrap_or(-1.0))?;
+        if let Some(value) = site.economy.values[g] {
+            write!(*f, "{:.2},", value)?;
+        } else {
+            f.write_all(b",")?;
+        }
     }
+    f.write_all(b",")?;
     for g in good_list() {
-        write!(f, "{:?},", site.economy.labor_values[g].unwrap_or(-1.0))?;
+        if let Some(labor_value) = site.economy.labor_values[g] {
+            write!(f, "{:.2},", labor_value)?;
+        } else {
+            f.write_all(b",")?;
+        }
     }
+    f.write_all(b",")?;
     for g in good_list() {
-        write!(f, "{:?},", site.economy.stocks[g])?;
+        write!(f, "{:.1},", site.economy.stocks[g])?;
     }
+    f.write_all(b",")?;
     for g in good_list() {
-        write!(f, "{:?},", site.economy.marginal_surplus[g])?;
+        write!(f, "{:.1},", site.economy.marginal_surplus[g])?;
     }
+    f.write_all(b",")?;
     for l in LaborIndex::list() {
-        write!(f, "{:?},", site.economy.labors[l] * site.economy.pop)?;
+        write!(f, "{:.1},", site.economy.labors[l] * site.economy.pop)?;
     }
+    f.write_all(b",")?;
     for l in LaborIndex::list() {
-        write!(f, "{:?},", site.economy.productivity[l])?;
+        write!(f, "{:.2},", site.economy.productivity[l])?;
     }
+    f.write_all(b",")?;
     for l in LaborIndex::list() {
-        write!(f, "{:?},", site.economy.yields[l])?;
+        write!(f, "{:.1},", site.economy.yields[l])?;
+    }
+    f.write_all(b",")?;
+    for l in LaborIndex::list() {
+        let limit = site.economy.limited_by[l];
+        if limit == GoodIndex::default() {
+            f.write_all(b",")?;
+        } else {
+            write!(f, "{:?},", limit)?;
+        }
     }
     writeln!(f)
 }
@@ -96,27 +121,37 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
     // here
     let mut f = if GENERATE_CSV {
         let mut f = std::fs::File::create("economy.csv")?;
-        write!(f, "Site,PosX,PosY,Population,")?;
+        write!(f, "Site,PosX,PosY,Population,Neighbors,,")?;
         for g in good_list() {
             write!(f, "{:?} Value,", g)?;
         }
+        f.write_all(b",")?;
         for g in good_list() {
             write!(f, "{:?} LaborVal,", g)?;
         }
+        f.write_all(b",")?;
         for g in good_list() {
             write!(f, "{:?} Stock,", g)?;
         }
+        f.write_all(b",")?;
         for g in good_list() {
             write!(f, "{:?} Surplus,", g)?;
         }
+        f.write_all(b",")?;
         for l in LaborIndex::list() {
             write!(f, "{:?} Labor,", l)?;
         }
+        f.write_all(b",")?;
         for l in LaborIndex::list() {
             write!(f, "{:?} Productivity,", l)?;
         }
+        f.write_all(b",")?;
         for l in LaborIndex::list() {
             write!(f, "{:?} Yields,", l)?;
+        }
+        f.write_all(b",")?;
+        for l in LaborIndex::list() {
+            write!(f, "{:?} limit,", l)?;
         }
         writeln!(f)?;
         Some(f)
