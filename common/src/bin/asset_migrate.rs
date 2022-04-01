@@ -407,6 +407,14 @@ mod entity_v2 {
     }
 }
 
+mod old {
+    pub type Config = super::loadout_v1::Config;
+}
+
+mod new {
+    pub type Config = super::loadout_v2::Config;
+}
+
 #[derive(Debug)]
 enum Walk {
     File(PathBuf),
@@ -499,7 +507,7 @@ fn convert_loop(from: &str, to: &str) {
         path: Path::new("").to_owned(),
         content: walk_tree(root, root).unwrap(),
     };
-    walk_with_migrate::<entity_v1::Config, entity_v2::Config>(
+    walk_with_migrate::<old::Config, new::Config>(
         files,
         Path::new(from),
         Path::new(to),

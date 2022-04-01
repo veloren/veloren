@@ -18,65 +18,76 @@ use serde::{Deserialize, Serialize};
 use strum::EnumIter;
 use tracing::warn;
 
-/// Builder for character Loadouts, containing weapon and armour items belonging
-/// to a character, along with some helper methods for loading `Item`-s and
-/// `ItemConfig`
-///
-/// ```
-/// use veloren_common::{comp::Item, LoadoutBuilder};
-///
-/// // Build a loadout with character starter defaults
-/// // and a specific sword with default sword abilities
-/// let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
-/// let loadout = LoadoutBuilder::empty()
-///     .defaults()
-///     .active_mainhand(Some(sword))
-///     .build();
-/// ```
-#[derive(Clone)]
-pub struct LoadoutBuilder(Loadout);
-
-#[derive(Copy, Clone, PartialEq, Deserialize, Serialize, Debug, EnumIter)]
-pub enum Preset {
-    HuskSummon,
-}
-
 type Weight = u8;
 
-#[derive(Debug, Deserialize, Clone)]
-enum Base {
-    Asset(String),
-    /// NOTE: If you have the same item in multiple configs,
-    /// first one will have the priority
-    Combine(Vec<Base>),
-    Choice(Vec<(Weight, Base)>),
+#[derive(Debug)]
+pub enum SpecError {
+    LoadoutAssetError(assets::Error),
+    ItemAssetError(assets::Error),
+    ItemChoiceError(WeightedError),
+    BaseChoiceError(WeightedError),
 }
 
-impl Base {
-    fn to_spec(&self, rng: &mut impl Rng) -> Result<LoadoutSpec, LoadoutBuilderError> {
+#[derive(Debug)]
+#[cfg(test)]
+enum ValidationError {
+    ItemAssetError(assets::Error),
+    LoadoutAssetError(assets::Error),
+}
+
+#[derive(Debug, Deserialize, Clone)]
+enum ItemSpec {
+    Item(String),
+    Choice(Vec<(Weight, Option<ItemSpec>)>),
+}
+
+
+impl ItemSpec {
+    fn try_to_item(&self, rng: &mut impl Rng) -> Result<Option<Item>, SpecError> {
         match self {
-            Base::Asset(asset_specifier) => LoadoutSpec::load_cloned(asset_specifier)
-                .map_err(LoadoutBuilderError::LoadoutAssetError),
-            Base::Combine(bases) => {
-                let bases = bases.iter().map(|b| b.to_spec(rng)?.eval(rng));
-                // Get first base of combined
-                let mut current = LoadoutSpec::default();
-                for base in bases {
-                    current = current.merge(base?);
-                }
-
-                Ok(current)
+            ItemSpec::Item(item_asset) => {
+                let item = Item::new_from_asset(item_asset)
+                    .map_err(SpecError::ItemAssetError)?;
+                Ok(Some(item))
             },
-            Base::Choice(choice) => {
-                let (_, base) = choice
+            ItemSpec::Choice(items) => {
+                let (_, item_spec) = items
                     .choose_weighted(rng, |(weight, _)| *weight)
-                    .map_err(LoadoutBuilderError::BaseChoiceError)?;
+                    .map_err(SpecError::ItemChoiceError)?;
 
-                base.to_spec(rng)
+                let item = if let Some(item_spec) = item_spec {
+                    item_spec.try_to_item(rng)?
+                } else {
+                    None
+                };
+                Ok(item)
+            },
+        }
+    }
+
+    // Check if ItemSpec is valid and can be turned into Item
+    //
+    // TODO: check for errors with respect to choosing item.
+    #[cfg(test)]
+    fn validate(&self) -> Result<(), ValidationError> {
+        match self {
+            ItemSpec::Item(item_asset) => {
+                Item::new_from_asset(item_asset)
+                    .map(std::mem::drop)
+                    .map_err(ValidationError::ItemAssetError)
+            },
+            ItemSpec::Choice(choices) => {
+                for (_weight, choice) in choices {
+                    if let Some(item) = choice {
+                        item.validate()?;
+                    }
+                }
+                Ok(())
             },
         }
     }
 }
+
 
 #[derive(Debug, Deserialize, Clone)]
 enum Hands {
@@ -92,7 +103,7 @@ impl Hands {
     fn try_to_pair(
         &self,
         rng: &mut impl Rng,
-    ) -> Result<(Option<Item>, Option<Item>), LoadoutBuilderError> {
+    ) -> Result<(Option<Item>, Option<Item>), SpecError> {
         match self {
             Hands::InHands((mainhand, offhand)) => {
                 let mut from_spec = |i: &ItemSpec| i.try_to_item(rng);
@@ -112,45 +123,169 @@ impl Hands {
             Hands::Choice(pairs) => {
                 let (_, pair_spec) = pairs
                     .choose_weighted(rng, |(weight, _)| *weight)
-                    .map_err(LoadoutBuilderError::ItemChoiceError)?;
+                    .map_err(SpecError::ItemChoiceError)?;
 
                 pair_spec.try_to_pair(rng)
             },
         }
     }
-}
 
-#[derive(Debug, Deserialize, Clone)]
-enum ItemSpec {
-    Item(String),
-    Choice(Vec<(Weight, Option<ItemSpec>)>),
-}
-
-impl ItemSpec {
-    fn try_to_item(&self, rng: &mut impl Rng) -> Result<Option<Item>, LoadoutBuilderError> {
+    // Check if items in Hand are valid and can be turned into Item
+    //
+    // TODO: check for errors with respect to choosing item.
+    #[cfg(test)]
+    fn validate(&self) -> Result<(), ValidationError> {
         match self {
-            ItemSpec::Item(item_asset) => {
-                let item = Item::new_from_asset(item_asset)
-                    .map_err(LoadoutBuilderError::ItemAssetError)?;
-                Ok(Some(item))
+            Self::InHands((left, right)) => {
+                if let Some(hand) = left {
+                    hand.validate()?;
+                }
+                if let Some(hand) = right {
+                    hand.validate()?;
+                }
+                Ok(())
             },
-            ItemSpec::Choice(items) => {
-                let (_, item_spec) = items
-                    .choose_weighted(rng, |(weight, _)| *weight)
-                    .map_err(LoadoutBuilderError::ItemChoiceError)?;
-
-                let item = if let Some(item_spec) = item_spec {
-                    item_spec.try_to_item(rng)?
-                } else {
-                    None
-                };
-                Ok(item)
+            Self::Choice(choices) => {
+                for (_weight, choice) in choices {
+                    choice.validate()?;
+                }
+                Ok(())
             },
         }
     }
 }
 
-// FIXME: remove clone
+
+#[derive(Debug, Deserialize, Clone)]
+enum Base {
+    Asset(String),
+    /// NOTE: If you have the same item in multiple configs,
+    /// *first* one will have the priority
+    Combine(Vec<Base>),
+    Choice(Vec<(Weight, Base)>),
+}
+
+impl Base {
+    fn to_spec(&self, rng: &mut impl Rng) -> Result<LoadoutSpec, SpecError> {
+        match self {
+            Base::Asset(asset_specifier) => LoadoutSpec::load_cloned(asset_specifier)
+                .map_err(SpecError::LoadoutAssetError),
+            Base::Combine(bases) => {
+                let bases = bases.iter().map(|b| b.to_spec(rng)?.eval(rng));
+                // Get first base of combined
+                let mut current = LoadoutSpec::default();
+                for base in bases {
+                    current = current.merge(base?);
+                }
+
+                Ok(current)
+            },
+            Base::Choice(choice) => {
+                let (_, base) = choice
+                    .choose_weighted(rng, |(weight, _)| *weight)
+                    .map_err(SpecError::BaseChoiceError)?;
+
+                base.to_spec(rng)
+            },
+        }
+    }
+
+    /// Builds a set of all LoadoutSpecs that are possible to build
+    /// from this base, ignoring weights.
+    ///
+    /// Examples:
+    ///
+    /// 1) Trivial
+    /// inherit: Asset(B)
+    ///
+    /// B:
+    /// ring1: b
+    ///
+    /// => [ {ring1: b}]
+    ///
+    /// 2) Choice
+    /// inherit: Choice([
+    ///     (1, M),
+    ///     (1, N),
+    /// ]
+    ///
+    /// M:
+    /// ring1: m
+    ///
+    /// N:
+    /// ring1: n
+    ///
+    /// => [ {ring1: m}, {ring1: n}]
+    ///
+    /// 3) Combine
+    /// inherit: Combine([A B])
+    ///
+    /// A:
+    /// ring1: a
+    ///
+    /// B:
+    /// ring1: b
+    /// active_hands: b
+    ///
+    /// (remember that first takes priority)
+    /// => [ {ring1: a, active_hands: b}]
+    ///
+    /// 4) Deep
+    /// inherit: B
+    ///
+    /// B:
+    /// inherit: Choice[(1, B1), (1, B1)]
+    ///
+    /// B1:
+    /// ring1: b1
+    ///
+    /// B2:
+    /// ring1: b2
+    ///
+    /// => [
+    ///     {ring1: b1},
+    ///     {ring1: b2}
+    /// ]
+    ///
+    /// 5) Complex
+    ///
+    /// inherit: Choice([
+    ///     (1, M),
+    ///     (1, N),
+    /// ]
+    ///
+    /// M:
+    /// inherit: Combine([B1, B2])
+    ///
+    /// N:
+    /// inherit: Combine([B2, Choice[(1, B3), (1, B4)]])
+    ///
+    /// B1:
+    /// ring1: b1
+    ///
+    /// B2:
+    /// active_hands: b2
+    ///
+    /// B3:
+    /// ring1: b3
+    /// active_hands: b3
+    ///
+    /// B4:
+    /// back: b4
+    ///
+    /// => [
+    ///     {ring1: b1, active_hands: b2},
+    ///     {active_hands: b2, ring1: b3},
+    ///     {active_hands: b2, back: b4},
+    /// ]
+    #[cfg(test)]
+    fn possibilities(&self) -> HashSet<Result<LoadoutSpec, SpecError>>{
+        // FIXME: implement before merge!!!
+        unimplemented!()
+    }
+}
+
+// TODO: remove clone
 #[derive(Debug, Deserialize, Clone, Default)]
 pub struct LoadoutSpec {
     // Meta fields
@@ -239,7 +374,7 @@ impl LoadoutSpec {
     /// ring1: b,
     /// ring2: c,
     /// ```
-    fn eval(self, rng: &mut impl Rng) -> Result<Self, LoadoutBuilderError> {
+    fn eval(self, rng: &mut impl Rng) -> Result<Self, SpecError> {
         // Iherit loadout if needed
         if let Some(ref base) = self.inherit {
             let base = base.to_spec(rng)?.eval(rng);
@@ -248,15 +383,94 @@ impl LoadoutSpec {
             Ok(self)
         }
     }
+
+    // Validate loadout spec and check that it can be turned into real loadout
+    #[cfg(test)]
+    fn validate(&self) -> Result<(), ValidationError> {
+        // FIXME: implement before merge!!!
+        //
+        // build set of possible specs with respect to inheritance
+        // and check their entries using validate_entries()
+        unimplemented!()
+    }
+
+    // Validate entries in loadout spec.
+    //
+    // TODO: add some intelligent checks,
+    // e.g. that `head` key corresponds to Item with ItemKind::Head(_)
+    #[cfg(test)]
+    fn validate_entries(&self) -> Result<(), ValidationError> {
+        // NOTE: we assume ready to use loadout spec.
+        assert!(self.inherit.is_none());
+
+        // Armor
+        if let Some(item) = &self.head {
+            item.validate()?;
+        }
+        if let Some(item) = &self.neck {
+            item.validate()?;
+        }
+        if let Some(item) = &self.shoulders {
+            item.validate()?;
+        }
+        if let Some(item) = &self.chest {
+            item.validate()?;
+        }
+        if let Some(item) = &self.gloves {
+            item.validate()?;
+        }
+        if let Some(item) = &self.ring1 {
+            item.validate()?;
+        }
+        if let Some(item) = &self.ring2 {
+            item.validate()?;
+        }
+        if let Some(item) = &self.back {
+            item.validate()?;
+        }
+        if let Some(item) = &self.belt {
+            item.validate()?;
+        }
+        if let Some(item) = &self.legs {
+            item.validate()?;
+        }
+        if let Some(item) = &self.feet {
+            item.validate()?;
+        }
+        if let Some(item) = &self.tabard {
+            item.validate()?;
+        }
+        // Misc
+        if let Some(item) = &self.bag1 {
+            item.validate()?;
+        }
+        if let Some(item) = &self.bag2 {
+            item.validate()?;
+        }
+        if let Some(item) = &self.bag3 {
+            item.validate()?;
+        }
+        if let Some(item) = &self.bag4 {
+            item.validate()?;
+        }
+        if let Some(item) = &self.lantern {
+            item.validate()?;
+        }
+        if let Some(item) = &self.glider {
+            item.validate()?;
+        }
+        // Hands, tools and weapons
+        if let Some(hands) = &self.active_hands {
+            hands.validate()?;
+        }
+        if let Some(hands) = &self.inactive_hands {
+            hands.validate()?;
+        }
+
+        Ok(())
+    }
 }
 
-#[derive(Debug)]
-pub enum LoadoutBuilderError {
-    LoadoutAssetError(assets::Error),
-    ItemAssetError(assets::Error),
-    ItemChoiceError(WeightedError),
-    BaseChoiceError(WeightedError),
-}
 
 impl assets::Asset for LoadoutSpec {
     type Loader = assets::RonLoader;
@@ -528,6 +742,29 @@ fn default_main_tool(body: &Body) -> Item {
     maybe_tool.unwrap_or_else(Item::empty)
 }
 
+/// Builder for character Loadouts, containing weapon and armour items belonging
+/// to a character, along with some helper methods for loading `Item`-s and
+/// `ItemConfig`
+///
+/// ```
+/// use veloren_common::{comp::Item, LoadoutBuilder};
+///
+/// // Build a loadout with character starter defaults
+/// // and a specific sword with default sword abilities
+/// let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
+/// let loadout = LoadoutBuilder::empty()
+///     .defaults()
+///     .active_mainhand(Some(sword))
+///     .build();
+/// ```
+#[derive(Clone)]
+pub struct LoadoutBuilder(Loadout);
+
+#[derive(Copy, Clone, PartialEq, Deserialize, Serialize, Debug, EnumIter)]
+pub enum Preset {
+    HuskSummon,
+}
+
 impl LoadoutBuilder {
     #[must_use]
     pub fn empty() -> Self { Self(Loadout::new_empty()) }
@@ -544,7 +781,7 @@ impl LoadoutBuilder {
     pub fn from_asset(
         asset_specifier: &str,
         rng: &mut impl Rng,
-    ) -> Result<Self, LoadoutBuilderError> {
+    ) -> Result<Self, SpecError> {
         let loadout = Self::empty();
         loadout.with_asset(asset_specifier, rng)
     }
@@ -566,7 +803,7 @@ impl LoadoutBuilder {
     pub fn from_loadout_spec(
         loadout_spec: LoadoutSpec,
         rng: &mut impl Rng,
-    ) -> Result<Self, LoadoutBuilderError> {
+    ) -> Result<Self, SpecError> {
         let loadout = Self::empty();
         loadout.with_loadout_spec(loadout_spec, rng)
     }
@@ -684,7 +921,7 @@ impl LoadoutBuilder {
         mut self,
         spec: LoadoutSpec,
         rng: &mut R,
-    ) -> Result<Self, LoadoutBuilderError> {
+    ) -> Result<Self, SpecError> {
         // Include any inheritance
         let spec = spec.eval(rng)?;
 
@@ -707,58 +944,58 @@ impl LoadoutBuilder {
 
         // Place every item
         if let Some(item) = to_item(spec.head)? {
-            self = self.head(Some(item))
+            self = self.head(Some(item));
         }
         if let Some(item) = to_item(spec.neck)? {
-            self = self.neck(Some(item))
+            self = self.neck(Some(item));
         }
         if let Some(item) = to_item(spec.shoulders)? {
-            self = self.shoulder(Some(item))
+            self = self.shoulder(Some(item));
         }
         if let Some(item) = to_item(spec.chest)? {
-            self = self.chest(Some(item))
+            self = self.chest(Some(item));
         }
         if let Some(item) = to_item(spec.gloves)? {
-            self = self.hands(Some(item))
+            self = self.hands(Some(item));
         }
         if let Some(item) = to_item(spec.ring1)? {
-            self = self.ring1(Some(item))
+            self = self.ring1(Some(item));
         }
         if let Some(item) = to_item(spec.ring2)? {
-            self = self.ring2(Some(item))
+            self = self.ring2(Some(item));
         }
         if let Some(item) = to_item(spec.back)? {
-            self = self.back(Some(item))
+            self = self.back(Some(item));
         }
         if let Some(item) = to_item(spec.belt)? {
-            self = self.belt(Some(item))
+            self = self.belt(Some(item));
         }
         if let Some(item) = to_item(spec.legs)? {
-            self = self.pants(Some(item))
+            self = self.pants(Some(item));
         }
         if let Some(item) = to_item(spec.feet)? {
-            self = self.feet(Some(item))
+            self = self.feet(Some(item));
         }
         if let Some(item) = to_item(spec.tabard)? {
-            self = self.tabard(Some(item))
+            self = self.tabard(Some(item));
         }
         if let Some(item) = to_item(spec.bag1)? {
-            self = self.bag(ArmorSlot::Bag1, Some(item))
+            self = self.bag(ArmorSlot::Bag1, Some(item));
         }
         if let Some(item) = to_item(spec.bag2)? {
-            self = self.bag(ArmorSlot::Bag2, Some(item))
+            self = self.bag(ArmorSlot::Bag2, Some(item));
         }
         if let Some(item) = to_item(spec.bag3)? {
-            self = self.bag(ArmorSlot::Bag3, Some(item))
+            self = self.bag(ArmorSlot::Bag3, Some(item));
         }
         if let Some(item) = to_item(spec.bag4)? {
-            self = self.bag(ArmorSlot::Bag4, Some(item))
+            self = self.bag(ArmorSlot::Bag4, Some(item));
         }
         if let Some(item) = to_item(spec.lantern)? {
-            self = self.lantern(Some(item))
+            self = self.lantern(Some(item));
         }
         if let Some(item) = to_item(spec.glider)? {
-            self = self.glider(Some(item))
+            self = self.glider(Some(item));
         }
         let (active_mainhand, active_offhand) = to_pair(spec.active_hands, rng)?;
         if let Some(item) = active_mainhand {
@@ -783,9 +1020,9 @@ impl LoadoutBuilder {
         self,
         asset_specifier: &str,
         rng: &mut impl Rng,
-    ) -> Result<Self, LoadoutBuilderError> {
+    ) -> Result<Self, SpecError> {
         let spec = LoadoutSpec::load_cloned(asset_specifier)
-            .map_err(LoadoutBuilderError::LoadoutAssetError)?;
+            .map_err(SpecError::LoadoutAssetError)?;
         self.with_loadout_spec(spec, rng)
     }
 
@@ -907,16 +1144,6 @@ mod tests {
     use rand::thread_rng;
     use strum::IntoEnumIterator;
 
-    // Testing all loadout presets
-    //
-    // Things that will be catched - invalid assets paths
-    #[test]
-    fn test_loadout_presets() {
-        for preset in Preset::iter() {
-            std::mem::drop(LoadoutBuilder::empty().with_preset(preset));
-        }
-    }
-
     // Testing different species
     //
     // Things that will be catched - invalid assets paths for
@@ -971,19 +1198,22 @@ mod tests {
         );
     }
 
+    // Testing all loadout presets
+    //
+    // Things that will be catched - invalid assets paths
+    #[test]
+    fn test_loadout_presets() {
+        for preset in Preset::iter() {
+            std::mem::drop(LoadoutBuilder::empty().with_preset(preset));
+        }
+    }
+
+    // It just loads every loadout asset and tries to validate them
     #[test]
     fn test_all_loadout_assets() {
-        // It just load everything that could
-        // TODO: add some checks, e.g. that Armor(Head) key correspond
-        // to Item with ItemKind Head(_)
         let loadouts = assets::read_expect_dir::<LoadoutSpec>("common.loadout", true);
-        /*
-         * FIXME: actually impelement tests BEFORE merge!!!!
         for loadout in loadouts {
-            for (&key, entry) in &loadout.0 {
-                entry.validate(key);
-            }
+            loadout.validate().unwrap();
         }
-        */
     }
 }
