@@ -1,7 +1,0 @@
-#![enable(implicit_some)]
-(
-    inherit: Combine([
-        Asset("common.loadout_new.test.rings"),
-        Asset("common.loadout_new.test.choice_hands"),
-    ]),
-)

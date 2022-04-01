@@ -35,6 +35,7 @@ maps
 screenshots
 todo.txt
 userdata
+temp
 
 # Profiling and traces
 heaptrack.*

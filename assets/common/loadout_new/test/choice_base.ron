@@ -1,7 +1,0 @@
-#![enable(implicit_some)]
-(
-    inherit: Choice([
-        (1, Asset("common.loadout_new.test.rings")),
-        (1, Asset("common.loadout_new.test.choice_hands")),
-    ]),
-)
