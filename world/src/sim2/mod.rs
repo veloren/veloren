@@ -112,6 +112,14 @@ pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Erro
             write!(f, "{:?},", limit)?;
         }
     }
+    f.write_all(b",")?;
+    for g in good_list() {
+        if site.economy.last_exports[g]>=0.1 || site.economy.last_exports[g]<=-0.1 {
+            write!(f, "{:.1},", site.economy.last_exports[g])?;
+        } else {
+            f.write_all(b",")?;
+        }
+    }
     writeln!(f)
 }
 
@@ -152,6 +160,10 @@ fn simulate_return(index: &mut Index, world: &mut WorldSim) -> Result<(), std::i
         f.write_all(b",")?;
         for l in LaborIndex::list() {
             write!(f, "{:?} limit,", l)?;
+        }
+        f.write_all(b",")?;
+        for g in good_list() {
+            write!(f, "{:?} trade,", g)?;
         }
         writeln!(f)?;
         Some(f)
