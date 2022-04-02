@@ -28,7 +28,7 @@ tokio = { version = "1.14", default-features = false, features = ["io-util", "ma
 tokio-stream = { version = "0.1.2", default-features = false }
 #tracing and metrics
 tracing = { version = "0.1", default-features = false, features = ["attributes"]}
-prometheus = { version = "0.12", default-features = false, optional = true }
+prometheus = { version = "0.13", default-features = false, optional = true }
 #async
 futures-core = { version = "0.3", default-features = false }
 futures-util = { version = "0.3.7", default-features = false, features = ["std"] }
@@ -46,19 +46,19 @@ lz-fear = { version = "0.1.1", optional = true }
 async-trait = "0.1.42"
 bytes = "^1"
 # faster HashMaps
-hashbrown = { version = ">=0.9, <0.12" }
+hashbrown = { version = ">=0.9, <0.13" }
 
 [dev-dependencies]
 tracing-subscriber = { version = "0.3.7", default-features = false, features = ["env-filter", "fmt", "time", "ansi", "smallvec"] }
 tokio = { version = "1.14", default-features = false, features = ["io-std", "fs", "rt-multi-thread"] }
 futures-util = { version = "0.3.7", default-features = false, features = ["sink", "std"] }
-clap = { version = "2.33", default-features = false }
+clap = { version = "3.1.8", default-features = false, features = ["std", "color"] }
 shellexpand = "2.0.0"
 serde = { version = "1.0", features = ["derive"] }
 prometheus-hyper = "0.1.2"
 criterion = { version = "0.3.4", features = ["default", "async_tokio"] }
 #quic
-rcgen = { version = "0.8.10"}
+rcgen = { version = "0.9"}
 
 [[bench]]
 name = "speed"

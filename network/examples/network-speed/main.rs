@@ -3,7 +3,7 @@
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=server)
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=client)
 /// ```
-use clap::{App, Arg};
+use clap::{Command, Arg};
 use prometheus::Registry;
 use prometheus_hyper::Server;
 use serde::{Deserialize, Serialize};
@@ -27,13 +27,13 @@ enum Msg {
 /// This utility tests the speed of veloren network by creating a client that
 /// opens a stream and pipes as many messages through it as possible.
 fn main() {
-    let matches = App::new("Veloren Speed Test Utility")
+    let matches = Command::new("Veloren Speed Test Utility")
         .version("0.1.0")
         .author("Marcel Märtens <marcel.cochem@googlemail.com>")
         .about("Runs speedtests regarding different parameter to benchmark veloren-network")
         .arg(
-            Arg::with_name("mode")
-                .short("m")
+            Arg::new("mode")
+                .short('m')
                 .long("mode")
                 .takes_value(true)
                 .possible_values(&["server", "client", "both"])
@@ -44,22 +44,22 @@ fn main() {
                 ),
         )
         .arg(
-            Arg::with_name("port")
-                .short("p")
+            Arg::new("port")
+                .short('p')
                 .long("port")
                 .takes_value(true)
                 .default_value("52000")
                 .help("port to listen on"),
         )
         .arg(
-            Arg::with_name("ip")
+            Arg::new("ip")
                 .long("ip")
                 .takes_value(true)
                 .default_value("127.0.0.1")
                 .help("ip to listen and connect to"),
         )
         .arg(
-            Arg::with_name("protocol")
+            Arg::new("protocol")
                 .long("protocol")
                 .takes_value(true)
                 .default_value("tcp")
@@ -69,8 +69,8 @@ fn main() {
                 ),
         )
         .arg(
-            Arg::with_name("trace")
-                .short("t")
+            Arg::new("trace")
+                .short('t')
                 .long("trace")
                 .takes_value(true)
                 .default_value("warn")

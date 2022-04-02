@@ -3,7 +3,7 @@
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006 --mode=client
 //! ```
-use clap::{App, Arg};
+use clap::{Command, Arg};
 use std::{sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::RwLock};
 use tracing::*;
@@ -14,13 +14,13 @@ use veloren_network::{ConnectAddr, ListenAddr, Network, Participant, Pid, Promis
 /// between participants, it's neither pretty nor perfect, but it should show
 /// how to integrate network
 fn main() {
-    let matches = App::new("Chat example")
+    let matches = Command::new("Chat example")
         .version("0.1.0")
         .author("Marcel Märtens <marcel.cochem@googlemail.com>")
         .about("example chat implemented with veloren-network")
         .arg(
-            Arg::with_name("mode")
-                .short("m")
+            Arg::new("mode")
+                .short('m')
                 .long("mode")
                 .takes_value(true)
                 .possible_values(&["server", "client", "both"])
@@ -31,22 +31,22 @@ fn main() {
                 ),
         )
         .arg(
-            Arg::with_name("port")
-                .short("p")
+            Arg::new("port")
+                .short('p')
                 .long("port")
                 .takes_value(true)
                 .default_value("52000")
                 .help("port to listen on"),
         )
         .arg(
-            Arg::with_name("ip")
+            Arg::new("ip")
                 .long("ip")
                 .takes_value(true)
                 .default_value("127.0.0.1")
                 .help("ip to listen and connect to"),
         )
         .arg(
-            Arg::with_name("protocol")
+            Arg::new("protocol")
                 .long("protocol")
                 .takes_value(true)
                 .default_value("tcp")
@@ -56,8 +56,8 @@ fn main() {
                 ),
         )
         .arg(
-            Arg::with_name("trace")
-                .short("t")
+            Arg::new("trace")
+                .short('t')
                 .long("trace")
                 .takes_value(true)
                 .default_value("warn")
