@@ -852,7 +852,7 @@ impl<'a> Widget for Crafting<'a> {
                 _ => RecipeKind::Simple,
             };
 
-            let mut modular_slot_check_hack = (None, None);
+            let mut modular_slot_check_hack = (None, None, false);
 
             // Output slot, tags, and modular input slots
             match recipe_kind {
@@ -1184,9 +1184,11 @@ impl<'a> Widget for Crafting<'a> {
                             &item_tooltip,
                         )
                         .set(state.ids.output_img, ui);
+                        modular_slot_check_hack =
+                            (primary_slot.invslot, secondary_slot.invslot, true);
                     } else {
                         Text::new(self.localized_strings.get("hud.crafting.modular_desc"))
-                            .mid_top_with_margin_on(state.ids.modular_art, -25.0)
+                            .mid_top_with_margin_on(state.ids.modular_art, -18.0)
                             .font_id(self.fonts.cyri.conrod_id)
                             .font_size(self.fonts.cyri.scale(13))
                             .color(TEXT_COLOR)
@@ -1197,9 +1199,9 @@ impl<'a> Widget for Crafting<'a> {
                             .w_h(70.0, 70.0)
                             .graphics_for(state.ids.output_img)
                             .set(state.ids.modular_wep_empty_bg, ui);
+                        modular_slot_check_hack =
+                            (primary_slot.invslot, secondary_slot.invslot, false);
                     }
-
-                    modular_slot_check_hack = (primary_slot.invslot, secondary_slot.invslot);
                 },
                 RecipeKind::Simple => {
                     // Output Image Frame
@@ -1294,9 +1296,15 @@ impl<'a> Widget for Crafting<'a> {
 
             let can_perform = match recipe_kind {
                 RecipeKind::ModularWeapon => {
-                    modular_slot_check_hack.0.is_some() && modular_slot_check_hack.1.is_some()
+                    modular_slot_check_hack.2
+                        && self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
+                            == recipe.craft_sprite
                 },
-                RecipeKind::Component(_) => modular_slot_check_hack.0.is_some(),
+                RecipeKind::Component(_) => {
+                    modular_slot_check_hack.2
+                        && self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
+                            == recipe.craft_sprite
+                },
                 RecipeKind::Simple => {
                     self.client
                         .available_recipes()
@@ -1335,7 +1343,8 @@ impl<'a> Widget for Crafting<'a> {
             {
                 match recipe_kind {
                     RecipeKind::ModularWeapon => {
-                        if let (Some(primary_slot), Some(secondary_slot)) = modular_slot_check_hack
+                        if let (Some(primary_slot), Some(secondary_slot), true) =
+                            modular_slot_check_hack
                         {
                             events.push(Event::CraftModularWeapon {
                                 primary_slot,
@@ -1344,6 +1353,7 @@ impl<'a> Widget for Crafting<'a> {
                         }
                     },
                     RecipeKind::Component(toolkind) => {
+                        // if let Some(primary_slot) = modular_slot_check_hack.0 {
                         if let Some(primary_slot) = modular_slot_check_hack.0 {
                             events.push(Event::CraftModularWeaponComponent {
                                 toolkind,
@@ -1358,24 +1368,22 @@ impl<'a> Widget for Crafting<'a> {
 
             // Crafting Station Info
             if recipe.craft_sprite.is_some() {
-                let mut sprite_text = Text::new(
+                Text::new(
                     self.localized_strings
                         .get("hud.crafting.req_crafting_station"),
                 )
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(self.fonts.cyri.scale(18))
-                .color(TEXT_COLOR);
-                match recipe_kind {
+                .color(TEXT_COLOR)
+                .and(|t| match recipe_kind {
                     RecipeKind::Simple => {
-                        sprite_text =
-                            sprite_text.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0);
+                        t.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
                     },
                     RecipeKind::ModularWeapon | RecipeKind::Component(_) => {
-                        sprite_text =
-                            sprite_text.top_left_with_margins_on(state.ids.align_ing, 325.0, 5.0);
+                        t.top_left_with_margins_on(state.ids.align_ing, 325.0, 5.0)
                     },
-                }
-                sprite_text.set(state.ids.req_station_title, ui);
+                })
+                .set(state.ids.req_station_title, ui);
                 let station_img = match recipe.craft_sprite {
                     Some(SpriteKind::Anvil) => "Anvil",
                     Some(SpriteKind::Cauldron) => "Cauldron",
@@ -1474,16 +1482,18 @@ impl<'a> Widget for Crafting<'a> {
 
             let num_ingredients = ingredients.len();
             if num_ingredients > 0 {
-                let mut ing_txt = Text::new(self.localized_strings.get("hud.crafting.ingredients"))
+                Text::new(self.localized_strings.get("hud.crafting.ingredients"))
                     .font_id(self.fonts.cyri.conrod_id)
                     .font_size(self.fonts.cyri.scale(18))
-                    .color(TEXT_COLOR);
-                if recipe.craft_sprite.is_some() {
-                    ing_txt = ing_txt.down_from(state.ids.req_station_img, 10.0);
-                } else {
-                    ing_txt = ing_txt.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0);
-                };
-                ing_txt.set(state.ids.ingredients_txt, ui);
+                    .color(TEXT_COLOR)
+                    .and(|t| {
+                        if recipe.craft_sprite.is_some() {
+                            t.down_from(state.ids.req_station_img, 10.0)
+                        } else {
+                            t.top_left_with_margins_on(state.ids.align_ing, 10.0, 5.0)
+                        }
+                    })
+                    .set(state.ids.ingredients_txt, ui);
 
                 // Ingredient images with tooltip
                 if state.ids.ingredient_frame.len() < num_ingredients {
