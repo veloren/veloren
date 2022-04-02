@@ -462,6 +462,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_economy0() {
         init();
         let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
@@ -484,6 +485,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn test_economy1() {
         init();
         let threadpool = rayon::ThreadPoolBuilder::new().build().unwrap();
