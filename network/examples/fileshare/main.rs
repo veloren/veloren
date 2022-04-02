@@ -4,7 +4,7 @@
 //! --profile=release -Z unstable-options  -- --trace=info --port 15006)
 //! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run
 //! --profile=release -Z unstable-options  -- --trace=info --port 15007) ```
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 use std::{path::PathBuf, sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::mpsc};
 use tracing::*;

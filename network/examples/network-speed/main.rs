@@ -3,7 +3,7 @@
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=server)
 /// (cd network/examples/network-speed && RUST_BACKTRACE=1 cargo run --profile=debuginfo -Z unstable-options -- --trace=error --protocol=tcp --mode=client)
 /// ```
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 use prometheus::Registry;
 use prometheus_hyper::Server;
 use serde::{Deserialize, Serialize};

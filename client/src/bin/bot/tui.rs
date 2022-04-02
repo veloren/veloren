@@ -1,4 +1,4 @@
-use clap::{App, AppSettings, Arg, SubCommand};
+use clap::{Arg, Command};
 use std::{thread, time::Duration};
 use tracing::error;
 
@@ -40,46 +40,46 @@ impl Tui {
     }
 
     pub fn process_command(cmd: &str, command_s: &mut async_channel::Sender<Cmd>) -> bool {
-        let matches = App::new("veloren-botclient")
+        let matches = Command::new("veloren-botclient")
             .version(common::util::DISPLAY_VERSION_LONG.as_str())
             .author("The veloren devs <https://gitlab.com/veloren/veloren>")
             .about("The veloren bot client allows logging in as a horde of bots for load-testing")
-            .setting(AppSettings::NoBinaryName)
+            .no_binary_name(true)
             .subcommand(
-                SubCommand::with_name("register")
+                Command::new("register")
                     .about("Register more bots with the auth server")
                     .args(&[
-                        Arg::with_name("prefix").required(true),
-                        Arg::with_name("password").required(true),
-                        Arg::with_name("count"),
+                        Arg::new("prefix").required(true),
+                        Arg::new("password").required(true),
+                        Arg::new("count"),
                     ]),
             )
             .subcommand(
-                SubCommand::with_name("login")
+                Command::new("login")
                     .about("Login all registered bots whose username starts with a prefix")
-                    .args(&[Arg::with_name("prefix").required(true)]),
+                    .args(&[Arg::new("prefix").required(true)]),
             )
             .subcommand(
-                SubCommand::with_name("ingame")
+                Command::new("ingame")
                     .about("Join the world with some random character")
-                    .args(&[Arg::with_name("prefix").required(true)]),
+                    .args(&[Arg::new("prefix").required(true)]),
             )
-            .get_matches_from_safe(cmd.split(' '));
+            .try_get_matches_from(cmd.split(' '));
         use clap::ErrorKind::*;
         match matches {
             Ok(matches) => {
                 if match matches.subcommand() {
-                    ("register", Some(matches)) => command_s.try_send(Cmd::Register {
+                    Some(("register", matches)) => command_s.try_send(Cmd::Register {
                         prefix: matches.value_of("prefix").unwrap().to_string(),
                         password: matches.value_of("password").unwrap().to_string(),
                         count: matches
                             .value_of("count")
                             .and_then(|x| x.parse::<usize>().ok()),
                     }),
-                    ("login", Some(matches)) => command_s.try_send(Cmd::Login {
+                    Some(("login", matches)) => command_s.try_send(Cmd::Login {
                         prefix: matches.value_of("prefix").unwrap().to_string(),
                     }),
-                    ("ingame", Some(matches)) => command_s.try_send(Cmd::InGame {
+                    Some(("ingame", matches)) => command_s.try_send(Cmd::InGame {
                         prefix: matches.value_of("prefix").unwrap().to_string(),
                     }),
                     _ => Ok(()),
@@ -90,9 +90,9 @@ impl Tui {
                 }
             },
             Err(e)
-                if [HelpDisplayed, MissingRequiredArgument, UnknownArgument].contains(&e.kind) =>
+                if [DisplayHelp, MissingRequiredArgument, UnknownArgument].contains(&e.kind()) =>
             {
-                println!("{}", e.message);
+                let _ = e.print();
             },
             Err(e) => {
                 error!("{:?}", e);

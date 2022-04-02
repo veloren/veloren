@@ -3,7 +3,7 @@
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006
 //! RUST_BACKTRACE=1 cargo run --example chat -- --trace=info --port 15006 --mode=client
 //! ```
-use clap::{Command, Arg};
+use clap::{Arg, Command};
 use std::{sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::RwLock};
 use tracing::*;

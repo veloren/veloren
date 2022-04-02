@@ -1,7 +1,7 @@
+use clap::StructOpt;
 use common::comp;
 use server::persistence::SqlLogMode;
 use std::sync::mpsc::Sender;
-use structopt::StructOpt;
 use tracing::error;
 
 #[derive(Clone, Debug, StructOpt)]
@@ -11,7 +11,7 @@ pub enum Admin {
         /// Name of the admin to whom to assign a role
         username: String,
         /// role to assign to the admin
-        #[structopt(possible_values = &comp::AdminRole::variants(), case_insensitive = true)]
+        #[structopt(possible_values = comp::AdminRole::variants(), ignore_case = true)]
         role: comp::AdminRole,
     },
     Remove {
@@ -62,7 +62,7 @@ pub enum Message {
     },
     /// Enable or disable sql logging
     SqlLogMode {
-        #[structopt(default_value, possible_values = &SqlLogMode::variants())]
+        #[structopt(default_value_t, possible_values = SqlLogMode::variants())]
         mode: SqlLogMode,
     },
     /// Disconnects all connected clients
@@ -75,8 +75,8 @@ pub enum Message {
     version = common::util::DISPLAY_VERSION_LONG.as_str(),
     about = "The veloren server tui allows sending commands directly to the running server.",
     author = "The veloren devs <https://gitlab.com/veloren/veloren>",
-    setting = clap::AppSettings::NoBinaryName,
 )]
+#[clap(no_binary_name = true)]
 pub struct TuiApp {
     #[structopt(subcommand)]
     command: Message,
@@ -109,7 +109,7 @@ pub struct ArgvApp {
     #[structopt(long)]
     /// Run without auth enabled
     pub no_auth: bool,
-    #[structopt(default_value, long, short, possible_values = &SqlLogMode::variants())]
+    #[structopt(default_value_t, long, short, possible_values = SqlLogMode::variants())]
     /// Enables SQL logging
     pub sql_log_mode: SqlLogMode,
     #[structopt(subcommand)]
@@ -117,12 +117,12 @@ pub struct ArgvApp {
 }
 
 pub fn parse_command(input: &str, msg_s: &mut Sender<Message>) {
-    match TuiApp::from_iter_safe(shell_words::split(input).unwrap_or_default()) {
+    match TuiApp::try_parse_from(shell_words::split(input).unwrap_or_default()) {
         Ok(message) => {
             msg_s
                 .send(message.command)
-                .unwrap_or_else(|err| error!("Failed to send CLI message, err: {:?}", err));
+                .unwrap_or_else(|e| error!(?e, "Failed to send CLI message"));
         },
-        Err(err) => error!("{}", err.message),
+        Err(e) => error!("{}", e),
     }
 }

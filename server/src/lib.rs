@@ -496,7 +496,9 @@ impl Server {
                                 .into_iter()
                                 .find_map(|item| match item {
                                     Item::RSAKey(v) | Item::PKCS8Key(v) => Some(v),
+                                    Item::ECKey(_) => None,
                                     Item::X509Certificate(_) => None,
+                                    _ => None,
                                 })
                                 .ok_or("No valid pem key in file")?;
                             rustls::PrivateKey(key)

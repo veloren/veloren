@@ -821,7 +821,7 @@ fn get_chat_template_key(chat_type: &ChatType<String>) -> Option<&str> {
 fn parse_cmd(msg: &str) -> Result<(String, Vec<String>), String> {
     use chumsky::prelude::*;
 
-    let escape = just::<_, Simple<char>>('\\').padding_for(
+    let escape = just::<_, _, Simple<char>>('\\').ignore_then(
         just('\\')
             .or(just('/'))
             .or(just('"'))
@@ -833,20 +833,20 @@ fn parse_cmd(msg: &str) -> Result<(String, Vec<String>), String> {
     );
 
     let string = just('"')
-        .padding_for(filter(|c| *c != '\\' && *c != '"').or(escape).repeated())
-        .padded_by(just('"'))
+        .ignore_then(filter(|c| *c != '\\' && *c != '"').or(escape).repeated())
+        .then_ignore(just('"'))
         .labelled("quoted argument");
 
     let arg = string
         .or(filter(|c: &char| !c.is_whitespace() && *c != '"')
-            .repeated_at_least(1)
+            .repeated()
+            .at_least(1)
             .labelled("argument"))
         .collect::<String>();
 
     let cmd = text::ident()
-        .collect::<String>()
         .then(arg.padded().repeated())
-        .padded_by(end());
+        .then_ignore(end());
 
     cmd.parse(msg).map_err(|errs| {
         errs.into_iter()
@@ -854,4 +854,32 @@ fn parse_cmd(msg: &str) -> Result<(String, Vec<String>), String> {
             .collect::<Vec<_>>()
             .join(", ")
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parse_cmds() {
+        let expected: Result<(String, Vec<String>), String> = Ok(("help".to_string(), vec![]));
+        assert_eq!(parse_cmd(r#"help"#), expected);
+
+        let expected: Result<(String, Vec<String>), String> = Ok(("say".to_string(), vec![
+            "foo".to_string(),
+            "bar".to_string(),
+        ]));
+        assert_eq!(parse_cmd(r#"say foo bar"#), expected);
+        assert_eq!(parse_cmd(r#"say "foo" "bar""#), expected);
+
+        let expected: Result<(String, Vec<String>), String> =
+            Ok(("say".to_string(), vec!["Hello World".to_string()]));
+        assert_eq!(parse_cmd(r#"say "Hello World""#), expected);
+
+        // Note: \n in the exptected gets expanded by rust to a newline character, thats
+        // why we must not use a raw string in the expected
+        let expected: Result<(String, Vec<String>), String> =
+            Ok(("say".to_string(), vec!["Hello\nWorld".to_string()]));
+        assert_eq!(parse_cmd(r#"say "Hello\nWorld""#), expected);
+    }
 }
