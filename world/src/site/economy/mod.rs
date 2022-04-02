@@ -98,22 +98,29 @@ pub struct Economy {
     pub marginal_surplus: GoodMap<f32>,
     /// amount of wares not needed by the economy (helps with trade planning)
     pub unconsumed_stock: GoodMap<f32>,
+    /// Local availability of a good, 4.0 = starved, 2.0 = balanced, 0.1 = extra, NULL = way too much
     // For some goods, such a goods without any supply, it doesn't make sense to talk about value
     pub values: GoodMap<Option<f32>>,
+    /// amount of goods exported/imported during the last cycle
     pub last_exports: GoodMap<f32>,
     pub active_exports: GoodMap<f32>, // unfinished trade (amount unconfirmed)
     //pub export_targets: GoodMap<f32>,
+    /// amount of labor that went into a good, [1 man cycle=1.0]
     pub labor_values: GoodMap<Option<f32>>,
+    // this assumes a single source, replace with LaborMap?
     pub material_costs: GoodMap<f32>,
 
-    // Proportion of individuals dedicated to an industry
+    /// Proportion of individuals dedicated to an industry (sums to roughly 1.0)
     pub labors: LaborMap<f32>,
     // Per worker, per year, of their output good
     pub yields: LaborMap<f32>,
+    /// [0.0..1.0]
     pub productivity: LaborMap<f32>,
+    /// Missing raw material which limits production
     pub limited_by: LaborMap<GoodIndex>,
 
     pub natural_resources: NaturalResources,
+    /// Neighboring sites to trade with
     pub neighbors: Vec<NeighborInformation>,
 
     /// outgoing trade, per provider
