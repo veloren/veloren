@@ -57,8 +57,8 @@ impl EconStatistics {
 }
 
 pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Error> {
-    use std::io::Write;
     use crate::site::economy::GoodIndex;
+    use std::io::Write;
     write!(
         *f,
         "{}, {}, {}, {:.1}, {},,",
@@ -114,7 +114,7 @@ pub fn csv_entry(f: &mut std::fs::File, site: &Site) -> Result<(), std::io::Erro
     }
     f.write_all(b",")?;
     for g in good_list() {
-        if site.economy.last_exports[g]>=0.1 || site.economy.last_exports[g]<=-0.1 {
+        if site.economy.last_exports[g] >= 0.1 || site.economy.last_exports[g] <= -0.1 {
             write!(f, "{:.1},", site.economy.last_exports[g])?;
         } else {
             f.write_all(b",")?;
@@ -362,12 +362,7 @@ mod tests {
         resources: Vec<ResourcesSetup>,
     }
 
-    fn print_sorted(
-        prefix: &str,
-        mut list: Vec<(String, f32)>,
-        threshold: f32,
-        decimals: usize,
-    ) {
+    fn print_sorted(prefix: &str, mut list: Vec<(String, f32)>, threshold: f32, decimals: usize) {
         print!("{}", prefix);
         list.sort_by(|a, b| b.1.partial_cmp(&a.1).unwrap_or(std::cmp::Ordering::Less));
         for i in list.iter() {
@@ -449,14 +444,14 @@ mod tests {
                 .iter()
                 .zip(site.economy.productivity.iter())
             {
-                if 0.01 <= *prod.1 && *prod.1 <= 0.99 {
+                if (0.01..=0.99).contains(prod.1) {
                     print!("{:?}:{:?}={} ", limit.0, limit.1, *prod.1);
                 }
             }
             println!();
             print!(" Trade({}): ", site.economy.neighbors.len());
             for (g, &amt) in site.economy.active_exports.iter() {
-                if amt < -0.1 || amt > 0.1 {
+                if !(-0.1..=0.1).contains(&amt) {
                     print!("{:?}={:.2} ", g, amt);
                 }
             }
@@ -671,15 +666,15 @@ mod tests {
             rng,
             targets: hashbrown::HashMap::new(),
         };
-        add_settlement(&mut env, "Forest", 22.0, &[(
+        add_settlement(&mut env, "Forest", 5000.0, &[(
             Good::Terrain(BiomeKind::Forest),
             100.0_f32,
         )]);
-        add_settlement(&mut env, "Grass", 18.0, &[(
+        add_settlement(&mut env, "Grass", 900.0, &[(
             Good::Terrain(BiomeKind::Grassland),
             100.0_f32,
         )]);
-        add_settlement(&mut env, "Mountain", 19.0, &[(
+        add_settlement(&mut env, "Mountain", 3.0, &[(
             Good::Terrain(BiomeKind::Mountain),
             100.0_f32,
         )]);
@@ -693,7 +688,7 @@ mod tests {
         // add_settlement(&mut index, &mut rng, &[
         //     (Good::Terrain(BiomeKind::Snowland), 100.0_f32),
         // ]);
-        add_settlement(&mut env, "GrFoMo", 30.0, &[
+        add_settlement(&mut env, "GrFoMo", 12000.0, &[
             (Good::Terrain(BiomeKind::Grassland), 100.0_f32),
             (Good::Terrain(BiomeKind::Forest), 100.0_f32),
             (Good::Terrain(BiomeKind::Mountain), 10.0_f32),
@@ -702,22 +697,24 @@ mod tests {
         //     (Good::Terrain(BiomeKind::Mountain), 100.0_f32),
         //     // (Good::CaveAccess, 100.0_f32),
         // ]);
-        // connect to neighbors
+        // connect to neighbors (one way)
         for i in 1..(env.index.sites.ids().count() as u64 - 1) {
             let previous = env.index.sites.recreate_id(i - 1);
-            let next = env.index.sites.recreate_id(i + 1);
             let center = env.index.sites.recreate_id(i);
-            center
-                .zip(previous)
-                .zip(next)
-                .map(|((center, previous), next)| {
-                    env.index.sites[center].economy.add_neighbor(next, 1);
-                    env.index.sites[next].economy.add_neighbor(center, 1);
-                    env.index.sites[center].economy.add_neighbor(previous, 2);
-                    env.index.sites[previous].economy.add_neighbor(center, 2);
-                });
+            center.zip(previous).map(|(center, previous)| {
+                env.index.sites[center]
+                    .economy
+                    .add_neighbor(previous, i as usize);
+                env.index.sites[previous]
+                    .economy
+                    .add_neighbor(center, i as usize);
+            });
         }
         crate::sim2::simulate(&mut env.index, &mut sim);
         show_economy(&env.index.sites);
+        // check population (shrinks if economy gets broken)
+        for (id, site) in env.index.sites.iter() {
+            assert!(site.economy.pop >= env.targets[&id]);
+        }
     }
 }

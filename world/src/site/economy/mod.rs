@@ -98,7 +98,8 @@ pub struct Economy {
     pub marginal_surplus: GoodMap<f32>,
     /// amount of wares not needed by the economy (helps with trade planning)
     pub unconsumed_stock: GoodMap<f32>,
-    /// Local availability of a good, 4.0 = starved, 2.0 = balanced, 0.1 = extra, NULL = way too much
+    /// Local availability of a good, 4.0 = starved, 2.0 = balanced, 0.1 =
+    /// extra, NULL = way too much
     // For some goods, such a goods without any supply, it doesn't make sense to talk about value
     pub values: GoodMap<Option<f32>>,
     /// amount of goods exported/imported during the last cycle
