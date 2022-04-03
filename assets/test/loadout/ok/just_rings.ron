@@ -1,0 +1,5 @@
+#![enable(implicit_some)]
+(
+    ring1: Item("common.items.armor.cultist.ring"),
+    ring2: Item("common.items.armor.cultist.ring"),
+)

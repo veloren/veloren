@@ -1,0 +1,7 @@
+#![enable(implicit_some)]
+(
+    inherit: Choice([
+        (1, Asset("test.loadout.ok.just_rings")),
+        (1, Asset("test.loadout.ok.just_choice_hands")),
+    ]),
+)

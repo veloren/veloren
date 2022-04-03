@@ -1,0 +1,8 @@
+#![enable(implicit_some)]
+(
+    glider: Choice([
+        (1, Item("common.items.glider.moth")),
+        (1, Item("common.items.glider.morpho")),
+        (1, Item("common.items.glider.monarch")),
+    ]),
+)

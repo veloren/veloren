@@ -507,12 +507,7 @@ fn convert_loop(from: &str, to: &str) {
         path: Path::new("").to_owned(),
         content: walk_tree(root, root).unwrap(),
     };
-    walk_with_migrate::<old::Config, new::Config>(
-        files,
-        Path::new(from),
-        Path::new(to),
-    )
-    .unwrap();
+    walk_with_migrate::<old::Config, new::Config>(files, Path::new(from), Path::new(to)).unwrap();
 }
 
 fn input_string(prompt: &str) -> String { input_validated_string(prompt, &|_| true) }

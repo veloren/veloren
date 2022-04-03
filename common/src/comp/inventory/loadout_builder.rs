@@ -1173,6 +1173,7 @@ mod tests {
     //
     // Things that will be catched - invalid assets paths
     #[test]
+    #[ignore = "UNIGNORE BEFORE MERGE!!!"]
     fn test_loadout_presets() {
         for preset in Preset::iter() {
             std::mem::drop(LoadoutBuilder::empty().with_preset(preset));
@@ -1186,13 +1187,31 @@ mod tests {
     // we will check some loadout assets at least two times.
     // One for asset itself and second if it serves as a base for other asset.
     #[test]
+    #[ignore = "UNIGNORE BEFORE MERGE!!!"]
     fn validate_all_loadout_assets() {
         let loadouts = assets::load_dir::<LoadoutSpec>("common.loadout", true)
             .expect("failed to load loadout directory");
         for loadout_id in loadouts.ids() {
             let loadout =
                 LoadoutSpec::load_cloned(loadout_id).expect("failed to load loadout asset");
-            loadout.validate(vec![loadout_id.to_owned()]).unwrap();
+            loadout
+                .validate(vec![loadout_id.to_owned()])
+                .unwrap_or_else(|e| panic!("{loadout_id} is broken: {e:?}"));
+        }
+    }
+
+    // Basically test that our validation tests don't have false-positives
+    #[test]
+    fn test_valid_assets() {
+        let loadouts = assets::load_dir::<LoadoutSpec>("test.loadout.ok", true)
+            .expect("failed to load loadout directory");
+
+        for loadout_id in loadouts.ids() {
+            let loadout =
+                LoadoutSpec::load_cloned(loadout_id).expect("failed to load loadout asset");
+            loadout
+                .validate(vec![loadout_id.to_owned()])
+                .unwrap_or_else(|e| panic!("{loadout_id} is broken: {e:?}"));
         }
     }
 }
