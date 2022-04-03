@@ -1,4 +1,6 @@
-/// Localization for Polish / Tłumaczenia dla języka polskiego
+/// Localization for Polish 
+
+/// Tłumaczenia dla języka polskiego
 (
     string_map: {
     },
@@ -171,5 +173,26 @@
             "Poszczuję tarasqa (tarasque) na ciebie!",
             "Dlaczego ja?",
         ],
+	"npc.speech.villager_enemy_killed": [
+            "Zniszczyłem swojego przeciwnika!",
+            "Nareszcie spokój!",
+            "... więc, co robiłem?",
+        ],
+        "npc.speech.menacing": [
+            "Ostrzegam Cię!",
+            "Podejdź bliżej a zaatakuję!",
+            "Nie boję się Ciebie!",
+            "Lepiej szybko stąd uciekaj!",
+            "Krok w tył, jeśli Ci życie miłe!",
+            "Nie jesteś tu mile widziany!",
+        ],
+        "npc.speech.cultist_low_health_fleeing": [
+            "Taktyczny odwrót!",
+            "Odwrót!",
+            "Przeklinam Cię!",
+            ///"I will curse you in the afterlife!",
+            "Muszę odpocząć!",
+            "Są zbyt potężni!",
+        ]
     },
 )

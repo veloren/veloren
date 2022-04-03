@@ -1,4 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Lokalizacja na Polskie tłumaczenie
 (
     string_map: {
         // Inventory
@@ -22,15 +24,18 @@
         "hud.bag.feet": "Stopy",
         "hud.bag.mainhand": "Ręka główna",
         "hud.bag.offhand": "Ręka poboczna",
+	"hud.bag.inactive_mainhand": "Nieaktywna ręka główna",
+        "hud.bag.inactive_offhand": "Nieaktywna ręka poboczna",
+        "hud.bag.swap_equipped_weapons_title": "Zamień założone bronie",
+        "hud.bag.swap_equipped_weapons_desc": "Wciśnij {key}",
         "hud.bag.bag": "Torba",
         "hud.bag.health": "Zdrowie",
         "hud.bag.energy": "Energia",
-        "hud.bag.combat_rating": "Combat Rating",
+        "hud.bag.combat_rating": "Combat Rating (CR)",
         "hud.bag.protection": "Ochrona",
+	"hud.bag.stun_res": "Odporność na ogłuszenie",
         "hud.bag.combat_rating_desc": "Liczone na postawie Twojego\nekwipunku i zdrowia.",
         "hud.bag.protection_desc": "Redukcja obrażeń dzięki pancerzowi",
-
-        "hud.bag.stun_res": "Odporność na ogłuszenie",
         "hud.bag.stun_res_desc": "Odporność na ogłuszenie spowodowane przyjmowaniem wielu ciosów.\nRegeneruje się jak energia.",
         "hud.bag.sort_by_name": "Sortuj nazwami",
         "hud.bag.sort_by_quality": "Sortuj jakościami",

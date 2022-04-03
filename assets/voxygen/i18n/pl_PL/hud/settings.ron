@@ -1,4 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Lokalizacja na Polskie tłumaczenie
 (
     string_map: {
         // Settings
@@ -7,7 +9,10 @@
         "hud.settings.press_behavior.toggle": "Przełącz",
         "hud.settings.press_behavior.hold": "Przytrzymaj",
         "hud.settings.help_window": "Okno pomocy",
-        "hud.settings.debug_info": "Debug Info",
+        "hud.settings.debug_info": "Informacje debugowania",
+        "hud.settings.show_hitboxes": "Pokaż hitboxy",
+        "hud.settings.show_chat": "Pokaż czat",
+        "hud.settings.show_hotkey_hints": "Pokaż klawisze skrótu",
         "hud.settings.tips_on_startup": "Porady startowe",
         "hud.settings.ui_scale": "Skala interfejsu",
         "hud.settings.relative_scaling": "Relatywne skalowanie",
@@ -25,9 +30,11 @@
         "hud.settings.incoming_damage": "Otrzymywane obrażenia",
         "hud.settings.cumulated_incoming_damage": "Kalkulowane otrzymywane obrażenia",
         "hud.settings.speech_bubble": "Dymek rozmowy",
+        "hud.settings.speech_bubble_self": "Pokazuj swój dymek rozmowy",
         "hud.settings.speech_bubble_dark_mode": "Dymek rozmowy w trybie ciemnym",
         "hud.settings.speech_bubble_icon": "Ikona dymka rozmowy",
         "hud.settings.energybar_numbers": "Numery na pasku energii",
+	"hud.settings.always_show_bars": "Zawsze pokazuj paski zdrowia i energii",
         "hud.settings.values": "Wartości",
         "hud.settings.percentages": "Procenty",
         "hud.settings.chat": "Czat",
@@ -46,6 +53,7 @@
         "hud.settings.free_look_behavior": "Zachowanie trybu rozglądania",
         "hud.settings.auto_walk_behavior": "Zachowanie trybu automatycznego chodu",
         "hud.settings.camera_clamp_behavior": "Zachowanie kamery w zablokowanym trybie",
+        "hud.settings.player_physics_behavior": "Fizyka gracza (eksperymentalne)",
         "hud.settings.stop_auto_walk_on_input": "Przełącz automatyczny chód poruszaniem",
         "hud.settings.auto_camera": "Automatyczna kamera",
         "hud.settings.reset_gameplay": "Zresetuj ustawienia",
@@ -54,7 +62,12 @@
         "hud.settings.sprites_view_distance": "Odległość renderowania 2d",
         "hud.settings.figures_view_distance": "Odległość renderowania obiektów",
         "hud.settings.maximum_fps": "Ogranicz maksymalne klatki",
-        "hud.settings.fov": "Field of View (stopnie)",
+        "hud.settings.background_fps": "Ilość klatek w tle",
+        "hud.settings.present_mode": "Obecny tryb",
+        "hud.settings.present_mode.fifo": "FIFO",
+        "hud.settings.present_mode.mailbox": "MAILBOX",
+        "hud.settings.present_mode.immediate": "Natychmiastowy",
+        "hud.settings.fov": "Pole widzenia (stopnie)",
         "hud.settings.gamma": "Gamma",
         "hud.settings.exposure": "Ekspozycja",
         "hud.settings.ambiance": "Jasność atmosferyczna",
@@ -73,6 +86,9 @@
         "hud.settings.fullscreen_mode": "Tryb pełnego ekranu",
         "hud.settings.fullscreen_mode.exclusive": "Ekskluzywny (przejęcie)",
         "hud.settings.fullscreen_mode.borderless": "Okno bez ramek (łatwiejsze alt-tab'owanie)",
+        "hud.settings.gpu_profiler": "Włącz taktowanie GPU (Nie zawsze wspierane)",
+        "hud.settings.lossy_terrain_compression": "Słabsza kompresja terenu",
+        "hud.settings.weapon_trails": "Ścieżki broni (efekt ataku)",
         "hud.settings.particles": "Cząsteczki",
         "hud.settings.resolution": "Rozdzielczość",
         "hud.settings.bit_depth": "Głębia bitowa",
@@ -86,9 +102,11 @@
         "hud.settings.shadow_rendering_mode.cheap": "Lekki",
         "hud.settings.shadow_rendering_mode.map": "Mapa",
         "hud.settings.shadow_rendering_mode.map.resolution": "Rozdzielczość",
-        "hud.settings.lod_detail": "LoD Dystans",
+        "hud.settings.lod_detail": "Ilość szczegółów",
         "hud.settings.save_window_size": "Zapisz wymiary okna",
         "hud.settings.reset_graphics": "Zresetuj ustawienia",
+        "hud.settings.bloom": "Rozmycie",
+        "hud.settings.point_glow": "Poświata punktowa",
 
         "hud.settings.master_volume": "Głośność ogólna",
         "hud.settings.inactive_master_volume_perc": "Głośność ogólna (nieaktywne okno)",
@@ -97,15 +115,31 @@
         "hud.settings.audio_device": "Urządzenie dźwiękowe",
         "hud.settings.reset_sound": "Zresetuj ustawienia",
 
-        "hud.settings.awaitingkey": "Naciśnij klawisz...",
+        "hud.settings.english_fallback": "Wyświetl angielskie napisy dla brakujących tłumaczeń"
+
+	"hud.settings.awaitingkey": "Naciśnij klawisz...",
         "hud.settings.unbound": "Brak",
         "hud.settings.reset_keybinds": "Zresetuj ustawienia",
 
-        "hud.settings.player_physics_behavior": "Fizyka gracza (eksperymentalne)",
-        "hud.settings.english_fallback": "Wyświetl angielskie napisy dla brakujących tłumaczeń"
+        "hud.settings.chat_tabs": "Chat Tabs",
+        "hud.settings.label": "Etykieta:",
+        "hud.settings.delete": "Usuń",
+        "hud.settings.show_all": "Pokaż wszystko",
+        "hud.settings.messages": "Wiadomości",
+        "hud.settings.activity": "Aktywność",
+        "hud.settings.death": "Śmierć",
+        "hud.settings.group": "Grupa",
+        "hud.settings.faction": "Segment",
+        "hud.settings.world": "Świat",
+        "hud.settings.region": "Region",
+        "hud.settings.say": "Powiedz",
+        "hud.settings.all": "Wszyscy",
+        "hud.settings.group_only": "Tylko dla grupy",
+        "hud.settings.reset_chat" : "Przywróć ustawienia podstawowe",
     },
 
 
     vector_map: {
     }
 )
+

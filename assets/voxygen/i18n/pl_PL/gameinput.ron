@@ -1,4 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Lokalizacja na Polskie tłumaczenie
 (
     string_map: {
         "gameinput.primary": "Prosty atak",
@@ -19,6 +21,8 @@
         "gameinput.help": "Pokaż/schowaj okno pomocy",
         "gameinput.toggleinterface": "Pokaż/schowaj interfejs",
         "gameinput.toggledebug": "Pokaż/schowaj FPS i debugowanie",
+	"gameinput.toggle_egui_debug": "Włącz debugowanie EGUI",
+        "gameinput.togglechat": "Włącz czat",
         "gameinput.screenshot": "Zrób zrzut ekranu",
         "gameinput.toggleingameui": "Pokaż/schowaj imiona i nazwy",
         "gameinput.fullscreen": "Przełącz pełny ekran",
@@ -63,7 +67,10 @@
         "gameinput.swimup": "Wynurz",
         "gameinput.mapzoomin": "Przybliż mapę",
         "gameinput.mapzoomout": "Oddal mapę",
+	"gameinput.greet": "Pozdrów",
+        "gameinput.map.locationmarkerbutton": "Ustaw punkt orientacyjny na mapie"
     },
+
 
     vector_map: {
     }
