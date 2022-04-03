@@ -1353,7 +1353,6 @@ impl<'a> Widget for Crafting<'a> {
                         }
                     },
                     RecipeKind::Component(toolkind) => {
-                        // if let Some(primary_slot) = modular_slot_check_hack.0 {
                         if let Some(primary_slot) = modular_slot_check_hack.0 {
                             events.push(Event::CraftModularWeaponComponent {
                                 toolkind,
