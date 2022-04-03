@@ -469,7 +469,7 @@ pub fn get_npc_name<
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{comp::inventory::slot::EquipSlot, SkillSetBuilder};
+    use crate::SkillSetBuilder;
     use hashbrown::HashMap;
 
     #[derive(Debug, Eq, Hash, PartialEq)]
@@ -504,86 +504,48 @@ mod tests {
 
     #[cfg(test)]
     fn validate_inventory(inventory: InventorySpec, body: &BodyBuilder, config_asset: &str) {
-        /*
-         * FIXME: actually impelement tests BEFORE merge!!!!
+        let InventorySpec { loadout, items } = inventory;
+
         match loadout {
             LoadoutKind::FromBody => {
                 if body.clone() == BodyBuilder::Uninit {
                     // there is a big chance to call automatic name
                     // when body is yet undefined
-                    //
-                    // use .with_automatic_name() in code explicitly
                     panic!("Used FromBody loadout with Uninit body in {}", config_asset);
                 }
             },
-            LoadoutKind::Asset(loadout) => {
-                validate_loadout_asset(loadout, config_asset);
+            LoadoutKind::Asset(asset) => {
+                let loadout =
+                    LoadoutSpec::load_cloned(&asset).expect("failed to load loadout asset");
+                loadout
+                    .validate(vec![asset.to_owned()])
+                    .unwrap_or_else(|e| panic!("Config {config_asset} is broken: {e:?}"));
             },
-            LoadoutKind::Hands(hands) => {
-                validate_hands(hands, config_asset);
-            },
-            LoadoutKind::Extended {
-                hands,
-                base_asset,
-                inventory,
-            } => {
-                validate_hands(hands, config_asset);
-                validate_loadout_asset(base_asset, config_asset);
-                for (num, item_str) in inventory {
-                    let item = Item::new_from_asset(&item_str);
-                    let mut item = item.unwrap_or_else(|err| {
-                        panic!("can't load {} in {}: {:?}", item_str, config_asset, err);
-                    });
-                    item.set_amount(num).unwrap_or_else(|err| {
-                        panic!(
-                            "can't set amount {} for {} in {}: {:?}",
-                            num, item_str, config_asset, err
-                        );
-                    });
-                }
+            LoadoutKind::Inline(spec) => {
+                spec.validate(Vec::new())
+                    .unwrap_or_else(|e| panic!("Config {config_asset} is broken: {e:?}"));
             },
         }
-        */
-    }
 
-    /*
-    #[cfg(test)]
-    fn validate_loadout_asset(loadout: LoadoutAsset, config_asset: &str) {
-        match loadout {
-            LoadoutAsset::Loadout(asset) => {
-                let rng = &mut rand::thread_rng();
-                // loadout is tested in loadout_builder
-                // we just try to load it and check that it exists
-                std::mem::drop(LoadoutBuilder::from_asset_expect(&asset, Some(rng)));
-            },
-            LoadoutAsset::Choice(assets) => {
-                for (p, asset) in assets {
-                    if p == 0 {
-                        panic!("Weight of loadout asset is zero in {config_asset}");
-                    }
-                    validate_loadout_asset(LoadoutAsset::Loadout(asset), config_asset);
-                }
-            },
+        // TODO: check for number of items
+        //
+        // 1) just with 16 default slots?
+        // - well, keep in mind that not every item can stack to infinite amount
+        //
+        // 2) discover total capacity from loadout?
+        for (num, item_str) in items {
+            let item = Item::new_from_asset(&item_str);
+            let mut item = item.unwrap_or_else(|err| {
+                panic!("can't load {} in {}: {:?}", item_str, config_asset, err);
+            });
+            item.set_amount(num).unwrap_or_else(|err| {
+                panic!(
+                    "can't set amount {} for {} in {}: {:?}",
+                    num, item_str, config_asset, err
+                );
+            });
         }
     }
-
-    #[cfg(test)]
-    fn validate_hands(hands: Hands, _config_asset: &str) {
-        match hands {
-            Hands::TwoHanded(main_tool) => {
-                main_tool.validate(EquipSlot::ActiveMainhand);
-            },
-            Hands::Paired(tool) => {
-                tool.validate(EquipSlot::ActiveMainhand);
-                tool.validate(EquipSlot::ActiveOffhand);
-            },
-            Hands::Mix { mainhand, offhand } => {
-                mainhand.validate(EquipSlot::ActiveMainhand);
-                offhand.validate(EquipSlot::ActiveOffhand);
-            },
-        }
-    }
-    */
 
     #[cfg(test)]
     fn validate_name(name: NameKind, body: BodyBuilder, config_asset: &str) {

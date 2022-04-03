@@ -30,7 +30,7 @@ pub enum SpecError {
 
 #[derive(Debug)]
 #[cfg(test)]
-enum ValidationError {
+pub enum ValidationError {
     ItemAssetError(assets::Error),
     LoadoutAssetError(assets::Error),
     Loop(Vec<String>),
@@ -314,7 +314,7 @@ impl LoadoutSpec {
     // Also we probably don't want garbage entries anyway, even if they are
     // unused.
     #[cfg(test)]
-    fn validate(&self, history: Vec<String>) -> Result<(), ValidationError> {
+    pub fn validate(&self, history: Vec<String>) -> Result<(), ValidationError> {
         // Helper function to traverse base.
         //
         // Important invariant to hold.
