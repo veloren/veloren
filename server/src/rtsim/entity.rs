@@ -6,6 +6,7 @@ use common::{
     terrain::TerrainGrid,
     trade, LoadoutBuilder,
 };
+use enumset::*;
 use rand_distr::{Distribution, Normal};
 use std::f32::consts::PI;
 use tracing::warn;
@@ -647,7 +648,7 @@ impl Entity {
 }
 
 #[derive(Clone, Debug)]
-enum Travel {
+pub enum Travel {
     // The initial state all entities start in, and a fallback for when a state has stopped making
     // sense. Non humanoids will always revert to this state after reaching their goal since the
     // current site they are in doesn't change their behavior.
@@ -689,31 +690,157 @@ enum Travel {
     Idle,
 }
 
-impl Default for Travel {
-    fn default() -> Self { Self::Lost }
+// Based on https://en.wikipedia.org/wiki/Big_Five_personality_traits
+pub struct PersonalityBase {
+    openness: u8,
+    conscientiousness: u8,
+    extraversion: u8,
+    agreeableness: u8,
+    neuroticism: u8,
 }
 
-#[derive(Default)]
+impl PersonalityBase {
+    /* All thresholds here are arbitrary "seems right" values. The goal is for
+     * most NPCs to have some kind of distinguishing trait - something
+     * interesting about them. We want to avoid Joe Averages. But we also
+     * don't want everyone to be completely weird.
+     */
+    pub fn to_personality(&self) -> Personality {
+        let mut chat_traits: EnumSet<PersonalityTrait> = EnumSet::new();
+        if self.openness > Personality::HIGH_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Open);
+            if self.neuroticism < Personality::MID {
+                chat_traits.insert(PersonalityTrait::Adventurous);
+            }
+        } else if self.openness < Personality::LOW_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Closed);
+        }
+        if self.conscientiousness > Personality::HIGH_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Conscientious);
+            if self.agreeableness < Personality::LOW_THRESHOLD {
+                chat_traits.insert(PersonalityTrait::Busybody);
+            }
+        } else if self.conscientiousness < Personality::LOW_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Unconscientious);
+        }
+        if self.extraversion > Personality::HIGH_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Extroverted);
+        } else if self.extraversion < Personality::LOW_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Introverted);
+        }
+        if self.agreeableness > Personality::HIGH_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Agreeable);
+            if self.extraversion > Personality::MID {
+                chat_traits.insert(PersonalityTrait::Sociable);
+            }
+        } else if self.agreeableness < Personality::LOW_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Disagreeable);
+        }
+        if self.neuroticism > Personality::HIGH_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Neurotic);
+            if self.openness > Personality::LITTLE_HIGH {
+                chat_traits.insert(PersonalityTrait::Seeker);
+            }
+            if self.agreeableness > Personality::LITTLE_HIGH {
+                chat_traits.insert(PersonalityTrait::Worried);
+            }
+            if self.extraversion < Personality::LITTLE_LOW {
+                chat_traits.insert(PersonalityTrait::SadLoner);
+            }
+        } else if self.neuroticism < Personality::LOW_THRESHOLD {
+            chat_traits.insert(PersonalityTrait::Stable);
+        }
+        Personality {
+            personality_traits: chat_traits,
+        }
+    }
+}
+
+pub struct Personality {
+    pub personality_traits: EnumSet<PersonalityTrait>,
+}
+
+#[derive(EnumSetType)]
+pub enum PersonalityTrait {
+    Open,
+    Adventurous,
+    Closed,
+    Conscientious,
+    Busybody,
+    Unconscientious,
+    Extroverted,
+    Introverted,
+    Agreeable,
+    Sociable,
+    Disagreeable,
+    Neurotic,
+    Seeker,
+    Worried,
+    SadLoner,
+    Stable,
+}
+
+impl Personality {
+    pub const HIGH_THRESHOLD: u8 = Self::MAX - Self::LOW_THRESHOLD;
+    pub const LITTLE_HIGH: u8 = Self::MID + (Self::MAX - Self::MIN) / 20;
+    pub const LITTLE_LOW: u8 = Self::MID - (Self::MAX - Self::MIN) / 20;
+    pub const LOW_THRESHOLD: u8 = (Self::MAX - Self::MIN) / 5 * 2 + Self::MIN;
+    const MAX: u8 = 100;
+    pub const MID: u8 = (Self::MAX - Self::MIN) / 2;
+    const MIN: u8 = 0;
+
+    pub fn random_chat_trait(&self, rng: &mut impl Rng) -> Option<PersonalityTrait> {
+        self.personality_traits.into_iter().choose(rng)
+    }
+
+    pub fn random_trait_value_bounded(rng: &mut impl Rng, min: u8, max: u8) -> u8 {
+        let max_third = max / 3;
+        let min_third = min / 3;
+        rng.gen_range(min_third..=max_third)
+            + rng.gen_range(min_third..=max_third)
+            + rng.gen_range((min - 2 * min_third)..=(max - 2 * max_third))
+    }
+
+    pub fn random_trait_value(rng: &mut impl Rng) -> u8 {
+        Self::random_trait_value_bounded(rng, Self::MIN, Self::MAX)
+    }
+
+    pub fn random(rng: &mut impl Rng) -> Personality {
+        let mut random_value =
+            || rng.gen_range(0..=33) + rng.gen_range(0..=34) + rng.gen_range(0..=33);
+        let base = PersonalityBase {
+            openness: random_value(),
+            conscientiousness: random_value(),
+            extraversion: random_value(),
+            agreeableness: random_value(),
+            neuroticism: random_value(),
+        };
+        base.to_personality()
+    }
+}
+
 pub struct Brain {
-    begin: Option<Id<Site>>,
-    tgt: Option<Id<Site>>,
-    route: Travel,
-    last_visited: Option<Id<Site>>,
-    memories: Vec<Memory>,
+    pub begin: Option<Id<Site>>,
+    pub tgt: Option<Id<Site>>,
+    pub route: Travel,
+    pub last_visited: Option<Id<Site>>,
+    pub memories: Vec<Memory>,
+    pub personality: Personality,
 }
 
 impl Brain {
-    pub fn idle() -> Self {
+    pub fn idle(rng: &mut impl Rng) -> Self {
         Self {
             begin: None,
             tgt: None,
             route: Travel::Idle,
             last_visited: None,
             memories: Vec::new(),
+            personality: Personality::random(rng),
         }
     }
 
-    pub fn raid(home_id: Id<Site>, target_id: Id<Site>) -> Self {
+    pub fn raid(home_id: Id<Site>, target_id: Id<Site>, rng: &mut impl Rng) -> Self {
         Self {
             begin: None,
             tgt: None,
@@ -725,36 +852,54 @@ impl Brain {
             },
             last_visited: None,
             memories: Vec::new(),
+            personality: Personality::random(rng),
         }
     }
 
-    pub fn villager(home_id: Id<Site>) -> Self {
+    pub fn villager(home_id: Id<Site>, rng: &mut impl Rng) -> Self {
         Self {
             begin: Some(home_id),
             tgt: None,
             route: Travel::Idle,
             last_visited: None,
             memories: Vec::new(),
+            personality: Personality::random(rng),
         }
     }
 
-    pub fn merchant(home_id: Id<Site>) -> Self {
+    pub fn merchant(home_id: Id<Site>, rng: &mut impl Rng) -> Self {
+        // Merchants are generally extraverted and agreeable
+        let extraversion_bias = (Personality::MAX - Personality::MIN) / 10 * 3;
+        let extraversion =
+            Personality::random_trait_value_bounded(rng, extraversion_bias, Personality::MAX);
+        let agreeableness_bias = extraversion_bias / 2;
+        let agreeableness =
+            Personality::random_trait_value_bounded(rng, agreeableness_bias, Personality::MAX);
+        let personality_base = PersonalityBase {
+            openness: Personality::random_trait_value(rng),
+            conscientiousness: Personality::random_trait_value(rng),
+            extraversion,
+            agreeableness,
+            neuroticism: Personality::random_trait_value(rng),
+        };
         Self {
             begin: Some(home_id),
             tgt: None,
             route: Travel::Idle,
             last_visited: None,
             memories: Vec::new(),
+            personality: personality_base.to_personality(),
         }
     }
 
-    pub fn town_guard(home_id: Id<Site>) -> Self {
+    pub fn town_guard(home_id: Id<Site>, rng: &mut impl Rng) -> Self {
         Self {
             begin: Some(home_id),
             tgt: None,
             route: Travel::Idle,
             last_visited: None,
             memories: Vec::new(),
+            personality: Personality::random(rng),
         }
     }
 

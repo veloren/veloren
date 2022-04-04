@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Furniture and waypoints in site2 towns
 - text input for trading
 - Themed Site CliffTown, hoodoo/arabic inspired stone structures inhabited by mountaineer NPCs.    
+- NPCs now have rudimentary personalities
 
 ### Changed
 

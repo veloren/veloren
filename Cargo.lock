@@ -6727,6 +6727,7 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "crossbeam-channel",
+ "enumset",
  "futures-util",
  "hashbrown 0.11.2",
  "humantime",

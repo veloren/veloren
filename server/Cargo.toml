@@ -57,6 +57,7 @@ portpicker = { git = "https://github.com/xMAC94x/portpicker-rs", rev = "df6b3787
 authc = { git = "https://gitlab.com/veloren/auth.git", rev = "fb3dcbc4962b367253f8f2f92760ef44d2679c9a" }
 slab  = "0.4"
 rand_distr = "0.4.0"
+enumset = "1.0.8"
 
 rusqlite = { version = "0.24.2", features = ["array", "vtab", "bundled", "trace"] }
 refinery = { git = "https://gitlab.com/veloren/refinery.git", rev = "8ecf4b4772d791e6c8c0a3f9b66a7530fad1af3e", features = ["rusqlite"] }
