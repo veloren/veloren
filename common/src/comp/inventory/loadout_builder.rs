@@ -16,7 +16,7 @@ use crate::{
 use hashbrown::HashMap;
 use rand::{self, distributions::WeightedError, seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
-use strum_macros::EnumIter;
+use strum::EnumIter;
 use tracing::warn;
 
 /// Builder for character Loadouts, containing weapon and armour items belonging

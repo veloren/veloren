@@ -7,7 +7,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use strum_macros::EnumIter;
+use strum::EnumIter;
 use tracing::{trace, warn};
 
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]

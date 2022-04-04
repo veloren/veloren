@@ -1,34 +1,30 @@
-use clap::{App, Arg};
+use clap::{Arg, Command};
 use veloren_voxygen_i18n::{analysis, verification, BasePath};
 
 fn main() {
-    let matches = App::new("i18n-check")
+    let matches = Command::new("i18n-check")
         .version("0.1.0")
         .author("juliancoffee <lightdarkdaughter@gmail.com>")
         .about("Test veloren localizations")
         .arg(
-            Arg::with_name("CODE")
+            Arg::new("CODE")
                 .required(false)
                 .help("Run diagnostic for specific language code (de_DE as example)"),
         )
         .arg(
-            Arg::with_name("verify")
+            Arg::new("verify")
                 .long("verify")
                 .help("verify all localizations"),
         )
+        .arg(Arg::new("test").long("test").help("test all localizations"))
         .arg(
-            Arg::with_name("test")
-                .long("test")
-                .help("test all localizations"),
-        )
-        .arg(
-            Arg::with_name("verbose")
-                .short("v")
+            Arg::new("verbose")
+                .short('v')
                 .long("verbose")
                 .help("print additional information"),
         )
         .arg(
-            Arg::with_name("csv")
+            Arg::new("csv")
                 .long("csv")
                 .help("generate csv files per language in target folder"),
         )

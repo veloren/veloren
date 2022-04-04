@@ -40,7 +40,7 @@ impl ChatCommandData {
 }
 
 // Please keep this sorted alphabetically :-)
-#[derive(Copy, Clone, strum_macros::EnumIter)]
+#[derive(Copy, Clone, strum::EnumIter)]
 pub enum ChatCommand {
     Adminify,
     Airship,

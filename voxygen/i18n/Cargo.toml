@@ -18,13 +18,13 @@ serde = { version = "1.0", features = ["derive"] }
 tracing = "0.1"
 # Diagnostic
 ron = "0.7"
-git2 = { version = "0.13", default-features = false, optional = true }
+git2 = { version = "0.14", default-features = false, optional = true }
 
 # Binary
-clap = { version = "2.33", features = ["suggestions"], default-features = false, optional = true }
+clap = { version = "3.1.8", features = ["suggestions", "std"], default-features = false, optional = true }
 
 [dev-dependencies]
-git2 = { version = "0.13", default-features = false }
+git2 = { version = "0.14", default-features = false }
 
 [features]
 bin = ["git2", "clap"]

@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::collections::BTreeMap;
-use strum_macros::Display;
+use strum::Display;
 
 /// Data returned from character behavior fn's to Character Behavior System.
 pub struct StateUpdate {
