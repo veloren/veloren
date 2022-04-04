@@ -38,6 +38,7 @@ impl Default for AlignmentMark {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum LoadoutKind {
     FromBody,
     Asset(String),
@@ -90,6 +91,7 @@ pub enum Meta {
 ///     EntityInfo::at(dummy_position).with_asset_expect("common.entity.template", &mut dummy_rng);
 /// ```
 #[derive(Debug, Deserialize, Clone)]
+#[serde(deny_unknown_fields)]
 pub struct EntityConfig {
     /// Name of Entity
     /// Can be Name(String) with given name
@@ -518,7 +520,7 @@ mod tests {
                 let loadout =
                     LoadoutSpec::load_cloned(&asset).expect("failed to load loadout asset");
                 loadout
-                    .validate(vec![asset.to_owned()])
+                    .validate(vec![asset])
                     .unwrap_or_else(|e| panic!("Config {config_asset} is broken: {e:?}"));
             },
             LoadoutKind::Inline(spec) => {

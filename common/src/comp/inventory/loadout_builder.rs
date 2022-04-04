@@ -1,4 +1,4 @@
-#![warn(clippy::pedantic)]
+//#![warn(clippy::pedantic)]
 //#![warn(clippy::nursery)]
 use crate::{
     assets::{self, AssetExt},
@@ -37,13 +37,13 @@ pub enum ValidationError {
 }
 
 // TODO: serde un-tag?
+// <https://serde.rs/enum-representations.html>
 //
 // Pros:
 // + less noise
 //
 // Cons:
 // - limits us to using different types for each variant
-// - doesn't work with some serde feature I don't remember
 #[derive(Debug, Deserialize, Clone)]
 enum ItemSpec {
     Item(String),
@@ -196,6 +196,7 @@ impl Base {
 
 // TODO: remove clone
 #[derive(Debug, Deserialize, Clone, Default)]
+#[serde(deny_unknown_fields)]
 pub struct LoadoutSpec {
     // Meta fields
     inherit: Option<Base>,
@@ -754,7 +755,6 @@ impl LoadoutBuilder {
         Self::from_asset(asset_specifier, rng).expect("failed to load loadut config")
     }
 
-    #[must_use]
     /// Construct new `LoadoutBuilder` from `asset_specifier`
     pub fn from_asset(asset_specifier: &str, rng: &mut impl Rng) -> Result<Self, SpecError> {
         let loadout = Self::empty();
@@ -773,7 +773,6 @@ impl LoadoutBuilder {
             .with_default_equipment(body)
     }
 
-    #[must_use]
     /// Construct new `LoadoutBuilder` from `asset_specifier`
     pub fn from_loadout_spec(
         loadout_spec: LoadoutSpec,
@@ -1173,7 +1172,6 @@ mod tests {
     //
     // Things that will be catched - invalid assets paths
     #[test]
-    #[ignore = "UNIGNORE BEFORE MERGE!!!"]
     fn test_loadout_presets() {
         for preset in Preset::iter() {
             std::mem::drop(LoadoutBuilder::empty().with_preset(preset));
@@ -1187,7 +1185,6 @@ mod tests {
     // we will check some loadout assets at least two times.
     // One for asset itself and second if it serves as a base for other asset.
     #[test]
-    #[ignore = "UNIGNORE BEFORE MERGE!!!"]
     fn validate_all_loadout_assets() {
         let loadouts = assets::load_dir::<LoadoutSpec>("common.loadout", true)
             .expect("failed to load loadout directory");

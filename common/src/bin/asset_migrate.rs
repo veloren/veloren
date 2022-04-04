@@ -276,6 +276,7 @@ mod entity_v2 {
     pub type Config = EntityConfig;
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
+    #[allow(clippy::large_enum_variant)]
     pub enum LoadoutKindNew {
         FromBody,
         Asset(String),
@@ -363,7 +364,7 @@ mod entity_v2 {
             Self {
                 loadout: LoadoutKindNew::Inline(LoadoutSpecNew {
                     inherit: loadout.map(|asset| match asset {
-                        LoadoutAsset::Loadout(s) => Base::Asset(s.to_owned()),
+                        LoadoutAsset::Loadout(s) => Base::Asset(s),
                         LoadoutAsset::Choice(bases) => Base::Choice(
                             bases
                                 .iter()
@@ -408,11 +409,11 @@ mod entity_v2 {
 }
 
 mod old {
-    pub type Config = super::loadout_v1::Config;
+    pub type Config = super::entity_v1::Config;
 }
 
 mod new {
-    pub type Config = super::loadout_v2::Config;
+    pub type Config = super::entity_v2::Config;
 }
 
 #[derive(Debug)]
@@ -465,12 +466,10 @@ where
             // Grab all comments from old file
             let source = fs::File::open(from.join(&path))?;
             let mut comments = Vec::new();
-            for line in BufReader::new(source).lines() {
-                if let Ok(line) = line {
-                    if let Some(idx) = line.find("//") {
-                        let comment = &line[idx..line.len()];
-                        comments.push(comment.to_owned());
-                    }
+            for line in BufReader::new(source).lines().flatten() {
+                if let Some(idx) = line.find("//") {
+                    let comment = &line[idx..line.len()];
+                    comments.push(comment.to_owned());
                 }
             }
             // Parse the file
@@ -488,7 +487,7 @@ where
             } else {
                 let mut comments = comments.join("\n");
                 // insert newline for other config content
-                comments.push_str("\n");
+                comments.push('\n');
                 comments
             };
 
