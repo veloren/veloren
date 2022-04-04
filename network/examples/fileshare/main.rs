@@ -4,7 +4,7 @@
 //! --profile=release -Z unstable-options  -- --trace=info --port 15006)
 //! (cd network/examples/fileshare && RUST_BACKTRACE=1 cargo run
 //! --profile=release -Z unstable-options  -- --trace=info --port 15007) ```
-use clap::{App, Arg, SubCommand};
+use clap::{Arg, Command};
 use std::{path::PathBuf, sync::Arc, thread, time::Duration};
 use tokio::{io, io::AsyncBufReadExt, runtime::Runtime, sync::mpsc};
 use tracing::*;
@@ -16,21 +16,21 @@ use commands::{FileInfo, LocalCommand};
 use server::Server;
 
 fn main() {
-    let matches = App::new("File Server")
+    let matches = Command::new("File Server")
         .version("0.1.0")
         .author("Marcel Märtens <marcel.cochem@googlemail.com>")
         .about("example file server implemented with veloren-network")
         .arg(
-            Arg::with_name("port")
-                .short("p")
+            Arg::new("port")
+                .short('p')
                 .long("port")
                 .takes_value(true)
                 .default_value("15006")
                 .help("port to listen on"),
         )
         .arg(
-            Arg::with_name("trace")
-                .short("t")
+            Arg::new("trace")
+                .short('t')
                 .long("trace")
                 .takes_value(true)
                 .default_value("warn")
@@ -61,8 +61,8 @@ fn main() {
     runtime.block_on(client(cmd_sender));
 }
 
-fn file_exists(file: String) -> Result<(), String> {
-    let file: std::path::PathBuf = shellexpand::tilde(&file).parse().unwrap();
+fn file_exists(file: &str) -> Result<(), String> {
+    let file: std::path::PathBuf = shellexpand::tilde(file).parse().unwrap();
     if file.exists() {
         Ok(())
     } else {
@@ -70,22 +70,21 @@ fn file_exists(file: String) -> Result<(), String> {
     }
 }
 
-fn get_options<'a, 'b>() -> App<'a, 'b> {
-    App::new("")
-        .setting(clap::AppSettings::NoBinaryName)
-        .setting(clap::AppSettings::SubcommandRequired)
-        .setting(clap::AppSettings::VersionlessSubcommands)
-        .setting(clap::AppSettings::SubcommandRequiredElseHelp)
-        .setting(clap::AppSettings::ColorAuto)
-        .subcommand(SubCommand::with_name("quit").about("closes program"))
-        .subcommand(SubCommand::with_name("disconnect").about("stop connections to all servers"))
-        .subcommand(SubCommand::with_name("t").about("quick test by connecting to 127.0.0.1:1231"))
+fn get_options<'a>() -> Command<'a> {
+    Command::new("")
+        .no_binary_name(true)
+        .subcommand_required(true)
+        .arg_required_else_help(true)
+        .color(clap::ColorChoice::Auto)
+        .subcommand(Command::new("quit").about("closes program"))
+        .subcommand(Command::new("disconnect").about("stop connections to all servers"))
+        .subcommand(Command::new("t").about("quick test by connecting to 127.0.0.1:1231"))
         .subcommand(
-            SubCommand::with_name("connect")
+            Command::new("connect")
                 .about("opens a connection to another instance of this fileserver network")
-                .setting(clap::AppSettings::NoBinaryName)
+                .no_binary_name(true)
                 .arg(
-                    Arg::with_name("ip:port")
+                    Arg::new("ip:port")
                         .help("ip and port to connect to, example '127.0.0.1:1231'")
                         .required(true)
                         .validator(|ipport| match ipport.parse::<std::net::SocketAddr>() {
@@ -94,26 +93,26 @@ fn get_options<'a, 'b>() -> App<'a, 'b> {
                         }),
                 ),
         )
-        .subcommand(SubCommand::with_name("list").about("lists all available files on the network"))
+        .subcommand(Command::new("list").about("lists all available files on the network"))
         .subcommand(
-            SubCommand::with_name("serve")
+            Command::new("serve")
                 .about("make file available on the network")
                 .arg(
-                    Arg::with_name("file")
+                    Arg::new("file")
                         .help("file to serve")
                         .required(true)
                         .validator(file_exists),
                 ),
         )
         .subcommand(
-            SubCommand::with_name("get")
+            Command::new("get")
                 .about(
                     "downloads file with the id from the `list` command. Optionally provide a \
                      storage path, if none is provided it will be saved in the current directory \
                      with the remote filename",
                 )
                 .arg(
-                    Arg::with_name("id")
+                    Arg::new("id")
                         .help("id to download. get the id from the `list` command")
                         .required(true)
                         .validator(|id| match id.parse::<u32>() {
@@ -121,7 +120,7 @@ fn get_options<'a, 'b>() -> App<'a, 'b> {
                             Err(e) => Err(format!("must be a number {:?}", e)),
                         }),
                 )
-                .arg(Arg::with_name("file").help("local path to store the file to")),
+                .arg(Arg::new("file").help("local path to store the file to")),
         )
 }
 
@@ -134,24 +133,28 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
         print!("==> ");
         std::io::stdout().flush().unwrap();
         input_lines.read_line(&mut line).await.unwrap();
-        let matches = match get_options().get_matches_from_safe(line.split_whitespace()) {
+        let matches = match get_options().try_get_matches_from(line.split_whitespace()) {
             Err(e) => {
-                println!("{}", e.message);
+                println!("{}", e);
                 continue;
             },
             Ok(matches) => matches,
         };
 
         match matches.subcommand() {
-            ("quit", _) => {
+            None => {
+                println!("unknown subcommand");
+                break;
+            },
+            Some(("quit", _)) => {
                 cmd_sender.send(LocalCommand::Shutdown).unwrap();
                 println!("goodbye");
                 break;
             },
-            ("disconnect", _) => {
+            Some(("disconnect", _)) => {
                 cmd_sender.send(LocalCommand::Disconnect).unwrap();
             },
-            ("connect", Some(connect_matches)) => {
+            Some(("connect", connect_matches)) => {
                 let socketaddr = connect_matches
                     .value_of("ip:port")
                     .unwrap()
@@ -161,24 +164,24 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                     .send(LocalCommand::Connect(ConnectAddr::Tcp(socketaddr)))
                     .unwrap();
             },
-            ("t", _) => {
+            Some(("t", _)) => {
                 cmd_sender
                     .send(LocalCommand::Connect(ConnectAddr::Tcp(
                         "127.0.0.1:1231".parse().unwrap(),
                     )))
                     .unwrap();
             },
-            ("serve", Some(serve_matches)) => {
+            Some(("serve", serve_matches)) => {
                 let path = shellexpand::tilde(serve_matches.value_of("file").unwrap());
                 let path: PathBuf = path.parse().unwrap();
                 if let Some(fileinfo) = FileInfo::new(&path).await {
                     cmd_sender.send(LocalCommand::Serve(fileinfo)).unwrap();
                 }
             },
-            ("list", _) => {
+            Some(("list", _)) => {
                 cmd_sender.send(LocalCommand::List).unwrap();
             },
-            ("get", Some(get_matches)) => {
+            Some(("get", get_matches)) => {
                 let id: u32 = get_matches.value_of("id").unwrap().parse().unwrap();
                 let file = get_matches.value_of("file");
                 cmd_sender
@@ -186,7 +189,7 @@ async fn client(cmd_sender: mpsc::UnboundedSender<LocalCommand>) {
                     .unwrap();
             },
 
-            (_, _) => {
+            Some((_, _)) => {
                 unreachable!("this subcommand isn't yet handled");
             },
         }

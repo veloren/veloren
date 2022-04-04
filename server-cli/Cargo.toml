@@ -34,8 +34,7 @@ common-frontend = { package = "veloren-common-frontend", path = "../common/front
 tokio = { version = "1.14", default-features = false, features = ["rt-multi-thread"] }
 num_cpus = "1.0"
 ansi-parser = "0.8"
-clap = "2.33"
-structopt = "0.3.13"
+clap = { version = "3.1.8", features = ["derive"] }
 crossterm = "0.22"
 lazy_static = "1"
 signal-hook = "0.3.6"

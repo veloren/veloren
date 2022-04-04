@@ -24,7 +24,6 @@ use std::{
     sync::{atomic::AtomicBool, mpsc, Arc},
     time::Duration,
 };
-use structopt::StructOpt;
 use tracing::{info, trace};
 
 lazy_static::lazy_static! {
@@ -33,7 +32,8 @@ lazy_static::lazy_static! {
 const TPS: u64 = 30;
 
 fn main() -> io::Result<()> {
-    let app = ArgvApp::from_args();
+    use clap::Parser;
+    let app = ArgvApp::parse();
 
     let basic = !app.tui || app.command.is_some();
     let noninteractive = app.non_interactive;

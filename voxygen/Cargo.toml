@@ -94,7 +94,7 @@ assets_manager = {version = "0.7", features = ["ab_glyph"]}
 backtrace = "0.3.40"
 bincode = "1.3.1"
 chrono = { version = "0.4.19", features = ["serde"] }
-chumsky = "0.3.2"
+chumsky = "0.8"
 cpal = "0.13"
 copy_dir = "0.1.2"
 crossbeam-utils = "0.8.1"
@@ -107,13 +107,13 @@ guillotiere = "0.6"
 hashbrown = {version = "0.11", features = ["rayon", "serde", "nightly"]}
 image = {version = "0.23.12", default-features = false, features = ["ico", "png"]}
 lazy_static = "1.4.0"
-native-dialog = { version = "0.5.2", optional = true }
+native-dialog = { version = "0.6.3", optional = true }
 num = "0.4"
 ordered-float = { version = "2.0.1", default-features = false }
 rand = "0.8"
 rand_chacha = "0.3"
 rayon = "1.5"
-rodio = {version = "0.14", default-features = false, features = ["vorbis"]}
+rodio = {version = "0.15", default-features = false, features = ["vorbis"]}
 ron = {version = "0.7", default-features = false}
 serde = {version = "1.0", features = [ "rc", "derive" ]}
 slab = "0.4.2"

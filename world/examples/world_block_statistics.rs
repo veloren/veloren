@@ -1,4 +1,4 @@
-use clap::{App, Arg, SubCommand};
+use clap::{Arg, Command};
 use common::{
     terrain::{BlockKind, TerrainChunkSize},
     vol::{IntoVolIterator, RectVolSize},
@@ -243,36 +243,36 @@ fn palette(conn: Connection) -> Result<(), Box<dyn Error>> {
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let mut app = App::new("world_block_statistics")
+    let mut app = Command::new("world_block_statistics")
         .version(common::util::DISPLAY_VERSION_LONG.as_str())
         .author("The veloren devs <https://gitlab.com/veloren/veloren>")
         .about("Compute and process block statistics on generated chunks")
         .subcommand(
-            SubCommand::with_name("generate")
+            Command::new("generate")
                 .about("Generate block statistics")
                 .args(&[
-                    Arg::with_name("database")
+                    Arg::new("database")
                         .required(true)
                         .help("File to generate/resume generation"),
-                    Arg::with_name("ymin").long("ymin").takes_value(true),
-                    Arg::with_name("ymax").long("ymax").takes_value(true),
+                    Arg::new("ymin").long("ymin").takes_value(true),
+                    Arg::new("ymax").long("ymax").takes_value(true),
                 ]),
         )
         .subcommand(
-            SubCommand::with_name("palette")
+            Command::new("palette")
                 .about("Compute a palette from previously gathered statistics")
-                .args(&[Arg::with_name("database").required(true)]),
+                .args(&[Arg::new("database").required(true)]),
         );
 
     let matches = app.clone().get_matches();
     match matches.subcommand() {
-        ("generate", Some(matches)) => {
+        Some(("generate", matches)) => {
             let db_path = matches.value_of("database").expect("database is required");
             let ymin = matches.value_of("ymin").and_then(|x| i32::from_str(x).ok());
             let ymax = matches.value_of("ymax").and_then(|x| i32::from_str(x).ok());
             generate(db_path, ymin, ymax)?;
         },
-        ("palette", Some(matches)) => {
+        Some(("palette", matches)) => {
             let conn =
                 Connection::open(&matches.value_of("database").expect("database is required"))?;
             palette(conn)?;
