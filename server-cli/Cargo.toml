@@ -35,7 +35,7 @@ tokio = { version = "1.14", default-features = false, features = ["rt-multi-thre
 num_cpus = "1.0"
 ansi-parser = "0.8"
 clap = { version = "3.1.8", features = ["derive"] }
-crossterm = "0.22"
+crossterm = "0.23"
 lazy_static = "1"
 signal-hook = "0.3.6"
 shell-words = "1.0.0"

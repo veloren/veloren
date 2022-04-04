@@ -30,8 +30,7 @@ use conrod_core::{
 use i18n::Localization;
 use std::sync::Arc;
 
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use strum::{EnumIter, IntoEnumIterator};
 
 widget_ids! {
     pub struct Ids {

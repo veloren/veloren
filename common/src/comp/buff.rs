@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 #[cfg(not(target_arch = "wasm32"))]
 use specs_idvs::IdvStorage;
-use strum_macros::EnumIter;
+use strum::EnumIter;
 
 /// De/buff Kind.
 /// This is used to determine what effects a buff will have

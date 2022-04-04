@@ -57,7 +57,7 @@ minifb = "0.22"
 rusqlite = { version = "0.24.2", features = ["array", "vtab", "bundled", "trace"] }
 svg_fmt = "0.4"
 structopt = "0.3"
-strum = "0.23"
+strum = "0.24"
 
 [[bench]]
 harness = false

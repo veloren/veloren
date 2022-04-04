@@ -25,7 +25,7 @@ use serde::{de, Deserialize, Serialize, Serializer};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
 use std::{collections::hash_map::DefaultHasher, fmt, sync::Arc};
-use strum_macros::IntoStaticStr;
+use strum::IntoStaticStr;
 use tracing::error;
 use vek::Rgb;
 

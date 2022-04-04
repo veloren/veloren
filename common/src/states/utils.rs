@@ -25,7 +25,7 @@ use std::{
     ops::{Add, Div},
     time::Duration,
 };
-use strum_macros::Display;
+use strum::Display;
 use vek::*;
 
 pub const MOVEMENT_THRESHOLD_VEL: f32 = 3.0;

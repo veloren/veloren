@@ -19,8 +19,7 @@ use conrod_core::{
 };
 use i18n::Localization;
 
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use strum::{EnumIter, IntoEnumIterator};
 
 widget_ids! {
     struct Ids {

@@ -12,8 +12,7 @@ use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage, Entity as EcsEntity};
 use specs_idvs::IdvStorage;
 use std::{collections::VecDeque, fmt};
-use strum::IntoEnumIterator;
-use strum_macros::EnumIter;
+use strum::{EnumIter, IntoEnumIterator};
 use vek::*;
 
 use super::dialogue::Subject;

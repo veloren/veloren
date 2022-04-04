@@ -25,7 +25,7 @@ use crate::{
 use serde::{Deserialize, Serialize};
 use specs::{Component, DerefFlaggedStorage};
 use specs_idvs::IdvStorage;
-use strum_macros::Display;
+use strum::Display;
 use vek::*;
 
 use super::{BuffKind, Density, Mass};
