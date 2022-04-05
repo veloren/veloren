@@ -21,9 +21,9 @@ impl Animation for ComboAnimation {
     type Skeleton = CharacterSkeleton;
 
     #[cfg(feature = "use-dyn-lib")]
-    const UPDATE_FN: &'static [u8] = b"character_alpha\0";
+    const UPDATE_FN: &'static [u8] = b"character_combo\0";
 
-    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_alpha")]
+    #[cfg_attr(feature = "be-dyn-lib", export_name = "character_combo")]
     fn update_skeleton_inner<'a>(
         skeleton: &Self::Skeleton,
         (hands, stage_section, ability_info, strike): Self::Dependency<'a>,
