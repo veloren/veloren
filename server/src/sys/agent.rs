@@ -2315,6 +2315,8 @@ impl<'a> AgentData<'a> {
             } else {
                 self.idle(agent, controller, read_data, rng);
             }
+        } else {
+            self.idle(agent, controller, read_data, rng);
         }
     }
 
