@@ -3,7 +3,7 @@ use crate::{
     site::namegen::NameGen,
     site2::{Fill, Painter, Site, Structure},
     util::FastNoise,
-    Land, Sampler,
+    Land, Sampler, CanvasInfo,
 };
 use common::{
     generation::EntityInfo,

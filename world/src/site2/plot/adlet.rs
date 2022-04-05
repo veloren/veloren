@@ -3,7 +3,7 @@ use crate::{
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
     util::{attempt, sampler::Sampler, FastNoise, RandomField},
-    Land,
+    Land, CanvasInfo,
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
@@ -11,17 +11,27 @@ use common::{
 };
 use lazy_static::lazy_static;
 use rand::prelude::*;
-use std::{collections::HashMap, f32::consts::TAU};
+use std::{
+    collections::HashMap,
+    f32::consts::TAU,
+    ops::{Add, Div, Mul, Sub},
+};
 use vek::*;
+
+const ANGLE_SAMPLES: usize = 360;
 
 pub struct AdletStronghold {
     name: String,
     seed: u32,
-    origin: Vec2<i32>,
+    entrance: Vec2<i32>,
+    wall_center: Vec2<i32>,
+    wall_radius: i32,
+    wall_alt: f32,
+    wall_alt_sample_positions: [[Vec2<i32>; 3]; ANGLE_SAMPLES],
+    tunnel_length: i32,
+    cavern_center: Vec2<i32>,
     cavern_alt: f32,
     cavern_radius: i32,
-    entrance: Vec2<i32>,
-    tunnel_length: i32,
 }
 
 enum AdletStructure {
@@ -48,6 +58,32 @@ impl AdletStronghold {
         let name = NameGen::location(rng).generate_adlet();
         let seed = rng.gen();
         let entrance = wpos;
+
+        let wall_radius = {
+            let unit_size = rng.gen_range(8..11);
+            let num_units = rng.gen_range(6..9);
+            let variation = rng.gen_range(0..10);
+            unit_size * num_units + variation
+        };
+        let wall_center = entrance.map(|x| x + rng.gen_range(-wall_radius / 4..wall_radius / 4));
+        let wall_alt = land.get_alt_approx(wall_center) + 10.0;
+
+        let mut wall_alt_sample_positions = [[Vec2::zero(); 3]; ANGLE_SAMPLES];
+        for i in 0..ANGLE_SAMPLES {
+            let theta = i as f32 / ANGLE_SAMPLES as f32 * TAU;
+            // let sample_rpos = Vec2::new(
+            //     theta.cos() * wall_radius as f32,
+            //     theta.sin() * wall_radius as f32,
+            // );
+            // wall_alt_sample_positions[i] = sample_rpos.as_() + wall_center;
+            for j in 0..3 {
+                let sample_rpos = Vec2::new(
+                    theta.cos() * (wall_radius as f32 + j as f32 - 1.0),
+                    theta.sin() * (wall_radius as f32 + j as f32 - 1.0),
+                );
+                wall_alt_sample_positions[i][j] = sample_rpos.as_() + wall_center;
+            }
+        }
 
         // Find direction that allows for deep enough site
         let angle_samples = (0..64).into_iter().map(|x| x as f32 / 64.0 * TAU);
@@ -78,33 +114,56 @@ impl AdletStronghold {
 
         let tunnel_length = rng.gen_range(35_i32..50);
 
-        let origin = entrance
+        let cavern_center = entrance
             + (Vec2::new(angle.cos(), angle.sin()) * (tunnel_length as f32 + cavern_radius as f32))
                 .as_();
 
-        let cavern_alt =
-            (land.get_alt_approx(origin) - cavern_radius as f32).min(land.get_alt_approx(entrance));
+        let cavern_alt = (land.get_alt_approx(cavern_center) - cavern_radius as f32)
+            .min(land.get_alt_approx(entrance));
 
         Self {
             name,
             seed,
-            origin,
+            entrance,
+            wall_center,
+            wall_radius,
+            wall_alt,
+            wall_alt_sample_positions,
+            tunnel_length,
+            cavern_center,
             cavern_radius,
             cavern_alt,
-            entrance,
-            tunnel_length,
         }
     }
 
     pub fn name(&self) -> &str { &self.name }
 
-    pub fn origin(&self) -> Vec2<i32> { self.origin }
+    // pub fn origin(&self) -> Vec2<i32> { self.cavern_center }
 
     pub fn radius(&self) -> i32 { self.cavern_radius + self.tunnel_length + 5 }
+
+    pub fn plot_tiles(&self, origin: Vec2<i32>) -> (Aabr<i32>, Aabr<i32>) {
+        // Cavern
+        let size = self.cavern_radius / tile::TILE_SIZE as i32;
+        let offset = (self.cavern_center - origin) / tile::TILE_SIZE as i32;
+        let cavern_aabr = Aabr {
+            min: Vec2::broadcast(-size) + offset,
+            max: Vec2::broadcast(size) + offset,
+        };
+        // Wall
+        let size = (self.wall_radius * 5 / 4) / tile::TILE_SIZE as i32;
+        let offset = (self.wall_center - origin) / tile::TILE_SIZE as i32;
+        let wall_aabr = Aabr {
+            min: Vec2::broadcast(-size) + offset,
+            max: Vec2::broadcast(size) + offset,
+        };
+        (cavern_aabr, wall_aabr)
+    }
 
     pub fn spawn_rules(&self, wpos: Vec2<i32>) -> SpawnRules {
         SpawnRules {
             waypoints: false,
+            trees: wpos.distance_squared(self.entrance) > (self.wall_radius * 5 / 4).pow(2),
             ..SpawnRules::default()
         }
     }
@@ -117,7 +176,7 @@ impl AdletStronghold {
         wpos2d: Vec2<i32>,
         supplement: &mut ChunkSupplement,
     ) {
-        let rpos = wpos2d - self.origin;
+        let rpos = wpos2d - self.cavern_center;
         let area = Aabr {
             min: rpos,
             max: rpos + TerrainChunkSize::RECT_SIZE.map(|e| e as i32),
@@ -131,41 +190,108 @@ impl Structure for AdletStronghold {
 
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_adletstronghold")]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
+        let wall_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
+        const WALL_DELTA: f32 = 4.0;
+        // let mut wall_alt_samples = self.wall_alt_sample_positions.map(|pos| canvas.col(pos).map_or(land.get_alt_approx(pos), |col| col.alt));
+        let mut wall_alt_samples = self.wall_alt_sample_positions.map(|poses| {
+            let mut average = 0.0;
+            for pos in poses.iter() {
+                average += canvas.col(*pos).map_or(land.get_alt_approx(*pos), |col| col.alt);
+            }
+            average / 3.0
+        });
+        loop {
+            let mut changed = false;
+            for i in 0..wall_alt_samples.len() {
+                let tmp = (wall_alt_samples[(i + 1) % ANGLE_SAMPLES] - WALL_DELTA).max(wall_alt_samples[(i + ANGLE_SAMPLES - 1) % ANGLE_SAMPLES] - WALL_DELTA);
+                if tmp > wall_alt_samples[i] {
+                    wall_alt_samples[i] = tmp;
+                    changed = true;
+                }
+            }
+            if !changed {
+                break;
+            }
+        }
+        // Wall
+        painter
+            .cylinder_with_radius(
+                self.wall_center
+                    .with_z(self.wall_alt as i32 - self.wall_radius * 2),
+                self.wall_radius as f32 + 3.0,
+                self.wall_radius as f32 * 2.5,
+            )
+            .without(
+                painter.cylinder_with_radius(
+                    self.wall_center
+                        .with_z(self.wall_alt as i32 - self.wall_radius * 2),
+                    self.wall_radius as f32,
+                    self.wall_radius as f32 * 2.5,
+                ),
+            )
+            .sample_with_column({
+                let wall_center = self.wall_center;
+                let theta = move |pos: Vec2<i32>| {
+                    let rpos: Vec2<f32> = (pos - wall_center).as_();
+                    let theta = rpos.y.atan2(rpos.x);
+                    if theta > 0.0 {
+                        theta
+                    } else {
+                        theta + TAU
+                    }
+                };
+                move |pos, col| {
+                    let index = (theta(pos.xy()) * ANGLE_SAMPLES as f32 / TAU).floor().max(0.0) as usize % ANGLE_SAMPLES;
+                    (col.alt.sub(10.0)..wall_alt_samples[index].add(10.0).div(WALL_DELTA).floor().mul(WALL_DELTA))
+                        .contains(&(pos.z as f32))
+                }
+            })
+            .fill(wall_mat);
+
         // Tunnel
-        let dist: f32 = self.origin.as_().distance(self.entrance.as_());
+        let dist: f32 = self.cavern_center.as_().distance(self.entrance.as_());
         let tunnel_radius = 5.0;
         let tunnel_start = self
             .entrance
             .as_()
             .with_z(land.get_alt_approx(self.entrance));
         // Adds cavern radius to ensure that tunnel fully bores into cavern
-        let tunnel_end = ((self.origin.as_() - self.entrance.as_()) * self.tunnel_length as f32
-            / dist)
-            .with_z(self.cavern_alt + tunnel_radius - 1.0)
-            + self.entrance.as_();
+        let tunnel_end =
+            ((self.cavern_center.as_() - self.entrance.as_()) * self.tunnel_length as f32 / dist)
+                .with_z(self.cavern_alt + tunnel_radius - 1.0)
+                + self.entrance.as_();
         painter
             .line(tunnel_start, tunnel_end, tunnel_radius)
             .clear();
         painter
             .line(
                 tunnel_end,
-                self.origin.as_().with_z(self.cavern_alt + tunnel_radius),
+                self.cavern_center
+                    .as_()
+                    .with_z(self.cavern_alt + tunnel_radius),
                 tunnel_radius,
+            )
+            .clear();
+        painter
+            .sphere_with_radius(
+                self.entrance
+                    .with_z(land.get_alt_approx(self.entrance) as i32 + 4),
+                8.0,
             )
             .clear();
 
         // Cavern
         painter
             .sphere_with_radius(
-                self.origin.with_z(self.cavern_alt as i32),
+                self.cavern_center.with_z(self.cavern_alt as i32),
                 self.cavern_radius as f32,
             )
             .intersect(painter.aabb(Aabb {
-                min: (self.origin - self.cavern_radius).with_z(self.cavern_alt as i32),
-                max: self.origin.with_z(self.cavern_alt as i32) + self.cavern_radius,
+                min: (self.cavern_center - self.cavern_radius).with_z(self.cavern_alt as i32),
+                max: self.cavern_center.with_z(self.cavern_alt as i32) + self.cavern_radius,
             }))
             .sample_with_column({
-                let origin = self.origin.with_z(self.cavern_alt as i32);
+                let origin = self.cavern_center.with_z(self.cavern_alt as i32);
                 let radius_sqr = self.cavern_radius.pow(2);
                 move |pos, col| {
                     let alt = col.basement - col.cliff_offset;
@@ -190,151 +316,6 @@ impl Structure for AdletStronghold {
                 }
             })
             .clear();
-
-        // Create outer wall
-        // for (point, next_point) in self.wall_segments.iter() {
-        //     // This adds additional points for the wall on the line between
-        // two points,     // allowing the wall to better handle slopes
-        //     const SECTIONS_PER_WALL_SEGMENT: usize = 3;
-
-        //     (0..(SECTIONS_PER_WALL_SEGMENT as i32))
-        //         .into_iter()
-        //         .map(move |a| {
-        //             let get_point =
-        //                 |a| point + (next_point - point) * a /
-        // (SECTIONS_PER_WALL_SEGMENT as i32);
-        // (get_point(a), get_point(a + 1))         })
-        //         .for_each(|(point, next_point)| {
-        //             // 2d world positions of each point in wall segment
-        //             let point = point;
-        //             let start_wpos = point + self.origin;
-        //             let end_wpos = next_point + self.origin;
-
-        //             let lightstone = Fill::Brick(BlockKind::Wood,
-        // Rgb::new(107, 107, 107), 18);             let midstone =
-        // Fill::Brick(BlockKind::Wood, Rgb::new(70, 70, 70), 18);
-        //             let darkstone = Fill::Brick(BlockKind::Wood, Rgb::new(42,
-        // 42, 42), 18);             let darkpelt =
-        // Fill::Brick(BlockKind::Wood, Rgb::new(80, 47, 13), 35);
-        //             let lightpelt = Fill::Brick(BlockKind::Wood, Rgb::new(54,
-        // 25, 1), 25);
-
-        //             let start = (start_wpos + 2)
-        //                 .as_()
-        //                 .with_z(land.get_alt_approx(start_wpos) + 0.0);
-        //             let end = (end_wpos + 2)
-        //                 .as_()
-        //                 .with_z(land.get_alt_approx(end_wpos) + 0.0);
-        //             let randstart = start % 10.0 - 5.;
-        //             let randend = end % 10.0 - 5.0;
-        //             let mid = (start + end) / 2.0;
-
-        //             let start =
-        // start_wpos.as_().with_z(land.get_alt_approx(start_wpos));
-        //             let end =
-        // end_wpos.as_().with_z(land.get_alt_approx(end_wpos));
-
-        //             let wall_base_height = 3.0;
-        //             let wall_mid_thickness = 2.0;
-        //             let wall_mid_height = 15.0 + wall_base_height;
-
-        //             let highwall =
-        //                 painter.segment_prism(start, end, wall_mid_thickness,
-        // wall_mid_height);             painter.fill(highwall,
-        // lightstone.clone());
-
-        //             painter
-        //                 .segment_prism(start, end, wall_mid_thickness + 1.0,
-        // wall_mid_height - 8.0)
-        // .fill(midstone.clone());             let wallexterior =
-        // painter                 .segment_prism(start, end,
-        // wall_mid_thickness + 2.0, wall_mid_height - 15.0)
-        // .translate(Vec3::new(0, 0, 8));             let wallstrut =
-        // painter                 .segment_prism(start, end,
-        // wall_mid_thickness - 1.0, wall_mid_height)
-        // .translate(Vec3::new(0, 0, 8));             let
-        // wallexteriorlow = wallexterior.translate(Vec3::new(0, 0, -2));
-        //             painter.fill(wallexterior, darkpelt.clone());
-        //             painter.fill(wallexteriorlow, lightpelt.clone());
-
-        //             let exclusion = painter.line(
-        //                 Vec3::new(
-        //                     start.x as i32,
-        //                     start.y as i32,
-        //                     start.z as i32 + wall_mid_height as i32 + 2,
-        //                 ),
-        //                 Vec3::new(
-        //                     end.x as i32,
-        //                     end.y as i32,
-        //                     end.z as i32 + wall_mid_height as i32 + 2,
-        //                 ),
-        //                 5.0,
-        //             );
-
-        //             let top = painter
-        //                 .line(
-        //                     Vec3::new(
-        //                         start.x as i32,
-        //                         start.y as i32,
-        //                         start.z as i32 + wall_mid_height as i32 + 5,
-        //                     ),
-        //                     Vec3::new(
-        //                         end.x as i32,
-        //                         end.y as i32,
-        //                         end.z as i32 + wall_mid_height as i32 + 5,
-        //                     ),
-        //                     4.0,
-        //                 )
-        //                 .without(exclusion);
-
-        //             let overtop = top.translate(Vec3::new(0, 0, 1));
-
-        //             let cyl = painter.cylinder_with_radius(
-        //                 Vec3::new(start.x as i32, start.y as i32, start.z as
-        // i32),                 5.0,
-        //                 wall_mid_height - 8.0,
-        //             );
-        //             painter.fill(cyl, darkstone.clone());
-        //             let cylsupport = painter.cylinder_with_radius(
-        //                 Vec3::new(start.x as i32, start.y as i32, start.z as
-        // i32),                 5.0,
-        //                 wall_mid_height + 20.0,
-        //             );
-        //             let cylsub = painter.cylinder_with_radius(
-        //                 Vec3::new(start.x as i32, start.y as i32, start.z as
-        // i32),                 4.0,
-        //                 wall_mid_height + 20.0,
-        //             );
-        //             let hollowcyl = cylsupport.without(cylsub);
-        //             let roofpoles = wallstrut.intersect(hollowcyl);
-        //             painter.fill(roofpoles, midstone.clone());
-
-        //             painter.fill(top, darkpelt.clone());
-
-        //             let startshift =
-        //                 Vec3::new(randstart.x * 3.0, randstart.y * 3.0,
-        // randstart.z * 1.0);             let endshift =
-        // Vec3::new(randend.x * 3.0, randend.y * 3.0, randend.z * 1.0);
-
-        //             painter
-        //                 .cubic_bezier(start, mid + startshift, mid +
-        // endshift, end, 2.5)                 .translate(Vec3::new(0,
-        // 0, 27))                 .intersect(overtop)
-        //                 .fill(lightpelt.clone());
-
-        //             painter
-        //                 .sphere_with_radius(
-        //                     Vec3::new(
-        //                         start.x as i32,
-        //                         start.y as i32,
-        //                         start.z as i32 + wall_mid_height as i32 - 8,
-        //                     ),
-        //                     5.0,
-        //                 )
-        //                 .without(cyl)
-        //                 .clear();
-        //         })
-        // }
     }
 }
 

@@ -3,7 +3,7 @@ use crate::{
     site::namegen::NameGen,
     site2::{aabr_with_z, Fill, Primitive, Structure as SiteStructure},
     util::{attempt, Grid, RandomField, Sampler, CARDINALS, DIRS},
-    Land,
+    Land, CanvasInfo,
 };
 
 use common::{

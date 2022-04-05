@@ -2,7 +2,7 @@ use super::*;
 use crate::{
     site2::util::Dir,
     util::{RandomField, Sampler, DIRS},
-    Land,
+    Land, CanvasInfo,
 };
 use common::terrain::{Block, BlockKind, SpriteKind};
 use rand::prelude::*;

@@ -480,21 +480,21 @@ impl Site {
         site.demarcate_obstacles(land);
         let adlet_stronghold = plot::AdletStronghold::generate(origin, land, &mut rng);
         site.name = adlet_stronghold.name().to_string();
-
-        // TODO: Update this to also blit tiles near entrance when entrance has stuff
-        let size = adlet_stronghold.radius() / tile::TILE_SIZE as i32;
-        let offset = (adlet_stronghold.origin() - origin) / tile::TILE_SIZE as i32;
-        let aabr = Aabr {
-            min: Vec2::broadcast(-size) + offset,
-            max: Vec2::broadcast(size) + offset,
-        };
+        let (cavern_aabr, wall_aabr) = adlet_stronghold.plot_tiles(origin);
         let plot = site.create_plot(Plot {
             kind: PlotKind::Adlet(adlet_stronghold),
-            root_tile: aabr.center(),
-            tiles: aabr_tiles(aabr).collect(),
+            root_tile: cavern_aabr.center(),
+            tiles: aabr_tiles(cavern_aabr)
+                .chain(aabr_tiles(wall_aabr))
+                .collect(),
             seed: rng.gen(),
         });
-        site.blit_aabr(aabr, Tile {
+        site.blit_aabr(cavern_aabr, Tile {
+            kind: TileKind::AdletStronghold,
+            plot: Some(plot),
+            hard_alt: None,
+        });
+        site.blit_aabr(wall_aabr, Tile {
             kind: TileKind::AdletStronghold,
             plot: Some(plot),
             hard_alt: None,
