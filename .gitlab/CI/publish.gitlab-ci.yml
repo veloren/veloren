@@ -8,10 +8,6 @@
     - when: never
   before_script:
     - source "$CI_PROJECT_DIR/.gitlab/scripts/utils.sh"
-    - publishtype PUBLISH_TYPE
-    - publishdockertag PUBLISH_DOCKER_TAG
-    - publishgittag PUBLISH_GIT_TAG
-    - echo "Publish detected '$PUBLISH_TYPE' Docker Tag '$PUBLISH_DOCKER_TAG' Git Tag '$PUBLISH_GIT_TAG'"
 
 docker:
   extends: .publish
@@ -29,7 +25,8 @@ docker:
     - export container=docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - |
-      if [[ ! -z "${PUBLISH_DOCKER_TAG}" ]]; then
+      publishdockertag PUBLISH_DOCKER_TAG
+      if [ "${PUBLISH_DOCKER_TAG}"  != "" ]; then
         /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${PUBLISH_DOCKER_TAG}"
       fi
 
@@ -43,13 +40,16 @@ gittag:
     - git config --global http.postBuffer 52428800
     - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
     - |
-      if [[ ! -z "${PUBLISH_GIT_TAG}" ]]; then
+      publishgittag PUBLISH_GIT_TAG
+      if [ "${PUBLISH_GIT_TAG}" != "" ]; then
         git tag -a "${PUBLISH_GIT_TAG}" -m '' -f;
         git push origin "${PUBLISH_GIT_TAG}" -f;
       fi
 
 pages:
   extends: .publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "publish"]
   artifacts:

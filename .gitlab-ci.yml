@@ -14,6 +14,7 @@ variables:
   GIT_DEPTH: 3
   GIT_CLEAN_FLAGS: -f
   CACHE_IMAGE_TAG: d7756444
+  TAG_REGEX: '/^v[0-9]+\.[0-9]+\.[0-9]+$/'
 
 default:
   # https://docs.gitlab.com/ee/ci/pipelines/settings.html#auto-cancel-pending-pipelines

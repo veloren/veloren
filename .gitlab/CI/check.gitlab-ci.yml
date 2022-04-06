@@ -1,10 +1,11 @@
-# cargo clippy is a superset of cargo check, so we don't check manually
 code-quality:
   extends: .recompile-branch
   stage: check
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "check"]
   script:
+    - echo $CI_COMMIT_TAG
+    - echo $TAG_REGEX
     - ln -s /dockercache/target target
     - cat ./.gitlab/scripts/code-quality.sh
     - source ./.gitlab/scripts/code-quality.sh

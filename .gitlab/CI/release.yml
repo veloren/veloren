@@ -2,7 +2,7 @@
 .optional-release:
   stage: check
   rules:
-    - if: $CI_PIPELINE_SOURCE != "merge_request_event" || $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" || $CI_PIPELINE_SOURCE == "schedule" || ( $CI_COMMIT_TAG != null && $CI_COMMIT_TAG =~ $TAG_REGEX )
       when: never
     - when: manual
       allow_failure: true
@@ -11,7 +11,7 @@
 .release:
   stage: build
   rules:
-    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && ($CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+/)
+    - if: $CI_PIPELINE_SOURCE != "merge_request_event" && ( $CI_PIPELINE_SOURCE == "schedule" || $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || ( $CI_COMMIT_TAG != null && $CI_COMMIT_TAG =~ $TAG_REGEX ) )
       when: on_success
     - when: never
   retry:
