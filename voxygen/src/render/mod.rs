@@ -347,6 +347,7 @@ pub struct RenderMode {
     pub fluid: FluidMode,
     pub lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub rain_occlusion: ShadowMapMode,
     pub bloom: BloomMode,
     /// 0.0..1.0
     pub point_glow: f32,
@@ -366,6 +367,8 @@ impl Default for RenderMode {
             fluid: FluidMode::default(),
             lighting: LightingMode::default(),
             shadow: ShadowMode::default(),
+            // TODO: should 0.5 be default for rain_occlusion?
+            rain_occlusion: ShadowMapMode { resolution: 0.5 },
             bloom: BloomMode::default(),
             point_glow: 0.35,
             experimental_shaders: HashSet::default(),
@@ -385,6 +388,7 @@ impl RenderMode {
                 fluid: self.fluid,
                 lighting: self.lighting,
                 shadow: self.shadow,
+                rain_occlusion: self.rain_occlusion,
                 bloom: self.bloom,
                 point_glow: self.point_glow,
                 experimental_shaders: self.experimental_shaders,
@@ -407,6 +411,7 @@ pub struct PipelineModes {
     fluid: FluidMode,
     lighting: LightingMode,
     pub shadow: ShadowMode,
+    pub rain_occlusion: ShadowMapMode,
     bloom: BloomMode,
     point_glow: f32,
     experimental_shaders: HashSet<ExperimentalShader>,

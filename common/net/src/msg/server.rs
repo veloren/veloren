@@ -15,7 +15,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
     uuid::Uuid,
-    weather::{Weather, WeatherGrid},
+    weather::WeatherGrid,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};

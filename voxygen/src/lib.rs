@@ -11,7 +11,8 @@
     trait_alias,
     option_get_or_insert_default,
     map_try_insert,
-    slice_as_chunks
+    slice_as_chunks,
+    unzip_option
 )]
 #![recursion_limit = "2048"]
 

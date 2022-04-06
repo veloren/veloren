@@ -369,7 +369,7 @@ impl Renderer {
         let rain_occlusion_view = RainOcclusionMap::create_view(
             &device,
             (dims.width, dims.height),
-            &ShadowMapMode::try_from(pipeline_modes.shadow).unwrap_or_default(),
+            &pipeline_modes.rain_occlusion,
         )
         .map_err(|err| {
             warn!("Could not create rain occlusion map views: {:?}", err);
@@ -724,46 +724,63 @@ impl Renderer {
                 State::Nothing => None, // Should never hit this
             };
 
-            if let (Some(((point_depth, directed_depth), rain_depth)), ShadowMode::Map(mode)) =
+            let mut update_shadow_bind = false;
+            let (shadow_views, rain_views) = shadow_views.unzip();
+
+            if let (Some((point_depth, directed_depth)), ShadowMode::Map(mode)) =
                 (shadow_views, self.pipeline_modes.shadow)
             {
-                match (
-                    ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode),
-                    RainOcclusionMap::create_view(&self.device, (dims.x, dims.y), &mode),
-                ) {
-                    (Ok((new_point_depth, new_directed_depth)), Ok(new_rain_depth)) => {
+                match ShadowMap::create_shadow_views(&self.device, (dims.x, dims.y), &mode) {
+                    Ok((new_point_depth, new_directed_depth)) => {
                         *point_depth = new_point_depth;
                         *directed_depth = new_directed_depth;
-                        *rain_depth = new_rain_depth;
 
-                        // Recreate the shadow bind group if needed
-                        if let State::Complete {
-                            shadow:
-                                Shadow {
-                                    bind,
-                                    map: ShadowMap::Enabled(shadow_map),
-                                    rain_map: RainOcclusionMap::Enabled(rain_occlusion_map),
-                                    ..
-                                },
-                            ..
-                        } = &mut self.state
-                        {
-                            *bind = self.layouts.global.bind_shadow_textures(
-                                &self.device,
-                                &shadow_map.point_depth,
-                                &shadow_map.directed_depth,
-                                &rain_occlusion_map.depth,
-                            );
-                        }
+                        update_shadow_bind = true;
                     },
-                    (shadow, rain) => {
+                    shadow => {
                         if let Err(err) = shadow {
                             warn!("Could not create shadow map views: {:?}", err);
                         }
+                    },
+                }
+            }
+            if let Some(rain_depth) = rain_views {
+                match RainOcclusionMap::create_view(
+                    &self.device,
+                    (dims.x, dims.y),
+                    &self.pipeline_modes.rain_occlusion,
+                ) {
+                    Ok(new_rain_depth) => {
+                        *rain_depth = new_rain_depth;
+
+                        update_shadow_bind = true;
+                    },
+                    rain => {
                         if let Err(err) = rain {
                             warn!("Could not create rain occlusion map view: {:?}", err);
                         }
                     },
+                }
+            }
+            if update_shadow_bind {
+                // Recreate the shadow bind group if needed
+                if let State::Complete {
+                    shadow:
+                        Shadow {
+                            bind,
+                            map: ShadowMap::Enabled(shadow_map),
+                            rain_map: RainOcclusionMap::Enabled(rain_occlusion_map),
+                            ..
+                        },
+                    ..
+                } = &mut self.state
+                {
+                    *bind = self.layouts.global.bind_shadow_textures(
+                        &self.device,
+                        &shadow_map.point_depth,
+                        &shadow_map.directed_depth,
+                        &rain_occlusion_map.depth,
+                    );
                 }
             }
         } else {

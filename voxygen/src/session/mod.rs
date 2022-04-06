@@ -266,8 +266,8 @@ impl SessionState {
                         | InventoryUpdateEvent::Swapped
                         | InventoryUpdateEvent::Given
                         | InventoryUpdateEvent::Collected(_)
-                        | InventoryUpdateEvent::EntityCollectFailed(_)
-                        | InventoryUpdateEvent::BlockCollectFailed(_)
+                        | InventoryUpdateEvent::EntityCollectFailed { .. }
+                        | InventoryUpdateEvent::BlockCollectFailed { .. }
                         | InventoryUpdateEvent::Craft => {
                             global_state
                                 .audio

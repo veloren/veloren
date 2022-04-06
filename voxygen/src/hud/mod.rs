@@ -101,7 +101,6 @@ use common::{
     uid::Uid,
     util::{srgba_to_linear, Dir},
     vol::RectRasterableVol,
-    weather::Weather,
 };
 use common_base::{prof_span, span};
 use common_net::{

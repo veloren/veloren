@@ -48,7 +48,7 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
-    weather::{self, Weather, WeatherGrid},
+    weather::{Weather, WeatherGrid},
 };
 #[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
