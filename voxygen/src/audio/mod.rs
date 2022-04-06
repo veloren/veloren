@@ -371,12 +371,9 @@ impl AudioFrontend {
             }
             if tag_match {
                 return found_channel;
-            } else {
-                return None;
             }
-        } else {
-            return None;
         }
+        None
     }
 
     // Unused code that may be useful in the future:

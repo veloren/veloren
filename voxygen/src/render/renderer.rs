@@ -49,6 +49,10 @@ pub type ColLightInfo = (Vec<[u8; 4]>, Vec2<u16>);
 const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
 const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
+// For rain occlusion we only need to render the closest chunks.
+// TODO: Is this a good value?
+pub const RAIN_OCCLUSION_CHUNKS: usize = 9;
+
 /// A type that stores all the layouts associated with this renderer that never
 /// change when the RenderMode is modified.
 struct ImmutableLayouts {
@@ -366,15 +370,12 @@ impl Renderer {
         })
         .ok();
 
-        let rain_occlusion_view = RainOcclusionMap::create_view(
-            &device,
-            (dims.width, dims.height),
-            &pipeline_modes.rain_occlusion,
-        )
-        .map_err(|err| {
-            warn!("Could not create rain occlusion map views: {:?}", err);
-        })
-        .ok();
+        let rain_occlusion_view =
+            RainOcclusionMap::create_view(&device, &pipeline_modes.rain_occlusion)
+                .map_err(|err| {
+                    warn!("Could not create rain occlusion map views: {:?}", err);
+                })
+                .ok();
 
         let shaders = Shaders::load_expect("");
         let shaders_watcher = shaders.reload_watcher();
@@ -747,7 +748,6 @@ impl Renderer {
             if let Some(rain_depth) = rain_views {
                 match RainOcclusionMap::create_view(
                     &self.device,
-                    (dims.x, dims.y),
                     &self.pipeline_modes.rain_occlusion,
                 ) {
                     Ok(new_rain_depth) => {

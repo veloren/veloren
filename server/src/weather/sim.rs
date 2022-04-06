@@ -1,15 +1,21 @@
 use common::{
-    grid::Grid,
     resources::TimeOfDay,
-    terrain::TerrainChunkSize,
-    vol::RectVolSize,
-    weather::{Weather, WeatherGrid, CELL_SIZE, CHUNKS_PER_CELL},
+    weather::{WeatherGrid, CELL_SIZE},
 };
-use itertools::Itertools;
 use noise::{NoiseFn, SuperSimplex, Turbulence};
 use vek::*;
 use world::World;
 
+
+
+/*
+#[derive(Clone, Copy, Default)]
+struct Cell {
+    wind: Vec2<f32>,
+    temperature: f32,
+    moisture: f32,
+    cloud: f32,
+}
 #[derive(Default)]
 pub struct Constants {
     alt: f32,
@@ -18,13 +24,6 @@ pub struct Constants {
     temp: f32,
 }
 
-#[derive(Clone, Copy, Default)]
-struct Cell {
-    wind: Vec2<f32>,
-    temperature: f32,
-    moisture: f32,
-    cloud: f32,
-}
 /// Used to sample weather that isn't simulated
 fn sample_cell(_p: Vec2<i32>, _time: f64) -> Cell {
     Cell {
@@ -38,12 +37,6 @@ fn sample_cell(_p: Vec2<i32>, _time: f64) -> Cell {
 #[derive(Clone, Copy, Default)]
 pub struct WeatherInfo {
     pub lightning_chance: f32,
-}
-
-pub struct WeatherSim {
-    cells: Grid<Cell>,       // The variables used for simulation
-    consts: Grid<Constants>, // The constants from the world used for simulation
-    info: Grid<WeatherInfo>,
 }
 
 fn sample_plane_normal(points: &[Vec3<f32>]) -> Option<Vec3<f32>> {
@@ -82,13 +75,21 @@ fn sample_plane_normal(points: &[Vec3<f32>]) -> Option<Vec3<f32>> {
         Some(Vec3::new(xy * yz - xz * yy, xy * xz - yz * xx, det_z).normalized())
     }
 }
-
+*/
 fn cell_to_wpos(p: Vec2<i32>) -> Vec2<i32> { p * CELL_SIZE as i32 }
 
+pub struct WeatherSim {
+    // cells: Grid<Cell>,       // The variables used for simulation
+    // consts: Grid<Constants>, // The constants from the world used for simulation
+    // info: Grid<WeatherInfo>,
+    size: Vec2<u32>,
+}
+
 impl WeatherSim {
-    pub fn new(size: Vec2<u32>, world: &World) -> Self {
+    pub fn new(size: Vec2<u32>, _world: &World) -> Self {
+        /*
         let size = size.as_();
-        let mut this = Self {
+        let this = Self {
             cells: Grid::new(size, Cell::default()),
             consts: Grid::from_raw(
                 size,
@@ -138,6 +139,8 @@ impl WeatherSim {
             *cell = sample_cell(point, time);
         });
         this
+        */
+        Self { size }
     }
 
     /*
@@ -380,5 +383,5 @@ impl WeatherSim {
         */
     }
 
-    pub fn size(&self) -> Vec2<u32> { self.cells.size().as_() }
+    pub fn size(&self) -> Vec2<u32> { self.size }
 }

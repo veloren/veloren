@@ -234,6 +234,7 @@ void main() {
     #ifdef EXPERIMENTAL_RAIN
         vec3 pos = f_pos + focus_off.xyz;
         float rain_density = rain_density_at(pos.xy) * rain_occlusion_at(f_pos.xyz) * 50.0;
+        // Toggle to see rain_occlusion
         // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
         // return;
         if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {

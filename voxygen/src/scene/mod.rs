@@ -797,7 +797,7 @@ impl Scene {
             // space (left-handed).
             let bounds0 = math::fit_psr(
                 light_all_mat,
-                visible_light_volume.iter().copied(),
+                volume.iter().copied(),
                 math::Vec4::homogenized,
             );
             // Vague idea: project z_n from the camera view to the light view (where it's
@@ -976,7 +976,7 @@ impl Scene {
                     },
             } = math::fit_psr(
                 shadow_all_mat,
-                visible_light_volume.iter().copied(),
+                volume.iter().copied(),
                 math::Vec4::homogenized,
             );
             let s_x = 2.0 / (xmax - xmin);
@@ -998,10 +998,11 @@ impl Scene {
             )
         };
 
-        let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
-        if true || weather.rain > 0.001
-        // TODO: check if rain map mode is on
-        {
+        let weather = client
+            .state()
+            .max_weather_near(focus_off.xy() + cam_pos.xy());
+        if weather.rain > 0.0 {
+            let weather = client.state().weather_at(focus_off.xy() + cam_pos.xy());
             let rain_dir = math::Vec3::from(weather.rain_dir());
             let rain_view_mat = math::Mat4::look_at_rh(look_at, look_at + rain_dir, up);
 
@@ -1009,6 +1010,7 @@ impl Scene {
                 directed_mats(rain_view_mat, rain_dir, &visible_occlusion_volume);
 
             let rain_occlusion_locals = RainOcclusionLocals::new(shadow_mat, texture_mat);
+
             renderer.update_consts(&mut self.data.rain_occlusion_mats, &[rain_occlusion_locals]);
         }
 
@@ -1131,6 +1133,7 @@ impl Scene {
         let is_daylight = sun_dir.z < 0.0;
         let focus_pos = self.camera.get_focus_pos();
         let cam_pos = self.camera.dependents().cam_pos + focus_pos.map(|e| e.trunc());
+        let is_rain = state.max_weather_near(cam_pos.xy()).rain > 0.0;
 
         let camera_data = (&self.camera, scene_data.figure_lod_render_distance);
 
@@ -1161,20 +1164,20 @@ impl Scene {
                     self.terrain.chunks_for_point_shadows(focus_pos),
                 )
             }
-            // Render rain occlusion texture
-            {
-                prof_span!("rain occlusion");
-                if let Some(mut occlusion_pass) = drawer.rain_occlusion_pass() {
-                    self.terrain
-                        .render_occlusion(&mut occlusion_pass.draw_terrain_shadows(), cam_pos);
+        }
+        // Render rain occlusion texture
+        if is_rain {
+            prof_span!("rain occlusion");
+            if let Some(mut occlusion_pass) = drawer.rain_occlusion_pass() {
+                self.terrain
+                    .render_occlusion(&mut occlusion_pass.draw_terrain_shadows(), cam_pos);
 
-                    self.figure_mgr.render_shadows(
-                        &mut occlusion_pass.draw_figure_shadows(),
-                        state,
-                        tick,
-                        camera_data,
-                    );
-                }
+                self.figure_mgr.render_shadows(
+                    &mut occlusion_pass.draw_figure_shadows(),
+                    state,
+                    tick,
+                    camera_data,
+                );
             }
         }
 

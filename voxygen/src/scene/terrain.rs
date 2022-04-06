@@ -10,6 +10,7 @@ use crate::{
     },
     render::{
         pipelines::{self, ColLights},
+        renderer::RAIN_OCCLUSION_CHUNKS,
         ColLightInfo, FirstPassDrawer, FluidVertex, GlobalModel, Instances, LodData, Mesh, Model,
         RenderError, Renderer, SpriteGlobalsBindGroup, SpriteInstance, SpriteVertex, SpriteVerts,
         TerrainLocals, TerrainShadowDrawer, TerrainVertex, SPRITE_VERT_PAGE_SIZE,
@@ -1295,6 +1296,10 @@ impl<V: RectRasterableVol> Terrain<V> {
             min: focus_pos - 2.0,
             max: focus_pos + 2.0,
         });
+        let inv_proj_view =
+            math::Mat4::from_col_arrays((proj_mat_treeculler * view_mat).into_col_arrays())
+                .as_::<f64>()
+                .inverted();
 
         // PSCs: Potential shadow casters
         let ray_direction = scene_data.get_sun_dir();
@@ -1315,10 +1320,6 @@ impl<V: RectRasterableVol> Terrain<V> {
             };
             let focus_off = math::Vec3::from(focus_off);
             let visible_bounds_fine = visible_bounding_box.as_::<f64>();
-            let inv_proj_view =
-                math::Mat4::from_col_arrays((proj_mat_treeculler * view_mat).into_col_arrays())
-                    .as_::<f64>()
-                    .inverted();
             let ray_direction = math::Vec3::<f32>::from(ray_direction);
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
@@ -1402,45 +1403,35 @@ impl<V: RectRasterableVol> Terrain<V> {
         };
         drop(guard);
         span!(guard, "Rain occlusion magic");
-        let weather = scene_data.state.weather_at(focus_pos.xy());
-        let visible_occlusion_volume = if weather.rain > 0.0 {
-            let occlusion_box = Aabb {
-                min: visible_bounding_box
-                    .min
-                    .map2(focus_pos - 10.0, |a, b| a.max(b)),
-                max: visible_bounding_box
-                    .max
-                    .map2(focus_pos + 10.0, |a, b| a.min(b)),
-            };
+        // Check if there is rain near the camera
+        let max_weather = scene_data.state.max_weather_near(focus_pos.xy());
+        let visible_occlusion_volume = if max_weather.rain > 0.0 {
+            let occlusion_box = visible_bounding_box/*.intersection(Aabb {
+                min: focus_pos + camera.dependents().cam_pos - 100.0,
+                max: focus_pos + camera.dependents().cam_pos + 100.0,
+            })*/;
             let visible_bounding_box = math::Aabb::<f32> {
                 min: math::Vec3::from(occlusion_box.min - focus_off),
                 max: math::Vec3::from(occlusion_box.max - focus_off),
             };
             let visible_bounds_fine = math::Aabb {
-                min: math::Vec3::from(visible_bounding_box.min.as_::<f64>()),
-                max: math::Vec3::from(visible_bounding_box.max.as_::<f64>()),
+                min: visible_bounding_box.min.as_::<f64>(),
+                max: visible_bounding_box.max.as_::<f64>(),
             };
-            // TODO: move out shared calculations
-            let inv_proj_view =
-                math::Mat4::from_col_arrays((proj_mat_treeculler * view_mat).into_col_arrays())
-                    .as_::<f64>()
-                    .inverted();
-
+            let weather = scene_data.state.weather_at(focus_pos.xy());
             let ray_direction = math::Vec3::<f32>::from(weather.rain_dir());
 
             // NOTE: We use proj_mat_treeculler here because
             // calc_focused_light_volume_points makes the assumption that the
             // near plane lies before the far plane.
-            let visible_occlusion_volume = math::calc_focused_light_volume_points(
+            math::calc_focused_light_volume_points(
                 inv_proj_view,
                 ray_direction.as_::<f64>(),
                 visible_bounds_fine,
                 1e-6,
             )
             .map(|v| v.as_::<f32>())
-            .collect::<Vec<_>>();
-
-            visible_occlusion_volume
+            .collect::<Vec<_>>()
         } else {
             Vec::new()
         };
@@ -1512,9 +1503,6 @@ impl<V: RectRasterableVol> Terrain<V> {
         let focus_chunk = Vec2::from(focus_pos).map2(TerrainChunk::RECT_SIZE, |e: f32, sz| {
             (e as i32).div_euclid(sz as i32)
         });
-        // For rain occlusion we only need to render the closest chunks.
-        // TODO: Is this a good value?
-        const RAIN_OCCLUSION_CHUNKS: usize = 16;
         let chunk_iter = Spiral2d::new()
             .filter_map(|rpos| {
                 let pos = focus_chunk + rpos;

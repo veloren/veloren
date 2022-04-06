@@ -1617,7 +1617,7 @@ impl PlayState for SessionState {
                             &outcome,
                             &scene_data,
                             &mut global_state.audio,
-                            &client.state(),
+                            client.state(),
                             cam_pos,
                         );
                         self.hud

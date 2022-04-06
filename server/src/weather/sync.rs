@@ -5,8 +5,6 @@ use specs::{Join, ReadExpect, ReadStorage, Write};
 
 use crate::{client::Client, sys::SysScheduler};
 
-use super::sim::WeatherSim;
-
 #[derive(Default)]
 pub struct Sys;
 

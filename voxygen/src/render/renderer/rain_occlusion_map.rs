@@ -1,9 +1,10 @@
-use crate::render::pipelines::rain_occlusion;
+use crate::render::{pipelines::rain_occlusion, renderer::RAIN_OCCLUSION_CHUNKS};
 
 use super::{
     super::{texture::Texture, RenderError, ShadowMapMode},
     Renderer,
 };
+use common::{terrain::TerrainChunkSize, vol::RectVolSize};
 use vek::*;
 
 /// A type that holds shadow map data.  Since shadow mapping may not be
@@ -115,15 +116,17 @@ impl RainOcclusionMap {
     /// Returns (point, directed)
     pub(super) fn create_view(
         device: &wgpu::Device,
-        size: (u32, u32),
         mode: &ShadowMapMode,
     ) -> Result<Texture, RenderError> {
         // (Attempt to) apply resolution factor to rain occlusion map resolution.
         let resolution_factor = mode.resolution.clamped(0.25, 4.0);
 
         let max_texture_size = Renderer::max_texture_size_raw(device);
+        let size =
+            (RAIN_OCCLUSION_CHUNKS as f32).sqrt().ceil() as u32 * TerrainChunkSize::RECT_SIZE * 2;
+
         // Limit to max texture size, rather than erroring.
-        let size = Vec2::new(size.0, size.1).map(|e| {
+        let size = size.map(|e| {
             let size = e as f32 * resolution_factor;
             // NOTE: We know 0 <= e since we clamped the resolution factor to be between
             // 0.25 and 4.0.
@@ -221,6 +224,4 @@ impl RainOcclusionMap {
             Self::Disabled(dummy) => dummy,
         }
     }
-
-    pub fn is_enabled(&self) -> bool { matches!(self, Self::Enabled(_)) }
 }

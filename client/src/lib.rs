@@ -163,6 +163,7 @@ impl WeatherLerp {
     }
 
     fn update(&mut self, to_update: &mut WeatherGrid) {
+        prof_span!("WeatherLerp::update");
         let old = &self.old.0;
         let new = &self.new.0;
         if new.size() == Vec2::zero() {

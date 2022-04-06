@@ -139,13 +139,13 @@ void main() {
                 break;
             }
             float rain_density = rain_density_at(cam_wpos.xy + rpos.xy) * rain_occlusion_at(cam_pos.xyz + rpos.xyz) * 10.0;
-            vec2 drop_size = vec2(0.0008, 0.05);
 
-            if (fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
+            if (rain_density < 0.001 || fract(hash(fract(vec4(cell, rain_dist, 0) * 0.01))) > rain_density) {
                 continue;
             }
             vec2 near_drop = cell + (vec2(0.5) + (vec2(hash(vec4(cell, 0, 0)), 0.5) - 0.5) * vec2(2, 0)) / drop_density;
 
+            vec2 drop_size = vec2(0.0008, 0.05);
             float avg_alpha = (drop_size.x * drop_size.y) * 10 / 1;
             float alpha = sign(max(1 - length((rain_pos - near_drop) / drop_size * 0.1), 0));
             float light = sqrt(dot(old_color, vec3(1))) + (get_sun_brightness() + get_moon_brightness()) * 0.01;

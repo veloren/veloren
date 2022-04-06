@@ -82,6 +82,21 @@ pub struct WeatherGrid {
     weather: Grid<Weather>,
 }
 
+fn to_cell_pos(wpos: Vec2<f32>) -> Vec2<f32> { wpos / CELL_SIZE as f32 - 0.5 }
+
+// TODO: Move consts from world to common to avoid duplication
+const LOCALITY: [Vec2<i32>; 9] = [
+    Vec2::new(0, 0),
+    Vec2::new(0, 1),
+    Vec2::new(1, 0),
+    Vec2::new(0, -1),
+    Vec2::new(-1, 0),
+    Vec2::new(1, 1),
+    Vec2::new(1, -1),
+    Vec2::new(-1, 1),
+    Vec2::new(-1, -1),
+];
+
 impl WeatherGrid {
     pub fn new(size: Vec2<u32>) -> Self {
         Self {
@@ -100,7 +115,7 @@ impl WeatherGrid {
     /// Get the weather at a given world position by doing bilinear
     /// interpolation between four cells.
     pub fn get_interpolated(&self, wpos: Vec2<f32>) -> Weather {
-        let cell_pos = wpos / CELL_SIZE as f32;
+        let cell_pos = to_cell_pos(wpos);
         let rpos = cell_pos.map(|e| e.fract());
         let cell_pos = cell_pos.map(|e| e.floor());
 
@@ -124,5 +139,25 @@ impl WeatherGrid {
             ),
             rpos.y,
         )
+    }
+
+    /// Get the max weather near a position
+    pub fn get_max_near(&self, wpos: Vec2<f32>) -> Weather {
+        let cell_pos: Vec2<i32> = to_cell_pos(wpos).as_();
+        LOCALITY
+            .iter()
+            .map(|l| {
+                self.weather
+                    .get(cell_pos + l)
+                    .cloned()
+                    .unwrap_or_default()
+            })
+            .reduce(|a, b| Weather {
+                cloud: a.cloud.max(b.cloud),
+                rain: a.rain.max(b.rain),
+                wind: a.wind.map2(b.wind, |a, b| a.max(b)),
+            })
+            // There will always be 9 elements in locality
+            .unwrap()
     }
 }

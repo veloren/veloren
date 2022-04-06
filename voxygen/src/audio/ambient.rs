@@ -151,7 +151,7 @@ impl AmbientMgr {
                     + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2))
                 .min(1.0);
 
-                return alt_multiplier * tree_multiplier > 0.0;
+                alt_multiplier * tree_multiplier > 0.0
             },
             AmbientChannelTag::Rain => {
                 let focus_off = camera.get_focus_pos().map(f32::trunc);
@@ -165,9 +165,9 @@ impl AmbientMgr {
                 let camera_multiplier =
                     1.0 - ((cam_pos.z - terrain_alt).abs() / 75.0).powi(2).min(1.0);
 
-                return client.weather_at_player().rain > 0.001 || camera_multiplier > 0.0;
+                client.weather_at_player().rain > 0.001 || camera_multiplier > 0.0
             },
-            AmbientChannelTag::Thunder => return client.weather_at_player().rain * 500.0 > 0.7,
+            AmbientChannelTag::Thunder => client.weather_at_player().rain * 500.0 > 0.7,
             AmbientChannelTag::Leaves => {
                 let focus_off = camera.get_focus_pos().map(f32::trunc);
                 let cam_pos = camera.dependents().cam_pos + focus_off;
@@ -182,7 +182,7 @@ impl AmbientMgr {
                         + ((cam_pos.z - terrain_alt + 20.0).abs() / 150.0).powi(2))
                     .min(1.0));
 
-                return tree_multiplier > 0.1;
+                tree_multiplier > 0.1
             },
         }
     }
@@ -199,7 +199,7 @@ impl AmbientChannel {
 
         target_volume = self.check_camera(state, client, cam_pos, target_volume);
 
-        return target_volume;
+        target_volume
     }
 
     fn check_camera(
@@ -268,10 +268,10 @@ impl AmbientChannel {
                     / 30.0_f32.powi(2))
                 .min(1.0);
 
-                return alt_multiplier
+                alt_multiplier
                     * tree_multiplier
                     * (wind_speed_multiplier + ((cam_pos.z - terrain_alt).abs() / 150.0).powi(2))
-                        .min(1.0);
+                        .min(1.0)
             },
             AmbientChannelTag::Rain => {
                 let focus_off = camera.get_focus_pos().map(f32::trunc);
@@ -288,7 +288,7 @@ impl AmbientChannel {
 
                 let rain_intensity = (client.weather_at_player().rain * 500.0) * camera_multiplier;
 
-                return rain_intensity.min(0.9);
+                rain_intensity.min(0.9)
             },
             AmbientChannelTag::Thunder => {
                 let rain_intensity = client.weather_at_player().rain * 500.0;

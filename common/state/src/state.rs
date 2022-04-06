@@ -359,6 +359,10 @@ impl State {
         self.weather_grid().get_interpolated(pos)
     }
 
+    pub fn max_weather_near(&self, pos: Vec2<f32>) -> Weather {
+        self.weather_grid().get_max_near(pos)
+    }
+
     /// Get the current in-game time of day.
     ///
     /// Note that this should not be used for physics, animations or other such

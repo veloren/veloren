@@ -367,8 +367,7 @@ impl Default for RenderMode {
             fluid: FluidMode::default(),
             lighting: LightingMode::default(),
             shadow: ShadowMode::default(),
-            // TODO: should 0.5 be default for rain_occlusion?
-            rain_occlusion: ShadowMapMode { resolution: 0.5 },
+            rain_occlusion: ShadowMapMode::default(),
             bloom: BloomMode::default(),
             point_glow: 0.35,
             experimental_shaders: HashSet::default(),

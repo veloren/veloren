@@ -1,4 +1,4 @@
-use common::weather::{WeatherGrid, CHUNKS_PER_CELL, WEATHER_DT};
+use common::weather::{CHUNKS_PER_CELL, WEATHER_DT};
 use common_ecs::{dispatch, System};
 use common_state::State;
 use specs::DispatcherBuilder;

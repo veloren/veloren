@@ -121,11 +121,8 @@ float cloud_tendency_at(vec2 pos) {
     return sample_weather(pos).r;
 }
 
-const float RAIN_CLOUD = 0.05;
-
 float rain_density_at(vec2 pos) {
     return sample_weather(pos).g;
-    //return clamp((cloud_tendency_at(pos) - RAIN_CLOUD) * 10, 0, 1);
 }
 
 float cloud_shadow(vec3 pos, vec3 light_dir) {
