@@ -769,6 +769,7 @@ impl Show {
             }
             self.crafting = open;
             self.crafting_fields.salvage = false;
+            self.crafting_fields.recipe_inputs = HashMap::new();
             self.bag = open;
             self.map = false;
             self.want_grab = !open;
