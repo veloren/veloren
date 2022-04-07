@@ -3,32 +3,32 @@
 #![enable(implicit_some)]
 (
     // Gear
-    head: Item("common.items.npc_armor.biped_small.myrmidon.head.hoplite"),
-    neck: Item("common.items.armor.misc.neck.gem_of_resilience"),
-    shoulders: Item("common.items.armor.twigsflowers.shoulder"),
-    chest: Item("common.items.armor.twigsflowers.chest"),
-    gloves: Item("common.items.armor.twigsflowers.hand"),
-    ring1: Item("common.items.armor.misc.ring.gold"),
-    ring2: Item("common.items.armor.misc.ring.gold"),
-    back: Item("common.items.armor.misc.back.dungeon_purple"),
-    belt: Item("common.items.armor.twigsflowers.belt"),
-    legs: Item("common.items.armor.twigsflowers.pants"),
-    feet: Item("common.items.armor.twigsflowers.foot"),
-    tabard: Item("common.items.debug.admin"),
+    head: "common.items.npc_armor.biped_small.myrmidon.head.hoplite",
+    neck: "common.items.armor.misc.neck.gem_of_resilience",
+    shoulders: "common.items.armor.twigsflowers.shoulder",
+    chest: "common.items.armor.twigsflowers.chest",
+    gloves: "common.items.armor.twigsflowers.hand",
+    ring1: "common.items.armor.misc.ring.gold",
+    ring2: "common.items.armor.misc.ring.gold",
+    back: "common.items.armor.misc.back.dungeon_purple",
+    belt: "common.items.armor.twigsflowers.belt",
+    legs: "common.items.armor.twigsflowers.pants",
+    feet: "common.items.armor.twigsflowers.foot",
+    tabard: "common.items.debug.admin",
     // Misc
-    bag1: Item("common.items.armor.misc.bag.tiny_leather_pouch"),
-    bag2: Item("common.items.armor.misc.bag.tiny_leather_pouch"),
-    bag3: Item("common.items.armor.misc.bag.tiny_leather_pouch"),
-    bag4: Item("common.items.armor.misc.bag.tiny_leather_pouch"),
-    lantern: Item("common.items.lantern.black_0"),
-    glider: Item("common.items.glider.basic_red"),
+    bag1: "common.items.armor.misc.bag.tiny_leather_pouch",
+    bag2: "common.items.armor.misc.bag.tiny_leather_pouch",
+    bag3: "common.items.armor.misc.bag.tiny_leather_pouch",
+    bag4: "common.items.armor.misc.bag.tiny_leather_pouch",
+    lantern: "common.items.lantern.black_0",
+    glider: "common.items.glider.basic_red",
     // Weapons
-    active_hands: InHands((
-        Item("common.items.weapons.sword_1h.bloodsteel-0"),
-        Item("common.items.weapons.sword_1h.bloodsteel-0"),
-    )),
-    inactive_hands: InHands((
-        Item("common.items.weapons.sceptre.sceptre_velorite_0"),
+    active_hands: (
+        "common.items.weapons.sword_1h.bloodsteel-0",
+        "common.items.weapons.sword_1h.bloodsteel-0",
+    ),
+    inactive_hands: (
+        "common.items.weapons.sceptre.sceptre_velorite_0",
         None,
-    )),
+    ),
 )

@@ -36,15 +36,8 @@ pub enum ValidationError {
     Loop(Vec<String>),
 }
 
-// TODO: serde un-tag?
-// <https://serde.rs/enum-representations.html>
-//
-// Pros:
-// + less noise
-//
-// Cons:
-// - limits us to using different types for each variant
 #[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
 enum ItemSpec {
     Item(String),
     Choice(Vec<(Weight, Option<ItemSpec>)>),
@@ -93,6 +86,7 @@ impl ItemSpec {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
 enum Hands {
     /// Allows to specify one pair
     // TODO: add link to tests with example

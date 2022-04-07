@@ -56,12 +56,14 @@ mod loadout_v2 {
     }
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
+    #[serde(untagged)]
     pub enum ItemSpecNew {
         Item(String),
         Choice(Vec<(Weight, Option<ItemSpecNew>)>),
     }
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
+    #[serde(untagged)]
     pub enum Hands {
         /// Allows to specify one pair
         // TODO: add link to tests with example
