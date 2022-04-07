@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     util::{RandomField, Sampler},
-    Land, CanvasInfo,
+    Land,
 };
 use common::{
     generation::EntityInfo,

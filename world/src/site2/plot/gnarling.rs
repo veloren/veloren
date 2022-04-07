@@ -3,7 +3,7 @@ use crate::{
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
     util::{attempt, sampler::Sampler, RandomField},
-    Land, CanvasInfo,
+    Land,
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},

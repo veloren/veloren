@@ -433,6 +433,7 @@ impl Civs {
                         &Land::from_sim(ctx.sim),
                         &mut rng,
                         wpos,
+                        index_ref,
                     )),
                 }
             });

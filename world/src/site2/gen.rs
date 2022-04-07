@@ -1442,7 +1442,7 @@ pub trait Structure {
             },
         };
 
-        self.render(site, &canvas.land(), &painter, &canvas);
+        self.render(site, &canvas.land(), &painter);
         (
             painter.prims.into_inner(),
             painter.fills.into_inner(),

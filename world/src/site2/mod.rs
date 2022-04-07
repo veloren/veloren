@@ -471,14 +471,19 @@ impl Site {
         site
     }
 
-    pub fn generate_adlet(land: &Land, rng: &mut impl Rng, origin: Vec2<i32>) -> Self {
+    pub fn generate_adlet(
+        land: &Land,
+        rng: &mut impl Rng,
+        origin: Vec2<i32>,
+        index: IndexRef,
+    ) -> Self {
         let mut rng = reseed(rng);
         let mut site = Site {
             origin,
             ..Site::default()
         };
         site.demarcate_obstacles(land);
-        let adlet_stronghold = plot::AdletStronghold::generate(origin, land, &mut rng);
+        let adlet_stronghold = plot::AdletStronghold::generate(origin, land, &mut rng, index);
         site.name = adlet_stronghold.name().to_string();
         let (cavern_aabr, wall_aabr) = adlet_stronghold.plot_tiles(origin);
         let plot = site.create_plot(Plot {

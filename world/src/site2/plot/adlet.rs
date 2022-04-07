@@ -3,7 +3,7 @@ use crate::{
     assets::AssetHandle,
     site2::{gen::PrimitiveTransform, util::Dir},
     util::{attempt, sampler::Sampler, FastNoise, RandomField},
-    Land, CanvasInfo,
+    IndexRef, Land,
 };
 use common::{
     generation::{ChunkSupplement, EntityInfo},
@@ -18,7 +18,8 @@ use std::{
 };
 use vek::*;
 
-const ANGLE_SAMPLES: usize = 360;
+const ANGLE_SAMPLES: usize = 128;
+const WALL_DELTA: f32 = 4.0;
 
 pub struct AdletStronghold {
     name: String,
@@ -27,7 +28,7 @@ pub struct AdletStronghold {
     wall_center: Vec2<i32>,
     wall_radius: i32,
     wall_alt: f32,
-    wall_alt_sample_positions: [[Vec2<i32>; 3]; ANGLE_SAMPLES],
+    wall_alt_samples: [f32; ANGLE_SAMPLES],
     tunnel_length: i32,
     cavern_center: Vec2<i32>,
     cavern_alt: f32,
@@ -54,7 +55,7 @@ impl AdletStructure {
 }
 
 impl AdletStronghold {
-    pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng) -> Self {
+    pub fn generate(wpos: Vec2<i32>, land: &Land, rng: &mut impl Rng, index: IndexRef) -> Self {
         let name = NameGen::location(rng).generate_adlet();
         let seed = rng.gen();
         let entrance = wpos;
@@ -68,20 +69,32 @@ impl AdletStronghold {
         let wall_center = entrance.map(|x| x + rng.gen_range(-wall_radius / 4..wall_radius / 4));
         let wall_alt = land.get_alt_approx(wall_center) + 10.0;
 
-        let mut wall_alt_sample_positions = [[Vec2::zero(); 3]; ANGLE_SAMPLES];
+        let mut wall_alt_sample_positions = [Vec2::zero(); ANGLE_SAMPLES];
         for i in 0..ANGLE_SAMPLES {
             let theta = i as f32 / ANGLE_SAMPLES as f32 * TAU;
-            // let sample_rpos = Vec2::new(
-            //     theta.cos() * wall_radius as f32,
-            //     theta.sin() * wall_radius as f32,
-            // );
-            // wall_alt_sample_positions[i] = sample_rpos.as_() + wall_center;
-            for j in 0..3 {
-                let sample_rpos = Vec2::new(
-                    theta.cos() * (wall_radius as f32 + j as f32 - 1.0),
-                    theta.sin() * (wall_radius as f32 + j as f32 - 1.0),
-                );
-                wall_alt_sample_positions[i][j] = sample_rpos.as_() + wall_center;
+            let sample_rpos = Vec2::new(
+                theta.cos() * wall_radius as f32,
+                theta.sin() * wall_radius as f32,
+            );
+            wall_alt_sample_positions[i] = sample_rpos.as_() + wall_center;
+        }
+        let mut wall_alt_samples = wall_alt_sample_positions.map(|pos| {
+            land.column_sample(pos, index)
+                .map_or(land.get_alt_approx(pos), |col| col.alt)
+                .min(wall_alt)
+        });
+        loop {
+            let mut changed = false;
+            for i in 0..wall_alt_samples.len() {
+                let tmp = (wall_alt_samples[(i + 1) % ANGLE_SAMPLES] - WALL_DELTA)
+                    .max(wall_alt_samples[(i + ANGLE_SAMPLES - 1) % ANGLE_SAMPLES] - WALL_DELTA);
+                if tmp > wall_alt_samples[i] {
+                    wall_alt_samples[i] = tmp;
+                    changed = true;
+                }
+            }
+            if !changed {
+                break;
             }
         }
 
@@ -128,7 +141,7 @@ impl AdletStronghold {
             wall_center,
             wall_radius,
             wall_alt,
-            wall_alt_sample_positions,
+            wall_alt_samples,
             tunnel_length,
             cavern_center,
             cavern_radius,
@@ -191,28 +204,6 @@ impl Structure for AdletStronghold {
     #[cfg_attr(feature = "be-dyn-lib", export_name = "render_adletstronghold")]
     fn render_inner(&self, _site: &Site, land: &Land, painter: &Painter) {
         let wall_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
-        const WALL_DELTA: f32 = 4.0;
-        // let mut wall_alt_samples = self.wall_alt_sample_positions.map(|pos| canvas.col(pos).map_or(land.get_alt_approx(pos), |col| col.alt));
-        let mut wall_alt_samples = self.wall_alt_sample_positions.map(|poses| {
-            let mut average = 0.0;
-            for pos in poses.iter() {
-                average += canvas.col(*pos).map_or(land.get_alt_approx(*pos), |col| col.alt);
-            }
-            average / 3.0
-        });
-        loop {
-            let mut changed = false;
-            for i in 0..wall_alt_samples.len() {
-                let tmp = (wall_alt_samples[(i + 1) % ANGLE_SAMPLES] - WALL_DELTA).max(wall_alt_samples[(i + ANGLE_SAMPLES - 1) % ANGLE_SAMPLES] - WALL_DELTA);
-                if tmp > wall_alt_samples[i] {
-                    wall_alt_samples[i] = tmp;
-                    changed = true;
-                }
-            }
-            if !changed {
-                break;
-            }
-        }
         // Wall
         painter
             .cylinder_with_radius(
@@ -230,19 +221,24 @@ impl Structure for AdletStronghold {
                 ),
             )
             .sample_with_column({
+                let wall_alt_samples = self.wall_alt_samples;
                 let wall_center = self.wall_center;
                 let theta = move |pos: Vec2<i32>| {
                     let rpos: Vec2<f32> = (pos - wall_center).as_();
                     let theta = rpos.y.atan2(rpos.x);
-                    if theta > 0.0 {
-                        theta
-                    } else {
-                        theta + TAU
-                    }
+                    if theta > 0.0 { theta } else { theta + TAU }
                 };
                 move |pos, col| {
-                    let index = (theta(pos.xy()) * ANGLE_SAMPLES as f32 / TAU).floor().max(0.0) as usize % ANGLE_SAMPLES;
-                    (col.alt.sub(10.0)..wall_alt_samples[index].add(10.0).div(WALL_DELTA).floor().mul(WALL_DELTA))
+                    let index = (theta(pos.xy()) * ANGLE_SAMPLES as f32 / TAU)
+                        .floor()
+                        .max(0.0) as usize
+                        % ANGLE_SAMPLES;
+                    (col.alt.sub(10.0)
+                        ..wall_alt_samples[index]
+                            .add(12.0)
+                            .div(WALL_DELTA)
+                            .floor()
+                            .mul(WALL_DELTA))
                         .contains(&(pos.z as f32))
                 }
             })

@@ -1,5 +1,5 @@
 use super::*;
-use crate::{util::SQUARE_4, Land, CanvasInfo};
+use crate::{util::SQUARE_4, Land};
 use common::terrain::{Block, BlockKind};
 use num::Integer;
 use rand::prelude::*;
