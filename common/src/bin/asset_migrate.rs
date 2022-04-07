@@ -278,11 +278,10 @@ mod entity_v2 {
     pub type Config = EntityConfig;
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
-    #[allow(clippy::large_enum_variant)]
     pub enum LoadoutKindNew {
         FromBody,
         Asset(String),
-        Inline(super::loadout_v2::LoadoutSpecNew),
+        Inline(Box<super::loadout_v2::LoadoutSpecNew>),
     }
 
     #[derive(Debug, Deserialize, Serialize, Clone)]
@@ -307,7 +306,7 @@ mod entity_v2 {
         fn from(old: LoadoutAsset) -> Self {
             match old {
                 LoadoutAsset::Loadout(s) => LoadoutKindNew::Asset(s),
-                LoadoutAsset::Choice(bases) => LoadoutKindNew::Inline(LoadoutSpecNew {
+                LoadoutAsset::Choice(bases) => LoadoutKindNew::Inline(Box::new(LoadoutSpecNew {
                     inherit: Some(Base::Choice(
                         bases
                             .iter()
@@ -315,7 +314,7 @@ mod entity_v2 {
                             .collect(),
                     )),
                     ..Default::default()
-                }),
+                })),
             }
         }
     }
@@ -364,7 +363,7 @@ mod entity_v2 {
             items: Vec<(u32, String)>,
         ) -> Self {
             Self {
-                loadout: LoadoutKindNew::Inline(LoadoutSpecNew {
+                loadout: LoadoutKindNew::Inline(Box::new(LoadoutSpecNew {
                     inherit: loadout.map(|asset| match asset {
                         LoadoutAsset::Loadout(s) => Base::Asset(s),
                         LoadoutAsset::Choice(bases) => Base::Choice(
@@ -376,7 +375,7 @@ mod entity_v2 {
                     }),
                     active_hands: Some(hands.into()),
                     ..Default::default()
-                }),
+                })),
                 items,
             }
         }

@@ -38,11 +38,10 @@ impl Default for AlignmentMark {
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[allow(clippy::large_enum_variant)]
 pub enum LoadoutKind {
     FromBody,
     Asset(String),
-    Inline(LoadoutSpec),
+    Inline(Box<LoadoutSpec>),
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -316,7 +315,7 @@ impl EntityInfo {
             },
             LoadoutKind::Inline(loadout_spec) => {
                 let loadout =
-                    LoadoutBuilder::from_loadout_spec(loadout_spec, rng).unwrap_or_else(|e| {
+                    LoadoutBuilder::from_loadout_spec(*loadout_spec, rng).unwrap_or_else(|e| {
                         panic!("failed to load loadout for {config_asset}: {e:?}");
                     });
                 self.loadout = loadout;
