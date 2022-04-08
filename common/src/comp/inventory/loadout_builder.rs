@@ -1,5 +1,3 @@
-//#![warn(clippy::pedantic)]
-//#![warn(clippy::nursery)]
 use crate::{
     assets::{self, AssetExt},
     comp::{
@@ -89,10 +87,8 @@ impl ItemSpec {
 #[serde(untagged)]
 enum Hands {
     /// Allows to specify one pair
-    // TODO: add link to tests with example
     InHands((Option<ItemSpec>, Option<ItemSpec>)),
     /// Allows specify range of choices
-    // TODO: add link to tests with example
     Choice(Vec<(Weight, Hands)>),
 }
 
@@ -189,6 +185,12 @@ impl Base {
 }
 
 // TODO: remove clone
+/// Core struct of loadout asset.
+///
+/// If you want programing API of loadout creation,
+/// use `LoadoutBuilder` instead.
+///
+/// For examples of assets, see `assets/test/ladout/ok` folder.
 #[derive(Debug, Deserialize, Clone, Default)]
 #[serde(deny_unknown_fields)]
 pub struct LoadoutSpec {
@@ -225,15 +227,28 @@ impl LoadoutSpec {
     ///
     /// NOTE: it uses only inheritance chain from `base`
     /// without evaluating it.
+    /// Inheritance chain from `self` is discarded.
     ///
     /// # Examples
-    /// 1) If you have A inherit from B and B inherit from C,
-    /// and you load A and B and then merge them, you will get new
-    /// `LoadoutSpec` that will inherit from C.
+    /// 1)
+    /// You have your asset, let's call it "a". In this asset, you have
+    /// inheritance from "b". In asset "b" you inherit from "c".
     ///
-    /// 2) If you have A inherit from N and B inherit from M,
-    /// and you merge A and B, it is probably an error because
-    /// inheritance chain to N is lost.
+    /// If you load your "a" into LoadoutSpec A, and "b" into LoadoutSpec B,
+    /// and then merge A into B, you will get new LoadoutSpec that will inherit
+    /// from "c".
+    ///
+    /// 2)
+    /// You have two assets, let's call them "a" and "b".
+    /// "a" inherits from "n",
+    /// "b" inherits from "m".
+    ///
+    /// If you load "a" into A, "b" into B and then will try to merge them
+    /// you will get new LoadoutSpec that will inherit from "m".
+    /// It's error, because chain to "n" is lost!!!
+    ///
+    /// Correct way to do this will be first evaluating at least "a" and then
+    /// merge this new LoadoutSpec with "b".
     fn merge(self, base: Self) -> Self {
         Self {
             inherit: base.inherit,
