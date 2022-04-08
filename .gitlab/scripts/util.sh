@@ -27,23 +27,3 @@ if [[ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]]; then
   return 0;
 fi
 }
-
-### returns respective GIT TAG
-### release-tag => "" (releases already have a tag)
-### schedule => <SCHEDULE_CADENCE> (e.g. nightly)
-### master => "" (master doesn't need a tag)
-### else => ""
-publishgittag () {
-local -n VAR=$1
-if [[ -z "${SCHEDULE_CADENCE}" && ${CI_PIPELINE_SOURCE} == "schedule" ]]; then
-  VAR="${SCHEDULE_CADENCE}";
-  # sanitize check
-  if [[ "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
-    VAR="invalid_cadence";
-  else
-    VAR="${SCHEDULE_CADENCE}";
-  fi
-  return 0;
-fi
-VAR="";
-}

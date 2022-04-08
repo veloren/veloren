@@ -32,6 +32,8 @@ docker:
 
 gittag:
   extends: .publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "publish", "trusted"]
   script:
@@ -40,10 +42,9 @@ gittag:
     - git config --global http.postBuffer 52428800
     - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
     - |
-      publishgittag PUBLISH_GIT_TAG
-      if [ "${PUBLISH_GIT_TAG}" != "" ]; then
-        git tag -a "${PUBLISH_GIT_TAG}" -m '' -f;
-        git push origin "${PUBLISH_GIT_TAG}" -f;
+      if [[ ! "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
+        git tag -a "${SCHEDULE_CADENCE}" -m '' -f;
+        git push origin "${SCHEDULE_CADENCE}" -f;
       fi
 
 pages:
