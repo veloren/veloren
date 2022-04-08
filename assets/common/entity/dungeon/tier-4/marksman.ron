@@ -1,13 +1,15 @@
+#![enable(implicit_some)]
 (
     name: Name("Myrmidon Marksman"),
     body: RandomWith("myrmidon"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.myrmidon.marksman")),
-        base_asset: Loadout("common.loadout.dungeon.tier-4.marksman"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-4.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.tier-4.marksman"),
+            active_hands: ("common.items.npc_weapons.biped_small.myrmidon.marksman", None),
+        )),
+    ),
     meta: [
         SkillSetAsset("common.skillset.preset.rank4.fullskill"),
     ],

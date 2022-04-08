@@ -1,26 +1,29 @@
+#![enable(implicit_some)]
 (
     name: Name("Traveler"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
-    loadout: Extended(
-        hands: TwoHanded(Choice([
-            (1.0, Some(Item("common.items.weapons.sword.iron-0"))),
-            (1.0, Some(Item("common.items.weapons.axe.iron_axe-0"))),
-            (1.0, Some(Item("common.items.weapons.hammer.iron_hammer-0"))),
-            (1.0, Some(Item("common.items.weapons.bow.hardwood-0"))),
-            (1.0, Some(Item("common.items.weapons.staff.heated_arm"))),
-            (1.0, Some(Item("common.items.weapons.sceptre.staff_nature"))),
-        ])),
-        base_asset: Choice([
-            (1, "common.loadout.world.traveler1.iron"),
-            (1, "common.loadout.world.traveler1.leather"),
-            (1, "common.loadout.world.traveler1.wool"),
-        ]),
-        inventory: [
+    loot: LootTable("common.loot_tables.world.traveler1"),
+    inventory: (
+        loadout: Inline((
+            inherit: Choice([
+                (1, Asset("common.loadout.world.traveler1.iron")),
+                (1, Asset("common.loadout.world.traveler1.leather")),
+                (1, Asset("common.loadout.world.traveler1.wool")),
+            ]),
+            active_hands: ([
+                (1, "common.items.weapons.sword.iron-0"),
+                (1, "common.items.weapons.axe.iron_axe-0"),
+                (1, "common.items.weapons.hammer.iron_hammer-0"),
+                (1, "common.items.weapons.bow.hardwood-0"),
+                (1, "common.items.weapons.staff.heated_arm"),
+                (1, "common.items.weapons.sceptre.staff_nature"),
+            ], None),
+        )),
+        items: [
             (25, "common.items.consumable.potion_minor"),
         ],
     ),
-    loot: LootTable("common.loot_tables.world.traveler1"),
     meta: [
         SkillSetAsset("common.skillset.preset.rank2.fullskill"),
     ],

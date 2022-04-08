@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: RandomWith("weevil"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.arthropod.leaf"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

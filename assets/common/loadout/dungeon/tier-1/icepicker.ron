@@ -1,8 +1,9 @@
-({
-    Armor(Head): Item("common.items.npc_armor.biped_small.adlet.head.icepicker"),
-    Armor(Hands): Item("common.items.npc_armor.biped_small.adlet.hand.icepicker"),
-    Armor(Feet): Item("common.items.npc_armor.biped_small.adlet.foot.icepicker"),
-    Armor(Chest): Item("common.items.npc_armor.biped_small.adlet.chest.icepicker"),
-    Armor(Legs): Item("common.items.npc_armor.biped_small.adlet.pants.icepicker"),
-    Armor(Belt): Item("common.items.npc_armor.biped_small.adlet.tail.icepicker"),
-})
+#![enable(implicit_some)]
+(
+    head: "common.items.npc_armor.biped_small.adlet.head.icepicker",
+    chest: "common.items.npc_armor.biped_small.adlet.chest.icepicker",
+    gloves: "common.items.npc_armor.biped_small.adlet.hand.icepicker",
+    belt: "common.items.npc_armor.biped_small.adlet.tail.icepicker",
+    legs: "common.items.npc_armor.biped_small.adlet.pants.icepicker",
+    feet: "common.items.npc_armor.biped_small.adlet.foot.icepicker",
+)

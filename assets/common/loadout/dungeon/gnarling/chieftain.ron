@@ -1,8 +1,9 @@
-({
-    Armor(Head): Item("common.items.npc_armor.biped_small.gnarling.head.chieftain"),
-    Armor(Feet): Item("common.items.npc_armor.biped_small.gnarling.foot.chieftain"),
-    Armor(Hands): Item("common.items.npc_armor.biped_small.gnarling.hand.chieftain"),
-    Armor(Chest): Item("common.items.npc_armor.biped_small.gnarling.chest.chieftain"),
-    Armor(Legs): Item("common.items.npc_armor.biped_small.gnarling.pants.chieftain"),
-    Armor(Belt): Item("common.items.npc_armor.biped_small.gnarling.tail.chieftain"),
-})
+#![enable(implicit_some)]
+(
+    head: "common.items.npc_armor.biped_small.gnarling.head.chieftain",
+    chest: "common.items.npc_armor.biped_small.gnarling.chest.chieftain",
+    gloves: "common.items.npc_armor.biped_small.gnarling.hand.chieftain",
+    belt: "common.items.npc_armor.biped_small.gnarling.tail.chieftain",
+    legs: "common.items.npc_armor.biped_small.gnarling.pants.chieftain",
+    feet: "common.items.npc_armor.biped_small.gnarling.foot.chieftain",
+)

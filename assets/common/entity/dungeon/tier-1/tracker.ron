@@ -1,13 +1,15 @@
+#![enable(implicit_some)]
 (
     name: Name("Adlet Tracker"),
     body: RandomWith("adlet"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.adlet.tracker")),
-        base_asset: Loadout("common.loadout.dungeon.tier-1.tracker"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-1.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.tier-1.tracker"),
+            active_hands: ("common.items.npc_weapons.biped_small.adlet.tracker", None),
+        )),
+    ),
     meta: [
         SkillSetAsset("common.skillset.preset.rank1.fullskill"),
     ],

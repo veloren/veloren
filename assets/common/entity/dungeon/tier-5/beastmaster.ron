@@ -1,17 +1,19 @@
+#![enable(implicit_some)]
 (
     name: Name("Beastmaster"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Choice([
-            (1, Some(Item("common.items.weapons.axe.malachite_axe-0"))),
-            (1, Some(Item("common.items.weapons.sword.bloodsteel-1"))),
-            (1, Some(Item("common.items.weapons.bow.velorite"))),
-        ])),
-        base_asset: Loadout("common.loadout.dungeon.tier-5.beastmaster"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-5.miniboss"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.tier-5.beastmaster"),
+            active_hands: ([
+                (1, "common.items.weapons.axe.malachite_axe-0"),
+                (1, "common.items.weapons.sword.bloodsteel-1"),
+                (1, "common.items.weapons.bow.velorite"),
+            ], None),
+        )),
+    ),
     meta: [
         SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],

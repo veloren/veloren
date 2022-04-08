@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: RandomWith("raptor_snow"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.theropod.raptor"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

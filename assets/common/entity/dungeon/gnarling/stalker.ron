@@ -1,12 +1,14 @@
+#![enable(implicit_some)]
 (
     name: Name("Gnarling Stalker"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.stalker")),
-        base_asset: Loadout("common.loadout.dungeon.gnarling.stalker"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.gnarling.stalker"),
+            active_hands: ("common.items.npc_weapons.biped_small.gnarling.stalker", None),
+        )),
+    ),
     meta: [],
 )

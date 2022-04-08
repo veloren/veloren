@@ -1,23 +1,25 @@
+#![enable(implicit_some)]
 (
     name: Name("Alchemist"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
-
-    loadout: Extended(
-        hands: TwoHanded(Choice([
-            (1, Some(Item("common.items.weapons.tool.broom"))),
-            (1, Some(Item("common.items.weapons.tool.hoe"))),
-            (1, Some(Item("common.items.weapons.tool.pickaxe"))),
-            (1, Some(Item("common.items.weapons.tool.rake"))),
-            (1, Some(Item("common.items.weapons.tool.shovel-0"))),
-            (1, Some(Item("common.items.weapons.tool.shovel-1"))),
-        ])),
-        base_asset: Loadout("common.loadout.village.alchemist"),
-        inventory: [
+    loot: LootTable("common.loot_tables.creature.humanoid"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.village.alchemist"),
+            active_hands: ([
+                (1, "common.items.weapons.tool.broom"),
+                (1, "common.items.weapons.tool.hoe"),
+                (1, "common.items.weapons.tool.pickaxe"),
+                (1, "common.items.weapons.tool.rake"),
+                (1, "common.items.weapons.tool.shovel-0"),
+                (1, "common.items.weapons.tool.shovel-1"),
+            ], None),
+        )),
+        items: [
             (10, "common.items.consumable.potion_big"),
         ],
     ),
-    loot: LootTable("common.loot_tables.creature.humanoid"),
     meta: [
         SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],

@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: Exact(QuadrupedMedium((
@@ -5,7 +6,9 @@
         body_type: Female,
     ))),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_medium.ice"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

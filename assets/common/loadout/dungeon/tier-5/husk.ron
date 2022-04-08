@@ -1,9 +1,9 @@
-({
-    ActiveMainhand: Item("common.items.npc_weapons.unique.husk"),
-
-    Armor(Head): Item("common.items.npc_armor.biped_small.husk.head.husk"),
-    Armor(Feet): Item("common.items.npc_armor.biped_small.husk.foot.husk"),
-    Armor(Hands): Item("common.items.npc_armor.biped_small.husk.hand.husk"),
-    Armor(Chest): Item("common.items.npc_armor.biped_small.husk.chest.husk"),
-    Armor(Legs): Item("common.items.npc_armor.biped_small.husk.pants.husk"),
-})
+#![enable(implicit_some)]
+(
+    head: "common.items.npc_armor.biped_small.husk.head.husk",
+    chest: "common.items.npc_armor.biped_small.husk.chest.husk",
+    gloves: "common.items.npc_armor.biped_small.husk.hand.husk",
+    legs: "common.items.npc_armor.biped_small.husk.pants.husk",
+    feet: "common.items.npc_armor.biped_small.husk.foot.husk",
+    active_hands: ("common.items.npc_weapons.unique.husk", None),
+)

@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: RandomWith("stag_beetle"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.arthropod.carapace"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

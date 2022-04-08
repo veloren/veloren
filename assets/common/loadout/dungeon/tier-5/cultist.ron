@@ -1,31 +1,29 @@
-({
-    Armor(Shoulders): Item("common.items.armor.cultist.shoulder"),
-    Armor(Chest): Item("common.items.armor.cultist.chest"),
-    Armor(Belt): Item("common.items.armor.cultist.belt"),
-    Armor(Hands): Item("common.items.armor.cultist.hand"),
-    Armor(Legs): Item("common.items.armor.cultist.pants"),
-    Armor(Feet): Item("common.items.armor.cultist.foot"),
-    Armor(Back): Item("common.items.armor.misc.back.dungeon_purple"),
-    //Little easter egg, lost their mask in a chest
-    Armor(Head): Choice([
-        (1.0, Some(Item("common.items.armor.cultist.bandana"))),
-        (0.009, None),
-    ]),
-
-    Lantern: Choice([
-        (1.0, Some(Item("common.items.lantern.black_0"))),
-        (2.0, None),
-    ]),
-
-    Glider: Item("common.items.glider.skullgrin"),
-
-    ActiveMainhand: Choice([
-        (2.0, Some(Item("common.items.weapons.axe_1h.orichalcum-0"))),
-        (4.0, Some(Item("common.items.weapons.sword.cultist"))),
-        (2.0, Some(Item("common.items.weapons.staff.cultist_staff"))),
-        (2.0, Some(Item("common.items.weapons.hammer.cultist_purp_2h-0"))),
-        (2.0, Some(Item("common.items.weapons.hammer_1h.orichalcum-0"))),
-        (2.0, Some(Item("common.items.weapons.bow.velorite"))),
-        (1.0, Some(Item("common.items.weapons.sceptre.sceptre_velorite_0"))),
-    ]),
-})
+//Little easter egg, lost their mask in a chest
+#![enable(implicit_some)]
+(
+    head: [
+        (111, "common.items.armor.cultist.bandana"),
+        (1, None),
+    ],
+    shoulders: "common.items.armor.cultist.shoulder",
+    chest: "common.items.armor.cultist.chest",
+    gloves: "common.items.armor.cultist.hand",
+    back: "common.items.armor.misc.back.dungeon_purple",
+    belt: "common.items.armor.cultist.belt",
+    legs: "common.items.armor.cultist.pants",
+    feet: "common.items.armor.cultist.foot",
+    lantern: [
+        (1, "common.items.lantern.black_0"),
+        (2, None),
+    ],
+    glider: "common.items.glider.skullgrin",
+    active_hands: ([
+        (2, "common.items.weapons.axe_1h.orichalcum-0"),
+        (4, "common.items.weapons.sword.cultist"),
+        (2, "common.items.weapons.staff.cultist_staff"),
+        (2, "common.items.weapons.hammer.cultist_purp_2h-0"),
+        (2, "common.items.weapons.hammer_1h.orichalcum-0"),
+        (2, "common.items.weapons.bow.velorite"),
+        (1, "common.items.weapons.sceptre.sceptre_velorite_0"),
+    ], None),
+)

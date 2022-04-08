@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: RandomWith("wendigo"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.biped_large.wendigo"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

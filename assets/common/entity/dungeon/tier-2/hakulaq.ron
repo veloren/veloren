@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Name("Hakulaq"),
     body: RandomWith("hakulaq"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_low.fanged"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

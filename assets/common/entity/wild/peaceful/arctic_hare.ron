@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 (
     name: Name("Arctic Hare"),
     body: Exact(QuadrupedSmall((
@@ -5,7 +6,9 @@
         body_type: Female,
     ))),
     alignment: Alignment(Wild),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.fur"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )
