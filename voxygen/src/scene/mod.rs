@@ -103,8 +103,6 @@ pub struct Scene {
     pub sfx_mgr: SfxMgr,
     music_mgr: MusicMgr,
     ambient_mgr: AmbientMgr,
-    // ambient_wind_mgr: AmbientWindMgr,
-    // ambient_rain_mgr: AmbientRainMgr,
 }
 
 pub struct SceneData<'a> {
@@ -321,8 +319,6 @@ impl Scene {
             ambient_mgr: AmbientMgr {
                 ambience: ambient::load_ambience_items(),
             },
-            // ambient_wind_mgr: AmbientWindMgr::default(),
-            // ambient_rain_mgr: AmbientRainMgr::default(),
         }
     }
 
