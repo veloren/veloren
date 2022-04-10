@@ -5,7 +5,7 @@
     string_map: {
         "hud.crafting": "Крафт ",
         "hud.crafting.recipes": "Рецепты",
-        "hud.crafting.ingredients": "Ингредиенты :",
+        "hud.crafting.ingredients": "Ингредиенты:",
         "hud.crafting.craft": "Создать",
         "hud.crafting.tool_cata": "Необходимо:",
         // Crafting Stations
@@ -24,7 +24,7 @@
         "hud.crafting.tabs.armor": "Броня",
         "hud.crafting.tabs.dismantle": "Разобрать",
         "hud.crafting.tabs.food": "Еда",
-        "hud.crafting.tabs.glider": "Делтопланы",
+        "hud.crafting.tabs.glider": "Дельтопланы",
         "hud.crafting.tabs.potion": "Зелья",
         "hud.crafting.tabs.tool": "Инструменты",
         "hud.crafting.tabs.utility": "Утилиты",
