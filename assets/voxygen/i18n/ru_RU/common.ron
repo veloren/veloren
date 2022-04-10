@@ -4,15 +4,15 @@
 (
     string_map: {
         // Texts used in multiple locations with the same formatting
-        "common.username": "Юзернейм",
+        "common.username": "Никнейм",
         "common.singleplayer": "Одиночная игра",
-        "common.multiplayer": "Онлайн игра",
+        "common.multiplayer": "Мультиплеер",
         "common.servers": "Сервера",
         "common.quit": "Выход",
         "common.settings": "Настройки",
-        "common.languages": "Языки",
+        "common.languages": "Язык",
         "common.interface": "Интерфейс",
-        "common.gameplay": "Гемплей",
+        "common.gameplay": "Геймплей",
         "common.controls": "Управление",
         "common.video": "Графика",
         "common.sound": "Звук",
@@ -37,10 +37,12 @@
         "common.automatic": "Авто",
         "common.random": "Случайно",
         "common.empty": "Пустой",
+        "common.confirm": "Подтврдить",
+        "common.delete_server": "Удалить сервер",
 
         // Settings Window title
         "common.interface_settings": "Настройки интерфейса",
-        "common.gameplay_settings": "Настройки гемплея",
+        "common.gameplay_settings": "Настройки геймплея",
         "common.controls_settings": "Настройки управления",
         "common.video_settings": "Графические настройки",
         "common.sound_settings": "Настройки звука",
@@ -49,17 +51,19 @@
 
         // Message when connection to the server is lost
         "common.connection_lost": r#"Связь потеряна!
+Сервер перезапущен?
 Клиент обновлен до версии сервера?"#,
 
 
         "common.species.orc": "Орк",
         "common.species.human": "Человек",
-        "common.species.dwarf": "Дварфы",
-        "common.species.elf": "Эльфы",
+        "common.species.dwarf": "Дворф",
+        "common.species.elf": "Эльф",
         "common.species.undead": "Нежить",
         "common.species.danari": "Данари",
 
         "common.weapons.axe": "Топор",
+        
         "common.weapons.greatsword": "Двуручный меч",
         "common.weapons.shortswords": "Клинки",
         "common.weapons.sword": "Меч",
@@ -77,7 +81,7 @@
         "common.weapons.bow_simple": "Простой лук",
         "common.weapons.unique": "Уникальный",
         "common.tool.debug": "Дебаг",
-        "common.tool.farming": "Сельскохозяйственный инструмент",
+        "common.tool.farming": "Инструмент",
         "common.tool.pick": "Кирка",
         "common.tool.mining": "Инструмент добычи",
         "common.kind.modular_component": "Компонент",
@@ -112,6 +116,8 @@
         "common.material.stone": "Камень",
         "common.material.cloth": "Ткань",
         "common.material.hide": "Кожа",
+
+        "common.sprite.chest": "Грудь",
     },
 
 

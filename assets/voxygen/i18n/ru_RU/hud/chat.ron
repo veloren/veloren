@@ -7,11 +7,11 @@
         "hud.chat.chat_tab_hover_tooltip": "ПКМ для настроек",
 
         // Debuff outcomes
-        "hud.outcome.burning": "сгорел",
-        "hud.outcome.curse": "умер от проклятия",
-        "hud.outcome.bleeding": "умер от кровотечения",
-        "hud.outcome.crippled": "умер от множества травм",
-        "hud.outcome.frozen": "замёрз насмерть",
+        "hud.outcome.burning": "Сгорел",
+        "hud.outcome.curse": "Умер от проклятия",
+        "hud.outcome.bleeding": "Умер от кровотечения",
+        "hud.outcome.crippled": "Умер от множества травм",
+        "hud.outcome.frozen": "Замёрз насмерть",
 
         // Chat outputs
         "hud.chat.online_msg": "[{name}] сейчас в сети",
