@@ -1,15 +1,17 @@
+#![enable(implicit_some)]
 (
     name: Name("Cultist Warlord"),
     body: RandomWith("cultist_warlord"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Choice([
-            (1.5, Some(Item("common.items.npc_weapons.sword.bipedlarge-cultist"))),
-            (1, Some(Item("common.items.npc_weapons.hammer.bipedlarge-cultist"))),
-        ])),
-        base_asset: Loadout("common.loadout.dungeon.tier-5.warlord"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-5.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.tier-5.warlord"),
+            active_hands: ([
+                (1, "common.items.npc_weapons.sword.bipedlarge-cultist"),
+                (1, "common.items.npc_weapons.hammer.bipedlarge-cultist"),
+            ], None),
+        )),
+    ),
     meta: [],
 )

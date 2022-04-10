@@ -1,24 +1,23 @@
-({
-    Armor(Chest): Item("common.items.armor.cloth.moonweave.chest"),
-    Armor(Legs): Item("common.items.armor.cloth.moonweave.pants"),
-    Armor(Shoulders): Item("common.items.armor.cloth.moonweave.shoulder"),
-    Armor(Hands): Item("common.items.armor.cloth.moonweave.hand"),
-    Armor(Feet): Item("common.items.armor.cloth.moonweave.foot"),
-    Armor(Belt): Item("common.items.armor.cloth.moonweave.belt"),
-
-    Armor(Back): Choice([
-        (1.0, Some(Item("common.items.armor.misc.back.backpack"))),
-        (1.0, Some(Item("common.items.npc_armor.back.backpack_blue"))),
-        (1.0, Some(Item("common.items.armor.cloth.moonweave.back"))),
-        (1.0, None),
-    ]),
-
-    Lantern: Choice([
-        (1.0, Some(Item("common.items.lantern.black_0"))),
-        (1.0, Some(Item("common.items.lantern.blue_0"))),
-        (1.0, Some(Item("common.items.lantern.green_0"))),
-        (1.0, Some(Item("common.items.lantern.red_0"))),
-        (1.0, Some(Item("common.items.lantern.geode_purp"))),
-        (1.0, Some(Item("common.items.boss_drops.lantern"))),
-    ]),
-})
+#![enable(implicit_some)]
+(
+    shoulders: "common.items.armor.cloth.moonweave.shoulder",
+    chest: "common.items.armor.cloth.moonweave.chest",
+    gloves: "common.items.armor.cloth.moonweave.hand",
+    back: [
+        (1, "common.items.armor.misc.back.backpack"),
+        (1, "common.items.npc_armor.back.backpack_blue"),
+        (1, "common.items.armor.cloth.moonweave.back"),
+        (1, None),
+    ],
+    belt: "common.items.armor.cloth.moonweave.belt",
+    legs: "common.items.armor.cloth.moonweave.pants",
+    feet: "common.items.armor.cloth.moonweave.foot",
+    lantern: [
+        (1, "common.items.lantern.black_0"),
+        (1, "common.items.lantern.blue_0"),
+        (1, "common.items.lantern.green_0"),
+        (1, "common.items.lantern.red_0"),
+        (1, "common.items.lantern.geode_purp"),
+        (1, "common.items.boss_drops.lantern"),
+    ],
+)

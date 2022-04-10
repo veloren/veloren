@@ -1,10 +1,11 @@
-EntityConfig (
+#![enable(implicit_some)]
+(
     name: Automatic,
     body: RandomWith("sea_crocodile"),
     alignment: Alignment(Enemy),
-
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_low.generic"),
-
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

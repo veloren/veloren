@@ -1,13 +1,15 @@
+#![enable(implicit_some)]
 (
     name: Name("Pirate"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: Paired(Item("common.items.weapons.sword_1h.iron-2")),
-        base_asset: Loadout("common.loadout.spots.pirate"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.spots.pirate"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.spots.pirate"),
+            active_hands: ("common.items.weapons.sword_1h.iron-2", "common.items.weapons.sword_1h.iron-2"),
+        )),
+    ),
     meta: [
         SkillSetAsset("common.skillset.preset.rank2.fullskill"),
     ],

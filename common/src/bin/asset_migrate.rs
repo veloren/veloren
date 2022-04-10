@@ -1,36 +1,22 @@
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use std::{
     fs, io,
     io::Write,
     path::{Path, PathBuf},
 };
 
-/// Old version.
-mod v1 {
-    use super::*;
-
-    #[derive(Serialize, Deserialize)]
-    pub struct Example {
-        pub field: u8,
-    }
+// If you want to migrate assets.
+// 1) Copy-paste old asset type to own module
+// 2) Copy-pase new asset type to own module
+// (don't forget to add serde derive-s, import if needed)
+// 3) impl From<old asset> for new asset.
+// 4) Reference old and new assets in old and new modules
+mod old {
+    pub type Config = ();
 }
 
-/// New version.
-mod v2 {
-    use super::*;
-
-    #[derive(Serialize, Deserialize)]
-    pub struct Example {
-        pub field: f64,
-    }
-
-    impl From<super::v1::Example> for Example {
-        fn from(old: super::v1::Example) -> Self {
-            Self {
-                field: f64::from(old.field),
-            }
-        }
-    }
+mod new {
+    pub type Config = ();
 }
 
 #[derive(Debug)]
@@ -70,6 +56,7 @@ where
     OldV: DeserializeOwned,
     NewV: Serialize,
 {
+    use std::io::{BufRead, BufReader};
     match tree {
         Walk::Dir { path, content } => {
             let target_dir = to.join(path);
@@ -79,12 +66,37 @@ where
             }
         },
         Walk::File(path) => {
+            // Grab all comments from old file
+            let source = fs::File::open(from.join(&path))?;
+            let mut comments = Vec::new();
+            for line in BufReader::new(source).lines().flatten() {
+                if let Some(idx) = line.find("//") {
+                    let comment = &line[idx..line.len()];
+                    comments.push(comment.to_owned());
+                }
+            }
+            // Parse the file
             let source = fs::File::open(from.join(&path))?;
             let old: OldV = ron::de::from_reader(source).unwrap();
+            // Convert it to new format
             let new: NewV = old.into();
-            let target = fs::File::create(to.join(&path))?;
-            let pretty_config = ron::ser::PrettyConfig::new();
-            ron::ser::to_writer_pretty(target, &new, pretty_config).unwrap();
+            // Write it all back
+            let pretty_config = ron::ser::PrettyConfig::new()
+                .extensions(ron::extensions::Extensions::IMPLICIT_SOME);
+            let config_string =
+                ron::ser::to_string_pretty(&new, pretty_config).expect("serialize shouldn't fail");
+            let comments_string = if comments.is_empty() {
+                String::new()
+            } else {
+                let mut comments = comments.join("\n");
+                // insert newline for other config content
+                comments.push('\n');
+                comments
+            };
+
+            let mut target = fs::File::create(to.join(&path))?;
+            write!(&mut target, "{comments_string}{config_string}")
+                .expect("fail to write to the file");
             println!("{path:?} done");
         },
     }
@@ -97,7 +109,7 @@ fn convert_loop(from: &str, to: &str) {
         path: Path::new("").to_owned(),
         content: walk_tree(root, root).unwrap(),
     };
-    walk_with_migrate::<v1::Example, v2::Example>(files, Path::new(from), Path::new(to)).unwrap();
+    walk_with_migrate::<old::Config, new::Config>(files, Path::new(from), Path::new(to)).unwrap();
 }
 
 fn input_string(prompt: &str) -> String { input_validated_string(prompt, &|_| true) }

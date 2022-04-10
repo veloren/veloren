@@ -1,39 +1,42 @@
+// T5
+// legendary
+#![enable(implicit_some)]
 (
     name: Name("Experienced Traveler"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Npc),
-    loadout: Extended(
-        hands: TwoHanded(Choice([
-            // T5
-            (1.0, Some(Item("common.items.weapons.sword.bloodsteel-0"))),
-            (1.0, Some(Item("common.items.weapons.axe.bloodsteel_axe-0"))),
-            (1.0, Some(Item("common.items.weapons.hammer.runic_hammer"))),
-            (1.0, Some(Item("common.items.weapons.bow.eldwood-0"))),
-            (1.0, Some(Item("common.items.weapons.staff.ruby_rod"))),
-            (1.0, Some(Item("common.items.weapons.sceptre.emerald"))),
-            // legendary
-            (1.0, Some(Item("common.items.weapons.sword.caladbolg"))),
-            (1.0, Some(Item("common.items.weapons.hammer.mjolnir"))),
-            (1.0, Some(Item("common.items.weapons.axe.parashu"))),
-            (1.0, Some(Item("common.items.weapons.bow.sagitta"))),
-            (0.5, Some(Item("common.items.weapons.staff.phoenix"))),
-            (0.5, Some(Item("common.items.weapons.staff.laevateinn"))),
-            (0.5, Some(Item("common.items.weapons.sceptre.root_evil"))),
-            (0.5, Some(Item("common.items.weapons.sceptre.caduceus"))),
-        ])),
-        base_asset: Choice([
-           (1, "common.loadout.world.traveler3.bloodsteel"),
-           (1, "common.loadout.world.traveler3.moonweave"),
-           (1, "common.loadout.world.traveler3.primal"),
-           (1, "common.loadout.world.traveler3.orichalcum"),
-           (1, "common.loadout.world.traveler3.sunsilk"),
-           (1, "common.loadout.world.traveler3.dragonscale"),
-        ]),
-        inventory: [
+    loot: LootTable("common.loot_tables.world.traveler3"),
+    inventory: (
+        loadout: Inline((
+            inherit: Choice([
+                (1, Asset("common.loadout.world.traveler3.bloodsteel")),
+                (1, Asset("common.loadout.world.traveler3.moonweave")),
+                (1, Asset("common.loadout.world.traveler3.primal")),
+                (1, Asset("common.loadout.world.traveler3.orichalcum")),
+                (1, Asset("common.loadout.world.traveler3.sunsilk")),
+                (1, Asset("common.loadout.world.traveler3.dragonscale")),
+            ]),
+            active_hands: ([
+                (2, "common.items.weapons.sword.bloodsteel-0"),
+                (2, "common.items.weapons.axe.bloodsteel_axe-0"),
+                (2, "common.items.weapons.hammer.runic_hammer"),
+                (2, "common.items.weapons.bow.eldwood-0"),
+                (2, "common.items.weapons.staff.ruby_rod"),
+                (2, "common.items.weapons.sceptre.emerald"),
+                (2, "common.items.weapons.sword.caladbolg"),
+                (2, "common.items.weapons.hammer.mjolnir"),
+                (2, "common.items.weapons.axe.parashu"),
+                (2, "common.items.weapons.bow.sagitta"),
+                (1, "common.items.weapons.staff.phoenix"),
+                (1, "common.items.weapons.staff.laevateinn"),
+                (1, "common.items.weapons.sceptre.root_evil"),
+                (1, "common.items.weapons.sceptre.caduceus"),
+            ], None),
+        )),
+        items: [
             (50, "common.items.consumable.potion_big"),
         ],
     ),
-    loot: LootTable("common.loot_tables.world.traveler3"),
     meta: [
         SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],

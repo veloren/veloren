@@ -1,3 +1,4 @@
+#![enable(implicit_some)]
 (
     name: Name("Red Fox"),
     body: Exact(QuadrupedSmall((
@@ -5,7 +6,9 @@
         body_type: Male,
     ))),
     alignment: Alignment(Wild),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.generic"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

@@ -1,0 +1,21 @@
+#![enable(implicit_some)]
+(
+    ring1: [
+        (1, "common.items.armor.misc.ring.amethyst"),
+        (1, "common.items.armor.misc.ring.diamond"),
+        (1, "common.items.armor.misc.ring.emerald"),
+        (1, "common.items.armor.misc.ring.gold"),
+        (1, "common.items.armor.misc.ring.ruby"),
+        (1, "common.items.armor.misc.ring.sapphire"),
+        (1, "common.items.armor.misc.ring.topaz"),
+    ],
+    ring2: [
+        (1, "common.items.armor.misc.ring.amethyst"),
+        (1, "common.items.armor.misc.ring.diamond"),
+        (1, "common.items.armor.misc.ring.emerald"),
+        (1, "common.items.armor.misc.ring.gold"),
+        (1, "common.items.armor.misc.ring.ruby"),
+        (1, "common.items.armor.misc.ring.sapphire"),
+        (1, "common.items.armor.misc.ring.topaz"),
+    ],
+)

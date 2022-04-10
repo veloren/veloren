@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Name("Clay Golem"),
     body: RandomWith("claygolem"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-3.boss"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

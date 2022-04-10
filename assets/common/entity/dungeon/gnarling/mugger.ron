@@ -1,12 +1,14 @@
+#![enable(implicit_some)]
 (
     name: Name("Gnarling Mugger"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.mugger")),
-        base_asset: Loadout("common.loadout.dungeon.gnarling.mugger"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.gnarling.mugger"),
+            active_hands: ("common.items.npc_weapons.biped_small.gnarling.mugger", None),
+        )),
+    ),
     meta: [],
 )

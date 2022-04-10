@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Name("Yeti"),
     body: RandomWith("yeti"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.calendar.christmas.yeti"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

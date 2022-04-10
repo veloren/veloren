@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Name("Tidal Warrior"),
     body: RandomWith("tidalwarrior"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-2.boss"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

@@ -1,15 +1,17 @@
+// Done for health reasons
+#![enable(implicit_some)]
 (
     name: Name("Gnarling Chieftain"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Item("common.items.npc_weapons.biped_small.gnarling.chieftain")),
-        base_asset: Loadout("common.loadout.dungeon.gnarling.chieftain"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.dungeon.tier-0.boss"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.dungeon.gnarling.chieftain"),
+            active_hands: ("common.items.npc_weapons.biped_small.gnarling.chieftain", None),
+        )),
+    ),
     meta: [
-        // Done for health reasons
         SkillSetAsset("common.skillset.preset.rank5.fullskill"),
     ],
 )

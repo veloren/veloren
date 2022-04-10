@@ -1,0 +1,8 @@
+#![enable(implicit_some)]
+(
+    glider: [
+        (1, "common.items.glider.moth"),
+        (1, "common.items.glider.morpho"),
+        (1, "common.items.glider.monarch"),
+    ],
+)

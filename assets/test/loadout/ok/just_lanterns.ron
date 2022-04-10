@@ -1,0 +1,11 @@
+#![enable(implicit_some)]
+(
+    lantern: [
+        (1, "common.items.lantern.black_0"),
+        (1, "common.items.lantern.blue_0"),
+        (1, "common.items.lantern.green_0"),
+        (1, "common.items.lantern.red_0"),
+        (1, "common.items.lantern.geode_purp"),
+        (1, "common.items.boss_drops.lantern"),
+    ],
+)

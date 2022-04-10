@@ -1,0 +1,12 @@
+#![enable(implicit_some)]
+(
+    inherit: Asset("test.loadout.ok.just_rings"),
+    head: "common.items.armor.cultist.bandana",
+    active_hands: (
+        "common.items.weapons.axe_1h.orichalcum-0",
+        [
+           (1, "common.items.weapons.hammer_1h.orichalcum-0"),
+           (1, "common.items.weapons.axe_1h.orichalcum-0"),
+        ],
+    ),
+)

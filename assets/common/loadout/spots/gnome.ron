@@ -1,7 +1,8 @@
-({
-    Armor(Head): Item("common.items.npc_armor.biped_small.gnome.head.gnome"),
-    Armor(Feet): Item("common.items.npc_armor.biped_small.gnome.foot.gnome"),
-    Armor(Hands): Item("common.items.npc_armor.biped_small.gnome.hand.gnome"),
-    Armor(Chest): Item("common.items.npc_armor.biped_small.gnome.chest.gnome"),
-    Armor(Legs): Item("common.items.npc_armor.biped_small.gnome.pants.gnome"),
-})
+#![enable(implicit_some)]
+(
+    head: "common.items.npc_armor.biped_small.gnome.head.gnome",
+    chest: "common.items.npc_armor.biped_small.gnome.chest.gnome",
+    gloves: "common.items.npc_armor.biped_small.gnome.hand.gnome",
+    legs: "common.items.npc_armor.biped_small.gnome.pants.gnome",
+    feet: "common.items.npc_armor.biped_small.gnome.foot.gnome",
+)

@@ -1,0 +1,34 @@
+// Simple example that shows loadout spec with all entries.
+
+#![enable(implicit_some)]
+(
+    // Gear
+    head: "common.items.npc_armor.biped_small.myrmidon.head.hoplite",
+    neck: "common.items.armor.misc.neck.gem_of_resilience",
+    shoulders: "common.items.armor.twigsflowers.shoulder",
+    chest: "common.items.armor.twigsflowers.chest",
+    gloves: "common.items.armor.twigsflowers.hand",
+    ring1: "common.items.armor.misc.ring.gold",
+    ring2: "common.items.armor.misc.ring.gold",
+    back: "common.items.armor.misc.back.dungeon_purple",
+    belt: "common.items.armor.twigsflowers.belt",
+    legs: "common.items.armor.twigsflowers.pants",
+    feet: "common.items.armor.twigsflowers.foot",
+    tabard: "common.items.debug.admin",
+    // Misc
+    bag1: "common.items.armor.misc.bag.tiny_leather_pouch",
+    bag2: "common.items.armor.misc.bag.tiny_leather_pouch",
+    bag3: "common.items.armor.misc.bag.tiny_leather_pouch",
+    bag4: "common.items.armor.misc.bag.tiny_leather_pouch",
+    lantern: "common.items.lantern.black_0",
+    glider: "common.items.glider.basic_red",
+    // Weapons
+    active_hands: (
+        "common.items.weapons.sword_1h.bloodsteel-0",
+        "common.items.weapons.sword_1h.bloodsteel-0",
+    ),
+    inactive_hands: (
+        "common.items.weapons.sceptre.sceptre_velorite_0",
+        None,
+    ),
+)

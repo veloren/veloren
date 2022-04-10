@@ -1,17 +1,16 @@
-({
-    Armor(Chest): Item("common.items.armor.cloth.linen.chest"),
-    Armor(Legs): Item("common.items.armor.cloth.linen.pants"),
-    Armor(Shoulders): Item("common.items.armor.cloth.linen.shoulder"),
-    Armor(Hands): Item("common.items.armor.cloth.linen.hand"),
-    Armor(Feet): Item("common.items.armor.cloth.linen.foot"),
-    Armor(Belt): Item("common.items.armor.cloth.linen.belt"),
-
-    Armor(Back): Choice([
-        (1.0, Some(Item("common.items.armor.cloth.linen.back"))),
-        (1.0, None),
-    ]),
-
-    Lantern: Choice([
-        (1.0, Some(Item("common.items.lantern.black_0"))),
-    ]),
-})
+#![enable(implicit_some)]
+(
+    shoulders: "common.items.armor.cloth.linen.shoulder",
+    chest: "common.items.armor.cloth.linen.chest",
+    gloves: "common.items.armor.cloth.linen.hand",
+    back: [
+        (1, "common.items.armor.cloth.linen.back"),
+        (1, None),
+    ],
+    belt: "common.items.armor.cloth.linen.belt",
+    legs: "common.items.armor.cloth.linen.pants",
+    feet: "common.items.armor.cloth.linen.foot",
+    lantern: [
+        (1, "common.items.lantern.black_0"),
+    ],
+)

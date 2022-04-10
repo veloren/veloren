@@ -1,22 +1,21 @@
-({
-    Armor(Chest): Item("common.items.armor.cloth.woolen.chest"),
-    Armor(Legs): Item("common.items.armor.cloth.woolen.pants"),
-    Armor(Shoulders): Item("common.items.armor.cloth.woolen.shoulder"),
-    Armor(Hands): Item("common.items.armor.cloth.woolen.hand"),
-    Armor(Feet): Item("common.items.armor.cloth.woolen.foot"),
-    Armor(Belt): Item("common.items.armor.cloth.woolen.belt"),
-
-    Armor(Back): Choice([
-        (1.0, Some(Item("common.items.armor.misc.back.backpack"))),
-        (1.0, Some(Item("common.items.npc_armor.back.backpack_blue"))),
-        (1.0, Some(Item("common.items.armor.cloth.woolen.back"))),
-        (1.0, None),
-    ]),
-
-    Lantern: Choice([
-        (1.0, Some(Item("common.items.lantern.black_0"))),
-        (1.0, Some(Item("common.items.lantern.blue_0"))),
-        (1.0, Some(Item("common.items.lantern.green_0"))),
-        (1.0, Some(Item("common.items.lantern.red_0"))),
-    ]),
-})
+#![enable(implicit_some)]
+(
+    shoulders: "common.items.armor.cloth.woolen.shoulder",
+    chest: "common.items.armor.cloth.woolen.chest",
+    gloves: "common.items.armor.cloth.woolen.hand",
+    back: [
+        (1, "common.items.armor.misc.back.backpack"),
+        (1, "common.items.npc_armor.back.backpack_blue"),
+        (1, "common.items.armor.cloth.woolen.back"),
+        (1, None),
+    ],
+    belt: "common.items.armor.cloth.woolen.belt",
+    legs: "common.items.armor.cloth.woolen.pants",
+    feet: "common.items.armor.cloth.woolen.foot",
+    lantern: [
+        (1, "common.items.lantern.black_0"),
+        (1, "common.items.lantern.blue_0"),
+        (1, "common.items.lantern.green_0"),
+        (1, "common.items.lantern.red_0"),
+    ],
+)

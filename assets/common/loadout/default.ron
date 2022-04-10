@@ -1,9 +1,9 @@
 // Keep in mind that this should be safe defaults for new character
-({
-    Armor(Chest): Item("common.items.armor.misc.chest.worker_purple_brown"),
-    Armor(Legs): Item("common.items.armor.misc.pants.worker_brown"),
-    Armor(Feet): Item("common.items.armor.misc.foot.sandals"),
-
-    Lantern: Item("common.items.lantern.black_0"),
-    Glider: Item("common.items.glider.cloverleaf"),
-})
+#![enable(implicit_some)]
+(
+    chest: "common.items.armor.misc.chest.worker_purple_brown",
+    legs: "common.items.armor.misc.pants.worker_brown",
+    feet: "common.items.armor.misc.foot.sandals",
+    lantern: "common.items.lantern.black_0",
+    glider: "common.items.glider.cloverleaf",
+)

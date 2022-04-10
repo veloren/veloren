@@ -1,13 +1,15 @@
+#![enable(implicit_some)]
 (
     name: Name("Witch"),
     body: RandomWith("humanoid"),
     alignment: Alignment(Enemy),
-    loadout: Extended(
-        hands: TwoHanded(Item("common.items.weapons.sceptre.belzeshrub")),
-        base_asset: Loadout("common.loadout.spots.witch"),
-        inventory: [],
-    ),
     loot: LootTable("common.loot_tables.spots.witch"),
+    inventory: (
+        loadout: Inline((
+            inherit: Asset("common.loadout.spots.witch"),
+            active_hands: ("common.items.weapons.sceptre.belzeshrub", None),
+        )),
+    ),
     meta: [
         SkillSetAsset("common.skillset.preset.rank3.fullskill"),
     ],

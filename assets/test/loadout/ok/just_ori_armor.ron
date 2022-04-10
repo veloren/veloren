@@ -1,0 +1,10 @@
+#![enable(implicit_some)]
+(
+    shoulders: "common.items.armor.mail.orichalcum.shoulder",
+    chest: "common.items.armor.mail.orichalcum.chest",
+    gloves: "common.items.armor.mail.orichalcum.hand",
+    back: "common.items.armor.mail.orichalcum.back",
+    belt: "common.items.armor.mail.orichalcum.belt",
+    legs: "common.items.armor.mail.orichalcum.pants",
+    feet: "common.items.armor.mail.orichalcum.foot",
+)

@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Name("Big Goose"),
     body: RandomWith("goose"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.fallback"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

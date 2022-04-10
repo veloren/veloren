@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: RandomWith("beaver"),
     alignment: Alignment(Wild),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.quad_small.fur"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

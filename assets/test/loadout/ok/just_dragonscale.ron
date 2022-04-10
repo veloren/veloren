@@ -1,0 +1,10 @@
+#![enable(implicit_some)]
+(
+    shoulders: "common.items.armor.hide.dragonscale.shoulder",
+    chest: "common.items.armor.hide.dragonscale.chest",
+    gloves: "common.items.armor.hide.dragonscale.hand",
+    back: "common.items.armor.hide.dragonscale.back",
+    belt: "common.items.armor.hide.dragonscale.belt",
+    legs: "common.items.armor.hide.dragonscale.pants",
+    feet: "common.items.armor.hide.dragonscale.foot",
+)

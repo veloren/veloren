@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Automatic,
     body: RandomWith("archaeos"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.creature.theropod.plate"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )

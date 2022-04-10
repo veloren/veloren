@@ -1,0 +1,7 @@
+#![enable(implicit_some)]
+(
+    inherit: Combine([
+        Asset("test.loadout.ok.just_rings"),
+        Asset("test.loadout.ok.just_choice_hands"),
+    ]),
+)

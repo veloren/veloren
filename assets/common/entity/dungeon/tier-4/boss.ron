@@ -1,8 +1,11 @@
+#![enable(implicit_some)]
 (
     name: Name("Minotaur"),
     body: RandomWith("minotaur"),
     alignment: Alignment(Enemy),
-    loadout: FromBody,
     loot: LootTable("common.loot_tables.dungeon.tier-4.boss"),
+    inventory: (
+        loadout: FromBody,
+    ),
     meta: [],
 )
