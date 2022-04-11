@@ -285,8 +285,8 @@ impl<'a> System<'a> for Sys {
                             .unwrap_or_else(Vec2::zero);
                         controller.push_basic_input(InputKind::Roll);
                     } else {
-                        // Target an entity that's attacking us if the attack
-                        // was recent and we have a health component
+                        // Target an entity that's attacking us if the attack was recent and we have
+                        // a health component
                         match health {
                             Some(health)
                                 if read_data.time.0 - health.last_change.time.0
@@ -300,9 +300,7 @@ impl<'a> System<'a> for Sys {
                                         // means safezone), untarget them and idle.
                                         if is_dead_or_invulnerable(attacker, &read_data) {
                                             agent.target = None;
-                                        } else if let Some(tgt_pos) =
-                                            read_data.positions.get(attacker)
-                                        {
+                                        } else {
                                             if agent.target.is_none() {
                                                 controller.push_event(ControlEvent::Utterance(
                                                     UtteranceKind::Angry,
@@ -311,45 +309,12 @@ impl<'a> System<'a> for Sys {
 
                                             // Determine whether the new target should be a priority
                                             // over the old one (i.e: because it's either close or
-                                            // because they attacked us)
-                                            let more_dangerous_than_old_target =
-                                                agent.target.map_or(true, |old_tgt| {
-                                                    if let Some(old_tgt_pos) =
-                                                        read_data.positions.get(old_tgt.target)
-                                                    {
-                                                        // Fuzzy factor that makes it harder for
-                                                        // players to cheese enemies by making them
-                                                        // quickly flip aggro between two players.
-                                                        // It
-                                                        // does this by only switching aggro if the
-                                                        // new target is closer to the enemy by a
-                                                        // specific proportional threshold.
-                                                        const FUZZY_DIST_COMPARISON: f32 = 0.8;
-                                                        // Only switch to new target if it is closer
-                                                        // than the old target, or if the old target
-                                                        // had not triggered aggro (the new target
-                                                        // has because damage always triggers it)
-                                                        let old_tgt_not_threat = !old_tgt.aggro_on;
-                                                        let old_tgt_further =
-                                                            tgt_pos.0.distance(pos.0)
-                                                                < old_tgt_pos.0.distance(pos.0)
-                                                                    * FUZZY_DIST_COMPARISON;
-                                                        let new_tgt_hostile = read_data
-                                                            .alignments
-                                                            .get(attacker)
-                                                            .zip(alignment)
-                                                            .map_or(false, |(attacker, us)| {
-                                                                us.hostile_towards(*attacker)
-                                                            });
-                                                        old_tgt_not_threat
-                                                            || (old_tgt_further && new_tgt_hostile)
-                                                    } else {
-                                                        true
-                                                    }
-                                                });
-
-                                            // Select the attacker as the new target
-                                            if more_dangerous_than_old_target {
+                                            // because they attacked us).
+                                            if agent.target.map_or(true, |target| {
+                                                data.is_entity_more_dangerous_than_target(
+                                                    attacker, target, &read_data,
+                                                )
+                                            }) {
                                                 agent.target = Some(Target {
                                                     target: attacker,
                                                     hostile: true,
@@ -359,10 +324,13 @@ impl<'a> System<'a> for Sys {
                                             }
 
                                             // Remember this attack if we're an RtSim entity
-                                            if let Some(tgt_stats) =
+                                            if let Some(attacker_stats) =
                                                 data.rtsim_entity.and(read_data.stats.get(attacker))
                                             {
-                                                agent.add_enemy(&tgt_stats.name, read_data.time.0);
+                                                agent.add_enemy(
+                                                    &attacker_stats.name,
+                                                    read_data.time.0,
+                                                );
                                             }
                                         }
                                     }
@@ -2517,5 +2485,37 @@ impl<'a> AgentData<'a> {
 
     fn below_flee_health(&self, agent: &Agent) -> bool {
         self.damage.min(1.0) < agent.psyche.flee_health
+    }
+
+    fn is_entity_more_dangerous_than_target(
+        &self,
+        entity: EcsEntity,
+        target: Target,
+        read_data: &ReadData,
+    ) -> bool {
+        let entity_pos = read_data.positions.get(entity);
+        let target_pos = read_data.positions.get(target.target);
+
+        entity_pos.map_or(false, |entity_pos| {
+            target_pos.map_or(true, |target_pos| {
+                // Fuzzy factor that makes it harder for players to cheese enemies by making
+                // them quickly flip aggro between two players.
+                // It does this by only switching aggro if the entity is closer to the enemy by
+                // a specific proportional threshold.
+                const FUZZY_DIST_COMPARISON: f32 = 0.8;
+
+                let is_target_further = target_pos.0.distance(entity_pos.0)
+                    < target_pos.0.distance(entity_pos.0) * FUZZY_DIST_COMPARISON;
+                let is_entity_hostile = read_data
+                    .alignments
+                    .get(entity)
+                    .zip(self.alignment)
+                    .map_or(false, |(entity, me)| me.hostile_towards(*entity));
+
+                // Consider entity more dangerous than target if entity is closer or if target
+                // had not triggered aggro.
+                !target.aggro_on || (is_target_further && is_entity_hostile)
+            })
+        })
     }
 }
