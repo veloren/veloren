@@ -11,7 +11,7 @@
         // Crafting Stations
         "hud.crafting.req_crafting_station": "Необходимо:",
         "hud.crafting.anvil": "Наковальня",
-        "hud.crafting.cauldron": "Котел",
+        "hud.crafting.cauldron": "Зельеварочный котёл",
         "hud.crafting.cooking_pot": "Котелок",
         "hud.crafting.crafting_bench": "Верстак",
         "hud.crafting.forge": "Кузница",
@@ -19,12 +19,13 @@
         "hud.crafting.spinning_wheel": "Прялка",
         "hud.crafting.tanning_rack": "Стойка для дубления кожи",
         "hud.crafting.salvaging_station": "Станция разборки",
+        "hud.crafting.campfire": "Костёр",
         // Tabs
         "hud.crafting.tabs.all": "Все",
         "hud.crafting.tabs.armor": "Броня",
         "hud.crafting.tabs.dismantle": "Разобрать",
         "hud.crafting.tabs.food": "Еда",
-        "hud.crafting.tabs.glider": "Дельтопланы",
+        "hud.crafting.tabs.glider": "Дельтапланы",
         "hud.crafting.tabs.potion": "Зелья",
         "hud.crafting.tabs.tool": "Инструменты",
         "hud.crafting.tabs.utility": "Утилиты",

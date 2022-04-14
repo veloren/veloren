@@ -8,7 +8,7 @@
         "hud.trade.phase2_description": "Сделка теперь заблокирована, чтобы у вас было время\nеё просмотреть.",
         /// Phase3 should only be visible for a few milliseconds if everything is working properly, but is included for completeness
         "hud.trade.phase3_description": "Сделка обрабатывается.",
-        "hud.trade.persons_offer": "предложение от {playername}",
+        "hud.trade.persons_offer": "Предложение от {playername}",
         "hud.trade.has_accepted": "{playername}\nпринял",
         "hud.trade.accept": "Принять",
         "hud.trade.decline": "Отклонить",

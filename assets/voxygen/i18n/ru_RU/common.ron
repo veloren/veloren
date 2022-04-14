@@ -63,9 +63,9 @@
         "common.species.danari": "Данари",
 
         "common.weapons.axe": "Топор",
-        
+        "common.weapons.dagger": "Кинжал",
         "common.weapons.greatsword": "Двуручный меч",
-        "common.weapons.shortswords": "Клинки",
+        "common.weapons.shortswords": "Короткие мечи",
         "common.weapons.sword": "Меч",
         "common.weapons.staff": "Огненный посох",
         "common.weapons.bow": "Лук",
@@ -105,19 +105,19 @@
         "common.stats.crit_mult": "Множитель крита",
         "common.stats.armor": "Броня",
         "common.stats.poise_res":"Оглушение",
-        "common.stats.energy_max": "Максимальная выносливость",
-        "common.stats.energy_reward": "Востановление выносливости",
+        "common.stats.energy_max": "Максимальная энергия",
+        "common.stats.energy_reward": "Востановление энергии",
         "common.stats.crit_power": "Сила крита",
         "common.stats.stealth": "Скрытность",
         "common.stats.slots": "Слоты",
 
-        "common.material.metal": "Метал",
+        "common.material.metal": "Металл",
         "common.material.wood": "Дерево",
         "common.material.stone": "Камень",
         "common.material.cloth": "Ткань",
         "common.material.hide": "Кожа",
 
-        "common.sprite.chest": "Грудь",
+        "common.sprite.chest": "Сундук",
     },
 
 
