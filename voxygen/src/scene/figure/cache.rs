@@ -311,6 +311,8 @@ where
         }
     }
 
+    pub fn watcher_reloaded(&mut self) -> bool { self.watcher.reloaded() }
+
     /// NOTE: Intended for render time (useful with systems like wgpu that
     /// expect data used by the rendering pipelines to be stable throughout
     /// the render pass).
@@ -568,16 +570,12 @@ where
         }
     }
 
+    pub fn clear_models(&mut self) { self.models.clear(); }
+
     pub fn clean(&mut self, col_lights: &mut super::FigureColLights, tick: u64)
     where
         <Skel::Body as BodySpec>::Spec: Clone,
     {
-        // Check for reloaded manifests
-        // TODO: maybe do this in a different function, maintain?
-        if self.watcher.reloaded() {
-            col_lights.atlas.clear();
-            self.models.clear();
-        }
         // TODO: Don't hard-code this.
         if tick % 60 == 0 {
             self.models.retain(|_, ((model_entry, _), last_used)| {

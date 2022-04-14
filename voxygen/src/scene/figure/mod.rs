@@ -439,8 +439,53 @@ impl FigureMgr {
 
     pub fn col_lights(&self) -> &FigureColLights { &self.col_lights }
 
+    fn any_watcher_reloaded(&mut self) -> bool {
+        self.model_cache.watcher_reloaded()
+            || self.theropod_model_cache.watcher_reloaded()
+            || self.quadruped_small_model_cache.watcher_reloaded()
+            || self.quadruped_medium_model_cache.watcher_reloaded()
+            || self.quadruped_low_model_cache.watcher_reloaded()
+            || self.bird_medium_model_cache.watcher_reloaded()
+            || self.bird_large_model_cache.watcher_reloaded()
+            || self.dragon_model_cache.watcher_reloaded()
+            || self.fish_medium_model_cache.watcher_reloaded()
+            || self.fish_small_model_cache.watcher_reloaded()
+            || self.biped_large_model_cache.watcher_reloaded()
+            || self.biped_small_model_cache.watcher_reloaded()
+            || self.object_model_cache.watcher_reloaded()
+            || self.item_drop_model_cache.watcher_reloaded()
+            || self.ship_model_cache.watcher_reloaded()
+            || self.golem_model_cache.watcher_reloaded()
+            || self.volume_model_cache.watcher_reloaded()
+            || self.arthropod_model_cache.watcher_reloaded()
+    }
+
     pub fn clean(&mut self, tick: u64) {
         span!(_guard, "clean", "FigureManager::clean");
+
+        if self.any_watcher_reloaded() {
+            self.col_lights.atlas.clear();
+
+            self.model_cache.clear_models();
+            self.theropod_model_cache.clear_models();
+            self.quadruped_small_model_cache.clear_models();
+            self.quadruped_medium_model_cache.clear_models();
+            self.quadruped_low_model_cache.clear_models();
+            self.bird_medium_model_cache.clear_models();
+            self.bird_large_model_cache.clear_models();
+            self.dragon_model_cache.clear_models();
+            self.fish_medium_model_cache.clear_models();
+            self.fish_small_model_cache.clear_models();
+            self.biped_large_model_cache.clear_models();
+            self.biped_small_model_cache.clear_models();
+            self.object_model_cache.clear_models();
+            self.item_drop_model_cache.clear_models();
+            self.ship_model_cache.clear_models();
+            self.golem_model_cache.clear_models();
+            self.volume_model_cache.clear_models();
+            self.arthropod_model_cache.clear_models();
+        }
+
         self.model_cache.clean(&mut self.col_lights, tick);
         self.theropod_model_cache.clean(&mut self.col_lights, tick);
         self.quadruped_small_model_cache
