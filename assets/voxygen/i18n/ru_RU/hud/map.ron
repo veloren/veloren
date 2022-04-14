@@ -6,7 +6,7 @@
         // Map and Questlog
         "hud.map.map_title": "Карта",
         "hud.map.qlog_title": "Задания",
-        "hud.map.topo_map": "Топографическая",
+        "hud.map.topo_map": "Топографическая карта",
         "hud.map.difficulty": "Сложность",
         "hud.map.towns": "Города",
         "hud.map.castles": "Замки",
@@ -18,7 +18,7 @@
         "hud.map.voxel_map": "Воксельная карта",
         "hud.map.trees": "Гигантские\nдеревья",
         "hud.map.tree": "Гигантское\nдерево",
-        "hud.map.town": "Городок",
+        "hud.map.town": "Город",
         "hud.map.castle": "Замок",
         "hud.map.dungeon": "Подземелье",
         "hud.map.difficulty_dungeon": "Подземелье\n\nСложность: {difficulty}",
