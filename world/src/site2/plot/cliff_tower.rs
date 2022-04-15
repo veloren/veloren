@@ -503,7 +503,7 @@ impl Structure for CliffTower {
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 6),
                                         SpriteKind::BookshelfArabic,
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                 }
                             }
@@ -533,7 +533,7 @@ impl Structure for CliffTower {
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 4),
                                         SpriteKind::CanapeArabic,
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                 }
                             }
@@ -575,19 +575,27 @@ impl Structure for CliffTower {
                                     super_center.x - 4 + (d * 6),
                                     super_center.y - width + 3 + (d * ((2 * width) - 6)),
                                 );
-                                painter
-                                    .aabb(Aabb {
-                                        min: Vec2::new(ft_pos.x - 2 + d, ft_pos.y - (3 * d))
-                                            .with_z(floor_level + 4),
-                                        max: Vec2::new(ft_pos.x + 2 + d, ft_pos.y + 4 - (3 * d))
+                                if !stairway_clear_1.contains_point(ft_pos.with_z(floor_level + 4))
+                                    && !stairway_clear_2
+                                        .contains_point(ft_pos.with_z(floor_level + 4))
+                                {
+                                    painter
+                                        .aabb(Aabb {
+                                            min: Vec2::new(ft_pos.x - 2 + d, ft_pos.y - (3 * d))
+                                                .with_z(floor_level + 4),
+                                            max: Vec2::new(
+                                                ft_pos.x + 2 + d,
+                                                ft_pos.y + 4 - (3 * d),
+                                            )
                                             .with_z(floor_level + 7),
-                                    })
-                                    .clear();
-                                painter.rotated_sprite(
-                                    ft_pos.with_z(floor_level + 4),
-                                    SpriteKind::ForgeTools,
-                                    0 + (4 * d) as u8,
-                                );
+                                        })
+                                        .clear();
+                                    painter.rotated_sprite(
+                                        ft_pos.with_z(floor_level + 4),
+                                        SpriteKind::ForgeTools,
+                                        (4 * d) as u8,
+                                    );
+                                }
                                 // hearth
                                 let pos = Vec2::new(
                                     super_center.x + length - 12 + (d * ((-2 * length) + 24)),
@@ -607,7 +615,7 @@ impl Structure for CliffTower {
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 4),
                                         SpriteKind::Hearth,
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                 }
                             }
@@ -641,7 +649,7 @@ impl Structure for CliffTower {
                             for d in 0..2 {
                                 let pos = Vec2::new(
                                     super_center.x,
-                                    super_center.y - width + 4 + (d * ((2 * width) - 8)),
+                                    super_center.y - width + 3 + (d * ((2 * width) - 7)),
                                 );
                                 if !stairway_clear_1.contains_point(pos.with_z(floor_level + 4))
                                     && !stairway_clear_2.contains_point(pos.with_z(floor_level + 4))
@@ -657,7 +665,7 @@ impl Structure for CliffTower {
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 4),
                                         SpriteKind::WallTableArabic,
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 5),
@@ -670,7 +678,7 @@ impl Structure for CliffTower {
                                             2 => SpriteKind::JugArabic,
                                             _ => SpriteKind::JugAndBowlArabic,
                                         },
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                 }
                             }
@@ -797,7 +805,7 @@ impl Structure for CliffTower {
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 4),
                                         SpriteKind::WallTableArabic,
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                     painter.rotated_sprite(
                                         pos.with_z(floor_level + 5),
@@ -809,7 +817,7 @@ impl Structure for CliffTower {
                                             3 => SpriteKind::JugArabic,
                                             _ => SpriteKind::VialEmpty,
                                         },
-                                        0 + (4 * d) as u8,
+                                        (4 * d) as u8,
                                     );
                                 }
                             }
