@@ -194,6 +194,7 @@ impl<'a> System<'a> for Sys {
                 combo,
                 alignment: read_data.alignments.get(entity),
                 terrain: &read_data.terrain,
+                mount_data: read_data.is_riders.get(entity),
             };
 
             for action in actions {
