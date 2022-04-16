@@ -13,7 +13,7 @@ use lazy_static::lazy_static;
 use rand::prelude::*;
 use std::{
     collections::HashMap,
-    f32::consts::TAU,
+    f32::consts::{PI, TAU},
     ops::{Add, Div, Mul, Sub},
 };
 use vek::*;
@@ -29,6 +29,9 @@ pub struct AdletStronghold {
     wall_radius: i32,
     wall_alt: f32,
     wall_alt_samples: [f32; ANGLE_SAMPLES],
+    // Structure indicates the kind of structure it is, vec2 is relative position of a hut compared
+    // to wall_center, dir tells which way structure should face
+    outer_structures: Vec<(AdletStructure, Vec2<i32>, Dir)>,
     tunnel_length: i32,
     cavern_center: Vec2<i32>,
     cavern_alt: f32,
@@ -37,16 +40,18 @@ pub struct AdletStronghold {
 
 enum AdletStructure {
     Igloo,
+    TunnelEntrance,
 }
 
 impl AdletStructure {
     fn required_separation(&self, other: &Self) -> i32 {
         let radius = |structure: &Self| match structure {
-            Self::Igloo => 10,
+            Self::Igloo => 5,
+            Self::TunnelEntrance => 16,
         };
 
         let additional_padding = match (self, other) {
-            (Self::Igloo, Self::Igloo) => 50,
+            (Self::Igloo, Self::Igloo) => 5,
             _ => 0,
         };
 
@@ -98,6 +103,54 @@ impl AdletStronghold {
             }
         }
 
+        let mut outer_structures = Vec::<(AdletStructure, Vec2<i32>, Dir)>::new();
+
+        let desired_structures = wall_radius.pow(2) / 100;
+        for _ in 0..desired_structures {
+            if let Some((rpos, kind)) = attempt(50, || {
+                // Choose structure kind
+                let structure_kind = match rng.gen_range(0..10) {
+                    // TODO: Add more variants
+                    _ => AdletStructure::Igloo,
+                };
+
+                // Choose relative position
+                let structure_center = {
+                    let theta = rng.gen::<f32>() * TAU;
+                    // 0.8 to keep structures not directly against wall
+                    let radius = wall_radius as f32 * rng.gen::<f32>().sqrt() * 0.8;
+                    let x = radius * theta.sin();
+                    let y = radius * theta.cos();
+                    Vec2::new(x, y).as_()
+                };
+
+                // Check that structure not in the water or too close to another structure
+                if land
+                    .get_chunk_wpos(structure_center.as_() + wall_center)
+                    .map_or(false, |c| c.is_underwater())
+                    || outer_structures.iter().any(|(kind, rpos, _dir)| {
+                        structure_center.distance_squared(*rpos)
+                            < structure_kind.required_separation(kind).pow(2)
+                    })
+                {
+                    None
+                } else {
+                    Some((structure_center, structure_kind))
+                }
+            }) {
+                let dir_to_wall = Dir::from_vector(rpos);
+                let door_rng: u32 = rng.gen_range(0..9);
+                let door_dir = match door_rng {
+                    0..=3 => dir_to_wall,
+                    4..=5 => dir_to_wall.rotated_cw(),
+                    6..=7 => dir_to_wall.rotated_ccw(),
+                    // Should only be 8
+                    _ => dir_to_wall.opposite(),
+                };
+                outer_structures.push((kind, rpos, door_dir));
+            }
+        }
+
         // Find direction that allows for deep enough site
         let angle_samples = (0..64).into_iter().map(|x| x as f32 / 64.0 * TAU);
         // Sample blocks 40-50 away, use angle where these positions are highest
@@ -134,6 +187,12 @@ impl AdletStronghold {
         let cavern_alt = (land.get_alt_approx(cavern_center) - cavern_radius as f32)
             .min(land.get_alt_approx(entrance));
 
+        outer_structures.push((
+            AdletStructure::TunnelEntrance,
+            entrance - wall_center,
+            Dir::from_vector(entrance - cavern_center),
+        ));
+
         Self {
             name,
             seed,
@@ -142,6 +201,7 @@ impl AdletStronghold {
             wall_radius,
             wall_alt,
             wall_alt_samples,
+            outer_structures,
             tunnel_length,
             cavern_center,
             cavern_radius,
@@ -275,6 +335,36 @@ impl Structure for AdletStronghold {
                 8.0,
             )
             .clear();
+
+        for (structure, rpos, dir) in &self.outer_structures {
+            let wpos = self.wall_center + rpos;
+            let alt = land.get_alt_approx(wpos);
+            match structure {
+                AdletStructure::TunnelEntrance => {
+                    let bone_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
+                    let rotation = match dir {
+                        Dir::X | Dir::NegX => Mat3::rotation_y(PI / 2.0),
+                        Dir::Y | Dir::NegY => Mat3::rotation_x(PI / 2.0),
+                    };
+                    let wpos = wpos.with_z(alt as i32);
+                    painter
+                        .cylinder_with_radius(wpos, 15.0, 3.0)
+                        .without(painter.cylinder_with_radius(wpos, 12.0, 3.0))
+                        .rotate_about(rotation.as_(), wpos)
+                        .repeat(dir.opposite().to_vec3() * 8, 4)
+                        .fill(bone_mat.clone());
+                    let wpos = wpos.xy().with_z(alt as i32 + 14);
+                    painter
+                        .line(
+                            wpos + dir.to_vec2() * 5,
+                            wpos + dir.opposite().to_vec2() * 40,
+                            2.5,
+                        )
+                        .fill(bone_mat);
+                },
+                AdletStructure::Igloo => {},
+            }
+        }
 
         // Cavern
         painter
