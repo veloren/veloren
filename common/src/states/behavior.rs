@@ -5,6 +5,8 @@ use crate::{
         Health, InputAttr, InputKind, Inventory, InventoryAction, Mass, Melee, Ori, PhysicsState,
         Pos, SkillSet, StateUpdate, Stats, Vel,
     },
+    link::Is,
+    mounting::Rider,
     resources::DeltaTime,
     terrain::TerrainGrid,
     uid::Uid,
@@ -89,7 +91,13 @@ pub trait CharacterBehavior {
             ControlAction::Unwield => self.unwield(data, output_events),
             ControlAction::Sit => self.sit(data, output_events),
             ControlAction::Dance => self.dance(data, output_events),
-            ControlAction::Sneak => self.sneak(data, output_events),
+            ControlAction::Sneak => {
+                if data.mount_data.is_none() {
+                    self.sneak(data, output_events)
+                } else {
+                    self.stand(data, output_events)
+                }
+            },
             ControlAction::Stand => self.stand(data, output_events),
             ControlAction::Talk => self.talk(data, output_events),
             ControlAction::StartInput {
@@ -129,6 +137,7 @@ pub struct JoinData<'a> {
     pub combo: Option<&'a Combo>,
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
+    pub mount_data: Option<&'a Is<Rider>>,
 }
 
 pub struct JoinStruct<'a> {
@@ -154,6 +163,7 @@ pub struct JoinStruct<'a> {
     pub combo: Option<&'a Combo>,
     pub alignment: Option<&'a comp::Alignment>,
     pub terrain: &'a TerrainGrid,
+    pub mount_data: Option<&'a Is<Rider>>,
 }
 
 impl<'a> JoinData<'a> {
@@ -189,6 +199,7 @@ impl<'a> JoinData<'a> {
             alignment: j.alignment,
             terrain: j.terrain,
             active_abilities: j.active_abilities,
+            mount_data: j.mount_data,
         }
     }
 }
