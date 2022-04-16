@@ -1,0 +1,14 @@
+#![enable(implicit_some)]
+(
+    name: Automatic,
+    body: Exact(QuadrupedMedium((
+        species: Lion,
+        body_type: Male,
+    ))),
+    alignment: Alignment(Enemy),
+    loot: LootTable("common.loot_tables.creature.quad_medium.clawed"),
+    inventory: (
+        loadout: FromBody,
+    ),
+    meta: [],
+)

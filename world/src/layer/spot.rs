@@ -504,8 +504,11 @@ pub fn apply_spots_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
             // Random World Objects
             Spot::LionRock => SpotConfig {
                 base_structures: Some("spots_savannah.lion_rock"),
-                entity_radius: 20.0,
-                entities: &[(5..8, "common.entity.wild.aggressive.lion")],
+                entity_radius: 30.0,
+                entities: &[
+                    (5..10, "common.entity.spot.female_lion"),
+                    (1..2, "common.entity.wild.aggressive.male_lion"),
+                ],
             },
             Spot::WolfBurrow => SpotConfig {
                 base_structures: Some("spots_savannah.wolf_burrow"),

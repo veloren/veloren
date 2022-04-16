@@ -211,32 +211,32 @@
     ),
     (Lion, Female): (
         head: (
-            offset: (-4.5, 0.0, -4.5),
-            central: ("npc.lion.male.head"),
+            offset: (-5.5, 0.5, -7.5),
+            central: ("npc.lion.female.head"),
         ),
         neck: (
-            offset: (-7.5, -3.0, -8.5),
-            central: ("npc.lion.male.neck"),
+            offset: (-3.5, -3.0, -11.5),
+            central: ("npc.lion.female.neck"),
         ),
         jaw: (
-            offset: (-2.5, 0.0, -1.0),
-            central: ("npc.lion.male.jaw"),
+            offset: (-2.5, 1.0, -3.5),
+            central: ("npc.lion.female.jaw"),
         ),
         torso_front: (
             offset: (-5.5, -13.0, -6.0),
-            central: ("npc.lion.male.torso_front"),
+            central: ("npc.lion.female.torso_front"),
         ),
         torso_back: (
-            offset: (-5.5, -12.0, -5.0),
-            central: ("npc.lion.male.torso_back"),
+            offset: (-5.5, -13.0, -5.5),
+            central: ("npc.lion.female.torso_back"),
         ),
         ears: (
-            offset: (-4.5, -1.0, 0.0),
-            central: ("npc.lion.male.ears"),
+            offset: (-4.5, -0.5, -1.5),
+            central: ("npc.lion.female.ears"),
         ),
         tail: (
-            offset: (-1.5, -15.0, -10.0),
-            central: ("npc.lion.male.tail"),
+            offset: (-1.5, -16.0, -10.0),
+            central: ("npc.lion.female.tail"),
         ),
     ),
     (Tarasque, Male): (
