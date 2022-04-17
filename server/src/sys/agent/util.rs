@@ -132,7 +132,7 @@ pub fn is_villager(alignment: Option<&Alignment>) -> bool {
     alignment.map_or(false, |alignment| matches!(alignment, Alignment::Npc))
 }
 
-pub fn is_entity_a_village_guard(entity: EcsEntity, read_data: &ReadData) -> bool {
+pub fn is_village_guard(entity: EcsEntity, read_data: &ReadData) -> bool {
     read_data
         .stats
         .get(entity)
@@ -164,6 +164,19 @@ pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadDa
         >= dist_sqrd
 }
 
+pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data
+        .inventories
+        .get(entity)
+        .map_or(false, |inventory| {
+            inventory
+                .equipped_items()
+                .filter(|item| item.tags().contains(&ItemTag::Cultist))
+                .count()
+                > 2
+        })
+}
+
 pub fn does_entity_see_other(
     agent: &Agent,
     entity: EcsEntity,
@@ -171,13 +184,13 @@ pub fn does_entity_see_other(
     controller: &Controller,
     read_data: &ReadData,
 ) -> bool {
-    let stealth_coefficient = {
-        let is_other_being_stealthy = read_data
+    let other_stealth_coefficient = {
+        let is_other_stealthy = read_data
             .char_states
             .get(other)
             .map_or(false, CharacterState::is_stealthy);
 
-        if is_other_being_stealthy {
+        if is_other_stealthy {
             // TODO: We shouldn't have to check CharacterState. This should be factored in
             // by the function (such as the one we're calling below) that supposedly
             // computes a coefficient given stealthy-ness.
@@ -191,18 +204,16 @@ pub fn does_entity_see_other(
         read_data.positions.get(entity),
         read_data.positions.get(other),
     ) {
-        let dist = other_pos.0 - pos.0;
         let dist_sqrd = other_pos.0.distance_squared(pos.0);
 
         let within_sight_dist = {
-            let sight_dist = agent.psyche.sight_dist / stealth_coefficient;
+            let sight_dist = agent.psyche.sight_dist / other_stealth_coefficient;
             dist_sqrd < sight_dist.powi(2)
         };
 
-        let within_fov = dist
-                .try_normalized()
-                // FIXME: Should this be map_or(false)?
-                .map_or(true, |v| v.dot(*controller.inputs.look_dir) > 0.15);
+        let within_fov = (other_pos.0 - pos.0)
+            .try_normalized()
+            .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
 
         within_sight_dist && positions_have_line_of_sight(pos, other_pos, read_data) && within_fov
     } else {

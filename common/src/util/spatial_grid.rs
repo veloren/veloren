@@ -49,7 +49,8 @@ impl SpatialGrid {
     }
 
     /// Get an iterator over the entities overlapping the provided axis aligned
-    /// bounding region. NOTE: for best optimization of the iterator use
+    /// bounding region.
+    /// NOTE: for best optimization of the iterator use
     /// `for_each` rather than a for loop.
     pub fn in_aabr<'a>(&'a self, aabr: Aabr<i32>) -> impl Iterator<Item = specs::Entity> + 'a {
         let iter = |max_entity_radius, grid: &'a hashbrown::HashMap<_, _>, lg2_cell_size| {

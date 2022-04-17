@@ -15,9 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin command to reload all chunks on the server
 - Furniture and waypoints in site2 towns
 - text input for trading
-- Themed Site CliffTown, hoodoo/arabic inspired stone structures inhabited by mountaineer NPCs.    
+- Themed Site CliffTown, hoodoo/arabic inspired stone structures inhabited by mountaineer NPCs.
 - NPCs now have rudimentary personalities
 - Added Belarusian translation
+- Add FOV check for agents scanning for targets they are hostile to
 
 ### Changed
 
@@ -81,7 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Convert giant trees to site2
 - Add new upgraded travelers
 - Wallrunning
-- Add FOV check for agents scanning for targets they are hostile to
 
 ### Changed
 

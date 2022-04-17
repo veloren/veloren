@@ -13,10 +13,9 @@ use crate::{
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
-            aim_projectile, are_our_owners_hostile, does_entity_see_other,
-            entity_looks_like_cultist, get_attacker_of_entity, get_entity_by_id, is_dead,
-            is_dead_or_invulnerable, is_entity_a_village_guard, is_invulnerable, is_villager,
-            stop_pursuing,
+            aim_projectile, are_our_owners_hostile, does_entity_see_other, get_attacker_of_entity,
+            get_entity_by_id, is_dead, is_dead_or_invulnerable, is_dressed_as_cultist,
+            is_invulnerable, is_village_guard, is_villager, stop_pursuing,
         },
     },
 };
@@ -1434,7 +1433,7 @@ impl<'a> AgentData<'a> {
             if is_villager(self.alignment) {
                 if self.remembers_fight_with(target, read_data) {
                     chat_villager_remembers_fighting();
-                } else if entity_looks_like_cultist(target, read_data) {
+                } else if is_dressed_as_cultist(target, read_data) {
                     chat("npc.speech.villager_cultist_alarm");
                 } else {
                     chat("npc.speech.menacing");
@@ -1569,7 +1568,7 @@ impl<'a> AgentData<'a> {
         let get_enemy = |entity: EcsEntity| {
             if self.is_entity_an_enemy(entity, read_data) {
                 Some(entity)
-            } else if self.defends_entity(entity, read_data) {
+            } else if self.should_defend(entity, read_data) {
                 if let Some(attacker) = get_attacker_of_entity(entity, read_data) {
                     if !is_alignment_passive_towards_entity(attacker) {
                         // aggro_on: attack immediately, do not warn/menace.
@@ -2398,10 +2397,10 @@ impl<'a> AgentData<'a> {
         (entity != *self.entity)
             && (are_our_owners_hostile(self.alignment, alignment, read_data)
                 || self.remembers_fight_with(entity, read_data)
-                || self.is_villager_and_entity_is_cultist(entity, read_data))
+                || self.is_villager_and_is_entity_dressed_as_cultist(entity, read_data))
     }
 
-    fn defends_entity(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+    fn should_defend(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         let entity_alignment = read_data.alignments.get(entity);
 
         let we_are_friendly = entity_alignment.map_or(false, |entity_alignment| {
@@ -2419,11 +2418,15 @@ impl<'a> AgentData<'a> {
             matches!(entity_alignment, Some(Alignment::Owned(ouid)) if *self.uid == *ouid);
 
         (we_are_friendly && we_share_species)
-            || (is_entity_a_village_guard(*self.entity, read_data) && is_villager(entity_alignment))
+            || (is_village_guard(*self.entity, read_data) && is_villager(entity_alignment))
             || self_owns_entity
     }
 
-    fn is_villager_and_entity_is_cultist(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
-        is_villager(self.alignment) && entity_looks_like_cultist(entity, read_data)
+    fn is_villager_and_is_entity_dressed_as_cultist(
+        &self,
+        entity: EcsEntity,
+        read_data: &ReadData,
+    ) -> bool {
+        is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)
     }
 }
