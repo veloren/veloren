@@ -13,9 +13,9 @@
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Прызначэнні клавіш",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Ліхтар",
-        "hud.press_key_to_show_debug_info_fmt": "Націсніце {key}, каб адлюстроўваць тех. звесткі",
+        "hud.press_key_to_show_debug_info_fmt": "Націсніце {key}, каб адлюстроўваць тэх. звесткі",
         "hud.press_key_to_toggle_keybindings_fmt": "Націсніце {key}, каб адлюстроўваць прызначэнні клавіш",
-        "hud.press_key_to_toggle_debug_info_fmt": "Націсніце {key}, каб адлюстроўваць тех. звесткі",
+        "hud.press_key_to_toggle_debug_info_fmt": "Націсніце {key}, каб адлюстроўваць тэх. звесткі",
 
         // Respawn message
         "hud.press_key_to_respawn": r#"Націсніце {key}, каб адрадзіцца каля апошняга пабачанага вогнішча."#,
