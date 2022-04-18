@@ -1434,9 +1434,14 @@ impl Hud {
                                 damage_floaters.iter().map(|fl| fl.info.amount).sum();
 
                             // .fold(0.0, |acc, f| f.info.amount.min(0.0) + acc);
-                            let hp_dmg_rounded_abs = hp_damage.round().abs() as u32;
+                            let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
+                                && hp_damage.abs() > 1.0
+                            {
+                                format!("{:.0}", hp_damage.abs())
+                            } else {
+                                format!("{:.1}", hp_damage.abs())
+                            };
                             // As to avoid ridiculously large damage numbers
-                            // TODO: Might have to discuss this
                             let max_hp_frac = hp_damage
                                 .abs()
                                 .clamp(Health::HEALTH_EPSILON, health.maximum())
@@ -1446,14 +1451,14 @@ impl Hud {
                                 .last()
                                 .expect("There must be at least one floater")
                                 .timer;
-                            let crit = damage_floaters
-                                .iter()
-                                .rev()
-                                .find(|f| f.info.crit_mult.is_some())
-                                .map_or(false, |f| f.info.crit_mult.is_some());
-                            let crit_mult = damage_floaters
+                            let jump_timer = damage_floaters
                                 .last()
-                                .map_or(1.0, |f| f.info.crit_mult.unwrap_or(1.0));
+                                .expect("There must be at least one floater")
+                                .jump_timer;
+                            let (crit, crit_mult) =
+                                damage_floaters.last().map_or((false, 1.0), |f| {
+                                    (f.info.crit_mult.is_some(), f.info.crit_mult.unwrap_or(1.0))
+                                });
 
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
@@ -1461,9 +1466,9 @@ impl Hud {
                                 + ((max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
                                     as u32)
                                     * 3
-                                + if timer < 0.1 {
+                                + if jump_timer < 0.1 {
                                     FLASH_MAX
-                                        * (((1.0 - timer / 0.1)
+                                        * (((1.0 - jump_timer / 0.1)
                                             * 10.0
                                             * if crit { 1.25 * crit_mult } else { 1.0 })
                                             as u32)
@@ -1475,7 +1480,7 @@ impl Hud {
                             // Timer sets text transparency
                             let hp_fade =
                                 ((crate::ecs::sys::floater::MY_HP_SHOWTIME - timer) * 0.25) + 0.2;
-                            Text::new(&format!("{}", hp_dmg_rounded_abs))
+                            Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if hp_damage < 0.0 {
@@ -1485,7 +1490,7 @@ impl Hud {
                                 })
                                 .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
                                 .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", hp_dmg_rounded_abs))
+                            Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if hp_damage < 0.0 {
@@ -1524,6 +1529,13 @@ impl Hud {
                             .abs()
                             .clamp(Health::HEALTH_EPSILON, health.maximum())
                             / health.maximum();
+                        let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
+                            && floater.info.amount.abs() > 1.0
+                        {
+                            format!("{:.0}", floater.info.amount.abs())
+                        } else {
+                            format!("{:.1}", floater.info.amount.abs())
+                        };
                         let crit = floater.info.crit_mult.is_some();
                         let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
                         // Increase font size based on fraction of maximum health
@@ -1533,9 +1545,9 @@ impl Hud {
                             + (max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
                                 as u32
                                 * 3
-                            + if floater.timer < 0.1 {
+                            + if floater.jump_timer < 0.1 {
                                 FLASH_MAX
-                                    * (((1.0 - floater.timer / 0.1)
+                                    * (((1.0 - floater.jump_timer / 0.1)
                                         * 10.0
                                         * if crit { 1.25 * crit_mult } else { 1.0 })
                                         as u32)
@@ -1543,6 +1555,9 @@ impl Hud {
                                 0
                             };
                         // Timer sets the widget offset
+                        // TODO: Discuss if crits should stay in place?
+                        // TODO: I feel like I'd prefer for crits to behave the same way for players
+                        // and monsters
                         let y = if floater.info.amount < 0.0 {
                             floater.timer as f64
                                 * number_speed
@@ -1561,7 +1576,8 @@ impl Hud {
                         // Healing is offset randomly
                         let x = if crit {
                             // TODO: Too large diff
-                            (floater.rand as f64 - 0.5) * 0.1 * ui_widgets.win_w
+                            // See the second value as a minimum and the first as a maximum
+                            (floater.rand as f64 - 0.5) * 0.08 * ui_widgets.win_w
                                 + (0.03 * ui_widgets.win_w * (floater.rand as f64 - 0.5).signum())
                         } else if floater.info.amount < 0.0 {
                             0.0
@@ -1575,14 +1591,13 @@ impl Hud {
                             ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer) * 0.25)
                                 + 0.2
                         };
-                        // TODO: Add options for floating/non-floating
-                        Text::new(&format!("{:.1}", floater.info.amount.abs()))
+                        Text::new(&hp_dmg_text)
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                             .x_y(x, y - 3.0)
                             .set(player_sct_bg_id, ui_widgets);
-                        Text::new(&format!("{:.1}", floater.info.amount.abs()))
+                        Text::new(&hp_dmg_text)
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
                             .color(if floater.info.amount < 0.0 {
@@ -2220,21 +2235,13 @@ impl Hud {
                     let floaters = &hpfl.floaters;
 
                     // Colors
-                    // TODO: The crit colors and their names are pretty bad as it stands
-                    //TODO: They don't stand out enough as they should, and they fade weirdly, such
-                    // that they look transparent from the get-go
+                    // TODO: Maybe make an array of colors for crits too?
                     const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
                     const LIGHT_OR: Rgb<f32> = Rgb::new(1.0, 0.925, 0.749);
                     const LIGHT_MED_OR: Rgb<f32> = Rgb::new(1.0, 0.85, 0.498);
                     const MED_OR: Rgb<f32> = Rgb::new(1.0, 0.776, 0.247);
                     const DARK_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.7, 0.0);
                     const RED_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.349, 0.0);
-                    const CWHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.413);
-                    const CLIGHT_YEL: Rgb<f32> = Rgb::new(1.0, 0.9, 0.353);
-                    const CLIGHT_MED_YEL: Rgb<f32> = Rgb::new(1.0, 0.9, 0.256);
-                    const CMED_YEL: Rgb<f32> = Rgb::new(1.0, 0.9, 0.184);
-                    const CDARK_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.098);
-                    const CRED_ORANGE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.0);
                     const DAMAGE_COLORS: [Rgb<f32>; 6] = [
                         WHITE,
                         LIGHT_OR,
@@ -2243,23 +2250,11 @@ impl Hud {
                         DARK_ORANGE,
                         RED_ORANGE,
                     ];
-                    const CDAMAGE_COLORS: [Rgb<f32>; 6] = [
-                        CWHITE,
-                        CLIGHT_YEL,
-                        CLIGHT_MED_YEL,
-                        CMED_YEL,
-                        CDARK_ORANGE,
-                        CRED_ORANGE,
-                    ];
                     // Largest value that select the first color is 40, then it shifts colors
                     // every 5
                     let font_col = |font_size: u32, crit: bool| {
                         if crit {
-                            // TODO: This will probably be the way crit colours are handled (with a
-                            // different algo for choosing the color)
-                            // CDAMAGE_COLORS[(font_size.saturating_sub(72) / 5).min(5) as usize]
-
-                            // TODO: Temporary
+                            // TODO: Temporary color for crits
                             Rgb::new(1.0, 0.9, 0.0)
                         } else {
                             DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
@@ -2281,7 +2276,13 @@ impl Hud {
                             // Ignores healing
                             let hp_damage: f32 =
                                 damage_floaters.iter().map(|fl| fl.info.amount).sum();
-                            let hp_dmg_rounded_abs = hp_damage.round().abs();
+                            let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
+                            {
+                                format!("{:.0}", hp_damage.abs())
+                            } else {
+                                format!("{:.1}", hp_damage.abs())
+                            };
+
                             let max_hp_frac = hp_damage
                                 .abs()
                                 .clamp(Health::HEALTH_EPSILON, health.map_or(1.0, |h| h.maximum()))
@@ -2290,14 +2291,14 @@ impl Hud {
                                 .last()
                                 .expect("There must be at least one floater")
                                 .timer;
-                            let crit = damage_floaters
-                                .iter()
-                                .rev()
-                                .find(|f| f.info.crit_mult.is_some())
-                                .map_or(false, |f| f.info.crit_mult.is_some());
-                            let crit_mult = damage_floaters
+                            let jump_timer = damage_floaters
                                 .last()
-                                .map_or(1.0, |f| f.info.crit_mult.unwrap_or(1.0));
+                                .expect("There must be at least one floater")
+                                .jump_timer;
+                            let (crit, crit_mult) =
+                                damage_floaters.last().map_or((false, 1.0), |f| {
+                                    (f.info.crit_mult.is_some(), f.info.crit_mult.unwrap_or(1.0))
+                                });
 
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
@@ -2305,9 +2306,9 @@ impl Hud {
                                 + ((max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
                                     as u32)
                                     * 3
-                                + if timer < 0.1 {
+                                + if jump_timer < 0.1 {
                                     FLASH_MAX
-                                        * (((1.0 - timer / 0.1)
+                                        * (((1.0 - jump_timer / 0.1)
                                             * 10.0
                                             * if crit { 1.25 * crit_mult } else { 1.0 })
                                             as u32)
@@ -2324,15 +2325,14 @@ impl Hud {
                             // Timer sets text transparency
                             let fade =
                                 ((crate::ecs::sys::floater::HP_SHOWTIME - timer) * 0.25) + 0.2;
-                            // TODO: Add options for floating/non-floating
-                            Text::new(&format!("{}", hp_damage.abs()))
+                            Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, fade))
                                 .x_y(0.0, y - 3.0)
                                 .position_ingame(ingame_pos)
                                 .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{}", hp_damage.abs()))
+                            Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)
@@ -2357,6 +2357,12 @@ impl Hud {
                                     Health::HEALTH_EPSILON,
                                     health.map_or(1.0, |h| h.maximum()),
                                 ) / health.map_or(1.0, |h| h.maximum());
+                            let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
+                            {
+                                format!("{:.0}", floater.info.amount.abs())
+                            } else {
+                                format!("{:.1}", floater.info.amount.abs())
+                            };
                             let crit = floater.info.crit_mult.is_some();
                             let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
                             // Increase font size based on fraction of maximum health
@@ -2365,9 +2371,9 @@ impl Hud {
                                 + (max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
                                     as u32
                                     * 3
-                                + if floater.timer < 0.1 {
+                                + if floater.jump_timer < 0.1 {
                                     FLASH_MAX
-                                        * (((1.0 - floater.timer / 0.1)
+                                        * (((1.0 - floater.jump_timer / 0.1)
                                             * 10.0
                                             * if crit { 1.25 * crit_mult } else { 1.0 })
                                             as u32)
@@ -2404,8 +2410,7 @@ impl Hud {
                                 ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25)
                                     + 0.2
                             };
-                            // TODO: Add options for floating/non-floating
-                            Text::new(&format!("{:.1}", floater.info.amount.abs()))
+                            Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(if floater.info.amount < 0.0 {
@@ -2416,7 +2421,7 @@ impl Hud {
                                 .x_y(x, y - 3.0)
                                 .position_ingame(ingame_pos)
                                 .set(sct_bg_id, ui_widgets);
-                            Text::new(&format!("{:.1}", floater.info.amount.abs()))
+                            Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(x, y)
@@ -4571,6 +4576,8 @@ impl Hud {
                         } {
                             // Group up damage from the same tick, with the same instance number and
                             // crit value
+                            // Would you want to group up crits with the same instance number if you
+                            // don't group the at all with the different setting?
                             for floater in floater_list.floaters.iter_mut().rev() {
                                 if floater.timer > 0.0 {
                                     break;
@@ -4580,47 +4587,34 @@ impl Hud {
                                 {
                                     floater.info.amount += info.amount;
                                     floater.info.crit_mult = info.crit_mult;
-                                    floater.info.crit_mult = if info.crit_mult.is_some() {
-                                        info.crit_mult
-                                    } else {
-                                        floater.info.crit_mult
-                                    };
                                     return;
                                 }
                             }
 
                             // To separate healing and damage floaters alongside the crit and
                             // non-crit ones
-                            let last_floater = if info.amount < Health::HEALTH_EPSILON {
-                                floater_list.floaters.iter_mut().rev().find(|f| {
-                                    f.info.amount < Health::HEALTH_EPSILON
-                                        && info.crit_mult.is_some() == f.info.crit_mult.is_some()
-                                })
-                            } else {
-                                floater_list.floaters.iter_mut().rev().find(|f| {
-                                    f.info.amount > Health::HEALTH_EPSILON
-                                        && info.crit_mult.is_some() == f.info.crit_mult.is_some()
-                                })
-                            };
+                            let last_floater = floater_list.floaters.iter_mut().rev().find(|f| {
+                                (if info.amount < 0.0 {
+                                    f.info.amount < 0.0
+                                } else {
+                                    f.info.amount > 0.0
+                                }) && info.crit_mult.is_some() == f.info.crit_mult.is_some()
+                            });
 
                             match last_floater {
                                 Some(f)
                                     // TODO: Change later so it's based on options
+                                    // TODO: Might have to discuss whether or not to create a new floater or every crit
                                     if f.timer < floater::HP_ACCUMULATETIME && !f.info.crit_mult.is_some() =>
                                 {
-                                    //TODO: Add "jumping" animation on floater when it changes its
-                                    // value
+                                    f.jump_timer = 0.0;
                                     f.info.amount += info.amount;
                                     f.info.crit_mult = info.crit_mult;
-                                    f.info.crit_mult = if info.crit_mult.is_some() {
-                                        info.crit_mult
-                                    } else {
-                                        f.info.crit_mult
-                                    };
                                 },
                                 _ => {
                                     floater_list.floaters.push(HpFloater {
                                         timer: 0.0,
+                                        jump_timer: 0.0,
                                         info: *info,
                                         rand: rand::random(),
                                     });

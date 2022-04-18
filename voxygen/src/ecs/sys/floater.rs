@@ -47,7 +47,6 @@ impl<'a> System<'a> for Sys {
             });
         }
 
-        // TODO: avoid join??
         for hp_floater_list in (&mut hp_floater_lists).join() {
             // Increment timer for time since last damaged by me
             hp_floater_list
@@ -83,6 +82,7 @@ impl<'a> System<'a> for Sys {
             for mut floater in floaters.iter_mut() {
                 // Increment timer
                 floater.timer += dt.0;
+                floater.jump_timer += dt.0;
             }
 
             // Clear floaters if newest floater is past show time

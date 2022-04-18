@@ -57,7 +57,7 @@ impl MeleeConstructor {
                  scaling the melee attack."
             )
         }
-
+        let instance = rand::random();
         let attack = match self.kind {
             Slash {
                 damage,
@@ -80,7 +80,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
-                    rand::random(),
+                    instance,
                 )
                 .with_effect(buff);
 
@@ -129,7 +129,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
-                    rand::random(),
+                    instance,
                 )
                 .with_effect(buff);
 
@@ -172,7 +172,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
-                    rand::random(),
+                    instance,
                 );
 
                 if let Some(damage_effect) = self.damage_effect {
@@ -213,7 +213,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     None,
-                    rand::random(),
+                    instance,
                 )
                 .with_effect(lifesteal);
 
@@ -248,6 +248,7 @@ impl MeleeConstructor {
                         value: damage,
                     },
                     Some(GroupTarget::OutOfGroup),
+                    instance,
                 );
 
                 if let Some(damage_effect) = self.damage_effect {

@@ -615,6 +615,7 @@ pub fn handle_land_on_ground(server: &Server, entity: EcsEntity, vel: Vec3<f32>)
                 by: None,
                 cause: None,
                 time: *time,
+                instance: rand::random(),
             };
             poise.change(poise_change);
         }

@@ -126,6 +126,7 @@ pub trait StateExt {
     ) -> Result<(), specs::error::WrongGeneration>;
 }
 
+// TODO: Check if this is ok
 impl StateExt for State {
     fn apply_effect(&self, entity: EcsEntity, effects: Effect, source: Option<Uid>) {
         let msm = self.ecs().read_resource::<MaterialStatManifest>();
@@ -189,6 +190,7 @@ impl StateExt for State {
                             cause: None,
                             by: damage_contributor,
                             time: *time,
+                            instance: rand::random(),
                         };
                         self.ecs()
                             .write_storage::<comp::Poise>()

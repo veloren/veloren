@@ -8,6 +8,8 @@ use vek::*;
 #[derive(Copy, Clone, Debug)]
 pub struct HpFloater {
     pub timer: f32,
+    // Used for the "jumping" animation of the HpFloater whenever it changes it's value
+    pub jump_timer: f32,
     pub info: DamageInfo,
     // Used for randomly offsetting
     pub rand: f32,

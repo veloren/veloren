@@ -86,6 +86,8 @@ widget_ids! {
         sct_inc_dmg_radio,
         sct_batch_inc_text,
         sct_batch_inc_radio,
+        sct_round_dmg_text,
+        sct_round_dmg_radio,
         //
         speech_bubble_text,
         speech_bubble_self_text,
@@ -715,7 +717,9 @@ impl<'a> Widget for Interface<'a> {
             O Show batched dealt Damage
             O Show incoming Damage
                 O Batch incoming Numbers
-
+            O Round Damage Numbers
+        TODO: Do something like https://gitlab.com/veloren/veloren/-/issues/836
+        TODO: Scrollbar::x_axis for duration
         Number Display Duration: 1s ----I----5s
             */
         // SCT/ Scrolling Combat Text
@@ -846,13 +850,39 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.sct_batch_inc_radio)
             .color(TEXT_COLOR)
             .set(state.ids.sct_batch_inc_text, ui);
+
+            // Round Damage
+            let show_sct_damage_rounding = ToggleButton::new(
+                self.global_state.settings.interface.sct_damage_rounding,
+                self.imgs.checkbox,
+                self.imgs.checkbox_checked,
+            )
+            .w_h(18.0, 18.0)
+            .down_from(state.ids.sct_batch_inc_radio, 8.0)
+            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+            .set(state.ids.sct_round_dmg_radio, ui);
+
+            if self.global_state.settings.interface.sct_damage_rounding != show_sct_damage_rounding
+            {
+                events.push(SctRoundDamage(
+                    !self.global_state.settings.interface.sct_damage_rounding,
+                ))
+            }
+            Text::new(self.localized_strings.get("hud.settings.round_damage"))
+                .right_from(state.ids.sct_round_dmg_radio, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .graphics_for(state.ids.sct_round_dmg_radio)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_round_dmg_text, ui);
         }
 
         // Speech bubbles
         Text::new(self.localized_strings.get("hud.settings.speech_bubble"))
             .down_from(
                 if self.global_state.settings.interface.sct {
-                    state.ids.sct_batch_inc_radio
+                    state.ids.sct_round_dmg_radio
                 } else {
                     state.ids.sct_show_radio
                 },

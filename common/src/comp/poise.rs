@@ -29,6 +29,8 @@ pub struct PoiseChange {
     pub cause: Option<DamageSource>,
     /// The time that the poise change occurred at
     pub time: Time,
+    /// A random instance number used to group up attacks
+    pub instance: u64,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]

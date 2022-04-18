@@ -98,6 +98,7 @@ pub enum Interface {
     Sct(bool),
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
+    SctRoundDamage(bool),
     SpeechBubbleSelf(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
@@ -462,6 +463,9 @@ impl SettingsChange {
                     },
                     Interface::SctDamageBatch(sct_damage_batch) => {
                         settings.interface.sct_damage_batch = sct_damage_batch;
+                    },
+                    Interface::SctRoundDamage(sct_round_damage) => {
+                        settings.interface.sct_damage_rounding = sct_round_damage;
                     },
                     Interface::SpeechBubbleSelf(sbdm) => {
                         settings.interface.speech_bubble_self = sbdm;
