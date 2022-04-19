@@ -11,7 +11,6 @@ use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 pub const HP_SHOWTIME: f32 = 3.0;
 pub const CRIT_SHOWTIME: f32 = 0.7;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
-pub const HP_ACCUMULATETIME: f32 = 1.0;
 
 #[derive(Default)]
 pub struct Sys;

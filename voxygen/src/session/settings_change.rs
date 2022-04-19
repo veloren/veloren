@@ -99,6 +99,8 @@ pub enum Interface {
     SctPlayerBatch(bool),
     SctDamageBatch(bool),
     SctRoundDamage(bool),
+    SctDamageAccumDuration(f32),
+    SctIncomingDamageAccumDuration(f32),
     SpeechBubbleSelf(bool),
     SpeechBubbleDarkMode(bool),
     SpeechBubbleIcon(bool),
@@ -466,6 +468,12 @@ impl SettingsChange {
                     },
                     Interface::SctRoundDamage(sct_round_damage) => {
                         settings.interface.sct_damage_rounding = sct_round_damage;
+                    },
+                    Interface::SctDamageAccumDuration(sct_dmg_accum_duration) => {
+                        settings.interface.sct_dmg_accum_duration = sct_dmg_accum_duration;
+                    },
+                    Interface::SctIncomingDamageAccumDuration(sct_inc_dmg_accum_duration) => {
+                        settings.interface.sct_inc_dmg_accum_duration = sct_inc_dmg_accum_duration;
                     },
                     Interface::SpeechBubbleSelf(sbdm) => {
                         settings.interface.speech_bubble_self = sbdm;

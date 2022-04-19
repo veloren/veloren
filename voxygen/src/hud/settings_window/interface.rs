@@ -88,6 +88,12 @@ widget_ids! {
         sct_batch_inc_radio,
         sct_round_dmg_text,
         sct_round_dmg_radio,
+        sct_dmg_accum_duration_slider,
+        sct_dmg_accum_duration_text,
+        sct_dmg_accum_duration_value,
+        sct_inc_dmg_accum_duration_slider,
+        sct_inc_dmg_accum_duration_text,
+        sct_inc_dmg_accum_duration_value,
         //
         speech_bubble_text,
         speech_bubble_self_text,
@@ -714,13 +720,15 @@ impl<'a> Widget for Interface<'a> {
 
         O Show Damage Numbers
             O Show single Damage Numbers
+                // 0 to ??? seconds
+                O Damage Accumulation Duration: 0s ----I----5s
             O Show batched dealt Damage
             O Show incoming Damage
-                O Batch incoming Numbers
+                // 0 to ??? seconds
+                O Incoming Damage Accumulation Duration: 0s ----I----5s
+            O Batch incoming Numbers
             O Round Damage Numbers
         TODO: Do something like https://gitlab.com/veloren/veloren/-/issues/836
-        TODO: Scrollbar::x_axis for duration
-        Number Display Duration: 1s ----I----5s
             */
         // SCT/ Scrolling Combat Text
         Text::new(
@@ -758,6 +766,13 @@ impl<'a> Widget for Interface<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.sct_show_text, ui);
         if self.global_state.settings.interface.sct {
+            let sct_dmg_accum_duration =
+                self.global_state.settings.interface.sct_dmg_accum_duration;
+            let sct_inc_dmg_accum_duration = self
+                .global_state
+                .settings
+                .interface
+                .sct_inc_dmg_accum_duration;
             // Toggle single damage numbers
             let show_sct_damage_batch = !ToggleButton::new(
                 !self.global_state.settings.interface.sct_damage_batch,
@@ -780,6 +795,45 @@ impl<'a> Widget for Interface<'a> {
             .graphics_for(state.ids.sct_single_dmg_radio)
             .color(TEXT_COLOR)
             .set(state.ids.sct_single_dmg_text, ui);
+
+            if !show_sct_damage_batch {
+                Text::new(
+                    self.localized_strings
+                        .get("hud.settings.sct_dmg_accum_duration"),
+                )
+                .down_from(state.ids.sct_single_dmg_radio, 8.0)
+                .right_from(state.ids.sct_single_dmg_radio, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_dmg_accum_duration_text, ui);
+
+                if let Some(new_val) = ImageSlider::continuous(
+                    sct_dmg_accum_duration,
+                    0.0,
+                    2.0,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(104.0, 22.0)
+                .down_from(state.ids.sct_dmg_accum_duration_text, 8.0)
+                .track_breadth(12.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.sct_dmg_accum_duration_slider, ui)
+                {
+                    events.push(SctDamageAccumDuration(new_val));
+                }
+
+                Text::new(&format!("{:.2}", sct_dmg_accum_duration,))
+                    .right_from(state.ids.sct_dmg_accum_duration_slider, 8.0)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .graphics_for(state.ids.sct_dmg_accum_duration_slider)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_dmg_accum_duration_value, ui);
+            }
+
             // Toggle Batched Damage
             let show_sct_damage_batch = ToggleButton::new(
                 show_sct_damage_batch,
@@ -787,7 +841,17 @@ impl<'a> Widget for Interface<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .down_from(state.ids.sct_single_dmg_radio, 8.0)
+            .down_from(
+                if show_sct_damage_batch {
+                    state.ids.sct_single_dmg_radio
+                } else {
+                    state.ids.sct_dmg_accum_duration_slider
+                },
+                8.0,
+            )
+            .and_if(!show_sct_damage_batch, |tb| {
+                tb.left_from(state.ids.sct_dmg_accum_duration_slider, 10.0)
+            })
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.sct_show_batch_radio, ui);
@@ -797,6 +861,7 @@ impl<'a> Widget for Interface<'a> {
                     !self.global_state.settings.interface.sct_damage_batch,
                 ))
             }
+
             Text::new(self.localized_strings.get("hud.settings.cumulated_damage"))
                 .right_from(state.ids.sct_show_batch_radio, 10.0)
                 .font_size(self.fonts.cyri.scale(14))
@@ -823,6 +888,45 @@ impl<'a> Widget for Interface<'a> {
                 .graphics_for(state.ids.sct_inc_dmg_radio)
                 .color(TEXT_COLOR)
                 .set(state.ids.sct_inc_dmg_text, ui);
+
+            if !show_sct_player_batch {
+                Text::new(
+                    self.localized_strings
+                        .get("hud.settings.sct_inc_dmg_accum_duration"),
+                )
+                .down_from(state.ids.sct_inc_dmg_radio, 8.0)
+                .right_from(state.ids.sct_inc_dmg_radio, 10.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_inc_dmg_accum_duration_text, ui);
+
+                if let Some(new_val) = ImageSlider::continuous(
+                    sct_inc_dmg_accum_duration,
+                    0.0,
+                    2.0,
+                    self.imgs.slider_indicator,
+                    self.imgs.slider,
+                )
+                .w_h(104.0, 22.0)
+                .down_from(state.ids.sct_inc_dmg_accum_duration_text, 8.0)
+                .track_breadth(12.0)
+                .slider_length(10.0)
+                .pad_track((5.0, 5.0))
+                .set(state.ids.sct_inc_dmg_accum_duration_slider, ui)
+                {
+                    events.push(SctIncomingDamageAccumDuration(new_val));
+                }
+
+                Text::new(&format!("{:.2}", sct_inc_dmg_accum_duration,))
+                    .right_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
+                    .font_size(self.fonts.cyri.scale(14))
+                    .graphics_for(state.ids.sct_inc_dmg_accum_duration_slider)
+                    .font_id(self.fonts.cyri.conrod_id)
+                    .color(TEXT_COLOR)
+                    .set(state.ids.sct_inc_dmg_accum_duration_value, ui);
+            }
+
             // Toggle Batched Incoming Damage
             let show_sct_player_batch = ToggleButton::new(
                 show_sct_player_batch,
@@ -830,7 +934,17 @@ impl<'a> Widget for Interface<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .down_from(state.ids.sct_inc_dmg_radio, 8.0)
+            .down_from(
+                if show_sct_player_batch {
+                    state.ids.sct_inc_dmg_radio
+                } else {
+                    state.ids.sct_inc_dmg_accum_duration_slider
+                },
+                8.0,
+            )
+            .and_if(!show_sct_player_batch, |tb| {
+                tb.left_from(state.ids.sct_inc_dmg_accum_duration_slider, 10.0)
+            })
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.sct_batch_inc_radio, ui);
