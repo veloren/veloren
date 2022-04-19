@@ -1,0 +1,33 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Belarusian
+(
+    string_map: {
+        "char_selection.loading_characters": "Загрузка персанажаў...",
+        "char_selection.delete_permanently": "Назаўжды выдаліць гэтага персанажа?",
+        "char_selection.deleting_character": "Выдаленне персанажа...",
+        "char_selection.change_server": "Змяніць сервер",
+        "char_selection.enter_world": "Увайсці ў свет",
+        "char_selection.logout": "Выхад",
+        "char_selection.create_new_character": "Стварыць новага персанажа",
+        "char_selection.creating_character": "Стварэнне персанажа...",
+        "char_selection.character_creation": "Стварэнне персанажа",
+        "char_selection.human_default": "Тыповы чалавек",
+        "char_selection.level_fmt": "Узровень {level_nb}",
+        "char_selection.uncanny_valley": "Дзікія землі",
+        "char_selection.plains_of_uncertainty": "Раўніны нявызначанасці",
+        "char_selection.beard": "Барада",
+        "char_selection.hair_style": "Прычоска",
+        "char_selection.hair_color": "Колер валосся",
+        "char_selection.eye_color": "Колер вачэй",
+        "char_selection.skin": "Колер скуры",
+        "char_selection.eyeshape": "Форма вачэй",
+        "char_selection.accessories": "Аксесуары",
+        "char_selection.create_info_name": "Вашаму персанажу патрэбна імя!",
+        "char_selection.version_mismatch": "УВАГА! Гэты сервер выкарыстоўвае іншую, магчыма, несумяшчальную версію гульні. Калі ласка, абнавіце сваю гульню.",
+
+    },
+
+    vector_map: {
+    }
+)

@@ -1,0 +1,13 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Belarusian
+(
+    string_map: {
+        "esc_menu.logout": "Выйсці ў меню",
+        "esc_menu.quit_game": "Выйсці з гульні",
+    },
+
+
+    vector_map: {
+    }
+)
