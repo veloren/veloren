@@ -360,20 +360,10 @@ impl AudioFrontend {
         channel_tag: AmbientChannelTag,
     ) -> Option<&mut AmbientChannel> {
         if self.audio_stream.is_some() {
-            let mut tag_match = false;
-            let mut found_channel = None;
-            for channel in self.ambient_channels.iter_mut() {
-                if channel.get_tag() == channel_tag {
-                    tag_match = true;
-                    found_channel = Some(channel);
-                    break;
-                }
-            }
-            if tag_match {
-                return found_channel;
-            }
+            self.ambient_channels.iter_mut().find(|channel| channel.get_tag() == channel_tag)
+        } else {
+            None
         }
-        None
     }
 
     // Unused code that may be useful in the future:
