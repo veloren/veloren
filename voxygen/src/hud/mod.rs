@@ -1522,7 +1522,10 @@ impl Hud {
                         if floater.exp_change > 0 {
                             let xp_pool = &floater.xp_pools;
                             // Don't show 0 Exp
-                            Text::new(&format!("{} Exp", floater.exp_change.max(1)))
+                            let exp_string = &i18n
+                                .get("hud.sct.experience")
+                                .replace("{amount}", &floater.exp_change.max(1).to_string());
+                            Text::new(exp_string)
                                 .font_size(font_size_xp)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(Color::Rgba(0.0, 0.0, 0.0, fade))
@@ -1532,7 +1535,7 @@ impl Hud {
                                         - 3.0,
                                 )
                                 .set(player_sct_bg_id, ui_widgets);
-                            Text::new(&format!("{} Exp", floater.exp_change.max(1)))
+                            Text::new(exp_string)
                                 .font_size(font_size_xp)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .color(
