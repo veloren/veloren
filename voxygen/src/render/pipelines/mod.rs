@@ -431,7 +431,6 @@ impl GlobalsLayouts {
             wgpu::BindGroupLayoutEntry {
                 binding: 14,
                 visibility: wgpu::ShaderStage::VERTEX | wgpu::ShaderStage::FRAGMENT,
-                // TODO: is this relevant?
                 ty: wgpu::BindingType::Buffer {
                     ty: wgpu::BufferBindingType::Uniform,
                     has_dynamic_offset: false,
