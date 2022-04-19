@@ -6,8 +6,6 @@ use noise::{NoiseFn, SuperSimplex, Turbulence};
 use vek::*;
 use world::World;
 
-
-
 /*
 #[derive(Clone, Copy, Default)]
 struct Cell {

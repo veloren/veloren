@@ -360,7 +360,9 @@ impl AudioFrontend {
         channel_tag: AmbientChannelTag,
     ) -> Option<&mut AmbientChannel> {
         if self.audio_stream.is_some() {
-            self.ambient_channels.iter_mut().find(|channel| channel.get_tag() == channel_tag)
+            self.ambient_channels
+                .iter_mut()
+                .find(|channel| channel.get_tag() == channel_tag)
         } else {
             None
         }

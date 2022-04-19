@@ -231,39 +231,37 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
-    #ifdef EXPERIMENTAL_RAIN
-        vec3 pos = f_pos + focus_off.xyz;
-        float rain_density = rain_density_at(pos.xy) * rain_occlusion_at(f_pos.xyz) * 50.0;
-        // Toggle to see rain_occlusion
-        // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
-        // return;
-        if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
-            vec3 drop_density = vec3(2, 2, 2);
-            vec3 drop_pos = pos + vec3(pos.zz, 0) + vec3(0, 0, -tick.x * 1.0);
-            drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;
-            vec2 cell2d = floor(drop_pos.xy * drop_density.xy);
-            drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
-            vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
+    vec3 pos = f_pos + focus_off.xyz;
+    float rain_density = rain_density_at(pos.xy) * rain_occlusion_at(f_pos.xyz) * 50.0;
+    // Toggle to see rain_occlusion
+    // tgt_color = vec4(rain_occlusion_at(f_pos.xyz), 0.0, 0.0, 1.0);
+    // return;
+    if (rain_density > 0 && !faces_fluid && f_norm.z > 0.5) {
+        vec3 drop_density = vec3(2, 2, 2);
+        vec3 drop_pos = pos + vec3(pos.zz, 0) + vec3(0, 0, -tick.x * 1.0);
+        drop_pos.z += noise_2d(floor(drop_pos.xy * drop_density.xy) * 13.1) * 10;
+        vec2 cell2d = floor(drop_pos.xy * drop_density.xy);
+        drop_pos.z *= 0.5 + hash_fast(uvec3(cell2d, 0));
+        vec3 cell = vec3(cell2d, floor(drop_pos.z * drop_density.z));
 
-            if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density) {
-                vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
-                vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
+        if (fract(hash(fract(vec4(cell, 0) * 0.01))) < rain_density) {
+            vec3 off = vec3(hash_fast(uvec3(cell * 13)), hash_fast(uvec3(cell * 5)), 0);
+            vec3 near_cell = (cell + 0.5 + (off - 0.5) * 0.5) / drop_density;
 
-                float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
-                float drop_rad = 0.1;
-                float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
-                k_a += distort;
-                k_d += distort;
-                k_s += distort;
-                f_norm.xy += (drop_pos - near_cell).xy
-                    * max(1.0 - abs(dist - drop_rad) * 30, 0)
-                    * 500.0
-                    * max(drop_pos.z - near_cell.z, 0)
-                    * sign(dist - drop_rad)
-                    * max(drop_pos.z - near_cell.z, 0);
-            }
+            float dist = length((drop_pos - near_cell) / vec3(1, 1, 2));
+            float drop_rad = 0.1;
+            float distort = max(1.0 - abs(dist - drop_rad) * 100, 0) * 1.5 * max(drop_pos.z - near_cell.z, 0);
+            k_a += distort;
+            k_d += distort;
+            k_s += distort;
+            f_norm.xy += (drop_pos - near_cell).xy
+                * max(1.0 - abs(dist - drop_rad) * 30, 0)
+                * 500.0
+                * max(drop_pos.z - near_cell.z, 0)
+                * sign(dist - drop_rad)
+                * max(drop_pos.z - near_cell.z, 0);
         }
-    #endif
+    }
 
     // float sun_light = get_sun_brightness(sun_dir);
     // float moon_light = get_moon_brightness(moon_dir);
