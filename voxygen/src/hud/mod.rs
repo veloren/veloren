@@ -1084,6 +1084,8 @@ pub struct Hud {
     force_chat_cursor: Option<Index>,
     tab_complete: Option<String>,
     pulse: f32,
+    //TODO: ask if this is fine (even though I'm 99.99999% sure it is)
+    hp_pulse: f32,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
     events: Vec<Event>,
@@ -1202,6 +1204,7 @@ impl Hud {
             force_chat_cursor: None,
             tab_complete: None,
             pulse: 0.0,
+            hp_pulse: 0.0,
             slot_manager,
             hotbar: hotbar_state,
             events: Vec::new(),
@@ -1326,11 +1329,11 @@ impl Hud {
             if let Some(health) = healths.get(me) {
                 // Hurt Frame
                 let hp_percentage = health.current() / health.maximum() * 100.0;
+                self.hp_pulse += (dt.as_secs_f32() * 10.0 / hp_percentage)
+                    .min(0.07)
+                    .max(0.02);
                 if hp_percentage < 10.0 && !health.is_dead {
-                    let hurt_fade =
-                        (self.pulse * (10.0 - hp_percentage as f32) * 0.1/* speed factor */).sin()
-                            * 0.5
-                            + 0.6; //Animation timer
+                    let hurt_fade = (self.hp_pulse).sin() * 0.5 + 0.6; //Animation timer
                     Image::new(self.imgs.hurt_bg)
                         .wh_of(ui_widgets.window)
                         .middle_of(ui_widgets.window)
@@ -1433,7 +1436,7 @@ impl Hud {
                                 damage_floaters.iter().map(|fl| fl.info.amount).sum();
 
                             let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
-                                && hp_damage.abs() > 1.0
+                                && hp_damage.abs() >= 1.0
                             {
                                 format!("{:.0}", hp_damage.abs())
                             } else {
@@ -1468,7 +1471,7 @@ impl Hud {
                                     FLASH_MAX
                                         * (((1.0 - jump_timer / 0.1)
                                             * 10.0
-                                            * if crit { 1.25 * crit_mult } else { 1.0 })
+                                            * if crit { 1.10 * crit_mult } else { 1.0 })
                                             as u32)
                                 } else {
                                     0
@@ -1528,7 +1531,7 @@ impl Hud {
                             .clamp(Health::HEALTH_EPSILON, health.maximum())
                             / health.maximum();
                         let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
-                            && floater.info.amount.abs() > 1.0
+                            && floater.info.amount.abs() >= 1.0
                         {
                             format!("{:.0}", floater.info.amount.abs())
                         } else {
@@ -1536,14 +1539,11 @@ impl Hud {
                         };
                         let crit = floater.info.crit_mult.is_some();
                         let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
-                        
+
                         // Timer sets text transparency
-                        let hp_fade = if crit {
-                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
-                        } else {
-                            ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer) * 0.25)
-                                + 0.2
-                        };
+                        let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
+                            * 0.25)
+                            + 0.2;
                         // Skip floater if fade is less than or equal to 0.0
                         if hp_fade <= 0.0 {
                             continue;
@@ -1561,13 +1561,12 @@ impl Hud {
                                 FLASH_MAX
                                     * (((1.0 - floater.jump_timer / 0.1)
                                         * 10.0
-                                        * if crit { 1.25 * crit_mult } else { 1.0 })
+                                        * if crit { 1.10 * crit_mult } else { 1.0 })
                                         as u32)
                             } else {
                                 0
                             };
                         // Timer sets the widget offset
-                        // TODO: Discuss if crits should stay in place?
                         // TODO: I feel like I'd prefer for crits to behave the same way for players
                         // and monsters
                         let y = if floater.info.amount < 0.0 {
@@ -1586,15 +1585,11 @@ impl Hud {
                                 - ui_widgets.win_h * 0.5
                         };
                         // Healing is offset randomly
-                        let x = if crit {
-                            // TODO: Too large diff
-                            // See the second value as a minimum and the first as a maximum
-                            (floater.rand as f64 - 0.5) * 0.08 * ui_widgets.win_w
-                                + (0.03 * ui_widgets.win_w * (floater.rand as f64 - 0.5).signum())
-                        } else if floater.info.amount < 0.0 {
+                        let x = if floater.info.amount < 0.0 {
                             0.0
                         } else {
-                            (floater.rand as f64 - 0.5) * 0.2 * ui_widgets.win_w
+                            (floater.rand as f64 - 0.5) * 0.08 * ui_widgets.win_w
+                                + (0.03 * ui_widgets.win_w * (floater.rand as f64 - 0.5).signum())
                         };
                         Text::new(&hp_dmg_text)
                             .font_size(font_size)
@@ -2282,7 +2277,7 @@ impl Hud {
                             let hp_damage: f32 =
                                 damage_floaters.iter().map(|fl| fl.info.amount).sum();
                             let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
-                                && hp_damage.abs() > 1.0
+                                && hp_damage.abs() >= 1.0
                             {
                                 format!("{:.0}", hp_damage.abs())
                             } else {
@@ -2316,7 +2311,7 @@ impl Hud {
                                     FLASH_MAX
                                         * (((1.0 - jump_timer / 0.1)
                                             * 10.0
-                                            * if crit { 1.25 * crit_mult } else { 1.0 })
+                                            * if crit { 1.10 * crit_mult } else { 1.0 })
                                             as u32)
                                 } else {
                                     0
@@ -2364,7 +2359,7 @@ impl Hud {
                                     health.map_or(1.0, |h| h.maximum()),
                                 ) / health.map_or(1.0, |h| h.maximum());
                             let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
-                                && floater.info.amount.abs() > 1.0
+                                && floater.info.amount.abs() >= 1.0
                             {
                                 format!("{:.0}", floater.info.amount.abs())
                             } else {
@@ -2394,7 +2389,7 @@ impl Hud {
                                     FLASH_MAX
                                         * (((1.0 - floater.jump_timer / 0.1)
                                             * 10.0
-                                            * if crit { 1.25 * crit_mult } else { 1.0 })
+                                            * if crit { 1.10 * crit_mult } else { 1.0 })
                                             as u32)
                                 } else {
                                     0
@@ -2421,7 +2416,6 @@ impl Hud {
                                         * (floater.rand as f64 - 0.5).signum())
                             };
 
-                            
                             Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
@@ -4615,7 +4609,11 @@ impl Hud {
                                     f.info.amount < 0.0
                                 } else {
                                     f.info.amount > 0.0
-                                }) && info.crit_mult.is_some() == f.info.crit_mult.is_some()
+                                }) && if !hit_me {
+                                    info.crit_mult.is_some() == f.info.crit_mult.is_some()
+                                } else {
+                                    true
+                                }
                             });
 
                             match last_floater {
@@ -4625,8 +4623,8 @@ impl Hud {
                                     if (if hit_me {
                                         f.timer < global_state.settings.interface.sct_inc_dmg_accum_duration
                                     } else {
-                                        f.timer < global_state.settings.interface.sct_dmg_accum_duration
-                                    } && f.info.crit_mult.is_none()) =>
+                                        f.timer < global_state.settings.interface.sct_dmg_accum_duration && f.info.crit_mult.is_none()
+                                    }) =>
                                 {
                                     f.jump_timer = 0.0;
                                     f.info.amount += info.amount;

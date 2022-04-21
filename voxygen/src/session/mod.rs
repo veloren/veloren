@@ -1580,7 +1580,7 @@ impl PlayState for SessionState {
                         self.scene
                             .handle_outcome(&outcome, &scene_data, &mut global_state.audio);
                         self.hud
-                            .handle_outcome(&outcome, scene_data.client, &global_state);
+                            .handle_outcome(&outcome, scene_data.client, global_state);
                     }
                 }
             }
