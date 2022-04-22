@@ -151,12 +151,33 @@ pub fn are_our_owners_hostile(
     })
 }
 
+pub fn entities_have_line_of_sight(
+    entity: EcsEntity,
+    other: EcsEntity,
+    read_data: &ReadData,
+) -> bool {
+    let eye_pos = |ent: EcsEntity| {
+        let eye_offset = read_data.bodies.get(ent).map_or(0.0, |b| b.eye_height());
+
+        read_data
+            .positions
+            .get(entity)
+            .map(|pos| Pos(Vec3::new(pos.0.x, pos.0.y, pos.0.z + eye_offset)))
+    };
+
+    if let (Some(eye_pos), Some(other_eye_pos)) = (eye_pos(entity), eye_pos(other)) {
+        positions_have_line_of_sight(&eye_pos, &other_eye_pos, read_data)
+    } else {
+        false
+    }
+}
+
 pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadData) -> bool {
     let dist_sqrd = pos_b.0.distance_squared(pos_a.0);
 
     read_data
         .terrain
-        .ray(pos_a.0 + Vec3::unit_z(), pos_b.0 + Vec3::unit_z())
+        .ray(pos_a.0, pos_b.0)
         .until(Block::is_opaque)
         .cast()
         .0
@@ -215,7 +236,7 @@ pub fn does_entity_see_other(
             .try_normalized()
             .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
 
-        within_sight_dist && positions_have_line_of_sight(pos, other_pos, read_data) && within_fov
+        within_sight_dist && entities_have_line_of_sight(entity, other, read_data) && within_fov
     } else {
         false
     }
