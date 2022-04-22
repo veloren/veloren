@@ -341,7 +341,7 @@ mod tests {
     // enable info!
     fn init() {
         FmtSubscriber::builder()
-            .with_max_level(Level::INFO)
+            .with_max_level(Level::ERROR)
             .with_env_filter(EnvFilter::from_default_env())
             .try_init()
             .unwrap_or_default();
