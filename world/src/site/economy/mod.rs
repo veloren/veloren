@@ -270,9 +270,10 @@ impl Economy {
                 let labor_values = normalize(self.labor_values);
                 // Use labor values as prices. Not correct (doesn't care about exchange value)
                 let prices = normalize(self.values).map(|good, value| {
-                    (labor_values[good].unwrap_or(Economy::MINIMUM_PRICE)
+                    ((labor_values[good].unwrap_or(Economy::MINIMUM_PRICE)
                         + value.unwrap_or(Economy::MINIMUM_PRICE))
-                        * 0.5
+                        * 0.5)
+                        .max(Economy::MINIMUM_PRICE)
                 });
                 prices.iter().map(|(g, v)| (Good::from(g), *v)).collect()
             },
