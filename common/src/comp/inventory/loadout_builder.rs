@@ -596,19 +596,33 @@ fn default_main_tool(body: &Body) -> Item {
             )),
         },
         Body::Arthropod(arthropod) => match arthropod.species {
-            arthropod::Species::Hornbeetle
-            | arthropod::Species::Stagbeetle
-            | arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropodcharge",
+            arthropod::Species::Hornbeetle | arthropod::Species::Stagbeetle => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.arthropods.hornbeetle",
+                ))
+            },
+            arthropod::Species::Cavespider => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.cavespider",
             )),
-            arthropod::Species::Cavespider | arthropod::Species::Blackwidow => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.arthropodranged"),
+            arthropod::Species::Sandcrawler | arthropod::Species::Mosscrawler => {
+                Some(Item::new_from_asset_expect(
+                    "common.items.npc_weapons.unique.arthropods.mosscrawler",
+                ))
+            },
+            arthropod::Species::Moltencrawler | arthropod::Species::Weevil => Some(
+                Item::new_from_asset_expect("common.items.npc_weapons.unique.arthropods.weevil"),
             ),
-            arthropod::Species::Weevil | arthropod::Species::Tarantula => Some(
-                Item::new_from_asset_expect("common.items.npc_weapons.unique.arthropodleap"),
-            ),
+            arthropod::Species::Blackwidow => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.blackwidow",
+            )),
+            arthropod::Species::Tarantula => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.tarantula",
+            )),
+            arthropod::Species::Antlion => Some(Item::new_from_asset_expect(
+                "common.items.npc_weapons.unique.arthropods.antlion",
+            )),
             _ => Some(Item::new_from_asset_expect(
-                "common.items.npc_weapons.unique.arthropodbasic",
+                "common.items.npc_weapons.unique.arthropods.leafbeetle",
             )),
         },
         Body::BipedLarge(biped_large) => match (biped_large.species, biped_large.body_type) {

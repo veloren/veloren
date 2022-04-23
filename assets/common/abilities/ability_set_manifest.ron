@@ -186,6 +186,8 @@
         secondary: "common.abilities.custom.tidalwarrior.totem_wave",
         abilities: [],
     ),
+    // Note: Consider making a ranking system once we get more entities
+    // TODO: Make all purple item droppers have purple CR and a unique skillset
     Custom("Quad Med Quick"): (
         primary: "common.abilities.custom.quadmedquick.triplestrike",
         secondary: "common.abilities.custom.quadmedquick.dash",
@@ -279,30 +281,41 @@
         secondary: "common.abilities.custom.theropodbasic.dash",
         abilities: [],
     ),
-    Custom("Arthropod Basic"): (
-        primary: "common.abilities.custom.arthropodbasic.singlestrike",
-        secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
+    // Arthropods
+    Custom("Antlion"): (
+        primary: "common.abilities.custom.arthropods.antlion.singlestrike",
+        secondary: "common.abilities.custom.arthropods.antlion.charge",
         abilities: [],
     ),
-    Custom("Arthropod Leap"): (
-        primary: "common.abilities.custom.arthropodbasic.singlestrike",
-        secondary: "common.abilities.custom.arthropodbasic.ensnaringweb",
+    Custom("Black Widow"): (
+        primary: "common.abilities.custom.arthropods.blackwidow.singlestrike",
+        secondary: "common.abilities.custom.arthropods.blackwidow.ensnaringwebs",
         abilities: [
-            (None, "common.abilities.custom.arthropodbasic.leap"),
+            (None, "common.abilities.custom.arthropods.blackwidow.poisonball"),
         ],
     ),
-    Custom("Arthropod Ranged"): (
-        primary: "common.abilities.custom.arthropodranged.singlestrike",
-        secondary: "common.abilities.custom.arthropodranged.ensnaringweb",
+    Custom("Horn Beetle"): (
+        primary: "common.abilities.custom.arthropods.hornbeetle.singlestrike",
+        secondary: "common.abilities.custom.arthropods.hornbeetle.harden",
         abilities: [
-            (None, "common.abilities.custom.arthropodranged.poisonball"),
+            (None, "common.abilities.custom.arthropods.hornbeetle.leap"),
         ],
     ),
-    Custom("Arthropod Charge"): (
-        primary: "common.abilities.custom.arthropodcharge.singlestrike",
-        secondary: "common.abilities.custom.arthropodcharge.charge",
-        abilities: [],
+    Custom("Tarantula"): (
+        primary: "common.abilities.custom.arthropods.tarantula.singlestrike",
+        secondary: "common.abilities.custom.arthropods.tarantula.ensnaringwebs",
+        abilities: [
+            (None, "common.abilities.custom.arthropods.tarantula.leap"),
+        ],
     ),
+    Custom("Weevil"): (
+        primary: "common.abilities.custom.arthropods.weevil.singlestrike",
+        secondary: "common.abilities.custom.arthropods.weevil.harden",
+        abilities: [
+            (None, "common.abilities.custom.arthropods.weevil.threadshot"),
+        ],
+    ),
+    /// TODO: Organize the rest into further catagories and give purple tier droppers+ custom skillsets
     Custom("Turret"): (
         primary: "common.abilities.custom.turret.arrows",
         secondary: "common.abilities.custom.turret.arrows",

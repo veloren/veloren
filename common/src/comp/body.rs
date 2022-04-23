@@ -687,7 +687,7 @@ impl Body {
                 biped_large::Species::Tidalwarrior => 1600,
                 biped_large::Species::Yeti => 1200,
                 biped_large::Species::Minotaur => 3000,
-                biped_large::Species::Harvester => 500,
+                biped_large::Species::Harvester => 1500,
                 biped_large::Species::Blueoni => 240,
                 biped_large::Species::Redoni => 240,
                 biped_large::Species::Huskbrute => 800,

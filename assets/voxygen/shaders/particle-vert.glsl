@@ -74,6 +74,7 @@ const int DRIP = 32;
 const int TORNADO = 33;
 const int DEATH = 34;
 const int ENERGY_BUFFING = 35;
+const int WEB_STRAND = 36;
 
 // meters per second squared (acceleration)
 const float earth_gravity = 9.807;
@@ -577,6 +578,16 @@ void main() {
                 vec3(6 * abs(rand4) * (1 - slow_start(2)) * pow(spiral_radius / length(inst_dir), 0.5)),
                 vec4(vec3(1.4), 1),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3)
+            );
+            break;
+        case WEB_STRAND:
+            f_reflect = 0.0;
+            perp_axis = normalize(cross(inst_dir, vec3(0.0, 0.0, 1.0)));
+            attr = Attr(
+                inst_dir * percent(),
+                vec3(1.0, 1.0, 50.0),
+                vec4(vec3(2.0), 1),
+                spin_in_axis(perp_axis, asin(inst_dir.z / length(inst_dir)) + PI / 2.0)
             );
             break;
         default:

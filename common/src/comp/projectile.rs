@@ -238,7 +238,7 @@ impl ProjectileConstructor {
                     CombatEffect::Buff(CombatBuff {
                         kind: BuffKind::Poisoned,
                         dur_secs: 5.0,
-                        strength: CombatBuffStrength::DamageFraction(0.2 * buff_strength),
+                        strength: CombatBuffStrength::DamageFraction(0.8 * buff_strength),
                         chance: 1.0,
                     }),
                 )

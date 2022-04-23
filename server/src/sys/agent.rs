@@ -1805,10 +1805,10 @@ impl<'a> AgentData<'a> {
                             "Quad Low Quick" => Tactic::QuadLowQuick,
                             "Quad Low Basic" => Tactic::QuadLowBasic,
                             "Theropod Basic" | "Theropod Bird" => Tactic::Theropod,
-                            "Arthropod Basic" => Tactic::ArthropodBasic,
-                            "Arthropod Charge" => Tactic::ArthropodCharge,
-                            "Arthropod Ranged" => Tactic::ArthropodRanged,
-                            "Arthropod Leap" => Tactic::ArthropodLeap,
+                            // Arthropods
+                            "Antlion" => Tactic::ArthropodMelee,
+                            "Tarantula" | "Horn Beetle" => Tactic::ArthropodAmbush,
+                            "Weevil" | "Black Widow" => Tactic::ArthropodRanged,
                             "Theropod Charge" => Tactic::CircleCharge {
                                 radius: 6,
                                 circle_time: 1,
@@ -2102,21 +2102,14 @@ impl<'a> AgentData<'a> {
             Tactic::Theropod => {
                 self.handle_theropod_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
-            Tactic::ArthropodBasic => self.handle_arthropod_basic_attack(
+            Tactic::ArthropodMelee => self.handle_arthropod_melee_attack(
                 agent,
                 controller,
                 &attack_data,
                 tgt_data,
                 read_data,
             ),
-            Tactic::ArthropodCharge => self.handle_arthropod_charge_attack(
-                agent,
-                controller,
-                &attack_data,
-                tgt_data,
-                read_data,
-            ),
-            Tactic::ArthropodLeap => self.handle_arthropod_leap_attack(
+            Tactic::ArthropodAmbush => self.handle_arthropod_ambush_attack(
                 agent,
                 controller,
                 &attack_data,

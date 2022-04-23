@@ -503,7 +503,8 @@ impl SfxMgr {
                 },
                 beam::FrontendSpecifier::ClayGolem
                 | beam::FrontendSpecifier::Bubbles
-                | beam::FrontendSpecifier::Frost => {},
+                | beam::FrontendSpecifier::Frost
+                | beam::FrontendSpecifier::WebStrand => {},
             },
             Outcome::BreakBlock { pos, .. } => {
                 let sfx_trigger_item = triggers.get_key_value(&SfxEvent::BreakBlock);

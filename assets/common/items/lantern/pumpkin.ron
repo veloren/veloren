@@ -9,6 +9,6 @@ ItemDef(
             flicker_thousandths: 600,
         ),
     ),
-    quality: Legendary,
+    quality: High,
     tags: [Utility],
 )

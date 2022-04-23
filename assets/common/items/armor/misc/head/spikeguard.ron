@@ -6,7 +6,7 @@ ItemDef(
         stats: (
             protection: Some(Normal(9.0)),
             poise_resilience: Some(Normal(3.0)),
-            crit_power: Some(0.01),
+            crit_power: Some(0.073),
             stealth: Some(-0.5),
         ),
     )),

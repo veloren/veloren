@@ -4,10 +4,9 @@ ItemDef(
     kind: Armor((
         kind: Head("DarkHood"),
         stats: (
-            protection: Some(Normal(7.0)),
+            protection: Some(Normal(6.0)),
             poise_resilience: Some(Normal(1.0)),
-            crit_power: Some(0.008),
-            stealth: Some(0.15),
+            stealth: Some(0.2),
         ),
     )),
     quality: Moderate,

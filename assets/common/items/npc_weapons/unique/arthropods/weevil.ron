@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Arthropod Ranged",
+    name: "Weevil",
     description: "testing123",
     kind: Tool((
         kind: Natural,
@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         )),
     )),
-    quality: Low,
+    quality: High,
     tags: [],
-    ability_spec: Some(Custom("Arthropod Ranged")),
+    ability_spec: Some(Custom("Weevil")),
 )

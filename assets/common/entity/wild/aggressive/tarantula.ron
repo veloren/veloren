@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("tarantula"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.arthropod.web"),
+    loot: LootTable("common.loot_tables.creature.arthropod.tarantula"),
     inventory: (
         loadout: FromBody,
     ),

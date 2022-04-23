@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Chest("QuadrupedLowShell"),
         stats: (
-            protection: Some(Normal(750.0)),
+            protection: Some(Normal(320.0)),
             poise_resilience: Some(Normal(0.0)),
         ),
     )),

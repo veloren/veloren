@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Arthropod Charge",
+    name: "Tarantula",
     description: "testing123",
     kind: Tool((
         kind: Natural,
@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         )),
     )),
-    quality: Low,
+    quality: Epic,
     tags: [],
-    ability_spec: Some(Custom("Arthropod Charge")),
+    ability_spec: Some(Custom("Tarantula")),
 )

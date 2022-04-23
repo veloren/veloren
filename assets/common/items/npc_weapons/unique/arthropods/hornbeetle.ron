@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Arthropod Basic",
+    name: "Horn Beetle",
     description: "testing123",
     kind: Tool((
         kind: Natural,
@@ -15,7 +15,7 @@ ItemDef(
             buff_strength: 1.0,
         )),
     )),
-    quality: Low,
+    quality: High,
     tags: [],
-    ability_spec: Some(Custom("Arthropod Basic")),
+    ability_spec: Some(Custom("Horn Beetle")),
 )

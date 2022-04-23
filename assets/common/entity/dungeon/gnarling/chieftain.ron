@@ -4,7 +4,7 @@
     name: Name("Gnarling Chieftain"),
     body: RandomWith("gnarling"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.boss"),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.chieftain"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.chieftain"),

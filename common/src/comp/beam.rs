@@ -54,4 +54,5 @@ pub enum FrontendSpecifier {
     ClayGolem,
     Bubbles,
     Frost,
+    WebStrand,
 }
