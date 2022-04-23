@@ -3,7 +3,7 @@
     name: Name("Harvester"),
     body: RandomWith("harvester"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.boss"),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.harvester"),
     inventory: (
         loadout: FromBody,
     ),

@@ -6,14 +6,14 @@ LeapMelee(
     recover_duration: 0.2,
     melee_constructor: (
         kind: Bash(
-            damage: 120.0,
-            poise: 60.0,
-            knockback: 4.0,
+            damage: 35.0,
+            poise: 30.0,
+            knockback: 1.0,
             energy_regen: 0.0,
         ),
         range: 4.5,
         angle: 180.0,
     ),
-    forward_leap_strength: 40.0,
+    forward_leap_strength: 25.0,
     vertical_leap_strength: 10.0,
 )

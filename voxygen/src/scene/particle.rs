@@ -842,6 +842,17 @@ impl ParticleMgr {
                         )
                     })
                 },
+                beam::FrontendSpecifier::WebStrand => {
+                    self.particles.resize_with(self.particles.len() + 1, || {
+                        Particle::new_directed(
+                            beam.properties.duration,
+                            time,
+                            ParticleMode::WebStrand,
+                            pos.0,
+                            pos.0 + *ori.look_dir() * range,
+                        )
+                    })
+                },
                 beam::FrontendSpecifier::Bubbles => {
                     let mut rng = thread_rng();
                     let (from, to) = (Vec3::<f32>::unit_z(), *ori.look_dir());

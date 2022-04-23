@@ -114,6 +114,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Creatures will now defend their pets
 - [WorldGen] Change path colors
 - Render item drops instead of placeholder textures
+- Arthropods are rebalanced
+- Slight hat item rebalance (hats are more specialized and befitting of their rarity rank)
+- Harvester boss buffed in stats
 
 ### Removed
 

@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Chest("Arthropod"),
         stats: (
-            protection: Some(Normal(100.0)),
+            protection: Some(Normal(60.0)),
             poise_resilience: Some(Normal(1.0)),
         ),
     )),

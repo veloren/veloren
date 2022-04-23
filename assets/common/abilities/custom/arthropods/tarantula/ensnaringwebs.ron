@@ -1,8 +1,8 @@
 SpriteSummon(
-    buildup_duration: 0.6,
+    buildup_duration: 0.5,
     cast_duration: 0.4,
     recover_duration: 0.3,
     sprite: EnsnaringWeb,
-    summon_distance: (0, 8),
-    sparseness: 0.67,
+    summon_distance: (0, 9),
+    sparseness: 0.8,
 )

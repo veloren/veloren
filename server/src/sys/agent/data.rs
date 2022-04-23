@@ -101,10 +101,9 @@ pub enum Tactic {
     BirdLargeBreathe,
     BirdLargeFire,
     BirdLargeBasic,
-    ArthropodCharge,
-    ArthropodBasic,
+    ArthropodMelee,
     ArthropodRanged,
-    ArthropodLeap,
+    ArthropodAmbush,
 
     // Specific species tactics
     Mindflayer,

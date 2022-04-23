@@ -468,11 +468,10 @@ pub fn apply_caves_supplement<'a>(
                                     _ => "common.entity.wild.aggressive.batfox",
                                 }
                             } else if cave_depth < 120.0 {
-                                match dynamic_rng.gen_range(0..6) {
+                                match dynamic_rng.gen_range(0..5) {
                                     0 => "common.entity.wild.aggressive.rocksnapper",
                                     1 => "common.entity.wild.aggressive.cave_salamander",
                                     2 => "common.entity.wild.aggressive.cave_spider",
-                                    3 => "common.entity.wild.aggressive.antlion",
                                     4 => "common.entity.wild.peaceful.crawler_molten",
                                     _ => "common.entity.wild.aggressive.asp",
                                 }

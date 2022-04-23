@@ -1,11 +1,11 @@
 BasicMelee(
     energy_cost: 0,
-    buildup_duration: 0.7,
+    buildup_duration: 0.6,
     swing_duration: 0.1,
     recover_duration: 0.6,
     melee_constructor: (
         kind: Slash(
-            damage: 7.0,
+            damage: 14.0,
             poise: 10.0,
             knockback: 10.0,
             energy_regen: 0.0,

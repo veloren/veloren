@@ -4,7 +4,7 @@ ItemDef(
     kind: Armor((
         kind: Head("Thief"),
         stats: (
-            crit_power: Some(0.07),
+            crit_power: Some(0.006),
             stealth: Some(0.18),
         ),
     )),

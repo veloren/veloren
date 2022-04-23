@@ -6,5 +6,5 @@
     // Nothing
     (2.0, Nothing),
     // Placeholder Drop Location
-    (1.0, Item("common.items.crafting_ing.sticky_thread")),
+    (1.0, Item("common.items.crafting_ing.leather.simple_leather")),
 ]

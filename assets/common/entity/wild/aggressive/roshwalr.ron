@@ -6,7 +6,7 @@
         body_type: Male,
     ))),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_medium.ice"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.roshwalr"),
     inventory: (
         loadout: FromBody,
     ),

@@ -12,6 +12,12 @@ BasicMelee(
         ),
         range: 5.0,
         angle: 60.0,
+        damage_effect: Some(Buff((
+            kind: Crippled,
+            dur_secs: 10.0,
+            strength: Value(0.5),
+            chance: 1.0,
+        ))),
     ),
     ori_modifier: 1.0,
 )
