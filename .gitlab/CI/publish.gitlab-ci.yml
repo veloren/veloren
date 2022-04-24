@@ -35,6 +35,7 @@ gittag:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  dependencies: []
   tags: ["veloren/veloren", "publish", "trusted"]
   script:
     - git config --global user.email "gitlab-veloren-bot@veloren.net"
@@ -52,6 +53,7 @@ pages:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
+  dependencies: []
   tags: ["veloren/veloren", "publish"]
   artifacts:
     paths:
