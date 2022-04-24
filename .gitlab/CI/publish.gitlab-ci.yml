@@ -7,7 +7,7 @@
       when: on_success
     - when: never
   before_script:
-    - source "$CI_PROJECT_DIR/.gitlab/scripts/utils.sh"
+    - source "$CI_PROJECT_DIR/.gitlab/scripts/util.sh"
 
 docker:
   extends: .publish
