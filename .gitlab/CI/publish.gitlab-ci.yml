@@ -3,16 +3,11 @@
 .publish:
   stage: publish
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
-
-.publish-nightly:
-  stage: publish
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
-      when: on_success
-    - when: never
+  before_script:
+    - source "$CI_PROJECT_DIR/.gitlab/scripts/utils.sh"
 
 docker:
   extends: .publish
@@ -29,27 +24,16 @@ docker:
     # avoids this issue: https://github.com/GoogleContainerTools/kaniko/issues/1542
     - export container=docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${CI_COMMIT_REF_NAME}"
+    - |
+      publishdockertag PUBLISH_DOCKER_TAG
+      if [ "${PUBLISH_DOCKER_TAG}"  != "" ]; then
+        /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${PUBLISH_DOCKER_TAG}"
+      fi
 
-docker-nightly:
-  extends: .publish-nightly
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
-  tags: ["veloren/veloren", "publish", "trusted"]
-  dependencies:
-    - air-linux-x86_64
-  before_script:
-    - ls "$CI_PROJECT_DIR/server-cli/"
-  script:
-    # Help kaniko identify that it is running in a container.
-    # avoids this issue: https://github.com/GoogleContainerTools/kaniko/issues/1542
-    - export container=docker
-    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:nightly"
-
-tag-nightly:
-  extends: .publish-nightly
+gittag:
+  extends: .publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "schedule"
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "publish", "trusted"]
   script:
@@ -57,11 +41,16 @@ tag-nightly:
     - git config --global user.name "veloren-bot"
     - git config --global http.postBuffer 52428800
     - git remote set-url origin https://veloren-bot:${GITLAB_TOKEN_WRITE}@${CI_PROJECT_URL:8}
-    - git tag -a "nightly" -m '' -f
-    - git push origin nightly -f
+    - |
+      if [[ ! "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
+        git tag -a "${SCHEDULE_CADENCE}" -m '' -f;
+        git push origin "${SCHEDULE_CADENCE}" -f;
+      fi
 
 pages:
   extends: .publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE != "schedule"
   image: registry.gitlab.com/veloren/veloren-docker-ci/cache/quality:${CACHE_IMAGE_TAG}
   tags: ["veloren/veloren", "publish"]
   artifacts:
