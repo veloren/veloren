@@ -1589,7 +1589,6 @@ impl<'a> AgentData<'a> {
                 !health.is_dead && !is_invulnerable(entity, read_data)
             })
         };
-        let lost_target = |target: Option<EcsEntity>| agent.target.is_none() && target.is_some();
 
         // Search the area.
         // TODO: choose target by more than just distance
@@ -1598,8 +1597,8 @@ impl<'a> AgentData<'a> {
         let target = grid
             .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
             .filter(|entity| {
-                does_entity_see_other(agent, *self.entity, *entity, controller, read_data)
-                    && is_valid(*entity)
+                is_valid(*entity)
+                    && does_entity_see_other(agent, *self.entity, *entity, controller, read_data)
             })
             .filter_map(get_enemy)
             .min_by_key(|entity| {
@@ -1607,7 +1606,7 @@ impl<'a> AgentData<'a> {
                 get_pos(*entity).map(|pos| (pos.0.distance_squared(self.pos.0) * 100.0) as i32)
             });
 
-        if lost_target(target) {
+        if agent.target.is_none() && target.is_some() {
             if aggro_on {
                 controller.push_utterance(UtteranceKind::Angry);
             } else {
@@ -2385,7 +2384,7 @@ impl<'a> AgentData<'a> {
         (entity != *self.entity)
             && (are_our_owners_hostile(self.alignment, alignment, read_data)
                 || self.remembers_fight_with(entity, read_data)
-                || self.is_villager_and_is_entity_dressed_as_cultist(entity, read_data))
+                || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)))
     }
 
     fn should_defend(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
@@ -2408,13 +2407,5 @@ impl<'a> AgentData<'a> {
         (we_are_friendly && we_share_species)
             || (is_village_guard(*self.entity, read_data) && is_villager(entity_alignment))
             || self_owns_entity
-    }
-
-    fn is_villager_and_is_entity_dressed_as_cultist(
-        &self,
-        entity: EcsEntity,
-        read_data: &ReadData,
-    ) -> bool {
-        is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)
     }
 }

@@ -236,7 +236,7 @@ pub fn does_entity_see_other(
             .try_normalized()
             .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
 
-        within_sight_dist && entities_have_line_of_sight(entity, other, read_data) && within_fov
+        within_sight_dist && within_fov && entities_have_line_of_sight(entity, other, read_data)
     } else {
         false
     }
