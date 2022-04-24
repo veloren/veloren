@@ -6,8 +6,6 @@
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
     - when: never
-  before_script:
-    - source "$CI_PROJECT_DIR/.gitlab/scripts/util.sh"
 
 docker:
   extends: .publish
@@ -25,6 +23,7 @@ docker:
     - export container=docker
     - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
     - |
+      source "$CI_PROJECT_DIR/.gitlab/scripts/util.sh"
       publishdockertag PUBLISH_DOCKER_TAG
       if [ "${PUBLISH_DOCKER_TAG}"  != "" ]; then
         /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/server-cli/Dockerfile --destination "${CI_REGISTRY_IMAGE}/server-cli:${PUBLISH_DOCKER_TAG}"
