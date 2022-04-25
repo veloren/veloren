@@ -30,7 +30,7 @@ impl Combo {
         self.counter = if amount > 0 {
             self.counter.saturating_add(amount as u32)
         } else {
-            self.counter.saturating_sub(amount.abs() as u32)
+            self.counter.saturating_sub(amount.unsigned_abs())
         };
         self.last_increase = time;
     }

@@ -1260,7 +1260,7 @@ impl<'a> Widget for Diary<'a> {
                                 (None, None) => String::new(),
                             }
                         },
-                        unknown => unreachable!(unknown),
+                        unknown => unreachable!("{}", unknown),
                     };
 
                     let mut number = Text::new(&value)

@@ -5261,11 +5261,9 @@ impl FigureMgr {
                             &CharacterState::Idle(common::states::idle::Data {
                                 is_sneaking: false,
                             }),
-                            &Last {
-                                0: CharacterState::Idle(common::states::idle::Data {
-                                    is_sneaking: false,
-                                }),
-                            },
+                            &Last(CharacterState::Idle(common::states::idle::Data {
+                                is_sneaking: false,
+                            })),
                         ),
                     };
 
@@ -5394,11 +5392,9 @@ impl FigureMgr {
                             &CharacterState::Idle(common::states::idle::Data {
                                 is_sneaking: false,
                             }),
-                            &Last {
-                                0: CharacterState::Idle(common::states::idle::Data {
-                                    is_sneaking: false,
-                                }),
-                            },
+                            &Last(CharacterState::Idle(common::states::idle::Data {
+                                is_sneaking: false,
+                            })),
                         ),
                     };
 
@@ -5494,11 +5490,9 @@ impl FigureMgr {
                             &CharacterState::Idle(common::states::idle::Data {
                                 is_sneaking: false,
                             }),
-                            &Last {
-                                0: CharacterState::Idle(common::states::idle::Data {
-                                    is_sneaking: false,
-                                }),
-                            },
+                            &Last(CharacterState::Idle(common::states::idle::Data {
+                                is_sneaking: false,
+                            })),
                         ),
                     };
 

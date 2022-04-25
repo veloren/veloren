@@ -318,7 +318,7 @@ impl<'a> System<'a> for Sys {
                     // 1 since chunks need neighbors to be meshed
                     // 1 to act as a buffer if the player moves in that direction
                     let adjusted_dist_sqr = (chunk_pos - key)
-                        .map(|e: i32| (e.abs() as u32).saturating_sub(2))
+                        .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
                         .magnitude_squared();
 
                     if adjusted_dist_sqr <= presence.view_distance.pow(2) {
@@ -341,7 +341,7 @@ impl<'a> System<'a> for Sys {
             .iter()
             .map(|(k, _)| k)
             // Don't check every chunk every tick (spread over 16 ticks)
-            .filter(|k| k.x.abs() as u64 % 4 + (k.y.abs() as u64 % 4) * 4 == tick.0 % 16)
+            .filter(|k| k.x.unsigned_abs() % 4 + (k.y.unsigned_abs() % 4) * 4 == (tick.0 % 16) as u32)
             // There shouldn't be to many pending chunks so we will just check them all
             .chain(chunk_generator.pending_chunks())
             .for_each(|chunk_key| {
@@ -536,7 +536,7 @@ pub fn chunk_in_vd(
     let player_chunk_pos = terrain.pos_key(player_pos.map(|e| e as i32));
 
     let adjusted_dist_sqr = (player_chunk_pos - chunk_pos)
-        .map(|e: i32| e.abs() as u32)
+        .map(|e: i32| e.unsigned_abs())
         .magnitude_squared();
 
     adjusted_dist_sqr <= (vd.max(crate::MIN_VD) + UNLOAD_THRESHOLD).pow(2)

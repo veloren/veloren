@@ -68,7 +68,7 @@ impl TileGrid {
         Spiral2d::new()
             .take(MAX_SEARCH_CELLS as usize)
             .map(|r| tpos + r)
-            .find_map(|tpos| (&mut f)(tpos, self.get(tpos)).zip(Some(tpos)))
+            .find_map(|tpos| f(tpos, self.get(tpos)).zip(Some(tpos)))
     }
 
     pub fn grow_aabr(

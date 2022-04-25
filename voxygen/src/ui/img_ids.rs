@@ -154,8 +154,8 @@ macro_rules! image_ids {
             }
 
             impl $Ids {
-                pub fn load(ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
-                    use crate::ui::img_ids::GraphicCreator;
+                pub fn load(ui: &mut $crate::ui::Ui) -> Result<Self, common::assets::Error> {
+                    use $crate::ui::img_ids::GraphicCreator;
                     Ok(Self {
                         $($( $name: ui.add_graphic(<$T as GraphicCreator>::new_graphic($specifier)?), )*)*
                     })
@@ -169,12 +169,12 @@ macro_rules! image_ids_ice {
     ($($v:vis struct $Ids:ident { $( <$T:ty> $( $name:ident: $specifier:expr ),* $(,)? )* })*) => {
         $(
             $v struct $Ids {
-                $($( $v $name: crate::ui::GraphicId, )*)*
+                $($( $v $name: $crate::ui::GraphicId, )*)*
             }
 
             impl $Ids {
-                pub fn load(ui: &mut crate::ui::ice::IcedUi) -> Result<Self, common::assets::Error> {
-                    use crate::ui::img_ids::GraphicCreator;
+                pub fn load(ui: &mut $crate::ui::ice::IcedUi) -> Result<Self, common::assets::Error> {
+                    use $crate::ui::img_ids::GraphicCreator;
                     Ok(Self {
                         $($( $name: ui.add_graphic(<$T as GraphicCreator>::new_graphic($specifier)?), )*)*
                     })
@@ -191,12 +191,12 @@ macro_rules! rotation_image_ids {
     ($($v:vis struct $Ids:ident { $( <$T:ty> $( $name:ident: $specifier:expr ),* $(,)? )* })*) => {
         $(
             $v struct $Ids {
-                $($( $v $name: crate::ui::img_ids::Rotations, )*)*
+                $($( $v $name: $crate::ui::img_ids::Rotations, )*)*
             }
 
             impl $Ids {
-                pub fn load(ui: &mut crate::ui::Ui) -> Result<Self, common::assets::Error> {
-                    use crate::ui::img_ids::GraphicCreator;
+                pub fn load(ui: &mut $crate::ui::Ui) -> Result<Self, common::assets::Error> {
+                    use $crate::ui::img_ids::GraphicCreator;
                     Ok(Self {
                         $($( $name: ui.add_graphic_with_rotations(<$T as GraphicCreator>::new_graphic($specifier)?), )*)*
                     })
