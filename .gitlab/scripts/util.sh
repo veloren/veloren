@@ -6,24 +6,23 @@
 ### master => "master"
 ### else => ""
 publishdockertag () {
-# this stores the result in a variable defined by the caller
-local -n VAR=$1
-VAR="";
+# this stores the result in PUBLISH_DOCKER_TAG
+export PUBLISH_DOCKER_TAG="";
 if [[ "${CI_COMMIT_TAG}" =~ ${TAG_REGEX} ]]; then
-  VAR="${CI_COMMIT_TAG}";
+  export PUBLISH_DOCKER_TAG="${CI_COMMIT_TAG}";
   return 0;
 fi
 if [[ -z "${SCHEDULE_CADENCE}" && ${CI_PIPELINE_SOURCE} == "schedule" ]]; then
   # sanitize check
   if [[ "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
-    VAR="invalid_cadence";
+    export PUBLISH_DOCKER_TAG="invalid_cadence";
   else
-    VAR="${SCHEDULE_CADENCE}";
+    export PUBLISH_DOCKER_TAG="${SCHEDULE_CADENCE}";
   fi
   return 0;
 fi
 if [[ ${CI_COMMIT_BRANCH} == ${CI_DEFAULT_BRANCH} ]]; then
-  VAR="master";
+  export PUBLISH_DOCKER_TAG="master";
   return 0;
 fi
 }
