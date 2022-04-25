@@ -81,7 +81,7 @@ specs = {git = "https://github.com/amethyst/specs.git", rev = "f985bec5d456f7b0d
 specs-idvs = { git = "https://gitlab.com/veloren/specs-idvs.git", rev = "8be2abcddf8f524cb5876e8dd20a7e47cfaf7573" }
 
 # Mathematics
-vek = {version = "=0.14.1", features = ["serde"]}
+vek = {version = "0.15.8", features = ["serde"]}
 
 # Controller
 gilrs = {version = "0.8.0", features = ["serde-serialize"]}
