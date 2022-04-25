@@ -80,7 +80,7 @@ impl AmbientMgr {
                         audio.ambient_channels[index].set_multiplier(Lerp::lerp(
                             initial_volume,
                             target_volume,
-                            0.03,
+                            0.02,
                         ));
 
                         // Set the duration of the loop to whatever the current value is (0.0 by
@@ -225,7 +225,7 @@ impl AmbientChannel {
             volume_multiplier *= 0.1;
         }
         // Is the camera roughly under the terrain?
-        if cam_pos.z < terrain_alt - 10.0 {
+        if cam_pos.z < terrain_alt - 20.0 {
             volume_multiplier = 0.0;
         }
 
