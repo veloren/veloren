@@ -240,6 +240,17 @@
         "hud.skill.axe_leap_cost": "Diminue de {boost}% le coût d'endurance du bond{SP}",
         "hud.skill.axe_leap_distance_title": "Distance du Bond",
         "hud.skill.axe_leap_distance": "Augmente de {boost}% la distance du bond{SP}",
+
+        // Minage
+        "hud.skill.mining_title": "Minage",
+        "hud.skill.pick_strike_title": "Coup de pioche",
+        "hud.skill.pick_strike": "Miner des rochers avec la pioche pour récupérer des minerais, des gemmes et de l'expérience",
+        "hud.skill.pick_strike_speed_title": "Vitesse de minage",
+        "hud.skill.pick_strike_speed": "Miner des rochers plus vite{SP}",
+        "hud.skill.pick_strike_oregain_title": "Récolte de minerais",
+        "hud.skill.pick_strike_oregain": "Possibilité de récupérer plus de minerais ({boost}% par niveau){SP}",
+        "hud.skill.pick_strike_gemgain_title": "Récolte de gemmes",
+        "hud.skill.pick_strike_gemgain": "Possibilité de récupérer plus de gemmes ({boost}% par niveau){SP}",
     },
 
 
