@@ -1550,22 +1550,12 @@ impl<'a> AgentData<'a> {
         let mut aggro_on = false;
 
         let get_pos = |entity| read_data.positions.get(entity);
-        let is_alignment_passive_towards_entity = |entity| {
-            self.alignment.map_or(false, |alignment| {
-                read_data
-                    .alignments
-                    .get(entity)
-                    .map_or(false, |entity_alignment| {
-                        alignment.passive_towards(*entity_alignment)
-                    })
-            })
-        };
         let get_enemy = |entity: EcsEntity| {
             if self.is_enemy(entity, read_data) {
                 Some(entity)
             } else if self.should_defend(entity, read_data) {
                 if let Some(attacker) = get_attacker(entity, read_data) {
-                    if !is_alignment_passive_towards_entity(attacker) {
+                    if !self.passive_towards(attacker, read_data) {
                         // aggro_on: attack immediately, do not warn/menace.
                         aggro_on = true;
                         Some(attacker)
@@ -2096,7 +2086,7 @@ impl<'a> AgentData<'a> {
             let sound_was_threatening = sound_was_loud
                 || matches!(sound.kind, SoundKind::Utterance(UtteranceKind::Scream, _));
 
-            let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+            let has_enemy_alignment = matches!(self.alignment, Some(Alignment::Enemy));
             // FIXME: We need to be able to change the name of a guard without breaking this
             // logic. The `Mark` enum from common::agent could be used to match with
             // `agent::Mark::Guard`
@@ -2104,7 +2094,7 @@ impl<'a> AgentData<'a> {
                 .stats
                 .get(*self.entity)
                 .map_or(false, |stats| stats.name == *"Guard".to_string());
-            let follows_threatening_sounds = is_enemy || is_village_guard;
+            let follows_threatening_sounds = has_enemy_alignment || is_village_guard;
 
             // TODO: Awareness currently doesn't influence anything.
             //agent.awareness += 0.5 * sound.vol;
@@ -2295,9 +2285,11 @@ impl<'a> AgentData<'a> {
         event_emitter: &mut Emitter<'_, ServerEvent>,
         read_data: &ReadData,
     ) {
-        let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
+        let has_enemy_alignment = matches!(self.alignment, Some(Alignment::Enemy));
 
-        if is_enemy {
+        if has_enemy_alignment {
+            // FIXME: If going to use "cultist + low health + fleeing" string, make sure
+            // they are each true.
             self.chat_npc_if_allowed_to_speak(
                 "npc.speech.cultist_low_health_fleeing",
                 agent,
@@ -2374,10 +2366,11 @@ impl<'a> AgentData<'a> {
     }
 
     fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
-        let alignment = read_data.alignments.get(entity);
+        let other_alignment = read_data.alignments.get(entity);
 
         (entity != *self.entity)
-            && (are_our_owners_hostile(self.alignment, alignment, read_data)
+            && !self.passive_towards(entity, read_data)
+            && (are_our_owners_hostile(self.alignment, other_alignment, read_data)
                 || self.remembers_fight_with(entity, read_data)
                 || (is_villager(self.alignment) && is_dressed_as_cultist(entity, read_data)))
     }
@@ -2402,5 +2395,15 @@ impl<'a> AgentData<'a> {
         (we_are_friendly && we_share_species)
             || (is_village_guard(*self.entity, read_data) && is_villager(entity_alignment))
             || self_owns_entity
+    }
+
+    fn passive_towards(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        if let (Some(self_alignment), Some(other_alignment)) =
+            (self.alignment, read_data.alignments.get(entity))
+        {
+            self_alignment.passive_towards(*other_alignment)
+        } else {
+            false
+        }
     }
 }
