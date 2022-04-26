@@ -9,6 +9,7 @@
         "hud.you_died": "Vous êtes mort",
         "hud.waypoint_saved": "Point de Repère Sauvegardé",
         "hud.sp_arrow_txt": "PC",
+        "hud.inventory_full": "Inventaire plein",
 
         "hud.press_key_to_show_keybindings_fmt": "[{key}] Contrôles",
         "hud.press_key_to_toggle_lantern_fmt": "[{key}] Lanterne",
@@ -45,6 +46,15 @@ Dès que vous vous sentez prêt, essayez d'obtenir un équipement encore meilleu
         "hud.free_look_indicator": "Vue libre active, Pressez {key} pour la désactiver.",
         "hud.camera_clamp_indicator": "Verrouillage vertical de la caméra active. Pressez {key} pour la désactiver.",
         "hud.auto_walk_indicator": "Marche automatique active",
+        "hud.collect": "Collecter",
+        "hud.pick_up": "Ramasser",
+        "hud.open": "Ouvrir",
+        "hud.use": "Utiliser",
+        "hud.mine": "Miner",
+        "hud.talk": "Parler",
+        "hud.trade": "Échanger",
+        "hud.mount": "Chevaucher",
+        "hud.sit": "S'assoir",
     },
 
 

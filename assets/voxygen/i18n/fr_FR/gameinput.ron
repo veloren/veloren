@@ -5,6 +5,7 @@
     string_map: {
         "gameinput.primary": "Attaque Basique",
         "gameinput.secondary": "Attaque Secondaire/Bloquer/Viser",
+        "gameinput.block": "Parer",
         "gameinput.slot1": "Emplacement rapide 1",
         "gameinput.slot2": "Emplacement rapide 2",
         "gameinput.slot3": "Emplacement rapide 3",
@@ -20,6 +21,8 @@
         "gameinput.help": "Activer/Desactiver Fenêtre d'aide",
         "gameinput.toggleinterface": "Activer/Desactiver Interface",
         "gameinput.toggledebug": "Activer/Désactiver FPS et Infos Débogage",
+        "gameinput.toggle_egui_debug": "Activer EGUI Info Debogage",
+        "gameinput.togglechat": "Activer Chat",
         "gameinput.screenshot": "Prendre une capture d'écran",
         "gameinput.toggleingameui": "Activer/Desactiver Noms de joueurs",
         "gameinput.fullscreen": "Activer/Desactiver Plein Ecran",
@@ -62,7 +65,10 @@
         "gameinput.sneak": "S'accroupir",
         "gameinput.swimdown": "Nager vers le bas",
         "gameinput.swimup": "Nager vers le haut",
+        "gameinput.mapzoomin": "Augmenter le zoom de la Carte",
+        "gameinput.mapzoomout": "Réduire le zoom de la Carte",
         "gameinput.greet": "Saluer",
+        "gameinput.map.locationmarkerbutton": "Ajouter un marqueur sur la Carte"
     },
 
 

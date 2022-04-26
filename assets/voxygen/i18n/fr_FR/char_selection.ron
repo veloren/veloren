@@ -25,6 +25,7 @@
         "char_selection.eyeshape": "Forme des yeux",
         "char_selection.accessories": "Accessoires",
         "char_selection.create_info_name": "Votre personnage doit avoir un nom !",
+        "char_selection.version_mismatch": "ATTENTION! Ce serveur fonctionne sur une version différente et est possiblement incompatible avec celle de votre jeu. Veuillez mettre à jour votre jeu s'il vous plaît.",
     },
 
 
