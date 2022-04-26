@@ -1974,12 +1974,18 @@ impl<'a> AgentData<'a> {
                 tgt_data,
                 read_data,
             ),
-            Tactic::Turret => self.handle_turret_attack(agent, controller, &attack_data, read_data),
-            Tactic::FixedTurret => {
-                self.handle_fixed_turret_attack(agent, controller, &attack_data, read_data)
+            Tactic::Turret => {
+                self.handle_turret_attack(agent, controller, &attack_data, tgt_data, read_data)
             },
+            Tactic::FixedTurret => self.handle_fixed_turret_attack(
+                agent,
+                controller,
+                &attack_data,
+                tgt_data,
+                read_data,
+            ),
             Tactic::RotatingTurret => {
-                self.handle_rotating_turret_attack(agent, controller, read_data)
+                self.handle_rotating_turret_attack(agent, controller, tgt_data, read_data)
             },
             Tactic::Mindflayer => self.handle_mindflayer_attack(
                 agent,

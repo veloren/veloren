@@ -3,7 +3,7 @@ use common::{
     combat::compute_stealth_coefficient,
     comp::{
         agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Agent, Alignment,
-        CharacterState, Controller, Pos,
+        Body, CharacterState, Controller, Pos,
     },
     consts::GRAVITY,
     terrain::Block,
@@ -152,24 +152,21 @@ pub fn are_our_owners_hostile(
 }
 
 pub fn entities_have_line_of_sight(
-    entity: EcsEntity,
-    other: EcsEntity,
+    pos: &Pos,
+    body: Option<&Body>,
+    other_pos: &Pos,
+    other_body: Option<&Body>,
     read_data: &ReadData,
 ) -> bool {
-    let eye_pos = |ent: EcsEntity| {
-        let eye_offset = read_data.bodies.get(ent).map_or(0.0, |b| b.eye_height());
+    let get_eye_pos = |pos: &Pos, body: Option<&Body>| {
+        let eye_offset = body.map_or(0.0, |b| b.eye_height());
 
-        read_data
-            .positions
-            .get(entity)
-            .map(|pos| Pos(Vec3::new(pos.0.x, pos.0.y, pos.0.z + eye_offset)))
+        Pos(pos.0.with_z(pos.0.z + eye_offset))
     };
+    let eye_pos = get_eye_pos(pos, body);
+    let other_eye_pos = get_eye_pos(other_pos, other_body);
 
-    if let (Some(eye_pos), Some(other_eye_pos)) = (eye_pos(entity), eye_pos(other)) {
-        positions_have_line_of_sight(&eye_pos, &other_eye_pos, read_data)
-    } else {
-        false
-    }
+    positions_have_line_of_sight(&eye_pos, &other_eye_pos, read_data)
 }
 
 pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadData) -> bool {
@@ -236,7 +233,12 @@ pub fn can_see_other(
             .try_normalized()
             .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
 
-        within_sight_dist && within_fov && entities_have_line_of_sight(entity, other, read_data)
+        let body = read_data.bodies.get(entity);
+        let other_body = read_data.bodies.get(other);
+
+        within_sight_dist
+            && within_fov
+            && entities_have_line_of_sight(pos, body, other_pos, other_body, read_data)
     } else {
         false
     }
