@@ -720,12 +720,10 @@ impl<'a> Widget for Interface<'a> {
 
         O Show Damage Numbers
             O Show single Damage Numbers
-                // 0 to ??? seconds
-                O Damage Accumulation Duration: 0s ----I----5s
+                O Damage Accumulation Duration: 0s ----I----2s
             O Show batched dealt Damage
             O Show incoming Damage
-                // 0 to ??? seconds
-                O Incoming Damage Accumulation Duration: 0s ----I----5s
+                O Incoming Damage Accumulation Duration: 0s ----I----2s
             O Batch incoming Numbers
             O Round Damage Numbers
         TODO: Do something like https://gitlab.com/veloren/veloren/-/issues/836
@@ -799,7 +797,7 @@ impl<'a> Widget for Interface<'a> {
             if !show_sct_damage_batch {
                 Text::new(
                     self.localized_strings
-                        .get("hud.settings.sct_dmg_accum_duration"),
+                        .get("hud.settings.damage_accumulation_duration"),
                 )
                 .down_from(state.ids.sct_single_dmg_radio, 8.0)
                 .right_from(state.ids.sct_single_dmg_radio, 10.0)
@@ -892,7 +890,7 @@ impl<'a> Widget for Interface<'a> {
             if !show_sct_player_batch {
                 Text::new(
                     self.localized_strings
-                        .get("hud.settings.sct_inc_dmg_accum_duration"),
+                        .get("hud.settings.incoming_damage_accumulation_duration"),
                 )
                 .down_from(state.ids.sct_inc_dmg_radio, 8.0)
                 .right_from(state.ids.sct_inc_dmg_radio, 10.0)

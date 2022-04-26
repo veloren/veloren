@@ -1084,7 +1084,6 @@ pub struct Hud {
     force_chat_cursor: Option<Index>,
     tab_complete: Option<String>,
     pulse: f32,
-    //TODO: ask if this is fine (even though I'm 99.99999% sure it is)
     hp_pulse: f32,
     slot_manager: slots::SlotManager,
     hotbar: hotbar::State,
@@ -1567,8 +1566,6 @@ impl Hud {
                                 0
                             };
                         // Timer sets the widget offset
-                        // TODO: I feel like I'd prefer for crits to behave the same way for players
-                        // and monsters
                         let y = if floater.info.amount < 0.0 {
                             floater.timer as f64
                                 * number_speed
@@ -4530,6 +4527,7 @@ impl Hud {
         client: &Client,
         global_state: &GlobalState,
     ) {
+        let interface = &global_state.settings.interface;
         match outcome {
             Outcome::ExpChange { uid, exp, xp_pools } => {
                 self.floaters.exp_floaters.push(ExpFloater {
@@ -4587,17 +4585,21 @@ impl Hud {
                         } {
                             // Group up damage from the same tick, with the same instance number and
                             // crit value
-                            // Would you want to group up crits with the same instance number if you
-                            // don't group the at all with the different setting?
                             for floater in floater_list.floaters.iter_mut().rev() {
                                 if floater.timer > 0.0 {
                                     break;
                                 }
                                 if floater.info.instance == info.instance
-                                    && floater.info.crit_mult.is_some() == info.crit_mult.is_some()
+                                    // Group up crits and regular attacks for incoming damage
+                                    && (hit_me
+                                        || floater.info.crit_mult.is_some()
+                                            == info.crit_mult.is_some())
                                 {
                                     floater.info.amount += info.amount;
-                                    floater.info.crit_mult = info.crit_mult;
+                                    floater.info.crit_mult = match info.crit_mult {
+                                        Some(_) => info.crit_mult,
+                                        None => floater.info.crit_mult,
+                                    };
                                     return;
                                 }
                             }
@@ -4610,7 +4612,8 @@ impl Hud {
                                 } else {
                                     f.info.amount > 0.0
                                 }) && if !hit_me {
-                                    info.crit_mult.is_some() == f.info.crit_mult.is_some()
+                                    // Ignore crit floaters if damage isn't incoming
+                                    f.info.crit_mult.is_none()
                                 } else {
                                     true
                                 }
@@ -4618,12 +4621,24 @@ impl Hud {
 
                             match last_floater {
                                 Some(f)
-                                    // TODO: Change later so it's based on options
-                                    // TODO: Might have to discuss whether or not to create a new floater or every crit
-                                    if (if hit_me {
-                                        f.timer < global_state.settings.interface.sct_inc_dmg_accum_duration
+                                // If the batch option is enabled, group floaters together for a
+                                // default time
+                                if (if hit_me {
+                                        // Group up crits and regular attacks for incoming damage
+                                        f.timer
+                                            < if !interface.sct_player_batch {
+                                                interface.sct_inc_dmg_accum_duration
+                                            } else {
+                                                1.0
+                                            }
                                     } else {
-                                        f.timer < global_state.settings.interface.sct_dmg_accum_duration && f.info.crit_mult.is_none()
+                                        f.timer
+                                            < if !interface.sct_damage_batch {
+                                                interface.sct_dmg_accum_duration
+                                            } else {
+                                                1.0
+                                            // To avoid grouping up crits with non-crits
+                                            } && info.crit_mult.is_none()
                                     }) =>
                                 {
                                     f.jump_timer = 0.0;
