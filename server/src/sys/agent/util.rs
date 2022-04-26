@@ -35,7 +35,7 @@ pub fn is_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
 
 /// Gets alignment of owner if alignment given is `Owned`.
 /// Returns original alignment if not owned.
-pub fn owner_alignment<'a>(
+pub fn try_owner_alignment<'a>(
     alignment: Option<&'a Alignment>,
     read_data: &'a ReadData,
 ) -> Option<&'a Alignment> {
@@ -144,8 +144,8 @@ pub fn are_our_owners_hostile(
     their_alignment: Option<&Alignment>,
     read_data: &ReadData,
 ) -> bool {
-    owner_alignment(our_alignment, read_data).map_or(false, |our_owners_alignment| {
-        owner_alignment(their_alignment, read_data).map_or(false, |their_owners_alignment| {
+    try_owner_alignment(our_alignment, read_data).map_or(false, |our_owners_alignment| {
+        try_owner_alignment(their_alignment, read_data).map_or(false, |their_owners_alignment| {
             our_owners_alignment.hostile_towards(*their_owners_alignment)
         })
     })
@@ -198,7 +198,7 @@ pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
         })
 }
 
-pub fn does_entity_see_other(
+pub fn can_see_other(
     agent: &Agent,
     entity: EcsEntity,
     other: EcsEntity,
@@ -242,7 +242,7 @@ pub fn does_entity_see_other(
     }
 }
 
-pub fn get_attacker_of_entity(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
+pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
     read_data
         .healths
         .get(entity)

@@ -13,9 +13,9 @@ use crate::{
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
-            aim_projectile, are_our_owners_hostile, does_entity_see_other, get_attacker_of_entity,
-            get_entity_by_id, is_dead, is_dead_or_invulnerable, is_dressed_as_cultist,
-            is_invulnerable, is_village_guard, is_villager, stop_pursuing,
+            aim_projectile, are_our_owners_hostile, can_see_other, get_attacker, get_entity_by_id,
+            is_dead, is_dead_or_invulnerable, is_dressed_as_cultist, is_invulnerable,
+            is_village_guard, is_villager, stop_pursuing,
         },
     },
 };
@@ -311,7 +311,7 @@ impl<'a> System<'a> for Sys {
                                             // over the old one (i.e: because it's either close or
                                             // because they attacked us).
                                             if agent.target.map_or(true, |target| {
-                                                data.is_entity_more_dangerous_than_target(
+                                                data.is_more_dangerous_than_target(
                                                     attacker, target, &read_data,
                                                 )
                                             }) {
@@ -537,7 +537,7 @@ impl<'a> AgentData<'a> {
                 }
 
                 if rng.gen::<f32>() < 0.1 {
-                    self.scan_for_new_hostile_target(agent, controller, read_data);
+                    self.choose_target(agent, controller, read_data);
                 } else {
                     self.handle_sounds_heard(agent, controller, read_data, rng);
                 }
@@ -609,7 +609,7 @@ impl<'a> AgentData<'a> {
                         self.cry_out(agent, event_emitter, read_data);
                         agent.action_state.timer = 0.01;
                     } else if within_flee_distance && has_opportunity_to_flee {
-                        self.flee_from_pos(tgt_pos, agent, controller, &read_data.terrain);
+                        self.flee(tgt_pos, agent, controller, &read_data.terrain);
                         agent.action_state.timer += read_data.dt.0;
                     } else {
                         agent.action_state.timer = 0.0;
@@ -637,7 +637,7 @@ impl<'a> AgentData<'a> {
                         read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                     if !in_aggro_range && is_time_to_retarget {
-                        self.scan_for_new_hostile_target(agent, controller, read_data);
+                        self.choose_target(agent, controller, read_data);
                     }
 
                     if aggro_on {
@@ -707,8 +707,8 @@ impl<'a> AgentData<'a> {
         // Only emit event for agents that have a lantern equipped
         if lantern_equipped && rng.gen_bool(0.001) {
             if day_period.is_dark() && !lantern_turned_on {
-                // Agents with turned off lanterns turn them on randomly once it's nighttime and
-                // keep them on.
+                // Agents with turned off lanterns turn them on randomly once it's
+                // nighttime and keep them on.
                 // Only emit event for agents that sill need to
                 // turn on their lantern.
                 controller.push_event(ControlEvent::EnableLantern)
@@ -1452,9 +1452,9 @@ impl<'a> AgentData<'a> {
         });
     }
 
-    fn flee_from_pos(
+    fn flee(
         &self,
-        pos: &Pos,
+        tgt_pos: &Pos,
         agent: &mut Agent,
         controller: &mut Controller,
         terrain: &TerrainGrid,
@@ -1471,7 +1471,7 @@ impl<'a> AgentData<'a> {
             self.vel.0,
             // Away from the target (ironically)
             self.pos.0
-                + (self.pos.0 - pos.0)
+                + (self.pos.0 - tgt_pos.0)
                     .try_normalized()
                     .unwrap_or_else(Vec3::unit_y)
                     * 50.0,
@@ -1545,12 +1545,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn scan_for_new_hostile_target(
-        &self,
-        agent: &mut Agent,
-        controller: &mut Controller,
-        read_data: &ReadData,
-    ) {
+    fn choose_target(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
         agent.action_state.timer = 0.0;
         let mut aggro_on = false;
 
@@ -1566,10 +1561,10 @@ impl<'a> AgentData<'a> {
             })
         };
         let get_enemy = |entity: EcsEntity| {
-            if self.is_entity_an_enemy(entity, read_data) {
+            if self.is_enemy(entity, read_data) {
                 Some(entity)
             } else if self.should_defend(entity, read_data) {
-                if let Some(attacker) = get_attacker_of_entity(entity, read_data) {
+                if let Some(attacker) = get_attacker(entity, read_data) {
                     if !is_alignment_passive_towards_entity(attacker) {
                         // aggro_on: attack immediately, do not warn/menace.
                         aggro_on = true;
@@ -1584,7 +1579,7 @@ impl<'a> AgentData<'a> {
                 None
             }
         };
-        let is_valid = |entity| {
+        let is_valid_target = |entity| {
             read_data.healths.get(entity).map_or(false, |health| {
                 !health.is_dead && !is_invulnerable(entity, read_data)
             })
@@ -1597,13 +1592,13 @@ impl<'a> AgentData<'a> {
         let target = grid
             .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
             .filter(|entity| {
-                is_valid(*entity)
-                    && does_entity_see_other(agent, *self.entity, *entity, controller, read_data)
+                is_valid_target(*entity)
+                    && can_see_other(agent, *self.entity, *entity, controller, read_data)
             })
             .filter_map(get_enemy)
             .min_by_key(|entity| {
                 // TODO: This seems expensive. Cache this to avoid recomputing each tick
-                get_pos(*entity).map(|pos| (pos.0.distance_squared(self.pos.0) * 100.0) as i32)
+                get_pos(*entity).map(|e_pos| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
             });
 
         if agent.target.is_none() && target.is_some() {
@@ -2118,7 +2113,7 @@ impl<'a> AgentData<'a> {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
-                    self.flee_from_pos(&sound_pos, agent, controller, &read_data.terrain);
+                    self.flee(&sound_pos, agent, controller, &read_data.terrain);
                 } else {
                     self.idle(agent, controller, read_data, rng);
                 }
@@ -2336,7 +2331,7 @@ impl<'a> AgentData<'a> {
         self.damage.min(1.0) < agent.psyche.flee_health
     }
 
-    fn is_entity_more_dangerous_than_target(
+    fn is_more_dangerous_than_target(
         &self,
         entity: EcsEntity,
         target: Target,
@@ -2378,7 +2373,7 @@ impl<'a> AgentData<'a> {
         })
     }
 
-    fn is_entity_an_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+    fn is_enemy(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
         let alignment = read_data.alignments.get(entity);
 
         (entity != *self.entity)
