@@ -1029,7 +1029,7 @@ impl Site {
         let info = canvas.info();
 
         for plot in plots_to_render {
-            let (prim_tree, fills, entities) = match &self.plots[plot].kind {
+            let (prim_tree, fills, mut entities) = match &self.plots[plot].kind {
                 PlotKind::House(house) => house.render_collect(self, canvas),
                 PlotKind::Workshop(workshop) => workshop.render_collect(self, canvas),
                 PlotKind::Castle(castle) => castle.render_collect(self, canvas),
@@ -1040,9 +1040,14 @@ impl Site {
                 _ => continue,
             };
 
-            for entity in entities {
-                canvas.spawn(entity);
-            }
+            let mut spawn = |pos, last_block| {
+                if let Some(entity) = match &self.plots[plot].kind {
+                    PlotKind::GiantTree(tree) => tree.entity_at(pos, &last_block, dynamic_rng),
+                    _ => None,
+                } {
+                    entities.push(entity);
+                }
+            };
 
             for (prim, fill) in fills {
                 for mut aabb in Fill::get_bounds_disjoint(&prim_tree, prim) {
@@ -1062,18 +1067,30 @@ impl Site {
                             {
                                 continue;
                             }
-
+                            let mut last_block = None;
                             for z in aabb.min.z..aabb.max.z {
                                 let pos = Vec3::new(x, y, z);
 
                                 canvas.map(pos, |block| {
-                                    fill.sample_at(&prim_tree, prim, pos, &info, block)
-                                        .unwrap_or(block)
+                                    let current_block =
+                                        fill.sample_at(&prim_tree, prim, pos, &info, block);
+                                    if let (Some(last_block), None) = (last_block, current_block) {
+                                        spawn(pos, last_block);
+                                    }
+                                    last_block = current_block;
+                                    current_block.unwrap_or(block)
                                 });
+                            }
+                            if let Some(block) = last_block {
+                                spawn(Vec3::new(x, y, aabb.max.z), block);
                             }
                         }
                     }
                 }
+            }
+
+            for entity in entities {
+                canvas.spawn(entity);
             }
         }
     }

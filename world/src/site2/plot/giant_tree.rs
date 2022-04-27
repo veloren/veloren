@@ -5,7 +5,10 @@ use crate::{
     util::FastNoise,
     Land, Sampler,
 };
-use common::terrain::{Block, BlockKind};
+use common::{
+    generation::EntityInfo,
+    terrain::{Block, BlockKind},
+};
 use rand::Rng;
 use vek::*;
 
@@ -36,6 +39,43 @@ impl GiantTree {
     pub fn radius(&self) -> f32 { 100.0 }
 
     pub fn tree(&self) -> &ProceduralTree { &self.tree }
+
+    pub fn entity_at(
+        &self,
+        pos: Vec3<i32>,
+        above_block: &Block,
+        dynamic_rng: &mut impl Rng,
+    ) -> Option<EntityInfo> {
+        if above_block.kind() == BlockKind::Leaves && dynamic_rng.gen_bool(0.001) {
+            let entity = EntityInfo::at(pos.as_());
+            match dynamic_rng.gen_range(0..=4) {
+                0 => {
+                    Some(entity.with_asset_expect(
+                        "common.entity.wild.aggressive.horn_beetle",
+                        dynamic_rng,
+                    ))
+                },
+                1 => {
+                    Some(entity.with_asset_expect(
+                        "common.entity.wild.aggressive.stag_beetle",
+                        dynamic_rng,
+                    ))
+                },
+                2 => Some(
+                    entity.with_asset_expect("common.entity.wild.aggressive.deadwood", dynamic_rng),
+                ),
+                3 => Some(
+                    entity.with_asset_expect("common.entity.wild.aggressive.maneater", dynamic_rng),
+                ),
+                4 => Some(
+                    entity.with_asset_expect("common.entity.wild.peaceful.parrot", dynamic_rng),
+                ),
+                _ => None,
+            }
+        } else {
+            None
+        }
+    }
 }
 
 impl Structure for GiantTree {
