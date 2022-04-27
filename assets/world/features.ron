@@ -11,6 +11,6 @@
     paths: true,
     spots: true,
     site2_towns: true,
-    site2_giant_trees: false,
+    site2_giant_trees: true,
     wildlife_density: 1.0,
 )
