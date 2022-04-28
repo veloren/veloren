@@ -12,7 +12,7 @@ if [[ "${CI_COMMIT_TAG}" =~ ${TAG_REGEX} ]]; then
   export PUBLISH_DOCKER_TAG="${CI_COMMIT_TAG}";
   return 0;
 fi
-if [[ -z "${SCHEDULE_CADENCE}" && ${CI_PIPELINE_SOURCE} == "schedule" ]]; then
+if [[ "${SCHEDULE_CADENCE}" != "" && ${CI_PIPELINE_SOURCE} == "schedule" ]]; then
   # sanitize check
   if [[ "${SCHEDULE_CADENCE}" =~ ${TAG_REGEX} ]]; then
     export PUBLISH_DOCKER_TAG="invalid_cadence";
