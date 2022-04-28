@@ -13,7 +13,7 @@
       overrides = {
         crates = common: prev: let
           pkgs = common.pkgs;
-          lib = common.lib;
+          lib = pkgs.lib;
 
           gitLfsCheckFile = ./assets/voxygen/background/bg_main.jpg;
           utils = import ./nix/utils.nix {inherit pkgs;};
