@@ -1,9 +1,8 @@
 use crate::sys::agent::{AgentData, ReadData};
 use common::{
-    combat::compute_stealth_coefficient,
     comp::{
-        agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Agent, Alignment,
-        Body, CharacterState, Controller, Pos,
+        agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Alignment, Body,
+        Pos,
     },
     consts::GRAVITY,
     terrain::Block,
@@ -193,55 +192,6 @@ pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
                 .count()
                 > 2
         })
-}
-
-pub fn can_see_other(
-    agent: &Agent,
-    entity: EcsEntity,
-    other: EcsEntity,
-    controller: &Controller,
-    read_data: &ReadData,
-) -> bool {
-    let other_stealth_coefficient = {
-        let is_other_stealthy = read_data
-            .char_states
-            .get(other)
-            .map_or(false, CharacterState::is_stealthy);
-
-        if is_other_stealthy {
-            // TODO: We shouldn't have to check CharacterState. This should be factored in
-            // by the function (such as the one we're calling below) that supposedly
-            // computes a coefficient given stealthy-ness.
-            compute_stealth_coefficient(read_data.inventories.get(other))
-        } else {
-            1.0
-        }
-    };
-
-    if let (Some(pos), Some(other_pos)) = (
-        read_data.positions.get(entity),
-        read_data.positions.get(other),
-    ) {
-        let dist_sqrd = other_pos.0.distance_squared(pos.0);
-
-        let within_sight_dist = {
-            let sight_dist = agent.psyche.sight_dist / other_stealth_coefficient;
-            dist_sqrd < sight_dist.powi(2)
-        };
-
-        let within_fov = (other_pos.0 - pos.0)
-            .try_normalized()
-            .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
-
-        let body = read_data.bodies.get(entity);
-        let other_body = read_data.bodies.get(other);
-
-        within_sight_dist
-            && within_fov
-            && entities_have_line_of_sight(pos, body, other_pos, other_body, read_data)
-    } else {
-        false
-    }
 }
 
 pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {

@@ -13,13 +13,14 @@ use crate::{
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
-            aim_projectile, are_our_owners_hostile, can_see_other, get_attacker, get_entity_by_id,
-            is_dead, is_dead_or_invulnerable, is_dressed_as_cultist, is_invulnerable,
-            is_village_guard, is_villager, stop_pursuing,
+            aim_projectile, are_our_owners_hostile, entities_have_line_of_sight, get_attacker,
+            get_entity_by_id, is_dead, is_dead_or_invulnerable, is_dressed_as_cultist,
+            is_invulnerable, is_village_guard, is_villager, stop_pursuing,
         },
     },
 };
 use common::{
+    combat::compute_stealth_coefficient,
     comp::{
         self,
         agent::{
@@ -1581,15 +1582,14 @@ impl<'a> AgentData<'a> {
 
         let target = grid
             .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
-            .filter(|entity| {
-                is_valid_target(*entity)
-                    && can_see_other(agent, *self.entity, *entity, controller, read_data)
-            })
+            .filter(|entity| is_valid_target(*entity))
             .filter_map(get_enemy)
-            .min_by_key(|entity| {
-                // TODO: This seems expensive. Cache this to avoid recomputing each tick
-                get_pos(*entity).map(|e_pos| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
-            });
+            .filter_map(|entity| get_pos(entity).map(|pos| (entity, pos)))
+            .filter(|(entity, e_pos)| {
+                self.can_see_entity(*entity, e_pos, agent, controller, read_data)
+            })
+            .min_by_key(|(_, e_pos)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
+            .map(|(entity, _)| entity);
 
         if agent.target.is_none() && target.is_some() {
             if aggro_on {
@@ -2411,5 +2411,47 @@ impl<'a> AgentData<'a> {
         } else {
             false
         }
+    }
+
+    fn can_see_entity(
+        &self,
+        other: EcsEntity,
+        other_pos: &Pos,
+        agent: &Agent,
+        controller: &Controller,
+        read_data: &ReadData,
+    ) -> bool {
+        let other_stealth_coefficient = {
+            let is_other_stealthy = read_data
+                .char_states
+                .get(other)
+                .map_or(false, CharacterState::is_stealthy);
+
+            if is_other_stealthy {
+                // TODO: We shouldn't have to check CharacterState. This should be factored in
+                // by the function (such as the one we're calling below) that supposedly
+                // computes a coefficient given stealthy-ness.
+                compute_stealth_coefficient(read_data.inventories.get(other))
+            } else {
+                1.0
+            }
+        };
+
+        let dist_sqrd = other_pos.0.distance_squared(self.pos.0);
+
+        let within_sight_dist = {
+            let sight_dist = agent.psyche.sight_dist / other_stealth_coefficient;
+            dist_sqrd < sight_dist.powi(2)
+        };
+
+        let within_fov = (other_pos.0 - self.pos.0)
+            .try_normalized()
+            .map_or(false, |v| v.dot(*controller.inputs.look_dir) > 0.15);
+
+        let other_body = read_data.bodies.get(other);
+
+        within_sight_dist
+            && within_fov
+            && entities_have_line_of_sight(self.pos, self.body, other_pos, other_body, read_data)
     }
 }
