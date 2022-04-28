@@ -1576,6 +1576,21 @@ impl<'a> AgentData<'a> {
             })
         };
 
+        // TODO: This is a temporary hack. Remove this once footsteps are emitted and
+        // agents are capable of detecting when someone is directly behind them.
+        let within_listen_dist = |e_pos: &Pos| {
+            let listen_dist = agent.psyche.listen_dist;
+
+            e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)
+        };
+
+        let is_detected = |entity: EcsEntity, e_pos: &Pos| {
+            let chance = thread_rng().gen_bool(0.3);
+
+            (within_listen_dist(e_pos) && chance)
+                || self.can_see_entity(entity, e_pos, agent, controller, read_data)
+        };
+
         // Search the area.
         // TODO: choose target by more than just distance
         let common::CachedSpatialGrid(grid) = self.cached_spatial_grid;
@@ -1585,9 +1600,7 @@ impl<'a> AgentData<'a> {
             .filter(|entity| is_valid_target(*entity))
             .filter_map(get_enemy)
             .filter_map(|entity| get_pos(entity).map(|pos| (entity, pos)))
-            .filter(|(entity, e_pos)| {
-                self.can_see_entity(*entity, e_pos, agent, controller, read_data)
-            })
+            .filter(|(entity, e_pos)| is_detected(*entity, e_pos))
             .min_by_key(|(_, e_pos)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
             .map(|(entity, _)| entity);
 

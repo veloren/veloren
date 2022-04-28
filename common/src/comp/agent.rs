@@ -282,7 +282,7 @@ impl<'a> From<&'a Body> for Psyche {
                 },
             },
             sight_dist: 40.0,
-            listen_dist: 30.0,
+            listen_dist: 5.0,
             aggro_dist: match body {
                 Body::Humanoid(_) => Some(20.0),
                 _ => None, // Always aggressive if detected
