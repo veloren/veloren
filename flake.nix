@@ -64,7 +64,7 @@
             nativeBuildInputs = (oldAttrs.nativeBuildInputs or []) ++ [pkgs.makeWrapper];
             VELOREN_USERDATA_STRATEGY = "system";
             preConfigure = ''
-              substituteInPlace src/audio/soundcache.rs \
+              substituteInPlace voxygen/src/audio/soundcache.rs \
                 --replace \
                 "../../../assets/voxygen/audio/null.ogg" \
                 "${./assets/voxygen/audio/null.ogg}"
