@@ -610,7 +610,7 @@ impl<'a> AgentData<'a> {
                         self.cry_out(agent, event_emitter, read_data);
                         agent.action_state.timer = 0.01;
                     } else if within_flee_distance && has_opportunity_to_flee {
-                        self.flee(tgt_pos, agent, controller, &read_data.terrain);
+                        self.flee(agent, controller, tgt_pos, &read_data.terrain);
                         agent.action_state.timer += read_data.dt.0;
                     } else {
                         agent.action_state.timer = 0.0;
@@ -1455,9 +1455,9 @@ impl<'a> AgentData<'a> {
 
     fn flee(
         &self,
-        tgt_pos: &Pos,
         agent: &mut Agent,
         controller: &mut Controller,
+        tgt_pos: &Pos,
         terrain: &TerrainGrid,
     ) {
         if let Some(body) = self.body {
@@ -2122,7 +2122,7 @@ impl<'a> AgentData<'a> {
                 if !self.below_flee_health(agent) && follows_threatening_sounds {
                     self.follow(agent, controller, &read_data.terrain, &sound_pos);
                 } else if self.below_flee_health(agent) || !follows_threatening_sounds {
-                    self.flee(&sound_pos, agent, controller, &read_data.terrain);
+                    self.flee(agent, controller, &sound_pos, &read_data.terrain);
                 } else {
                     self.idle(agent, controller, read_data, rng);
                 }
