@@ -1588,7 +1588,7 @@ impl<'a> AgentData<'a> {
             let chance = thread_rng().gen_bool(0.3);
 
             (within_listen_dist(e_pos) && chance)
-                || self.can_see_entity(entity, e_pos, agent, controller, read_data)
+                || self.can_see_entity(agent, controller, entity, e_pos, read_data)
         };
 
         // Search the area.
@@ -2428,10 +2428,10 @@ impl<'a> AgentData<'a> {
 
     fn can_see_entity(
         &self,
-        other: EcsEntity,
-        other_pos: &Pos,
         agent: &Agent,
         controller: &Controller,
+        other: EcsEntity,
+        other_pos: &Pos,
         read_data: &ReadData,
     ) -> bool {
         let other_stealth_coefficient = {
