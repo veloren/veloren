@@ -241,6 +241,7 @@ impl<'a> System<'a> for Sys {
                                 rate,
                                 accumulated,
                                 kind,
+                                instance,
                             } => {
                                 *accumulated += *rate * dt;
                                 // Apply health change only once per second, per health, or
@@ -248,7 +249,7 @@ impl<'a> System<'a> for Sys {
                                 if accumulated.abs() > rate.abs().min(1.0)
                                     || buff.time.map_or(false, |dur| dur == Duration::default())
                                 {
-                                    let (cause, by) = if *accumulated < 0.0 {
+                                    let (cause, by) = if *accumulated != 0.0 {
                                         (Some(DamageSource::Buff(buff.kind)), buff_owner)
                                     } else {
                                         (None, None)
@@ -275,7 +276,7 @@ impl<'a> System<'a> for Sys {
                                             cause,
                                             time: *read_data.time,
                                             crit_mult: None,
-                                            instance: rand::random(),
+                                            instance: *instance,
                                         },
                                     });
                                     *accumulated = 0.0;

@@ -726,7 +726,6 @@ impl<'a> Widget for Interface<'a> {
                 O Incoming Damage Accumulation Duration: 0s ----I----2s
             O Batch incoming Numbers
             O Round Damage Numbers
-        TODO: Do something like https://gitlab.com/veloren/veloren/-/issues/836
             */
         // SCT/ Scrolling Combat Text
         Text::new(

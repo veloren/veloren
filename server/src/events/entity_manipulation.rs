@@ -86,6 +86,7 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
                     target: *uid,
                     crit_mult: change.crit_mult,
                     instance: change.instance,
+                    cause: change.cause,
                 },
             });
         }

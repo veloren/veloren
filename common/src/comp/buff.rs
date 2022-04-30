@@ -152,6 +152,8 @@ pub enum BuffEffect {
         rate: f32,
         accumulated: f32,
         kind: ModifierKind,
+        // TODO: Change hud/mod.rs to account for over time changes???
+        instance: u64,
     },
     /// Periodically consume entity energy
     EnergyChangeOverTime {
@@ -234,12 +236,14 @@ impl Buff {
     ) -> Self {
         // Normalized nonlinear scaling
         let nn_scaling = |a| a / (a + 0.5);
+        let instance = rand::random();
         let (effects, time) = match kind {
             BuffKind::Bleeding => (
                 vec![BuffEffect::HealthChangeOverTime {
                     rate: -data.strength,
                     accumulated: 0.0,
                     kind: ModifierKind::Additive,
+                    instance,
                 }],
                 data.duration,
             ),
@@ -248,6 +252,7 @@ impl Buff {
                     rate: data.strength,
                     accumulated: 0.0,
                     kind: ModifierKind::Additive,
+                    instance,
                 }],
                 data.duration,
             ),
@@ -256,6 +261,7 @@ impl Buff {
                     rate: data.strength,
                     accumulated: 0.0,
                     kind: ModifierKind::Fractional,
+                    instance,
                 }],
                 data.duration,
             ),
@@ -271,6 +277,7 @@ impl Buff {
                         rate: -1.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
+                        instance,
                     },
                 ],
                 data.duration,
@@ -304,6 +311,7 @@ impl Buff {
                     rate: -data.strength,
                     accumulated: 0.0,
                     kind: ModifierKind::Additive,
+                    instance,
                 }],
                 data.duration,
             ),
@@ -322,6 +330,7 @@ impl Buff {
                         rate: -data.strength * 4.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
+                        instance,
                     },
                 ],
                 data.duration,
@@ -333,6 +342,7 @@ impl Buff {
                         rate: data.strength * 10.0,
                         accumulated: 0.0,
                         kind: ModifierKind::Additive,
+                        instance,
                     },
                 ],
                 data.duration,

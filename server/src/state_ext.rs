@@ -126,7 +126,6 @@ pub trait StateExt {
     ) -> Result<(), specs::error::WrongGeneration>;
 }
 
-// TODO: Check if this is ok
 impl StateExt for State {
     fn apply_effect(&self, entity: EcsEntity, effects: Effect, source: Option<Uid>) {
         let msm = self.ecs().read_resource::<MaterialStatManifest>();

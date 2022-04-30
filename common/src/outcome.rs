@@ -1,4 +1,4 @@
-use crate::{combat::DamageContributor, comp, uid::Uid};
+use crate::{combat::DamageContributor, comp, uid::Uid, DamageSource};
 use comp::{beam, item::Reagent, poise::PoiseState, skillset::SkillGroupKind, UtteranceKind};
 use hashbrown::HashSet;
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,7 @@ pub struct DamageInfo {
     pub target: Uid,
     pub by: Option<DamageContributor>,
     pub instance: u64,
+    pub cause: Option<DamageSource>,
 }
 
 /// An outcome represents the final result of an instantaneous event. It implies

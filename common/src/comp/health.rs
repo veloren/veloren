@@ -27,9 +27,6 @@ pub struct HealthChange {
     /// The crit multiplier (None if it isn't a crit)
     pub crit_mult: Option<f32>,
     /// A random ID, used to group up health changes
-    // Note: Two or more changes could have the same instance number, if they
-    // came from the same attack (for example - the extra damage caused by
-    // slashing weapons)
     pub instance: u64,
 }
 

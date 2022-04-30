@@ -7,7 +7,6 @@ use common_ecs::{Job, Origin, Phase, System};
 use specs::{Entities, Join, Read, ReadStorage, WriteStorage};
 
 // How long floaters last (in seconds)
-// Remove the accumulate times later
 pub const HP_SHOWTIME: f32 = 3.0;
 pub const CRIT_SHOWTIME: f32 = 0.7;
 pub const MY_HP_SHOWTIME: f32 = 2.5;
@@ -34,7 +33,6 @@ impl<'a> System<'a> for Sys {
         (entities, my_entity, dt, pos, healths, mut hp_floater_lists): Self::SystemData,
     ) {
         // Add hp floater lists to all entities with health and a position
-        // Note: necessary in order to know last_hp
         for entity in (&entities, &healths, &pos, !&hp_floater_lists)
             .join()
             .map(|(e, _, _, _)| e)
@@ -71,13 +69,7 @@ impl<'a> System<'a> for Sys {
         }
 
         // Maintain existing floaters
-        for (
-            entity,
-            HpFloaterList {
-                ref mut floaters, ..
-            },
-        ) in (&entities, &mut hp_floater_lists).join()
-        {
+        for (entity, HpFloaterList { floaters, .. }) in (&entities, &mut hp_floater_lists).join() {
             for mut floater in floaters.iter_mut() {
                 // Increment timer
                 floater.timer += dt.0;
