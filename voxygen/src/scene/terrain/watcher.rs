@@ -1,5 +1,5 @@
 use crate::hud::CraftingTab;
-use common::terrain::{BlockKind, SpriteKind, TerrainChunk};
+use common::terrain::{BiomeKind, BlockKind, SpriteKind, TerrainChunk};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -54,6 +54,60 @@ pub struct BlocksOfInterest {
     pub lights: Vec<(Vec3<i32>, u8)>,
 }
 
+fn dryness(biome: BiomeKind) -> u8 {
+    match biome {
+        BiomeKind::Void => 0,
+        BiomeKind::Lake => 0,
+        BiomeKind::Ocean => 0,
+        BiomeKind::Swamp => 10,
+        BiomeKind::Jungle => 60,
+        BiomeKind::Snowland => 60,
+        BiomeKind::Desert => 100, // dry but dung
+        BiomeKind::Mountain => 160,
+        BiomeKind::Forest => 180,
+        BiomeKind::Taiga => 180,
+        BiomeKind::Grassland => 200,
+        BiomeKind::Savannah => 240,
+    }
+}
+
+fn seed_from_pos(pos: Vec3<i32>) -> [u8; 32] {
+    [
+        pos.x as u8,
+        (pos.x >> 8) as u8,
+        (pos.x >> 16) as u8,
+        (pos.x >> 24) as u8,
+        0,
+        0,
+        0,
+        0,
+        pos.y as u8,
+        (pos.y >> 8) as u8,
+        (pos.y >> 16) as u8,
+        (pos.y >> 24) as u8,
+        0,
+        0,
+        0,
+        0,
+        pos.z as u8,
+        (pos.z >> 8) as u8,
+        (pos.z >> 16) as u8,
+        (pos.z >> 24) as u8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+    ]
+}
+
 impl BlocksOfInterest {
     pub fn from_chunk(chunk: &TerrainChunk) -> Self {
         span!(_guard, "from_chunk", "BlocksOfInterest::from_chunk");
@@ -104,8 +158,13 @@ impl BlocksOfInterest {
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
+                        let mut rng2 = ChaCha8Rng::from_seed(seed_from_pos(pos));
                         fires.push(pos);
-                        smokers.push(SmokeProperties::new(pos, 128, 128));
+                        smokers.push(SmokeProperties::new(
+                            pos,
+                            dryness(chunk.meta().biome()),
+                            rng2.gen_range(20..200),
+                        ));
                     },
                     // Offset positions to account for block height.
                     // TODO: Is this a good idea?
