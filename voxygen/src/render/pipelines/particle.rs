@@ -87,6 +87,7 @@ pub enum ParticleMode {
     Death = 34,
     EnergyBuffing = 35,
     WebStrand = 36,
+    BlackSmoke = 37,
 }
 
 impl ParticleMode {

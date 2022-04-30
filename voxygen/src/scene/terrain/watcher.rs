@@ -12,6 +12,22 @@ pub enum Interaction {
     Mine,
 }
 
+pub struct SmokeProperties {
+    pub position: Vec3<i32>,
+    pub dryness: u8,  // 0 = black smoke, 255 = white
+    pub strength: u8, // 0 = thin, 128 = normal, 255 = very strong
+}
+
+impl SmokeProperties {
+    fn new(position: Vec3<i32>, dryness: u8, strength: u8) -> Self {
+        Self {
+            position,
+            dryness,
+            strength,
+        }
+    }
+}
+
 #[derive(Default)]
 pub struct BlocksOfInterest {
     pub leaves: Vec<Vec3<i32>>,
@@ -20,7 +36,7 @@ pub struct BlocksOfInterest {
     pub slow_river: Vec<Vec3<i32>>,
     pub fast_river: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
-    pub smokers: Vec<Vec3<i32>>,
+    pub smokers: Vec<SmokeProperties>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub fireflies: Vec<Vec3<i32>>,
@@ -89,7 +105,7 @@ impl BlocksOfInterest {
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
                         fires.push(pos);
-                        smokers.push(pos);
+                        smokers.push(SmokeProperties::new(pos, 128, 128));
                     },
                     // Offset positions to account for block height.
                     // TODO: Is this a good idea?
@@ -117,7 +133,7 @@ impl BlocksOfInterest {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
                     Some(SpriteKind::SmokeDummy) => {
-                        smokers.push(pos);
+                        smokers.push(SmokeProperties::new(pos, 255, 128));
                     },
                     Some(SpriteKind::Forge) => interactables
                         .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
