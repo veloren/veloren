@@ -14,7 +14,7 @@ use crate::{
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
             aim_projectile, can_see_tgt, get_entity_by_id, is_dead, is_dead_or_invulnerable,
-            is_invulnerable, stop_pursuing, try_owner_alignment,
+            is_invulnerable, is_villager, stop_pursuing, try_owner_alignment,
         },
     },
 };
@@ -37,7 +37,7 @@ use common::{
         },
         projectile::ProjectileConstructor,
         Agent, Alignment, BehaviorState, Body, CharacterState, ControlAction, ControlEvent,
-        Controller, Health, HealthChange, InputKind, Inventory, InventoryAction, Pos, Scale, Stats,
+        Controller, Health, HealthChange, InputKind, Inventory, InventoryAction, Pos, Scale,
         UnresolvedChatMsg, UtteranceKind,
     },
     effect::{BuffEffect, Effect},
@@ -327,7 +327,7 @@ impl<'a> System<'a> for Sys {
                                             if let Some(attacker_stats) =
                                                 data.rtsim_entity.and(read_data.stats.get(attacker))
                                             {
-                                                agent.add_enemy(
+                                                agent.add_fight_to_memory(
                                                     &attacker_stats.name,
                                                     read_data.time.0,
                                                 );
@@ -537,7 +537,7 @@ impl<'a> AgentData<'a> {
                 }
 
                 if rng.gen::<f32>() < 0.1 {
-                    self.choose_target(agent, controller, read_data, event_emitter);
+                    self.choose_target(agent, controller, read_data);
                 } else {
                     self.handle_sounds_heard(agent, controller, read_data, rng);
                 }
@@ -608,7 +608,7 @@ impl<'a> AgentData<'a> {
                     // FIXME: Using the action state timer to see if an agent is allowed to speak is
                     // a hack.
                     if agent.action_state.timer == 0.0 {
-                        self.cry_out(agent, read_data.time.0, event_emitter);
+                        self.cry_out(agent, event_emitter, read_data);
                         agent.action_state.timer = 0.01;
                     } else if within_flee_distance && has_opportunity_to_flee {
                         self.flee(agent, controller, &read_data.terrain, tgt_pos);
@@ -639,7 +639,7 @@ impl<'a> AgentData<'a> {
                         read_data.time.0 - selected_at > RETARGETING_THRESHOLD_SECONDS;
 
                     if !in_aggro_range && is_time_to_retarget {
-                        self.choose_target(agent, controller, read_data, event_emitter);
+                        self.choose_target(agent, controller, read_data);
                     }
 
                     if aggro_on {
@@ -648,9 +648,13 @@ impl<'a> AgentData<'a> {
                             read_data.bodies.get(target),
                             read_data.scales.get(target),
                         );
+                        let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
+
+                        tgt_name
+                            .map(|tgt_name| agent.add_fight_to_memory(&tgt_name, read_data.time.0));
                         self.attack(agent, controller, &target_data, read_data, rng);
                     } else {
-                        self.menacing(agent, target, controller, read_data, event_emitter, rng);
+                        self.menacing(agent, controller, target, read_data, event_emitter, rng);
                     }
                 }
             }
@@ -1395,9 +1399,9 @@ impl<'a> AgentData<'a> {
 
     fn menacing(
         &self,
-        agent: &Agent,
-        target: EcsEntity,
+        agent: &mut Agent,
         controller: &mut Controller,
+        target: EcsEntity,
         read_data: &ReadData,
         event_emitter: &mut Emitter<ServerEvent>,
         rng: &mut impl Rng,
@@ -1406,6 +1410,18 @@ impl<'a> AgentData<'a> {
         let move_dir = controller.inputs.move_dir;
         let move_dir_mag = move_dir.magnitude();
         let small_chance = rng.gen::<f32>() < read_data.dt.0 * 0.25;
+        let mut chat = |msg: &str| {
+            self.chat_npc_if_allowed_to_speak(msg.to_string(), agent, event_emitter);
+        };
+        let mut chat_villager_remembers_fighting = || {
+            let tgt_name = read_data.stats.get(target).map(|stats| stats.name.clone());
+
+            if let Some(tgt_name) = tgt_name {
+                chat(format!("{}! How dare you cross me again!", &tgt_name).as_str());
+            } else {
+                chat("You! How dare you cross me again!");
+            }
+        };
 
         self.look_toward(controller, read_data, target);
         controller.push_action(ControlAction::Wield);
@@ -1415,8 +1431,19 @@ impl<'a> AgentData<'a> {
         }
 
         if small_chance {
-            self.chat_npc_if_allowed_to_speak("npc.speech.menacing", agent, event_emitter);
             controller.push_utterance(UtteranceKind::Angry);
+
+            if is_villager(self.alignment) {
+                if self.remembers_fight_with(target, read_data) {
+                    chat_villager_remembers_fighting();
+                } else if self.entity_looks_like_cultist(target, read_data) {
+                    chat("npc.speech.villager_cultist_alarm");
+                } else {
+                    chat("npc.speech.menacing");
+                }
+            } else {
+                chat("npc.speech.menacing");
+            }
         }
     }
 
@@ -1512,13 +1539,7 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn choose_target(
-        &self,
-        agent: &mut Agent,
-        controller: &mut Controller,
-        read_data: &ReadData,
-        event_emitter: &mut Emitter<'_, ServerEvent>,
-    ) {
+    fn choose_target(&self, agent: &mut Agent, controller: &mut Controller, read_data: &ReadData) {
         agent.action_state.timer = 0.0;
         let mut aggro_on = false;
 
@@ -1528,7 +1549,6 @@ impl<'a> AgentData<'a> {
                     entity,
                     pos,
                     read_data.healths.get(entity)?,
-                    read_data.stats.get(entity)?,
                     read_data.inventories.get(entity)?,
                     read_data.alignments.get(entity),
                     read_data.char_states.get(entity),
@@ -1589,7 +1609,6 @@ impl<'a> AgentData<'a> {
                     .stats
                     .get(*self.entity)
                     .map_or(false, |stats| stats.name == "Guard");
-                let other_is_a_villager = matches!(e_alignment, Some(Alignment::Npc));
                 let we_are_friendly: bool = self.alignment.map_or(false, |ma| {
                     e_alignment.map_or(false, |ea| !ea.hostile_towards(*ma))
                 });
@@ -1605,7 +1624,7 @@ impl<'a> AgentData<'a> {
 
                 let i_should_defend = other_has_taken_damage
                     && ((we_are_friendly && we_share_species)
-                        || (i_am_a_guard && other_is_a_villager)
+                        || (i_am_a_guard && is_villager(e_alignment))
                         || i_own_other);
 
                 i_should_defend
@@ -1634,100 +1653,37 @@ impl<'a> AgentData<'a> {
                     .flatten()
             };
 
-        let rtsim_remember =
-            |target_stats: &Stats,
-             agent: &mut Agent,
-             event_emitter: &mut Emitter<'_, ServerEvent>| {
-                self.rtsim_entity.map_or(false, |rtsim_entity| {
-                    if rtsim_entity
-                        .brain
-                        .remembers_fight_with_character(&target_stats.name)
-                    {
-                        agent.add_enemy(&target_stats.name, read_data.time.0);
-                        self.chat_npc_if_allowed_to_speak(
-                            format!(
-                                "{}! How dare you cross me again!",
-                                target_stats.name.clone()
-                            ),
-                            agent,
-                            event_emitter,
-                        );
-                        true
-                    } else {
-                        false
-                    }
-                })
+        let possible_target =
+            |(entity, e_pos, e_health, e_inventory, e_alignment, e_char_state, e_body): (
+                EcsEntity,
+                &Pos,
+                &Health,
+                &Inventory,
+                Option<&Alignment>,
+                Option<&CharacterState>,
+                Option<&Body>,
+            )| {
+                let can_target = within_reach(e_pos, e_char_state, e_inventory)
+                    && entity != *self.entity
+                    && !e_health.is_dead
+                    && !is_invulnerable(entity, read_data);
+
+                if !can_target {
+                    None
+                } else if is_owner_hostile(e_alignment) {
+                    Some((entity, *e_pos))
+                } else if let Some(villain_info) = guard_other(e_health, e_body, e_alignment) {
+                    aggro_on = true;
+                    Some(villain_info)
+                } else if self.remembers_fight_with(entity, read_data)
+                    || is_villager(self.alignment)
+                        && self.entity_looks_like_cultist(entity, read_data)
+                {
+                    Some((entity, *e_pos))
+                } else {
+                    None
+                }
             };
-
-        let npc_sees_cultist =
-            |target_stats: &Stats,
-             target_inventory: &Inventory,
-             agent: &mut Agent,
-             event_emitter: &mut Emitter<'_, ServerEvent>| {
-                self.alignment.map_or(false, |alignment| {
-                    if matches!(alignment, Alignment::Npc)
-                        && target_inventory
-                            .equipped_items()
-                            .filter(|item| item.tags().contains(&ItemTag::Cultist))
-                            .count()
-                            > 2
-                    {
-                        if self.rtsim_entity.is_some() {
-                            agent.add_enemy(&target_stats.name, read_data.time.0);
-                        }
-
-                        self.chat_npc_if_allowed_to_speak(
-                            "npc.speech.villager_cultist_alarm",
-                            agent,
-                            event_emitter,
-                        );
-
-                        true
-                    } else {
-                        false
-                    }
-                })
-            };
-
-        let possible_target = |(
-            entity,
-            e_pos,
-            e_health,
-            e_stats,
-            e_inventory,
-            e_alignment,
-            e_char_state,
-            e_body,
-        ): (
-            EcsEntity,
-            &Pos,
-            &Health,
-            &Stats,
-            &Inventory,
-            Option<&Alignment>,
-            Option<&CharacterState>,
-            Option<&Body>,
-        )| {
-            let can_target = within_reach(e_pos, e_char_state, e_inventory)
-                && entity != *self.entity
-                && !e_health.is_dead
-                && !is_invulnerable(entity, read_data);
-
-            if !can_target {
-                None
-            } else if is_owner_hostile(e_alignment) {
-                Some((entity, *e_pos))
-            } else if let Some(villain_info) = guard_other(e_health, e_body, e_alignment) {
-                aggro_on = true;
-                Some(villain_info)
-            } else if rtsim_remember(e_stats, agent, event_emitter)
-                || npc_sees_cultist(e_stats, e_inventory, agent, event_emitter)
-            {
-                Some((entity, *e_pos))
-            } else {
-                None
-            }
-        };
 
         // Search area
         // TODO choose target by more than just distance
@@ -2300,6 +2256,8 @@ impl<'a> AgentData<'a> {
 
                         if let Some(tgt_pos) = read_data.positions.get(attacker) {
                             if is_dead_or_invulnerable(attacker, read_data) {
+                                // FIXME?: Shouldn't target be set to `None`?
+                                // If is dead, then probably. If invulnerable, maybe not.
                                 agent.target =
                                     Some(Target::new(target, false, read_data.time.0, false));
 
@@ -2310,7 +2268,11 @@ impl<'a> AgentData<'a> {
                                     read_data.bodies.get(target),
                                     read_data.scales.get(target),
                                 );
-
+                                if let Some(tgt_name) =
+                                    read_data.stats.get(target).map(|stats| stats.name.clone())
+                                {
+                                    agent.add_fight_to_memory(&tgt_name, read_data.time.0)
+                                }
                                 self.attack(agent, controller, &target_data, read_data, rng);
                             }
                         }
@@ -2439,10 +2401,13 @@ impl<'a> AgentData<'a> {
         }
     }
 
-    fn cry_out(&self, agent: &Agent, time: f64, event_emitter: &mut Emitter<'_, ServerEvent>) {
+    fn cry_out(
+        &self,
+        agent: &Agent,
+        event_emitter: &mut Emitter<'_, ServerEvent>,
+        read_data: &ReadData,
+    ) {
         let is_enemy = matches!(self.alignment, Some(Alignment::Enemy));
-        // FIXME: This is not necessarily a "villager"
-        let is_villager = matches!(self.alignment, Some(Alignment::Npc));
 
         if is_enemy {
             self.chat_npc_if_allowed_to_speak(
@@ -2450,13 +2415,13 @@ impl<'a> AgentData<'a> {
                 agent,
                 event_emitter,
             );
-        } else if is_villager {
+        } else if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
                 "npc.speech.villager_under_attack",
                 agent,
                 event_emitter,
             );
-            self.emit_scream(time, event_emitter);
+            self.emit_scream(read_data.time.0, event_emitter);
         }
     }
 
@@ -2465,9 +2430,7 @@ impl<'a> AgentData<'a> {
         agent: &Agent,
         event_emitter: &mut Emitter<'_, ServerEvent>,
     ) {
-        let is_villager = matches!(self.alignment, Some(Alignment::Npc));
-
-        if is_villager {
+        if is_villager(self.alignment) {
             self.chat_npc_if_allowed_to_speak(
                 "npc.speech.villager_enemy_killed",
                 agent,
@@ -2508,6 +2471,26 @@ impl<'a> AgentData<'a> {
                 // Consider entity more dangerous than target if entity is closer or if target
                 // had not triggered aggro.
                 !target.aggro_on || (is_target_further && is_entity_hostile)
+            })
+        })
+    }
+
+    fn entity_looks_like_cultist(&self, entity: EcsEntity, read_data: &ReadData) -> bool {
+        let number_of_cultist_items_equipped = read_data.inventories.get(entity).map_or(0, |inv| {
+            inv.equipped_items()
+                .filter(|item| item.tags().contains(&ItemTag::Cultist))
+                .count()
+        });
+
+        number_of_cultist_items_equipped > 2
+    }
+
+    fn remembers_fight_with(&self, other: EcsEntity, read_data: &ReadData) -> bool {
+        let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
+
+        self.rtsim_entity.map_or(false, |rtsim_entity| {
+            name().map_or(false, |name| {
+                rtsim_entity.brain.remembers_fight_with_character(&name)
             })
         })
     }

@@ -597,7 +597,7 @@ impl Agent {
             .push(RtSimEvent::ForgetEnemy(target_name.to_owned()));
     }
 
-    pub fn add_enemy(&mut self, target_name: &str, time: f64) {
+    pub fn add_fight_to_memory(&mut self, target_name: &str, time: f64) {
         self.rtsim_controller
             .events
             .push(RtSimEvent::AddMemory(Memory {

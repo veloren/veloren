@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Harvester boss arenas should be more accessible and easier to exit
 - Fix agents not idling
 - Fixed an error where '{amount} Exp' floater did not use existing localizations
+- Fix villagers seeing cultists and familiar enemies through objects.
 
 ## [0.12.0] - 2022-02-19
 
