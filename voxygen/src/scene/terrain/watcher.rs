@@ -54,7 +54,7 @@ pub struct BlocksOfInterest {
     pub lights: Vec<(Vec3<i32>, u8)>,
 }
 
-fn dryness(biome: BiomeKind) -> u8 {
+fn biome_dryness(biome: BiomeKind) -> i32 {
     match biome {
         BiomeKind::Void => 0,
         BiomeKind::Lake => 0,
@@ -159,12 +159,17 @@ impl BlocksOfInterest {
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
                         let mut rng2 = ChaCha8Rng::from_seed(seed_from_pos(pos));
+                        let strength_mod = (0.5_f32 - chunk.meta().temp()).max(0.0); // -0.5 (desert) to 1.5 (ice)
+                        let strength = rng2
+                            .gen_range((5.0 * strength_mod)..(100.0 * strength_mod).max(1.0))
+                            as u8;
+                        let dryness = (biome_dryness(chunk.meta().biome())
+                            + rng2.gen_range(-20..20))
+                        .min(255)
+                        .max(0) as u8;
+                        // tracing::trace!(?pos, ?strength, ?dryness);
                         fires.push(pos);
-                        smokers.push(SmokeProperties::new(
-                            pos,
-                            dryness(chunk.meta().biome()),
-                            rng2.gen_range(20..200),
-                        ));
+                        smokers.push(SmokeProperties::new(pos, dryness, strength));
                     },
                     // Offset positions to account for block height.
                     // TODO: Is this a good idea?

@@ -192,7 +192,7 @@ void main() {
                     vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
                 ),
                 vec3(linear_scale(0.5)),
-                vec4(vec3(0.8, 0.8, 1) * 0.5 * (1.0 + rand0), start_end(1.0, 0.0)),
+                vec4(vec3(0.8, 0.8, 1) * 0.125 * (3.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
             );
             break;
@@ -200,10 +200,10 @@ void main() {
             attr = Attr(
                 linear_motion(
                     vec3(0),
-                    vec3(rand2 * 0.02, rand3 * 0.02, 0.9 + rand4 * 0.1)
+                    vec3(rand2 * 0.02, rand3 * 0.02, 1.0 + rand4 * 0.1)
                 ),
                 vec3(linear_scale(0.5)),
-                vec4(vec3(0.8, 0.8, 1) * 0.5 * rand0, start_end(1.0, 0.0)),
+                vec4(vec3(0.8, 0.8, 1) * 0.125 * (1.8 + rand0), start_end(1.0, 0.0)),
                 spin_in_axis(vec3(rand6, rand7, rand8), rand9 * 3 + lifetime * 0.5)
             );
             break;
