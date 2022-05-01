@@ -121,3 +121,8 @@ fn should_let_target_escape(
 ) -> f32 {
     (dist_to_home_sqrd / own_health_fraction) * dur_since_last_attacked as f32 * 0.005
 }
+
+// FIXME: `Alignment::Npc` doesn't necessarily mean villager.
+pub fn is_villager(alignment: Option<&Alignment>) -> bool {
+    alignment.map_or(false, |alignment| matches!(alignment, Alignment::Npc))
+}
