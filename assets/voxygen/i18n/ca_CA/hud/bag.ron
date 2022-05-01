@@ -31,7 +31,7 @@
         "hud.bag.bag": "Bossa",
         "hud.bag.health": "Salut",
         "hud.bag.energy": "Energia",
-        "hud.bag.combat_rating": "Puntuació de Combat",
+        "hud.bag.combat_rating": "Punts de Combat",
         "hud.bag.protection": "Protecció",
         "hud.bag.stun_res": "Resistència a l'Atordiment",
         "hud.bag.combat_rating_desc": "Calculat pel teu\nequipament i salut.",

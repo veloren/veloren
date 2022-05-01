@@ -18,6 +18,8 @@
         "hud.crafting.loom": "Teler",
         "hud.crafting.spinning_wheel": "Filosa",
         "hud.crafting.tanning_rack": "Adoberia",
+        "hud.crafting.salvaging_station": "Banc de Reciclatge",
+        "hud.crafting.campfire": "Foguera",
         // Tabs
         "hud.crafting.tabs.all": "Tot",
         "hud.crafting.tabs.armor": "Armadura",
@@ -30,6 +32,8 @@
         "hud.crafting.tabs.weapon": "Armes",
         "hud.crafting.tabs.bag": "Bosses",
         "hud.crafting.tabs.processed_material": "Materials",
+        "hud.crafting.dismantle_title": "Desmantellar",
+        "hud.crafting.dismantle_explanation" : "Sobrevola els objectes de la teva bossa per veure que\npots reciclar.\n\nFes doble clic per desmantellar-los.",
     },
 
 

@@ -7,44 +7,92 @@
 
     vector_map: {
         "npc.speech.villager": [
-            "No fa un dia meravellós?",
-            "Com estàs avui?",
-            "Espero que tinguis un molt bon matí!",
+            "M'encanta el formatge.",
+        ],
+        "npc.speech.villager_open": [
             "Em pregunto que pensa el Catoblepas quan menja gespa.",
-            "Què en penses d'aquest clima?",
-            "Pensar en les masmorres em fa molta por. Espero que algú se'n faci càrrec d'elles.",
-            "M'agradaria fer espeleologia a una cova quan sigui més fort.",
-            "Has vist al meu gat?",
-            "Has sentit parlar mai dels ferotges Taurons Terrestres? Jo he sentit a dir que viuen als deserts.",
-            "Diuen que poden trobar-se joies precioses de tota mena a les profunditats de les coves.",
-            "Estic gruyère pel formatge!",
-            "No voldries passar a dins? Estem a punt de menjar un poc de formatge!",
-            "Diuen que els bolets són bons per a la teva salut, però jo mai els he tastat.",
-            "No te n'oblides les galetetes salades!",
-            "Adoro el formatge dels nans. Desitjaria saber com fer-lo.",
-            "Em pregunto que hi ha a l'altre costat de les muntanyes.",
-            "Espero poder fer el meu propi planador algun dia.",
-            "T'agradaria veure el meu jardí? D'acord, potser en un altre moment.",
-            "Un dia encantador per a fer un passeig pel bosc!",
-            "Ser, o no ser? Bé, jo crec que seré un pagès.",
-            "No creus que la nostra aldea és la millor?",
-            "Què creus que fa brillar als Residus Brillants?",
-            "Crec que ja és l'hora de fer un segon desdejuni!",
-            "Has enxampat mai una lluerna?",
-            "No entenc d'on segueixen venint aquests Sauroks.",
-            "M'agradaria que algú mantingués els llops lluny de l'aldea.",
-            "L'altra nit vaig somiar amb formatge i fou meravellós. Què podria significar?",
+            "Què creus que fa brillar les Restes Brillants?",
+            "Alguna vegada has sentit parlar dels ferotges Taurons Terrestres? He sentit que viuen als deserts.",
+            "Em pregunto què hi ha a l'altre costat de les muntanyes.",
             "He deixat una mica de formatge amb el meu germà i ara no sé si realment existeix o no. Jo l'anomeno el formatge de Schrödinger.",
-            "He deixat una mica de formatge amb la meva germana i ara no sé si realment existeix o no. Jo l'anomeno el formatge de Schrödinger.",
-            "Algú hauria de fer alguna cosa amb aquests sectaris. Preferiblement algú que no sigui jo.",
-            "Espero que plogui prompte. Seria bo per a les collites.",
-            "M'encanta la mel! I odio les abelles.",
+            "Alguna vegada has enxampat una cuca de llum?",
+            "Diuen que pots trobar joies brillants de tot tipus a les coves.",
+            "Encara no entenc d'on segueixen venint aquests Sauroks.",
+        ],
+        "npc.speech.villager_adventurous": [
+            "Tant de bo faci el meu propi planador algun dia.",
+            "M'agradaria endinsar-me en una cova quan sigui més fort.",
+        ],
+        "npc.speech.villager_closed": [
+            "Tu no ets de per aquí, veritat?",
+            "No creus que la nostra aldea és la millor?",
+            "Diuen que els bolets són bons per la salut, tot i que mai els he tastat.",
+            "Ser, o no ser? Bé, jo crec que seré un pagès.",
+        ],
+        "npc.speech.villager_conscientious": [
+            "Em mantinc ocupat. Sempre hi ha alguna cosa a fer.",
+            "Espero que plogui prompte, seria bo per als camps.",
+        ],
+        "npc.speech.villager_busybody": [
+            "La gent hauria de parlar menys i treballar més.",
+        ],
+        "npc.speech.villager_unconscientious": [
+            "Crec que és el moment d'un segon desdejuni!",
+            "M'agradaria que ma casa no fos un desastre, però aleshores hauria de ser més ordenat! Haha!",
+            "I ara, on he deixat allò...",
+        ],
+        "npc.speech.villager_extroverted": [
+            "No creuràs el que he fet aquest cap de setmana!",
+            "Et desitjo el millor dels dies!",
+            "Que n'opines d'aquest temps?",
+            "Estic gruyère pel formatge!",
+            "No te n'oblides les galetetes salades!",
+            "Senzillament, m'encanta el formatge dels nans. Tant de bo pogués fer-lo.",
+            "Vaig tenir un somni meravellós sobre formatges l'altra nit. Què significarà?",
+            "M'encanta la mel!... Però odio les abelles.",
+        ],
+        "npc.speech.villager_sociable": [
+            "No voldries passar a dins? Estem a punt de menjar un poc de formatge!",
+            "T'agradaria veure el meu jardí? D'acord, potser en un altre moment.",
+        ],
+        "npc.speech.villager_introverted": [
+            "Hola.",
+            "Ah, jo? No sóc gens especial.",
+        ],
+        "npc.speech.villager_agreeable": [
+            "Com estàs avui?",
+            "Avisa'm si necessites qualsevol cosa.",
+            "Has vist el meu gat?",
+        ],
+        "npc.speech.villager_worried": [
+            "Ves amb compte, hi ha molts perills allà fora.",
+        ],
+        "npc.speech.villager_disagreeable": [
+            "Sempre dic el que penso, i si a la gent no li agrada que se'n fotin.",
+            "La gent s'ofèn per res.",
+        ],
+        "npc.speech.villager_neurotic": [
+            "Pensar en les masmorres em fa por. Voldria que algú se n'encarregués d'elles.",
+            "Algú hauria de fer alguna cosa amb aquests sectaris. Algú que no sigui jo, si fos possible.",
+            "Tinc la sensació que alguna cosa dolenta ocorrerà.",
+            "M'agradaria que algú mantingués als llops lluny de l'aldea.",
+        ],
+        "npc.speech.villager_sad_loner": [
+            "Em sento molt sol.",
+            "... Disculpa aquest silenci incòmode. No tinc traça per a la gent.",
+        ],
+        "npc.speech.villager_seeker": [
             "Voldria veure el món algun dia. Ha d'haver-hi alguna altra cosa a la vida més enllà d'aquesta aldea.",
+        ],
+        "npc.speech.villager_stable": [
+            "No fa un dia meravellós?",
+            "La vida no és tan dolenta.",
+            "Fa un dia meravellós per passejar pel bosc!",
         ],
         "npc.speech.villager_decline_trade": [
             "Em sap greu, no tinc res per comerciar.",
-            "Comerciar? Com si jo pogués tindre alguna cosa del teu interès.",
-            "Ma casa és meva i no la vendré per res del món.",
+            "Comerciar? Com si jo tingués alguna cosa que et pogués interessar.",
+            "Ma casa és meva i no te la vendré per res del món.",
         ],
         "npc.speech.merchant_advertisement": [
             "Li interessaria comerciar amb alguna cosa?",
@@ -52,12 +100,14 @@
             "Tinc molts béns, li agradaria donar una ullada?"
         ],
         "npc.speech.merchant_busy": [
-            "Eh! Esperi el seu torn.",
             "Si us plau, esperi. Sols soc una persona.",
-            "Veu a l'altra persona davant seu?",
             "Un moment, deixi'm acabar.",
-            "No es coli.",
             "Estic ocupat, torni més tard."
+        ],
+        "npc.speech.merchant_busy_rude": [
+            "Eh! Esperi el seu torn.",
+            "No veu a l'altra persona davant seu?",
+            "No es coli.",
         ],
         "npc.speech.merchant_trade_successful": [
             "Gràcies per comerciar amb mi!",
@@ -70,7 +120,7 @@
         "npc.speech.villager_cultist_alarm": [
             "Guaita! Hi ha un sectari solt!",
             "A les armes! Els sectaris estan atacant!",
-            "Com s'atreveixen els sectaris a atacar la nostra aldea!",
+            "Com s'atreveixen els sectaris a atacar la nostra aldea?!",
             "Mort als sectaris!",
             "No tolerarem als sectaris aquí!",
             "Sectaris assassins!",
@@ -160,8 +210,8 @@
             "Pagaràs per això!",
             "Embeina l'arma o ho lamentaràs!",
             "No m'obliguis a fer-te mal!",
-            "Ha haver-hi hagut algun malentès!",
-            "No has de fer açò!",
+            "Ha d'haver-hi hagut algun malentès!",
+            "No cal que facis açò!",
             "Fuig, malvat!",
             "Això ha fet mal!",
             "Per què has fet això?",
@@ -182,9 +232,17 @@
             "T'ho adverteixo!",
             "Un pas més i t'atacaré!",
             "No em fas gens de por!",
-            "Fora d'ací!",
+            "Fora d'aquí!",
             "Ves-te'n si vols viure!",
-            "No ets benvingut ací!",
+            "No ets benvingut aquí!",
         ],
+        "npc.speech.cultist_low_health_fleeing": [
+            "Retireu-vos per lluitar un altre dia!",
+            "Retirada!",
+            "Maleït siguis!",
+            "Et maleiré des del més enllà!",
+            "He de descansar!",
+            "Són massa forts!",
+        ]
     }
 )
