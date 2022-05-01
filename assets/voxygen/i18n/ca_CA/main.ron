@@ -10,6 +10,7 @@
         "main.connecting": "Connectant",
         "main.creating_world": "Creant món",
         "main.tip": "Consell:",
+        "main.unbound_key_tip": "deslligar",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Benvingut a la versió alfa de Veloren!
@@ -54,18 +55,38 @@ https://veloren.net/account/."#,
         "main.login.failed_sending_request": "La petició al servidor d'autentificació ha fallat",
         "main.login.invalid_character": "El personatge seleccionat no és vàlid",
         "main.login.client_crashed": "El client s'ha tancat inesperadament",
-        "main.login.not_on_whitelist": "Necessites l'aprovació d'un Administrador per a entrar",
-        "main.login.banned": "Se t'ha vetat l'entrada per aquesta raó",
-        "main.login.kicked": "Se t'ha expulsat per aquesta raó",
+        "main.login.not_on_whitelist": "Necessites l'aprovació d'un Administrador per entrar",
+        "main.login.banned": "Se t'ha vetat l'entrada pel següent motiu",
+        "main.login.kicked": "Se t'ha expulsat pel següent motiu",
         "main.login.select_language": "Selecciona Idioma",
         "main.login.client_version": "Versió del Client",
         "main.login.server_version": "Versió del Servidor",
+        "main.login.client_init_failed": "El client ha fallat a inicialitzar: {init_fail_reason}",
+        "main.login.username_bad_characters": "El nom d'usuari conté caracters invàlids! (Sols s'accepta alfanumèric, '_' i '-')",
+        "main.login.username_too_long": "El nom d'usuari és massa llarg! El tamany màxim és: {max_len}",
         "main.servers.select_server": "Selecciona un Servidor",
+        "main.servers.singleplayer_error": "No s'ha pogut connectar al servidor intern: {sp_error}",
+        "main.servers.network_error": "Error de la xarxa/connexió del servidor: {raw_error}",
+        "main.servers.participant_error": "Error de desconnexió/protocol del Participant: {raw_error}",
+        "main.servers.stream_error": "Error de la connexió/compressió/(de)serialització del Client: {raw_error}",
+        "main.servers.database_error": "Error de la base de dades del servidor: {raw_error}",
+        "main.servers.persistence_error": "Error persistent del servidor (Probablement relacionat amb les Dades dels Recursos/Personatges): {raw_error}",
+        "main.servers.other_error": "Error general del servidor: {raw_error}",
+
+        // Credits screen
+        "main.credits": "Credits",
+        "main.credits.created_by": "creat per",
+        "main.credits.music": "Música",
+        "main.credits.fonts": "Fonts",
+        "main.credits.other_art": "Altres Arts",
+        "main.credits.contributors": "Contribuïdors",
+
         /// End Main screen section
     },
 
 
     vector_map: {
+        // The keybinding names can be found in voxygen/src/game_input.rs in the GameInput enum
         "loading.tips": [
             "Prem '{gameinput.togglelantern}' per encendre la llanterna.",
             "Prem '{gameinput.help}' per veure controls del teclat per defecte.",
@@ -86,7 +107,9 @@ https://veloren.net/account/."#,
             "Pots tirar si mostrar la teva quantitat de salut a la barra de salut o no des de les opcions.",
             "Seu prop d'una foguera (prement '{gameinput.sit}') i recuperaràs salut lentament.",
             "Necessites més bosses o millor armadura per continuar el teu viatge? Prem '{gameinput.crafting}' per obrir el menú d'elaboració!",
-            "Intenta saltar quan fas tombarelles entre criatures.",
+            "Prem '{gameinput.roll}' per fer tombarelles. Fer tombarelles es pot fer servir per moure's més ràpid i per esquivar els atacs dels enemics.",
+            "Et preguntes per a què serveix algun objecte? Busca 'input:<item name>' en elaboració per veure quines receptes el fan servir.",
+            "Has trobat alguna cosa interessant? Fes una fotografia amb '{gameinput.screenshot}'."
         ],
     }
 )

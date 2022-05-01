@@ -26,7 +26,7 @@
         "hud.tutorial_elements": r#"Elaboració"#,
 
 "hud.temp_quest_headline": r#"Salutacions, viatger!"#,
-"hud.temp_quest_text": r#"Per començar aquest viatge podries buscar per aquesta aldea i arreplegar alguns recursos. 
+"hud.temp_quest_text": r#"Per començar aquest viatge podries buscar per aquesta aldea i arreplegar alguns recursos.
 
 Pots prendre el que necessites per al teu viatge!
 
@@ -46,6 +46,15 @@ Quan et sentis llest, intenta obtenir equipament encara millor dels nombrosos re
         "hud.free_look_indicator": "Vista lliure activada. Prem {key} per a desactivar.",
         "hud.camera_clamp_indicator": "Càmera vertical fixa activada. Prem {key} per a desactivar.",
         "hud.auto_walk_indicator": "Auto. Caminar/nadar activat",
+        "hud.collect": "Recollir",
+        "hud.pick_up": "Recollir",
+        "hud.open": "Obrir",
+        "hud.use": "Utilitzar",
+        "hud.mine": "Minar",
+        "hud.talk": "Parlar",
+        "hud.trade": "Comerciar",
+        "hud.mount": "Muntar",
+        "hud.sit": "Seure",
     },
 
 

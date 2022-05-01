@@ -4,7 +4,7 @@
 (
     string_map: {
         // Buffs
-        "buff.remove": "Clica per a eliminar",
+        "buff.remove": "Clica per eliminar",
         "buff.title.missing": "Sense Títol",
         "buff.desc.missing": "Sense Descripció",
         "buff.title.heal": "Sanació",
@@ -21,6 +21,8 @@
         "buff.desc.protectingward": "D'alguna manera, estàs sent protegit dels atacs.",
         "buff.title.frenzied": "Frenesí",
         "buff.desc.frenzied": "Posseeixes una velocitat sobrenatural i pots ignorar ferides menors.",
+        "buff.title.hastened": "Pressa",
+        "buff.desc.hastened": "Els teus moviments i atacs són més ràpids.",
         // Debuffs
         "buff.title.bleed": "Sagnant",
         "buff.desc.bleed": "Infligeix dany regularment.",
@@ -32,7 +34,7 @@
         "buff.desc.crippled": "Els teus moviments són força ineficients perquè les teves cames estan greument danyades.",
         "buff.title.frozen": "Congelat",
         "buff.desc.frozen": "Els teus moviments i atacs s'alenteixen.",
-        "buff.title.wet": "Banyat",
+        "buff.title.wet": "Mullat",
         "buff.desc.wet": "El sol rellisca, fent que parar sigui difícil.",
         "buff.title.ensnared": "Atrapat",
         "buff.desc.ensnared": "Plantes s'emboliquen a les teves cames, impedint els teus moviments.",
