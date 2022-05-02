@@ -397,7 +397,9 @@ impl Camera {
                 .zip(FRUSTUM_PADDING.iter())
                 .map(|(pos, padding)| {
                     let fwd = self.forward();
-                    pos + 0.6 * (fwd.cross(*padding) + fwd.cross(*padding).cross(fwd))
+                    // TODO: undo once treeculler is vek15.7
+                    let transformed = Vec3::new(pos.x, pos.y, pos.z);
+                    transformed + 0.6 * (fwd.cross(*padding) + fwd.cross(*padding).cross(fwd))
                 })
                 .chain([(self.focus - self.forward() * (self.dist + 0.5))])  // Padding to behind
                 .map(|pos| {

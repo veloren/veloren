@@ -15,7 +15,7 @@ default = ["simd"]
 common = {package = "veloren-common", path = "../../common"}
 # inline_tweak = "1.0.2"
 bytemuck = { version = "1.4", features=["derive"] }
-vek = {version = "=0.14.1", features = ["serde"]}
+vek = {version = "0.15.8", features = ["serde"]}
 voxygen-dynlib = {package = "veloren-voxygen-dynlib", path = "../dynlib", optional = true}
 
 # Hot Reloading
