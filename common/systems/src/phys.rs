@@ -2023,42 +2023,48 @@ fn capsule2cylinder(c0: ColliderContext, c1: ColliderContext) -> (Vec2<f32>, f32
     // we should always build pushback vector to have direction
     // of motion from our target collider to our collider.
     //
-    // TODO: can code beloew be deduplicated? :think:
     let we = c0.pos.xy();
     let other = c1.pos.xy();
-    if c0.previous_cache.scaled_radius > c1.previous_cache.scaled_radius {
-        let our_radius = c0.previous_cache.neighborhood_radius;
-        let their_radius = c1.previous_cache.scaled_radius;
+    let calculate_projection_and_collision_dist = |our_radius: f32,
+                                                   their_radius: f32,
+                                                   origins: Option<(Vec2<f32>, Vec2<f32>)>,
+                                                   start_point: Vec2<f32>,
+                                                   end_point: Vec2<f32>,
+                                                   coefficient: f32|
+     -> (Vec2<f32>, f32) {
         let collision_dist = our_radius + their_radius;
 
-        let (p0_offset, p1_offset) = match c0.previous_cache.origins {
+        let (p0_offset, p1_offset) = match origins {
             Some(origins) => origins,
             None => return (we - other, collision_dist),
         };
         let segment = LineSegment2 {
-            start: we + p0_offset,
-            end: we + p1_offset,
+            start: start_point + p0_offset,
+            end: start_point + p1_offset,
         };
 
-        let projection = segment.projected_point(other) - other;
+        let projection = coefficient * (segment.projected_point(end_point) - end_point);
 
         (projection, collision_dist)
+    };
+
+    if c0.previous_cache.scaled_radius > c1.previous_cache.scaled_radius {
+        calculate_projection_and_collision_dist(
+            c0.previous_cache.neighborhood_radius,
+            c1.previous_cache.scaled_radius,
+            c0.previous_cache.origins,
+            we,
+            other,
+            1.0,
+        )
     } else {
-        let our_radius = c0.previous_cache.scaled_radius;
-        let their_radius = c1.previous_cache.neighborhood_radius;
-        let collision_dist = our_radius + their_radius;
-
-        let (p0_offset_other, p1_offset_other) = match c1.previous_cache.origins {
-            Some(origins) => origins,
-            None => return (we - other, collision_dist),
-        };
-        let segment_other = LineSegment2 {
-            start: other + p0_offset_other,
-            end: other + p1_offset_other,
-        };
-
-        let projection = we - segment_other.projected_point(we);
-
-        (projection, collision_dist)
+        calculate_projection_and_collision_dist(
+            c0.previous_cache.scaled_radius,
+            c1.previous_cache.neighborhood_radius,
+            c1.previous_cache.origins,
+            other,
+            we,
+            -1.0,
+        )
     }
 }
