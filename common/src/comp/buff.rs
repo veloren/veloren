@@ -152,7 +152,6 @@ pub enum BuffEffect {
         rate: f32,
         accumulated: f32,
         kind: ModifierKind,
-        // TODO: Change hud/mod.rs to account for over time changes???
         instance: u64,
     },
     /// Periodically consume entity energy

@@ -26,7 +26,7 @@ pub struct HealthChange {
     pub time: Time,
     /// The crit multiplier (None if it isn't a crit)
     pub crit_mult: Option<f32>,
-    /// A random ID, used to group up health changes
+    /// A random ID, used to group up health changes from the same attack
     pub instance: u64,
 }
 

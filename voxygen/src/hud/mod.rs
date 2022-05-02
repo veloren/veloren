@@ -1412,18 +1412,12 @@ impl Hud {
                         .filter(|fl| !fl.floaters.is_empty()),
                     healths.get(me),
                 ) {
-                    // TODO: Change both font_col closures to account for healing
-                    let player_font_col = |hp_damage: f32, crit: bool| {
-                        if hp_damage < 0.0 {
-                            if crit {
-                                // TODO: Temporary color for crits
-                                Rgb::new(1.0, 0.9, 0.0)
-                            } else {
-                                Rgb::new(1.0, 0.1, 0.0)
-                            
-                            }
+                    let player_font_col = |crit: bool| {
+                        if crit {
+                            // TODO: Temporary color for crits
+                            Rgb::new(1.0, 0.9, 0.0)
                         } else {
-                            Rgb::new(0.1, 1.0, 0.1)
+                            Rgb::new(1.0, 0.1, 0.0)
                         }
                     };
                     if global_state.settings.interface.sct_player_batch {
@@ -1488,7 +1482,7 @@ impl Hud {
                                 } else {
                                     0
                                 };
-                            let font_col = player_font_col(hp_damage, crit);
+                            let font_col = player_font_col(crit);
                             // Timer sets the widget offset
                             let y = timer as f64 * number_speed * -1.0;
                             // Timer sets text transparency
@@ -1497,21 +1491,13 @@ impl Hud {
                             Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
-                                .color(if hp_damage < 0.0 {
-                                    Color::Rgba(0.0, 0.0, 0.0, hp_fade)
-                                } else {
-                                    Color::Rgba(0.0, 0.0, 0.0, 0.0)
-                                })
+                                .color(Color::Rgba(0.0, 0.0, 0.0, hp_fade))
                                 .mid_bottom_with_margin_on(ui_widgets.window, 297.0 + y)
                                 .set(player_sct_bg_id, ui_widgets);
                             Text::new(&hp_dmg_text)
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
-                                .color(if hp_damage < 0.0 {
-                                    Color::Rgba(font_col.r, font_col.g, font_col.b, hp_fade)
-                                } else {
-                                    Color::Rgba(0.0, 0.0, 0.0, 0.0)
-                                })
+                                .color(Color::Rgba(font_col.r, font_col.g, font_col.b, hp_fade))
                                 .mid_bottom_with_margin_on(ui_widgets.window, 300.0 + y)
                                 .set(player_sct_id, ui_widgets);
                         }
@@ -1548,7 +1534,7 @@ impl Hud {
                         };
                         let crit = floater.info.crit_mult.is_some();
                         let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
-                        
+
                         // Timer sets text transparency
                         let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
                             * 0.25)
@@ -1573,7 +1559,7 @@ impl Hud {
                             } else {
                                 0
                             };
-                        let font_col = player_font_col(floater.info.amount, crit);
+                        let font_col = player_font_col(crit);
                         // Timer sets the widget offset
                         let y = if floater.info.amount < 0.0 {
                             floater.timer as f64
@@ -1606,7 +1592,11 @@ impl Hud {
                         Text::new(&hp_dmg_text)
                             .font_size(font_size)
                             .font_id(self.fonts.cyri.conrod_id)
-                            .color(Color::Rgba(font_col.r, font_col.g, font_col.b, hp_fade))
+                            .color(if floater.info.amount < 0.0 {
+                                Color::Rgba(font_col.r, font_col.g, font_col.b, hp_fade)
+                            } else {
+                                Color::Rgba(0.1, 1.0, 0.1, hp_fade)
+                            })
                             .x_y(x, y)
                             .set(player_sct_id, ui_widgets);
                     }
@@ -2232,7 +2222,6 @@ impl Hud {
                     let floaters = &hpfl.floaters;
 
                     // Colors
-                    // TODO: Maybe make an array of colors for crits too?
                     const WHITE: Rgb<f32> = Rgb::new(1.0, 0.9, 0.8);
                     const LIGHT_OR: Rgb<f32> = Rgb::new(1.0, 0.925, 0.749);
                     const LIGHT_MED_OR: Rgb<f32> = Rgb::new(1.0, 0.85, 0.498);
@@ -2249,18 +2238,12 @@ impl Hud {
                     ];
                     // Largest value that select the first color is 40, then it shifts colors
                     // every 5
-                    // TODO: Change to account for healing/damage here; handle different DamageSources differently???
-                    // TODO: Change both font_col closures to account for healing
-                    let font_col = |hp_damage: f32, font_size: u32, crit: bool| {
-                        if hp_damage < 0.0 {
-                            if crit {
-                                // TODO: Temporary color for crits
-                                Rgb::new(1.0, 0.9, 0.0)
-                            } else {
-                                DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
-                            }
+                    let font_col = |font_size: u32, crit: bool| {
+                        if crit {
+                            // TODO: Temporary color for crits
+                            Rgb::new(1.0, 0.9, 0.0)
                         } else {
-                            Rgb::new(0.1, 1.0, 0.1)
+                            DAMAGE_COLORS[(font_size.saturating_sub(36) / 5).min(5) as usize]
                         }
                     };
 
@@ -2319,7 +2302,7 @@ impl Hud {
                                 } else {
                                     0
                                 };
-                            let font_col = font_col(hp_damage, font_size, crit);
+                            let font_col = font_col(font_size, crit);
                             // Timer sets the widget offset
                             let y = (timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                                 * number_speed)
@@ -2338,7 +2321,11 @@ impl Hud {
                                 .font_size(font_size)
                                 .font_id(self.fonts.cyri.conrod_id)
                                 .x_y(0.0, y)
-                                .color(Color::Rgba(font_col.r, font_col.g, font_col.b, fade))
+                                .color(if hp_damage < 0.0 {
+                                    Color::Rgba(font_col.r, font_col.g, font_col.b, fade)
+                                } else {
+                                    Color::Rgba(0.1, 1.0, 0.1, fade)
+                                })
                                 .position_ingame(ingame_pos)
                                 .set(sct_id, ui_widgets);
                         }
@@ -2391,9 +2378,8 @@ impl Hud {
                                 } else {
                                     0
                                 };
-                            let font_col = font_col(floater.info.amount, font_size, crit);
+                            let font_col = font_col(font_size, crit);
                             // Timer sets the widget offset
-                            // TODO: Keep working on this
                             let y = if crit {
                                 ui_widgets.win_h * (floater.rand as f64 % 0.1)
                                     + ui_widgets.win_h * 0.05
