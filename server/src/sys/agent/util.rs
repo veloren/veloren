@@ -1,8 +1,11 @@
 use crate::sys::agent::{AgentData, ReadData};
 use common::{
-    comp::{agent::Psyche, buff::BuffKind, Alignment, Pos},
+    comp::{
+        agent::Psyche, buff::BuffKind, inventory::item::ItemTag, item::ItemDesc, Alignment, Body,
+        Pos,
+    },
     consts::GRAVITY,
-    terrain::{Block, TerrainGrid},
+    terrain::Block,
     util::Dir,
     vol::ReadVol,
 };
@@ -11,16 +14,6 @@ use specs::{
     Entity as EcsEntity,
 };
 use vek::*;
-
-pub fn can_see_tgt(terrain: &TerrainGrid, pos: &Pos, tgt_pos: &Pos, dist_sqrd: f32) -> bool {
-    terrain
-        .ray(pos.0 + Vec3::unit_z(), tgt_pos.0 + Vec3::unit_z())
-        .until(Block::is_opaque)
-        .cast()
-        .0
-        .powi(2)
-        >= dist_sqrd
-}
 
 pub fn is_dead_or_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     is_dead(entity, read_data) || is_invulnerable(entity, read_data)
@@ -39,7 +32,8 @@ pub fn is_invulnerable(entity: EcsEntity, read_data: &ReadData) -> bool {
     buffs.map_or(false, |b| b.kinds.contains_key(&BuffKind::Invulnerability))
 }
 
-/// Attempts to get alignment of owner if entity has Owned alignment
+/// Gets alignment of owner if alignment given is `Owned`.
+/// Returns original alignment if not owned.
 pub fn try_owner_alignment<'a>(
     alignment: Option<&'a Alignment>,
     read_data: &'a ReadData,
@@ -122,7 +116,88 @@ fn should_let_target_escape(
     (dist_to_home_sqrd / own_health_fraction) * dur_since_last_attacked as f32 * 0.005
 }
 
+pub fn entity_looks_like_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
+    let number_of_cultist_items_equipped = read_data.inventories.get(entity).map_or(0, |inv| {
+        inv.equipped_items()
+            .filter(|item| item.tags().contains(&ItemTag::Cultist))
+            .count()
+    });
+
+    number_of_cultist_items_equipped > 2
+}
+
 // FIXME: `Alignment::Npc` doesn't necessarily mean villager.
 pub fn is_villager(alignment: Option<&Alignment>) -> bool {
     alignment.map_or(false, |alignment| matches!(alignment, Alignment::Npc))
+}
+
+pub fn is_village_guard(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data
+        .stats
+        .get(entity)
+        .map_or(false, |stats| stats.name == "Guard")
+}
+
+pub fn are_our_owners_hostile(
+    our_alignment: Option<&Alignment>,
+    their_alignment: Option<&Alignment>,
+    read_data: &ReadData,
+) -> bool {
+    try_owner_alignment(our_alignment, read_data).map_or(false, |our_owners_alignment| {
+        try_owner_alignment(their_alignment, read_data).map_or(false, |their_owners_alignment| {
+            our_owners_alignment.hostile_towards(*their_owners_alignment)
+        })
+    })
+}
+
+pub fn entities_have_line_of_sight(
+    pos: &Pos,
+    body: Option<&Body>,
+    other_pos: &Pos,
+    other_body: Option<&Body>,
+    read_data: &ReadData,
+) -> bool {
+    let get_eye_pos = |pos: &Pos, body: Option<&Body>| {
+        let eye_offset = body.map_or(0.0, |b| b.eye_height());
+
+        Pos(pos.0.with_z(pos.0.z + eye_offset))
+    };
+    let eye_pos = get_eye_pos(pos, body);
+    let other_eye_pos = get_eye_pos(other_pos, other_body);
+
+    positions_have_line_of_sight(&eye_pos, &other_eye_pos, read_data)
+}
+
+pub fn positions_have_line_of_sight(pos_a: &Pos, pos_b: &Pos, read_data: &ReadData) -> bool {
+    let dist_sqrd = pos_b.0.distance_squared(pos_a.0);
+
+    read_data
+        .terrain
+        .ray(pos_a.0, pos_b.0)
+        .until(Block::is_opaque)
+        .cast()
+        .0
+        .powi(2)
+        >= dist_sqrd
+}
+
+pub fn is_dressed_as_cultist(entity: EcsEntity, read_data: &ReadData) -> bool {
+    read_data
+        .inventories
+        .get(entity)
+        .map_or(false, |inventory| {
+            inventory
+                .equipped_items()
+                .filter(|item| item.tags().contains(&ItemTag::Cultist))
+                .count()
+                > 2
+        })
+}
+
+pub fn get_attacker(entity: EcsEntity, read_data: &ReadData) -> Option<EcsEntity> {
+    read_data
+        .healths
+        .get(entity)
+        .and_then(|health| health.last_change.damage_by())
+        .and_then(|damage_contributor| get_entity_by_id(damage_contributor.uid().0, read_data))
 }
