@@ -306,65 +306,93 @@ impl Structure for AdletStronghold {
 
         // Tunnel
         let dist: f32 = self.cavern_center.as_().distance(self.entrance.as_());
-        let tunnel_radius = 5.0;
-        let tunnel_start = self
-            .entrance
-            .as_()
-            .with_z(land.get_alt_approx(self.entrance));
+        let tunnel_radius = 10.0;
+        let dir = Dir::from_vector(self.entrance - self.cavern_center);
+        let tunnel_start: Vec3<f32> = match dir {
+            Dir::X => Vec2::new(self.entrance.x + 7, self.entrance.y),
+            Dir::Y => Vec2::new(self.entrance.x, self.entrance.y + 7),
+            Dir::NegX => Vec2::new(self.entrance.x - 7, self.entrance.y),
+            Dir::NegY => Vec2::new(self.entrance.x, self.entrance.y - 7),
+        }
+        .as_()
+        .with_z(self.cavern_alt - 1.0);
         // Adds cavern radius to ensure that tunnel fully bores into cavern
         let tunnel_end =
             ((self.cavern_center.as_() - self.entrance.as_()) * self.tunnel_length as f32 / dist)
-                .with_z(self.cavern_alt + tunnel_radius - 1.0)
+                .with_z(self.cavern_alt - 1.0)
                 + self.entrance.as_();
+
+        let tunnel_end = match dir {
+            Dir::X => Vec3::new(tunnel_end.x - 7.0, tunnel_start.y, tunnel_end.z),
+            Dir::Y => Vec3::new(tunnel_start.x, tunnel_end.y - 7.0, tunnel_end.z),
+            Dir::NegX => Vec3::new(tunnel_end.x + 7.0, tunnel_start.y, tunnel_end.z),
+            Dir::NegY => Vec3::new(tunnel_start.x, tunnel_end.y + 7.0, tunnel_end.z),
+        };
+
+        let stone_fill = Fill::Brick(BlockKind::Rock, Rgb::new(90, 110, 150), 21);
+        // Platform
         painter
-            .line(tunnel_start, tunnel_end, tunnel_radius)
+            .aabb(Aabb {
+                min: (self.entrance - 20).with_z(self.cavern_alt as i32 - 30),
+                max: (self.entrance + 20).with_z(self.cavern_alt as i32 + 1),
+            })
+            .without(painter.aabb(Aabb {
+                min: (self.entrance - 19).with_z(self.cavern_alt as i32),
+                max: (self.entrance + 19).with_z(self.cavern_alt as i32 + 2),
+            }))
+            .fill(stone_fill.clone());
+
+        let valid_entrance = painter.segment_prism(tunnel_start, tunnel_end, 20.0, 30.0);
+        painter
+            .segment_prism(tunnel_start, tunnel_end, 10.0, 10.0)
             .clear();
         painter
             .line(
-                tunnel_end,
-                self.cavern_center
-                    .as_()
-                    .with_z(self.cavern_alt + tunnel_radius),
-                tunnel_radius,
+                tunnel_start + Vec3::new(0.0, 0.0, 10.0),
+                tunnel_end + Vec3::new(0.0, 0.0, 10.0),
+                10.0,
             )
             .clear();
         painter
-            .sphere_with_radius(
-                self.entrance
-                    .with_z(land.get_alt_approx(self.entrance) as i32 + 4),
+            .line(
+                tunnel_start
+                    + match dir {
+                        Dir::X => Vec3::new(0.0, 4.0, 7.0),
+                        Dir::Y => Vec3::new(4.0, 0.0, 7.0),
+                        Dir::NegX => Vec3::new(0.0, 4.0, 7.0),
+                        Dir::NegY => Vec3::new(4.0, 0.0, 7.0),
+                    },
+                tunnel_end
+                    + match dir {
+                        Dir::X => Vec3::new(0.0, 4.0, 7.0),
+                        Dir::Y => Vec3::new(4.0, 0.0, 7.0),
+                        Dir::NegX => Vec3::new(0.0, 4.0, 7.0),
+                        Dir::NegY => Vec3::new(4.0, 0.0, 7.0),
+                    },
                 8.0,
             )
+            .intersect(valid_entrance)
             .clear();
-
-        for (structure, rpos, dir) in &self.outer_structures {
-            let wpos = self.wall_center + rpos;
-            let alt = land.get_alt_approx(wpos);
-            match structure {
-                AdletStructure::TunnelEntrance => {
-                    let bone_mat = Fill::Brick(BlockKind::Snow, Rgb::new(175, 175, 175), 25);
-                    let rotation = match dir {
-                        Dir::X | Dir::NegX => Mat3::rotation_y(PI / 2.0),
-                        Dir::Y | Dir::NegY => Mat3::rotation_x(PI / 2.0),
-                    };
-                    let wpos = wpos.with_z(alt as i32);
-                    painter
-                        .cylinder_with_radius(wpos, 15.0, 3.0)
-                        .without(painter.cylinder_with_radius(wpos, 12.0, 3.0))
-                        .rotate_about(rotation.as_(), wpos)
-                        .repeat(dir.opposite().to_vec3() * 8, 4)
-                        .fill(bone_mat.clone());
-                    let wpos = wpos.xy().with_z(alt as i32 + 14);
-                    painter
-                        .line(
-                            wpos + dir.to_vec2() * 5,
-                            wpos + dir.opposite().to_vec2() * 40,
-                            2.5,
-                        )
-                        .fill(bone_mat);
-                },
-                AdletStructure::Igloo => {},
-            }
-        }
+        painter
+            .line(
+                tunnel_start
+                    + match dir {
+                        Dir::X => Vec3::new(0.0, -4.0, 7.0),
+                        Dir::Y => Vec3::new(-4.0, 0.0, 7.0),
+                        Dir::NegX => Vec3::new(0.0, -4.0, 7.0),
+                        Dir::NegY => Vec3::new(-4.0, 0.0, 7.0),
+                    },
+                tunnel_end
+                    + match dir {
+                        Dir::X => Vec3::new(0.0, -4.0, 7.0),
+                        Dir::Y => Vec3::new(-4.0, 0.0, 7.0),
+                        Dir::NegX => Vec3::new(0.0, -4.0, 7.0),
+                        Dir::NegY => Vec3::new(-4.0, 0.0, 7.0),
+                    },
+                8.0,
+            )
+            .intersect(valid_entrance)
+            .clear();
 
         // Cavern
         painter
@@ -402,6 +430,254 @@ impl Structure for AdletStronghold {
                 }
             })
             .clear();
+
+        for (structure, rpos, dir) in &self.outer_structures {
+            let wpos = self.wall_center + rpos;
+            let alt = land.get_alt_approx(wpos);
+            match structure {
+                AdletStructure::TunnelEntrance => {
+                    let bone_fill = Fill::Brick(BlockKind::Misc, Rgb::new(200, 160, 140), 1);
+                    let rib_width_curve = |i: f32| 0.5 * (0.4 * i + 1.0).log2() + 5.5;
+                    let spine_curve_amplitude = 0.0;
+                    let spine_curve_wavelength = 1.0;
+                    let spine_curve_function = |i: f32, amplitude: f32, wavelength: f32| {
+                        amplitude * (2.0 * PI * (1.0 / wavelength) * i).sin()
+                    };
+                    let rib_cage_config = RibCageGenerator {
+                        dir: *dir,
+                        spine_radius: 2.5,
+                        length: 40,
+                        spine_curve_function,
+                        spine_curve_amplitude,
+                        spine_curve_wavelength,
+                        spine_height: self.cavern_alt + 16.0,
+                        spine_start_z_offset: 2.0,
+                        spine_ctrl0_z_offset: 3.0,
+                        spine_ctrl1_z_offset: 5.0,
+                        spine_end_z_offset: 1.0,
+                        spine_ctrl0_length_fraction: 0.3,
+                        spine_ctrl1_length_fraction: 0.7,
+                        rib_base_alt: self.cavern_alt - 1.0,
+                        rib_spacing: 7,
+                        rib_radius: 1.7,
+                        rib_run: 5.0,
+                        rib_ctrl0_run_fraction: 0.3,
+                        rib_ctrl1_run_fraction: 0.5,
+                        rib_ctrl0_width_offset: 5.0,
+                        rib_ctrl1_width_offset: 3.0,
+                        rib_width_curve,
+                        rib_ctrl0_height_fraction: 0.8,
+                        rib_ctrl1_height_fraction: 0.4,
+                        vertebra_radius: 4.0,
+                        vertebra_width: 1.0,
+                        vertebra_z_offset: 0.3,
+                    };
+                    let rib_cage =
+                        rib_cage_config.bones(wpos + 40 * dir.opposite().to_vec2(), painter);
+                    for bone in rib_cage {
+                        bone.fill(bone_fill.clone());
+                    }
+                },
+                AdletStructure::Igloo => {},
+            }
+        }
+    }
+}
+
+struct RibCageGenerator {
+    dir: Dir,
+    length: u32,
+    spine_height: f32,
+    spine_radius: f32,
+    /// Defines how the spine curves given the ratio along the spine from 0.0 to
+    /// 1.0, the amplitude, and the wavelength
+    spine_curve_function: fn(f32, f32, f32) -> f32,
+    spine_curve_amplitude: f32,
+    // FIXME: CAN CAUSE DIV BY 0 IF VALUE IS 0.0
+    spine_curve_wavelength: f32,
+    spine_start_z_offset: f32,
+    spine_ctrl0_z_offset: f32,
+    spine_ctrl1_z_offset: f32,
+    spine_end_z_offset: f32,
+    spine_ctrl0_length_fraction: f32,
+    spine_ctrl1_length_fraction: f32,
+    rib_base_alt: f32,
+    rib_spacing: usize,
+    rib_radius: f32,
+    rib_run: f32,
+    rib_ctrl0_run_fraction: f32,
+    rib_ctrl1_run_fraction: f32,
+    rib_ctrl0_width_offset: f32,
+    rib_ctrl1_width_offset: f32,
+    /// Defines how much ribs flare out as you go along the rib cage given the
+    /// ratio along the spine from 0.0 to 1.0
+    rib_width_curve: fn(f32) -> f32,
+    rib_ctrl0_height_fraction: f32,
+    rib_ctrl1_height_fraction: f32,
+    vertebra_radius: f32,
+    vertebra_width: f32,
+    vertebra_z_offset: f32,
+}
+
+impl RibCageGenerator {
+    fn bones<'a>(&self, origin: Vec2<i32>, painter: &'a Painter) -> Vec<PrimitiveRef<'a>> {
+        let RibCageGenerator {
+            dir,
+            length,
+            spine_height,
+            spine_radius,
+            spine_curve_function,
+            spine_curve_amplitude,
+            spine_curve_wavelength,
+            spine_start_z_offset,
+            spine_ctrl0_z_offset,
+            spine_ctrl1_z_offset,
+            spine_end_z_offset,
+            spine_ctrl0_length_fraction,
+            spine_ctrl1_length_fraction,
+            rib_base_alt,
+            rib_spacing,
+            rib_radius,
+            rib_run,
+            rib_ctrl0_run_fraction,
+            rib_ctrl1_run_fraction,
+            rib_ctrl0_width_offset,
+            rib_ctrl1_width_offset,
+            rib_width_curve,
+            rib_ctrl0_height_fraction,
+            rib_ctrl1_height_fraction,
+            vertebra_radius,
+            vertebra_width,
+            vertebra_z_offset,
+        } = self;
+        let length_f32 = *length as f32;
+
+        let mut bones = Vec::new();
+
+        let spine_start = origin
+            .map(|e| e as f32)
+            .with_z(spine_height + spine_start_z_offset)
+            + spine_curve_function(0.0, *spine_curve_amplitude, *spine_curve_wavelength)
+                * Vec3::unit_y();
+        let spine_ctrl0 = origin
+            .map(|e| e as f32)
+            .with_z(spine_height + spine_ctrl0_z_offset)
+            + length_f32 * spine_ctrl0_length_fraction * Vec3::unit_x()
+            + spine_curve_function(
+                length_f32 * spine_ctrl0_length_fraction,
+                *spine_curve_amplitude,
+                *spine_curve_wavelength,
+            ) * Vec3::unit_y();
+        let spine_ctrl1 = origin
+            .map(|e| e as f32)
+            .with_z(spine_height + spine_ctrl1_z_offset)
+            + length_f32 * spine_ctrl1_length_fraction * Vec3::unit_x()
+            + spine_curve_function(
+                length_f32 * spine_ctrl1_length_fraction,
+                *spine_curve_amplitude,
+                *spine_curve_wavelength,
+            ) * Vec3::unit_y();
+        let spine_end = origin
+            .map(|e| e as f32)
+            .with_z(spine_height + spine_end_z_offset)
+            + length_f32 * Vec3::unit_x()
+            + spine_curve_function(length_f32, *spine_curve_amplitude, *spine_curve_wavelength)
+                * Vec3::unit_y();
+        let spine_bezier = CubicBezier3 {
+            start: spine_start,
+            ctrl0: spine_ctrl0,
+            ctrl1: spine_ctrl1,
+            end: spine_end,
+        };
+        let spine = painter.cubic_bezier(
+            spine_start,
+            spine_ctrl0,
+            spine_ctrl1,
+            spine_end,
+            *spine_radius,
+        );
+
+        let rotation_origin = Vec3::new(
+            spine_start.x as f32,
+            spine_start.y as f32 + 0.5,
+            spine_start.z as f32,
+        );
+        let rotate = |prim: PrimitiveRef<'a>, dir: &Dir| -> PrimitiveRef<'a> {
+            match dir {
+                Dir::X => prim,
+                Dir::Y => prim.rotate_about(Mat3::rotation_z(0.5 * PI).as_(), rotation_origin),
+                Dir::NegX => prim.rotate_about(Mat3::rotation_z(PI).as_(), rotation_origin),
+                Dir::NegY => prim.rotate_about(Mat3::rotation_z(1.5 * PI).as_(), rotation_origin),
+            }
+        };
+
+        let spine_rotated = rotate(spine, dir);
+        bones.push(spine_rotated);
+
+        for i in (0..*length).step_by(*rib_spacing) {
+            enum Side {
+                Left,
+                Right,
+            }
+
+            let rib = |side| -> PrimitiveRef {
+                let y_offset_multiplier = match side {
+                    Side::Left => 1.0,
+                    Side::Right => -1.0,
+                };
+                let rib_start: Vec3<f32> = spine_bezier
+                    .evaluate((i as f32 / length_f32).clamped(0.0, 1.0))
+                    + y_offset_multiplier * Vec3::unit_y();
+                let rib_ctrl0 = Vec3::new(
+                    rib_start.x + rib_ctrl0_run_fraction * rib_run,
+                    rib_start.y
+                        + y_offset_multiplier * rib_ctrl0_width_offset
+                        + y_offset_multiplier * rib_width_curve(i as f32),
+                    rib_base_alt + rib_ctrl0_height_fraction * (rib_start.z - rib_base_alt),
+                );
+                let rib_ctrl1 = Vec3::new(
+                    rib_start.x + rib_ctrl1_run_fraction * rib_run,
+                    rib_start.y
+                        + y_offset_multiplier * rib_ctrl1_width_offset
+                        + y_offset_multiplier * rib_width_curve(i as f32),
+                    rib_base_alt + rib_ctrl1_height_fraction * (rib_start.z - rib_base_alt),
+                );
+                let rib_end = Vec3::new(
+                    rib_start.x + rib_run,
+                    rib_start.y + y_offset_multiplier * rib_width_curve(i as f32),
+                    *rib_base_alt,
+                );
+                painter.cubic_bezier(rib_start, rib_ctrl0, rib_ctrl1, rib_end, *rib_radius)
+            };
+            let l_rib = rib(Side::Left);
+            let l_rib_rotated = rotate(l_rib, dir);
+            bones.push(l_rib_rotated);
+
+            let r_rib = rib(Side::Right);
+            let r_rib_rotated = rotate(r_rib, dir);
+            bones.push(r_rib_rotated);
+
+            let vertebra_start: Vec3<f32> =
+                spine_bezier.evaluate((i as f32 / length_f32).clamped(0.0, 1.0)) + Vec3::unit_y();
+            let vertebra = painter.ellipsoid(Aabb {
+                min: Vec3::new(
+                    vertebra_start.x - vertebra_width,
+                    vertebra_start.y - 1.0 - vertebra_radius,
+                    vertebra_start.z - vertebra_radius + vertebra_z_offset,
+                )
+                .map(|e| e.round() as i32),
+                max: Vec3::new(
+                    vertebra_start.x + vertebra_width,
+                    vertebra_start.y - 1.0 + vertebra_radius,
+                    vertebra_start.z + vertebra_radius + vertebra_z_offset,
+                )
+                .map(|e| e.round() as i32),
+            });
+            let vertebra_rotated = rotate(vertebra, dir);
+            bones.push(vertebra_rotated);
+        }
+
+        bones
     }
 }
 
