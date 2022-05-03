@@ -129,6 +129,7 @@ impl ShadowMap {
         };
         clear(&cube_tex);
         clear(&tex);
+        #[allow(clippy::drop_non_drop)]
         drop(clear);
         queue.submit(std::iter::once(encoder.finish()));
 

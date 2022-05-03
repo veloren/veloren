@@ -1062,8 +1062,9 @@ impl Hud {
 
         let slot_manager = slots::SlotManager::new(
             ui.id_generator(),
-            Vec2::broadcast(40.0)
-            // TODO(heyzoos) Will be useful for whoever works on rendering the number of items "in hand".
+            Vec2::broadcast(40.0),
+            // TODO(heyzoos) Will be useful for whoever works on rendering the number of items
+            // "in hand".
             // fonts.cyri.conrod_id,
             // Vec2::new(1.0, 1.0),
             // fonts.cyri.scale(12),

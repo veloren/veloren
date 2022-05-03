@@ -75,7 +75,7 @@ pub struct MaterialFrequency(Vec<(f32, Good)>);
 // price[i] = 1/frequency[i] * 1/sum(frequency) * 1/sum(1/frequency)
 // scaling individual components so that ratio is inverted and the sum of all
 // inverted elements is equivalent to inverse of the original sum
-fn vector_invert(result: &mut Vec<(f32, Good)>) {
+fn vector_invert(result: &mut [(f32, Good)]) {
     let mut oldsum: f32 = 0.0;
     let mut newsum: f32 = 0.0;
     for (value, _good) in result.iter_mut() {
@@ -421,7 +421,7 @@ impl TradePricing {
 
     // re-look up prices and sort the vector by ascending material cost, return
     // whether first cost is finite
-    fn sort_by_price(&self, recipes: &mut Vec<RememberedRecipe>) -> bool {
+    fn sort_by_price(&self, recipes: &mut [RememberedRecipe]) -> bool {
         for recipe in recipes.iter_mut() {
             recipe.material_cost = self.calculate_material_cost_sum(recipe);
         }

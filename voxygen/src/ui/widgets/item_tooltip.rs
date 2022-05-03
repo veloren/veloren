@@ -462,7 +462,10 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let quality = get_quality_col(item);
 
-        let equip_slot = inventory.equipped_items_of_kind(item.kind().clone());
+        let first_equipped = inventory
+            .equipped_items_of_kind(item.kind().clone())
+            .next()
+            .cloned();
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
@@ -661,7 +664,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.stats[2], V_PAD_STATS)
                 .set(state.ids.stats[3], ui);
 
-                if let Some(equipped_item) = equip_slot.cloned().next() {
+                if let Some(equipped_item) = first_equipped {
                     if let ItemKind::Tool(equipped_tool) = equipped_item.kind() {
                         let tool_stats = tool
                             .stats
@@ -965,7 +968,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     },
                 }
 
-                if let Some(equipped_item) = equip_slot.cloned().next() {
+                if let Some(equipped_item) = first_equipped {
                     if let ItemKind::Armor(equipped_armor) = equipped_item.kind() {
                         let diff = armor.stats - equipped_armor.stats;
                         let protection_diff = util::option_comparison(

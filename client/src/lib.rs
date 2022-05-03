@@ -1634,7 +1634,7 @@ impl Client {
                 // 1 as a buffer so that if the player moves back in that direction the chunks
                 //   don't need to be reloaded
                 if (chunk_pos - key)
-                    .map(|e: i32| (e.abs() as u32).saturating_sub(2))
+                    .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
                     .magnitude_squared()
                     > view_distance.pow(2)
                 {

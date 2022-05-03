@@ -1077,7 +1077,7 @@ pub fn merchant_loadout(
         .bag(ArmorSlot::Bag4, Some(bag4))
 }
 
-fn sort_wares(bag: &mut Vec<Item>) {
+fn sort_wares(bag: &mut [Item]) {
     use common::comp::item::TagExampleInfo;
 
     bag.sort_by(|a, b| {

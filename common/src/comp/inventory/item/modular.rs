@@ -259,7 +259,7 @@ fn make_tagexample_def(
         toolkind.identifier_name()
     );
     let kind = ItemKind::TagExamples {
-        item_ids: exemplars.get(&tag).cloned().unwrap_or_else(Vec::new),
+        item_ids: exemplars.get(&tag).cloned().unwrap_or_default(),
     };
     let quality = Quality::Common;
 

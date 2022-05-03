@@ -161,6 +161,12 @@ impl Drop for GuardlessSpan {
     }
 }
 
+/// Just implemented so that we dont need to have
+/// #[allow(clippy::drop_non_drop)] everywhere
+impl Drop for ProfSpan {
+    fn drop(&mut self) {}
+}
+
 #[macro_export]
 macro_rules! no_guard_span {
     ($level:ident, $name:expr, $($fields:tt)*) => {

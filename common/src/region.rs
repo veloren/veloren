@@ -135,7 +135,7 @@ impl RegionMap {
                             // Calculate distance outside border
                             if key != current_region
                                 && (Vec2::<i32>::from(pos) - Self::key_pos(current_region))
-                                    .map(|e| e.abs() as u32)
+                                    .map(|e| e.unsigned_abs())
                                     .reduce_max()
                                     > TETHER_LENGTH
                             {

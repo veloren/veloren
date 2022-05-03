@@ -52,6 +52,7 @@ impl State {
 
     pub fn clear_slot(&mut self, slot: Slot) { self.slots[slot as usize] = None; }
 
+    #[allow(clippy::only_used_in_recursion)] // false positive
     pub fn add_inventory_link(&mut self, slot: Slot, item: &Item) {
         self.slots[slot as usize] = Some(SlotContents::Inventory(
             item.item_hash(),
