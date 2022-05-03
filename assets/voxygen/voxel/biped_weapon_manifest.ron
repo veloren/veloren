@@ -1331,171 +1331,171 @@
     ),
     // Sceptres
     Modular(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.arbor.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.arbor.wood", (-1.5, -5.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.cane.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.cane.wood", (-1.5, -3.0, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crook", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.crook.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crook.wood", (-0.5, -4.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crozier", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.crozier.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crozier.wood", (-1.5, -5.0, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.grandsceptre.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.grandsceptre.wood", (-0.5, -5.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.ornate.wood", (-1.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.wood", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.wood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.wood", (-0.5, -5.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.arbor.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.arbor.bamboo", (-2.5, -3.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.cane.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.cane.bamboo", (-1.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crook", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.crook.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crook.bamboo", (-1.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crozier", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.crozier.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crozier.bamboo", (-1.5, -3.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.grandsceptre.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.grandsceptre.bamboo", (-2.5, -3.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.ornate.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.ornate.bamboo", (-0.5, -3.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.bamboo", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.bamboo", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.bamboo", (-2.5, -3.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.arbor.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.arbor.hardwood", (-1.5, -5.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.cane.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.cane.hardwood", (-1.5, -5.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crook", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.crook.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crook.hardwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crozier", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.crozier.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crozier.hardwood", (-6.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.grandsceptre.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.grandsceptre.hardwood", (-4.5, -6.0, -4.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.ornate.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.ornate.hardwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.hardwood", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.hardwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.hardwood", (-1.5, -6.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.arbor.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.arbor.ironwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.cane.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.cane.ironwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crook", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.crook.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crook.ironwood", (-0.5, -5.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crozier", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.crozier.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crozier.ironwood", (-4.5, -3.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.grandsceptre.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.grandsceptre.ironwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.ornate.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.ornate.ironwood", (-4.5, -3.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.ironwood", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.ironwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.ironwood", (-5.5, -6.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.arbor.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.arbor.frostwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.cane.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.cane.frostwood", (-3.5, -3.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crook", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.crook.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crook.frostwood", (-1.5, -3.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crozier", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.crozier.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crozier.frostwood", (-4.5, -2.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.grandsceptre.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.grandsceptre.frostwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.ornate.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.ornate.frostwood", (-3.5, -3.0, -5.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.frostwood", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.frostwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.frostwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.arbor.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.arbor.eldwood", (-6.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.cane.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.cane.eldwood", (-4.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crook", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.crook.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crook.eldwood", (-1.5, -4.0, -6.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.crozier", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.crozier.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.crozier.eldwood", (-6.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.grandsceptre.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.grandsceptre.eldwood", (-2.5, -3.0, -3.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.ornate.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.ornate.eldwood", (-5.5, -4.0, -7.0)),
         color: None
     ),
     Modular(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.eldwood", Two)): (
-        vox_spec: ("weapon.sceptre.sceptre.eldwood", (0.0, 0.0, 0.0)),
+        vox_spec: ("weapon.sceptre.sceptre.eldwood", (-4.5, -3.0, -3.0)),
         color: None
     ),
     Tool("common.items.weapons.sceptre.starter_sceptre"): (

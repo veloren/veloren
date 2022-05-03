@@ -1404,7 +1404,7 @@
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.wood", Two)): VoxTrans(
-        "voxel.weapon.sceptre.sceptre.wood",
+        "voxel.weapon.sceptre.ornate.wood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
     ModularWeapon(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.wood", Two)): VoxTrans(
