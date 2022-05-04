@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [Server] Kick clients who send messages on the wrong stream
 - Reworked Merchant trade price calculation, Merchants offer more wares
 - Enable new giant trees, changed what entities spawn at them
+- Stealth is now shown as a percentage in Stats Diary UI
+- Stealth effects from sneaking and armor are evaluated independently. Armor now has effects even when not sneaking
 
 ### Removed
 
