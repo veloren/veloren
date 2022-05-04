@@ -185,7 +185,7 @@ impl Health {
                 (change.time.0 - last_damage_time.0) < DAMAGE_CONTRIB_PRUNE_SECS
             });
         }
-        (delta as f32 / Self::SCALING_FACTOR_FLOAT).abs() > Self::HEALTH_EPSILON
+        delta.abs() > (Self::HEALTH_EPSILON * Self::SCALING_FACTOR_FLOAT) as i64
     }
 
     pub fn damage_contributions(&self) -> impl Iterator<Item = (&DamageContributor, &u64)> {

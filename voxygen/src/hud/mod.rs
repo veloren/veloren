@@ -1463,21 +1463,18 @@ impl Hud {
                                 .last()
                                 .expect("There must be at least one floater")
                                 .jump_timer;
-                            let (crit, crit_mult) =
-                                damage_floaters.last().map_or((false, 1.0), |f| {
-                                    (f.info.crit_mult.is_some(), f.info.crit_mult.unwrap_or(1.0))
-                                });
+                            let crit = damage_floaters
+                                .last()
+                                .map_or(false, |f| f.info.crit_mult.is_some());
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + ((max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
-                                    as u32)
-                                    * 3
+                                + ((max_hp_frac * 10.0 * if crit { 1.35 } else { 1.0 }) as u32) * 3
                                 + if jump_timer < 0.1 {
                                     FLASH_MAX
                                         * (((1.0 - jump_timer / 0.1)
                                             * 10.0
-                                            * if crit { 1.10 * crit_mult } else { 1.0 })
+                                            * if crit { 1.25 } else { 1.0 })
                                             as u32)
                                 } else {
                                     0
@@ -1533,7 +1530,6 @@ impl Hud {
                             format!("{:.1}", floater.info.amount.abs())
                         };
                         let crit = floater.info.crit_mult.is_some();
-                        let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
 
                         // Timer sets text transparency
                         let hp_fade = ((crate::ecs::sys::floater::MY_HP_SHOWTIME - floater.timer)
@@ -1547,14 +1543,12 @@ impl Hud {
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
                         let font_size = 30
-                            + (max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
-                                as u32
-                                * 3
+                            + (max_hp_frac * 10.0 * if crit { 1.35 } else { 1.0 }) as u32 * 3
                             + if floater.jump_timer < 0.1 {
                                 FLASH_MAX
                                     * (((1.0 - floater.jump_timer / 0.1)
                                         * 10.0
-                                        * if crit { 1.10 * crit_mult } else { 1.0 })
+                                        * if crit { 1.25 } else { 1.0 })
                                         as u32)
                             } else {
                                 0
@@ -2282,22 +2276,19 @@ impl Hud {
                                 .last()
                                 .expect("There must be at least one floater")
                                 .jump_timer;
-                            let (crit, crit_mult) =
-                                damage_floaters.last().map_or((false, 1.0), |f| {
-                                    (f.info.crit_mult.is_some(), f.info.crit_mult.unwrap_or(1.0))
-                                });
+                            let crit = damage_floaters
+                                .last()
+                                .map_or(false, |f| f.info.crit_mult.is_some());
 
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + ((max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
-                                    as u32)
-                                    * 3
+                                + ((max_hp_frac * 10.0 * if crit { 1.35 } else { 1.0 }) as u32) * 3
                                 + if jump_timer < 0.1 {
                                     FLASH_MAX
                                         * (((1.0 - jump_timer / 0.1)
                                             * 10.0
-                                            * if crit { 1.10 * crit_mult } else { 1.0 })
+                                            * if crit { 1.25 } else { 1.0 })
                                             as u32)
                                 } else {
                                     0
@@ -2350,7 +2341,6 @@ impl Hud {
                                 format!("{:.1}", floater.info.amount.abs())
                             };
                             let crit = floater.info.crit_mult.is_some();
-                            let crit_mult = floater.info.crit_mult.unwrap_or(1.0);
                             // Timer sets text transparency
                             let fade = if crit {
                                 ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75)
@@ -2366,14 +2356,12 @@ impl Hud {
                             // Increase font size based on fraction of maximum health
                             // "flashes" by having a larger size in the first 100ms
                             let font_size = 30
-                                + (max_hp_frac * 10.0 * if crit { 1.25 * crit_mult } else { 1.0 })
-                                    as u32
-                                    * 3
+                                + (max_hp_frac * 10.0 * if crit { 1.35 } else { 1.0 }) as u32 * 3
                                 + if floater.jump_timer < 0.1 {
                                     FLASH_MAX
                                         * (((1.0 - floater.jump_timer / 0.1)
                                             * 10.0
-                                            * if crit { 1.10 * crit_mult } else { 1.0 })
+                                            * if crit { 1.25 } else { 1.0 })
                                             as u32)
                                 } else {
                                     0
