@@ -1112,7 +1112,7 @@ impl<'a> Widget for Diary<'a> {
                     "Stun-Resistance",
                     "Crit-Power",
                     "Energy Reward",
-                    "Stealth",
+                    "Stealth (Items)",
                     "Weapon Power",
                     "Weapon Speed",
                     "Weapon Poise",
@@ -1206,9 +1206,20 @@ impl<'a> Widget for Diary<'a> {
                                 combat::compute_energy_reward_mod(Some(self.inventory));
                             format!("{:+.0}%", (energy_rew - 1.0) * 100.0)
                         },
-                        "Stealth" => {
-                            let stealth = combat::compute_stealth_coefficient(Some(self.inventory));
-                            format!("{:.2}", stealth)
+                        "Stealth (Items)" => {
+                            let stealth_perception_multiplier =
+                                combat::perception_dist_multiplier_from_stealth(
+                                    Some(self.inventory),
+                                    None,
+                                );
+                            let mut txt =
+                                format!("{:+.1}%", (1.0 - stealth_perception_multiplier) * 100.0);
+
+                            if combat::is_stealth_from_items_maxed(Some(self.inventory)) {
+                                txt = format!("{}  (Max)", txt);
+                            }
+
+                            txt
                         },
                         "Weapon Power" => match (main_weap_stats, off_weap_stats) {
                             (Some(m_stats), Some(o_stats)) => {
