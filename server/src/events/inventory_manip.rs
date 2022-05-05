@@ -678,13 +678,17 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     slots,
                 } => {
                     let component_recipes = default_component_recipe_book().read();
-                    let item_id = |slot| inventory.get(slot).map(|item| item.item_definition_id());
+                    let item_id = |slot| {
+                        inventory
+                            .get(slot)
+                            .and_then(|item| item.item_definition_id().raw().map(String::from))
+                    };
                     if let Some(material_item_id) = item_id(material) {
                         component_recipes
                             .get(&ComponentKey {
                                 toolkind,
-                                material: String::from(material_item_id),
-                                modifier: modifier.and_then(item_id).map(String::from),
+                                material: material_item_id,
+                                modifier: modifier.and_then(item_id),
                             })
                             .filter(|r| {
                                 if let Some(needed_sprite) = r.craft_sprite {

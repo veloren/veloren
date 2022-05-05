@@ -11,7 +11,7 @@ use common::{
     character::CharacterId,
     comp::{
         inventory::{
-            item::{tool::AbilityMap, Item as VelorenItem, MaterialStatManifest},
+            item::{tool::AbilityMap, Item as VelorenItem, ItemDefinitionId, MaterialStatManifest},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
@@ -165,9 +165,14 @@ pub fn convert_items_to_database_items(
                 bfs_queue.push_back((format!("component_{}", i), Some(component), item_id));
             }
 
+            let persistence_item_id = match item.item_definition_id() {
+                ItemDefinitionId::Simple(id) => id.to_owned(),
+                ItemDefinitionId::Modular { pseudo_base, .. } => pseudo_base.to_owned(),
+            };
+
             let upsert = ItemModelPair {
                 model: Item {
-                    item_definition_id: item.item_definition_id().to_owned(),
+                    item_definition_id: persistence_item_id,
                     position,
                     parent_container_item_id,
                     item_id,

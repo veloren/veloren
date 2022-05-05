@@ -977,8 +977,9 @@ impl<'a> Widget for Crafting<'a> {
                             // }) },
                             RecipeKind::Component(_) => |item| {
                                 item.map_or(false, |item| {
-                                    item.item_definition_id()
-                                        .starts_with("common.items.crafting_ing.animal_misc")
+                                    item.item_definition_id().raw().map_or(false, |id| {
+                                        id.starts_with("common.items.crafting_ing.animal_misc")
+                                    })
                                 })
                             },
                             RecipeKind::Simple => |_| unreachable!(),
@@ -1099,7 +1100,7 @@ impl<'a> Widget for Crafting<'a> {
                             if let Some(material) = primary_slot
                                 .invslot
                                 .and_then(|slot| self.inventory.get(slot))
-                                .map(|item| String::from(item.item_definition_id()))
+                                .and_then(|item| item.item_definition_id().raw().map(String::from))
                             {
                                 let component_key = ComponentKey {
                                     toolkind,
@@ -1107,7 +1108,9 @@ impl<'a> Widget for Crafting<'a> {
                                     modifier: secondary_slot
                                         .invslot
                                         .and_then(|slot| self.inventory.get(slot))
-                                        .map(|item| String::from(item.item_definition_id())),
+                                        .and_then(|item| {
+                                            item.item_definition_id().raw().map(String::from)
+                                        }),
                                 };
                                 self.client.component_recipe_book().get(&component_key).map(
                                     |component_recipe| {
@@ -1405,14 +1408,14 @@ impl<'a> Widget for Crafting<'a> {
                 RecipeKind::Component(toolkind) => {
                     if let Some(material) = modular_primary_slot
                         .and_then(|slot| self.inventory.get(slot))
-                        .map(|item| String::from(item.item_definition_id()))
+                        .and_then(|item| item.item_definition_id().raw().map(String::from))
                     {
                         let component_key = ComponentKey {
                             toolkind,
                             material,
                             modifier: modular_secondary_slot
                                 .and_then(|slot| self.inventory.get(slot))
-                                .map(|item| String::from(item.item_definition_id())),
+                                .and_then(|item| item.item_definition_id().raw().map(String::from)),
                         };
                         if let Some(comp_recipe) =
                             self.client.component_recipe_book().get(&component_key)
@@ -1491,42 +1494,54 @@ impl<'a> Widget for Crafting<'a> {
                 for (i, (recipe_input, amount)) in ingredients.enumerate() {
                     let item_def = match recipe_input {
                         RecipeInput::Item(item_def) => Arc::clone(item_def),
-                        RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => {
-                            Arc::<ItemDef>::load_expect_cloned(
-                                self.inventory
-                                    .slots()
-                                    .find_map(|slot| {
-                                        slot.as_ref().and_then(|item| {
-                                            if item.matches_recipe_input(recipe_input, amount) {
-                                                Some(item.item_definition_id())
-                                            } else {
-                                                None
-                                            }
-                                        })
-                                    })
-                                    .or_else(|| tag.exemplar_identifier())
-                                    .unwrap_or("common.items.weapons.empty.empty"),
-                            )
-                        },
-                        RecipeInput::ListSameItem(item_defs) => Arc::<ItemDef>::load_expect_cloned(
-                            self.inventory
-                                .slots()
-                                .find_map(|slot| {
-                                    slot.as_ref().and_then(|item| {
-                                        if item.matches_recipe_input(recipe_input, amount) {
-                                            Some(item.item_definition_id())
-                                        } else {
-                                            None
-                                        }
-                                    })
+                        RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => self
+                            .inventory
+                            .slots()
+                            .find_map(|slot| {
+                                slot.as_ref().and_then(|item| {
+                                    if item.matches_recipe_input(recipe_input, amount) {
+                                        item.item_definition_id()
+                                            .raw()
+                                            .map(Arc::<ItemDef>::load_expect_cloned)
+                                    } else {
+                                        None
+                                    }
                                 })
-                                .unwrap_or_else(|| {
-                                    item_defs
-                                        .first()
-                                        .map(|i| i.item_definition_id())
-                                        .unwrap_or_else(|| "common.items.weapons.empty.empty")
-                                }),
-                        ),
+                            })
+                            .unwrap_or_else(|| {
+                                Arc::<ItemDef>::load_expect_cloned(
+                                    tag.exemplar_identifier()
+                                        .unwrap_or("common.items.weapons.empty.empty"),
+                                )
+                            }),
+                        RecipeInput::ListSameItem(item_defs) => self
+                            .inventory
+                            .slots()
+                            .find_map(|slot| {
+                                slot.as_ref().and_then(|item| {
+                                    if item.matches_recipe_input(recipe_input, amount) {
+                                        item.item_definition_id()
+                                            .raw()
+                                            .map(Arc::<ItemDef>::load_expect_cloned)
+                                    } else {
+                                        None
+                                    }
+                                })
+                            })
+                            .unwrap_or_else(|| {
+                                item_defs
+                                    .first()
+                                    .and_then(|i| {
+                                        i.item_definition_id()
+                                            .raw()
+                                            .map(Arc::<ItemDef>::load_expect_cloned)
+                                    })
+                                    .unwrap_or_else(|| {
+                                        Arc::<ItemDef>::load_expect_cloned(
+                                            "common.items.weapons.empty.empty",
+                                        )
+                                    })
+                            }),
                     };
 
                     // Grey color for images and text if their amount is too low to craft the

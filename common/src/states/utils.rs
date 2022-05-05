@@ -714,7 +714,7 @@ pub fn handle_manipulate_loadout(
                         recover_duration,
                         inv_slot,
                         item_kind,
-                        item_definition_id: item.item_definition_id().to_string(),
+                        item_hash: item.item_hash(),
                         was_wielded: matches!(data.character, CharacterState::Wielding(_)),
                         was_sneak: data.character.is_stealthy(),
                     },

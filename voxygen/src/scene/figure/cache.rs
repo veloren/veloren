@@ -15,7 +15,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind},
             item_key::ItemKey,
-            modular, Item, ItemKind,
+            modular, Item, ItemDefinitionId, ItemKind,
         },
         CharacterState,
     },
@@ -221,12 +221,11 @@ impl CharacterCacheKey {
                 })
             },
             tool: if are_tools_visible {
-                let tool_key_from_item = |item: &Item| {
-                    if item.is_modular() {
+                let tool_key_from_item = |item: &Item| match item.item_definition_id() {
+                    ItemDefinitionId::Simple(id) => ToolKey::Tool(String::from(id)),
+                    ItemDefinitionId::Modular { .. } => {
                         ToolKey::Modular(modular::weapon_to_key(item))
-                    } else {
-                        ToolKey::Tool(item.item_definition_id().to_owned())
-                    }
+                    },
                 };
                 Some(CharacterToolKey {
                     active: inventory

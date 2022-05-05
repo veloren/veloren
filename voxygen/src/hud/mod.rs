@@ -3689,8 +3689,10 @@ impl Hud {
                                         false,
                                     );
                                     if let Some(item) = inventory.get(slot) {
-                                        if let Some(materials) =
-                                            TradePricing::get_materials(item.item_definition_id())
+                                        if let Some(materials) = item
+                                            .item_definition_id()
+                                            .raw()
+                                            .and_then(TradePricing::get_materials)
                                         {
                                             let unit_price: f32 = materials
                                                 .iter()

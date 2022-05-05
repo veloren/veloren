@@ -379,7 +379,7 @@ pub enum ItemName {
 
 #[derive(Clone, Debug)]
 pub enum ItemBase {
-    Raw(Arc<ItemDef>),
+    Simple(Arc<ItemDef>),
     Modular(modular::ModularBase),
 }
 
@@ -392,7 +392,7 @@ impl Serialize for ItemBase {
         S: Serializer,
     {
         serializer.serialize_str(match self {
-            ItemBase::Raw(item_def) => &item_def.item_definition_id,
+            ItemBase::Simple(item_def) => &item_def.item_definition_id,
             ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
         })
     }
@@ -422,7 +422,7 @@ impl<'de> Deserialize<'de> for ItemBase {
                     if serialized_item_base.starts_with(crate::modular_item_id_prefix!()) {
                         ItemBase::Modular(ModularBase::load_from_pseudo_id(serialized_item_base))
                     } else {
-                        ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(serialized_item_base))
+                        ItemBase::Simple(Arc::<ItemDef>::load_expect_cloned(serialized_item_base))
                     },
                 )
             }
@@ -435,17 +435,69 @@ impl<'de> Deserialize<'de> for ItemBase {
 impl ItemBase {
     fn num_slots(&self) -> u16 {
         match self {
-            ItemBase::Raw(item_def) => item_def.num_slots(),
+            ItemBase::Simple(item_def) => item_def.num_slots(),
             ItemBase::Modular(_) => 0,
         }
     }
+}
 
-    fn item_definition_id(&self) -> &str {
-        match &self {
-            ItemBase::Raw(item_def) => &item_def.item_definition_id,
-            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
+pub enum ItemDefinitionId<'a> {
+    Simple(&'a str),
+    Modular {
+        pseudo_base: &'a str,
+        components: Vec<ItemDefinitionId<'a>>,
+    },
+}
+
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+pub enum ItemDefinitionIdOwned {
+    Simple(String),
+    Modular {
+        pseudo_base: String,
+        components: Vec<ItemDefinitionIdOwned>,
+    },
+}
+
+impl ItemDefinitionIdOwned {
+    pub fn as_ref(&self) -> ItemDefinitionId<'_> {
+        match *self {
+            Self::Simple(ref id) => ItemDefinitionId::Simple(id),
+            Self::Modular {
+                ref pseudo_base,
+                ref components,
+            } => ItemDefinitionId::Modular {
+                pseudo_base,
+                components: components.iter().map(|comp| comp.as_ref()).collect(),
+            },
         }
     }
+}
+
+impl<'a> ItemDefinitionId<'a> {
+    pub fn raw(&self) -> Option<&str> {
+        match self {
+            Self::Simple(id) => Some(id),
+            Self::Modular { .. } => None,
+        }
+    }
+
+    pub fn to_owned(&self) -> ItemDefinitionIdOwned {
+        match self {
+            Self::Simple(id) => ItemDefinitionIdOwned::Simple(String::from(*id)),
+            Self::Modular {
+                pseudo_base,
+                components,
+            } => ItemDefinitionIdOwned::Modular {
+                pseudo_base: String::from(*pseudo_base),
+                components: components.iter().map(|comp| comp.to_owned()).collect(),
+            },
+        }
+    }
+}
+
+impl Default for ItemDefinitionIdOwned {
+    fn default() -> Self { Self::Simple(String::new()) }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -580,7 +632,7 @@ impl ItemDef {
 /// please don't rely on this for anything!
 impl PartialEq for Item {
     fn eq(&self, other: &Self) -> bool {
-        if let (ItemBase::Raw(self_def), ItemBase::Raw(other_def)) =
+        if let (ItemBase::Simple(self_def), ItemBase::Simple(other_def)) =
             (&self.item_base, &other.item_base)
         {
             self_def.item_definition_id == other_def.item_definition_id
@@ -706,7 +758,7 @@ impl Item {
         let inner_item = if asset.starts_with("veloren.core.pseudo_items.modular") {
             ItemBase::Modular(ModularBase::load_from_pseudo_id(asset))
         } else {
-            ItemBase::Raw(Arc::<ItemDef>::load_cloned(asset)?)
+            ItemBase::Simple(Arc::<ItemDef>::load_cloned(asset)?)
         };
         // TODO: Get msm and ability_map less hackily
         let msm = &MaterialStatManifest::load().read();
@@ -729,7 +781,7 @@ impl Item {
             .collect();
         let mut new_item = Item::new_from_item_base(
             match &self.item_base {
-                ItemBase::Raw(item_def) => ItemBase::Raw(Arc::clone(item_def)),
+                ItemBase::Simple(item_def) => ItemBase::Simple(Arc::clone(item_def)),
                 ItemBase::Modular(mod_base) => ItemBase::Modular(mod_base.clone()),
             },
             duplicated_components,
@@ -844,10 +896,22 @@ impl Item {
         self.slots.iter_mut().filter_map(mem::take)
     }
 
-    pub fn item_definition_id(&self) -> &str { self.item_base.item_definition_id() }
+    pub fn item_definition_id(&self) -> ItemDefinitionId<'_> {
+        match &self.item_base {
+            ItemBase::Simple(item_def) => ItemDefinitionId::Simple(&item_def.item_definition_id),
+            ItemBase::Modular(mod_base) => ItemDefinitionId::Modular {
+                pseudo_base: mod_base.pseudo_item_id(),
+                components: self
+                    .components
+                    .iter()
+                    .map(|item| item.item_definition_id())
+                    .collect(),
+            },
+        }
+    }
 
     pub fn is_same_item_def(&self, item_def: &ItemDef) -> bool {
-        if let ItemBase::Raw(self_def) = &self.item_base {
+        if let ItemBase::Simple(self_def) = &self.item_base {
             self_def.item_definition_id == item_def.item_definition_id
         } else {
             false
@@ -885,7 +949,7 @@ impl Item {
 
     pub fn name(&self) -> Cow<str> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => {
+            ItemBase::Simple(item_def) => {
                 if self.components.is_empty() {
                     Cow::Borrowed(&item_def.name)
                 } else {
@@ -898,7 +962,7 @@ impl Item {
 
     pub fn description(&self) -> &str {
         match &self.item_base {
-            ItemBase::Raw(item_def) => &item_def.description,
+            ItemBase::Simple(item_def) => &item_def.description,
             // TODO: See if James wanted to make description, else leave with none
             ItemBase::Modular(_) => "",
         }
@@ -906,7 +970,7 @@ impl Item {
 
     pub fn kind(&self) -> Cow<ItemKind> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => Cow::Borrowed(&item_def.kind),
+            ItemBase::Simple(item_def) => Cow::Borrowed(&item_def.kind),
             ItemBase::Modular(mod_base) => {
                 // TODO: Try to move further upward
                 let msm = MaterialStatManifest::load().read();
@@ -919,7 +983,7 @@ impl Item {
 
     pub fn is_stackable(&self) -> bool {
         match &self.item_base {
-            ItemBase::Raw(item_def) => item_def.is_stackable(),
+            ItemBase::Simple(item_def) => item_def.is_stackable(),
             // TODO: Let whoever implements stackable modular items deal with this
             ItemBase::Modular(_) => false,
         }
@@ -933,7 +997,7 @@ impl Item {
 
     pub fn quality(&self) -> Quality {
         match &self.item_base {
-            ItemBase::Raw(item_def) => item_def.quality,
+            ItemBase::Simple(item_def) => item_def.quality,
             ItemBase::Modular(mod_base) => mod_base.compute_quality(self.components()),
         }
     }
@@ -964,7 +1028,7 @@ impl Item {
 
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => {
+            ItemBase::Simple(item_def) => {
                 item_def.ability_spec.as_ref().map(Cow::Borrowed).or({
                     // If no custom ability set is specified, fall back to abilityset of tool
                     // kind.
@@ -983,7 +1047,7 @@ impl Item {
     // iterator?
     pub fn tags(&self) -> Vec<ItemTag> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => item_def.tags.to_vec(),
+            ItemBase::Simple(item_def) => item_def.tags.to_vec(),
             // TODO: Do this properly. It'll probably be important at some point.
             ItemBase::Modular(mod_base) => mod_base.generate_tags(self.components()),
         }
@@ -991,7 +1055,7 @@ impl Item {
 
     pub fn is_modular(&self) -> bool {
         match &self.item_base {
-            ItemBase::Raw(_) => false,
+            ItemBase::Simple(_) => false,
             ItemBase::Modular(_) => true,
         }
     }
@@ -1003,7 +1067,7 @@ impl Item {
         let ability_map = &AbilityMap::load().read();
         let msm = &MaterialStatManifest::load().read();
         Self::new_from_item_base(
-            ItemBase::Raw(Arc::new(ItemDef::create_test_itemdef_from_kind(kind))),
+            ItemBase::Simple(Arc::new(ItemDef::create_test_itemdef_from_kind(kind))),
             Vec::new(),
             ability_map,
             msm,
@@ -1019,7 +1083,7 @@ pub trait ItemDesc {
     fn kind(&self) -> Cow<ItemKind>;
     fn quality(&self) -> Quality;
     fn num_slots(&self) -> u16;
-    fn item_definition_id(&self) -> &str;
+    fn item_definition_id(&self) -> ItemDefinitionId<'_>;
     fn tags(&self) -> Vec<ItemTag>;
 
     fn is_modular(&self) -> bool;
@@ -1046,7 +1110,7 @@ impl ItemDesc for Item {
 
     fn num_slots(&self) -> u16 { self.num_slots() }
 
-    fn item_definition_id(&self) -> &str { self.item_definition_id() }
+    fn item_definition_id(&self) -> ItemDefinitionId<'_> { self.item_definition_id() }
 
     fn tags(&self) -> Vec<ItemTag> { self.tags() }
 
@@ -1066,7 +1130,9 @@ impl ItemDesc for ItemDef {
 
     fn num_slots(&self) -> u16 { self.slots }
 
-    fn item_definition_id(&self) -> &str { &self.item_definition_id }
+    fn item_definition_id(&self) -> ItemDefinitionId<'_> {
+        ItemDefinitionId::Simple(&self.item_definition_id)
+    }
 
     fn tags(&self) -> Vec<ItemTag> { self.tags.to_vec() }
 
@@ -1097,7 +1163,7 @@ impl<'a, T: ItemDesc + ?Sized> ItemDesc for &'a T {
 
     fn num_slots(&self) -> u16 { (*self).num_slots() }
 
-    fn item_definition_id(&self) -> &str { (*self).item_definition_id() }
+    fn item_definition_id(&self) -> ItemDefinitionId<'_> { (*self).item_definition_id() }
 
     fn components(&self) -> &[Item] { (*self).components() }
 

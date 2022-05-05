@@ -1316,8 +1316,10 @@ impl<'a> Widget for ItemTooltip<'a> {
         }
 
         // Price display
-        if let Some((buy, sell, factor)) =
-            util::price_desc(self.prices, item.item_definition_id(), i18n)
+        if let Some((buy, sell, factor)) = item
+            .item_definition_id()
+            .raw()
+            .and_then(|id| util::price_desc(self.prices, id, i18n))
         {
             widget::Text::new(&buy)
                 .x_align_to(state.ids.item_frame, conrod_core::position::Align::Start)
@@ -1413,11 +1415,11 @@ impl<'a> Widget for ItemTooltip<'a> {
         };
 
         // Price
-        let price_h: f64 = if let Some((buy, sell, _)) = util::price_desc(
-            self.prices,
-            item.item_definition_id(),
-            self.localized_strings,
-        ) {
+        let price_h: f64 = if let Some((buy, sell, _)) = item
+            .item_definition_id()
+            .raw()
+            .and_then(|id| util::price_desc(self.prices, id, self.localized_strings))
+        {
             //Get localized tooltip strings (gotten here because these should only show if
             // in a trade- aka if buy/sell prices are present)
             let tt_hint_1 = self.localized_strings.get("hud.trade.tooltip_hint_1");

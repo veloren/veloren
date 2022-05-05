@@ -29,8 +29,8 @@ pub struct StaticData {
     pub recover_duration: Duration,
     /// Inventory slot to use item from
     pub inv_slot: InvSlotId,
-    /// Item definition id, used to verify that slot still has the correct item
-    pub item_definition_id: String,
+    /// Item hash, used to verify that slot still has the correct item
+    pub item_hash: u64,
     /// Kind of item used
     pub item_kind: ItemUseKind,
     /// Had weapon wielded
@@ -213,7 +213,7 @@ fn use_item(data: &JoinData, output_events: &mut OutputEvents, state: &Data) {
         .inventory
         .and_then(|inv| inv.get(state.static_data.inv_slot))
         .map_or(false, |item| {
-            item.item_definition_id() == state.static_data.item_definition_id
+            item.item_hash() == state.static_data.item_hash
         });
     if item_is_same {
         // Create inventory manipulation event

@@ -3,7 +3,7 @@ use common::{
     comp::{
         agent::{Agent, AgentEvent},
         inventory::{
-            item::{tool::AbilityMap, MaterialStatManifest},
+            item::{tool::AbilityMap, ItemDefinitionIdOwned, MaterialStatManifest},
             Inventory,
         },
     },
@@ -239,7 +239,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
 
     // Hashmap to compute merged stackable stacks, including overflow checks
     // TODO: add a ComponentKey struct to compare items properly, see issue #1226
-    let mut stackable_items: HashMap<String, TradeQuantities> = HashMap::new();
+    let mut stackable_items: HashMap<ItemDefinitionIdOwned, TradeQuantities> = HashMap::new();
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
             let inventory = inventories.get_mut(entities[who]).expect(invmsg);
@@ -274,7 +274,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                             max_stack_size,
                             trade_quantities,
                         } = stackable_items
-                            .entry(item.item_definition_id().to_string())
+                            .entry(item.item_definition_id().to_owned())
                             .or_insert_with(|| TradeQuantities::new(item.max_amount()));
 
                         trade_quantities[who].full_stacks += 1;
@@ -295,7 +295,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                             max_stack_size: _,
                             trade_quantities,
                         } = stackable_items
-                            .entry(item.item_definition_id().to_string())
+                            .entry(item.item_definition_id().to_owned())
                             .or_insert_with(|| TradeQuantities::new(item.max_amount()));
 
                         trade_quantities[who].quantity_sold += *quantity as u128;
@@ -338,7 +338,7 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
                 .slots()
                 .flatten()
                 .filter_map(|it| {
-                    if it.item_definition_id() == item_id {
+                    if it.item_definition_id() == item_id.as_ref() {
                         Some(*max_stack_size as u128 - it.amount() as u128)
                     } else {
                         None

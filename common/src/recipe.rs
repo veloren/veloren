@@ -135,7 +135,7 @@ impl Recipe {
             let (item_def, quantity) = &self.output;
 
             let crafted_item = Item::new_from_item_base(
-                ItemBase::Raw(Arc::clone(item_def)),
+                ItemBase::Simple(Arc::clone(item_def)),
                 components,
                 ability_map,
                 msm,
@@ -659,7 +659,7 @@ impl ComponentRecipe {
                     .iter()
                     .map(|item_def| {
                         Item::new_from_item_base(
-                            ItemBase::Raw(Arc::clone(item_def)),
+                            ItemBase::Simple(Arc::clone(item_def)),
                             Vec::new(),
                             ability_map,
                             msm,
@@ -667,7 +667,7 @@ impl ComponentRecipe {
                     })
                     .collect::<Vec<_>>();
                 Item::new_from_item_base(
-                    ItemBase::Raw(Arc::clone(item_def)),
+                    ItemBase::Simple(Arc::clone(item_def)),
                     components,
                     ability_map,
                     msm,

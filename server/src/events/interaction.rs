@@ -177,16 +177,15 @@ pub fn handle_mine_block(
                     if let (Some(tool), Some(uid), Some(exp_reward)) = (
                         tool,
                         state.ecs().uid_from_entity(entity),
-                        RESOURCE_EXPERIENCE_MANIFEST
-                            .read()
-                            .0
-                            .get(item.item_definition_id()),
+                        item.item_definition_id()
+                            .raw()
+                            .and_then(|id| RESOURCE_EXPERIENCE_MANIFEST.read().0.get(id).copied()),
                     ) {
                         let skill_group = SkillGroupKind::Weapon(tool);
                         let outcome_bus = state.ecs().read_resource::<EventBus<Outcome>>();
                         let positions = state.ecs().read_component::<comp::Pos>();
                         if let (Some(level_outcome), Some(pos)) = (
-                            skillset.add_experience(skill_group, *exp_reward),
+                            skillset.add_experience(skill_group, exp_reward),
                             positions.get(entity),
                         ) {
                             outcome_bus.emit_now(Outcome::SkillPointGain {
@@ -198,7 +197,7 @@ pub fn handle_mine_block(
                         }
                         outcome_bus.emit_now(Outcome::ExpChange {
                             uid,
-                            exp: *exp_reward,
+                            exp: exp_reward,
                             xp_pools: HashSet::from_iter(vec![skill_group]),
                         });
                     }
@@ -223,10 +222,10 @@ pub fn handle_mine_block(
                         rng.gen_bool(chance_mod * f64::from(skill_level))
                     };
 
-                    let double_gain = (item.item_definition_id().contains("mineral.ore.")
-                        && need_double_ore(&mut rng))
-                        || (item.item_definition_id().contains("mineral.gem.")
-                            && need_double_gem(&mut rng));
+                    let double_gain = item.item_definition_id().raw().map_or(false, |id| {
+                        (id.contains("mineral.ore.") && need_double_ore(&mut rng))
+                            || (id.contains("mineral.gem.") && need_double_gem(&mut rng))
+                    });
 
                     if double_gain {
                         // Ignore non-stackable errors

@@ -8,7 +8,7 @@ use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
-use tracing::{error, info, warn};
+use tracing::{error, info, trace, warn};
 use vek::*;
 
 use client::{self, Client};
@@ -18,7 +18,7 @@ use common::{
     comp::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{tool::ToolKind, ItemDef, ItemDesc},
+        item::{tool::ToolKind, ItemDef, ItemDefinitionId, ItemDesc},
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
@@ -250,8 +250,8 @@ impl SessionState {
                                 self.hud.add_failed_entity_pickup(entity);
                             }
                         },
-                        InventoryUpdateEvent::Collected(item) => {
-                            match Arc::<ItemDef>::load_cloned(item.item_definition_id()) {
+                        InventoryUpdateEvent::Collected(item) => match item.item_definition_id() {
+                            ItemDefinitionId::Simple(id) => match Arc::<ItemDef>::load_cloned(id) {
                                 Result::Ok(item_def) => {
                                     self.hud.new_loot_message(LootMessage {
                                         item: item_def,
@@ -261,11 +261,14 @@ impl SessionState {
                                 Result::Err(e) => {
                                     warn!(
                                         ?e,
-                                        "Item not present on client: {}",
+                                        "Item not present on client: {:?}",
                                         item.item_definition_id()
                                     );
                                 },
-                            }
+                            },
+                            ItemDefinitionId::Modular { .. } => {
+                                trace!("Modular items not currently supported for loot messages.")
+                            },
                         },
                         _ => {},
                     };
@@ -1445,7 +1448,9 @@ impl PlayState for SessionState {
                                     .inventories()
                                     .get(client.entity())
                                     .and_then(|inv| inv.get(slot))
-                                    .map(|item| String::from(item.item_definition_id()))
+                                    .and_then(|item| {
+                                        item.item_definition_id().raw().map(String::from)
+                                    })
                             };
                             if let Some(material_id) = item_id(material) {
                                 let key = recipe::ComponentKey {
