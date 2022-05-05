@@ -274,41 +274,57 @@ fn get_mutable_item<'a, 'b, T>(
     item_indices: &'a HashMap<i64, usize>,
     inventory: &'b mut T,
     get_mut_item: &'a impl Fn(&'b mut T, &str) -> Option<&'b mut VelorenItem>,
-) -> Option<&'a mut VelorenItem>
+) -> Result<&'a mut VelorenItem, PersistenceError>
 where
     'b: 'a,
 {
     // First checks if item is a component, if it is, tries to get a mutable
     // reference to itself by getting a mutable reference to the item that is its
     // parent
+    let parent_id = inventory_items[index].parent_container_item_id;
     if inventory_items[index].position.contains("component_") {
-        if let Some(parent) = item_indices
-            .get(&inventory_items[index].parent_container_item_id)
-            .and_then(move |i| {
-                get_mutable_item(
-                    *i,
-                    inventory_items,
-                    item_indices,
-                    inventory,
-                    // slot,
-                    get_mut_item,
-                )
-            })
-        {
+        if let Some(parent) = item_indices.get(&parent_id).map(move |i| {
+            get_mutable_item(
+                *i,
+                inventory_items,
+                item_indices,
+                inventory,
+                // slot,
+                get_mut_item,
+            )
+        }) {
             // Parses component index
-            let component_index = inventory_items[index]
-                .position
+            let position = &inventory_items[index].position;
+            let component_index = position
                 .split('_')
                 .nth(1)
-                .and_then(|s| s.parse::<usize>().ok());
+                .and_then(|s| s.parse::<usize>().ok())
+                .ok_or_else(|| {
+                    PersistenceError::ConversionError(format!(
+                        "Failed to parse position stored in database: {position}."
+                    ))
+                })?;
             // Returns mutable reference to component item by accessing the component
             // through its parent item item
-            component_index.and_then(move |i| parent.persistence_access_mutable_component(i))
+            parent?
+                .persistence_access_mutable_component(component_index)
+                .ok_or_else(|| {
+                    PersistenceError::ConversionError(format!(
+                        "Component in position {component_index} doesn't exist on parent item \
+                         {parent_id}."
+                    ))
+                })
         } else {
-            None
+            Err(PersistenceError::ConversionError(format!(
+                "Parent item with id {parent_id} does not exist in database."
+            )))
         }
     } else {
-        get_mut_item(inventory, &inventory_items[index].position)
+        get_mut_item(inventory, &inventory_items[index].position).ok_or_else(|| {
+            PersistenceError::ConversionError(format!(
+                "Unable to retrieve parent veloren item {parent_id} of component from inventory."
+            ))
+        })
     }
 }
 
@@ -400,21 +416,14 @@ pub fn convert_inventory_from_database_items(
                 ));
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            if let Some(parent) = get_mutable_item(
+            get_mutable_item(
                 j,
                 inventory_items,
                 &item_indices,
                 &mut inventory,
                 &|inv, s| inv.slot_mut(slot(s).ok()?).and_then(|a| a.as_mut()),
-            ) {
-                parent.persistence_access_add_component(item);
-            } else {
-                return Err(PersistenceError::ConversionError(format!(
-                    "Parent slot {} for component {} was empty even though it occurred earlier in \
-                     the loop?",
-                    db_item.parent_container_item_id, db_item.item_id
-                )));
-            }
+            )?
+            .persistence_access_add_component(item);
         } else {
             return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in inventory",
@@ -465,19 +474,10 @@ pub fn convert_loadout_from_database_items(
                 .set_item_at_slot_using_persistence_key(&db_item.position, item)
                 .map_err(convert_error)?;
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            if let Some(parent) =
-                get_mutable_item(j, database_items, &item_indices, &mut loadout, &|l, s| {
-                    l.get_mut_item_at_slot_using_persistence_key(s).ok()
-                })
-            {
-                parent.persistence_access_add_component(item);
-            } else {
-                return Err(PersistenceError::ConversionError(format!(
-                    "Parent slot {} for component {} was empty even though it occurred earlier in \
-                     the loop?",
-                    db_item.parent_container_item_id, db_item.item_id
-                )));
-            }
+            get_mutable_item(j, database_items, &item_indices, &mut loadout, &|l, s| {
+                l.get_mut_item_at_slot_using_persistence_key(s).ok()
+            })?
+            .persistence_access_add_component(item);
         } else {
             return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in loadout",
