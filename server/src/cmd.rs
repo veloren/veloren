@@ -1940,8 +1940,8 @@ where
         if target_inventory.free_slots() < count {
             return Err("Inventory doesn't have enough slots".to_owned());
         }
+        let mut rng = thread_rng();
         for (item_id, quantity) in kit {
-            let mut rng = thread_rng();
             let mut item = match &item_id {
                 KitSpec::Item(item_id) => comp::Item::new_from_asset(item_id)
                     .map_err(|_| format!("Unknown item: {:#?}", item_id))?,

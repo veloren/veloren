@@ -965,19 +965,15 @@ impl Item {
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
         match &self.item_base {
             ItemBase::Raw(item_def) => {
-                item_def
-                    .ability_spec
-                    .as_ref()
-                    .map(Cow::Borrowed)
-                    .or_else(|| {
-                        // If no custom ability set is specified, fall back to abilityset of tool
-                        // kind.
-                        if let ItemKind::Tool(tool) = &item_def.kind {
-                            Some(Cow::Owned(AbilitySpec::Tool(tool.kind)))
-                        } else {
-                            None
-                        }
-                    })
+                item_def.ability_spec.as_ref().map(Cow::Borrowed).or({
+                    // If no custom ability set is specified, fall back to abilityset of tool
+                    // kind.
+                    if let ItemKind::Tool(tool) = &item_def.kind {
+                        Some(Cow::Owned(AbilitySpec::Tool(tool.kind)))
+                    } else {
+                        None
+                    }
+                })
             },
             ItemBase::Modular(mod_base) => mod_base.ability_spec(self.components()),
         }

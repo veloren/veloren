@@ -372,6 +372,25 @@ pub enum RawRecipeInput {
     ListSameItem(String),
 }
 
+impl RawRecipeInput {
+    fn load_recipe_input(&self) -> Result<RecipeInput, assets::Error> {
+        let input = match self {
+            RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
+            RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
+            RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag),
+            RawRecipeInput::ListSameItem(list) => {
+                let assets = &ItemList::load_expect(list).read().0;
+                let items = assets
+                    .iter()
+                    .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
+                    .collect();
+                RecipeInput::ListSameItem(items)
+            },
+        };
+        Ok(input)
+    }
+}
+
 #[derive(Clone, Deserialize)]
 pub(crate) struct RawRecipe {
     pub(crate) output: (String, u32),
@@ -392,7 +411,7 @@ impl assets::Asset for RawRecipeBook {
 }
 
 #[derive(Deserialize, Clone)]
-pub struct ItemList(Vec<String>);
+struct ItemList(Vec<String>);
 
 impl assets::Asset for ItemList {
     type Loader = assets::RonLoader;
@@ -415,19 +434,7 @@ impl assets::Compound for RecipeBook {
         fn load_recipe_input(
             (input, amount, is_mod_comp): &(RawRecipeInput, u32, bool),
         ) -> Result<(RecipeInput, u32, bool), assets::Error> {
-            let def = match &input {
-                RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
-                RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
-                RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag),
-                RawRecipeInput::ListSameItem(list) => {
-                    let assets = &ItemList::load_expect(list).read().0;
-                    let items = assets
-                        .iter()
-                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
-                        .collect();
-                    RecipeInput::ListSameItem(items)
-                },
-            };
+            let def = input.load_recipe_input()?;
             Ok((def, *amount, *is_mod_comp))
         }
 
@@ -478,7 +485,7 @@ impl ComponentRecipeBook {
 
 #[derive(Clone, Deserialize)]
 #[serde(transparent)]
-struct RawComponentRecipeBook(HashMap<ComponentKey, RawComponentRecipe>);
+struct RawComponentRecipeBook(Vec<RawComponentRecipe>);
 
 impl assets::Asset for RawComponentRecipeBook {
     type Loader = assets::RonLoader;
@@ -494,7 +501,7 @@ pub struct ComponentKey {
     pub toolkind: ToolKind,
     /// Refers to the item definition id of the material
     pub material: String,
-    /// Refers to the item definition id of the material
+    /// Refers to the item definition id of the modifier
     pub modifier: Option<String>,
 }
 
@@ -671,10 +678,6 @@ impl ComponentRecipe {
 
     pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
         pub struct ComponentRecipeInputsIterator<'a> {
-            // material: bool,
-            // modifier: bool,
-            // index: usize,
-            // recipe: &'a ComponentRecipe,
             material: Option<&'a (RecipeInput, u32)>,
             modifier: Option<&'a (RecipeInput, u32)>,
             additional_inputs: std::slice::Iter<'a, (RecipeInput, u32)>,
@@ -684,21 +687,6 @@ impl ComponentRecipe {
             type Item = &'a (RecipeInput, u32);
 
             fn next(&mut self) -> Option<&'a (RecipeInput, u32)> {
-                // if !self.material {
-                //     self.material = true;
-                //     Some(&self.recipe.material)
-                // } else if !self.modifier {
-                //     self.modifier = true;
-                //     if self.recipe.modifier.is_some() {
-                //         self.recipe.modifier.as_ref()
-                //     } else {
-                //         self.index += 1;
-                //         self.recipe.additional_inputs.get(self.index - 1)
-                //     }
-                // } else {
-                //     self.index += 1;
-                //     self.recipe.additional_inputs.get(self.index - 1)
-                // }
                 self.material
                     .take()
                     .or_else(|| self.modifier.take())
@@ -712,10 +700,6 @@ impl ComponentRecipe {
 
             fn into_iter(self) -> Self::IntoIter {
                 ComponentRecipeInputsIterator {
-                    // material: false,
-                    // modifier: false,
-                    // index: 0,
-                    // recipe: self,
                     material: Some(&self.material),
                     modifier: self.modifier.as_ref(),
                     additional_inputs: self.additional_inputs.as_slice().iter(),
@@ -725,8 +709,6 @@ impl ComponentRecipe {
 
         impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
             fn len(&self) -> usize {
-                // 1 + self.recipe.modifier.is_some() as usize +
-                // self.recipe.additional_inputs.len()
                 self.material.is_some() as usize
                     + self.modifier.is_some() as usize
                     + self.additional_inputs.len()
@@ -740,8 +722,10 @@ impl ComponentRecipe {
 #[derive(Clone, Deserialize)]
 struct RawComponentRecipe {
     output: RawComponentOutput,
-    material: (RawRecipeInput, u32),
-    modifier: Option<(RawRecipeInput, u32)>,
+    /// String refers to an item definition id
+    material: (String, u32),
+    /// String refers to an item definition id
+    modifier: Option<(String, u32)>,
     additional_inputs: Vec<(RawRecipeInput, u32)>,
     craft_sprite: Option<SpriteKind>,
 }
@@ -756,10 +740,9 @@ enum ComponentOutput {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum RawComponentOutput {
-    ItemComponents {
-        item: String,
-        components: Vec<String>,
-    },
+    /// Creates the primary component of a modular tool. Assumes that the
+    /// material used is the only component in the item.
+    ToolPrimaryComponent { toolkind: ToolKind, item: String },
 }
 
 impl assets::Compound for ComponentRecipeBook {
@@ -768,42 +751,54 @@ impl assets::Compound for ComponentRecipeBook {
         specifier: &str,
     ) -> Result<Self, assets::BoxedError> {
         #[inline]
-        fn load_recipe_input(
-            (input, amount): &(RawRecipeInput, u32),
-        ) -> Result<(RecipeInput, u32), assets::Error> {
-            let def = match &input {
-                RawRecipeInput::Item(name) => RecipeInput::Item(Arc::<ItemDef>::load_cloned(name)?),
-                RawRecipeInput::Tag(tag) => RecipeInput::Tag(*tag),
-                RawRecipeInput::TagSameItem(tag) => RecipeInput::TagSameItem(*tag),
-                RawRecipeInput::ListSameItem(list) => {
-                    let assets = &ItemList::load_expect(list).read().0;
-                    let items = assets
-                        .iter()
-                        .map(|asset| Arc::<ItemDef>::load_expect_cloned(asset))
-                        .collect();
-                    RecipeInput::ListSameItem(items)
+        fn load_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
+            match &raw_recipe.output {
+                RawComponentOutput::ToolPrimaryComponent { toolkind, item: _ } => {
+                    let material = String::from(&raw_recipe.material.0);
+                    let modifier = raw_recipe
+                        .modifier
+                        .as_ref()
+                        .map(|(modifier, _amount)| String::from(modifier));
+                    ComponentKey {
+                        toolkind: *toolkind,
+                        material,
+                        modifier,
+                    }
                 },
-            };
-            Ok((def, *amount))
+            }
         }
 
         #[inline]
-        fn load_recipe_output(
-            output: &RawComponentOutput,
-        ) -> Result<ComponentOutput, assets::Error> {
-            let def = match &output {
-                RawComponentOutput::ItemComponents {
-                    item: def,
-                    components: defs,
-                } => ComponentOutput::ItemComponents {
-                    item: Arc::<ItemDef>::load_cloned(def)?,
-                    components: defs
-                        .iter()
-                        .map(|def| Arc::<ItemDef>::load_cloned(def))
-                        .collect::<Result<Vec<_>, _>>()?,
+        fn load_recipe(raw_recipe: &RawComponentRecipe) -> Result<ComponentRecipe, assets::Error> {
+            let output = match &raw_recipe.output {
+                RawComponentOutput::ToolPrimaryComponent { toolkind: _, item } => {
+                    let item = Arc::<ItemDef>::load_cloned(item)?;
+                    let components = vec![Arc::<ItemDef>::load_cloned(&raw_recipe.material.0)?];
+                    ComponentOutput::ItemComponents { item, components }
                 },
             };
-            Ok(def)
+            let material = (
+                RecipeInput::Item(Arc::<ItemDef>::load_cloned(&raw_recipe.material.0)?),
+                raw_recipe.material.1,
+            );
+            let modifier = if let Some((modifier, amount)) = &raw_recipe.modifier {
+                let modifier = Arc::<ItemDef>::load_cloned(modifier)?;
+                Some((RecipeInput::Item(modifier), *amount))
+            } else {
+                None
+            };
+            let additional_inputs = raw_recipe
+                .additional_inputs
+                .iter()
+                .map(|(input, amount)| input.load_recipe_input().map(|input| (input, *amount)))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(ComponentRecipe {
+                output,
+                material,
+                modifier,
+                additional_inputs,
+                craft_sprite: raw_recipe.craft_sprite,
+            })
         }
 
         let raw = cache.load::<RawComponentRecipeBook>(specifier)?.cloned();
@@ -811,33 +806,9 @@ impl assets::Compound for ComponentRecipeBook {
         let recipes = raw
             .0
             .iter()
-            .map(
-                |(
-                    key,
-                    RawComponentRecipe {
-                        output,
-                        material,
-                        modifier,
-                        additional_inputs,
-                        craft_sprite,
-                    },
-                )| {
-                    let additional_inputs = additional_inputs
-                        .iter()
-                        .map(load_recipe_input)
-                        .collect::<Result<Vec<_>, _>>()?;
-                    let material = load_recipe_input(material)?;
-                    let modifier = modifier.as_ref().map(load_recipe_input).transpose()?;
-                    let output = load_recipe_output(output)?;
-                    Ok((key.clone(), ComponentRecipe {
-                        output,
-                        material,
-                        modifier,
-                        additional_inputs,
-                        craft_sprite: *craft_sprite,
-                    }))
-                },
-            )
+            .map(|raw_recipe| {
+                load_recipe(raw_recipe).map(|recipe| (load_recipe_key(raw_recipe), recipe))
+            })
             .collect::<Result<_, assets::Error>>()?;
 
         Ok(ComponentRecipeBook { recipes })

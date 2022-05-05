@@ -882,13 +882,3 @@ FROM    item_graph
 WHERE   parent_pseudo_id IS NOT NULL;
 
 PRAGMA defer_foreign_keys = false;
-
-SELECT  i.item_id,
-        i.item_id,
-        i.parent_container_item_id,
-        t.new_item_definition_id,
-        t.pseudo_id,
-        parent_pseudo_id
-FROM    _temp_modular_component_items t
-JOIN    item i ON (i.item_definition_id = t.new_item_definition_id)
-WHERE   t.parent_pseudo_id IS NULL;

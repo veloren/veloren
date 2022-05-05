@@ -511,6 +511,9 @@ impl<'a> Widget for Crafting<'a> {
         let metal_comp_recipe = make_psuedo_recipe(SpriteKind::Anvil);
         let wood_comp_recipe = make_psuedo_recipe(SpriteKind::CraftingBench);
         let modular_entries = {
+            // A BTreeMap is used over a HashMap as when a HashMap is used, the UI shuffles
+            // the positions of these every tick, so a BTreeMap is necessary to keep it
+            // ordered.
             let mut modular_entries = BTreeMap::new();
             modular_entries.insert(
                 String::from("veloren.core.pseudo_recipe.modular_weapon"),
@@ -1288,7 +1291,8 @@ impl<'a> Widget for Crafting<'a> {
                 .mid_bottom_with_margin_on(state.ids.align_ing, -31.0)
                 .parent(state.ids.window_frame)
                 .set(state.ids.btn_craft, ui)
-                .was_clicked() && can_perform
+                .was_clicked()
+                && can_perform
             {
                 match recipe_kind {
                     RecipeKind::ModularWeapon => {
@@ -1501,7 +1505,7 @@ impl<'a> Widget for Crafting<'a> {
                                         })
                                     })
                                     .or_else(|| tag.exemplar_identifier())
-                                    .unwrap_or_else(|| "common.items.weapons.empty.empty"),
+                                    .unwrap_or("common.items.weapons.empty.empty"),
                             )
                         },
                         RecipeInput::ListSameItem(item_defs) => Arc::<ItemDef>::load_expect_cloned(

@@ -812,11 +812,12 @@ mod tests {
         assert!((lootsum2 - 1.0).abs() < 1e-4);
 
         // highly nested
-        // let loot3 = expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
-        // let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
         // TODO: Re-enable this. See note at top of test (though this specific
         // table can also be fixed by properly integrating modular weapons into
         // probability files)
+        // let loot3 =
+        // expand_loot_table("common.loot_tables.creature.biped_large.wendigo");
+        // let lootsum3 = loot3.iter().fold(0.0, |s, i| s + i.0);
         // assert!((lootsum3 - 1.0).abs() < 1e-5);
     }
 
