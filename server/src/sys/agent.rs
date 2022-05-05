@@ -1576,18 +1576,13 @@ impl<'a> AgentData<'a> {
             })
         };
 
-        // TODO: This is a temporary hack. Remove this once footsteps are emitted and
-        // agents are capable of detecting when someone is directly behind them.
-        let within_listen_dist = |e_pos: &Pos| {
-            let listen_dist = agent.psyche.listen_dist;
-
-            e_pos.0.distance_squared(self.pos.0) < listen_dist.powi(2)
-        };
+        let can_sense_directly_near =
+            { |e_pos: &Pos| e_pos.0.distance_squared(self.pos.0) < 5_f32.powi(2) };
 
         let is_detected = |entity: EcsEntity, e_pos: &Pos| {
             let chance = thread_rng().gen_bool(0.3);
 
-            (within_listen_dist(e_pos) && chance)
+            (can_sense_directly_near(e_pos) && chance)
                 || self.can_see_entity(agent, controller, entity, e_pos, read_data)
         };
 
