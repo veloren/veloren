@@ -90,7 +90,7 @@ pub trait TagExampleInfo {
     fn name(&self) -> &str;
     /// What item to show in the crafting hud if the player has nothing with the
     /// tag
-    fn exemplar_identifier(&self) -> &str;
+    fn exemplar_identifier(&self) -> Option<&str>;
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize, IntoStaticStr)]
@@ -214,7 +214,7 @@ impl Material {
 impl TagExampleInfo for Material {
     fn name(&self) -> &str { self.into() }
 
-    fn exemplar_identifier(&self) -> &str { self.asset_identifier().unwrap_or("") }
+    fn exemplar_identifier(&self) -> Option<&str> { self.asset_identifier() }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
@@ -250,18 +250,18 @@ impl TagExampleInfo for ItemTag {
     }
 
     // TODO: Autogenerate these?
-    fn exemplar_identifier(&self) -> &str {
+    fn exemplar_identifier(&self) -> Option<&str> {
         match self {
-            ItemTag::Material(_) => "common.items.tag_examples.placeholder",
-            ItemTag::MaterialKind(_) => "common.items.tag_examples.placeholder",
-            ItemTag::Cultist => "common.items.tag_examples.cultist",
-            ItemTag::Potion => "common.items.tag_examples.placeholder",
-            ItemTag::Food => "common.items.tag_examples.placeholder",
-            ItemTag::BaseMaterial => "common.items.tag_examples.placeholder",
-            ItemTag::CraftingTool => "common.items.tag_examples.placeholder",
-            ItemTag::Utility => "common.items.tag_examples.placeholder",
-            ItemTag::Bag => "common.items.tag_examples.placeholder",
-            ItemTag::SalvageInto(_) => "common.items.tag_examples.placeholder",
+            ItemTag::Material(material) => material.exemplar_identifier(),
+            ItemTag::MaterialKind(_) => None,
+            ItemTag::Cultist => Some("common.items.tag_examples.cultist"),
+            ItemTag::Potion => None,
+            ItemTag::Food => None,
+            ItemTag::BaseMaterial => None,
+            ItemTag::CraftingTool => None,
+            ItemTag::Utility => None,
+            ItemTag::Bag => None,
+            ItemTag::SalvageInto(_) => None,
         }
     }
 }
@@ -286,6 +286,7 @@ pub enum ItemKind {
     },
     Ingredient {
         kind: String,
+        /// Used to generate names for modular items composed of this ingredient
         descriptor: String,
     },
     TagExamples {
@@ -339,10 +340,6 @@ pub struct Item {
     /// item_def is hidden because changing the item definition for an item
     /// could change invariants like whether it was stackable (invalidating
     /// the amount).
-    #[serde(
-        serialize_with = "serialize_item_base",
-        deserialize_with = "deserialize_item_base"
-    )]
     item_base: ItemBase,
     /// components is hidden to maintain the following invariants:
     /// - It should only contain modular components (and enhancements, once they
@@ -373,51 +370,6 @@ impl Hash for Item {
     }
 }
 
-// Custom serialization for ItemDef, we only want to send the item_definition_id
-// over the network, the client will use deserialize_item_def to fetch the
-// ItemDef from assets.
-fn serialize_item_base<S: Serializer>(field: &ItemBase, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    serializer.serialize_str(match field {
-        ItemBase::Raw(item_def) => &item_def.item_definition_id,
-        ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
-    })
-}
-
-// Custom de-serialization for ItemBase to retrieve the ItemBase from assets
-// using its asset specifier (item_definition_id)
-fn deserialize_item_base<'de, D>(deserializer: D) -> Result<ItemBase, D::Error>
-where
-    D: de::Deserializer<'de>,
-{
-    struct ItemBaseStringVisitor;
-
-    impl<'de> de::Visitor<'de> for ItemBaseStringVisitor {
-        type Value = ItemBase;
-
-        fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-            formatter.write_str("item def string")
-        }
-
-        fn visit_str<E>(self, serialized_item_base: &str) -> Result<Self::Value, E>
-        where
-            E: de::Error,
-        {
-            Ok(
-                if serialized_item_base.starts_with("veloren.core.pseudo_items.modular.") {
-                    ItemBase::Modular(ModularBase::load_from_pseudo_id(serialized_item_base))
-                } else {
-                    ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(serialized_item_base))
-                },
-            )
-        }
-    }
-
-    deserializer.deserialize_str(ItemBaseStringVisitor)
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ItemName {
     Direct(String),
@@ -425,10 +377,59 @@ pub enum ItemName {
     Component(String),
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug)]
 pub enum ItemBase {
     Raw(Arc<ItemDef>),
     Modular(modular::ModularBase),
+}
+
+impl Serialize for ItemBase {
+    // Custom serialization for ItemDef, we only want to send the item_definition_id
+    // over the network, the client will use deserialize_item_def to fetch the
+    // ItemDef from assets.
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(match self {
+            ItemBase::Raw(item_def) => &item_def.item_definition_id,
+            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
+        })
+    }
+}
+
+impl<'de> Deserialize<'de> for ItemBase {
+    // Custom de-serialization for ItemBase to retrieve the ItemBase from assets
+    // using its asset specifier (item_definition_id)
+    fn deserialize<D>(deserializer: D) -> Result<ItemBase, D::Error>
+    where
+        D: de::Deserializer<'de>,
+    {
+        struct ItemBaseStringVisitor;
+
+        impl<'de> de::Visitor<'de> for ItemBaseStringVisitor {
+            type Value = ItemBase;
+
+            fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+                formatter.write_str("item def string")
+            }
+
+            fn visit_str<E>(self, serialized_item_base: &str) -> Result<Self::Value, E>
+            where
+                E: de::Error,
+            {
+                Ok(
+                    if serialized_item_base.starts_with(crate::modular_item_id_prefix!()) {
+                        ItemBase::Modular(ModularBase::load_from_pseudo_id(serialized_item_base))
+                    } else {
+                        ItemBase::Raw(Arc::<ItemDef>::load_expect_cloned(serialized_item_base))
+                    },
+                )
+            }
+        }
+
+        deserializer.deserialize_str(ItemBaseStringVisitor)
+    }
 }
 
 impl ItemBase {
@@ -672,7 +673,7 @@ impl Item {
             components,
             slots: vec![None; inner_item.num_slots() as usize],
             item_base: inner_item,
-            // Updated immediately below
+            // These fields are updated immediately below
             item_config: None,
             hash: 0,
         };
@@ -963,19 +964,27 @@ impl Item {
 
     pub fn ability_spec(&self) -> Option<Cow<AbilitySpec>> {
         match &self.item_base {
-            ItemBase::Raw(item_def) => item_def.ability_spec.as_ref().map(Cow::Borrowed).or({
-                // If no custom ability set is specified, fall back to abilityset of tool kind.
-                if let ItemKind::Tool(tool) = &item_def.kind {
-                    Some(Cow::Owned(AbilitySpec::Tool(tool.kind)))
-                } else {
-                    None
-                }
-            }),
+            ItemBase::Raw(item_def) => {
+                item_def
+                    .ability_spec
+                    .as_ref()
+                    .map(Cow::Borrowed)
+                    .or_else(|| {
+                        // If no custom ability set is specified, fall back to abilityset of tool
+                        // kind.
+                        if let ItemKind::Tool(tool) = &item_def.kind {
+                            Some(Cow::Owned(AbilitySpec::Tool(tool.kind)))
+                        } else {
+                            None
+                        }
+                    })
+            },
             ItemBase::Modular(mod_base) => mod_base.ability_spec(self.components()),
         }
     }
 
-    // TODO: Maybe try to make slice again instead of vec?
+    // TODO: Maybe try to make slice again instead of vec? Could also try to make an
+    // iterator?
     pub fn tags(&self) -> Vec<ItemTag> {
         match &self.item_base {
             ItemBase::Raw(item_def) => item_def.tags.to_vec(),

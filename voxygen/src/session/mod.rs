@@ -1429,7 +1429,7 @@ impl PlayState for SessionState {
                         self.client.borrow_mut().craft_modular_weapon(
                             primary_slot,
                             secondary_slot,
-                            craft_sprite.map(|(pos, _sprite)| pos),
+                            craft_sprite,
                         );
                     },
                     HudEvent::CraftModularWeaponComponent {
@@ -1470,7 +1470,7 @@ impl PlayState for SessionState {
                                 material,
                                 modifier,
                                 additional_slots,
-                                craft_sprite.map(|(pos, _sprite)| pos),
+                                craft_sprite,
                             );
                         }
                     },

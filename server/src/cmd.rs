@@ -53,7 +53,7 @@ use common_state::{BuildAreaError, BuildAreas};
 use core::{cmp::Ordering, convert::TryFrom, time::Duration};
 use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
-use rand::Rng;
+use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, storage::StorageEntry, Builder, Entity as EcsEntity, Join, WorldExt,
 };
@@ -1941,11 +1941,12 @@ where
             return Err("Inventory doesn't have enough slots".to_owned());
         }
         for (item_id, quantity) in kit {
+            let mut rng = thread_rng();
             let mut item = match &item_id {
                 KitSpec::Item(item_id) => comp::Item::new_from_asset(item_id)
                     .map_err(|_| format!("Unknown item: {:#?}", item_id))?,
                 KitSpec::ModularWeapon { tool, material } => {
-                    comp::item::modular::random_weapon(*tool, *material, None)
+                    comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
                         .map_err(|err| format!("{:#?}", err))?
                 },
             };

@@ -784,13 +784,15 @@ impl Inventory {
 
     pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }
 
+    /// Update internal computed state of all top level items in this loadout.
+    /// Used only when loading in persistence code.
     pub fn persistence_update_all_item_states(
         &mut self,
         ability_map: &item::tool::AbilityMap,
         msm: &item::tool::MaterialStatManifest,
     ) {
-        self.slots_mut().for_each(|mut slot| {
-            if let Some(item) = &mut slot {
+        self.slots_mut().for_each(|slot| {
+            if let Some(item) = slot {
                 item.update_item_state(ability_map, msm);
             }
         });

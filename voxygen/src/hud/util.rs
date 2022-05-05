@@ -70,8 +70,8 @@ pub fn price_desc(
     }
 }
 
-pub fn kind_text<'a, I: ItemDesc + ?Sized>(item: &I, i18n: &'a Localization) -> Cow<'a, str> {
-    match &*item.kind() {
+pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
+    match kind {
         ItemKind::Armor(armor) => Cow::Borrowed(armor_kind(armor, i18n)),
         ItemKind::Tool(tool) => Cow::Owned(format!(
             "{} ({})",

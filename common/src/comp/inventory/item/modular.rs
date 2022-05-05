@@ -6,9 +6,19 @@ use crate::{assets::AssetExt, recipe};
 use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
-use rand::{prelude::SliceRandom, thread_rng};
+use rand::{prelude::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, sync::Arc};
+
+// Macro instead of constant to work with concat! macro.
+// DO NOT CHANGE. THIS PREFIX AFFECTS PERSISTENCE AND IF CHANGED A MIGRATION
+// MUST BE PERFORMED.
+#[macro_export]
+macro_rules! modular_item_id_prefix {
+    () => {
+        "veloren.core.pseudo_items.modular."
+    };
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ModularBase {
@@ -20,7 +30,7 @@ impl ModularBase {
     // FUNCTION BELOW.
     pub fn pseudo_item_id(&self) -> &str {
         match self {
-            ModularBase::Tool => "veloren.core.pseudo_items.modular.tool",
+            ModularBase::Tool => concat!(modular_item_id_prefix!(), "tool"),
         }
     }
 
@@ -28,7 +38,7 @@ impl ModularBase {
     // FUNCTION ABOVE.
     pub fn load_from_pseudo_id(id: &str) -> Self {
         match id {
-            "veloren.core.pseudo_items.modular.tool" => ModularBase::Tool,
+            concat!(modular_item_id_prefix!(), "tool") => ModularBase::Tool,
             _ => panic!("Attempted to load a non existent pseudo item: {}", id),
         }
     }
@@ -36,6 +46,8 @@ impl ModularBase {
     fn resolve_hands(components: &[Item]) -> Hands {
         // Checks if weapon has components that restrict hands to two. Restrictions to
         // one hand or no restrictions default to one-handed weapon.
+        // Note: Hand restriction here will never conflict on components
+        // TODO: Maybe look into adding an assert at some point?
         let hand_restriction = components.iter().find_map(|comp| match &*comp.kind() {
             ItemKind::ModularComponent(mc) => match mc {
                 ModularComponent::ToolPrimaryComponent {
@@ -52,7 +64,7 @@ impl ModularBase {
     }
 
     pub fn kind(&self, components: &[Item], msm: &MaterialStatManifest) -> Cow<ItemKind> {
-        pub fn resolve_stats(components: &[Item], msm: &MaterialStatManifest) -> tool::Stats {
+        fn resolve_stats(components: &[Item], msm: &MaterialStatManifest) -> tool::Stats {
             components
                 .iter()
                 .filter_map(|comp| {
@@ -230,7 +242,9 @@ impl ModularComponent {
                     .reduce(|(stats_a, count_a), (stats_b, count_b)| {
                         (stats_a + stats_b, count_a + count_b)
                     })
-                    .map_or_else(tool::Stats::one, |(stats_sum, count)| stats_sum / count);
+                    .map_or_else(tool::Stats::one, |(stats_sum, count)| {
+                        stats_sum / (count as f32)
+                    });
 
                 Some(*stats * average_material_mult)
             },
@@ -258,7 +272,6 @@ const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [
 type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Item, Option<Hands>)>>;
 type SecondaryComponentPool = HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>>;
 
-// TODO: Fix this. It broke when changes were made to component recipes
 lazy_static! {
     static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
         let mut component_pool = HashMap::new();
@@ -323,14 +336,13 @@ pub fn random_weapon(
     tool: ToolKind,
     material: Material,
     hand_restriction: Option<Hands>,
+    mut rng: &mut impl Rng,
 ) -> Result<Item, ModularWeaponCreationError> {
     let result = (|| {
         if let Some(material_id) = material.asset_identifier() {
             // Loads default ability map and material stat manifest for later use
             let ability_map = &AbilityMap::load().read();
             let msm = &MaterialStatManifest::load().read();
-
-            let mut rng = thread_rng();
 
             let primary_components = PRIMARY_COMPONENT_POOL
                 .get(&(tool, material_id.to_owned()))
@@ -384,10 +396,10 @@ pub fn random_weapon(
             Err(ModularWeaponCreationError::MaterialNotFound)
         }
     })();
-    if result.is_err() {
+    if let Err(err) = &result {
         let error_str = format!(
             "Failed to synthesize a modular {tool:?} made of {material:?} that had a hand \
-             restriction of {hand_restriction:?}."
+             restriction of {hand_restriction:?}. Error: {err:?}"
         );
         dev_panic!(error_str)
     }

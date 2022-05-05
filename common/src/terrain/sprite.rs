@@ -400,6 +400,12 @@ impl SpriteKind {
             SpriteKind::ChestBuried => table("common.loot_tables.sprite.chest-buried"),
             SpriteKind::Mud => table("common.loot_tables.sprite.mud"),
             SpriteKind::Crate => table("common.loot_tables.sprite.crate"),
+            SpriteKind::Wood => item("common.items.log.wood"),
+            SpriteKind::Bamboo => item("common.items.log.bamboo"),
+            SpriteKind::Hardwood => item("common.items.log.hardwood"),
+            SpriteKind::Ironwood => item("common.items.log.ironwood"),
+            SpriteKind::Frostwood => item("common.items.log.frostwood"),
+            SpriteKind::Eldwood => item("common.items.log.eldwood"),
             _ => return None,
         })
     }

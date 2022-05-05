@@ -193,11 +193,10 @@ impl Mul<Stats> for Stats {
 impl MulAssign<Stats> for Stats {
     fn mul_assign(&mut self, other: Stats) { *self = *self * other; }
 }
-impl Div<usize> for Stats {
+impl Div<f32> for Stats {
     type Output = Self;
 
-    fn div(self, scalar: usize) -> Self {
-        let scalar = scalar as f32;
+    fn div(self, scalar: f32) -> Self {
         Self {
             equip_time_secs: self.equip_time_secs / scalar,
             power: self.power / scalar,
@@ -211,7 +210,7 @@ impl Div<usize> for Stats {
     }
 }
 impl DivAssign<usize> for Stats {
-    fn div_assign(&mut self, scalar: usize) { *self = *self / scalar; }
+    fn div_assign(&mut self, scalar: usize) { *self = *self / (scalar as f32); }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

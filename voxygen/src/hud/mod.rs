@@ -536,13 +536,13 @@ pub enum Event {
     CraftModularWeapon {
         primary_slot: InvSlotId,
         secondary_slot: InvSlotId,
-        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        craft_sprite: Option<Vec3<i32>>,
     },
     CraftModularWeaponComponent {
         toolkind: ToolKind,
         material: InvSlotId,
         modifier: Option<InvSlotId>,
-        craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+        craft_sprite: Option<Vec3<i32>>,
     },
     InviteMember(Uid),
     AcceptInvite,
@@ -2963,7 +2963,11 @@ impl Hud {
                             events.push(Event::CraftModularWeapon {
                                 primary_slot,
                                 secondary_slot,
-                                craft_sprite: self.show.crafting_fields.craft_sprite,
+                                craft_sprite: self
+                                    .show
+                                    .crafting_fields
+                                    .craft_sprite
+                                    .map(|(pos, _sprite)| pos),
                             });
                         },
                         crafting::Event::CraftModularWeaponComponent {
@@ -2975,7 +2979,11 @@ impl Hud {
                                 toolkind,
                                 material,
                                 modifier,
-                                craft_sprite: self.show.crafting_fields.craft_sprite,
+                                craft_sprite: self
+                                    .show
+                                    .crafting_fields
+                                    .craft_sprite
+                                    .map(|(pos, _sprite)| pos),
                             });
                         },
                         crafting::Event::Close => {
@@ -3467,7 +3475,11 @@ impl Hud {
                         }
                     } else if let (Inventory(i), Crafting(c)) = (a, b) {
                         // Add item to crafting input
-                        if (c.requirement)(inventories.get(client.entity()), i.slot) {
+                        if (c.requirement)(
+                            inventories
+                                .get(client.entity())
+                                .and_then(|inv| inv.get(i.slot)),
+                        ) {
                             self.show
                                 .crafting_fields
                                 .recipe_inputs

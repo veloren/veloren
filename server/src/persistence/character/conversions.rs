@@ -268,7 +268,7 @@ fn get_mutable_item<'a, 'b, T>(
     inventory_items: &'a [Item],
     item_indices: &'a HashMap<i64, usize>,
     inventory: &'b mut T,
-    get_mut_item: &'a dyn Fn(&'b mut T, &str) -> Option<&'b mut VelorenItem>,
+    get_mut_item: &'a impl Fn(&'b mut T, &str) -> Option<&'b mut VelorenItem>,
 ) -> Option<&'a mut VelorenItem>
 where
     'b: 'a,

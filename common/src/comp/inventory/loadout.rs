@@ -403,6 +403,8 @@ impl Loadout {
         }
     }
 
+    /// Update internal computed state of all top level items in this loadout.
+    /// Used only when loading in persistence code.
     pub fn persistence_update_all_item_states(
         &mut self,
         ability_map: &item::tool::AbilityMap,

@@ -156,7 +156,11 @@ impl Recipe {
             .map(|(item_def, amount, is_mod_comp)| (item_def, *amount, *is_mod_comp))
     }
 
-    /// Determines if the inventory contains the ingredients for a given recipe
+    /// Determine whether the inventory contains the ingredients for a recipe.
+    /// If it does, return a vec of inventory slots that contain the
+    /// ingredients needed, whose positions correspond to particular recipe
+    /// inputs. If items are missing, return the missing items, and how many
+    /// are missing.
     pub fn inventory_contains_ingredients(
         &self,
         inv: &Inventory,
@@ -170,14 +174,15 @@ impl Recipe {
 }
 
 /// Determine whether the inventory contains the ingredients for a recipe.
-/// If it does, return a vec of  inventory slots that contain the
+/// If it does, return a vec of inventory slots that contain the
 /// ingredients needed, whose positions correspond to particular recipe
 /// inputs. If items are missing, return the missing items, and how many
 /// are missing.
+// Note: Doc comment duplicated on two public functions that call this function
 #[allow(clippy::type_complexity)]
-fn inventory_contains_ingredients<'a, 'b, I: Iterator<Item = (&'a RecipeInput, u32)>>(
+fn inventory_contains_ingredients<'a, I: Iterator<Item = (&'a RecipeInput, u32)>>(
     ingredients: I,
-    inv: &'b Inventory,
+    inv: &Inventory,
 ) -> Result<Vec<(u32, InvSlotId)>, Vec<(&'a RecipeInput, u32)>> {
     // Hashmap tracking the quantity that needs to be removed from each slot (so
     // that it doesn't think a slot can provide more items than it contains)
@@ -278,7 +283,7 @@ pub fn modular_weapon(
         })
     }
 
-    // Checks if both components are comptabile, and if so returns the toolkind to
+    // Checks if both components are compatible, and if so returns the toolkind to
     // make weapon of
     let compatiblity = if let (Some(primary_component), Some(secondary_component)) = (
         unwrap_modular(inv, primary_component),
@@ -387,7 +392,7 @@ impl assets::Asset for RawRecipeBook {
 }
 
 #[derive(Deserialize, Clone)]
-pub struct ItemList(pub Vec<String>);
+pub struct ItemList(Vec<String>);
 
 impl assets::Asset for ItemList {
     type Loader = assets::RonLoader;
@@ -484,12 +489,12 @@ impl assets::Asset for RawComponentRecipeBook {
 #[derive(Clone, Debug, Serialize, Deserialize, Hash, Eq, PartialEq)]
 pub struct ComponentKey {
     // Can't use ItemDef here because hash needed, item definition id used instead
-    // TODO: Figure out how to get back to ItemDef maybe?
-    // Keeping under ComponentRecipe may be sufficient?
     // TODO: Make more general for other things that have component inputs that should be tracked
     // after item creation
     pub toolkind: ToolKind,
+    /// Refers to the item definition id of the material
     pub material: String,
+    /// Refers to the item definition id of the material
     pub modifier: Option<String>,
 }
 
@@ -503,7 +508,7 @@ pub struct ComponentRecipe {
 }
 
 impl ComponentRecipe {
-    /// Craft an itme that has components, returning a list of missing items on
+    /// Craft an item that has components, returning a list of missing items on
     /// failure
     pub fn craft_component(
         &self,
@@ -621,7 +626,10 @@ impl ComponentRecipe {
     }
 
     #[allow(clippy::type_complexity)]
-    /// Determines if the inventory contains the ignredients for a given recipe
+    /// Determine whether the inventory contains the additional ingredients for
+    /// a component recipe. If it does, return a vec of inventory slots that
+    /// contain the ingredients needed, whose positions correspond to particular
+    /// recipe are missing.
     pub fn inventory_contains_additional_ingredients<'a>(
         &self,
         inv: &'a Inventory,
@@ -636,12 +644,6 @@ impl ComponentRecipe {
 
     pub fn item_output(&self, ability_map: &AbilityMap, msm: &MaterialStatManifest) -> Item {
         match &self.output {
-            ComponentOutput::Item(item_def) => Item::new_from_item_base(
-                ItemBase::Raw(Arc::clone(item_def)),
-                Vec::new(),
-                ability_map,
-                msm,
-            ),
             ComponentOutput::ItemComponents {
                 item: item_def,
                 components,
@@ -669,31 +671,38 @@ impl ComponentRecipe {
 
     pub fn inputs(&self) -> impl ExactSizeIterator<Item = (&RecipeInput, u32)> {
         pub struct ComponentRecipeInputsIterator<'a> {
-            material: bool,
-            modifier: bool,
-            index: usize,
-            recipe: &'a ComponentRecipe,
+            // material: bool,
+            // modifier: bool,
+            // index: usize,
+            // recipe: &'a ComponentRecipe,
+            material: Option<&'a (RecipeInput, u32)>,
+            modifier: Option<&'a (RecipeInput, u32)>,
+            additional_inputs: std::slice::Iter<'a, (RecipeInput, u32)>,
         }
 
         impl<'a> Iterator for ComponentRecipeInputsIterator<'a> {
             type Item = &'a (RecipeInput, u32);
 
             fn next(&mut self) -> Option<&'a (RecipeInput, u32)> {
-                if !self.material {
-                    self.material = true;
-                    Some(&self.recipe.material)
-                } else if !self.modifier {
-                    self.modifier = true;
-                    if self.recipe.modifier.is_some() {
-                        self.recipe.modifier.as_ref()
-                    } else {
-                        self.index += 1;
-                        self.recipe.additional_inputs.get(self.index - 1)
-                    }
-                } else {
-                    self.index += 1;
-                    self.recipe.additional_inputs.get(self.index - 1)
-                }
+                // if !self.material {
+                //     self.material = true;
+                //     Some(&self.recipe.material)
+                // } else if !self.modifier {
+                //     self.modifier = true;
+                //     if self.recipe.modifier.is_some() {
+                //         self.recipe.modifier.as_ref()
+                //     } else {
+                //         self.index += 1;
+                //         self.recipe.additional_inputs.get(self.index - 1)
+                //     }
+                // } else {
+                //     self.index += 1;
+                //     self.recipe.additional_inputs.get(self.index - 1)
+                // }
+                self.material
+                    .take()
+                    .or_else(|| self.modifier.take())
+                    .or_else(|| self.additional_inputs.next())
             }
         }
 
@@ -703,17 +712,24 @@ impl ComponentRecipe {
 
             fn into_iter(self) -> Self::IntoIter {
                 ComponentRecipeInputsIterator {
-                    material: false,
-                    modifier: false,
-                    index: 0,
-                    recipe: self,
+                    // material: false,
+                    // modifier: false,
+                    // index: 0,
+                    // recipe: self,
+                    material: Some(&self.material),
+                    modifier: self.modifier.as_ref(),
+                    additional_inputs: self.additional_inputs.as_slice().iter(),
                 }
             }
         }
 
         impl<'a> ExactSizeIterator for ComponentRecipeInputsIterator<'a> {
             fn len(&self) -> usize {
-                1 + self.recipe.modifier.is_some() as usize + self.recipe.additional_inputs.len()
+                // 1 + self.recipe.modifier.is_some() as usize +
+                // self.recipe.additional_inputs.len()
+                self.material.is_some() as usize
+                    + self.modifier.is_some() as usize
+                    + self.additional_inputs.len()
             }
         }
 
@@ -732,7 +748,6 @@ struct RawComponentRecipe {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum ComponentOutput {
-    Item(Arc<ItemDef>),
     ItemComponents {
         item: Arc<ItemDef>,
         components: Vec<Arc<ItemDef>>,
@@ -741,7 +756,6 @@ enum ComponentOutput {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum RawComponentOutput {
-    Item(String),
     ItemComponents {
         item: String,
         components: Vec<String>,
@@ -778,9 +792,6 @@ impl assets::Compound for ComponentRecipeBook {
             output: &RawComponentOutput,
         ) -> Result<ComponentOutput, assets::Error> {
             let def = match &output {
-                RawComponentOutput::Item(def) => {
-                    ComponentOutput::Item(Arc::<ItemDef>::load_cloned(def)?)
-                },
                 RawComponentOutput::ItemComponents {
                     item: def,
                     components: defs,

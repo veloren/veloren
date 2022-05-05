@@ -264,18 +264,20 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 Slot::Inventory(slot) => {
                     use item::ItemKind;
 
-                    let is_equippable = inventory
-                        .get(slot)
-                        .map_or(false, |i| i.kind().is_equippable());
-                    if is_equippable {
-                        if let Some(lantern_info) =
-                            inventory.get(slot).and_then(|i| match &*i.kind() {
+                    let (is_equippable, lantern_info) =
+                        inventory.get(slot).map_or((false, None), |i| {
+                            let kind = i.kind();
+                            let is_equippable = kind.is_equippable();
+                            let lantern_info = match &*kind {
                                 ItemKind::Lantern(lantern) => {
                                     Some((lantern.color(), lantern.strength()))
                                 },
                                 _ => None,
-                            })
-                        {
+                            };
+                            (is_equippable, lantern_info)
+                        });
+                    if is_equippable {
+                        if let Some(lantern_info) = lantern_info {
                             swap_lantern(&mut state.ecs().write_storage(), entity, lantern_info);
                         }
                         if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
@@ -595,37 +597,39 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             use comp::controller::CraftEvent;
             use recipe::ComponentKey;
             let recipe_book = default_recipe_book().read();
-            let component_recipes = default_component_recipe_book().read();
             let ability_map = &state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
+
+            let get_craft_sprite = |state, sprite_pos: Option<Vec3<i32>>| {
+                sprite_pos
+                    .filter(|pos| {
+                        let entity_cylinder = get_cylinder(state, entity);
+                        let in_range = within_pickup_range(entity_cylinder, || {
+                            Some(find_dist::Cube {
+                                min: pos.as_(),
+                                side_length: 1.0,
+                            })
+                        });
+                        if !in_range {
+                            debug!(
+                                ?entity_cylinder,
+                                "Failed to craft recipe as not within range of required sprite, \
+                                 sprite pos: {}",
+                                pos
+                            );
+                        }
+                        in_range
+                    })
+                    .and_then(|pos| state.terrain().get(pos).ok().copied())
+                    .and_then(|block| block.get_sprite())
+            };
 
             let crafted_items = match craft_event {
                 CraftEvent::Simple { recipe, slots } => recipe_book
                     .get(&recipe)
                     .filter(|r| {
                         if let Some(needed_sprite) = r.craft_sprite {
-                            let sprite = craft_sprite
-                                .filter(|pos| {
-                                    let entity_cylinder = get_cylinder(state, entity);
-                                    if !within_pickup_range(entity_cylinder, || {
-                                        Some(find_dist::Cube {
-                                            min: pos.as_(),
-                                            side_length: 1.0,
-                                        })
-                                    }) {
-                                        debug!(
-                                            ?entity_cylinder,
-                                            "Failed to craft recipe as not within range of \
-                                             required sprite, sprite pos: {}",
-                                            pos
-                                        );
-                                        false
-                                    } else {
-                                        true
-                                    }
-                                })
-                                .and_then(|pos| state.terrain().get(pos).ok().copied())
-                                .and_then(|block| block.get_sprite());
+                            let sprite = get_craft_sprite(state, craft_sprite);
                             Some(needed_sprite) == sprite
                         } else {
                             true
@@ -641,28 +645,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         .ok()
                     }),
                 CraftEvent::Salvage(slot) => {
-                    let sprite = craft_sprite
-                        .filter(|pos| {
-                            let entity_cylinder = get_cylinder(state, entity);
-                            if !within_pickup_range(entity_cylinder, || {
-                                Some(find_dist::Cube {
-                                    min: pos.as_(),
-                                    side_length: 1.0,
-                                })
-                            }) {
-                                debug!(
-                                    ?entity_cylinder,
-                                    "Failed to craft recipe as not within range of required \
-                                     sprite, sprite pos: {}",
-                                    pos
-                                );
-                                false
-                            } else {
-                                true
-                            }
-                        })
-                        .and_then(|pos| state.terrain().get(pos).ok().copied())
-                        .and_then(|block| block.get_sprite());
+                    let sprite = get_craft_sprite(state, craft_sprite);
                     if matches!(sprite, Some(SpriteKind::DismantlingBench)) {
                         recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()
                     } else {
@@ -673,28 +656,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     primary_component,
                     secondary_component,
                 } => {
-                    let sprite = craft_sprite
-                        .filter(|pos| {
-                            let entity_cylinder = get_cylinder(state, entity);
-                            if !within_pickup_range(entity_cylinder, || {
-                                Some(find_dist::Cube {
-                                    min: pos.as_(),
-                                    side_length: 1.0,
-                                })
-                            }) {
-                                debug!(
-                                    ?entity_cylinder,
-                                    "Failed to craft recipe as not within range of required \
-                                     sprite, sprite pos: {}",
-                                    pos
-                                );
-                                false
-                            } else {
-                                true
-                            }
-                        })
-                        .and_then(|pos| state.terrain().get(pos).ok().copied())
-                        .and_then(|block| block.get_sprite());
+                    let sprite = get_craft_sprite(state, craft_sprite);
                     if matches!(sprite, Some(SpriteKind::CraftingBench)) {
                         recipe::modular_weapon(
                             &mut inventory,
@@ -715,6 +677,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     modifier,
                     slots,
                 } => {
+                    let component_recipes = default_component_recipe_book().read();
                     let item_id = |slot| inventory.get(slot).map(|item| item.item_definition_id());
                     if let Some(material_item_id) = item_id(material) {
                         component_recipes
@@ -725,28 +688,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             })
                             .filter(|r| {
                                 if let Some(needed_sprite) = r.craft_sprite {
-                                    let sprite = craft_sprite
-                                        .filter(|pos| {
-                                            let entity_cylinder = get_cylinder(state, entity);
-                                            if !within_pickup_range(entity_cylinder, || {
-                                                Some(find_dist::Cube {
-                                                    min: pos.as_(),
-                                                    side_length: 1.0,
-                                                })
-                                            }) {
-                                                debug!(
-                                                    ?entity_cylinder,
-                                                    "Failed to craft recipe as not within range \
-                                                     of required sprite, sprite pos: {}",
-                                                    pos
-                                                );
-                                                false
-                                            } else {
-                                                true
-                                            }
-                                        })
-                                        .and_then(|pos| state.terrain().get(pos).ok().copied())
-                                        .and_then(|block| block.get_sprite());
+                                    let sprite = get_craft_sprite(state, craft_sprite);
                                     Some(needed_sprite) == sprite
                                 } else {
                                     true

@@ -1084,10 +1084,12 @@ impl Client {
     /// Crafts modular weapon from components in the provided slots.
     /// `sprite_pos` should be the location of the necessary crafting station in
     /// range of the player.
+    /// Returns whether or not the networking event was sent (which is based on
+    /// whether the player has two modular components in the provided slots)
     pub fn craft_modular_weapon(
         &mut self,
-        slot_a: InvSlotId,
-        slot_b: InvSlotId,
+        primary_component: InvSlotId,
+        secondary_component: InvSlotId,
         sprite_pos: Option<Vec3<i32>>,
     ) -> bool {
         let inventories = self.inventories();
@@ -1112,17 +1114,10 @@ impl Client {
             _ => None,
         };
 
-        // Gets slot order of damage and held components if two provided slots contains
-        // both a primary and secondary component
-        let slot_order = match (mod_kind(slot_a), mod_kind(slot_b)) {
-            (Some(ModKind::Primary), Some(ModKind::Secondary)) => Some((slot_a, slot_b)),
-            (Some(ModKind::Secondary), Some(ModKind::Primary)) => Some((slot_b, slot_a)),
-            _ => None,
-        };
-
-        drop(inventories);
-
-        if let Some((primary_component, secondary_component)) = slot_order {
+        if let (Some(ModKind::Primary), Some(ModKind::Secondary)) =
+            (mod_kind(primary_component), mod_kind(secondary_component))
+        {
+            drop(inventories);
             self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
                 InventoryEvent::CraftRecipe {
                     craft_event: CraftEvent::ModularWeapon {

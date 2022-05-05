@@ -465,11 +465,11 @@ impl<'a> Widget for ItemTooltip<'a> {
 
         let item_kind = &*item.kind();
 
-        let equip_slot = inventory.equipped_items_replaceable_by(item_kind);
+        let equipped_item = inventory.equipped_items_replaceable_by(item_kind).next();
 
         let (title, desc) = (item.name().to_string(), item.description().to_string());
 
-        let item_kind = util::kind_text(item, i18n).to_string();
+        let item_kind = util::kind_text(item_kind, i18n).to_string();
 
         let material = item.tags().into_iter().find_map(|t| match t {
             ItemTag::MaterialKind(material) => Some(material),
@@ -706,7 +706,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                 .down_from(state.ids.stats[5], V_PAD_STATS)
                 .set(state.ids.stats[6], ui);
 
-                if let Some(equipped_item) = first_equipped {
+                if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Tool(equipped_tool) = &*equipped_item.kind() {
                         let tool_stats = tool.stats;
                         let equipped_tool_stats = equipped_tool.stats;
@@ -1034,7 +1034,7 @@ impl<'a> Widget for ItemTooltip<'a> {
                     },
                 }
 
-                if let Some(equipped_item) = first_equipped {
+                if let Some(equipped_item) = equipped_item {
                     if let ItemKind::Armor(equipped_armor) = &*equipped_item.kind() {
                         let diff = armor.stats - equipped_armor.stats;
                         let protection_diff = util::option_comparison(

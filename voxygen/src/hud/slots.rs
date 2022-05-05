@@ -8,7 +8,7 @@ use crate::ui::slot::{self, SlotKey, SumSlot};
 use common::comp::{
     ability::{Ability, AbilityInput, AuxiliaryAbility},
     slot::InvSlotId,
-    ActiveAbilities, Body, Energy, Inventory, ItemKey, SkillSet,
+    ActiveAbilities, Body, Energy, Inventory, Item, ItemKey, SkillSet,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -239,7 +239,7 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 pub struct CraftSlot {
     pub index: u32,
     pub invslot: Option<InvSlotId>,
-    pub requirement: fn(Option<&Inventory>, InvSlotId) -> bool,
+    pub requirement: fn(Option<&Item>) -> bool,
 }
 
 impl PartialEq for CraftSlot {
@@ -249,7 +249,13 @@ impl PartialEq for CraftSlot {
 }
 
 impl Debug for CraftSlot {
-    fn fmt(&self, _: &mut Formatter<'_>) -> Result<(), std::fmt::Error> { todo!() }
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.debug_struct("CraftSlot")
+            .field("index", &self.index)
+            .field("invslot", &self.invslot)
+            .field("requirement", &"fn ptr")
+            .finish()
+    }
 }
 
 impl SlotKey<Inventory, ItemImgs> for CraftSlot {

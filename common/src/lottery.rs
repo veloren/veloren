@@ -96,6 +96,7 @@ pub enum LootSpec<T: AsRef<str>> {
 
 impl<T: AsRef<str>> LootSpec<T> {
     pub fn to_item(&self) -> Option<Item> {
+        let mut rng = thread_rng();
         match self {
             Self::Item(item) => Item::new_from_asset(item.as_ref()).map_or_else(
                 |e| {
@@ -130,7 +131,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                 tool,
                 material,
                 hands,
-            } => item::modular::random_weapon(*tool, *material, *hands).map_or_else(
+            } => item::modular::random_weapon(*tool, *material, *hands, &mut rng).map_or_else(
                 |e| {
                     warn!(
                         ?e,
@@ -138,7 +139,7 @@ impl<T: AsRef<str>> LootSpec<T> {
                          Hands: {:?}",
                         tool,
                         material,
-                        hands
+                        hands,
                     );
                     None
                 },
@@ -159,6 +160,7 @@ pub mod tests {
 
     #[cfg(test)]
     pub fn validate_loot_spec(item: &LootSpec<String>) {
+        let mut rng = thread_rng();
         match item {
             LootSpec::Item(item) => {
                 Item::new_from_asset_expect(item);
@@ -183,12 +185,20 @@ pub mod tests {
                 validate_table_contents(loot_table);
             },
             LootSpec::Nothing => {},
-            // TODO: Figure out later
             LootSpec::ModularWeapon {
                 tool,
                 material,
                 hands,
-            } => std::mem::drop(item::modular::random_weapon(*tool, *material, *hands)),
+            } => {
+                item::modular::random_weapon(*tool, *material, *hands, &mut rng).unwrap_or_else(
+                    |_| {
+                        panic!(
+                            "Failed to synthesize a modular {tool:?} made of {material:?} that \
+                             had a hand restriction of {hands:?}."
+                        )
+                    },
+                );
+            },
         }
     }
 

@@ -40,7 +40,8 @@ enum ItemSpec {
     Item(String),
     Choice(Vec<(Weight, Option<ItemSpec>)>),
     /// Modular weapon
-    /// Example:
+    /// Parameters in this variant are used to randomly create a modular weapon
+    /// that meets the provided parameters Example:
     /// ModularWeapon {
     ///     tool: Sword,
     ///     material: Iron,
@@ -76,9 +77,7 @@ impl ItemSpec {
                 tool,
                 material,
                 hands,
-            } => {
-                item::modular::random_weapon(*tool, *material, *hands)
-            },
+            } => item::modular::random_weapon(*tool, *material, *hands),
         }
     }
 
@@ -97,6 +96,13 @@ impl ItemSpec {
                     }
                 }
                 Ok(())
+            },
+            ItemSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => {
+                item::modular::random_weapon(*tool, *material, *hands)
             },
         }
     }
@@ -136,11 +142,6 @@ impl Hands {
 
                 pair_spec.try_to_pair(rng)
             },
-            ItemSpec::ModularWeapon {
-                tool,
-                material,
-                hands,
-            } => item::modular::random_weapon(*tool, *material, *hands).ok(),
         }
     }
 

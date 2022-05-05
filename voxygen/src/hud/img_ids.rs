@@ -128,9 +128,9 @@ image_ids! {
         icon_bag: "voxygen.element.items.item_bag_leather_large",
         icon_processed_material: "voxygen.element.ui.crafting.icons.processed_material",
         crafting_modular_art: "voxygen.element.ui.crafting.modular_weps_art",
-        ing_ico_prim: "voxygen.element.ui.crafting.icons.blade",
-        ing_ico_sec: "voxygen.element.ui.crafting.icons.handle",
-        wep_ico: "voxygen.element.ui.bag.backgrounds.mainhand",
+        icon_primary_comp: "voxygen.element.ui.crafting.icons.blade",
+        icon_secondary_comp: "voxygen.element.ui.crafting.icons.handle",
+        icon_mod_weap: "voxygen.element.ui.bag.backgrounds.mainhand",
         // Group Window
         member_frame: "voxygen.element.ui.groups.group_member_frame",
         member_bg: "voxygen.element.ui.groups.group_member_bg",

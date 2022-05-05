@@ -967,12 +967,20 @@ mod tests {
     #[test]
     fn test_load_kits() {
         let kits = KitManifest::load_expect(KIT_MANIFEST_PATH).read();
+        let mut rng = rand::thread_rng();
         for kit in kits.0.values() {
             for (item_id, _) in kit.iter() {
                 match item_id {
-                    KitSpec::Item(item_id) => std::mem::drop(Item::new_from_asset_expect(item_id)),
+                    KitSpec::Item(item_id) => {
+                        Item::new_from_asset_expect(item_id);
+                    },
                     KitSpec::ModularWeapon { tool, material } => {
-                        std::mem::drop(comp::item::modular::random_weapon(*tool, *material, None))
+                        comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
+                            .unwrap_or_else(|_| {
+                                panic!(
+                                    "Failed to synthesize a modular {tool:?} made of {material:?}."
+                                )
+                            });
                     },
                 }
             }
