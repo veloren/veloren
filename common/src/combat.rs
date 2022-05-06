@@ -1196,7 +1196,7 @@ pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
                     None
                 }
             })
-            .fold(0.0, |a, b| a + b)
+            .sum()
     });
 
     (1.0 / (1.0 + stealth_sum)).clamp(0.0, 1.0)
