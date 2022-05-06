@@ -143,6 +143,10 @@ pub struct SizeOpts {
     scale: f64,
 }
 
+impl SizeOpts {
+    pub fn new(x_lg: u32, y_lg: u32, scale: f64) -> Self { Self { x_lg, y_lg, scale } }
+}
+
 impl Default for SizeOpts {
     fn default() -> Self {
         Self {
