@@ -6,28 +6,12 @@
     loot: LootTable("common.loot_tables.creature.humanoid"),
     inventory: (
         loadout: Inline((
-            active_hands: ([
-                (2, (
-                    tool: Bow,
-                    material: Eldwood,
-                    hands: None,
-                )),
-                (1, (
-                    tool: Sword,
-                    material: Steel,
-                    hands: None,
-                )),
-                (1, (
-                    tool: Sword,
-                    material: Bloodsteel,
-                    hands: None,
-                )),
-                (2, (
-                    tool: Staff,
-                    material: Ironwood,
-                    hands: None,
-                )),
-            ], None),
+            active_hands: InHands((Choice([
+                (2, ModularWeapon(tool: Bow, material: Eldwood, hands: None)),
+                (1, ModularWeapon(tool: Sword, material: Steel, hands: None)),
+                (1, ModularWeapon(tool: Sword, material: Bloodsteel, hands: None)),
+                (2, ModularWeapon(tool: Staff, material: Ironwood, hands: None)),
+            ]), None)),
         )),
     ),
     meta: [

@@ -7,23 +7,15 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-5.cultist"),
-            active_hands: ([
-                (2, (
-                    tool: Axe,
-                    material: Orichalcum,
-                    hands: Some(One),
-                )),
-                (4, "common.items.weapons.sword.cultist"),
-                (2, "common.items.weapons.staff.cultist_staff"),
-                (2, "common.items.weapons.hammer.cultist_purp_2h-0"),
-                (2, (
-                    tool: Hammer,
-                    material: Orichalcum,
-                    hands: Some(One),
-                )),
-                (2, "common.items.weapons.bow.velorite"),
-                (1, "common.items.weapons.sceptre.sceptre_velorite_0"),
-            ], None),
+            active_hands: InHands((Choice([
+                (2, ModularWeapon(tool: Axe, material: Orichalcum, hands: One)),
+                (4, Item("common.items.weapons.sword.cultist")),
+                (2, Item("common.items.weapons.staff.cultist_staff")),
+                (2, Item("common.items.weapons.hammer.cultist_purp_2h-0")),
+                (2, ModularWeapon(tool: Hammer, material: Orichalcum, hands: One)),
+                (2, Item("common.items.weapons.bow.velorite")),
+                (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
+            ]), None)),
         )),
     ),
     meta: [

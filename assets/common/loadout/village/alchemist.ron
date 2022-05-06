@@ -1,10 +1,10 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.armor.alchemist.hat",
-    chest: "common.items.armor.alchemist.chest",
-    gloves: "common.items.armor.cloth.druid.hand",
-    belt: "common.items.armor.alchemist.belt",
-    legs: "common.items.armor.alchemist.pants",
-    feet: "common.items.armor.ferocious.foot",
-    lantern: "common.items.lantern.black_0",
+    head: Item("common.items.armor.alchemist.hat"),
+    chest: Item("common.items.armor.alchemist.chest"),
+    gloves: Item("common.items.armor.cloth.druid.hand"),
+    belt: Item("common.items.armor.alchemist.belt"),
+    legs: Item("common.items.armor.alchemist.pants"),
+    feet: Item("common.items.armor.ferocious.foot"),
+    lantern: Item("common.items.lantern.black_0"),
 )

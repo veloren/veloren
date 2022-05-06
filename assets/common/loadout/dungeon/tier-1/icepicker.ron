@@ -1,9 +1,9 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.npc_armor.biped_small.adlet.head.icepicker",
-    chest: "common.items.npc_armor.biped_small.adlet.chest.icepicker",
-    gloves: "common.items.npc_armor.biped_small.adlet.hand.icepicker",
-    belt: "common.items.npc_armor.biped_small.adlet.tail.icepicker",
-    legs: "common.items.npc_armor.biped_small.adlet.pants.icepicker",
-    feet: "common.items.npc_armor.biped_small.adlet.foot.icepicker",
+    head: Item("common.items.npc_armor.biped_small.adlet.head.icepicker"),
+    chest: Item("common.items.npc_armor.biped_small.adlet.chest.icepicker"),
+    gloves: Item("common.items.npc_armor.biped_small.adlet.hand.icepicker"),
+    belt: Item("common.items.npc_armor.biped_small.adlet.tail.icepicker"),
+    legs: Item("common.items.npc_armor.biped_small.adlet.pants.icepicker"),
+    feet: Item("common.items.npc_armor.biped_small.adlet.foot.icepicker"),
 )

@@ -1,37 +1,29 @@
 //Little easter egg, lost their mask in a chest
 #![enable(implicit_some)]
 (
-    head: [
-        (111, "common.items.armor.cultist.bandana"),
+    head: Choice([
+        (111, Item("common.items.armor.cultist.bandana")),
         (1, None),
-    ],
-    shoulders: "common.items.armor.cultist.shoulder",
-    chest: "common.items.armor.cultist.chest",
-    gloves: "common.items.armor.cultist.hand",
-    back: "common.items.armor.misc.back.dungeon_purple",
-    belt: "common.items.armor.cultist.belt",
-    legs: "common.items.armor.cultist.pants",
-    feet: "common.items.armor.cultist.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
+    ]),
+    shoulders: Item("common.items.armor.cultist.shoulder"),
+    chest: Item("common.items.armor.cultist.chest"),
+    gloves: Item("common.items.armor.cultist.hand"),
+    back: Item("common.items.armor.misc.back.dungeon_purple"),
+    belt: Item("common.items.armor.cultist.belt"),
+    legs: Item("common.items.armor.cultist.pants"),
+    feet: Item("common.items.armor.cultist.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
         (2, None),
-    ],
-    glider: "common.items.glider.skullgrin",
-    active_hands: ([
-        (2, (
-            tool: Axe,
-            material: Orichalcum,
-            hands: None,
-        )),
-        (4, "common.items.weapons.sword.cultist"),
-        (2, "common.items.weapons.staff.cultist_staff"),
-        (2, "common.items.weapons.hammer.cultist_purp_2h-0"),
-        (2, (
-            tool: Hammer,
-            material: Orichalcum,
-            hands: None,
-        )),
-        (2, "common.items.weapons.bow.velorite"),
-        (1, "common.items.weapons.sceptre.sceptre_velorite_0"),
-    ], None),
+    ]),
+    glider: Item("common.items.glider.skullgrin"),
+    active_hands: InHands((Choice([
+        (2, ModularWeapon(tool: Axe, material: Orichalcum, hands: None)),
+        (4, Item("common.items.weapons.sword.cultist")),
+        (2, Item("common.items.weapons.staff.cultist_staff")),
+        (2, Item("common.items.weapons.hammer.cultist_purp_2h-0")),
+        (2, ModularWeapon(tool: Hammer, material: Orichalcum, hands: None)),
+        (2, Item("common.items.weapons.bow.velorite")),
+        (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
+    ]), None)),
 )

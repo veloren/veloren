@@ -1,23 +1,23 @@
 #![enable(implicit_some)]
 (
-    shoulders: "common.items.armor.cloth.sunsilk.shoulder",
-    chest: "common.items.armor.cloth.sunsilk.chest",
-    gloves: "common.items.armor.cloth.sunsilk.hand",
-    back: [
-        (1, "common.items.armor.misc.back.backpack"),
-        (1, "common.items.npc_armor.back.backpack_blue"),
-        (1, "common.items.armor.cloth.sunsilk.back"),
+    shoulders: Item("common.items.armor.cloth.sunsilk.shoulder"),
+    chest: Item("common.items.armor.cloth.sunsilk.chest"),
+    gloves: Item("common.items.armor.cloth.sunsilk.hand"),
+    back: Choice([
+        (1, Item("common.items.armor.misc.back.backpack")),
+        (1, Item("common.items.npc_armor.back.backpack_blue")),
+        (1, Item("common.items.armor.cloth.sunsilk.back")),
         (1, None),
-    ],
-    belt: "common.items.armor.cloth.sunsilk.belt",
-    legs: "common.items.armor.cloth.sunsilk.pants",
-    feet: "common.items.armor.cloth.sunsilk.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
-        (1, "common.items.lantern.blue_0"),
-        (1, "common.items.lantern.green_0"),
-        (1, "common.items.lantern.red_0"),
-        (1, "common.items.lantern.geode_purp"),
-        (1, "common.items.boss_drops.lantern"),
-    ],
+    ]),
+    belt: Item("common.items.armor.cloth.sunsilk.belt"),
+    legs: Item("common.items.armor.cloth.sunsilk.pants"),
+    feet: Item("common.items.armor.cloth.sunsilk.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
+        (1, Item("common.items.lantern.blue_0")),
+        (1, Item("common.items.lantern.green_0")),
+        (1, Item("common.items.lantern.red_0")),
+        (1, Item("common.items.lantern.geode_purp")),
+        (1, Item("common.items.boss_drops.lantern")),
+    ]),
 )

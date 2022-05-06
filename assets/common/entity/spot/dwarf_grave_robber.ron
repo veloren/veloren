@@ -7,14 +7,10 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.dwarf_graverobber"),
-            active_hands: (
-                (
-                    tool: Hammer,
-                    material: Steel,
-                    hands: Some(Two),
-                ),
+            active_hands: InHands((
+                ModularWeapon(tool: Hammer, material: Steel, hands: Two),
                 None
-            ),
+            )),
         )),
     ),
     meta: [

@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.mandragora"),
-            active_hands: ("common.items.npc_weapons.biped_small.mandragora", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.mandragora"), None)),
         )),
     ),
     meta: [],

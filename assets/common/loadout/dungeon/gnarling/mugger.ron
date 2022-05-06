@@ -1,9 +1,9 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.npc_armor.biped_small.gnarling.head.mugger",
-    chest: "common.items.npc_armor.biped_small.gnarling.chest.mugger",
-    gloves: "common.items.npc_armor.biped_small.gnarling.hand.mugger",
-    belt: "common.items.npc_armor.biped_small.gnarling.tail.mugger",
-    legs: "common.items.npc_armor.biped_small.gnarling.pants.mugger",
-    feet: "common.items.npc_armor.biped_small.gnarling.foot.mugger",
+    head: Item("common.items.npc_armor.biped_small.gnarling.head.mugger"),
+    chest: Item("common.items.npc_armor.biped_small.gnarling.chest.mugger"),
+    gloves: Item("common.items.npc_armor.biped_small.gnarling.hand.mugger"),
+    belt: Item("common.items.npc_armor.biped_small.gnarling.tail.mugger"),
+    legs: Item("common.items.npc_armor.biped_small.gnarling.pants.mugger"),
+    feet: Item("common.items.npc_armor.biped_small.gnarling.foot.mugger"),
 )

@@ -9,7 +9,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.village.merchant"),
-            active_hands: ("common.items.weapons.sword.cultist", None),
+            active_hands: InHands((Item("common.items.weapons.sword.cultist"), None)),
         )),
     ),
     meta: [

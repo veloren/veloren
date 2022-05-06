@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.witch"),
-            active_hands: ("common.items.weapons.sceptre.belzeshrub", None),
+            active_hands: InHands((Item("common.items.weapons.sceptre.belzeshrub"), None)),
         )),
     ),
     meta: [

@@ -7,18 +7,10 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.spots.pirate"),
-            active_hands: (
-                (
-                    tool: Sword,
-                    material: Iron,
-                    hands: Some(One),
-                ),
-                (
-                    tool: Sword,
-                    material: Iron,
-                    hands: Some(One),
-                )
-            ),
+            active_hands: InHands((
+                ModularWeapon(tool: Sword, material: Iron, hands: One),
+                ModularWeapon(tool: Sword, material: Iron, hands: One),
+            )),
         )),
     ),
     meta: [

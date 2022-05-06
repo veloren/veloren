@@ -1,7 +1,7 @@
 #![enable(implicit_some)]
 (
-    chest: "common.items.npc_armor.biped_small.mandragora.chest.mandragora",
-    gloves: "common.items.npc_armor.biped_small.mandragora.hand.mandragora",
-    legs: "common.items.npc_armor.biped_small.mandragora.pants.mandragora",
-    feet: "common.items.npc_armor.biped_small.mandragora.foot.mandragora",
+    chest: Item("common.items.npc_armor.biped_small.mandragora.chest.mandragora"),
+    gloves: Item("common.items.npc_armor.biped_small.mandragora.hand.mandragora"),
+    legs: Item("common.items.npc_armor.biped_small.mandragora.pants.mandragora"),
+    feet: Item("common.items.npc_armor.biped_small.mandragora.foot.mandragora"),
 )

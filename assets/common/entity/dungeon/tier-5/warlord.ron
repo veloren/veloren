@@ -7,10 +7,10 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-5.warlord"),
-            active_hands: ([
-                (1, "common.items.npc_weapons.sword.bipedlarge-cultist"),
-                (1, "common.items.npc_weapons.hammer.bipedlarge-cultist"),
-            ], None),
+            active_hands: InHands((Choice([
+                (1, Item("common.items.npc_weapons.sword.bipedlarge-cultist")),
+                (1, Item("common.items.npc_weapons.hammer.bipedlarge-cultist")),
+            ]), None)),
         )),
     ),
     meta: [],

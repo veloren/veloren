@@ -1,32 +1,8 @@
 [
-    (1.0, ModularWeapon(
-        tool: Sword,
-        material: Orichalcum,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Axe,
-        material: Orichalcum,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Hammer,
-        material: Orichalcum,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Bow,
-        material: Eldwood,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Staff,
-        material: Eldwood,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Sceptre,
-        material: Eldwood,
-        hands: None,
-    )),
+    (1.0, ModularWeapon(tool: Sword, material: Orichalcum, hands: None)),
+    (1.0, ModularWeapon(tool: Axe, material: Orichalcum, hands: None)),
+    (1.0, ModularWeapon(tool: Hammer, material: Orichalcum, hands: None)),
+    (1.0, ModularWeapon(tool: Bow, material: Eldwood, hands: None)),
+    (1.0, ModularWeapon(tool: Staff, material: Eldwood, hands: None)),
+    (1.0, ModularWeapon(tool: Sceptre, material: Eldwood, hands: None)),
 ]

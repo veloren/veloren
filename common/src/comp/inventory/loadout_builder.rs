@@ -24,6 +24,7 @@ pub enum SpecError {
     ItemAssetError(assets::Error),
     ItemChoiceError(WeightedError),
     BaseChoiceError(WeightedError),
+    ModularWeaponCreationError(item::modular::ModularWeaponCreationError),
 }
 
 #[derive(Debug)]
@@ -32,26 +33,20 @@ pub enum ValidationError {
     ItemAssetError(assets::Error),
     LoadoutAssetError(assets::Error),
     Loop(Vec<String>),
+    ModularWeaponCreationError(item::modular::ModularWeaponCreationError),
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[serde(untagged)]
 enum ItemSpec {
     Item(String),
-    Choice(Vec<(Weight, Option<ItemSpec>)>),
-    /// Modular weapon
     /// Parameters in this variant are used to randomly create a modular weapon
-    /// that meets the provided parameters Example:
-    /// ModularWeapon {
-    ///     tool: Sword,
-    ///     material: Iron,
-    ///     hands: Some(Two),
-    /// }
+    /// that meets the provided parameters
     ModularWeapon {
         tool: item::tool::ToolKind,
         material: item::Material,
         hands: Option<item::tool::Hands>,
     },
+    Choice(Vec<(Weight, Option<ItemSpec>)>),
 }
 
 impl ItemSpec {
@@ -77,13 +72,16 @@ impl ItemSpec {
                 tool,
                 material,
                 hands,
-            } => item::modular::random_weapon(*tool, *material, *hands),
+            } => item::modular::random_weapon(*tool, *material, *hands, rng)
+                .map(Some)
+                .map_err(SpecError::ModularWeaponCreationError),
         }
     }
 
     // Check if ItemSpec is valid and can be turned into Item
     #[cfg(test)]
     fn validate(&self) -> Result<(), ValidationError> {
+        let mut rng = rand::thread_rng();
         match self {
             ItemSpec::Item(item_asset) => Item::new_from_asset(item_asset)
                 .map(std::mem::drop)
@@ -101,15 +99,14 @@ impl ItemSpec {
                 tool,
                 material,
                 hands,
-            } => {
-                item::modular::random_weapon(*tool, *material, *hands)
-            },
+            } => item::modular::random_weapon(*tool, *material, *hands, &mut rng)
+                .map(std::mem::drop)
+                .map_err(ValidationError::ModularWeaponCreationError),
         }
     }
 }
 
 #[derive(Debug, Deserialize, Clone)]
-#[serde(untagged)]
 enum Hands {
     /// Allows to specify one pair
     InHands((Option<ItemSpec>, Option<ItemSpec>)),
@@ -778,7 +775,7 @@ fn default_main_tool(body: &Body) -> Item {
 ///
 /// // Build a loadout with character starter defaults
 /// // and a specific sword with default sword abilities
-/// let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
+/// let sword = Item::new_from_asset_expect("common.items.weapons.sword.starter");
 /// let loadout = LoadoutBuilder::empty()
 ///     .defaults()
 ///     .active_mainhand(Some(sword))

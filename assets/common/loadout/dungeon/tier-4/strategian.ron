@@ -1,9 +1,9 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.npc_armor.biped_small.myrmidon.head.strategian",
-    chest: "common.items.npc_armor.biped_small.myrmidon.chest.strategian",
-    gloves: "common.items.npc_armor.biped_small.myrmidon.hand.strategian",
-    belt: "common.items.npc_armor.biped_small.myrmidon.tail.strategian",
-    legs: "common.items.npc_armor.biped_small.myrmidon.pants.strategian",
-    feet: "common.items.npc_armor.biped_small.myrmidon.foot.strategian",
+    head: Item("common.items.npc_armor.biped_small.myrmidon.head.strategian"),
+    chest: Item("common.items.npc_armor.biped_small.myrmidon.chest.strategian"),
+    gloves: Item("common.items.npc_armor.biped_small.myrmidon.hand.strategian"),
+    belt: Item("common.items.npc_armor.biped_small.myrmidon.tail.strategian"),
+    legs: Item("common.items.npc_armor.biped_small.myrmidon.pants.strategian"),
+    feet: Item("common.items.npc_armor.biped_small.myrmidon.foot.strategian"),
 )

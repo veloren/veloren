@@ -7,15 +7,11 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-5.beastmaster"),
-            active_hands: ([
-                (1, "common.items.weapons.axe.malachite_axe-0"),
-                (1, (
-                    tool: Sword,
-                    material: Bloodsteel,
-                    hands: Some(Two),
-                )),
-                (1, "common.items.weapons.bow.velorite"),
-            ], None),
+            active_hands: InHands((Choice([
+                (1, Item("common.items.weapons.axe.malachite_axe-0")),
+                (1, ModularWeapon(tool: Sword, material: Bloodsteel, hands: Two)),
+                (1, Item("common.items.weapons.bow.velorite")),
+            ]), None)),
         )),
     ),
     meta: [

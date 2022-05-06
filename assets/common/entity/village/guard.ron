@@ -7,23 +7,11 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.village.guard"),
-            active_hands: ([
-                (1, (
-                    tool: Sword,
-                    material: Cobalt,
-                    hands: None,
-                )),
-                (2, (
-                    tool: Bow,
-                    material: Ironwood,
-                    hands: None,
-                )),
-                (1, (
-                    tool: Axe,
-                    material: Cobalt,
-                    hands: None,
-                )),
-            ], None),
+            active_hands: InHands((Choice([
+                (1, ModularWeapon(tool: Sword, material: Cobalt, hands: None)),
+                (2, ModularWeapon(tool: Bow, material: Ironwood, hands: None)),
+                (1, ModularWeapon(tool: Axe, material: Cobalt, hands: None)),
+            ]), None)),
         )),
         items: [
             (25, "common.items.consumable.potion_big"),

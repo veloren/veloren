@@ -1,7 +1,7 @@
 use super::*;
 use crate::comp::{
     inventory::{slot::ArmorSlot, test_helpers::get_test_bag},
-    Item,
+    Item, item::ItemDefinitionId,
 };
 use lazy_static::lazy_static;
 lazy_static! {
@@ -314,7 +314,7 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
 
     assert_eq!(
         inv.get(InvSlotId::new(0, 0)).unwrap().item_definition_id(),
-        LARGE_BAG_ID
+        ItemDefinitionId::Simple(LARGE_BAG_ID)
     );
     assert!(result.is_empty());
 }
@@ -341,7 +341,7 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots_returns_on
     // by itself, the bag is returned to the caller
     assert_eq!(
         result[0].item_definition_id(),
-        "common.items.testing.test_bag"
+        ItemDefinitionId::Simple("common.items.testing.test_bag")
     );
 }
 
@@ -485,7 +485,7 @@ fn backpack_crash() {
         inv.swap_inventory_loadout(InvSlotId::new(9, 17), EquipSlot::Armor(ArmorSlot::Back));
     assert_eq!(18, returned_items.len());
     assert_eq!(
-        "common.items.armor.misc.back.backpack",
+        ItemDefinitionId::Simple("common.items.armor.misc.back.backpack"),
         returned_items[0].item_definition_id()
     );
 }

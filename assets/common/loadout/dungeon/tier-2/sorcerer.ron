@@ -1,9 +1,9 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.npc_armor.biped_small.sahagin.head.sorcerer",
-    chest: "common.items.npc_armor.biped_small.sahagin.chest.sorcerer",
-    gloves: "common.items.npc_armor.biped_small.sahagin.hand.sorcerer",
-    belt: "common.items.npc_armor.biped_small.sahagin.tail.sorcerer",
-    legs: "common.items.npc_armor.biped_small.sahagin.pants.sorcerer",
-    feet: "common.items.npc_armor.biped_small.sahagin.foot.sorcerer",
+    head: Item("common.items.npc_armor.biped_small.sahagin.head.sorcerer"),
+    chest: Item("common.items.npc_armor.biped_small.sahagin.chest.sorcerer"),
+    gloves: Item("common.items.npc_armor.biped_small.sahagin.hand.sorcerer"),
+    belt: Item("common.items.npc_armor.biped_small.sahagin.tail.sorcerer"),
+    legs: Item("common.items.npc_armor.biped_small.sahagin.pants.sorcerer"),
+    feet: Item("common.items.npc_armor.biped_small.sahagin.foot.sorcerer"),
 )

@@ -1,9 +1,9 @@
 // Keep in mind that this should be safe defaults for new character
 #![enable(implicit_some)]
 (
-    chest: "common.items.armor.misc.chest.worker_purple_brown",
-    legs: "common.items.armor.misc.pants.worker_brown",
-    feet: "common.items.armor.misc.foot.sandals",
-    lantern: "common.items.lantern.black_0",
-    glider: "common.items.glider.cloverleaf",
+    chest: Item("common.items.armor.misc.chest.worker_purple_brown"),
+    legs: Item("common.items.armor.misc.pants.worker_brown"),
+    feet: Item("common.items.armor.misc.foot.sandals"),
+    lantern: Item("common.items.lantern.black_0"),
+    glider: Item("common.items.glider.cloverleaf"),
 )

@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-3.guard"),
-            active_hands: ("common.items.npc_weapons.biped_small.haniwa.guard", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.haniwa.guard"), None)),
         )),
     ),
     meta: [

@@ -1,32 +1,8 @@
 [
-    (1.0, ModularWeapon(
-        tool: Sword,
-        material: Bronze,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Axe,
-        material: Bronze,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Hammer,
-        material: Bronze,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Bow,
-        material: Wood,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Staff,
-        material: Wood,
-        hands: None,
-    )),
-    (1.0, ModularWeapon(
-        tool: Sceptre,
-        material: Wood,
-        hands: None,
-    )),
+    (1.0, ModularWeapon(tool: Sword, material: Bronze, hands: None)),
+    (1.0, ModularWeapon(tool: Axe, material: Bronze, hands: None)),
+    (1.0, ModularWeapon(tool: Hammer, material: Bronze, hands: None)),
+    (1.0, ModularWeapon(tool: Bow, material: Wood, hands: None)),
+    (1.0, ModularWeapon(tool: Staff, material: Wood, hands: None)),
+    (1.0, ModularWeapon(tool: Sceptre, material: Wood, hands: None)),
 ]

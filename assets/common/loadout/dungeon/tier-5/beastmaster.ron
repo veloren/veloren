@@ -1,15 +1,15 @@
 #![enable(implicit_some)]
 (
-    shoulders: "common.items.armor.ferocious.shoulder",
-    chest: "common.items.armor.ferocious.chest",
-    gloves: "common.items.armor.ferocious.hand",
-    back: "common.items.armor.ferocious.back",
-    belt: "common.items.armor.ferocious.belt",
-    legs: "common.items.armor.ferocious.pants",
-    feet: "common.items.armor.ferocious.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
+    shoulders: Item("common.items.armor.ferocious.shoulder"),
+    chest: Item("common.items.armor.ferocious.chest"),
+    gloves: Item("common.items.armor.ferocious.hand"),
+    back: Item("common.items.armor.ferocious.back"),
+    belt: Item("common.items.armor.ferocious.belt"),
+    legs: Item("common.items.armor.ferocious.pants"),
+    feet: Item("common.items.armor.ferocious.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
         (2, None),
-    ],
-    glider: "common.items.glider.blue",
+    ]),
+    glider: Item("common.items.glider.blue"),
 )
