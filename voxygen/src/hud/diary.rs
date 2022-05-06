@@ -1212,12 +1212,8 @@ impl<'a> Widget for Diary<'a> {
                                     Some(self.inventory),
                                     None,
                                 );
-                            let mut txt =
+                            let txt =
                                 format!("{:+.1}%", (1.0 - stealth_perception_multiplier) * 100.0);
-
-                            if combat::is_stealth_from_items_maxed(Some(self.inventory)) {
-                                txt = format!("{}  (Max)", txt);
-                            }
 
                             txt
                         },

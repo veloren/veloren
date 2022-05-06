@@ -34,9 +34,6 @@ use std::{ops::MulAssign, time::Duration};
 #[cfg(not(target_arch = "wasm32"))] use vek::*;
 
 #[cfg(not(target_arch = "wasm32"))]
-
-const STEALTH_SUM_FROM_ITEMS_MAX: f32 = 0.3;
-
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum GroupTarget {
     InGroup,
@@ -1167,12 +1164,6 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
     })
 }
 
-pub fn is_stealth_from_items_maxed(inventory: Option<&Inventory>) -> bool {
-    let sum = compute_stealth_sum_from_items(inventory);
-
-    sum >= STEALTH_SUM_FROM_ITEMS_MAX
-}
-
 /// Returns a value to be included as a multiplicative factor in perception
 /// distance checks.
 #[cfg(not(target_arch = "wasm32"))]
@@ -1181,34 +1172,22 @@ pub fn perception_dist_multiplier_from_stealth(
     character_state: Option<&CharacterState>,
 ) -> f32 {
     const SNEAK_MULTIPLIER: f32 = 0.7;
-    const STEALTH_SUM_FROM_ITEMS_MIN: f32 = 0.0;
-    const MULTIPLIER_FROM_ITEMS_MAX: f32 = 0.7;
-    const MULTIPLIER_FROM_ITEMS_MIN: f32 = 1.0;
 
-    let stealth_sum = compute_stealth_sum_from_items(inventory);
+    let item_stealth_multiplier = stealth_multiplier_from_items(inventory);
     let is_sneaking = character_state.map_or(false, |state| state.is_stealthy());
 
-    let mut multiplier;
-
-    if stealth_sum > STEALTH_SUM_FROM_ITEMS_MAX {
-        multiplier = MULTIPLIER_FROM_ITEMS_MAX;
-    } else if stealth_sum < STEALTH_SUM_FROM_ITEMS_MIN {
-        multiplier = MULTIPLIER_FROM_ITEMS_MIN;
-    } else {
-        multiplier = 1.0 - stealth_sum;
-    }
+    let mut multiplier = item_stealth_multiplier;
 
     if is_sneaking {
         multiplier *= SNEAK_MULTIPLIER;
     }
 
-    multiplier
+    multiplier.clamp(0.0, 1.0)
 }
 
-/// Returns sum of stealth from items equipped.
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_stealth_sum_from_items(inventory: Option<&Inventory>) -> f32 {
-    inventory.map_or(0.0, |inv| {
+pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
+    let stealth_sum = inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
@@ -1218,7 +1197,9 @@ pub fn compute_stealth_sum_from_items(inventory: Option<&Inventory>) -> f32 {
                 }
             })
             .fold(0.0, |a, b| a + b)
-    })
+    });
+
+    (1.0 / (1.0 + stealth_sum)).clamp(0.0, 1.0)
 }
 
 /// Computes the total protection provided from armor. Is used to determine the
