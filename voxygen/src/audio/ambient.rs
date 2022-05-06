@@ -48,7 +48,7 @@ impl AmbientMgr {
         // Iterate through each tag
         for tag in AmbientChannelTag::iter() {
             // If the conditions warrant creating a channel of that tag
-            if self.check_ambience_necessity(tag, client, camera)
+            if AmbientMgr::check_ambience_necessity(tag, client, camera)
                 && audio.get_ambient_channel(tag).is_none()
             {
                 // Iterate through the supposed number of channels - one for each tag
@@ -71,8 +71,7 @@ impl AmbientMgr {
                     if audio.ambient_channels[index].get_tag() == tag {
                         // Maintain: get the correct multiplier of whatever the tag of the current
                         // channel is
-                        let target_volume =
-                            audio.ambient_channels[index].maintain(state, client, camera);
+                        let target_volume = AmbientChannel::maintain(tag, state, client, camera);
                         // Get multiplier of the current channel
                         let initial_volume = audio.ambient_channels[index].get_multiplier();
 
@@ -128,12 +127,7 @@ impl AmbientMgr {
         }
     }
 
-    fn check_ambience_necessity(
-        &mut self,
-        tag: AmbientChannelTag,
-        client: &Client,
-        camera: &Camera,
-    ) -> bool {
+    fn check_ambience_necessity(tag: AmbientChannelTag, client: &Client, camera: &Camera) -> bool {
         match tag {
             AmbientChannelTag::Wind => {
                 let focus_off = camera.get_focus_pos().map(f32::trunc);
@@ -188,57 +182,9 @@ impl AmbientMgr {
     }
 }
 
-impl AmbientChannel {
-    pub fn maintain(&mut self, state: &State, client: &Client, camera: &Camera) -> f32 {
-        let tag = self.get_tag();
-
-        let focus_off = camera.get_focus_pos().map(f32::trunc);
-        let cam_pos = camera.dependents().cam_pos + focus_off;
-
-        let mut target_volume: f32 = self.get_ambience_volume(tag, client, camera);
-
-        target_volume = self.check_camera(state, client, cam_pos, target_volume);
-
-        target_volume
-    }
-
-    fn check_camera(
-        &mut self,
-        state: &State,
-        client: &Client,
-        cam_pos: Vec3<f32>,
-        initial_volume: f32,
-    ) -> f32 {
-        let mut volume_multiplier = initial_volume;
-        let terrain_alt = if let Some(chunk) = client.current_chunk() {
-            chunk.meta().alt()
-        } else {
-            0.0
-        };
-        // Checks if the camera is underwater to diminish ambient sounds
-        if state
-            .terrain()
-            .get((cam_pos).map(|e| e.floor() as i32))
-            .map(|b| b.is_liquid())
-            .unwrap_or(false)
-        {
-            volume_multiplier *= 0.1;
-        }
-        // Is the camera roughly under the terrain?
-        if cam_pos.z < terrain_alt - 20.0 {
-            volume_multiplier = 0.0;
-        }
-
-        volume_multiplier.clamped(0.0, 1.0)
-    }
-
+impl AmbientChannelTag {
     // Gets appropriate volume for each tag
-    fn get_ambience_volume(
-        &mut self,
-        tag: AmbientChannelTag,
-        client: &Client,
-        camera: &Camera,
-    ) -> f32 {
+    pub fn get_tag_volume(tag: AmbientChannelTag, client: &Client, camera: &Camera) -> f32 {
         match tag {
             AmbientChannelTag::Wind => {
                 let focus_off = camera.get_focus_pos().map(f32::trunc);
@@ -324,6 +270,53 @@ impl AmbientChannel {
                 }
             },
         }
+    }
+}
+
+impl AmbientChannel {
+    pub fn maintain(
+        tag: AmbientChannelTag,
+        state: &State,
+        client: &Client,
+        camera: &Camera,
+    ) -> f32 {
+        let focus_off = camera.get_focus_pos().map(f32::trunc);
+        let cam_pos = camera.dependents().cam_pos + focus_off;
+
+        let mut target_volume: f32 = AmbientChannelTag::get_tag_volume(tag, client, camera);
+
+        target_volume = AmbientChannel::check_camera(state, client, cam_pos, target_volume);
+
+        target_volume
+    }
+
+    fn check_camera(
+        state: &State,
+        client: &Client,
+        cam_pos: Vec3<f32>,
+        initial_volume: f32,
+    ) -> f32 {
+        let mut volume_multiplier = initial_volume;
+        let terrain_alt = if let Some(chunk) = client.current_chunk() {
+            chunk.meta().alt()
+        } else {
+            0.0
+        };
+        // Checks if the camera is underwater to diminish ambient sounds
+        if state
+            .terrain()
+            .get((cam_pos).map(|e| e.floor() as i32))
+            .map(|b| b.is_liquid())
+            .unwrap_or(false)
+        {
+            volume_multiplier *= 0.1;
+        }
+        // Is the camera roughly under the terrain?
+        if cam_pos.z < terrain_alt - 20.0 {
+            volume_multiplier = 0.0;
+        }
+
+        volume_multiplier.clamped(0.0, 1.0)
     }
 }
 

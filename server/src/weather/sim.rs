@@ -13,9 +13,7 @@ pub struct WeatherSim {
 }
 
 impl WeatherSim {
-    pub fn new(size: Vec2<u32>, _world: &World) -> Self {
-        Self { size }
-    }
+    pub fn new(size: Vec2<u32>, _world: &World) -> Self { Self { size } }
 
     // Time step is cell size / maximum wind speed
     pub fn tick(&mut self, time_of_day: &TimeOfDay, out: &mut WeatherGrid) {

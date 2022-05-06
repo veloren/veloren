@@ -166,6 +166,7 @@ pub enum AmbientChannelTag {
     Thunder,
     Leaves,
 }
+
 /// A AmbientChannel uses a non-positional audio sink designed to play sounds
 /// which are always heard at the camera's position.
 pub struct AmbientChannel {
@@ -297,11 +298,11 @@ impl SfxChannel {
     }
 }
 
-pub struct UIChannel {
+pub struct UiChannel {
     sink: Sink,
 }
 
-impl UIChannel {
+impl UiChannel {
     pub fn new(stream: &OutputStreamHandle) -> Self {
         Self {
             sink: Sink::try_new(stream).unwrap(),

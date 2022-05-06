@@ -8,7 +8,7 @@ pub mod sfx;
 pub mod soundcache;
 
 use channel::{
-    AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel, UIChannel,
+    AmbientChannel, AmbientChannelTag, MusicChannel, MusicChannelTag, SfxChannel, UiChannel,
 };
 use fader::Fader;
 use music::MusicTransitionManifest;
@@ -40,17 +40,17 @@ pub struct AudioFrontend {
     //pub device_list: Vec<String>,
     //pub audio_device: Option<Device>,
     pub stream: Option<rodio::OutputStream>,
-    pub audio_stream: Option<rodio::OutputStreamHandle>,
+    audio_stream: Option<rodio::OutputStreamHandle>,
 
-    pub music_channels: Vec<MusicChannel>,
-    pub ambient_channels: Vec<AmbientChannel>,
-    pub sfx_channels: Vec<SfxChannel>,
-    pub ui_channels: Vec<UIChannel>,
-    pub sfx_volume: f32,
-    pub ambience_volume: f32,
-    pub music_volume: f32,
-    pub master_volume: f32,
-    pub listener: Listener,
+    music_channels: Vec<MusicChannel>,
+    ambient_channels: Vec<AmbientChannel>,
+    sfx_channels: Vec<SfxChannel>,
+    ui_channels: Vec<UiChannel>,
+    sfx_volume: f32,
+    ambience_volume: f32,
+    music_volume: f32,
+    master_volume: f32,
+    listener: Listener,
 
     mtm: AssetHandle<MusicTransitionManifest>,
 }
@@ -87,7 +87,7 @@ impl AudioFrontend {
 
         let mut ui_channels = Vec::with_capacity(num_ui_channels);
         if let Some(audio_stream) = &audio_stream {
-            ui_channels.resize_with(num_ui_channels, || UIChannel::new(audio_stream))
+            ui_channels.resize_with(num_ui_channels, || UiChannel::new(audio_stream))
         }
 
         Self {
@@ -164,7 +164,7 @@ impl AudioFrontend {
         None
     }
 
-    fn get_ui_channel(&mut self) -> Option<&mut UIChannel> {
+    fn get_ui_channel(&mut self) -> Option<&mut UiChannel> {
         if self.audio_stream.is_some() {
             let sfx_volume = self.get_sfx_volume();
             if let Some(channel) = self.ui_channels.iter_mut().find(|c| c.is_done()) {

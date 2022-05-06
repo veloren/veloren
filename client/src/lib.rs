@@ -1685,7 +1685,7 @@ impl Client {
             self.invite = None;
         }
 
-        // Lerp the clientside weather. 
+        // Lerp the clientside weather.
         self.weather.update(&mut self.state.weather_grid_mut());
 
         // Lerp towards the target time of day - this ensures a smooth transition for
