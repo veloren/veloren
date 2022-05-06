@@ -1618,6 +1618,7 @@ impl FigureMgr {
                                     &target_base,
                                     (
                                         hands,
+                                        ability_id,
                                         rel_vel.magnitude(),
                                         time,
                                         Some(s.stage_section),
@@ -1652,6 +1653,7 @@ impl FigureMgr {
                                     &target_base,
                                     (
                                         hands,
+                                        ability_id,
                                         Some(stage_section),
                                         Some(s.static_data.ability_info),
                                         current_strike,
