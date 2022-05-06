@@ -3479,6 +3479,8 @@ impl Hud {
                             inventories
                                 .get(client.entity())
                                 .and_then(|inv| inv.get(i.slot)),
+                            client.component_recipe_book(),
+                            c.info,
                         ) {
                             self.show
                                 .crafting_fields

@@ -5,10 +5,14 @@ use super::{
     util,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
-use common::comp::{
-    ability::{Ability, AbilityInput, AuxiliaryAbility},
-    slot::InvSlotId,
-    ActiveAbilities, Body, Energy, Inventory, Item, ItemKey, SkillSet,
+use common::{
+    comp::{
+        ability::{Ability, AbilityInput, AuxiliaryAbility},
+        item::tool::ToolKind,
+        slot::InvSlotId,
+        ActiveAbilities, Body, Energy, Inventory, Item, ItemKey, SkillSet,
+    },
+    recipe::ComponentRecipeBook,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
@@ -239,7 +243,13 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 pub struct CraftSlot {
     pub index: u32,
     pub invslot: Option<InvSlotId>,
-    pub requirement: fn(Option<&Item>) -> bool,
+    pub requirement: fn(Option<&Item>, &ComponentRecipeBook, Option<CraftSlotInfo>) -> bool,
+    pub info: Option<CraftSlotInfo>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum CraftSlotInfo {
+    Tool(ToolKind),
 }
 
 impl PartialEq for CraftSlot {

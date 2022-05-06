@@ -2,7 +2,7 @@ use super::{
     get_quality_col,
     img_ids::{Imgs, ImgsRot},
     item_imgs::{animate_by_pulse, ItemImgs},
-    slots::{CraftSlot, SlotManager},
+    slots::{CraftSlot, CraftSlotInfo, SlotManager},
     Show, TEXT_COLOR, TEXT_DULL_RED_COLOR, TEXT_GRAY_COLOR, UI_HIGHLIGHT_0, UI_MAIN,
 };
 use crate::ui::{
@@ -20,8 +20,8 @@ use common::{
             modular,
             modular::ModularComponent,
             tool::{AbilityMap, ToolKind},
-            Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, MaterialKind,
-            MaterialStatManifest, Quality, TagExampleInfo,
+            Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
+            TagExampleInfo,
         },
         slot::InvSlotId,
         Inventory,
@@ -38,8 +38,8 @@ use conrod_core::{
 use hashbrown::HashMap;
 use i18n::Localization;
 use std::{collections::BTreeMap, sync::Arc};
-
 use strum::{EnumIter, IntoEnumIterator};
+use tracing::warn;
 use vek::*;
 
 widget_ids! {
@@ -882,7 +882,7 @@ impl<'a> Widget for Crafting<'a> {
                         index: 0,
                         invslot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
                         requirement: match recipe_kind {
-                            RecipeKind::ModularWeapon => |item| {
+                            RecipeKind::ModularWeapon => |item, _, _| {
                                 item.map_or(false, |item| {
                                     matches!(
                                         &*item.kind(),
@@ -892,43 +892,26 @@ impl<'a> Widget for Crafting<'a> {
                                     )
                                 })
                             },
-                            // TODO: Maybe try to figure out way to get this to work?
-                            // Captures self and toolkind which prevents it from becoming a function
-                            // Some(RecipeKind::Component(toolkind)) => |inv, slot| {
-                            //     inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                            //         self.client.component_recipe_book().iter().filter(|(key,
-                            // _recipe)| key.toolkind == toolkind).any(|(key, _recipe)| key.material
-                            // == item.item_definition_id())     })
-                            // },
-                            RecipeKind::Component(
-                                ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer,
-                            ) => |item| {
-                                item.map_or(false, |item| {
-                                    matches!(&*item.kind(), ItemKind::Ingredient { .. })
-                                        && item
-                                            .tags()
-                                            .contains(&ItemTag::MaterialKind(MaterialKind::Metal))
-                                        && item
-                                            .tags()
+                            RecipeKind::Component(_) => |item, comp_recipes, info| {
+                                if let Some(CraftSlotInfo::Tool(toolkind)) = info {
+                                    item.map_or(false, |item| {
+                                        comp_recipes
                                             .iter()
-                                            .any(|tag| matches!(tag, ItemTag::Material(_)))
-                                })
+                                            .filter(|(key, _)| key.toolkind == toolkind)
+                                            .any(|(key, _)| {
+                                                Some(key.material.as_str())
+                                                    == item.item_definition_id().raw()
+                                            })
+                                    })
+                                } else {
+                                    false
+                                }
                             },
-                            RecipeKind::Component(
-                                ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre,
-                            ) => |item| {
-                                item.map_or(false, |item| {
-                                    matches!(&*item.kind(), ItemKind::Ingredient { .. })
-                                        && item
-                                            .tags()
-                                            .contains(&ItemTag::MaterialKind(MaterialKind::Wood))
-                                        && item
-                                            .tags()
-                                            .iter()
-                                            .any(|tag| matches!(tag, ItemTag::Material(_)))
-                                })
-                            },
-                            RecipeKind::Component(_) | RecipeKind::Simple => |_| unreachable!(),
+                            RecipeKind::Simple => |_, _, _| unreachable!(),
+                        },
+                        info: match recipe_kind {
+                            RecipeKind::Component(toolkind) => Some(CraftSlotInfo::Tool(toolkind)),
+                            RecipeKind::ModularWeapon | RecipeKind::Simple => None,
                         },
                     };
 
@@ -957,7 +940,7 @@ impl<'a> Widget for Crafting<'a> {
                         index: 1,
                         invslot: self.show.crafting_fields.recipe_inputs.get(&1).copied(),
                         requirement: match recipe_kind {
-                            RecipeKind::ModularWeapon => |item| {
+                            RecipeKind::ModularWeapon => |item, _, _| {
                                 item.map_or(false, |item| {
                                     matches!(
                                         &*item.kind(),
@@ -967,22 +950,26 @@ impl<'a> Widget for Crafting<'a> {
                                     )
                                 })
                             },
-                            // TODO: Maybe try to figure out way to get this to work?
-                            // Captures self and toolkind which prevents it from becoming a function
-                            // Some(RecipeKind::Component(toolkind)) => |inv, slot| {
-                            //     inv.and_then(|inv| inv.get(slot)).map_or(false, |item| {
-                            //         self.client.component_recipe_book().iter().filter(|(key,
-                            // _recipe)| key.toolkind == toolkind).any(|(key, _recipe)| key.modifier
-                            // == Some(item.item_definition_id()))
-                            // }) },
-                            RecipeKind::Component(_) => |item| {
-                                item.map_or(false, |item| {
-                                    item.item_definition_id().raw().map_or(false, |id| {
-                                        id.starts_with("common.items.crafting_ing.animal_misc")
+                            RecipeKind::Component(_) => |item, comp_recipes, info| {
+                                if let Some(CraftSlotInfo::Tool(toolkind)) = info {
+                                    item.map_or(false, |item| {
+                                        comp_recipes
+                                            .iter()
+                                            .filter(|(key, _)| key.toolkind == toolkind)
+                                            .any(|(key, _)| {
+                                                key.modifier.as_deref()
+                                                    == item.item_definition_id().raw()
+                                            })
                                     })
-                                })
+                                } else {
+                                    false
+                                }
                             },
-                            RecipeKind::Simple => |_| unreachable!(),
+                            RecipeKind::Simple => |_, _, _| unreachable!(),
+                        },
+                        info: match recipe_kind {
+                            RecipeKind::Component(toolkind) => Some(CraftSlotInfo::Tool(toolkind)),
+                            RecipeKind::ModularWeapon | RecipeKind::Simple => None,
                         },
                     };
 
@@ -1493,7 +1480,7 @@ impl<'a> Widget for Crafting<'a> {
                 // Widget generation for every ingredient
                 for (i, (recipe_input, amount)) in ingredients.enumerate() {
                     let item_def = match recipe_input {
-                        RecipeInput::Item(item_def) => Arc::clone(item_def),
+                        RecipeInput::Item(item_def) => Some(Arc::clone(item_def)),
                         RecipeInput::Tag(tag) | RecipeInput::TagSameItem(tag) => self
                             .inventory
                             .slots()
@@ -1508,11 +1495,9 @@ impl<'a> Widget for Crafting<'a> {
                                     }
                                 })
                             })
-                            .unwrap_or_else(|| {
-                                Arc::<ItemDef>::load_expect_cloned(
-                                    tag.exemplar_identifier()
-                                        .unwrap_or("common.items.weapons.empty.empty"),
-                                )
+                            .or_else(|| {
+                                tag.exemplar_identifier()
+                                    .map(Arc::<ItemDef>::load_expect_cloned)
                             }),
                         RecipeInput::ListSameItem(item_defs) => self
                             .inventory
@@ -1528,20 +1513,23 @@ impl<'a> Widget for Crafting<'a> {
                                     }
                                 })
                             })
-                            .unwrap_or_else(|| {
-                                item_defs
-                                    .first()
-                                    .and_then(|i| {
-                                        i.item_definition_id()
-                                            .raw()
-                                            .map(Arc::<ItemDef>::load_expect_cloned)
-                                    })
-                                    .unwrap_or_else(|| {
-                                        Arc::<ItemDef>::load_expect_cloned(
-                                            "common.items.weapons.empty.empty",
-                                        )
-                                    })
+                            .or_else(|| {
+                                item_defs.first().and_then(|i| {
+                                    i.item_definition_id()
+                                        .raw()
+                                        .map(Arc::<ItemDef>::load_expect_cloned)
+                                })
                             }),
+                    };
+
+                    let item_def = if let Some(item_def) = item_def {
+                        item_def
+                    } else {
+                        warn!(
+                            "Failed to create example item def for recipe input {:?}",
+                            recipe_input
+                        );
+                        continue;
                     };
 
                     // Grey color for images and text if their amount is too low to craft the
