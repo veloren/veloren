@@ -1142,6 +1142,9 @@
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sword.sabre", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.sword.sabre.orichalcum",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sword.sawblade", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.sword.sawblade.orichalcum",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sword.zweihander", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.sword.zweihander.orichalcum",
+    Tool("common.items.crafting_ing.modular.secondary.sword.two-handed"): "voxel.weapon.component.sword.hilt.twohand",
+    Tool("common.items.crafting_ing.modular.secondary.sword.one-handed"): "voxel.weapon.component.sword.hilt.onehand",
+    Tool("common.items.crafting_ing.modular.secondary.sword.hand-and-half"): "voxel.weapon.component.sword.hilt.handandhalf",
     // Axes
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.bronze")): "voxel.weapon.component.axe.axe.bronze",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.axe.battleaxe", "common.items.mineral.ingot.bronze")): "voxel.weapon.component.axe.battleaxe.bronze",
@@ -1185,6 +1188,9 @@
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.axe.labrys", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.axe.labrys.orichalcum",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.axe.ornate", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.axe.ornate.orichalcum",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.axe.poleaxe", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.axe.poleaxe.orichalcum",
+    Tool("common.items.crafting_ing.modular.secondary.axe.long"): "voxel.weapon.component.axe.haft.long",
+    Tool("common.items.crafting_ing.modular.secondary.axe.medium"): "voxel.weapon.component.axe.haft.medium",
+    Tool("common.items.crafting_ing.modular.secondary.axe.short"): "voxel.weapon.component.axe.haft.short",
     // Hammers
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.hammer.greathammer", "common.items.mineral.ingot.bronze")): "voxel.weapon.component.hammer.greathammer.bronze",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.hammer.greatmace", "common.items.mineral.ingot.bronze")): "voxel.weapon.component.hammer.greatmace.bronze",
@@ -1228,6 +1234,9 @@
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.hammer.ornate", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.hammer.ornate.orichalcum",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.hammer.spikedmace", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.hammer.spikedmace.orichalcum",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.hammer.warhammer", "common.items.mineral.ingot.orichalcum")): "voxel.weapon.component.hammer.warhammer.orichalcum",
+    Tool("common.items.crafting_ing.modular.secondary.hammer.long"): "voxel.weapon.component.hammer.shaft.long",
+    Tool("common.items.crafting_ing.modular.secondary.hammer.medium"): "voxel.weapon.component.hammer.shaft.medium",
+    Tool("common.items.crafting_ing.modular.secondary.hammer.short"): "voxel.weapon.component.hammer.shaft.short",
     // Bows
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.wood")): "voxel.weapon.component.bow.bow.wood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.composite", "common.items.log.wood")): "voxel.weapon.component.bow.composite.wood",
@@ -1271,6 +1280,9 @@
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.ornate", "common.items.log.eldwood")): "voxel.weapon.component.bow.ornate.eldwood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.shortbow", "common.items.log.eldwood")): "voxel.weapon.component.bow.shortbow.eldwood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.warbow", "common.items.log.eldwood")): "voxel.weapon.component.bow.warbow.eldwood",
+    Tool("common.items.crafting_ing.modular.secondary.bow.large"): "voxel.weapon.component.bow.grip.large",
+    Tool("common.items.crafting_ing.modular.secondary.bow.medium"): "voxel.weapon.component.bow.grip.medium",
+    Tool("common.items.crafting_ing.modular.secondary.bow.small"): "voxel.weapon.component.bow.grip.small",
     // Staffs
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.wood")): "voxel.weapon.component.staff.brand.wood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.grandstaff", "common.items.log.wood")): "voxel.weapon.component.staff.grandstaff.wood",
@@ -1314,6 +1326,9 @@
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.pole", "common.items.log.eldwood")): "voxel.weapon.component.staff.pole.eldwood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.rod", "common.items.log.eldwood")): "voxel.weapon.component.staff.rod.eldwood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.staff", "common.items.log.eldwood")): "voxel.weapon.component.staff.staff.eldwood",
+    Tool("common.items.crafting_ing.modular.secondary.staff.large"): "voxel.weapon.component.staff.core.heavy",
+    Tool("common.items.crafting_ing.modular.secondary.staff.medium"): "voxel.weapon.component.staff.core.medium",
+    Tool("common.items.crafting_ing.modular.secondary.staff.small"): "voxel.weapon.component.staff.core.light",
     // Sceptres
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.wood")): "voxel.weapon.component.sceptre.arbor.wood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sceptre.cane", "common.items.log.wood")): "voxel.weapon.component.sceptre.cane.wood",
@@ -1357,4 +1372,7 @@
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sceptre.grandsceptre", "common.items.log.eldwood")): "voxel.weapon.component.sceptre.grandsceptre.eldwood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sceptre.ornate", "common.items.log.eldwood")): "voxel.weapon.component.sceptre.ornate.eldwood",
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sceptre.sceptre", "common.items.log.eldwood")): "voxel.weapon.component.sceptre.sceptre.eldwood",
+    Tool("common.items.crafting_ing.modular.secondary.sceptre.large"): "voxel.weapon.component.sceptre.core.heavy",
+    Tool("common.items.crafting_ing.modular.secondary.sceptre.medium"): "voxel.weapon.component.sceptre.core.medium",
+    Tool("common.items.crafting_ing.modular.secondary.sceptre.small"): "voxel.weapon.component.sceptre.core.light",
 })
