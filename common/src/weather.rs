@@ -12,7 +12,7 @@ pub struct Weather {
     pub cloud: f32,
     /// Rain per time, between 0 and 1
     pub rain: f32,
-    // Wind direction in block / second
+    /// Wind velocity in block / second
     pub wind: Vec2<f32>,
 }
 
@@ -74,8 +74,6 @@ pub const CELL_SIZE: u32 = CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x;
 
 /// How often the weather is updated, in seconds
 pub const WEATHER_DT: f32 = 5.0;
-
-// pub const MAX_WIND_SPEED: f32 = CELL_SIZE as f32 / WEATHER_DT;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WeatherGrid {

@@ -354,7 +354,7 @@ impl AudioFrontend {
         }
     }
 
-    // Retrieves the channel currently having the given tag
+    /// Retrieves the channel currently having the given tag
     fn get_ambient_channel(
         &mut self,
         channel_tag: AmbientChannelTag,
@@ -452,13 +452,13 @@ impl AudioFrontend {
         }
     }
 
-    // Retrieves the current setting for sfx volume
+    /// Retrieves the current setting for sfx volume
     pub fn get_sfx_volume(&self) -> f32 { self.sfx_volume * self.master_volume }
 
-    // Retrieves the current setting for ambience volume
+    /// Retrieves the current setting for ambience volume
     pub fn get_ambience_volume(&self) -> f32 { self.ambience_volume * self.master_volume }
 
-    // Retrieves the current setting for music volume
+    /// Retrieves the current setting for music volume
     pub fn get_music_volume(&self) -> f32 { self.music_volume * self.master_volume }
 
     pub fn sfx_enabled(&self) -> bool { self.get_sfx_volume() > 0.0 }

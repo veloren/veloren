@@ -814,7 +814,6 @@ impl<V: RectRasterableVol> Terrain<V> {
         loaded_distance: f32,
         camera: &Camera,
     ) -> (
-        // TODO: Better return type?
         Aabb<f32>,
         Vec<math::Vec3<f32>>,
         math::Aabr<f32>,
@@ -1406,10 +1405,7 @@ impl<V: RectRasterableVol> Terrain<V> {
         // Check if there is rain near the camera
         let max_weather = scene_data.state.max_weather_near(focus_pos.xy());
         let visible_occlusion_volume = if max_weather.rain > 0.0 {
-            let occlusion_box = visible_bounding_box/*.intersection(Aabb {
-                min: focus_pos + camera.dependents().cam_pos - 100.0,
-                max: focus_pos + camera.dependents().cam_pos + 100.0,
-            })*/;
+            let occlusion_box = visible_bounding_box;
             let visible_bounding_box = math::Aabb::<f32> {
                 min: math::Vec3::from(occlusion_box.min - focus_off),
                 max: math::Vec3::from(occlusion_box.max - focus_off),

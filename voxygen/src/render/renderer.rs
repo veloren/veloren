@@ -50,7 +50,7 @@ const QUAD_INDEX_BUFFER_U16_START_VERT_LEN: u16 = 3000;
 const QUAD_INDEX_BUFFER_U32_START_VERT_LEN: u32 = 3000;
 
 // For rain occlusion we only need to render the closest chunks.
-// TODO: Is this a good value?
+/// How many chunks are maximally rendered for rain occlusion.
 pub const RAIN_OCCLUSION_CHUNKS: usize = 9;
 
 /// A type that stores all the layouts associated with this renderer that never
