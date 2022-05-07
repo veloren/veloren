@@ -1,4 +1,5 @@
 [
-    (1.0, ItemQuantity("common.items.crafting_ing.sticky_thread", 1, 3)),
-    (0.5, ItemQuantity("common.items.crafting_ing.animal_misc.venom_sac", 1, 1)),
+    (2.0, ItemQuantity("common.items.crafting_ing.sticky_thread", 1, 3)),
+    (1.0, Item("common.items.crafting_ing.animal_misc.venom_sac")),
+    (1.0, Item("common.items.crafting_ing.animal_misc.strong_pincer")),
 ]

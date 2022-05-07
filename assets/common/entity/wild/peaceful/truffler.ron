@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("truffler"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_small.mushroom"),
+    loot: LootTable("common.loot_tables.creature.quad_small.truffler"),
     inventory: (
         loadout: FromBody,
     ),

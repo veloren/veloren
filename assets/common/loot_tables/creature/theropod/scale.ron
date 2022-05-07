@@ -1,0 +1,4 @@
+[
+    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.raptor_feather", 1, 2)),
+    (2.0, ItemQuantity("common.items.crafting_ing.hide.scales", 2, 6)),
+]

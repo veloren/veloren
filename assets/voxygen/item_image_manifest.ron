@@ -3273,6 +3273,10 @@
         "voxel.sprite.crafting_ing.animal_misc.claw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
+    Ingredient("ElegantCrest"): VoxTrans(
+        "voxel.object.elegant_crest",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Ingredient("VenomSac"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.venom_sac",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
@@ -3285,12 +3289,20 @@
         "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
     ),
+    Ingredient("StrongPincer"): VoxTrans(
+        "voxel.object.strong_pincer",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
     Ingredient("Fur"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.fur",
         (0.0, 0.0, 0.0), (-40.0, -10.0, 10.0), 1.0,
     ),
     Ingredient("LargeHorn"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.large_horn",
+        (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
+    ),
+    Ingredient("LongTusk"): VoxTrans(
+        "voxel.object.long_tusk",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
     Ingredient("GrimEyeball"): VoxTrans(
