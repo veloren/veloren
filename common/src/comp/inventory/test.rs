@@ -1,7 +1,8 @@
 use super::*;
 use crate::comp::{
     inventory::{slot::ArmorSlot, test_helpers::get_test_bag},
-    Item, item::ItemDefinitionId,
+    item::ItemDefinitionId,
+    Item,
 };
 use lazy_static::lazy_static;
 lazy_static! {
