@@ -18,6 +18,8 @@
         "hud.crafting.loom": "Telaio",
         "hud.crafting.spinning_wheel": "Filatoio",
         "hud.crafting.tanning_rack": "Telaio per la Concia",
+        "hud.crafting.salvaging_station": "Stazione di Recupero",
+        "hud.crafting.campfire": "Falò",
         // Tabs
         "hud.crafting.tabs.all": "Tutto",
         "hud.crafting.tabs.armor": "Armatura",
@@ -30,6 +32,8 @@
         "hud.crafting.tabs.weapon": "Armi",
         "hud.crafting.tabs.bag": "Borse",
         "hud.crafting.tabs.processed_material": "Materiali",
+        "hud.crafting.dismantle_title": "Smantellamento",
+        "hud.crafting.dismantle_explanation" : "Passa il mouse sopra i tuoi oggetti nella borsa per vedere\ncosa puoi recuperare.\n\nFai Doppio Click per iniziare a smantellarlo.",
     },
 
 

@@ -239,7 +239,7 @@
         "hud.skill.axe_leap_cost": "Diminuisce il costo del balzo del {boost}%{SP}",
         "hud.skill.axe_leap_distance_title": "Distanza Balzo",
         "hud.skill.axe_leap_distance": "Incrementa la distanza del balzo del {boost}%{SP}",
-        //Mining
+        // Mining
         "hud.skill.mining_title": "Estrazione Mineraria",
         "hud.skill.pick_strike_title": "Picconata",
         "hud.skill.pick_strike": "Colpisci rocce col piccone per ottenere materiale grezzo, gemme ed esperienza",

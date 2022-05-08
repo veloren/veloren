@@ -46,6 +46,15 @@ Quando ti sentirai pronto, prova a ottenere un equipaggiamento migliore dalle ta
         "hud.free_look_indicator": "Visuale libera attiva. Premi {key} per disabilitarla.",
         "hud.camera_clamp_indicator": "Morsetto Camera verticale attiva. Premi {key} per disabilitarlo.",
         "hud.auto_walk_indicator": "Camminata/Nuoto Automatico attivo",
+        "hud.collect": "Colleziona",
+        "hud.pick_up": "Raccogli",
+        "hud.open": "Apri",
+        "hud.use": "Usa",
+        "hud.mine": "Mina",
+        "hud.talk": "Parla",
+        "hud.trade": "Commercia",
+        "hud.mount": "Monta",
+        "hud.sit": "Siediti",
     },
 
 

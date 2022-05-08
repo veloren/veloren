@@ -37,6 +37,8 @@
         "common.automatic": "Auto",
         "common.random": "Random",
         "common.empty": "Vuoto",
+        "common.confirm": "Conferma",
+        "common.delete_server": "Elimina Server",
         
         // Settings Window title
         "common.interface_settings": "Impostazioni Interfaccia",
@@ -61,6 +63,7 @@ Il client è aggiornato?"#,
         "common.species.danari": "Danari",
 
         "common.weapons.axe": "Ascia",
+        "common.weapons.dagger": "Pugnale",
         "common.weapons.greatsword": "Spadone",
         "common.weapons.shortsword": "Spada Corta",
         "common.weapons.sword": "Spada",
@@ -113,6 +116,8 @@ Il client è aggiornato?"#,
         "common.material.stone": "Pietra",
         "common.material.cloth": "Tessuto",
         "common.material.hide": "Pelle",
+
+        "common.sprite.chest": "Cassa",
     },
 
 

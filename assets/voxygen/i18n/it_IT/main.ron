@@ -10,18 +10,19 @@
         "main.connecting": "Connessione in corso",
         "main.creating_world": "Creazione mondo",
         "main.tip": "Consiglio:",
+        "main.unbound_key_tip": "Slega",
 
         // Welcome notice that appears the first time Veloren is started
         "main.notice": r#"Benvenuto nella versione Alpha di Veloren!
 
 Prima di tuffarti nel divertimento, ti preghiamo di tenere a mente che:
 
-- Questa è un’Alpha molto prematura. Aspettati errori, gameplay non completo, meccaniche non rifinite, e funzioni mancanti.
+- Questa è un'Alpha molto prematura. Aspettati errori, gameplay non completo, meccaniche non rifinite, e funzioni mancanti.
 
 - Se hai critiche costruttive o errori da segnalare, ci puoi contattare tramite Reddit, GitLab, o il server Discord della nostra community.
 
 - Veloren è concesso in licenza con la licenza open-source GPL 3. Il che vuol dire che sei libero di giocare, modificare, e ridistribuire il gioco come 
-tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
+ tu desideri (purché il lavoro che ne derivi sia sempre sotto licenza GPL 3).
 
 - Veloren è un progetto comunitario no-profit, e chiunque ci lavori sopra è un volontario.
 Se ti piace ciò che vedi, sei il benvenuto ad unirti ai team di sviluppo e artistico!
@@ -32,7 +33,6 @@ Grazie per aver dedicato del tempo a leggere questo avviso, speriamo che ti dive
 
         // Login process description
         "main.login_process": r#"Informazioni sul processo di Login:
-
 
 Notare che hai bisogno di un account
 per giocare su server con autenticazione abilitata.
@@ -61,7 +61,26 @@ https://veloren.net/account/."#,
         "main.login.select_language": "Seleziona una lingua",
         "main.login.client_version": "Versione Client",
         "main.login.server_version": "Versione Server",
+        "main.login.client_init_failed": "Inizializzazione del Client fallita: {init_fail_reason}",
+        "main.login.username_bad_characters": "Il Nome Utente contiene caratteri non validi! (Sono permessi solo caratteri alfanumerici, '_' e '-')",
+        "main.login.username_too_long": "Il Nome Utente è troppo lungo! La lunghezza massima è: {max_len}",
         "main.servers.select_server": "Seleziona un server",
+        "main.servers.singleplayer_error": "Connessione al server interno Fallita: {sp_error}",
+        "main.servers.network_error": "Errore network/socket del Server : {raw_error}",
+        "main.servers.participant_error": "Errore di disconnessione/protocollo del Partecipante: {raw_error}",
+        "main.servers.stream_error": "Errore di connessione/compressione/(de)serializzazione del Client: {raw_error}",
+        "main.servers.database_error": "Errore sul database del Server: {raw_error}",
+        "main.servers.persistence_error": "Errore di persistenza del Server (Probabilmente causato da Asset/Dati dei Personaggi): {raw_error}",
+        "main.servers.other_error": "Errore generale del Server: {raw_error}",
+
+        // Credits screen
+        "main.credits": "Crediti",
+        "main.credits.created_by": "creato da",
+        "main.credits.music": "Musica",
+        "main.credits.fonts": "Font",
+        "main.credits.other_art": "Altra Arte",
+        "main.credits.contributors": "Collaboratori",
+
         /// End Main screen section
     },
 
@@ -87,6 +106,9 @@ https://veloren.net/account/."#,
             "Puoi scegliere di mostrare la tua quantità di vita sulla barra della vita dalle impostazioni.",
             "Siedi vicino a un fuoco (col tasto '{gameinput.sit}') per riprenderti lentamente dalle lesioni.",
             "Hai bisogno di più borse o di armature migliori per continuare la tua avventura? Premi '{gameinput.crafting}' per aprire il menu di creazione!",
+            "Premi '{gameinput.roll}' per rotolare. Il Rotolamento può essere usato per muoversi più velocemente ed evitare gli attacchi nemici.",
+            "Ti stai chiedendo a cosa serve un certo oggetto? Cerca 'input:<item name>' nel crafting per vedere in quali ricette è usato.",
+            "Hai trovato qualcosa di figo? Fanne uno screenshot con '{gameinput.screenshot}'."
         ],
     }
 )

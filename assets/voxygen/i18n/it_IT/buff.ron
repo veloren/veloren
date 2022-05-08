@@ -21,6 +21,8 @@
         "buff.desc.protectingward": "Sei un po' protetto dagli attacchi.",
         "buff.title.frenzied": "Frenetico",
         "buff.desc.frenzied": "Sei imbevuto con velocità innaturale e puoi ignorare ferite minori.",
+        "buff.title.hastened": "Rapido",
+        "buff.desc.hastened": "I tuoi movimenti e i tuoi attachi sono più veloci.",
         // Debuffs
         "buff.title.bleed": "Sanguinante",
         "buff.desc.bleed": "Infligge danno regolare.",

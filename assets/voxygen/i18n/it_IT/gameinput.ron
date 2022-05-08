@@ -68,6 +68,7 @@
         "gameinput.mapzoomin": "Aumenta lo zoom della mappa",
         "gameinput.mapzoomout": "Diminuisci lo zoom della mappa",
         "gameinput.greet": "Saluta",
+        "gameinput.map.locationmarkerbutton": "Imposta una coordinata sulla Mappa"
     },
 
 
