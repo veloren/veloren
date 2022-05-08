@@ -7,8 +7,8 @@ use world::{IndexOwned, World};
 
 use crate::{
     chunk_generator::ChunkGenerator,
+    chunk_serialize::ChunkSendQueue,
     client::Client,
-    metrics::NetworkRequestMetrics,
     presence::{Presence, RepositionOnChunkLoad},
     rtsim::RtSim,
     settings::Settings,
@@ -29,7 +29,7 @@ use common::{
 };
 
 use common_ecs::{Job, Origin, Phase, System};
-use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
+use common_net::msg::ServerGeneral;
 use common_state::TerrainChanges;
 use comp::Behavior;
 use specs::{Entities, Join, Read, ReadExpect, ReadStorage, Write, WriteExpect, WriteStorage};
@@ -41,61 +41,7 @@ pub type TerrainPersistenceData<'a> = Option<Write<'a, TerrainPersistence>>;
 #[cfg(not(feature = "persistent_world"))]
 pub type TerrainPersistenceData<'a> = ();
 
-pub(crate) struct LazyTerrainMessage {
-    lazy_msg_lo: Option<crate::client::PreparedMsg>,
-    lazy_msg_hi: Option<crate::client::PreparedMsg>,
-}
-
 pub const SAFE_ZONE_RADIUS: f32 = 200.0;
-
-impl LazyTerrainMessage {
-    pub(crate) fn new() -> Self {
-        Self {
-            lazy_msg_lo: None,
-            lazy_msg_hi: None,
-        }
-    }
-
-    pub(crate) fn prepare_and_send<
-        'a,
-        A,
-        F: FnOnce() -> Result<&'a common::terrain::TerrainChunk, A>,
-    >(
-        &mut self,
-        network_metrics: &NetworkRequestMetrics,
-        client: &Client,
-        presence: &Presence,
-        chunk_key: &vek::Vec2<i32>,
-        generate_chunk: F,
-    ) -> Result<(), A> {
-        let lazy_msg = if presence.lossy_terrain_compression {
-            &mut self.lazy_msg_lo
-        } else {
-            &mut self.lazy_msg_hi
-        };
-        if lazy_msg.is_none() {
-            *lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                key: *chunk_key,
-                chunk: Ok(match generate_chunk() {
-                    Ok(chunk) => SerializedTerrainChunk::via_heuristic(
-                        chunk,
-                        presence.lossy_terrain_compression,
-                    ),
-                    Err(e) => return Err(e),
-                }),
-            }));
-        }
-        lazy_msg.as_ref().map(|msg| {
-            let _ = client.send_prepared(msg);
-            if presence.lossy_terrain_compression {
-                network_metrics.chunks_served_lossy.inc();
-            } else {
-                network_metrics.chunks_served_lossless.inc();
-            }
-        });
-        Ok(())
-    }
-}
 
 /// This system will handle loading generated chunks and unloading
 /// unneeded chunks.
@@ -117,7 +63,6 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, IndexOwned>,
         ReadExpect<'a, Arc<World>>,
-        ReadExpect<'a, NetworkRequestMetrics>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -128,6 +73,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
         Entities<'a>,
+        WriteStorage<'a, ChunkSendQueue>,
         WriteStorage<'a, RepositionOnChunkLoad>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, Waypoint>,
@@ -150,7 +96,6 @@ impl<'a> System<'a> for Sys {
             slow_jobs,
             index,
             world,
-            network_metrics,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -161,6 +106,7 @@ impl<'a> System<'a> for Sys {
             presences,
             clients,
             entities,
+            mut chunk_send_queues,
             mut reposition_on_load,
             mut force_update,
             mut waypoints,
@@ -306,13 +252,10 @@ impl<'a> System<'a> for Sys {
         }
 
         // Send the chunk to all nearby players.
-        use rayon::iter::{IntoParallelIterator, ParallelIterator};
-        new_chunks.into_par_iter().for_each(|(key, chunk)| {
-            let mut lazy_msg = LazyTerrainMessage::new();
-
-            (&presences, &positions, &clients)
+        new_chunks.into_iter().for_each(|(key, chunk)| {
+            (&presences, &positions, &clients, &mut chunk_send_queues)
                 .join()
-                .for_each(|(presence, pos, client)| {
+                .for_each(|(presence, pos, client, chunk_send_queue)| {
                     let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
                     // Subtract 2 from the offset before computing squared magnitude
                     // 1 since chunks need neighbors to be meshed
@@ -322,15 +265,7 @@ impl<'a> System<'a> for Sys {
                         .magnitude_squared();
 
                     if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                        lazy_msg
-                            .prepare_and_send::<!, _>(
-                                &network_metrics,
-                                client,
-                                presence,
-                                &key,
-                                || Ok(&*chunk),
-                            )
-                            .into_ok();
+                        chunk_send_queue.chunks.push(key);
                     }
                 });
         });

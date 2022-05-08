@@ -16,6 +16,7 @@
 pub mod alias_validator;
 mod character_creator;
 pub mod chunk_generator;
+mod chunk_serialize;
 pub mod client;
 pub mod cmd;
 pub mod connection_handler;
@@ -321,6 +322,9 @@ impl Server {
         state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
+        state
+            .ecs_mut()
+            .register::<chunk_serialize::ChunkSendQueue>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;

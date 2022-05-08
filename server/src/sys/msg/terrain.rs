@@ -1,5 +1,6 @@
 use crate::{
-    client::Client, lod::Lod, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest,
+    chunk_serialize::ChunkSendQueue, client::Client, lod::Lod, metrics::NetworkRequestMetrics,
+    presence::Presence, ChunkRequest,
 };
 use common::{
     comp::Pos,
@@ -9,9 +10,9 @@ use common::{
     vol::RectVolSize,
 };
 use common_ecs::{Job, Origin, ParMode, Phase, System};
-use common_net::msg::{ClientGeneral, SerializedTerrainChunk, ServerGeneral};
+use common_net::msg::{ClientGeneral, ServerGeneral};
 use rayon::iter::ParallelIterator;
-use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, Write};
+use specs::{Entities, Join, ParJoin, Read, ReadExpect, ReadStorage, Write, WriteStorage};
 use tracing::{debug, trace};
 
 /// This system will handle new messages from clients
@@ -21,6 +22,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
+        WriteStorage<'a, ChunkSendQueue>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Lod>,
         ReadExpect<'a, NetworkRequestMetrics>,
@@ -39,6 +41,7 @@ impl<'a> System<'a> for Sys {
         (
             entities,
             server_event_bus,
+            mut chunk_send_queues,
             terrain,
             lod,
             network_metrics,
@@ -49,11 +52,16 @@ impl<'a> System<'a> for Sys {
         ): Self::SystemData,
     ) {
         job.cpu_stats.measure(ParMode::Rayon);
-        let mut new_chunk_requests = (&entities, &clients, (&presences).maybe())
+        let mut new_chunk_requests = (
+            &entities,
+            &clients,
+            (&presences).maybe(),
+            &mut chunk_send_queues,
+        )
             .par_join()
-            .map(|(entity, client, maybe_presence)| {
+            .map(|(entity, client, maybe_presence, chunk_send_queue)| {
                 let mut chunk_requests = Vec::new();
-                let _ = super::try_recv_all(client, 5, |client, msg| {
+                let _ = super::try_recv_all(client, 5, |_, msg| {
                     // TODO: Refactor things (https://gitlab.com/veloren/veloren/-/merge_requests/3245#note_856538056)
                     let mut server_emitter = server_event_bus.emitter();
                     let presence = match maybe_presence {
@@ -80,26 +88,12 @@ impl<'a> System<'a> for Sys {
                                 true
                             };
                             if in_vd {
-                                match terrain.get_key_arc(key) {
-                                    Some(chunk) => {
-                                        network_metrics.chunks_served_from_memory.inc();
-                                        client.send(ServerGeneral::TerrainChunkUpdate {
-                                            key,
-                                            chunk: Ok(SerializedTerrainChunk::via_heuristic(
-                                                chunk,
-                                                presence.lossy_terrain_compression,
-                                            )),
-                                        })?;
-                                        if presence.lossy_terrain_compression {
-                                            network_metrics.chunks_served_lossy.inc();
-                                        } else {
-                                            network_metrics.chunks_served_lossless.inc();
-                                        }
-                                    },
-                                    None => {
-                                        network_metrics.chunks_generation_triggered.inc();
-                                        chunk_requests.push(ChunkRequest { entity, key });
-                                    },
+                                if terrain.get_key_arc(key).is_some() {
+                                    network_metrics.chunks_served_from_memory.inc();
+                                    chunk_send_queue.chunks.push(key);
+                                } else {
+                                    network_metrics.chunks_generation_triggered.inc();
+                                    chunk_requests.push(ChunkRequest { entity, key });
                                 }
                             } else {
                                 network_metrics.chunks_request_dropped.inc();

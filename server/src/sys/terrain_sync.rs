@@ -1,10 +1,9 @@
-use super::terrain::LazyTerrainMessage;
-use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence};
+use crate::{chunk_serialize::ChunkSendQueue, client::Client, presence::Presence};
 use common::{comp::Pos, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{CompressedData, ServerGeneral};
 use common_state::TerrainChanges;
-use specs::{Join, Read, ReadExpect, ReadStorage};
+use specs::{Join, Read, ReadExpect, ReadStorage, WriteStorage};
 
 /// This systems sends new chunks to clients as well as changes to existing
 /// chunks
@@ -14,10 +13,10 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadExpect<'a, TerrainGrid>,
         Read<'a, TerrainChanges>,
+        WriteStorage<'a, ChunkSendQueue>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
-        ReadExpect<'a, NetworkRequestMetrics>,
     );
 
     const NAME: &'static str = "terrain_sync";
@@ -26,23 +25,16 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (terrain, terrain_changes, positions, presences, clients, network_metrics): Self::SystemData,
+        (terrain, terrain_changes, mut chunk_send_queues, positions, presences, clients): Self::SystemData,
     ) {
         // Sync changed chunks
-        'chunk: for chunk_key in &terrain_changes.modified_chunks {
-            let mut lazy_msg = LazyTerrainMessage::new();
-            for (presence, pos, client) in (&presences, &positions, &clients).join() {
+        for chunk_key in &terrain_changes.modified_chunks {
+            for (presence, pos, chunk_send_queue) in
+                (&presences, &positions, &mut chunk_send_queues).join()
+            {
                 if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
                 {
-                    if let Err(()) = lazy_msg.prepare_and_send(
-                        &network_metrics,
-                        client,
-                        presence,
-                        chunk_key,
-                        || terrain.get_key(*chunk_key).ok_or(()),
-                    ) {
-                        break 'chunk;
-                    }
+                    chunk_send_queue.chunks.push(*chunk_key);
                 }
             }
         }
