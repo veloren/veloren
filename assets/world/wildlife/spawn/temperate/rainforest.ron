@@ -33,7 +33,7 @@ SpawnEntry (
                 (2, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
                 (2, (1, 1, "common.entity.wild.aggressive.weevil")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Morning, Noon, Evening],
         ),
         Pack(
@@ -46,7 +46,7 @@ SpawnEntry (
                 (5, (1, 3, "common.entity.wild.peaceful.rat")),
                 (5, (1, 3, "common.entity.wild.peaceful.squirrel")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night],
         ),
     ],

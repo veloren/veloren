@@ -8,7 +8,7 @@ SpawnEntry (
                 (1, (3, 4, "common.entity.wild.peaceful.piranha")),
                 (1, (3, 4, "common.entity.wild.peaceful.clownfish")),
             ],
-            is_underwater: true,
+            spawn_mode: Water,
             day_period: [Night, Morning, Noon, Evening],
         ),
     ],

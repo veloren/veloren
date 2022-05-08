@@ -15,7 +15,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.occult_saurok")),
                 (1, (1, 1, "common.entity.wild.aggressive.sly_saurok")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Morning, Noon, Evening],
         ),
         Pack(
@@ -24,7 +24,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.maneater")),
                 (1, (1, 1, "common.entity.wild.aggressive.cockatrice")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night],
         ),
     ],

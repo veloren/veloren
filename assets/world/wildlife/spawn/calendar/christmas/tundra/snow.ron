@@ -9,7 +9,7 @@ SpawnEntry (
                 (6, (1, 3, "common.entity.wild.aggressive.roshwalr")),
                 (1, (1, 1, "common.entity.calendar.christmas.aggressive.yeti")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             calendar_events: Some([Christmas]),
             day_period: [Night, Morning, Noon, Evening],
         ),

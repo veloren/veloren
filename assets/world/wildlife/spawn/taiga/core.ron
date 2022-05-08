@@ -10,7 +10,7 @@ SpawnEntry (
                 (1, (1, 3, "common.entity.wild.peaceful.alpaca")),
                 (1, (1, 3, "common.entity.wild.peaceful.highland")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
         ),
     ],
