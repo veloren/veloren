@@ -20,7 +20,14 @@ fn main() {
             .or_insert_with(|| graph.add_node(node.to_owned()))
     };
     for (_, recipe) in recipes.iter() {
-        let output = String::from(recipe.output.0.item_definition_id().raw().expect("Recipe book can only create simple items (probably)"));
+        let output = String::from(
+            recipe
+                .output
+                .0
+                .item_definition_id()
+                .raw()
+                .expect("Recipe book can only create simple items (probably)"),
+        );
         let inputs = recipe
             .inputs
             .iter()

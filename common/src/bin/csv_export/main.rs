@@ -72,7 +72,9 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 let stealth = armor.stealth().unwrap_or(0.0).to_string();
 
                 wtr.write_record(&[
-                    item.item_definition_id().raw().expect("All items from asset glob should be simple items"),
+                    item.item_definition_id()
+                        .raw()
+                        .expect("All items from asset glob should be simple items"),
                     &kind,
                     &item.name(),
                     &format!("{:?}", item.quality()),
@@ -131,7 +133,9 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             let hands = get_tool_hands(tool);
 
             wtr.write_record(&[
-                item.item_definition_id().raw().expect("All items from asset glob should be simple items"),
+                item.item_definition_id()
+                    .raw()
+                    .expect("All items from asset glob should be simple items"),
                 &kind,
                 &item.name(),
                 &hands,
@@ -227,7 +231,13 @@ fn all_items() -> Result<(), Box<dyn Error>> {
             _ => "".to_owned(),
         };
 
-        wtr.write_record(&[item.item_definition_id().raw().expect("All items in asset glob should be simple items"), &item.name(), &kind])?;
+        wtr.write_record(&[
+            item.item_definition_id()
+                .raw()
+                .expect("All items in asset glob should be simple items"),
+            &item.name(),
+            &kind,
+        ])?;
     }
 
     wtr.flush()?;

@@ -732,6 +732,8 @@ struct RawComponentRecipe {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 enum ComponentOutput {
+    // TODO: Don't store list of components here in case we ever want components in future to have
+    // state to them (e.g. a component having sub-components)
     ItemComponents {
         item: Arc<ItemDef>,
         components: Vec<Arc<ItemDef>>,
@@ -751,7 +753,7 @@ impl assets::Compound for ComponentRecipeBook {
         specifier: &str,
     ) -> Result<Self, assets::BoxedError> {
         #[inline]
-        fn load_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
+        fn create_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
             match &raw_recipe.output {
                 RawComponentOutput::ToolPrimaryComponent { toolkind, item: _ } => {
                     let material = String::from(&raw_recipe.material.0);
@@ -807,7 +809,7 @@ impl assets::Compound for ComponentRecipeBook {
             .0
             .iter()
             .map(|raw_recipe| {
-                load_recipe(raw_recipe).map(|recipe| (load_recipe_key(raw_recipe), recipe))
+                load_recipe(raw_recipe).map(|recipe| (create_recipe_key(raw_recipe), recipe))
             })
             .collect::<Result<_, assets::Error>>()?;
 

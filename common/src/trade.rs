@@ -414,7 +414,7 @@ impl SitePrices {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct ReducedInventoryItem {
     pub name: ItemDefinitionIdOwned,
     pub amount: u32,

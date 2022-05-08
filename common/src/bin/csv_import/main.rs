@@ -14,7 +14,7 @@ use veloren_common::{
         item::{
             armor::{ArmorKind, Protection},
             tool::{AbilitySpec, Hands, Stats, ToolKind},
-            ItemKind, ItemTag, Material, Quality, ItemDefinitionId,
+            ItemDefinitionId, ItemKind, ItemTag, Material, Quality,
         },
     },
     lottery::LootSpec,
@@ -79,7 +79,9 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
                     if let Ok(ref record) = record {
                         if item.item_definition_id()
-                            == ItemDefinitionId::Simple(record.get(headers["Path"]).expect("No file path in csv?"))
+                            == ItemDefinitionId::Simple(
+                                record.get(headers["Path"]).expect("No file path in csv?"),
+                            )
                         {
                             let protection =
                                 if let Some(protection_raw) = record.get(headers["Protection"]) {
@@ -232,7 +234,12 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 .enumerate_arrays(true);
 
                             let mut path = ASSETS_PATH.clone();
-                            for part in item.item_definition_id().raw().expect("Csv import only works on simple items, not modular items").split('.') {
+                            for part in item
+                                .item_definition_id()
+                                .raw()
+                                .expect("Csv import only works on simple items, not modular items")
+                                .split('.')
+                            {
                                 path.push(part);
                             }
                             path.set_extension("ron");
@@ -276,7 +283,9 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             if let comp::item::ItemKind::Tool(tool) = &*item.kind() {
                 if let Ok(ref record) = record {
                     if item.item_definition_id()
-                        == ItemDefinitionId::Simple(record.get(headers["Path"]).expect("No file path in csv?"))
+                        == ItemDefinitionId::Simple(
+                            record.get(headers["Path"]).expect("No file path in csv?"),
+                        )
                     {
                         let kind = tool.kind;
                         let equip_time_secs: f32 = record
@@ -424,7 +433,12 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             .enumerate_arrays(true);
 
                         let mut path = ASSETS_PATH.clone();
-                        for part in item.item_definition_id().raw().expect("Csv import only works on simple items, not modular items").split('.') {
+                        for part in item
+                            .item_definition_id()
+                            .raw()
+                            .expect("Csv import only works on simple items, not modular items")
+                            .split('.')
+                        {
                             path.push(part);
                         }
                         path.set_extension("ron");

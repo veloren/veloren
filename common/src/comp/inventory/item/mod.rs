@@ -496,10 +496,6 @@ impl<'a> ItemDefinitionId<'a> {
     }
 }
 
-impl Default for ItemDefinitionIdOwned {
-    fn default() -> Self { Self::Simple(String::new()) }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ItemDef {
     #[serde(default)]
