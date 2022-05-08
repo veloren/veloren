@@ -1,18 +1,18 @@
 ItemDef(
-    name: "Large Fire Core",
+    name: "Light Pyrocore",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
             toolkind: Staff,
             stats: (
                 equip_time_secs: 1.0,
-                power: 1.5,
-                effect_power: 1.3,
-                speed: 0.8,
-                crit_chance: 0.8,
+                power: 0.7,
+                effect_power: 0.8,
+                speed: 1.3,
+                crit_chance: 1.2,
                 range: 1.0,
-                energy_efficiency: 0.9,
-                buff_strength: 1.1,
+                energy_efficiency: 1.1,
+                buff_strength: 0.9,
             ),
             hand_restriction: Some(Two),
         )

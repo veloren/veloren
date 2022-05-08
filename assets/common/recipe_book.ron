@@ -2,10 +2,10 @@
     "crafting_hammer": (
         output: ("common.items.tool.craftsman_hammer", 1),
         inputs: [
-            (Item("common.items.crafting_ing.twigs"), 6, false),
-            (Item("common.items.crafting_ing.stones"), 6, false),
+            (Item("common.items.crafting_ing.twigs"), 3, false),
+            (Item("common.items.crafting_ing.stones"), 3, false),
         ],
-        craft_sprite: Some(Anvil),
+        craft_sprite: None,
     ),
     "mortar_pestle": (
         output: ("common.items.crafting_tools.mortar_pestle", 1),
@@ -1881,8 +1881,8 @@
         craft_sprite: Some(CraftingBench),
     ),
 /// MODULAR WEAPONS/SWORDS/SECONDARY COMPONENTS
-    "one-handed hilt": (
-        output: ("common.items.crafting_ing.modular.secondary.sword.one-handed", 1),
+    "short hilt": (
+        output: ("common.items.crafting_ing.modular.secondary.sword.short", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
@@ -1890,8 +1890,8 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "two-handed hilt": (
-        output: ("common.items.crafting_ing.modular.secondary.sword.two-handed", 1),
+    "medium hilt": (
+        output: ("common.items.crafting_ing.modular.secondary.sword.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
@@ -1899,8 +1899,8 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "hand-and-a-half hilt": (
-        output: ("common.items.crafting_ing.modular.secondary.sword.hand-and-half", 1),
+    "long hilt": (
+        output: ("common.items.crafting_ing.modular.secondary.sword.long", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
@@ -1968,33 +1968,33 @@
     "medium bow grip": (
         output: ("common.items.crafting_ing.modular.secondary.bow.medium", 1),
         inputs: [
-            (Item("common.items.log.wood"), 1, false),
-            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "small bow grip": (
-        output: ("common.items.crafting_ing.modular.secondary.bow.small", 1),
+    "short bow grip": (
+        output: ("common.items.crafting_ing.modular.secondary.bow.short", 1),
         inputs: [
-            (Item("common.items.log.wood"), 1, false),
-            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "large bow grip": (
-        output: ("common.items.crafting_ing.modular.secondary.bow.large", 1),
+    "long bow grip": (
+        output: ("common.items.crafting_ing.modular.secondary.bow.long", 1),
         inputs: [
-            (Item("common.items.log.wood"), 1, false),
-            (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
+            (Item("common.items.flowers.plant_fiber"), 3, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
         ],
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
 /// MODULAR WEAPONS/FIRE STAFFS/SECONDARY COMPONENTS
-    "large fire core": (
-        output: ("common.items.crafting_ing.modular.secondary.staff.large", 1),
+    "heavy pyrocore": (
+        output: ("common.items.crafting_ing.modular.secondary.staff.heavy", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2002,7 +2002,7 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "medium fire core": (
+    "pyrocore": (
         output: ("common.items.crafting_ing.modular.secondary.staff.medium", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
@@ -2011,8 +2011,8 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "small fire core": (
-        output: ("common.items.crafting_ing.modular.secondary.staff.small", 1),
+    "light pyrocore": (
+        output: ("common.items.crafting_ing.modular.secondary.staff.light", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2021,8 +2021,8 @@
         is_recycling: false,
     ),
 /// MODULAR WEAPONS/NATURE SCEPTRES/SECONDARY COMPONENTS
-    "large nature core": (
-        output: ("common.items.crafting_ing.modular.secondary.sceptre.large", 1),
+    "heavy biocore": (
+        output: ("common.items.crafting_ing.modular.secondary.sceptre.heavy", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2030,7 +2030,7 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "medium nature core": (
+    "biocore": (
         output: ("common.items.crafting_ing.modular.secondary.sceptre.medium", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
@@ -2039,8 +2039,8 @@
         craft_sprite: Some(CraftingBench),
         is_recycling: false,
     ),
-    "small nature core": (
-        output: ("common.items.crafting_ing.modular.secondary.sceptre.small", 1),
+    "light biocore": (
+        output: ("common.items.crafting_ing.modular.secondary.sceptre.light", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),

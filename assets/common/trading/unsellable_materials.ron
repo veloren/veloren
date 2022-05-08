@@ -13,6 +13,12 @@
     (0.2, Item("common.items.mineral.ore.cobalt")),
     (0.25, Item("common.items.mineral.ore.coal")),
 
+    // High tier woods
+    (0.05, Item("common.items.log.eldwood")),
+    (0.1, Item("common.items.log.frostwood")),
+    (0.2, Item("common.items.log.ironwood")),
+    (0.5, Item("common.items.log.hardwood")),
+
     // High tier Animal Hide
     (0.025, Item("common.items.crafting_ing.hide.dragon_scale")),
     (0.05, Item("common.items.crafting_ing.hide.plate")),

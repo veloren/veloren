@@ -35,6 +35,16 @@
         "hud.crafting.dismantle_title": "Dismantling",
         "hud.crafting.dismantle_explanation" : "Hover items in your bag to see what\nyou can salvage.\n\nDouble-Click them to start dismantling.",
         "hud.crafting.modular_desc": "Drag Item-Parts here to craft a weapon",
+        "hud.crafting.mod_weap_prim_slot_title": "Primary Weapon Component",
+        "hud.crafting.mod_weap_prim_slot_desc": "Place a primary weapon component here (e.g. a sword blade, axe head, or bow limbs).",
+        "hud.crafting.mod_weap_sec_slot_title": "Secondary Weapon Component",
+        "hud.crafting.mod_weap_sec_slot_desc": "Place a secondary weapon component here (e.g. a sword hilt, bow grip, or staff core).",
+        "hud.crafting.mod_comp_metal_prim_slot_title": "Metal Ingot",
+        "hud.crafting.mod_comp_metal_prim_slot_desc": "Place a metal ingot here, only certain metals can be used to make weapons.",
+        "hud.crafting.mod_comp_wood_prim_slot_title": "Wood",
+        "hud.crafting.mod_comp_wood_prim_slot_desc": "Place a kind of wood here, only certain woods can be used to make weapons.",
+        "hud.crafting.mod_comp_sec_slot_title": "Animal Material",
+        "hud.crafting.mod_comp_sec_slot_desc": "Place an animal crafting ingredient, only certain ingredients can be used to augment weapons.",
     },
 
 

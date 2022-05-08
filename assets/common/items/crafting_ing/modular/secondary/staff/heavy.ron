@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Large Nature Core",
+    name: "Heavy Pyrocore",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
-            toolkind: Sceptre,
+            toolkind: Staff,
             stats: (
                 equip_time_secs: 1.0,
                 power: 1.5,

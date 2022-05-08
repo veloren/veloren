@@ -24,6 +24,10 @@
     (2.5, Item("common.items.mineral.ore.iron")),
     (2.5, Item("common.items.mineral.ore.tin")),
 
+    // Logs
+    (5.0, Item("common.items.log.wood")),
+    (2.5, Item("common.items.log.bamboo")),
+
     // Animal Hide
     (2.5, Item("common.items.crafting_ing.hide.tough_hide")),
     (4.0, Item("common.items.crafting_ing.hide.animal_hide")),

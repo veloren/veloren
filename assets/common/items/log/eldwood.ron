@@ -5,6 +5,6 @@ ItemDef(
         kind: "EldwoodLogs",
         descriptor: "Eldwood",
     ),
-    quality: Common,
+    quality: Legendary,
     tags: [MaterialKind(Wood), Material(Eldwood)],
 )

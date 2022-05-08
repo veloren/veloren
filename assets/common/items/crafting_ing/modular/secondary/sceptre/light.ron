@@ -1,9 +1,9 @@
 ItemDef(
-    name: "One-Handed Sword Hilt",
+    name: "Light Biocore",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
-            toolkind: Sword,
+            toolkind: Sceptre,
             stats: (
                 equip_time_secs: 1.0,
                 power: 0.7,
@@ -14,7 +14,7 @@ ItemDef(
                 energy_efficiency: 1.1,
                 buff_strength: 0.9,
             ),
-            hand_restriction: Some(One),
+            hand_restriction: Some(Two),
         )
     ),
     quality: Common,

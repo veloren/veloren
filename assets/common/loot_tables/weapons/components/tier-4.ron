@@ -1,0 +1,8 @@
+[
+    (1.0, ModularWeaponPrimaryComponent(tool: Sword, material: Bloodsteel, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Axe, material: Bloodsteel, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Hammer, material: Bloodsteel, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Bow, material: Frostwood, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Staff, material: Frostwood, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Sceptre, material: Frostwood, hands: None)),
+]

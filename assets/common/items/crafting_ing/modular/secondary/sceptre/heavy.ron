@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Two-Handed Sword Hilt",
+    name: "Heavy Biocore",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
-            toolkind: Sword,
+            toolkind: Sceptre,
             stats: (
                 equip_time_secs: 1.0,
                 power: 1.5,

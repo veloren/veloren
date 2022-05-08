@@ -1,5 +1,5 @@
 [
     (1.0, LootTable("common.loot_tables.materials.common")),
-    (1.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (1.0, LootTable("common.loot_tables.weapons.components.tier-0")),
     (1.0, LootTable("common.loot_tables.materials.underground")),
 ]

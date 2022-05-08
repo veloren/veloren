@@ -5,6 +5,6 @@ ItemDef(
         kind: "WoodLogs",
         descriptor: "Wooden",
     ),
-    quality: Common,
+    quality: Low,
     tags: [MaterialKind(Wood), Material(Wood)],
 )

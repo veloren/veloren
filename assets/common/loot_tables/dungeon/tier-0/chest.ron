@@ -1,6 +1,6 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (1.0, LootTable("common.loot_tables.weapons.components.tier-0")),
     (1.0, LootTable("common.loot_tables.armor.tier-0")),
     // Currency
     (3.0, ItemQuantity("common.items.utility.coins", 10, 20)),

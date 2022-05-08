@@ -54,7 +54,7 @@
         (0.0, 0.0, 0.0), (-90.0, 70.0, 0.0), 1.0,
     ),
     Tool("example_hammer"): VoxTrans(
-        "voxel.weapon.hammer.2hhammer_ramshead",
+        "voxel.weapon.hammer.greatmace.bloodsteel-2h",
         (-1.0, 0.0, 0.0), (-70.0, 55.0, 0.0), 1.0,
     ),
     Tool("example_bow"): VoxTrans(
@@ -3755,16 +3755,16 @@
         "voxel.weapon.component.sword.zweihander.orichalcum",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.sword.two-handed"): VoxTrans(
-        "voxel.weapon.component.sword.hilt.twohand",
+    Tool("common.items.crafting_ing.modular.secondary.sword.long"): VoxTrans(
+        "voxel.weapon.component.sword.hilt.long",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.sword.one-handed"): VoxTrans(
-        "voxel.weapon.component.sword.hilt.onehand",
+    Tool("common.items.crafting_ing.modular.secondary.sword.medium"): VoxTrans(
+        "voxel.weapon.component.sword.hilt.medium",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.sword.hand-and-half"): VoxTrans(
-        "voxel.weapon.component.sword.hilt.handandhalf",
+    Tool("common.items.crafting_ing.modular.secondary.sword.short"): VoxTrans(
+        "voxel.weapon.component.sword.hilt.short",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     // Axes
@@ -4298,16 +4298,16 @@
         "voxel.weapon.component.bow.warbow.eldwood",
         (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.bow.large"): VoxTrans(
-        "voxel.weapon.component.bow.grip.large",
+    Tool("common.items.crafting_ing.modular.secondary.bow.long"): VoxTrans(
+        "voxel.weapon.component.bow.grip.long",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     Tool("common.items.crafting_ing.modular.secondary.bow.medium"): VoxTrans(
         "voxel.weapon.component.bow.grip.medium",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.bow.small"): VoxTrans(
-        "voxel.weapon.component.bow.grip.small",
+    Tool("common.items.crafting_ing.modular.secondary.bow.short"): VoxTrans(
+        "voxel.weapon.component.bow.grip.short",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     // Staffs
@@ -4479,7 +4479,7 @@
         "voxel.weapon.component.staff.staff.eldwood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.staff.large"): VoxTrans(
+    Tool("common.items.crafting_ing.modular.secondary.staff.heavy"): VoxTrans(
         "voxel.weapon.component.staff.core.heavy",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
@@ -4487,7 +4487,7 @@
         "voxel.weapon.component.staff.core.medium",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.staff.small"): VoxTrans(
+    Tool("common.items.crafting_ing.modular.secondary.staff.light"): VoxTrans(
         "voxel.weapon.component.staff.core.light",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
@@ -4660,7 +4660,7 @@
         "voxel.weapon.component.sceptre.sceptre.eldwood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.sceptre.large"): VoxTrans(
+    Tool("common.items.crafting_ing.modular.secondary.sceptre.heavy"): VoxTrans(
         "voxel.weapon.component.sceptre.core.heavy",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
@@ -4668,7 +4668,7 @@
         "voxel.weapon.component.sceptre.core.medium",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.crafting_ing.modular.secondary.sceptre.small"): VoxTrans(
+    Tool("common.items.crafting_ing.modular.secondary.sceptre.light"): VoxTrans(
         "voxel.weapon.component.sceptre.core.light",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),

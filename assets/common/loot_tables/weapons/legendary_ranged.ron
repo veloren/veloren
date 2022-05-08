@@ -1,6 +1,5 @@
 [
     (1.0, Item("common.items.weapons.bow.sagitta")),
     (1.0, Item("common.items.weapons.staff.laevateinn")),
-    (0.5, Item("common.items.weapons.sceptre.root_evil")),
-    (0.5, Item("common.items.weapons.sceptre.caduceus")),
+    (1.0, Item("common.items.weapons.sceptre.caduceus")),
 ]

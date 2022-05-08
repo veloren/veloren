@@ -1,9 +1,9 @@
 ItemDef(
-    name: "Small Fire Core",
+    name: "Short Sword Hilt",
     description: "",
     kind: ModularComponent(
         ToolSecondaryComponent(
-            toolkind: Staff,
+            toolkind: Sword,
             stats: (
                 equip_time_secs: 1.0,
                 power: 0.7,
@@ -14,7 +14,7 @@ ItemDef(
                 energy_efficiency: 1.1,
                 buff_strength: 0.9,
             ),
-            hand_restriction: Some(Two),
+            hand_restriction: Some(One),
         )
     ),
     quality: Common,
