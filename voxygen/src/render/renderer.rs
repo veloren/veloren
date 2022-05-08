@@ -21,7 +21,7 @@ use super::{
     mesh::Mesh,
     model::{DynamicModel, Model},
     pipelines::{
-        blit, bloom, clouds, debug, figure, postprocess, shadow, sprite, terrain, ui,
+        blit, bloom, clouds, debug, figure, postprocess, shadow, sprite, lod_object, terrain, ui,
         GlobalsBindGroup, GlobalsLayouts, ShadowTexturesBindGroup,
     },
     texture::Texture,

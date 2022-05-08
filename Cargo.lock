@@ -6560,6 +6560,7 @@ dependencies = [
  "serde",
  "tracing",
  "walkdir 2.3.2",
+ "wavefront",
 ]
 
 [[package]]
@@ -7338,6 +7339,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab98ed25494f97c69f28758617f27c3e92e5336040b5c3a14634f2dd3fe61830"
 dependencies = [
  "wast",
+]
+
+[[package]]
+name = "wavefront"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "249b7e6cd5bd1cc78a61d0475e5790c98bebabf2dc644a94a51ad58b39298652"
+dependencies = [
+ "hashbrown 0.9.1",
 ]
 
 [[package]]

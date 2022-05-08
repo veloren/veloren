@@ -83,6 +83,9 @@ pub enum ClientGeneral {
     TerrainChunkRequest {
         key: Vec2<i32>,
     },
+    LodZoneRequest {
+        key: Vec2<i32>,
+    },
     //Always possible
     ChatMsg(String),
     Command(String, Vec<String>),
@@ -128,6 +131,7 @@ impl ClientMsg {
                         | ClientGeneral::ExitInGame
                         | ClientGeneral::PlayerPhysics { .. }
                         | ClientGeneral::TerrainChunkRequest { .. }
+                        | ClientGeneral::LodZoneRequest { .. }
                         | ClientGeneral::UnlockSkill(_)
                         | ClientGeneral::RequestSiteInfo(_)
                         | ClientGeneral::UnlockSkillGroup(_)

@@ -56,10 +56,12 @@ use common::{
         Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
+    lod,
 };
 use common_net::msg::{world_msg, WorldMapMsg};
 use rand::{prelude::*, Rng};
 use rand_chacha::ChaCha8Rng;
+use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use std::time::Duration;
 use vek::*;
@@ -462,5 +464,33 @@ impl World {
         chunk.defragment();
 
         Ok((chunk, supplement))
+    }
+
+    // Zone coordinates
+    pub fn get_lod_zone(
+        &self,
+        pos: Vec2<i32>,
+        index: IndexRef,
+    ) -> lod::Zone {
+        let min_wpos = pos.map(lod::to_wpos);
+        let max_wpos = (pos + 1).map(lod::to_wpos);
+
+        let mut objects = Vec::new();
+
+        objects.append(&mut self.sim()
+            .get_area_trees(min_wpos, max_wpos)
+            .filter(|attr| {
+                ColumnGen::new(self.sim()).get((attr.pos, index, self.sim().calendar.as_ref()))
+                    .map_or(false, |col| layer::tree::tree_valid_at(&col, attr.seed))
+            })
+            .map(|tree| lod::Object {
+                kind: lod::ObjectKind::Tree,
+                pos: (tree.pos - min_wpos)
+                    .map(|e| e as u16)
+                    .with_z(self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16),
+            })
+            .collect());
+
+        lod::Zone { objects }
     }
 }

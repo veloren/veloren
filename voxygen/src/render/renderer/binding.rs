@@ -1,7 +1,7 @@
 use super::{
     super::{
         pipelines::{
-            debug, figure, lod_terrain, shadow, sprite, terrain, ui, ColLights, GlobalModel,
+            debug, figure, lod_terrain, shadow, sprite, lod_object, terrain, ui, ColLights, GlobalModel,
             GlobalsBindGroup,
         },
         texture::Texture,

@@ -4,6 +4,7 @@ pub mod clouds;
 pub mod debug;
 pub mod figure;
 pub mod fluid;
+pub mod lod_object;
 pub mod lod_terrain;
 pub mod particle;
 pub mod postprocess;

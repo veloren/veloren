@@ -2,7 +2,7 @@ use super::{
     super::{
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
-            skybox, sprite, terrain, trail, ui,
+            skybox, sprite, lod_object, terrain, trail, ui,
         },
         AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
         ShadowMode,
@@ -28,6 +28,7 @@ pub struct Pipelines {
     // player_shadow: figure::FigurePipeline,
     pub skybox: skybox::SkyboxPipeline,
     pub sprite: sprite::SpritePipeline,
+    pub lod_object: lod_object::LodObjectPipeline,
     pub terrain: terrain::TerrainPipeline,
     pub ui: ui::UiPipeline,
     pub blit: blit::BlitPipeline,
@@ -49,6 +50,7 @@ pub struct IngamePipelines {
     // player_shadow: figure::FigurePipeline,
     skybox: skybox::SkyboxPipeline,
     sprite: sprite::SpritePipeline,
+    lod_object: lod_object::LodObjectPipeline,
     terrain: terrain::TerrainPipeline,
 }
 
@@ -85,6 +87,7 @@ impl Pipelines {
             //player_shadow: ingame.player_shadow,
             skybox: ingame.skybox,
             sprite: ingame.sprite,
+            lod_object: ingame.lod_object,
             terrain: ingame.terrain,
             ui: interface.ui,
             blit: interface.blit,
@@ -106,6 +109,7 @@ struct ShaderModules {
     fluid_frag: wgpu::ShaderModule,
     sprite_vert: wgpu::ShaderModule,
     sprite_frag: wgpu::ShaderModule,
+    lod_object_vert: wgpu::ShaderModule,
     particle_vert: wgpu::ShaderModule,
     particle_frag: wgpu::ShaderModule,
     trail_vert: wgpu::ShaderModule,
@@ -293,6 +297,7 @@ impl ShaderModules {
             fluid_frag: create_shader(&selected_fluid_shader, ShaderKind::Fragment)?,
             sprite_vert: create_shader("sprite-vert", ShaderKind::Vertex)?,
             sprite_frag: create_shader("sprite-frag", ShaderKind::Fragment)?,
+            lod_object_vert: create_shader("lod-object-vert", ShaderKind::Vertex)?,
             particle_vert: create_shader("particle-vert", ShaderKind::Vertex)?,
             particle_frag: create_shader("particle-frag", ShaderKind::Fragment)?,
             trail_vert: create_shader("trail-vert", ShaderKind::Vertex)?,
@@ -415,7 +420,7 @@ fn create_ingame_and_shadow_pipelines(
     needs: PipelineNeeds,
     pool: &rayon::ThreadPool,
     // TODO: Reduce the boilerplate in this file
-    tasks: [Task; 15],
+    tasks: [Task; 16],
 ) -> IngameAndShadowPipelines {
     prof_span!(_guard, "create_ingame_and_shadow_pipelines");
 
@@ -434,6 +439,7 @@ fn create_ingame_and_shadow_pipelines(
         terrain_task,
         fluid_task,
         sprite_task,
+        lod_object_task,
         particle_task,
         trail_task,
         lod_terrain_task,
@@ -544,6 +550,21 @@ fn create_ingame_and_shadow_pipelines(
                 )
             },
             "sprite pipeline creation",
+        )
+    };
+    // Pipeline for rendering lod objects
+    let create_lod_object = || {
+        lod_object_task.run(
+            || {
+                lod_object::LodObjectPipeline::new(
+                    device,
+                    &shaders.lod_object_vert,
+                    &shaders.particle_frag,
+                    &layouts.global,
+                    pipeline_modes.aa,
+                )
+            },
+            "lod object pipeline creation",
         )
     };
     // Pipeline for rendering particles
@@ -732,6 +753,7 @@ fn create_ingame_and_shadow_pipelines(
             create_figure_directed_shadow,
         )
     };
+    let j7 = create_lod_object;
 
     // Ignore this
     let (
@@ -739,10 +761,10 @@ fn create_ingame_and_shadow_pipelines(
             ((debug, (skybox, figure)), (terrain, (fluid, bloom))),
             ((sprite, particle), (lod_terrain, (clouds, trail))),
         ),
-        ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
+        (((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)), lod_object),
     ) = pool.join(
         || pool.join(|| pool.join(j1, j2), || pool.join(j3, j4)),
-        || pool.join(j5, j6),
+        || pool.join(|| pool.join(j5, j6), j7),
     );
 
     IngameAndShadowPipelines {
@@ -758,6 +780,7 @@ fn create_ingame_and_shadow_pipelines(
             postprocess,
             skybox,
             sprite,
+            lod_object,
             terrain,
             // player_shadow_pipeline,
         },

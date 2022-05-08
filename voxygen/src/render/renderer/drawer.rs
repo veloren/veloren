@@ -5,7 +5,7 @@ use super::{
         model::{DynamicModel, Model, SubModel},
         pipelines::{
             blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
-            sprite, terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            sprite, lod_object, terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -764,6 +764,17 @@ impl<'pass> FirstPassDrawer<'pass> {
         }
     }
 
+    pub fn draw_lod_objects<'data: 'pass>(
+        &mut self,
+    ) -> LodObjectDrawer<'_, 'pass> {
+        let mut render_pass = self.render_pass.scope("lod objects", self.borrow.device);
+
+        render_pass.set_pipeline(&self.pipelines.lod_object.pipeline);
+        set_quad_index_buffer::<lod_object::Vertex>(&mut render_pass, self.borrow);
+
+        LodObjectDrawer { render_pass }
+    }
+
     pub fn draw_fluid(&mut self) -> FluidDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("fluid", self.borrow.device);
 
@@ -906,6 +917,27 @@ impl<'pass_ref, 'pass: 'pass_ref> Drop for SpriteDrawer<'pass_ref, 'pass> {
         // Reset to regular globals
         self.render_pass
             .set_bind_group(0, &self.globals.bind_group, &[]);
+    }
+}
+
+#[must_use]
+pub struct LodObjectDrawer<'pass_ref, 'pass: 'pass_ref> {
+    render_pass: Scope<'pass_ref, wgpu::RenderPass<'pass>>,
+}
+
+impl<'pass_ref, 'pass: 'pass_ref> LodObjectDrawer<'pass_ref, 'pass> {
+    pub fn draw<'data: 'pass>(
+        &mut self,
+        model: &'data Model<lod_object::Vertex>,
+        instances: &'data Instances<lod_object::Instance>,
+    ) {
+        self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
+        self.render_pass
+            .set_vertex_buffer(1, instances.buf().slice(..));
+        self.render_pass.draw(
+            0..model.len() as u32,
+            0..instances.count() as u32,
+        );
     }
 }
 

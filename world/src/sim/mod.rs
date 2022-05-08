@@ -2134,36 +2134,36 @@ impl WorldSim {
     /// them spawning).
     pub fn get_near_trees(&self, wpos: Vec2<i32>) -> impl Iterator<Item = TreeAttr> + '_ {
         // Deterministic based on wpos
-        let normal_trees =
-            self.gen_ctx
-                .structure_gen
-                .get(wpos)
-                .into_iter()
-                .filter_map(move |(wpos, seed)| {
-                    let lottery = self.make_forest_lottery(wpos);
-                    Some(TreeAttr {
-                        pos: wpos,
-                        seed,
-                        scale: 1.0,
-                        forest_kind: *lottery.choose_seeded(seed).as_ref()?,
-                        inhabited: false,
-                    })
-                });
+        self.gen_ctx
+            .structure_gen
+            .get(wpos)
+            .into_iter()
+            .filter_map(move |(wpos, seed)| {
+                let lottery = self.make_forest_lottery(wpos);
+                Some(TreeAttr {
+                    pos: wpos,
+                    seed,
+                    scale: 1.0,
+                    forest_kind: *lottery.choose_seeded(seed).as_ref()?,
+                    inhabited: false,
+                })
+            })
+    }
 
-        // // For testing
-        // let giant_trees =
-        // std::array::IntoIter::new(self.gen_ctx.big_structure_gen.get(wpos))
-        //     // Don't even consider trees if we aren't close
-        //     .filter(move |(pos, _)| pos.distance_squared(wpos) < 512i32.pow(2))
-        //     .map(move |(pos, seed)| TreeAttr {
-        //         pos,
-        //         seed,
-        //         scale: 5.0,
-        //         forest_kind: ForestKind::Giant,
-        //         inhabited: (seed / 13) % 2 == 0,
-        //     });
-
-        normal_trees //.chain(giant_trees)
+    pub fn get_area_trees(&self, wpos_min: Vec2<i32>, wpos_max: Vec2<i32>) -> impl ParallelIterator<Item = TreeAttr> + '_ {
+        self.gen_ctx
+            .structure_gen
+            .par_iter(wpos_min, wpos_max)
+            .filter_map(move |(wpos, seed)| {
+                let lottery = self.make_forest_lottery(wpos);
+                Some(TreeAttr {
+                    pos: wpos,
+                    seed,
+                    scale: 1.0,
+                    forest_kind: *lottery.choose_seeded(seed).as_ref()?,
+                    inhabited: false,
+                })
+            })
     }
 }
 

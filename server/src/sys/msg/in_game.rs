@@ -295,6 +295,7 @@ impl Sys {
             | ClientGeneral::Character(_)
             | ClientGeneral::Spectate
             | ClientGeneral::TerrainChunkRequest { .. }
+            | ClientGeneral::LodZoneRequest { .. }
             | ClientGeneral::ChatMsg(_)
             | ClientGeneral::Command(..)
             | ClientGeneral::Terminate => {

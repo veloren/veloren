@@ -13,6 +13,7 @@ use common::{
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
+    lod,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
@@ -169,6 +170,10 @@ pub enum ServerGeneral {
         key: Vec2<i32>,
         chunk: Result<SerializedTerrainChunk, ()>,
     },
+    LodZoneUpdate {
+        key: Vec2<i32>,
+        zone: lod::Zone,
+    },
     TerrainBlockUpdates(CompressedData<HashMap<Vec3<i32>, Block>>),
     // Always possible
     PlayerListUpdate(PlayerListUpdate),
@@ -293,6 +298,7 @@ impl ServerMsg {
                         | ServerGeneral::ExitInGameSuccess
                         | ServerGeneral::InventoryUpdate(_, _)
                         | ServerGeneral::TerrainChunkUpdate { .. }
+                        | ServerGeneral::LodZoneUpdate { .. }
                         | ServerGeneral::TerrainBlockUpdates(_)
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)

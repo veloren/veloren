@@ -118,6 +118,7 @@ impl Client {
                     },
                     //Ingame related, terrain
                     ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::LodZoneUpdate { .. }
                     | ServerGeneral::TerrainBlockUpdates(_) => {
                         self.terrain_stream.lock().unwrap().send(g)
                     },
@@ -191,6 +192,7 @@ impl Client {
                     },
                     //Ingame related, terrain
                     ServerGeneral::TerrainChunkUpdate { .. }
+                    | ServerGeneral::LodZoneUpdate { .. }
                     | ServerGeneral::TerrainBlockUpdates(_) => {
                         PreparedMsg::new(5, &g, &self.terrain_stream_params)
                     },

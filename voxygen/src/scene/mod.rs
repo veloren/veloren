@@ -282,7 +282,7 @@ impl Scene {
             point_light_matrices: Box::new([PointLightMatrix::default(); MAX_LIGHT_COUNT * 6 + 6]),
         };
 
-        let lod = Lod::new(renderer, client, settings);
+        let lod = Lod::new(renderer, &data, client, settings);
 
         let globals_bind_group = renderer.bind_globals(&data, lod.get_data());
 
@@ -681,7 +681,7 @@ impl Scene {
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
         // Maintain LoD.
-        self.lod.maintain(renderer);
+        self.lod.maintain(renderer, client);
 
         // Maintain debug shapes
         self.debug.maintain(renderer);

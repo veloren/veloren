@@ -61,6 +61,7 @@ impl assets::Compound for Shaders {
             "fluid-frag.shiny",
             "sprite-vert",
             "sprite-frag",
+            "lod-object-vert",
             "particle-vert",
             "particle-frag",
             "trail-vert",

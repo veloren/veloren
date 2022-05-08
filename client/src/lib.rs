@@ -46,6 +46,8 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
+    spiral::Spiral2d,
+    lod,
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -171,10 +173,12 @@ pub struct Client {
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
+    lod_zones: HashMap<Vec2<i32>, lod::Zone>,
+    lod_last_requested: Option<Instant>,
 
     max_group_size: u32,
     // Client has received an invite (inviter uid, time out instant)
-    invite: Option<(Uid, std::time::Instant, std::time::Duration, InviteKind)>,
+    invite: Option<(Uid, Instant, Duration, InviteKind)>,
     group_leader: Option<Uid>,
     // Note: potentially representable as a client only component
     group_members: HashMap<Uid, group::Role>,
@@ -202,6 +206,7 @@ pub struct Client {
     state: State,
 
     view_distance: Option<u32>,
+    lod_distance: u32,
     // TODO: move into voxygen
     loaded_distance: f32,
 
@@ -624,6 +629,9 @@ impl Client {
             available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
 
+            lod_zones: HashMap::new(),
+            lod_last_requested: None,
+
             max_group_size,
             invite: None,
             group_leader: None,
@@ -650,6 +658,7 @@ impl Client {
             tick: 0,
             state,
             view_distance: None,
+            lod_distance: 2, // TODO: Make configurable
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
@@ -769,7 +778,8 @@ impl Client {
                         &mut self.in_game_stream
                     },
                     //Only in game, terrain
-                    ClientGeneral::TerrainChunkRequest { .. } => {
+                    ClientGeneral::TerrainChunkRequest { .. }
+                    | ClientGeneral::LodZoneRequest { .. } => {
                         #[cfg(feature = "tracy")]
                         {
                             terrain = 1.0;
@@ -992,6 +1002,10 @@ impl Client {
 
     pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
         &self.available_recipes
+    }
+
+    pub fn lod_zones(&self) -> &HashMap<Vec2<i32>, lod::Zone> {
+        &self.lod_zones
     }
 
     /// Returns whether the specified recipe can be crafted and the sprite, if
@@ -1709,6 +1723,27 @@ impl Client {
             let now = Instant::now();
             self.pending_chunks
                 .retain(|_, created| now.duration_since(*created) < Duration::from_secs(3));
+
+            // Manage LoD zones
+            let lod_zone = pos.0.xy().map(|e| lod::from_wpos(e as i32));
+
+            // Request LoD zones that are in range
+            if self.lod_last_requested.map_or(true, |i| i.elapsed() > Duration::from_secs(5)) {
+
+                if let Some(unloaded) = Spiral2d::new()
+                    .take((1 + self.lod_distance * 2).pow(2) as usize)
+                    .map(|rpos| lod_zone + rpos)
+                    .find(|p| !self.lod_zones.contains_key(p))
+                {
+                    self.send_msg_err(ClientGeneral::LodZoneRequest {
+                        key: unloaded,
+                    })?;
+                    self.lod_last_requested = Some(Instant::now());
+                }
+            }
+
+            // Cull LoD zones out of range
+            self.lod_zones.retain(|p, _| (*p - lod_zone).map(i32::abs).reduce_max() < self.lod_distance as i32 + 1);
         }
 
         Ok(())
@@ -2083,6 +2118,10 @@ impl Client {
                     self.state.insert_chunk(key, Arc::new(chunk));
                 }
                 self.pending_chunks.remove(&key);
+            },
+            ServerGeneral::LodZoneUpdate { key, zone } => {
+                self.lod_zones.insert(key, zone);
+                self.lod_last_requested = None;
             },
             ServerGeneral::TerrainBlockUpdates(blocks) => {
                 if let Some(mut blocks) = blocks.decompress() {
