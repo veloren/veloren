@@ -16,11 +16,13 @@ use common::{
     uid::UidAllocator,
     Damage, DamageSource,
 };
-use common_ecs::{Job, Origin, Phase, System};
+use common_base::prof_span;
+use common_ecs::{Job, Origin, ParMode, Phase, System};
 use hashbrown::HashMap;
+use rayon::iter::ParallelIterator;
 use specs::{
-    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, WriteStorage,
+    saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadStorage,
+    SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 
@@ -54,7 +56,7 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(
-        _job: &mut Job<Self>,
+        job: &mut Job<Self>,
         (read_data, mut buffs, mut stats, mut bodies, mut light_emitters): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
@@ -62,25 +64,59 @@ impl<'a> System<'a> for Sys {
         // Set to false to avoid spamming server
         buffs.set_event_emission(false);
         stats.set_event_emission(false);
-        for (entity, mut body, physics_state) in
-            (&read_data.entities, &mut bodies, &read_data.physics_states).join()
+        // Put out underwater campfires. Logically belongs here since this system also
+        // removes burning, but campfires don't have healths/stats/energies/buffs, so
+        // this needs a separate loop.
+        job.cpu_stats.measure(ParMode::Rayon);
+        let to_put_out_campfires = (&read_data.entities, &bodies, &read_data.physics_states)
+            .par_join()
+            .map_init(
+                || {
+                    prof_span!(guard, "buff campfire deactivate");
+                    guard
+                },
+                |_guard, (entity, body, physics_state)| {
+                    if matches!(*body, Body::Object(object::Body::CampfireLit))
+                        && matches!(
+                            physics_state.in_fluid,
+                            Some(Fluid::Liquid {
+                                kind: LiquidKind::Water,
+                                ..
+                            })
+                        )
+                    {
+                        Some(entity)
+                    } else {
+                        None
+                    }
+                },
+            )
+            .fold(Vec::new, |mut to_put_out_campfires, put_out_campfire| {
+                put_out_campfire.map(|put| to_put_out_campfires.push(put));
+                to_put_out_campfires
+            })
+            .reduce(
+                Vec::new,
+                |mut to_put_out_campfires_a, mut to_put_out_campfires_b| {
+                    to_put_out_campfires_a.append(&mut to_put_out_campfires_b);
+                    to_put_out_campfires_a
+                },
+            );
+        job.cpu_stats.measure(ParMode::Single);
         {
-            // Put out underwater campfires. Logically belongs here since this system also
-            // removes burning, but campfires don't have healths/stats/energies/buffs, so
-            // this needs a separate loop.
-            if matches!(*body, Body::Object(object::Body::CampfireLit))
-                && matches!(
-                    physics_state.in_fluid,
-                    Some(Fluid::Liquid {
-                        kind: LiquidKind::Water,
-                        ..
-                    })
-                )
-            {
-                *body = Body::Object(object::Body::Campfire);
-                light_emitters.remove(entity);
+            prof_span!(_guard, "write deferred campfire deletion");
+            // Assume that to_put_out_campfires is near to zero always, so this access isn't
+            // slower than parallel checking above
+            for e in to_put_out_campfires {
+                {
+                    bodies
+                        .get_mut(e)
+                        .map(|mut body| *body = Body::Object(object::Body::Campfire));
+                    light_emitters.remove(e);
+                }
             }
         }
+
         for (entity, mut buff_comp, mut stat, health, energy, physics_state) in (
             &read_data.entities,
             &mut buffs,
