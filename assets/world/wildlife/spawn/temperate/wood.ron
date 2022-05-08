@@ -12,7 +12,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.weevil")),
                 (1, (1, 1, "common.entity.wild.peaceful.leaf_beetle")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
         ),
     ],

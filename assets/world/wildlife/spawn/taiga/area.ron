@@ -11,7 +11,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.peaceful.arctic_hare")),
                 (1, (1, 1, "common.entity.wild.peaceful.tuskram")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
         ),
     ],

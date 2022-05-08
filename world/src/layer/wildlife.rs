@@ -43,7 +43,8 @@ impl SpawnEntry {
         &self,
         requested_period: DayPeriod,
         calendar: Option<&Calendar>,
-        underwater: bool,
+        is_underwater: bool,
+        is_ice: bool,
     ) -> Option<Pack> {
         self.rules
             .iter()
@@ -59,8 +60,13 @@ impl SpawnEntry {
                 } else {
                     false
                 };
-                let water_match = pack.is_underwater == underwater;
-                time_match && calendar_match && water_match
+                let mode_match = match pack.spawn_mode {
+                    SpawnMode::Land => !is_underwater,
+                    SpawnMode::Ice => is_ice,
+                    SpawnMode::Water | SpawnMode::Underwater => is_underwater,
+                    SpawnMode::Air(_) => true,
+                };
+                time_match && calendar_match && mode_match
             })
             .cloned()
     }
@@ -77,7 +83,7 @@ impl SpawnEntry {
 ///                (1, (1, 1, "common.entity.wild.aggressive.yale")),
 ///                (1, (1, 1, "common.entity.wild.aggressive.grolgar")),
 ///            ],
-///            is_underwater: false,
+///            spawn_mode: Land,
 ///            day_period: [Night, Morning, Noon, Evening],
 ///        ),
 /// ```
@@ -95,9 +101,13 @@ impl SpawnEntry {
 /// to `assets/common/entity/wild/aggressive/frostfang.ron` file with
 /// EntityConfig
 ///
-/// Underwater:
-/// `is_underwater: false` means mobs from this pack can't be spawned underwater
-/// in rivers, lakes or ocean
+/// Spawn mode:
+/// `spawn_mode: Land` means mobs spawn on land at the surface (i.e: cows)
+/// `spawn_mode: means mobs spawn on the surface of water ice
+/// `spawn_mode: Water` means mobs spawn *in* water at a random depth (i.e:
+/// fish) `spawn_mode: Underwater` means mobs spawn at the bottom of a body of
+/// water (i.e: crabs) `spawn_mode: Air(32)` means mobs spawn in the air above
+/// either land or water, with a maximum altitude of 32
 ///
 /// Day period:
 /// `day_period: [Night, Morning, Noon, Evening]`
@@ -106,11 +116,20 @@ impl SpawnEntry {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Pack {
     pub groups: Vec<(Weight, (Min, Max, String))>,
-    pub is_underwater: bool,
+    pub spawn_mode: SpawnMode,
     pub day_period: Vec<DayPeriod>,
     #[serde(default)]
     pub calendar_events: Option<Vec<CalendarEvent>>, /* None implies that the group isn't
                                                       * limited by calendar events */
+}
+
+#[derive(Copy, Clone, Debug, Deserialize)]
+pub enum SpawnMode {
+    Land,
+    Ice,
+    Water,
+    Underwater,
+    Air(f32),
 }
 
 impl Pack {
@@ -273,6 +292,15 @@ pub fn spawn_manifest() -> Vec<(&'static str, DensityFn)> {
                     0.0
                 }
         }),
+        // Arctic ocean animals
+        ("world.wildlife.spawn.arctic.ocean", |_c, col| {
+            close(col.temp, 0.0, 0.25) / 10.0
+                * if matches!(col.chunk.get_biome(), BiomeKind::Ocean) {
+                    0.001
+                } else {
+                    0.0
+                }
+        }),
         // Rainforest area animals
         ("world.wildlife.spawn.tropical.rainforest", |c, _col| {
             close(c.temp, CONFIG.tropical_temp + 0.1, 0.4)
@@ -343,7 +371,8 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                 continue;
             };
 
-            let underwater = col_sample.water_level > col_sample.alt;
+            let is_underwater = col_sample.water_level > col_sample.alt;
+            let is_ice = col_sample.ice_depth > 0.5 && is_underwater;
             let (current_day_period, calendar) = if let Some((time, calendar)) = time {
                 (DayPeriod::from(time.0), Some(calendar))
             } else {
@@ -353,13 +382,13 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
             let entity_group = scatter
                 .iter()
                 .enumerate()
-                .find_map(|(_i, (entry, get_density))| {
+                .filter_map(|(_i, (entry, get_density))| {
                     let density = get_density(chunk, col_sample) * wildlife_density_modifier;
                     (density > 0.0)
                         .then(|| {
                             entry
                                 .read()
-                                .request(current_day_period, calendar, underwater)
+                                .request(current_day_period, calendar, is_underwater, is_ice)
                                 .and_then(|pack| {
                                     (dynamic_rng.gen::<f32>() < density * col_sample.spawn_rate
                                         && col_sample.gradient < Some(1.3))
@@ -367,13 +396,26 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
                                 })
                         })
                         .flatten()
-                });
-
-            let alt = col_sample.alt as i32;
+                })
+                .collect::<Vec<_>>() // TODO: Don't allocate
+                .choose(dynamic_rng)
+                .cloned();
 
             if let Some(pack) = entity_group {
+                let desired_alt = match pack.spawn_mode {
+                    SpawnMode::Land | SpawnMode::Underwater => col_sample.alt,
+                    SpawnMode::Ice => col_sample.water_level + 1.0 + col_sample.ice_depth,
+                    SpawnMode::Water => dynamic_rng.gen_range(
+                        col_sample.alt..col_sample.water_level.max(col_sample.alt + 0.1),
+                    ),
+                    SpawnMode::Air(height) => {
+                        col_sample.alt.max(col_sample.water_level)
+                            + dynamic_rng.gen::<f32>() * height
+                    },
+                };
+
                 let (entity, group_size) = pack.generate(
-                    (wpos2d.map(|e| e as f32) + 0.5).with_z(alt as f32),
+                    (wpos2d.map(|e| e as f32) + 0.5).with_z(desired_alt),
                     dynamic_rng,
                 );
                 for e in 0..group_size {
@@ -390,15 +432,22 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
 
                     // Find the intersection between ground and air, if there is one near the
                     // surface
-                    if let Some(solid_end) = (-8..8).find(|z| {
-                        (0..2).all(|z2| {
-                            vol.get(Vec3::new(offs.x, offs.y, alt) + offs_wpos2d.with_z(z + z2))
+                    let z_offset = (0..16)
+                        .map(|z| if z % 2 == 0 { z } else { -z } / 2)
+                        .find(|z| {
+                            (0..2).all(|z2| {
+                                vol.get(
+                                    Vec3::new(offs.x, offs.y, desired_alt as i32)
+                                        + offs_wpos2d.with_z(z + z2),
+                                )
                                 .map(|b| !b.is_solid())
                                 .unwrap_or(true)
-                        })
-                    }) {
+                            })
+                        });
+
+                    if let Some(z_offset) = z_offset {
                         let mut entity = entity.clone();
-                        entity.pos += offs_wpos2d.with_z(solid_end).map(|e| e as f32);
+                        entity.pos += offs_wpos2d.with_z(z_offset).map(|e| e as f32);
                         supplement.add_entity(entity);
                     }
                 }
@@ -410,7 +459,7 @@ pub fn apply_wildlife_supplement<'a, R: Rng>(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use hashbrown::{HashMap, HashSet};
+    use hashbrown::HashMap;
 
     // Checks that each entry in spawn manifest is loadable
     #[test]
@@ -430,41 +479,6 @@ mod tests {
             let SpawnEntry { name, .. } = SpawnEntry::from(entry);
             if let Some(old_entry) = names.insert(name, entry) {
                 panic!("{}: Found name duplicate with {}", entry, old_entry);
-            }
-        }
-    }
-
-    // Checks that day_period aren't overlapping
-    // Quite strict rule, but otherwise may produce unexpected behaviour
-    #[test]
-    fn test_check_day_periods() {
-        let scatter = spawn_manifest();
-        for (entry, _) in scatter.into_iter() {
-            let mut day_periods = HashSet::with_capacity(4);
-            let SpawnEntry { rules, .. } = SpawnEntry::from(entry);
-            for pack in rules {
-                let Pack {
-                    day_period,
-                    is_underwater,
-                    ..
-                } = pack;
-                for period in day_period {
-                    if !day_periods.insert((period, is_underwater)) {
-                        panic!(
-                            r#"
-                        == {}: ==
-                            Found rules with duplicated `day_period` and `is_underwater`
-                        If you have two of such entries,
-                        there are big chances that second rule will be unreachable.
-
-                            If you want some animals spawned in different Packs
-                        with same day_period, add those animals to both Packs
-                        and choose day_period to not overlap.
-"#,
-                            entry
-                        )
-                    }
-                }
             }
         }
     }

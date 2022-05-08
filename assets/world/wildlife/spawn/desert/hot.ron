@@ -12,7 +12,7 @@ SpawnEntry (
                 // Rare
                 (1, (1, 1, "common.entity.wild.peaceful.crawler_sand")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Morning, Noon, Evening],
         ),
         Pack(
@@ -21,7 +21,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.peaceful.porcupine")),
                 (1, (1, 1, "common.entity.wild.peaceful.pangolin")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night],
         ),
     ],

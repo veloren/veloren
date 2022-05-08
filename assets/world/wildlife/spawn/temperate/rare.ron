@@ -8,7 +8,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.aggressive.swamp_troll")),
                 (1, (1, 1, "common.entity.wild.aggressive.cyclops")),
             ],
-            is_underwater: false,
+            spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
         ),
     ],
