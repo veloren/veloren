@@ -3757,15 +3757,15 @@
     ),
     Tool("common.items.crafting_ing.modular.secondary.sword.long"): VoxTrans(
         "voxel.weapon.component.sword.hilt.long",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.sword.medium"): VoxTrans(
         "voxel.weapon.component.sword.hilt.medium",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.sword.short"): VoxTrans(
         "voxel.weapon.component.sword.hilt.short",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
     // Axes
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.axe.axe", "common.items.mineral.ingot.bronze")): VoxTrans(
@@ -3938,15 +3938,15 @@
     ),
     Tool("common.items.crafting_ing.modular.secondary.axe.long"): VoxTrans(
         "voxel.weapon.component.axe.haft.long",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
     Tool("common.items.crafting_ing.modular.secondary.axe.medium"): VoxTrans(
         "voxel.weapon.component.axe.haft.medium",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
     Tool("common.items.crafting_ing.modular.secondary.axe.short"): VoxTrans(
         "voxel.weapon.component.axe.haft.short",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
     // Hammers
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.hammer.greathammer", "common.items.mineral.ingot.bronze")): VoxTrans(
@@ -4119,15 +4119,15 @@
     ),
     Tool("common.items.crafting_ing.modular.secondary.hammer.long"): VoxTrans(
         "voxel.weapon.component.hammer.shaft.long",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
     Tool("common.items.crafting_ing.modular.secondary.hammer.medium"): VoxTrans(
         "voxel.weapon.component.hammer.shaft.medium",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
     Tool("common.items.crafting_ing.modular.secondary.hammer.short"): VoxTrans(
         "voxel.weapon.component.hammer.shaft.short",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
     // Bows
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.bow.bow", "common.items.log.wood")): VoxTrans(
@@ -4300,15 +4300,15 @@
     ),
     Tool("common.items.crafting_ing.modular.secondary.bow.long"): VoxTrans(
         "voxel.weapon.component.bow.grip.long",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.bow.medium"): VoxTrans(
         "voxel.weapon.component.bow.grip.medium",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.bow.short"): VoxTrans(
         "voxel.weapon.component.bow.grip.short",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
     // Staffs
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.staff.brand", "common.items.log.wood")): VoxTrans(
@@ -4481,15 +4481,15 @@
     ),
     Tool("common.items.crafting_ing.modular.secondary.staff.heavy"): VoxTrans(
         "voxel.weapon.component.staff.core.heavy",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0),   (-100.0, 210.0, 15.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.staff.medium"): VoxTrans(
         "voxel.weapon.component.staff.core.medium",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0),   (-100.0, 210.0, 15.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.staff.light"): VoxTrans(
         "voxel.weapon.component.staff.core.light",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0),  (-100.0, 210.0, 15.0), 0.7,
     ),
     // Sceptres
     ModularWeaponComponent(("common.items.crafting_ing.modular.primary.sceptre.arbor", "common.items.log.wood")): VoxTrans(
@@ -4662,14 +4662,14 @@
     ),
     Tool("common.items.crafting_ing.modular.secondary.sceptre.heavy"): VoxTrans(
         "voxel.weapon.component.sceptre.core.heavy",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.sceptre.medium"): VoxTrans(
         "voxel.weapon.component.sceptre.core.medium",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 0.7,
     ),
     Tool("common.items.crafting_ing.modular.secondary.sceptre.light"): VoxTrans(
         "voxel.weapon.component.sceptre.core.light",
-        (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
+        (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 0.7,
     ),
 })
