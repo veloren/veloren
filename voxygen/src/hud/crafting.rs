@@ -933,7 +933,40 @@ impl<'a> Widget for Crafting<'a> {
                             )
                             .set(state.ids.modular_inputs[0], ui);
                     } else {
-                        primary_slot_widget.set(state.ids.modular_inputs[0], ui);
+                        let (tooltip_title, tooltip_desc) = match recipe_kind {
+                            RecipeKind::ModularWeapon => (
+                                self.localized_strings
+                                    .get("hud.crafting.mod_weap_prim_slot_title"),
+                                self.localized_strings
+                                    .get("hud.crafting.mod_weap_prim_slot_desc"),
+                            ),
+                            RecipeKind::Component(
+                                ToolKind::Sword | ToolKind::Axe | ToolKind::Hammer,
+                            ) => (
+                                self.localized_strings
+                                    .get("hud.crafting.mod_comp_metal_prim_slot_title"),
+                                self.localized_strings
+                                    .get("hud.crafting.mod_comp_metal_prim_slot_desc"),
+                            ),
+                            RecipeKind::Component(
+                                ToolKind::Bow | ToolKind::Staff | ToolKind::Sceptre,
+                            ) => (
+                                self.localized_strings
+                                    .get("hud.crafting.mod_comp_wood_prim_slot_title"),
+                                self.localized_strings
+                                    .get("hud.crafting.mod_comp_wood_prim_slot_desc"),
+                            ),
+                            RecipeKind::Component(_) | RecipeKind::Simple => ("", ""),
+                        };
+                        primary_slot_widget
+                            .with_tooltip(
+                                self.tooltip_manager,
+                                tooltip_title,
+                                tooltip_desc,
+                                &tabs_tooltip,
+                                TEXT_COLOR,
+                            )
+                            .set(state.ids.modular_inputs[0], ui);
                     }
 
                     let secondary_slot = CraftSlot {
@@ -991,7 +1024,30 @@ impl<'a> Widget for Crafting<'a> {
                             )
                             .set(state.ids.modular_inputs[1], ui);
                     } else {
-                        secondary_slot_widget.set(state.ids.modular_inputs[1], ui);
+                        let (tooltip_title, tooltip_desc) = match recipe_kind {
+                            RecipeKind::ModularWeapon => (
+                                self.localized_strings
+                                    .get("hud.crafting.mod_weap_sec_slot_title"),
+                                self.localized_strings
+                                    .get("hud.crafting.mod_weap_sec_slot_desc"),
+                            ),
+                            RecipeKind::Component(_) => (
+                                self.localized_strings
+                                    .get("hud.crafting.mod_comp_sec_slot_title"),
+                                self.localized_strings
+                                    .get("hud.crafting.mod_comp_sec_slot_desc"),
+                            ),
+                            RecipeKind::Simple => ("", ""),
+                        };
+                        secondary_slot_widget
+                            .with_tooltip(
+                                self.tooltip_manager,
+                                tooltip_title,
+                                tooltip_desc,
+                                &tabs_tooltip,
+                                TEXT_COLOR,
+                            )
+                            .set(state.ids.modular_inputs[1], ui);
                     }
 
                     let prim_item_placed = primary_slot.invslot.is_some();

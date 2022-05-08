@@ -150,7 +150,13 @@ impl From<SpriteKind> for Option<SpriteInteractKind> {
             | SpriteKind::WildFlax
             | SpriteKind::RoundCactus
             | SpriteKind::ShortFlatCactus
-            | SpriteKind::MedFlatCactus => Some(SpriteInteractKind::Harvestable),
+            | SpriteKind::MedFlatCactus
+            | SpriteKind::Wood
+            | SpriteKind::Bamboo
+            | SpriteKind::Hardwood
+            | SpriteKind::Ironwood
+            | SpriteKind::Frostwood
+            | SpriteKind::Eldwood => Some(SpriteInteractKind::Harvestable),
             SpriteKind::Stones
             | SpriteKind::Twigs
             | SpriteKind::VialEmpty

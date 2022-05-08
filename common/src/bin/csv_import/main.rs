@@ -539,6 +539,22 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                         .to_string(),
                 ),
             },
+            "Modular Weapon Primary Component" => LootSpec::ModularWeaponPrimaryComponent {
+                tool: get_tool_kind(record.get(headers["Item"]).expect("No tool").to_string())
+                    .expect("Invalid tool kind"),
+                material: Material::from_str(
+                    record
+                        .get(headers["Lower Amount or Material"])
+                        .expect("No material"),
+                )
+                .expect("Invalid material type"),
+                hands: get_tool_hands(
+                    record
+                        .get(headers["Upper Amount or Hands"])
+                        .expect("No hands")
+                        .to_string(),
+                ),
+            },
             a => panic!(
                 "Loot specifier kind must be either \"Item\", \"LootTable\", or \"Nothing\"\n{}",
                 a

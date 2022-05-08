@@ -92,6 +92,11 @@ pub enum LootSpec<T: AsRef<str>> {
         material: item::Material,
         hands: Option<item::tool::Hands>,
     },
+    ModularWeaponPrimaryComponent {
+        tool: item::tool::ToolKind,
+        material: item::Material,
+        hands: Option<item::tool::Hands>,
+    },
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
@@ -145,6 +150,25 @@ impl<T: AsRef<str>> LootSpec<T> {
                 },
                 Option::Some,
             ),
+            Self::ModularWeaponPrimaryComponent {
+                tool,
+                material,
+                hands,
+            } => item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng)
+                .map_or_else(
+                    |e| {
+                        warn!(
+                            ?e,
+                            "error while creating modular weapon primary component. Toolkind: \
+                             {:?}, Material: {:?}, Hands: {:?}",
+                            tool,
+                            material,
+                            hands,
+                        );
+                        None
+                    },
+                    |(comp, _)| Some(comp),
+                ),
         }
     }
 }
@@ -195,6 +219,19 @@ pub mod tests {
                         panic!(
                             "Failed to synthesize a modular {tool:?} made of {material:?} that \
                              had a hand restriction of {hands:?}."
+                        )
+                    },
+                );
+            },
+            LootSpec::ModularWeaponPrimaryComponent {
+                tool,
+                material,
+                hands,
+            } => {
+                item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng).unwrap_or_else(
+                    |_| {
+                        panic!(
+                            "Failed to synthesize a modular weapon primary component: {tool:?} made of {material:?} that had a hand restriction of {hands:?}."
                         )
                     },
                 );

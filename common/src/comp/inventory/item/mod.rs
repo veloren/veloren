@@ -993,7 +993,11 @@ impl Item {
 
     pub fn quality(&self) -> Quality {
         match &self.item_base {
-            ItemBase::Simple(item_def) => item_def.quality,
+            ItemBase::Simple(item_def) => item_def.quality.max(
+                self.components
+                    .iter()
+                    .fold(Quality::MIN, |a, b| a.max(b.quality())),
+            ),
             ItemBase::Modular(mod_base) => mod_base.compute_quality(self.components()),
         }
     }

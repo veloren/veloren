@@ -336,14 +336,19 @@ pub enum ModularWeaponCreationError {
     SecondaryComponentNotFound,
 }
 
-/// Creates a random modular weapon when provided with a toolkind, material, and
-/// optionally the handedness
-pub fn random_weapon(
+/// Creates a random modular weapon primary component when provided with a
+/// toolkind, material, and optionally the handedness Note: The component
+/// produced is not necessarily restricted to that handedness, but rather is
+/// able to produce a weapon of that handedness depending on what secondary
+/// component is used Returns the comptabile handednesses that can be used with
+/// provided restriction and generated component (useful for cases where no
+/// restriction was passed in, but generated component has a restriction)
+pub fn random_weapon_primary_component(
     tool: ToolKind,
     material: Material,
     hand_restriction: Option<Hands>,
     mut rng: &mut impl Rng,
-) -> Result<Item, ModularWeaponCreationError> {
+) -> Result<(Item, Option<Hands>), ModularWeaponCreationError> {
     let result = (|| {
         if let Some(material_id) = material.asset_identifier() {
             // Loads default ability map and material stat manifest for later use
@@ -360,47 +365,71 @@ pub fn random_weapon(
                 })
                 .collect::<Vec<_>>();
 
-            let (primary_component, hand_restriction) = {
-                let (comp, hand) = primary_components
-                    .choose(&mut rng)
-                    .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
-                let comp = comp.duplicate(ability_map, msm);
-                (comp, hand_restriction.or(*hand))
-            };
-
-            let secondary_components = SECONDARY_COMPONENT_POOL
-                .get(&tool)
-                .into_iter()
-                .flatten()
-                .filter(|(_def, hand)| match (hand_restriction, hand) {
-                    (Some(restriction), Some(hand)) => restriction == *hand,
-                    (None, _) | (_, None) => true,
-                })
-                .collect::<Vec<_>>();
-
-            let secondary_component = {
-                let def = &secondary_components
-                    .choose(&mut rng)
-                    .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
-                    .0;
-                Item::new_from_item_base(
-                    ItemBase::Simple(Arc::clone(def)),
-                    Vec::new(),
-                    ability_map,
-                    msm,
-                )
-            };
-
-            // Create modular weapon
-            Ok(Item::new_from_item_base(
-                ItemBase::Modular(ModularBase::Tool),
-                vec![primary_component, secondary_component],
-                ability_map,
-                msm,
-            ))
+            let (comp, hand) = primary_components
+                .choose(&mut rng)
+                .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
+            let comp = comp.duplicate(ability_map, msm);
+            Ok((comp, hand_restriction.or(*hand)))
         } else {
             Err(ModularWeaponCreationError::MaterialNotFound)
         }
+    })();
+    if let Err(err) = &result {
+        let error_str = format!(
+            "Failed to synthesize a primary component for a modular {tool:?} made of {material:?} \
+             that had a hand restriction of {hand_restriction:?}. Error: {err:?}"
+        );
+        dev_panic!(error_str)
+    }
+    result
+}
+
+/// Creates a random modular weapon when provided with a toolkind, material, and
+/// optionally the handedness
+pub fn random_weapon(
+    tool: ToolKind,
+    material: Material,
+    hand_restriction: Option<Hands>,
+    mut rng: &mut impl Rng,
+) -> Result<Item, ModularWeaponCreationError> {
+    let result = (|| {
+        // Loads default ability map and material stat manifest for later use
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+
+        let (primary_component, hand_restriction) =
+            random_weapon_primary_component(tool, material, hand_restriction, rng)?;
+
+        let secondary_components = SECONDARY_COMPONENT_POOL
+            .get(&tool)
+            .into_iter()
+            .flatten()
+            .filter(|(_def, hand)| match (hand_restriction, hand) {
+                (Some(restriction), Some(hand)) => restriction == *hand,
+                (None, _) | (_, None) => true,
+            })
+            .collect::<Vec<_>>();
+
+        let secondary_component = {
+            let def = &secondary_components
+                .choose(&mut rng)
+                .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
+                .0;
+            Item::new_from_item_base(
+                ItemBase::Simple(Arc::clone(def)),
+                Vec::new(),
+                ability_map,
+                msm,
+            )
+        };
+
+        // Create modular weapon
+        Ok(Item::new_from_item_base(
+            ItemBase::Modular(ModularBase::Tool),
+            vec![primary_component, secondary_component],
+            ability_map,
+            msm,
+        ))
     })();
     if let Err(err) = &result {
         let error_str = format!(

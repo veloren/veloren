@@ -299,6 +299,17 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                 material.into(),
                 get_hands(*hands),
             ])?,
+            LootSpec::ModularWeaponPrimaryComponent {
+                tool,
+                material,
+                hands,
+            } => wtr.write_record(&[
+                &chance,
+                "Modular Weapon Primary Component",
+                &get_tool_kind(tool),
+                material.into(),
+                get_hands(*hands),
+            ])?,
         }
     }
 
@@ -405,6 +416,10 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                 },
                 LootSpec::ModularWeapon { .. } => {
                     // TODO: Figure out how modular weapons should work here
+                    (None, String::from("1"))
+                },
+                LootSpec::ModularWeaponPrimaryComponent { .. } => {
+                    // TODO: Figure out how modular weapon components should work here
                     (None, String::from("1"))
                 },
                 LootSpec::LootTable(_) => panic!("Shouldn't exist"),
