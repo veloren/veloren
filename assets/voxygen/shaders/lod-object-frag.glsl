@@ -19,7 +19,7 @@
 #include <globals.glsl>
 
 layout(location = 0) in vec3 f_pos;
-layout(location = 1) flat in vec3 f_norm;
+layout(location = 1) in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
 
 layout(location = 0) out vec4 tgt_color;

@@ -33,7 +33,7 @@ void main() {
     f_pos.z -= pull_down;
 
     f_norm = v_norm;
-    f_col = vec4(vec3(0, 0.025, 0.015), 1.0);//vec4(v_col, 1.0);
+    f_col = vec4(vec3(0, 0.035, 0.025), 1.0);//vec4(v_col, 1.0);
 
     gl_Position =
         all_mat *
