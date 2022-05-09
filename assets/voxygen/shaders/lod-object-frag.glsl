@@ -130,7 +130,7 @@ void main() {
 
     //max_light += lights_at(f_pos, voxel_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, voxel_norm, 1.0, emitted_light, reflected_light);
 
-    vec3 side_color = mix(surf_color, vec3(1), snow_cover);
+    vec3 side_color = mix(surf_color, vec3(0.5, 0.6, 1.0), snow_cover);
     vec3 top_color = mix(surf_color, surf_color * 0.3, 0.5 + snow_cover * 0.5);
     surf_color = mix(side_color, top_color, pow(fract(model_pos.z * 0.1), 2.0));
 
