@@ -28,11 +28,13 @@ const uint FLAG_SNOW_COVERED = 1;
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) out vec3 f_norm;
 layout(location = 2) out vec4 f_col;
-layout(location = 3) out float snow_cover;
+layout(location = 3) out vec3 model_pos;
+layout(location = 4) out float snow_cover;
 
 void main() {
     vec3 tree_pos = inst_pos - focus_off.xyz;
     f_pos = tree_pos + v_pos;
+    model_pos = v_pos;
 
     float pull_down = 1.0 / pow(distance(focus_pos.xy, tree_pos.xy) / (view_distance.x * 0.95), 150.0);
     f_pos.z -= pull_down;

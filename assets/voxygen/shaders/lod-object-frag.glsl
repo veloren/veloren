@@ -21,7 +21,8 @@
 layout(location = 0) in vec3 f_pos;
 layout(location = 1) in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
-layout(location = 3) in float snow_cover;
+layout(location = 3) in vec3 model_pos;
+layout(location = 4) in float snow_cover;
 
 layout(location = 0) out vec4 tgt_color;
 
@@ -75,7 +76,7 @@ void main() {
     float my_alt = f_pos.z + focus_off.z;
     float f_ao = 1.0;
     const float VOXELIZE_DIST = 2000;
-    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 1.0);
+    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 0.65);
     vec3 cam_dir = normalize(cam_pos.xyz - f_pos.xyz);
     vec3 side_norm = normalize(vec3(my_norm.xy, 0));
     vec3 top_norm = vec3(0, 0, 1);
@@ -126,7 +127,7 @@ void main() {
 
     vec3 side_color = mix(surf_color, vec3(1), snow_cover);
     vec3 top_color = mix(surf_color, surf_color * 0.3, 0.5 + snow_cover * 0.5);
-    surf_color = mix(side_color, top_color, 1.0 - pow(fract((f_pos.z + focus_off.z) * 0.1), 2.0));
+    surf_color = mix(side_color, top_color, 1.0 - pow(fract(model_pos.z * 0.1), 2.0));
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
