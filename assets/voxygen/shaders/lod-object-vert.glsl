@@ -43,6 +43,10 @@ void main() {
         f_pos.z -= step(0.1, pull_down) * 10000.0;
     #endif
 
+    #ifdef EXPERIMENTAL_CURVEDWORLD
+        f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
+    #endif
+
     // Hacky, very bad, 50 is ~ tree height
     f_norm = v_norm;//mix(v_norm, vec3(0, 0, 1), clamp(model_pos.z / 50, 0, 1));
     f_col = vec4(vec3(0.02, 0.1, 0.01) * (sin(inst_pos.xyy) * 0.33 + 0.66), 1.0);//vec4(v_col, 1.0);

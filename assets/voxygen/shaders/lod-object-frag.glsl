@@ -132,7 +132,7 @@ void main() {
 
     vec3 side_color = mix(surf_color, vec3(1), snow_cover);
     vec3 top_color = mix(surf_color, surf_color * 0.3, 0.5 + snow_cover * 0.5);
-    surf_color = mix(side_color, top_color, 1.0 - pow(fract(model_pos.z * 0.1), 2.0));
+    surf_color = mix(side_color, top_color, pow(fract(model_pos.z * 0.1), 2.0));
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
