@@ -21,15 +21,12 @@
     (0.5, Item("common.items.mineral.ore.velorite")),
     (0.6, Item("common.items.mineral.ore.veloritefrag")),
     (2.5, Item("common.items.mineral.ore.copper")),
-    (2.5, Item("common.items.mineral.ore.iron")),
     (2.5, Item("common.items.mineral.ore.tin")),
 
     // Logs
     (5.0, Item("common.items.log.wood")),
-    (2.5, Item("common.items.log.bamboo")),
 
     // Animal Hide
-    (2.5, Item("common.items.crafting_ing.hide.tough_hide")),
     (4.0, Item("common.items.crafting_ing.hide.animal_hide")),
 
     // Mob Drops
@@ -42,6 +39,7 @@
     (2.5, Item("common.items.crafting_ing.animal_misc.venom_sac")),
     (2.5, Item("common.items.crafting_ing.animal_misc.viscous_ooze")),
     (4.0, Item("common.items.crafting_ing.cloth.wool")),
+    (4.0, Item("common.items.flowers.plant_fiber")),
 
     // Junk
     (4.0, Item("common.items.crafting_ing.bowl")),

@@ -1,19 +1,11 @@
 (
 loot_tables: [
     // balance the loot tables against each other (higher= more common= smaller price)
-    // Weapons
+    // Non-craftable weapons
     (192.0, true, "common.loot_tables.weapons.starter"),
     (0.075, false, "common.loot_tables.weapons.cultist"),
     (0.075, false, "common.loot_tables.weapons.cave"),
     (0.04, false, "common.loot_tables.weapons.legendary"),
-
-    // Weapons sets
-    (80.0, true, "common.loot_tables.weapons.tier-0"),
-    (48.0, true, "common.loot_tables.weapons.tier-1"),
-    (6.0, true, "common.loot_tables.weapons.tier-2"),
-    (0.75, true, "common.loot_tables.weapons.tier-3"),
-    (0.375, false, "common.loot_tables.weapons.tier-4"),
-    (0.18, false, "common.loot_tables.weapons.tier-5"),
 
     // Non-craftable Armor
     (640, true, "common.loot_tables.armor.cloth"),

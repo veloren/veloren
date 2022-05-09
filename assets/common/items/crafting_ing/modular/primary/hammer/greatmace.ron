@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Great Mace Head",
+    name: "Greatmace Head",
     description: "",
     kind: ModularComponent(
         ToolPrimaryComponent(
@@ -15,7 +15,7 @@ ItemDef(
                 buff_strength: 0.8,
             ),
             hand_restriction: Some(Two),
-            weapon_name: Universal("Great Mace"),
+            weapon_name: Universal("Greatmace"),
         )
     ),
     quality: Low,

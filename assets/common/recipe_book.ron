@@ -1726,11 +1726,12 @@
     "tin pickaxe": (
         output: ("common.items.tool.pickaxe_stone", 1),
         inputs: [
-            (Item("common.items.crafting_ing.leather.leather_strips"), 4, false),
-            (Item("common.items.crafting_ing.stones"), 5, false),
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
+            (Item("common.items.crafting_ing.stones"), 3, false),
+            (Item("common.items.log.wood"), 1, false),
             (Item("common.items.tool.craftsman_hammer"), 0, false),
         ],
-        craft_sprite: Some(Anvil),
+        craft_sprite: None,
     ),
     "steel pickaxe": (
         output: ("common.items.tool.pickaxe_steel", 1),
@@ -1999,7 +2000,7 @@
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
     "pyrocore": (
@@ -2008,7 +2009,7 @@
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
     "light pyrocore": (
@@ -2017,7 +2018,7 @@
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
 /// MODULAR WEAPONS/NATURE SCEPTRES/SECONDARY COMPONENTS
@@ -2027,7 +2028,7 @@
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
     "biocore": (
@@ -2036,7 +2037,7 @@
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
     "light biocore": (
@@ -2045,7 +2046,7 @@
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
         ],
-        craft_sprite: Some(CraftingBench),
+        craft_sprite: Some(Cauldron),
         is_recycling: false,
     ),
 }

@@ -3,7 +3,7 @@
     name: Name("Mandragora"),
     body: RandomWith("mandragora"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.mandragora"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.mandragora"),

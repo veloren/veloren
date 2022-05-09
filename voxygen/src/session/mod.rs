@@ -2,23 +2,25 @@ pub mod interactable;
 pub mod settings_change;
 mod target;
 
-use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc, time::Duration};
+use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Duration};
 
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
-use tracing::{error, info, trace, warn};
+use tracing::{error, info};
 use vek::*;
 
 use client::{self, Client};
 use common::{
-    assets::AssetExt,
     comp,
     comp::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{tool::ToolKind, ItemDef, ItemDefinitionId, ItemDesc},
+        item::{
+            tool::{AbilityMap, MaterialStatManifest, ToolKind},
+            ItemDesc,
+        },
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
@@ -250,25 +252,13 @@ impl SessionState {
                                 self.hud.add_failed_entity_pickup(entity);
                             }
                         },
-                        InventoryUpdateEvent::Collected(item) => match item.item_definition_id() {
-                            ItemDefinitionId::Simple(id) => match Arc::<ItemDef>::load_cloned(id) {
-                                Result::Ok(item_def) => {
-                                    self.hud.new_loot_message(LootMessage {
-                                        item: item_def,
-                                        amount: item.amount(),
-                                    });
-                                },
-                                Result::Err(e) => {
-                                    warn!(
-                                        ?e,
-                                        "Item not present on client: {:?}",
-                                        item.item_definition_id()
-                                    );
-                                },
-                            },
-                            ItemDefinitionId::Modular { .. } => {
-                                trace!("Modular items not currently supported for loot messages.")
-                            },
+                        InventoryUpdateEvent::Collected(item) => {
+                            let ability_map = AbilityMap::load().read();
+                            let msm = MaterialStatManifest::load().read();
+                            self.hud.new_loot_message(LootMessage {
+                                item: item.duplicate(&ability_map, &msm),
+                                amount: item.amount(),
+                            });
                         },
                         _ => {},
                     };
@@ -1449,7 +1439,7 @@ impl PlayState for SessionState {
                                     .get(client.entity())
                                     .and_then(|inv| inv.get(slot))
                                     .and_then(|item| {
-                                        item.item_definition_id().raw().map(String::from)
+                                        item.item_definition_id().itemdef_id().map(String::from)
                                     })
                             };
                             if let Some(material_id) = item_id(material) {

@@ -6,7 +6,7 @@ BasicAura(
     auras: [
         (
             kind: ProtectingWard,
-            strength: 0.20,
+            strength: 0.15,
             duration: Some(10.0),
             category: Magical,
         ),

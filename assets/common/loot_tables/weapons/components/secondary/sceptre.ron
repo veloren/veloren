@@ -1,0 +1,5 @@
+[
+    (1.0, Item("common.items.crafting_ing.modular.secondary.sceptre.light")),
+    (1.0, Item("common.items.crafting_ing.modular.secondary.sceptre.medium")),
+    (1.0, Item("common.items.crafting_ing.modular.secondary.sceptre.heavy")),
+]
