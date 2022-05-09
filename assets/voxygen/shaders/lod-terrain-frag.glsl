@@ -354,6 +354,11 @@ void main() {
         }
     }
 
+    #ifdef EXPERIMENTAL_NOLODVOXELS
+        f_ao = 1.0;
+        voxel_norm = normalize(mix(side_norm, top_norm, cam_dir.z));
+    #endif
+
     // vec3 f_ao_view = max(vec3(dot(f_orig_view_dir.yz, sides.yz), dot(f_orig_view_dir.xz, sides.xz), dot(f_orig_view_dir.xy, sides.xy)), 0.0);
     // delta_sides *= sqrt(1.0 - f_ao_view * f_ao_view);
     // delta_sides *= 1.0 - mix(view_dir / f_ao_view, vec3(0.0), equal(f_ao_view, vec3(0.0)));// sqrt(1.0 - f_ao_view * f_ao_view);

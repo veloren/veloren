@@ -97,6 +97,11 @@ void main() {
     f_ao = min(f_ao, max(f_norm.z * 0.5 + 0.5, 0.0));
     voxel_norm = mix(my_norm, voxel_norm == vec3(0.0) ? f_norm : voxel_norm, voxelize_factor);
 
+    #ifdef EXPERIMENTAL_NOLODVOXELS
+        f_ao = 1.0;
+        voxel_norm = normalize(mix(side_norm, top_norm, cam_dir.z));
+    #endif
+
     vec3 emitted_light, reflected_light;
 
     // This is a bit of a hack. Because we can't find the volumetric lighting of each particle (they don't talk to the

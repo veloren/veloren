@@ -463,4 +463,6 @@ pub enum ExperimentalShader {
     BareMinimum,
     /// Lowers strength of the glow effect for lights near the camera.
     LowGlowNearCamera,
+    /// Disable the fake voxel effect on LoD features.
+    NoLodVoxels,
 }
