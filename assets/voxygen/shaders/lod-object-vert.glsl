@@ -28,6 +28,7 @@ const uint FLAG_SNOW_COVERED = 1;
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) out vec3 f_norm;
 layout(location = 2) out vec4 f_col;
+layout(location = 3) out float snow_cover;
 
 void main() {
     vec3 tree_pos = inst_pos - focus_off.xyz;
@@ -40,7 +41,10 @@ void main() {
     f_col = vec4(vec3(0.02, 0.1, 0.01) * (sin(inst_pos.xyy) * 0.33 + 0.66), 1.0);//vec4(v_col, 1.0);
 
     if ((inst_flags & FLAG_SNOW_COVERED) > 0u) {
-        f_col.rgb = mix(f_col.rgb, vec3(1), pow(max(f_norm.z, 0.0), 0.5));
+        snow_cover = 1.0;
+        //f_col.rgb = mix(f_col.rgb, vec3(1), pow(max(f_norm.z, 0.0), 0.5));
+    } else {
+        snow_cover = 0.0;
     }
 
     gl_Position =

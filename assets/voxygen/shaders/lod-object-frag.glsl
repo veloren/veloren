@@ -21,6 +21,7 @@
 layout(location = 0) in vec3 f_pos;
 layout(location = 1) in vec3 f_norm;
 layout(location = 2) in vec4 f_col;
+layout(location = 3) in float snow_cover;
 
 layout(location = 0) out vec4 tgt_color;
 
@@ -122,6 +123,10 @@ void main() {
     reflected_light *= f_ao;
 
     //max_light += lights_at(f_pos, voxel_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, voxel_norm, 1.0, emitted_light, reflected_light);
+
+    vec3 side_color = mix(surf_color, vec3(1), snow_cover);
+    vec3 top_color = mix(surf_color, surf_color * 0.3, snow_cover);
+    surf_color = mix(side_color, top_color, 1.0 - fract((f_pos.z + focus_off.z) * 0.1));
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
