@@ -110,6 +110,7 @@ struct ShaderModules {
     sprite_vert: wgpu::ShaderModule,
     sprite_frag: wgpu::ShaderModule,
     lod_object_vert: wgpu::ShaderModule,
+    lod_object_frag: wgpu::ShaderModule,
     particle_vert: wgpu::ShaderModule,
     particle_frag: wgpu::ShaderModule,
     trail_vert: wgpu::ShaderModule,
@@ -298,6 +299,7 @@ impl ShaderModules {
             sprite_vert: create_shader("sprite-vert", ShaderKind::Vertex)?,
             sprite_frag: create_shader("sprite-frag", ShaderKind::Fragment)?,
             lod_object_vert: create_shader("lod-object-vert", ShaderKind::Vertex)?,
+            lod_object_frag: create_shader("lod-object-frag", ShaderKind::Fragment)?,
             particle_vert: create_shader("particle-vert", ShaderKind::Vertex)?,
             particle_frag: create_shader("particle-frag", ShaderKind::Fragment)?,
             trail_vert: create_shader("trail-vert", ShaderKind::Vertex)?,
@@ -559,7 +561,7 @@ fn create_ingame_and_shadow_pipelines(
                 lod_object::LodObjectPipeline::new(
                     device,
                     &shaders.lod_object_vert,
-                    &shaders.particle_frag,
+                    &shaders.lod_object_frag,
                     &layouts.global,
                     pipeline_modes.aa,
                 )

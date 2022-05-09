@@ -25,7 +25,6 @@ layout(location = 3) in vec3 inst_pos;
 layout(location = 0) out vec3 f_pos;
 layout(location = 1) out vec3 f_norm;
 layout(location = 2) out vec4 f_col;
-layout(location = 3) out float f_reflect;
 
 void main() {
     f_pos = inst_pos + v_pos - focus_off.xyz;
@@ -34,8 +33,7 @@ void main() {
     f_pos.z -= pull_down;
 
     f_norm = v_norm;
-    f_col = vec4(vec3(0, 0.2, 0), 1.0);//vec4(v_col, 1.0);
-    f_reflect = 1.0;
+    f_col = vec4(vec3(0, 0.025, 0.015), 1.0);//vec4(v_col, 1.0);
 
     gl_Position =
         all_mat *

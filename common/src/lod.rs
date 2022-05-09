@@ -7,7 +7,7 @@ use crate::{
 };
 
 // In chunks
-pub const ZONE_SIZE: u32 = 64;
+pub const ZONE_SIZE: u32 = 32;
 
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug, Serialize, Deserialize, EnumIter)]
 #[repr(u16)]
