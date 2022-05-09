@@ -369,6 +369,7 @@ impl TradePricing {
 
             _ if name.starts_with("common.items.crafting_ing.") => Good::Ingredients,
             _ if name.starts_with("common.items.mineral.") => Good::Ingredients,
+            _ if name.starts_with("common.items.log.") => Good::Ingredients,
             _ if name.starts_with("common.items.flowers.") => Good::Ingredients,
 
             _ if name.starts_with("common.items.consumable.") => Good::Potions,

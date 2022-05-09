@@ -448,6 +448,10 @@ pub enum ItemDefinitionId<'a> {
         pseudo_base: &'a str,
         components: Vec<ItemDefinitionId<'a>>,
     },
+    Compound {
+        simple_base: &'a str,
+        components: Vec<ItemDefinitionId<'a>>,
+    },
 }
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -455,6 +459,10 @@ pub enum ItemDefinitionIdOwned {
     Simple(String),
     Modular {
         pseudo_base: String,
+        components: Vec<ItemDefinitionIdOwned>,
+    },
+    Compound {
+        simple_base: String,
         components: Vec<ItemDefinitionIdOwned>,
     },
 }
@@ -470,15 +478,23 @@ impl ItemDefinitionIdOwned {
                 pseudo_base,
                 components: components.iter().map(|comp| comp.as_ref()).collect(),
             },
+            Self::Compound {
+                ref simple_base,
+                ref components,
+            } => ItemDefinitionId::Compound {
+                simple_base,
+                components: components.iter().map(|comp| comp.as_ref()).collect(),
+            },
         }
     }
 }
 
 impl<'a> ItemDefinitionId<'a> {
-    pub fn raw(&self) -> Option<&str> {
+    pub fn itemdef_id(&self) -> Option<&str> {
         match self {
             Self::Simple(id) => Some(id),
             Self::Modular { .. } => None,
+            Self::Compound { simple_base, .. } => Some(simple_base),
         }
     }
 
@@ -490,6 +506,13 @@ impl<'a> ItemDefinitionId<'a> {
                 components,
             } => ItemDefinitionIdOwned::Modular {
                 pseudo_base: String::from(*pseudo_base),
+                components: components.iter().map(|comp| comp.to_owned()).collect(),
+            },
+            Self::Compound {
+                simple_base,
+                components,
+            } => ItemDefinitionIdOwned::Compound {
+                simple_base: String::from(*simple_base),
                 components: components.iter().map(|comp| comp.to_owned()).collect(),
             },
         }
@@ -894,7 +917,20 @@ impl Item {
 
     pub fn item_definition_id(&self) -> ItemDefinitionId<'_> {
         match &self.item_base {
-            ItemBase::Simple(item_def) => ItemDefinitionId::Simple(&item_def.item_definition_id),
+            ItemBase::Simple(item_def) => {
+                if self.components.is_empty() {
+                    ItemDefinitionId::Simple(&item_def.item_definition_id)
+                } else {
+                    ItemDefinitionId::Compound {
+                        simple_base: &item_def.item_definition_id,
+                        components: self
+                            .components
+                            .iter()
+                            .map(|item| item.item_definition_id())
+                            .collect(),
+                    }
+                }
+            },
             ItemBase::Modular(mod_base) => ItemDefinitionId::Modular {
                 pseudo_base: mod_base.pseudo_item_id(),
                 components: self

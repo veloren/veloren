@@ -167,6 +167,7 @@ pub fn convert_items_to_database_items(
 
             let persistence_item_id = match item.item_definition_id() {
                 ItemDefinitionId::Simple(id) => id.to_owned(),
+                ItemDefinitionId::Compound { simple_base, .. } => simple_base.to_owned(),
                 ItemDefinitionId::Modular { pseudo_base, .. } => pseudo_base.to_owned(),
             };
 

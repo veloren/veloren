@@ -228,13 +228,13 @@ pub mod tests {
                 material,
                 hands,
             } => {
-                item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng).unwrap_or_else(
-                    |_| {
+                item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng)
+                    .unwrap_or_else(|_| {
                         panic!(
-                            "Failed to synthesize a modular weapon primary component: {tool:?} made of {material:?} that had a hand restriction of {hands:?}."
+                            "Failed to synthesize a modular weapon primary component: {tool:?} \
+                             made of {material:?} that had a hand restriction of {hands:?}."
                         )
-                    },
-                );
+                    });
             },
         }
     }

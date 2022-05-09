@@ -226,6 +226,9 @@ impl CharacterCacheKey {
                     ItemDefinitionId::Modular { .. } => {
                         ToolKey::Modular(modular::weapon_to_key(item))
                     },
+                    ItemDefinitionId::Compound { simple_base, .. } => {
+                        ToolKey::Tool(String::from(simple_base))
+                    },
                 };
                 Some(CharacterToolKey {
                     active: inventory

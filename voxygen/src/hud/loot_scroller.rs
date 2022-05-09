@@ -6,7 +6,7 @@ use super::{
 };
 use crate::ui::{fonts::Fonts, ImageFrame, ItemTooltip, ItemTooltipManager, ItemTooltipable};
 use client::Client;
-use common::comp::inventory::item::{ItemDef, ItemDesc, MaterialStatManifest, Quality};
+use common::comp::inventory::item::{Item, ItemDesc, MaterialStatManifest, Quality};
 use conrod_core::{
     color,
     position::Dimension,
@@ -14,7 +14,7 @@ use conrod_core::{
     widget_ids, Color, Colorable, Positionable, Sizeable, Widget, WidgetCommon,
 };
 use i18n::Localization;
-use std::{collections::VecDeque, sync::Arc};
+use std::collections::VecDeque;
 
 widget_ids! {
     struct Ids{
@@ -97,7 +97,7 @@ impl<'a> LootScroller<'a> {
 
 #[derive(Debug, PartialEq)]
 pub struct LootMessage {
-    pub item: Arc<ItemDef>,
+    pub item: Item,
     pub amount: u32,
 }
 
@@ -162,11 +162,9 @@ impl<'a> Widget for LootScroller<'a> {
             state.update(|s| {
                 s.messages.retain(|(message, t)| {
                     if *t >= oldest_merge_pulse {
-                        if let Some(i) = self
-                            .new_messages
-                            .iter()
-                            .position(|m| m.item.id() == message.item.id())
-                        {
+                        if let Some(i) = self.new_messages.iter().position(|m| {
+                            m.item.item_definition_id() == message.item.item_definition_id()
+                        }) {
                             self.new_messages[i].amount += message.amount;
                             false
                         } else {
@@ -310,7 +308,7 @@ impl<'a> Widget for LootScroller<'a> {
                     Quality::Artifact => self.imgs.inv_slot_orange,
                     _ => self.imgs.inv_slot_red,
                 };
-                let quality_col = get_quality_col(&**item);
+                let quality_col = get_quality_col(&*item);
 
                 Image::new(self.imgs.pixel)
                     .color(Some(shade_color(quality_col.alpha(0.7))))
@@ -325,7 +323,7 @@ impl<'a> Widget for LootScroller<'a> {
                     .set(state.ids.message_icon_frames[i], ui);
 
                 Image::new(animate_by_pulse(
-                    &self.item_imgs.img_ids_or_not_found_img((&**item).into()),
+                    &self.item_imgs.img_ids_or_not_found_img((&*item).into()),
                     self.pulse,
                 ))
                 .color(Some(shade_color(color::hsla(0.0, 0.0, 1.0, 1.0))))
@@ -333,7 +331,7 @@ impl<'a> Widget for LootScroller<'a> {
                 .middle_of(state.ids.message_icon_bgs[i])
                 .with_item_tooltip(
                     self.item_tooltip_manager,
-                    core::iter::once(&**item as &dyn ItemDesc),
+                    core::iter::once(&*item as &dyn ItemDesc),
                     &None,
                     &item_tooltip,
                 )

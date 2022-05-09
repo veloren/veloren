@@ -17,8 +17,7 @@ use common::{
     comp::inventory::{
         item::{
             item_key::ItemKey,
-            modular,
-            modular::ModularComponent,
+            modular::{self, ModularComponent},
             tool::{AbilityMap, ToolKind},
             Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, MaterialStatManifest, Quality,
             TagExampleInfo,
@@ -257,6 +256,10 @@ impl CraftingTab {
             CraftingTab::Utility => item.tags().contains(&ItemTag::Utility),
             CraftingTab::Weapon => match &*item.kind() {
                 ItemKind::Tool(_) => !item.tags().contains(&ItemTag::CraftingTool),
+                ItemKind::ModularComponent(
+                    ModularComponent::ToolPrimaryComponent { .. }
+                    | ModularComponent::ToolSecondaryComponent { .. },
+                ) => true,
                 _ => false,
             },
         }
@@ -900,7 +903,7 @@ impl<'a> Widget for Crafting<'a> {
                                             .filter(|(key, _)| key.toolkind == toolkind)
                                             .any(|(key, _)| {
                                                 Some(key.material.as_str())
-                                                    == item.item_definition_id().raw()
+                                                    == item.item_definition_id().itemdef_id()
                                             })
                                     })
                                 } else {
@@ -991,7 +994,7 @@ impl<'a> Widget for Crafting<'a> {
                                             .filter(|(key, _)| key.toolkind == toolkind)
                                             .any(|(key, _)| {
                                                 key.modifier.as_deref()
-                                                    == item.item_definition_id().raw()
+                                                    == item.item_definition_id().itemdef_id()
                                             })
                                     })
                                 } else {
@@ -1143,7 +1146,9 @@ impl<'a> Widget for Crafting<'a> {
                             if let Some(material) = primary_slot
                                 .invslot
                                 .and_then(|slot| self.inventory.get(slot))
-                                .and_then(|item| item.item_definition_id().raw().map(String::from))
+                                .and_then(|item| {
+                                    item.item_definition_id().itemdef_id().map(String::from)
+                                })
                             {
                                 let component_key = ComponentKey {
                                     toolkind,
@@ -1152,7 +1157,7 @@ impl<'a> Widget for Crafting<'a> {
                                         .invslot
                                         .and_then(|slot| self.inventory.get(slot))
                                         .and_then(|item| {
-                                            item.item_definition_id().raw().map(String::from)
+                                            item.item_definition_id().itemdef_id().map(String::from)
                                         }),
                                 };
                                 self.client.component_recipe_book().get(&component_key).map(
@@ -1451,14 +1456,16 @@ impl<'a> Widget for Crafting<'a> {
                 RecipeKind::Component(toolkind) => {
                     if let Some(material) = modular_primary_slot
                         .and_then(|slot| self.inventory.get(slot))
-                        .and_then(|item| item.item_definition_id().raw().map(String::from))
+                        .and_then(|item| item.item_definition_id().itemdef_id().map(String::from))
                     {
                         let component_key = ComponentKey {
                             toolkind,
                             material,
                             modifier: modular_secondary_slot
                                 .and_then(|slot| self.inventory.get(slot))
-                                .and_then(|item| item.item_definition_id().raw().map(String::from)),
+                                .and_then(|item| {
+                                    item.item_definition_id().itemdef_id().map(String::from)
+                                }),
                         };
                         if let Some(comp_recipe) =
                             self.client.component_recipe_book().get(&component_key)
@@ -1544,7 +1551,7 @@ impl<'a> Widget for Crafting<'a> {
                                 slot.as_ref().and_then(|item| {
                                     if item.matches_recipe_input(recipe_input, amount) {
                                         item.item_definition_id()
-                                            .raw()
+                                            .itemdef_id()
                                             .map(Arc::<ItemDef>::load_expect_cloned)
                                     } else {
                                         None
@@ -1562,7 +1569,7 @@ impl<'a> Widget for Crafting<'a> {
                                 slot.as_ref().and_then(|item| {
                                     if item.matches_recipe_input(recipe_input, amount) {
                                         item.item_definition_id()
-                                            .raw()
+                                            .itemdef_id()
                                             .map(Arc::<ItemDef>::load_expect_cloned)
                                     } else {
                                         None
@@ -1572,7 +1579,7 @@ impl<'a> Widget for Crafting<'a> {
                             .or_else(|| {
                                 item_defs.first().and_then(|i| {
                                     i.item_definition_id()
-                                        .raw()
+                                        .itemdef_id()
                                         .map(Arc::<ItemDef>::load_expect_cloned)
                                 })
                             }),

@@ -35,12 +35,13 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                 ItemDefinitionId::Modular { .. } => {
                     ItemKey::ModularWeapon(modular::weapon_to_key(item_desc))
                 },
+                ItemDefinitionId::Compound { .. } => ItemKey::Empty,
             },
             ItemKind::ModularComponent(mod_comp) => {
                 use modular::ModularComponent;
                 match mod_comp {
                     ModularComponent::ToolPrimaryComponent { .. } => {
-                        if let Some(id) = item_definition_id.raw() {
+                        if let ItemDefinitionId::Simple(id) = item_definition_id {
                             match modular::weapon_component_to_key(id, item_desc.components()) {
                                 Ok(key) => ItemKey::ModularWeaponComponent(key),
                                 // TODO: Maybe use a different ItemKey?
@@ -51,7 +52,7 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                         }
                     },
                     ModularComponent::ToolSecondaryComponent { .. } => {
-                        if let Some(id) = item_definition_id.raw() {
+                        if let ItemDefinitionId::Simple(id) = item_definition_id {
                             // TODO: Maybe use a different ItemKey?
                             ItemKey::Tool(id.to_owned())
                         } else {
@@ -65,7 +66,7 @@ impl<T: ItemDesc> From<&T> for ItemKey {
             ItemKind::Armor(Armor { kind, .. }) => ItemKey::Armor(kind.clone()),
             ItemKind::Utility { kind, .. } => ItemKey::Utility(*kind),
             ItemKind::Consumable { .. } => {
-                if let Some(id) = item_definition_id.raw() {
+                if let ItemDefinitionId::Simple(id) = item_definition_id {
                     ItemKey::Consumable(id.to_owned())
                 } else {
                     ItemKey::Empty

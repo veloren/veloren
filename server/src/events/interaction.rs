@@ -178,7 +178,7 @@ pub fn handle_mine_block(
                         tool,
                         state.ecs().uid_from_entity(entity),
                         item.item_definition_id()
-                            .raw()
+                            .itemdef_id()
                             .and_then(|id| RESOURCE_EXPERIENCE_MANIFEST.read().0.get(id).copied()),
                     ) {
                         let skill_group = SkillGroupKind::Weapon(tool);
@@ -222,7 +222,7 @@ pub fn handle_mine_block(
                         rng.gen_bool(chance_mod * f64::from(skill_level))
                     };
 
-                    let double_gain = item.item_definition_id().raw().map_or(false, |id| {
+                    let double_gain = item.item_definition_id().itemdef_id().map_or(false, |id| {
                         (id.contains("mineral.ore.") && need_double_ore(&mut rng))
                             || (id.contains("mineral.gem.") && need_double_gem(&mut rng))
                     });

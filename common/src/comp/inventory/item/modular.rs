@@ -240,7 +240,7 @@ impl ModularComponent {
                     .iter()
                     .filter_map(|comp| {
                         comp.item_definition_id()
-                            .raw()
+                            .itemdef_id()
                             .and_then(|id| msm.0.get(id))
                             .copied()
                             .zip(Some(1))
@@ -314,7 +314,7 @@ lazy_static! {
             if let Ok(items) = Item::new_from_asset_glob(&directory) {
                 items
                     .into_iter()
-                    .filter_map(|comp| Some(comp.item_definition_id().raw()?.to_owned()))
+                    .filter_map(|comp| Some(comp.item_definition_id().itemdef_id()?.to_owned()))
                     .filter_map(|id| Arc::<ItemDef>::load_cloned(&id).ok())
                     .for_each(|comp_def| {
                         if let ItemKind::ModularComponent(ModularComponent::ToolSecondaryComponent { hand_restriction, .. }) = comp_def.kind {
@@ -476,9 +476,11 @@ pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
         .iter()
         .find_map(|comp| match &*comp.kind() {
             ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { .. }) => {
-                let component_id = comp.item_definition_id().raw()?.to_owned();
+                let component_id = comp.item_definition_id().itemdef_id()?.to_owned();
                 let material_id = comp.components().iter().find_map(|mat| match &*mat.kind() {
-                    ItemKind::Ingredient { .. } => Some(mat.item_definition_id().raw()?.to_owned()),
+                    ItemKind::Ingredient { .. } => {
+                        Some(mat.item_definition_id().itemdef_id()?.to_owned())
+                    },
                     _ => None,
                 });
                 Some((component_id, material_id))
@@ -504,7 +506,7 @@ pub fn weapon_component_to_key(
     components: &[Item],
 ) -> Result<ModularWeaponComponentKey, ModularWeaponComponentKeyError> {
     match components.iter().find_map(|mat| match &*mat.kind() {
-        ItemKind::Ingredient { .. } => Some(mat.item_definition_id().raw()?.to_owned()),
+        ItemKind::Ingredient { .. } => Some(mat.item_definition_id().itemdef_id()?.to_owned()),
         _ => None,
     }) {
         Some(material_id) => Ok((item_def_id.to_owned(), material_id)),

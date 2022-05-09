@@ -392,7 +392,8 @@ impl SitePrices {
                             if let Some(vec) = item
                                 .name
                                 .as_ref()
-                                .raw()
+                                // TODO: This won't handle compound items with components well, or pure modular items at all
+                                .itemdef_id()
                                 .and_then(TradePricing::get_materials)
                             {
                                 vec.iter()

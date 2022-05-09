@@ -679,9 +679,9 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 } => {
                     let component_recipes = default_component_recipe_book().read();
                     let item_id = |slot| {
-                        inventory
-                            .get(slot)
-                            .and_then(|item| item.item_definition_id().raw().map(String::from))
+                        inventory.get(slot).and_then(|item| {
+                            item.item_definition_id().itemdef_id().map(String::from)
+                        })
                     };
                     if let Some(material_item_id) = item_id(material) {
                         component_recipes
