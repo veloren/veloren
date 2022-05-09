@@ -842,7 +842,7 @@ impl Stream {
     /// [`Serialized`]: Serialize
     #[inline]
     pub fn send<M: Serialize>(&mut self, msg: M) -> Result<(), StreamError> {
-        self.send_raw(&Message::serialize(&msg, self.params()))
+        self.send_raw_move(Message::serialize(&msg, self.params()))
     }
 
     /// This methods give the option to skip multiple calls of [`bincode`] and
@@ -892,13 +892,22 @@ impl Stream {
     /// [`Participants`]: crate::api::Participant
     /// [`compress`]: lz_fear::raw::compress2
     /// [`Message::serialize`]: crate::message::Message::serialize
+    #[inline]
     pub fn send_raw(&mut self, message: &Message) -> Result<(), StreamError> {
+        self.send_raw_move(Message {
+            data: message.data.clone(),
+            #[cfg(feature = "compression")]
+            compressed: message.compressed,
+        })
+    }
+
+    fn send_raw_move(&mut self, message: Message) -> Result<(), StreamError> {
         if self.send_closed.load(Ordering::Relaxed) {
             return Err(StreamError::StreamClosed);
         }
         #[cfg(debug_assertions)]
         message.verify(self.params());
-        self.a2b_msg_s.send((self.sid, message.data.clone()))?;
+        self.a2b_msg_s.send((self.sid, message.data))?;
         Ok(())
     }
 
