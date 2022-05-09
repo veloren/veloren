@@ -37,29 +37,18 @@ impl<T: ItemDesc> From<&T> for ItemKey {
                 },
                 ItemDefinitionId::Compound { .. } => ItemKey::Empty,
             },
-            ItemKind::ModularComponent(mod_comp) => {
-                use modular::ModularComponent;
-                match mod_comp {
-                    ModularComponent::ToolPrimaryComponent { .. } => {
-                        if let ItemDefinitionId::Simple(id) = item_definition_id {
-                            match modular::weapon_component_to_key(id, item_desc.components()) {
-                                Ok(key) => ItemKey::ModularWeaponComponent(key),
-                                // TODO: Maybe use a different ItemKey?
-                                Err(_) => ItemKey::Tool(id.to_owned()),
-                            }
-                        } else {
-                            ItemKey::Empty
-                        }
-                    },
-                    ModularComponent::ToolSecondaryComponent { .. } => {
-                        if let ItemDefinitionId::Simple(id) = item_definition_id {
-                            // TODO: Maybe use a different ItemKey?
-                            ItemKey::Tool(id.to_owned())
-                        } else {
-                            ItemKey::Empty
-                        }
-                    },
-                }
+            ItemKind::ModularComponent(_) => match item_definition_id {
+                ItemDefinitionId::Simple(id) => ItemKey::Tool(id.to_owned()),
+                ItemDefinitionId::Compound { simple_base, .. } => {
+                    if let Ok(key) =
+                        modular::weapon_component_to_key(simple_base, item_desc.components())
+                    {
+                        ItemKey::ModularWeaponComponent(key)
+                    } else {
+                        ItemKey::Tool(simple_base.to_owned())
+                    }
+                },
+                ItemDefinitionId::Modular { .. } => ItemKey::Empty,
             },
             ItemKind::Lantern(Lantern { kind, .. }) => ItemKey::Lantern(kind.clone()),
             ItemKind::Glider(Glider { kind, .. }) => ItemKey::Glider(kind.clone()),
