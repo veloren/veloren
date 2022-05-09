@@ -282,7 +282,7 @@ impl Scene {
             point_light_matrices: Box::new([PointLightMatrix::default(); MAX_LIGHT_COUNT * 6 + 6]),
         };
 
-        let lod = Lod::new(renderer, &data, client, settings);
+        let lod = Lod::new(renderer, client, settings);
 
         let globals_bind_group = renderer.bind_globals(&data, lod.get_data());
 

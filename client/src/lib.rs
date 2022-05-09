@@ -658,7 +658,7 @@ impl Client {
             tick: 0,
             state,
             view_distance: None,
-            lod_distance: 2, // TODO: Make configurable
+            lod_distance: 4, // TODO: Make configurable
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
@@ -1729,21 +1729,20 @@ impl Client {
 
             // Request LoD zones that are in range
             if self.lod_last_requested.map_or(true, |i| i.elapsed() > Duration::from_secs(5)) {
-
-                if let Some(unloaded) = Spiral2d::new()
+                if let Some(rpos) = Spiral2d::new()
                     .take((1 + self.lod_distance * 2).pow(2) as usize)
-                    .map(|rpos| lod_zone + rpos)
-                    .find(|p| !self.lod_zones.contains_key(p))
+                    .filter(|rpos| !self.lod_zones.contains_key(&(lod_zone + *rpos)))
+                    .min_by_key(|rpos| rpos.magnitude_squared())
                 {
                     self.send_msg_err(ClientGeneral::LodZoneRequest {
-                        key: unloaded,
+                        key: lod_zone + rpos,
                     })?;
                     self.lod_last_requested = Some(Instant::now());
                 }
             }
 
             // Cull LoD zones out of range
-            self.lod_zones.retain(|p, _| (*p - lod_zone).map(i32::abs).reduce_max() < self.lod_distance as i32 + 1);
+            self.lod_zones.retain(|p, _| (*p - lod_zone).magnitude_squared() < (self.lod_distance as i32 + 1).pow(2));
         }
 
         Ok(())

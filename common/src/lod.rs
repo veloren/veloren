@@ -9,6 +9,13 @@ use crate::{
 // In chunks
 pub const ZONE_SIZE: u32 = 32;
 
+bitflags::bitflags! {
+    #[derive(Serialize, Deserialize)]
+    pub struct Flags: u8 {
+        const SNOW_COVERED = 0b00000001;
+    }
+}
+
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug, Serialize, Deserialize, EnumIter)]
 #[repr(u16)]
 pub enum ObjectKind {
@@ -20,6 +27,7 @@ pub enum ObjectKind {
 pub struct Object {
     pub kind: ObjectKind,
     pub pos: Vec3<u16>,
+    pub flags: Flags,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

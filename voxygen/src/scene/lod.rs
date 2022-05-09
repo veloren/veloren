@@ -33,7 +33,6 @@ pub fn water_color() -> Rgba<f32> {
 impl Lod {
     pub fn new(
         renderer: &mut Renderer,
-        global_model: &GlobalModel,
         client: &Client,
         settings: &Settings,
     ) -> Self {
@@ -50,8 +49,8 @@ impl Lod {
         Self {
             zone_objects: HashMap::new(),
             object_data: [
-                (lod::ObjectKind::Oak, make_lod_object("oak", renderer, global_model, &data)),
-                (lod::ObjectKind::Pine, make_lod_object("pine", renderer, global_model, &data)),
+                (lod::ObjectKind::Oak, make_lod_object("oak", renderer, &data)),
+                (lod::ObjectKind::Pine, make_lod_object("pine", renderer, &data)),
             ]
                 .into_iter()
                 .collect(),
@@ -94,7 +93,7 @@ impl Lod {
                     objects
                         .entry(object.kind)
                         .or_default()
-                        .push(LodObjectInstance::new(pos));
+                        .push(LodObjectInstance::new(pos, object.flags));
                 }
                 objects
                     .into_iter()
@@ -114,13 +113,12 @@ impl Lod {
         }
 
         // Draw LoD objects
-        for (kind, model) in &self.object_data {
-            let mut drawer = drawer.draw_lod_objects();
-            for instances in self.zone_objects
-                .values()
-                .filter_map(|zone| zone.get(kind))
-            {
-                drawer.draw(model, instances);
+        let mut drawer = drawer.draw_lod_objects();
+        for objects in self.zone_objects.values() {
+            for (kind, instances) in objects {
+                if let Some(model) = self.object_data.get(kind) {
+                    drawer.draw(model, instances);
+                }
             }
         }
     }
@@ -157,7 +155,6 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
 fn make_lod_object(
     name: &str,
     renderer: &mut Renderer,
-    global_model: &GlobalModel,
     lod_data: &LodData,
 ) -> Model<LodObjectVertex> {
     let model = ObjAsset::load_expect(&format!("voxygen.lod.{}", name));

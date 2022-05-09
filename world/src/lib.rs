@@ -479,11 +479,12 @@ impl World {
 
         objects.append(&mut self.sim()
             .get_area_trees(min_wpos, max_wpos)
-            .filter(|attr| {
+            .filter_map(|attr| {
                 ColumnGen::new(self.sim()).get((attr.pos, index, self.sim().calendar.as_ref()))
-                    .map_or(false, |col| layer::tree::tree_valid_at(&col, attr.seed))
+                    .filter(|col| layer::tree::tree_valid_at(col, attr.seed))
+                    .zip(Some(attr))
             })
-            .map(|tree| lod::Object {
+            .map(|(col, tree)| lod::Object {
                 kind: match tree.forest_kind {
                     all::ForestKind::Oak => lod::ObjectKind::Oak,
                     all::ForestKind::Pine
@@ -493,6 +494,9 @@ impl World {
                 pos: (tree.pos - min_wpos)
                     .map(|e| e as u16)
                     .with_z(self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16),
+                flags: lod::Flags::empty()
+                    | if col.snow_cover { lod::Flags::SNOW_COVERED } else { lod::Flags::empty() }
+                ,
             })
             .collect());
 
