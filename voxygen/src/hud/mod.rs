@@ -67,7 +67,9 @@ use crate::{
     },
     session::{
         interactable::Interactable,
-        settings_change::{Chat as ChatChange, Interface as InterfaceChange, SettingsChange},
+        settings_change::{
+            Audio, Chat as ChatChange, Interface as InterfaceChange, SettingsChange,
+        },
     },
     settings::chat::ChatFilter,
     ui::{
@@ -4186,6 +4188,15 @@ impl Hud {
                     },
                     GameInput::MapZoomOut if state => {
                         handle_map_zoom(0.5, self.world_map.1, &self.show, global_state)
+                    },
+                    GameInput::MuteMusic if state => {
+                        self.events
+                            .push(Event::SettingsChange(SettingsChange::Audio(
+                                Audio::MuteMusicVolume(
+                                    !global_state.settings.audio.music_volume.muted,
+                                ),
+                            )));
+                        true
                     },
                     // Skillbar
                     input => {

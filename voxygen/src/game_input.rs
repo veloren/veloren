@@ -152,6 +152,8 @@ pub enum GameInput {
     SpectateSpeedBoost,
     #[strum(serialize = "gameinput-spectateviewpoint")]
     SpectateViewpoint,
+    #[strum(serialize = "gameinput-mute-music")]
+    MuteMusic,
 }
 
 impl GameInput {
