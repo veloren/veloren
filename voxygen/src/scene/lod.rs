@@ -50,7 +50,8 @@ impl Lod {
         Self {
             zone_objects: HashMap::new(),
             object_data: [
-                (lod::ObjectKind::Tree, make_lod_object("tree", renderer, global_model, &data)),
+                (lod::ObjectKind::Oak, make_lod_object("oak", renderer, global_model, &data)),
+                (lod::ObjectKind::Pine, make_lod_object("pine", renderer, global_model, &data)),
             ]
                 .into_iter()
                 .collect(),

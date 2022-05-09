@@ -29,11 +29,11 @@ layout(location = 2) out vec4 f_col;
 void main() {
     f_pos = inst_pos + v_pos - focus_off.xyz;
 
-    float pull_down = 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0);
+    float pull_down = 1.0 / pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 50.0);
     f_pos.z -= pull_down;
 
     f_norm = v_norm;
-    f_col = vec4(vec3(0, 0.035, 0.025), 1.0);//vec4(v_col, 1.0);
+    f_col = vec4(vec3(0.01, 0.04, 0.0) * 1, 1.0);//vec4(v_col, 1.0);
 
     gl_Position =
         all_mat *

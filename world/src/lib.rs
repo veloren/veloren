@@ -484,7 +484,12 @@ impl World {
                     .map_or(false, |col| layer::tree::tree_valid_at(&col, attr.seed))
             })
             .map(|tree| lod::Object {
-                kind: lod::ObjectKind::Tree,
+                kind: match tree.forest_kind {
+                    all::ForestKind::Oak => lod::ObjectKind::Oak,
+                    all::ForestKind::Pine
+                    | all::ForestKind::Frostpine=> lod::ObjectKind::Pine,
+                    _ => lod::ObjectKind::Oak,
+                },
                 pos: (tree.pos - min_wpos)
                     .map(|e| e as u16)
                     .with_z(self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16),

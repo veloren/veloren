@@ -8,8 +8,6 @@ use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;
 
-pub const VERT_PAGE_SIZE: u32 = 256;
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Vertex {

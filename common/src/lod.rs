@@ -12,7 +12,8 @@ pub const ZONE_SIZE: u32 = 32;
 #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug, Serialize, Deserialize, EnumIter)]
 #[repr(u16)]
 pub enum ObjectKind {
-    Tree,
+    Oak,
+    Pine,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
