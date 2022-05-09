@@ -75,7 +75,7 @@ void main() {
     float my_alt = f_pos.z + focus_off.z;
     float f_ao = 1.0;
     const float VOXELIZE_DIST = 2000;
-    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 0.75);
+    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 1.0);
     vec3 cam_dir = normalize(cam_pos.xyz - f_pos.xyz);
     vec3 side_norm = normalize(vec3(my_norm.xy, 0));
     vec3 top_norm = vec3(0, 0, 1);
@@ -125,8 +125,8 @@ void main() {
     //max_light += lights_at(f_pos, voxel_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, voxel_norm, 1.0, emitted_light, reflected_light);
 
     vec3 side_color = mix(surf_color, vec3(1), snow_cover);
-    vec3 top_color = mix(surf_color, surf_color * 0.3, snow_cover);
-    surf_color = mix(side_color, top_color, 1.0 - fract((f_pos.z + focus_off.z) * 0.1));
+    vec3 top_color = mix(surf_color, surf_color * 0.3, 0.5 + snow_cover * 0.5);
+    surf_color = mix(side_color, top_color, 1.0 - pow(fract((f_pos.z + focus_off.z) * 0.1), 2.0));
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 

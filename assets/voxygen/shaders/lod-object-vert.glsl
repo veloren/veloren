@@ -34,7 +34,7 @@ void main() {
     vec3 tree_pos = inst_pos - focus_off.xyz;
     f_pos = tree_pos + v_pos;
 
-    float pull_down = 1.0 / pow(distance(focus_pos.xy, tree_pos.xy) / (view_distance.x * 0.95), 50.0);
+    float pull_down = 1.0 / pow(distance(focus_pos.xy, tree_pos.xy) / (view_distance.x * 0.95), 150.0);
     f_pos.z -= pull_down;
 
     f_norm = v_norm;
