@@ -14,7 +14,7 @@ use common::{
 };
 use common_ecs::{Job, Origin, Phase, System};
 use specs::{
-    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, Write, WriteStorage,
+    shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData, World, WriteStorage,
 };
 use vek::*;
 
@@ -49,15 +49,17 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
         WriteStorage<'a, Melee>,
-        Write<'a, Vec<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "melee";
     const ORIGIN: Origin = Origin::Common;
     const PHASE: Phase = Phase::Create;
 
-    fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks, mut outcomes): Self::SystemData) {
+    fn run(_job: &mut Job<Self>, (read_data, mut melee_attacks, outcomes): Self::SystemData) {
         let mut server_emitter = read_data.server_bus.emitter();
+        let mut outcomes_emitter = outcomes.emitter();
+
         // Attacks
         for (attacker, uid, pos, ori, melee_attack, body) in (
             &read_data.entities,
@@ -196,7 +198,7 @@ impl<'a> System<'a> for Sys {
                         AttackSource::Melee,
                         *read_data.time,
                         |e| server_emitter.emit(e),
-                        |o| outcomes.push(o),
+                        |o| outcomes_emitter.emit(o),
                     );
 
                     if is_applied {

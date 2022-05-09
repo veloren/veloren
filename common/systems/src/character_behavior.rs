@@ -1,6 +1,6 @@
 use specs::{
     shred::ResourceId, Entities, Join, LazyUpdate, Read, ReadExpect, ReadStorage, SystemData,
-    World, Write, WriteStorage,
+    World, WriteStorage,
 };
 
 use common::{
@@ -67,7 +67,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, Energy>,
         WriteStorage<'a, Controller>,
         WriteStorage<'a, Poise>,
-        Write<'a, Vec<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "character_behavior";
@@ -86,11 +86,12 @@ impl<'a> System<'a> for Sys {
             mut energies,
             mut controllers,
             mut poises,
-            mut outcomes,
+            outcomes,
         ): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
         let mut local_emitter = read_data.local_bus.emitter();
+        let mut outcomes_emitter = outcomes.emitter();
 
         let mut local_events = Vec::new();
         let mut server_events = Vec::new();
@@ -155,7 +156,7 @@ impl<'a> System<'a> for Sys {
                     // Reset poise if there is some stunned state to apply
                     poise.reset(*read_data.time, stunned_duration);
                     *char_state = stunned_state;
-                    outcomes.push(Outcome::PoiseChange {
+                    outcomes_emitter.emit(Outcome::PoiseChange {
                         pos,
                         state: poise_state,
                     });

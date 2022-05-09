@@ -18,7 +18,7 @@ use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, ParJoin, Read, ReadExpect,
-    ReadStorage, SystemData, World, Write, WriteStorage,
+    ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -56,7 +56,7 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, BeamSegment>,
         WriteStorage<'a, Beam>,
-        Write<'a, Vec<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "beam";
@@ -65,9 +65,10 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         job: &mut Job<Self>,
-        (read_data, mut beam_segments, mut beams, mut outcomes): Self::SystemData,
+        (read_data, mut beam_segments, mut beams, outcomes): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
+        let mut outcomes_emitter = outcomes.emitter();
 
         let time = read_data.time.0;
         let dt = read_data.dt.0;
@@ -75,7 +76,7 @@ impl<'a> System<'a> for Sys {
         job.cpu_stats.measure(ParMode::Rayon);
 
         // Beams
-        let (server_events, add_hit_entities, mut new_outcomes) = (
+        let (server_events, add_hit_entities, new_outcomes) = (
             &read_data.entities,
             &read_data.positions,
             &read_data.orientations,
@@ -272,7 +273,8 @@ impl<'a> System<'a> for Sys {
                 },
             );
         job.cpu_stats.measure(ParMode::Single);
-        outcomes.append(&mut new_outcomes);
+
+        outcomes_emitter.emit_many(new_outcomes);
 
         for event in server_events {
             server_emitter.emit(event);

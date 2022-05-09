@@ -11,6 +11,7 @@ use common::{
         Object, Ori, PidController, Poise, Pos, Projectile, Scale, SkillSet, Stats, Vel,
         WaypointArea,
     },
+    event::EventBus,
     lottery::LootSpec,
     outcome::Outcome,
     rtsim::RtSimEntity,
@@ -198,8 +199,8 @@ pub fn handle_shoot(
     // Add an outcome
     state
         .ecs()
-        .write_resource::<Vec<Outcome>>()
-        .push(Outcome::ProjectileShot { pos, body, vel });
+        .read_resource::<EventBus<Outcome>>()
+        .emit_now(Outcome::ProjectileShot { pos, body, vel });
 
     let mut builder = state.create_projectile(Pos(pos), Vel(vel), body, projectile);
     if let Some(light) = light {
@@ -225,10 +226,11 @@ pub fn handle_shockwave(
 pub fn handle_beam(server: &mut Server, properties: beam::Properties, pos: Pos, ori: Ori) {
     let state = server.state_mut();
     let ecs = state.ecs();
-    ecs.write_resource::<Vec<Outcome>>().push(Outcome::Beam {
-        pos: pos.0,
-        specifier: properties.specifier,
-    });
+    ecs.read_resource::<EventBus<Outcome>>()
+        .emit_now(Outcome::Beam {
+            pos: pos.0,
+            specifier: properties.specifier,
+        });
     state.create_beam(properties, pos, ori).build();
 }
 

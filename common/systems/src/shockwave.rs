@@ -16,7 +16,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Join, Read, ReadStorage, SystemData,
-    World, Write, WriteStorage,
+    World, WriteStorage,
 };
 use vek::*;
 
@@ -53,7 +53,7 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, Shockwave>,
         WriteStorage<'a, ShockwaveHitEntities>,
-        Write<'a, Vec<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "shockwave";
@@ -62,9 +62,10 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut shockwaves, mut shockwave_hit_lists, mut outcomes): Self::SystemData,
+        (read_data, mut shockwaves, mut shockwave_hit_lists, outcomes): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
+        let mut outcomes_emitter = outcomes.emitter();
 
         let time = read_data.time.0;
         let dt = read_data.dt.0;
@@ -234,7 +235,7 @@ impl<'a> System<'a> for Sys {
                         AttackSource::Shockwave,
                         *read_data.time,
                         |e| server_emitter.emit(e),
-                        |o| outcomes.push(o),
+                        |o| outcomes_emitter.emit(o),
                     );
 
                     shockwave_hit_list.hit_entities.push(*uid_b);
