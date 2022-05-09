@@ -89,10 +89,14 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
 
                 if let winit::event::WindowEvent::Focused(focused) = event {
                     global_state.audio.set_master_volume(if focused {
-                        global_state.settings.audio.master_volume
+                        global_state.settings.audio.master_volume.get_checked()
                     } else {
-                        global_state.settings.audio.inactive_master_volume_perc
-                            * global_state.settings.audio.master_volume
+                        global_state
+                            .settings
+                            .audio
+                            .inactive_master_volume_perc
+                            .get_checked()
+                            * global_state.settings.audio.master_volume.get_checked()
                     });
                 }
 

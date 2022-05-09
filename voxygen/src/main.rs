@@ -230,10 +230,10 @@ fn main() {
         //    AudioOutput::Device(ref dev) => Some(dev.clone()),
     };
 
-    audio.set_master_volume(settings.audio.master_volume);
-    audio.set_music_volume(settings.audio.music_volume);
-    audio.set_sfx_volume(settings.audio.sfx_volume);
-    audio.set_ambience_volume(settings.audio.ambience_volume);
+    audio.set_master_volume(settings.audio.master_volume.get_checked());
+    audio.set_music_volume(settings.audio.music_volume.get_checked());
+    audio.set_sfx_volume(settings.audio.sfx_volume.get_checked());
+    audio.set_ambience_volume(settings.audio.ambience_volume.get_checked());
     audio.set_music_spacing(settings.audio.music_spacing);
 
     // Load the profile.

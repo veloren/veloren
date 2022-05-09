@@ -556,6 +556,13 @@ image_ids! {
         button_hover: "voxygen.element.ui.generic.buttons.button_hover",
         button_press: "voxygen.element.ui.generic.buttons.button_press",
 
+        // Mute Buttons
+        button_mute: "voxygen.element.ui.generic.buttons.mute_btn",
+        button_mute_hover: "voxygen.element.ui.generic.buttons.mute_btn_hover",
+        button_muted: "voxygen.element.ui.generic.buttons.muted_btn",
+        button_muted_hover: "voxygen.element.ui.generic.buttons.muted_btn_hover",
+
+
         // Enemy Healthbar
         enemy_health: "voxygen.element.ui.generic.frames.enemybar",
         enemy_health_bg: "voxygen.element.ui.generic.frames.enemybar_bg",
