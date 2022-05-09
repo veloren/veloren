@@ -56,6 +56,8 @@ impl<D> TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
+    pub fn drain(&self) -> &D { &self.drain }
+
     pub fn new(drain: D, metrics: ProtocolMetricCache) -> Self {
         Self {
             buffer: BytesMut::new(),

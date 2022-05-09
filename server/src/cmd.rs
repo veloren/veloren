@@ -75,7 +75,10 @@ use hashbrown::{HashMap, HashSet};
 use humantime::Duration as HumanDuration;
 use rand::{thread_rng, Rng};
 use specs::{storage::StorageEntry, Builder, Entity as EcsEntity, Join, LendJoin, WorldExt};
-use std::{fmt::Write, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc, time::Duration};
+use std::{
+    fmt::Write, net::SocketAddr, num::NonZeroU32, ops::DerefMut, str::FromStr, sync::Arc,
+    time::Duration,
+};
 use vek::*;
 use wiring::{Circuit, Wire, WireNode, WiringAction, WiringActionEffect, WiringElement};
 #[cfg(feature = "worldgen")]
@@ -276,6 +279,21 @@ fn uuid(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResult<Uuid>
             Content::localized_with_args("command-player-info-unavailable", [(
                 "target", descriptor,
             )])
+        })
+}
+
+fn socket_addr(server: &Server, entity: EcsEntity, descriptor: &str) -> CmdResult<SocketAddr> {
+    server
+        .state
+        .ecs()
+        .read_storage::<Client>()
+        .get(entity)
+        .and_then(|c| c.participant.as_ref()?.peer_socket_addr())
+        .ok_or_else(|| {
+            Content::Plain(format!(
+                "Cannot get player information for {:?}",
+                descriptor
+            ))
         })
 }
 
@@ -4529,6 +4547,7 @@ fn handle_ban(
         let client_uuid = uuid(server, client, "client")?;
         let client_username = uuid_to_username(server, client, client_uuid)?;
         let client_role = real_role(server, client_uuid, "client")?;
+        let client_socket_addr = socket_addr(server, client, "client")?;
 
         let now = Utc::now();
         let end_date = parse_duration
@@ -4558,6 +4577,7 @@ fn handle_ban(
                 server.data_dir().as_ref(),
                 now,
                 player_uuid,
+                Some(client_socket_addr.ip()),
                 username.clone(),
                 BanAction::Ban(ban),
                 overwrite,
@@ -4876,6 +4896,7 @@ fn handle_unban(
                 server.data_dir().as_ref(),
                 now,
                 player_uuid,
+                None,
                 username.clone(),
                 unban,
                 false,

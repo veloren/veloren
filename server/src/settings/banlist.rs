@@ -4,7 +4,6 @@
 
 use super::{BANLIST_FILENAME as FILENAME, MIGRATION_UPGRADE_GUARANTEE};
 use crate::settings::editable::{EditableSetting, Version};
-use authc::Uuid;
 use core::convert::{TryFrom, TryInto};
 use serde::{Deserialize, Serialize};
 
@@ -78,7 +77,7 @@ pub enum BanErrorKind {
 pub struct BanError {
     kind: BanErrorKind,
     /// Uuid of affected user
-    uuid: Uuid,
+    identity: Identity,
     /// Username of affected user (as of ban/unban time).
     username: String,
 }
@@ -199,6 +198,7 @@ mod v1 {
     use hashbrown::{hash_map, HashMap};
     use serde::{Deserialize, Serialize};
     use tracing::warn;
+    use std::net::IpAddr;
     /* use super::v2 as next; */
 
     /// Important: even if the role we are storing here appears to be identical
@@ -435,13 +435,13 @@ mod v1 {
         fn validate(
             &mut self,
             now: DateTime<Utc>,
-            uuid: Uuid,
+            identity: Identity,
         ) -> Result<Version, <Final as EditableSetting>::Error> {
             let make_error = |current_entry: &BanRecord| {
                 let username = current_entry.username_when_performed.clone();
                 move |kind| BanError {
                     kind,
-                    uuid,
+                    identity,
                     username,
                 }
             };
@@ -451,7 +451,7 @@ mod v1 {
             for current_entry in &self.history {
                 current_entry
                     .validate(prev_entry)
-                    .map_err(make_error(current_entry))?;
+                    .map_err(make_error.clone()(current_entry))?;
                 prev_entry = Some(current_entry);
             }
 
@@ -472,12 +472,19 @@ mod v1 {
         }
     }
 
+    #[derive(Clone, Debug, Deserialize, Serialize, Hash, PartialEq, Eq)]
+    #[serde(untagged)]
+    pub enum Identity {
+        Uuid(Uuid),
+        Ip(IpAddr),
+    }
+
     #[derive(Clone, Deserialize, Serialize, Default)]
     #[serde(transparent)]
-    pub struct Banlist(pub(super) HashMap<Uuid, BanEntry>);
+    pub struct Banlist(pub(super) HashMap<Identity, BanEntry>);
 
     impl Deref for Banlist {
-        type Target = HashMap<Uuid, BanEntry>;
+        type Target = HashMap<Identity, BanEntry>;
 
         fn deref(&self) -> &Self::Target { &self.0 }
     }
@@ -525,6 +532,7 @@ mod v1 {
             data_dir: &std::path::Path,
             now: DateTime<Utc>,
             uuid: Uuid,
+            ip: Option<IpAddr>,
             username_when_performed: String,
             action: BanAction,
             overwrite: bool,
@@ -546,47 +554,51 @@ mod v1 {
             // Perform an atomic edit.
             Some(
                 self.edit(data_dir.as_ref(), |banlist| {
-                    match banlist.0.entry(uuid) {
-                        hash_map::Entry::Vacant(v) => {
-                            // If this is an unban, it will have no effect, so return early.
-                            if matches!(ban_record.action, BanAction::Unban(_)) {
-                                return None;
-                            }
-                            // Otherwise, this will at least potentially have an effect (assuming it
-                            // succeeds).
-                            v.insert(BanEntry {
-                                current: ban_record,
-                                history: Vec::new(),
-                                // This is a hint anyway, but expired will also be set to true
-                                // before saving by the call `edit`
-                                // makes to `validate` (through `try_into`), which will set it to
-                                // true in the event that the ban
-                                // time was so short that it expired during the interval
-                                // between creating the action and saving it.
-                                //
-                                // TODO: Decide if we even care enough about this case to worry
-                                // about the gap. Probably not, even
-                                // though it does involve time!
-                                expired: false,
-                            });
-                            Some(())
-                        },
-                        hash_map::Entry::Occupied(mut o) => {
-                            let entry = o.get_mut();
-                            // If overwrite is off, check that this entry (if successful) would
-                            // actually change the ban status.
-                            if !overwrite
-                                && entry.current.is_expired(now) == ban_record.is_expired(now)
-                            {
-                                return None;
-                            }
-                            // Push the current (most recent) entry to the back of the history list.
-                            entry
-                                .history
-                                .push(mem::replace(&mut entry.current, ban_record));
-                            Some(())
-                        },
+                    for identity in Some(Identity::Uuid(uuid))
+                        .into_iter()
+                        .chain(ip.map(Identity::Ip))
+                    {
+                        match banlist.0.entry(identity) {
+                            hash_map::Entry::Vacant(v) => {
+                                // If this is an unban, it will have no effect, so skip early.
+                                if matches!(ban_record.action.clone(), BanAction::Unban(_)) {
+                                    continue;
+                                }
+                                // Otherwise, this will at least potentially have an effect (assuming it
+                                // succeeds).
+                                v.insert(BanEntry {
+                                    current: ban_record.clone(),
+                                    history: Vec::new(),
+                                    // This is a hint anyway, but expired will also be set to true
+                                    // before saving by the call `edit`
+                                    // makes to `validate` (through `try_into`), which will set it to
+                                    // true in the event that the ban
+                                    // time was so short that it expired during the interval
+                                    // between creating the action and saving it.
+                                    //
+                                    // TODO: Decide if we even care enough about this case to worry
+                                    // about the gap. Probably not, even
+                                    // though it does involve time!
+                                    expired: false,
+                                });
+                            },
+                            hash_map::Entry::Occupied(mut o) => {
+                                let entry = o.get_mut();
+                                // If overwrite is off, check that this entry (if successful) would
+                                // actually change the ban status.
+                                if !overwrite
+                                    && entry.current.is_expired(now) == ban_record.is_expired(now)
+                                {
+                                    continue;
+                                }
+                                // Push the current (most recent) entry to the back of the history list.
+                                entry
+                                    .history
+                                    .push(mem::replace(&mut entry.current, ban_record.clone()));
+                            },
+                        }
                     }
+                    Some(())
                 })?
                 .1,
             )
@@ -613,7 +625,7 @@ mod v1 {
                                 reason,
                             },
                         )| {
-                            (uid, BanEntry {
+                            (Identity::Uuid(uid), BanEntry {
                                 current: BanRecord {
                                     username_when_performed: username_when_banned,
                                     // We only recorded unbans pre-migration.
@@ -646,8 +658,8 @@ mod v1 {
         pub(super) fn validate(&mut self) -> Result<Version, <Final as EditableSetting>::Error> {
             let mut version = Version::Latest;
             let now = Utc::now();
-            for (&uuid, value) in self.0.iter_mut() {
-                if matches!(value.validate(now, uuid)?, Version::Old) {
+            for (uuid, value) in self.0.iter_mut() {
+                if matches!(value.validate(now, uuid.clone())?, Version::Old) {
                     // Update detected.
                     version = Version::Old;
                 }

@@ -65,6 +65,7 @@ pub enum ParticipantEvent {
 /// [`connect`]: Network::connect
 /// [`connected`]: Network::connected
 pub struct Participant {
+    peer_socket_addr: Option<SocketAddr>,
     local_pid: Pid,
     remote_pid: Pid,
     a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
@@ -516,7 +517,12 @@ impl Network {
 }
 
 impl Participant {
+    pub fn peer_socket_addr(&self) -> Option<SocketAddr> {
+        self.peer_socket_addr.clone()
+    }
+
     pub(crate) fn new(
+        peer_socket_addr: Option<SocketAddr>,
         local_pid: Pid,
         remote_pid: Pid,
         a2b_open_stream_s: mpsc::UnboundedSender<A2bStreamOpen>,
@@ -526,6 +532,7 @@ impl Participant {
         a2s_disconnect_s: mpsc::UnboundedSender<(Pid, S2bShutdownBparticipant)>,
     ) -> Self {
         Self {
+            peer_socket_addr,
             local_pid,
             remote_pid,
             a2b_open_stream_s,

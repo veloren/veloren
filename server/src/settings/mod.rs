@@ -8,7 +8,7 @@ pub use editable::{EditableSetting, Error as SettingError};
 
 pub use admin::{AdminRecord, Admins};
 pub use banlist::{
-    Ban, BanAction, BanEntry, BanError, BanErrorKind, BanInfo, BanKind, BanRecord, Banlist,
+    Ban, BanAction, BanEntry, BanError, BanErrorKind, BanInfo, BanKind, BanRecord, Banlist, Identity as BanIdentity,
 };
 pub use server_description::ServerDescriptions;
 pub use whitelist::{Whitelist, WhitelistInfo, WhitelistRecord};

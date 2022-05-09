@@ -85,6 +85,13 @@ fn anonymize_addr(addr: &SocketAddr) -> String {
 impl Protocols {
     const MPSC_CHANNEL_BOUND: usize = 1000;
 
+    pub fn peer_socket_addr(&self) -> Option<SocketAddr> {
+        match self {
+            Self::Tcp((send, _)) => send.drain().half.peer_addr().ok(),
+            _ => None, // TODO: Others!
+        }
+    }
+
     pub(crate) async fn with_tcp_connect(
         addr: SocketAddr,
         metrics: ProtocolMetricCache,

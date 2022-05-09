@@ -425,6 +425,7 @@ impl Scheduler {
                             ) = BParticipant::new(local_pid, pid, sid, Arc::clone(&metrics));
 
                             let participant = Participant::new(
+                                protocol.peer_socket_addr(),
                                 local_pid,
                                 pid,
                                 a2b_open_stream_s,
