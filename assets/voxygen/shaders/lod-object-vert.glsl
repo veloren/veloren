@@ -37,7 +37,11 @@ void main() {
     model_pos = v_pos;
 
     float pull_down = 1.0 / pow(distance(focus_pos.xy, tree_pos.xy) / (view_distance.x * 0.95), 150.0);
-    f_pos.z -= pull_down;
+    #ifndef EXPERIMENTAL_NOTERRAINPOP
+        f_pos.z -= pull_down;
+    #else
+        f_pos.z -= step(0.1, pull_down) * 10000.0;
+    #endif
 
     // Hacky, very bad, 50 is ~ tree height
     f_norm = mix(v_norm, vec3(0, 0, 1), clamp(model_pos.z / 50, 0, 1));

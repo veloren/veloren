@@ -356,7 +356,7 @@ void main() {
 
     #ifdef EXPERIMENTAL_NOLODVOXELS
         f_ao = 1.0;
-        voxel_norm = normalize(mix(side_norm, top_norm, cam_dir.z));
+        voxel_norm = normalize(mix(side_norm, top_norm, max(cam_dir.z, 0.0)));
     #endif
 
     // vec3 f_ao_view = max(vec3(dot(f_orig_view_dir.yz, sides.yz), dot(f_orig_view_dir.xz, sides.xz), dot(f_orig_view_dir.xy, sides.xy)), 0.0);

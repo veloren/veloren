@@ -465,4 +465,6 @@ pub enum ExperimentalShader {
     LowGlowNearCamera,
     /// Disable the fake voxel effect on LoD features.
     NoLodVoxels,
+    // Disable the 'pop-in' effect when loading terrain.
+    NoTerrainPop,
 }
