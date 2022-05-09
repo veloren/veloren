@@ -484,20 +484,27 @@ impl World {
                     .filter(|col| layer::tree::tree_valid_at(col, attr.seed))
                     .zip(Some(attr))
             })
-            .map(|(col, tree)| lod::Object {
+            .filter_map(|(col, tree)| Some(lod::Object {
                 kind: match tree.forest_kind {
                     all::ForestKind::Oak => lod::ObjectKind::Oak,
                     all::ForestKind::Pine
                     | all::ForestKind::Frostpine=> lod::ObjectKind::Pine,
                     _ => lod::ObjectKind::Oak,
                 },
-                pos: (tree.pos - min_wpos)
-                    .map(|e| e as u16)
-                    .with_z(self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16),
+                pos: {
+                    let rpos = tree.pos - min_wpos;
+                    if rpos.is_any_negative() {
+                        return None
+                    } else {
+                        rpos
+                            .map(|e| e as u16)
+                            .with_z(self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16)
+                    }
+                },
                 flags: lod::Flags::empty()
                     | if col.snow_cover { lod::Flags::SNOW_COVERED } else { lod::Flags::empty() }
                 ,
-            })
+            }))
             .collect());
 
         lod::Zone { objects }
