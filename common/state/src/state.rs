@@ -216,7 +216,7 @@ impl State {
         ecs.insert(TerrainChanges::default());
         ecs.insert(EventBus::<LocalEvent>::default());
         ecs.insert(game_mode);
-        ecs.insert(Vec::<common::outcome::Outcome>::new());
+        ecs.insert(EventBus::<Outcome>::default());
         ecs.insert(common::CachedSpatialGrid::default());
         ecs.insert(EntitiesDiedLastTick::default());
 
@@ -529,6 +529,10 @@ impl State {
 
         // Process local events
         span!(guard, "process local events");
+
+        let outcomes = self.ecs.read_resource::<EventBus<Outcome>>();
+        let mut outcomes_emitter = outcomes.emitter();
+
         let events = self.ecs.read_resource::<EventBus<LocalEvent>>().recv_all();
         for event in events {
             let mut velocities = self.ecs.write_storage::<comp::Vel>();
@@ -553,7 +557,7 @@ impl State {
                     }
                 },
                 LocalEvent::CreateOutcome(outcome) => {
-                    self.ecs.write_resource::<Vec<Outcome>>().push(outcome);
+                    outcomes_emitter.emit(outcome);
                 },
             }
         }

@@ -1108,8 +1108,7 @@ impl Server {
                 self.state
                     .ecs()
                     .read_resource::<EventBus<ServerEvent>>()
-                    .emitter()
-                    .emit(event);
+                    .emit_now(event);
             }
 
             self.disconnect_all_clients_requested = false;

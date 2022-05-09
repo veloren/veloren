@@ -7,6 +7,7 @@ use crate::{
 use common::{
     calendar::Calendar,
     comp::{Collider, ForceUpdate, InventoryUpdate, Last, Ori, Pos, Vel},
+    event::EventBus,
     outcome::Outcome,
     region::{Event as RegionEvent, RegionMap},
     resources::{PlayerPhysicsSettings, TimeOfDay},
@@ -47,7 +48,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, InventoryUpdate>,
         Write<'a, DeletedEntities>,
-        Write<'a, Vec<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "entity_sync";
@@ -77,7 +78,7 @@ impl<'a> System<'a> for Sys {
             mut force_updates,
             mut inventory_updates,
             mut deleted_entities,
-            mut outcomes,
+            outcomes,
         ): Self::SystemData,
     ) {
         let tick = tick.0;
@@ -366,6 +367,9 @@ impl<'a> System<'a> for Sys {
             }
         }
 
+        // Consume/clear the current outcomes and convert them to a vec
+        let outcomes = outcomes.recv_all().collect::<Vec<_>>();
+
         // Sync outcomes
         for (presence, pos, client) in (presences.maybe(), positions.maybe(), &clients).join() {
             let is_near = |o_pos: Vec3<f32>| {
@@ -381,11 +385,11 @@ impl<'a> System<'a> for Sys {
                 .filter(|o| o.get_pos().and_then(&is_near).unwrap_or(true))
                 .cloned()
                 .collect::<Vec<_>>();
+
             if !outcomes.is_empty() {
                 client.send_fallible(ServerGeneral::Outcomes(outcomes));
             }
         }
-        outcomes.clear();
 
         // Remove all force flags.
         force_updates.clear();

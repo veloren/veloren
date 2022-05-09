@@ -251,6 +251,8 @@ pub struct Emitter<'a, E> {
 impl<'a, E> Emitter<'a, E> {
     pub fn emit(&mut self, event: E) { self.events.push_back(event); }
 
+    pub fn emit_many(&mut self, events: impl IntoIterator<Item = E>) { self.events.extend(events); }
+
     pub fn append(&mut self, other: &mut VecDeque<E>) { self.events.append(other) }
 
     // TODO: allow just emitting the whole vec of events at once? without copying

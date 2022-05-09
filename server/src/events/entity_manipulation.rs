@@ -169,8 +169,8 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         if let Some(pos) = state.ecs().read_storage::<Pos>().get(entity) {
             state
                 .ecs()
-                .write_resource::<Vec<Outcome>>()
-                .push(Outcome::Death { pos: pos.0 });
+                .read_resource::<EventBus<Outcome>>()
+                .emit_now(Outcome::Death { pos: pos.0 });
         }
     }
 
@@ -295,7 +295,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
 
         let alignments = state.ecs().read_storage::<Alignment>();
         let uids = state.ecs().read_storage::<Uid>();
-        let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
+        let mut outcomes = state.ecs().write_resource::<EventBus<Outcome>>();
         let inventories = state.ecs().read_storage::<comp::Inventory>();
 
         let destroyed_group = groups.get(entity);
@@ -606,8 +606,9 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
     // Add an outcome
     // Uses radius as outcome power for now
     let outcome_power = explosion.radius;
-    let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
-    outcomes.push(Outcome::Explosion {
+    let outcomes = ecs.read_resource::<EventBus<Outcome>>();
+    let mut outcomes_emitter = outcomes.emitter();
+    outcomes_emitter.emit(Outcome::Explosion {
         pos,
         power: outcome_power,
         radius: explosion.radius,
@@ -890,7 +891,7 @@ pub fn handle_explosion(server: &Server, pos: Vec3<f32>, explosion: Explosion, o
                             combat::AttackSource::Explosion,
                             *time,
                             |e| emitter.emit(e),
-                            |o| outcomes.push(o),
+                            |o| outcomes_emitter.emit(o),
                         );
                     }
                 }
@@ -1095,9 +1096,12 @@ fn handle_exp_gain(
     skill_set: &mut SkillSet,
     uid: &Uid,
     pos: &Pos,
-    outcomes: &mut Vec<Outcome>,
+    outcomes: &mut EventBus<Outcome>,
 ) {
     use comp::inventory::{item::ItemKind, slot::EquipSlot};
+
+    let mut outcomes_emitter = outcomes.emitter();
+
     // Create hash set of xp pools to consider splitting xp amongst
     let mut xp_pools = HashSet::<SkillGroupKind>::new();
     // Insert general pool since it is always accessible
@@ -1128,7 +1132,7 @@ fn handle_exp_gain(
         if let Some(level_outcome) =
             skill_set.add_experience(*pool, (exp_reward / num_pools).ceil() as u32)
         {
-            outcomes.push(Outcome::SkillPointGain {
+            outcomes_emitter.emit(Outcome::SkillPointGain {
                 uid: *uid,
                 skill_tree: *pool,
                 total_points: level_outcome,
@@ -1136,7 +1140,7 @@ fn handle_exp_gain(
             });
         }
     }
-    outcomes.push(Outcome::ExpChange {
+    outcomes_emitter.emit(Outcome::ExpChange {
         uid: *uid,
         exp: exp_reward as u32,
         xp_pools,
@@ -1147,10 +1151,10 @@ pub fn handle_combo_change(server: &Server, entity: EcsEntity, change: i32) {
     let ecs = &server.state.ecs();
     if let Some(mut combo) = ecs.write_storage::<comp::Combo>().get_mut(entity) {
         let time = ecs.read_resource::<Time>();
-        let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+        let outcome_bus = ecs.read_resource::<EventBus<Outcome>>();
         combo.change_by(change, time.0);
         if let Some(uid) = ecs.read_storage::<Uid>().get(entity) {
-            outcomes.push(Outcome::ComboChange {
+            outcome_bus.emit_now(Outcome::ComboChange {
                 uid: *uid,
                 combo: combo.counter(),
             });
@@ -1199,7 +1203,7 @@ pub fn handle_teleport_to(server: &Server, entity: EcsEntity, target: Uid, max_r
 pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
     let ecs = &server.state.ecs();
     let server_eventbus = ecs.read_resource::<EventBus<ServerEvent>>();
-    let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+
     let time = ecs.read_resource::<Time>();
 
     if let (Some(mut char_state), Some(mut poise), Some(pos)) = (
@@ -1220,10 +1224,11 @@ pub fn handle_entity_attacked_hook(server: &Server, entity: EcsEntity) {
                 // Reset poise if there is some stunned state to apply
                 poise.reset(*time, stunned_duration);
                 *char_state = stunned_state;
-                outcomes.push(Outcome::PoiseChange {
-                    pos: pos.0,
-                    state: poise_state,
-                });
+                ecs.read_resource::<EventBus<Outcome>>()
+                    .emit_now(Outcome::PoiseChange {
+                        pos: pos.0,
+                        state: poise_state,
+                    });
                 if let Some(impulse_strength) = impulse_strength {
                     server_eventbus.emit_now(ServerEvent::Knockback {
                         entity,

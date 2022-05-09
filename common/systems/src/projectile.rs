@@ -16,7 +16,7 @@ use common_ecs::{Job, Origin, Phase, System};
 use rand::{thread_rng, Rng};
 use specs::{
     saveload::MarkerAllocator, shred::ResourceId, Entities, Entity as EcsEntity, Join, Read,
-    ReadStorage, SystemData, World, Write, WriteStorage,
+    ReadStorage, SystemData, World, WriteStorage,
 };
 use std::time::Duration;
 use vek::*;
@@ -52,7 +52,7 @@ impl<'a> System<'a> for Sys {
         ReadData<'a>,
         WriteStorage<'a, Ori>,
         WriteStorage<'a, Projectile>,
-        Write<'a, Vec<Outcome>>,
+        Read<'a, EventBus<Outcome>>,
     );
 
     const NAME: &'static str = "projectile";
@@ -61,9 +61,11 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         _job: &mut Job<Self>,
-        (read_data, mut orientations, mut projectiles, mut outcomes): Self::SystemData,
+        (read_data, mut orientations, mut projectiles, outcomes): Self::SystemData,
     ) {
         let mut server_emitter = read_data.server_bus.emitter();
+        let mut outcomes_emitter = outcomes.emitter();
+
         // Attacks
         'projectile_loop: for (entity, pos, physics, vel, mut projectile) in (
             &read_data.entities,
@@ -143,7 +145,7 @@ impl<'a> System<'a> for Sys {
                         projectile_target_info,
                         &read_data,
                         &mut projectile_vanished,
-                        &mut outcomes,
+                        &mut outcomes_emitter,
                         &mut server_emitter,
                     );
                 }
@@ -231,7 +233,7 @@ fn dispatch_hit(
     projectile_target_info: ProjectileTargetInfo,
     read_data: &ReadData,
     projectile_vanished: &mut bool,
-    outcomes: &mut Vec<Outcome>,
+    outcomes_emitter: &mut Emitter<Outcome>,
     server_emitter: &mut Emitter<ServerEvent>,
 ) {
     match projectile_info.effect {
@@ -284,7 +286,7 @@ fn dispatch_hit(
 
             // TODO: Is it possible to have projectile without body??
             if let Some(&body) = read_data.bodies.get(projectile_entity) {
-                outcomes.push(Outcome::ProjectileHit {
+                outcomes_emitter.emit(Outcome::ProjectileHit {
                     pos: target_pos,
                     body,
                     vel: read_data
@@ -322,7 +324,7 @@ fn dispatch_hit(
                 AttackSource::Projectile,
                 *read_data.time,
                 |e| server_emitter.emit(e),
-                |o| outcomes.push(o),
+                |o| outcomes_emitter.emit(o),
             );
         },
         projectile::Effect::Explode(e) => {

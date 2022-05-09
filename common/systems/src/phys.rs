@@ -132,7 +132,7 @@ pub struct PhysicsWrite<'a> {
     pos_vel_ori_defers: WriteStorage<'a, PosVelOriDefer>,
     orientations: WriteStorage<'a, Ori>,
     previous_phys_cache: WriteStorage<'a, PreviousPhysCache>,
-    outcomes: Write<'a, Vec<Outcome>>,
+    outcomes: Read<'a, EventBus<Outcome>>,
 }
 
 #[derive(SystemData)]
@@ -725,7 +725,7 @@ impl<'a> PhysicsData<'a> {
         );
         span!(guard, "Apply terrain collision");
         job.cpu_stats.measure(ParMode::Rayon);
-        let (land_on_grounds, mut outcomes) = (
+        let (land_on_grounds, outcomes) = (
             &read.entities,
             read.scales.maybe(),
             read.stickies.maybe(),
@@ -1228,7 +1228,7 @@ impl<'a> PhysicsData<'a> {
         drop(guard);
         job.cpu_stats.measure(ParMode::Single);
 
-        write.outcomes.append(&mut outcomes);
+        write.outcomes.emitter().emit_many(outcomes);
 
         prof_span!(guard, "write deferred pos and vel");
         for (_, pos, vel, ori, pos_vel_ori_defer, _) in (

@@ -12,6 +12,7 @@ use common::{
         Inventory, Pos, SkillGroupKind,
     },
     consts::{MAX_MOUNT_RANGE, SOUND_TRAVEL_DIST_PER_VOLUME},
+    event::EventBus,
     link::Is,
     mounting::{Mount, Mounting, Rider},
     outcome::Outcome,
@@ -182,20 +183,20 @@ pub fn handle_mine_block(
                             .get(item.item_definition_id()),
                     ) {
                         let skill_group = SkillGroupKind::Weapon(tool);
-                        let mut outcomes = state.ecs().write_resource::<Vec<Outcome>>();
+                        let outcome_bus = state.ecs().read_resource::<EventBus<Outcome>>();
                         let positions = state.ecs().read_component::<comp::Pos>();
                         if let (Some(level_outcome), Some(pos)) = (
                             skillset.add_experience(skill_group, *exp_reward),
                             positions.get(entity),
                         ) {
-                            outcomes.push(Outcome::SkillPointGain {
+                            outcome_bus.emit_now(Outcome::SkillPointGain {
                                 uid,
                                 skill_tree: skill_group,
                                 total_points: level_outcome,
                                 pos: pos.0,
                             });
                         }
-                        outcomes.push(Outcome::ExpChange {
+                        outcome_bus.emit_now(Outcome::ExpChange {
                             uid,
                             exp: *exp_reward,
                             xp_pools: HashSet::from_iter(vec![skill_group]),
@@ -242,8 +243,8 @@ pub fn handle_mine_block(
             state.set_block(pos, block.into_vacant());
             state
                 .ecs()
-                .write_resource::<Vec<Outcome>>()
-                .push(Outcome::BreakBlock {
+                .read_resource::<EventBus<Outcome>>()
+                .emit_now(Outcome::BreakBlock {
                     pos,
                     color: block.get_color(),
                 });
@@ -285,7 +286,7 @@ pub fn handle_sound(server: &mut Server, sound: &Sound) {
         }),
         _ => None,
     } {
-        ecs.write_resource::<Vec<Outcome>>().push(outcome);
+        ecs.read_resource::<EventBus<Outcome>>().emit_now(outcome);
     }
 }
 

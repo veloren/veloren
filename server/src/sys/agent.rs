@@ -58,7 +58,7 @@ use rand::{thread_rng, Rng};
 use rayon::iter::ParallelIterator;
 use specs::{
     saveload::{Marker, MarkerAllocator},
-    Entity as EcsEntity, Join, ParJoin, Write, WriteExpect, WriteStorage,
+    Entity as EcsEntity, Join, ParJoin, Read, WriteExpect, WriteStorage,
 };
 use vek::*;
 
@@ -68,7 +68,7 @@ pub struct Sys;
 impl<'a> System<'a> for Sys {
     type SystemData = (
         ReadData<'a>,
-        Write<'a, EventBus<ServerEvent>>,
+        Read<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
         WriteExpect<'a, RtSim>,
