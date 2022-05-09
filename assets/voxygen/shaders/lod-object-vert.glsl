@@ -37,7 +37,7 @@ void main() {
     f_pos.z -= pull_down;
 
     f_norm = v_norm;
-    f_col = vec4(vec3(0.01, 0.04, 0.0) * 1, 1.0);//vec4(v_col, 1.0);
+    f_col = vec4(vec3(0.02, 0.1, 0.01) * (sin(inst_pos.xyy) * 0.33 + 0.66), 1.0);//vec4(v_col, 1.0);
 
     if ((inst_flags & FLAG_SNOW_COVERED) > 0u) {
         f_col.rgb = mix(f_col.rgb, vec3(1), pow(max(f_norm.z, 0.0), 0.5));

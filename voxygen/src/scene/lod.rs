@@ -166,6 +166,7 @@ fn make_lod_object(
                 v.position().into(),
                 v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
                 Vec3::broadcast(1.0),
+                //v.color().unwrap_or([1.0; 3]).into(),
             ));
             Tri::new(a, b, c)
         })

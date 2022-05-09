@@ -40,5 +40,5 @@ pub fn to_wpos(wpos: i32) -> i32 {
 }
 
 pub fn from_wpos(zone_pos: i32) -> i32 {
-    zone_pos / (TerrainChunkSize::RECT_SIZE.x * ZONE_SIZE) as i32
+    zone_pos.div_euclid((TerrainChunkSize::RECT_SIZE.x * ZONE_SIZE) as i32)
 }

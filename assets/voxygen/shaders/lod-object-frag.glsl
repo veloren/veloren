@@ -69,6 +69,32 @@ void main() {
     vec3 k_d = vec3(1.0);
     vec3 k_s = vec3(R_s);
 
+    vec3 my_norm = vec3(f_norm.xy, abs(f_norm.z));
+    vec3 voxel_norm;
+    float my_alt = f_pos.z + focus_off.z;
+    float f_ao = 1.0;
+    const float VOXELIZE_DIST = 2000;
+    float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 0.75);
+    vec3 cam_dir = normalize(cam_pos.xyz - f_pos.xyz);
+    vec3 side_norm = normalize(vec3(my_norm.xy, 0));
+    vec3 top_norm = vec3(0, 0, 1);
+    float side_factor = 1.0 - my_norm.z;
+    // min(dot(vec3(0, -sign(cam_dir.y), 0), -cam_dir), dot(vec3(-sign(cam_dir.x), 0, 0), -cam_dir))
+    if (max(abs(my_norm.x), abs(my_norm.y)) < 0.01 || fract(my_alt) * clamp(dot(normalize(vec3(cam_dir.xy, 0)), side_norm), 0, 1) < cam_dir.z / my_norm.z) {
+        f_ao *= mix(1.0, clamp(fract(my_alt) / length(my_norm.xy) + clamp(dot(side_norm, -cam_dir), 0, 1), 0, 1), voxelize_factor);
+        voxel_norm = top_norm;
+    } else {
+        f_ao *= mix(1.0, clamp(pow(fract(my_alt), 0.5), 0, 1), voxelize_factor);
+
+        if (fract(f_pos.x) * abs(my_norm.y / cam_dir.x) < fract(f_pos.y) * abs(my_norm.x / cam_dir.y)) {
+            voxel_norm = vec3(sign(cam_dir.x), 0, 0);
+        } else {
+            voxel_norm = vec3(0, sign(cam_dir.y), 0);
+        }
+    }
+    f_ao = min(f_ao, max(f_norm.z * 0.5 + 0.5, 0.0));
+    voxel_norm = mix(my_norm, voxel_norm == vec3(0.0) ? f_norm : voxel_norm, voxelize_factor);
+
     vec3 emitted_light, reflected_light;
 
     // This is a bit of a hack. Because we can't find the volumetric lighting of each particle (they don't talk to the
@@ -90,9 +116,12 @@ void main() {
     //        : compute_attenuation_point(f_pos, -view_dir, vec3(0), fluid_alt, /*cam_pos.z <= fluid_alt ? cam_pos.xyz : f_pos*/cam_pos.xyz);
     //#endif
 
-    max_light += get_sun_diffuse2(sun_info, moon_info, f_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    max_light += get_sun_diffuse2(sun_info, moon_info, voxel_norm, view_dir, f_pos, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, voxel_norm, 1.0, emitted_light, reflected_light);
 
-    //max_light += lights_at(f_pos, f_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, f_norm, 1.0, emitted_light, reflected_light);
+    emitted_light *= f_ao;
+    reflected_light *= f_ao;
+
+    //max_light += lights_at(f_pos, voxel_norm, view_dir, mu, cam_attenuation, fluid_alt, k_a, k_d, k_s, alpha, voxel_norm, 1.0, emitted_light, reflected_light);
 
     surf_color = illuminate(max_light, view_dir, surf_color * emitted_light, surf_color * reflected_light);
 
