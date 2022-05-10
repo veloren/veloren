@@ -7,13 +7,13 @@ use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
     comp::{self, invite::InviteKind, item::MaterialStatManifest},
+    lod,
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
     terrain::{Block, TerrainChunk, TerrainChunkMeta, TerrainChunkSize},
     trade::{PendingTrade, SitePrices, TradeId, TradeResult},
     uid::Uid,
-    lod,
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};

@@ -1,10 +1,7 @@
-use vek::*;
-use serde::{Serialize, Deserialize};
+use crate::{terrain::TerrainChunkSize, vol::RectVolSize};
+use serde::{Deserialize, Serialize};
 use strum::EnumIter;
-use crate::{
-    terrain::TerrainChunkSize,
-    vol::RectVolSize,
-};
+use vek::*;
 
 // In chunks
 pub const ZONE_SIZE: u32 = 32;
@@ -35,9 +32,7 @@ pub struct Zone {
     pub objects: Vec<Object>,
 }
 
-pub fn to_wpos(wpos: i32) -> i32 {
-    wpos * (TerrainChunkSize::RECT_SIZE.x * ZONE_SIZE) as i32
-}
+pub fn to_wpos(wpos: i32) -> i32 { wpos * (TerrainChunkSize::RECT_SIZE.x * ZONE_SIZE) as i32 }
 
 pub fn from_wpos(zone_pos: i32) -> i32 {
     zone_pos.div_euclid((TerrainChunkSize::RECT_SIZE.x * ZONE_SIZE) as i32)

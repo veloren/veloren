@@ -3,8 +3,7 @@ use crate::{
     block::block_from_structure,
     column::ColumnGen,
     util::{gen_cache::StructureGenCache, RandomPerm, Sampler, UnitChooser},
-    Canvas,
-    ColumnSample,
+    Canvas, ColumnSample,
 };
 use common::{
     assets::AssetHandle,
@@ -41,7 +40,7 @@ pub fn tree_valid_at(col: &ColumnSample, seed: u32) -> bool {
         || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
         || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
     {
-        return false
+        return false;
     }
 
     if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {

@@ -102,21 +102,19 @@ impl StructureGen2d {
         let x_field = self.x_field;
         let y_field = self.y_field;
         let seed_field = self.seed_field;
-        (0..len)
-            .into_par_iter()
-            .map(move |xy| {
-                let index = min_index + Vec2::new((xy % xlen as u64) as i32, (xy / xlen as u64) as i32);
-                Self::index_to_sample_internal(
-                    freq,
-                    freq_offset,
-                    spread,
-                    spread_mul,
-                    x_field,
-                    y_field,
-                    seed_field,
-                    index,
-                )
-            })
+        (0..len).into_par_iter().map(move |xy| {
+            let index = min_index + Vec2::new((xy % xlen as u64) as i32, (xy / xlen as u64) as i32);
+            Self::index_to_sample_internal(
+                freq,
+                freq_offset,
+                spread,
+                spread_mul,
+                x_field,
+                y_field,
+                seed_field,
+                index,
+            )
+        })
     }
 }
 

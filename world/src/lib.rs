@@ -51,12 +51,12 @@ use common::{
     assets,
     calendar::Calendar,
     generation::{ChunkSupplement, EntityInfo},
+    lod,
     resources::TimeOfDay,
     terrain::{
         Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
     },
     vol::{ReadVol, RectVolSize, WriteVol},
-    lod,
 };
 use common_net::msg::{world_msg, WorldMapMsg};
 use rand::{prelude::*, Rng};
@@ -467,45 +467,51 @@ impl World {
     }
 
     // Zone coordinates
-    pub fn get_lod_zone(
-        &self,
-        pos: Vec2<i32>,
-        index: IndexRef,
-    ) -> lod::Zone {
+    pub fn get_lod_zone(&self, pos: Vec2<i32>, index: IndexRef) -> lod::Zone {
         let min_wpos = pos.map(lod::to_wpos);
         let max_wpos = (pos + 1).map(lod::to_wpos);
 
         let mut objects = Vec::new();
 
-        objects.append(&mut self.sim()
-            .get_area_trees(min_wpos, max_wpos)
-            .filter_map(|attr| {
-                ColumnGen::new(self.sim()).get((attr.pos, index, self.sim().calendar.as_ref()))
-                    .filter(|col| layer::tree::tree_valid_at(col, attr.seed))
-                    .zip(Some(attr))
-            })
-            .filter_map(|(col, tree)| Some(lod::Object {
-                kind: match tree.forest_kind {
-                    all::ForestKind::Oak => lod::ObjectKind::Oak,
-                    all::ForestKind::Pine
-                    | all::ForestKind::Frostpine=> lod::ObjectKind::Pine,
-                    _ => lod::ObjectKind::Oak,
-                },
-                pos: {
-                    let rpos = tree.pos - min_wpos;
-                    if rpos.is_any_negative() {
-                        return None
-                    } else {
-                        rpos
-                            .map(|e| e as u16)
-                            .with_z(self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16)
-                    }
-                },
-                flags: lod::Flags::empty()
-                    | if col.snow_cover { lod::Flags::SNOW_COVERED } else { lod::Flags::empty() }
-                ,
-            }))
-            .collect());
+        objects.append(
+            &mut self
+                .sim()
+                .get_area_trees(min_wpos, max_wpos)
+                .filter_map(|attr| {
+                    ColumnGen::new(self.sim())
+                        .get((attr.pos, index, self.sim().calendar.as_ref()))
+                        .filter(|col| layer::tree::tree_valid_at(col, attr.seed))
+                        .zip(Some(attr))
+                })
+                .filter_map(|(col, tree)| {
+                    Some(lod::Object {
+                        kind: match tree.forest_kind {
+                            all::ForestKind::Oak => lod::ObjectKind::Oak,
+                            all::ForestKind::Pine | all::ForestKind::Frostpine => {
+                                lod::ObjectKind::Pine
+                            },
+                            _ => lod::ObjectKind::Oak,
+                        },
+                        pos: {
+                            let rpos = tree.pos - min_wpos;
+                            if rpos.is_any_negative() {
+                                return None;
+                            } else {
+                                rpos.map(|e| e as u16).with_z(
+                                    self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16,
+                                )
+                            }
+                        },
+                        flags: lod::Flags::empty()
+                            | if col.snow_cover {
+                                lod::Flags::SNOW_COVERED
+                            } else {
+                                lod::Flags::empty()
+                            },
+                    })
+                })
+                .collect(),
+        );
 
         lod::Zone { objects }
     }

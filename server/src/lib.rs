@@ -450,7 +450,9 @@ impl Server {
         // Insert the world into the ECS (todo: Maybe not an Arc?)
         let world = Arc::new(world);
         state.ecs_mut().insert(Arc::clone(&world));
-        state.ecs_mut().insert(lod::Lod::from_world(&world, index.as_index_ref()));
+        state
+            .ecs_mut()
+            .insert(lod::Lod::from_world(&world, index.as_index_ref()));
         state.ecs_mut().insert(index.clone());
 
         // Set starting time for the server.

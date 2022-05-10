@@ -1,4 +1,6 @@
-use crate::{client::Client, lod::Lod, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest};
+use crate::{
+    client::Client, lod::Lod, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest,
+};
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},

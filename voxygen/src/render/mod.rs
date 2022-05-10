@@ -26,6 +26,7 @@ pub use self::{
             Locals as FigureLocals,
         },
         fluid::Vertex as FluidVertex,
+        lod_object::{Instance as LodObjectInstance, Vertex as LodObjectVertex},
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
         postprocess::Locals as PostProcessLocals,
@@ -34,10 +35,6 @@ pub use self::{
         sprite::{
             Instance as SpriteInstance, SpriteGlobalsBindGroup, SpriteVerts,
             Vertex as SpriteVertex, VERT_PAGE_SIZE as SPRITE_VERT_PAGE_SIZE,
-        },
-        lod_object::{
-            Instance as LodObjectInstance,
-            Vertex as LodObjectVertex,
         },
         terrain::{Locals as TerrainLocals, TerrainLayout, Vertex as TerrainVertex},
         trail::Vertex as TrailVertex,

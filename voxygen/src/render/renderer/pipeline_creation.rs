@@ -1,8 +1,8 @@
 use super::{
     super::{
         pipelines::{
-            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, postprocess, shadow,
-            skybox, sprite, lod_object, terrain, trail, ui,
+            blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle,
+            postprocess, shadow, skybox, sprite, terrain, trail, ui,
         },
         AaMode, BloomMode, CloudMode, FluidMode, LightingMode, PipelineModes, RenderError,
         ShadowMode,
@@ -763,7 +763,10 @@ fn create_ingame_and_shadow_pipelines(
             ((debug, (skybox, figure)), (terrain, (fluid, bloom))),
             ((sprite, particle), (lod_terrain, (clouds, trail))),
         ),
-        (((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)), lod_object),
+        (
+            ((postprocess, point_shadow), (terrain_directed_shadow, figure_directed_shadow)),
+            lod_object,
+        ),
     ) = pool.join(
         || pool.join(|| pool.join(j1, j2), || pool.join(j3, j4)),
         || pool.join(|| pool.join(j5, j6), j7),

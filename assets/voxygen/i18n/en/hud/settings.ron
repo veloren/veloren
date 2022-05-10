@@ -59,6 +59,7 @@
         "hud.settings.reset_gameplay": "Reset to Defaults",
 
         "hud.settings.view_distance": "View Distance",
+        "hud.settings.lod_distance": "LoD Distance",
         "hud.settings.sprites_view_distance": "Sprites View Distance",
         "hud.settings.figures_view_distance": "Entities View Distance",
         "hud.settings.maximum_fps": "Maximum FPS",

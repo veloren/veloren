@@ -35,10 +35,12 @@ use common::{
     event::{EventBus, LocalEvent},
     grid::Grid,
     link::Is,
+    lod,
     mounting::Rider,
     outcome::Outcome,
     recipe::RecipeBook,
     resources::{PlayerEntity, TimeOfDay},
+    spiral::Spiral2d,
     terrain::{
         block::Block, map::MapConfig, neighbors, BiomeKind, SitesKind, SpriteKind, TerrainChunk,
         TerrainChunkSize,
@@ -46,8 +48,6 @@ use common::{
     trade::{PendingTrade, SitePrices, TradeAction, TradeId, TradeResult},
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
-    spiral::Spiral2d,
-    lod,
 };
 use common_base::{prof_span, span};
 use common_net::{
@@ -206,7 +206,7 @@ pub struct Client {
     state: State,
 
     view_distance: Option<u32>,
-    lod_distance: u32,
+    lod_distance: f32,
     // TODO: move into voxygen
     loaded_distance: f32,
 
@@ -658,7 +658,7 @@ impl Client {
             tick: 0,
             state,
             view_distance: None,
-            lod_distance: 4, // TODO: Make configurable
+            lod_distance: 2.0, // TODO: Make configurable
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
@@ -890,6 +890,11 @@ impl Client {
         self.send_msg(ClientGeneral::SetViewDistance(view_distance));
     }
 
+    pub fn set_lod_distance(&mut self, lod_distance: u32) {
+        let lod_distance = lod_distance.max(1).min(1000) as f32 / lod::ZONE_SIZE as f32;
+        self.lod_distance = lod_distance;
+    }
+
     pub fn use_slot(&mut self, slot: Slot) {
         self.control_action(ControlAction::InventoryAction(InventoryAction::Use(slot)))
     }
@@ -1004,9 +1009,7 @@ impl Client {
         &self.available_recipes
     }
 
-    pub fn lod_zones(&self) -> &HashMap<Vec2<i32>, lod::Zone> {
-        &self.lod_zones
-    }
+    pub fn lod_zones(&self) -> &HashMap<Vec2<i32>, lod::Zone> { &self.lod_zones }
 
     /// Returns whether the specified recipe can be crafted and the sprite, if
     /// any, that is required to do so.
@@ -1728,11 +1731,15 @@ impl Client {
             let lod_zone = pos.0.xy().map(|e| lod::from_wpos(e as i32));
 
             // Request LoD zones that are in range
-            if self.lod_last_requested.map_or(true, |i| i.elapsed() > Duration::from_secs(5)) {
+            if self
+                .lod_last_requested
+                .map_or(true, |i| i.elapsed() > Duration::from_secs(5))
+            {
                 if let Some(rpos) = Spiral2d::new()
-                    .take((1 + self.lod_distance * 2).pow(2) as usize)
+                    .take((1 + self.lod_distance.ceil() as i32 * 2).pow(2) as usize)
                     .filter(|rpos| !self.lod_zones.contains_key(&(lod_zone + *rpos)))
                     .min_by_key(|rpos| rpos.magnitude_squared())
+                    .filter(|rpos| rpos.map(|e| e as f32).magnitude() < self.lod_distance)
                 {
                     self.send_msg_err(ClientGeneral::LodZoneRequest {
                         key: lod_zone + rpos,
@@ -1742,7 +1749,10 @@ impl Client {
             }
 
             // Cull LoD zones out of range
-            self.lod_zones.retain(|p, _| (*p - lod_zone).magnitude_squared() < (self.lod_distance as i32 + 1).pow(2));
+            self.lod_zones.retain(|p, _| {
+                (*p - lod_zone).map(|e| e as f32).magnitude_squared()
+                    < (self.lod_distance + 1.0).powi(2)
+            });
         }
 
         Ok(())

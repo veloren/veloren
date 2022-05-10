@@ -69,6 +69,7 @@ pub enum Gameplay {
 #[derive(Clone)]
 pub enum Graphics {
     AdjustViewDistance(u32),
+    AdjustLodDistance(u32),
     AdjustLodDetail(u32),
     AdjustSpriteRenderDistance(u32),
     AdjustFigureLoDRenderDistance(u32),
@@ -343,6 +344,14 @@ impl SettingsChange {
                             .set_view_distance(view_distance);
 
                         settings.graphics.view_distance = view_distance;
+                    },
+                    Graphics::AdjustLodDistance(lod_distance) => {
+                        session_state
+                            .client
+                            .borrow_mut()
+                            .set_lod_distance(lod_distance);
+
+                        settings.graphics.lod_distance = lod_distance;
                     },
                     Graphics::AdjustLodDetail(lod_detail) => {
                         session_state.scene.lod.set_detail(lod_detail);

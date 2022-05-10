@@ -1,19 +1,20 @@
 use crate::{
     render::{
         pipelines::lod_terrain::{LodData, Vertex},
-        FirstPassDrawer, LodTerrainVertex, LodObjectVertex, Mesh, Model, Quad, Renderer, Instances, LodObjectInstance, Tri,
+        FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex, LodTerrainVertex, Mesh,
+        Model, Quad, Renderer, Tri,
     },
     scene::GlobalModel,
     settings::Settings,
 };
-use hashbrown::HashMap;
 use client::Client;
 use common::{
-    assets::{ObjAsset, AssetExt},
+    assets::{AssetExt, ObjAsset},
+    lod,
     spiral::Spiral2d,
     util::srgba_to_linear,
-    lod,
 };
+use hashbrown::HashMap;
 use vek::*;
 
 pub struct Lod {
@@ -31,11 +32,7 @@ pub fn water_color() -> Rgba<f32> {
 }
 
 impl Lod {
-    pub fn new(
-        renderer: &mut Renderer,
-        client: &Client,
-        settings: &Settings,
-    ) -> Self {
+    pub fn new(renderer: &mut Renderer, client: &Client, settings: &Settings) -> Self {
         let data = LodData::new(
             renderer,
             client.world_data().chunk_size().as_(),
@@ -44,16 +41,22 @@ impl Lod {
             client.world_data().lod_horizon.raw(),
             settings.graphics.lod_detail.max(100).min(2500),
             /* TODO: figure out how we want to do this without color borders?
-              * water_color().into_array().into(), */
+             * water_color().into_array().into(), */
         );
         Self {
             zone_objects: HashMap::new(),
             object_data: [
-                (lod::ObjectKind::Oak, make_lod_object("oak", renderer, &data)),
-                (lod::ObjectKind::Pine, make_lod_object("pine", renderer, &data)),
+                (
+                    lod::ObjectKind::Oak,
+                    make_lod_object("oak", renderer, &data),
+                ),
+                (
+                    lod::ObjectKind::Pine,
+                    make_lod_object("pine", renderer, &data),
+                ),
             ]
-                .into_iter()
-                .collect(),
+            .into_iter()
+            .collect(),
             model: None,
             data,
         }
@@ -98,13 +101,19 @@ impl Lod {
                 objects
                     .into_iter()
                     .map(|(kind, instances)| {
-                        (kind, renderer.create_instances(&instances).expect("Renderer error?!"))
+                        (
+                            kind,
+                            renderer
+                                .create_instances(&instances)
+                                .expect("Renderer error?!"),
+                        )
                     })
                     .collect()
             });
         }
 
-        self.zone_objects.retain(|p, _| client.lod_zones().contains_key(p));
+        self.zone_objects
+            .retain(|p, _| client.lod_zones().contains_key(p));
     }
 
     pub fn render<'a>(&'a self, drawer: &mut FirstPassDrawer<'a>) {
@@ -159,19 +168,20 @@ fn make_lod_object(
 ) -> Model<LodObjectVertex> {
     let model = ObjAsset::load_expect(&format!("voxygen.lod.{}", name));
     let mesh = model
-        .read().0
+        .read()
+        .0
         .triangles()
         .map(|vs| {
-            let [a, b, c] = vs.map(|v| LodObjectVertex::new(
-                v.position().into(),
-                v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
-                Vec3::broadcast(1.0),
-                //v.color().unwrap_or([1.0; 3]).into(),
-            ));
+            let [a, b, c] = vs.map(|v| {
+                LodObjectVertex::new(
+                    v.position().into(),
+                    v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
+                    Vec3::broadcast(1.0),
+                    //v.color().unwrap_or([1.0; 3]).into(),
+                )
+            });
             Tri::new(a, b, c)
         })
         .collect();
-    renderer
-        .create_model(&mesh)
-        .expect("Mesh was empty!")
+    renderer.create_model(&mesh).expect("Mesh was empty!")
 }

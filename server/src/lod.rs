@@ -1,7 +1,7 @@
 use common::lod;
-use world::World;
 use hashbrown::HashMap;
 use vek::*;
+use world::World;
 
 static EMPTY_ZONE: lod::Zone = lod::Zone {
     objects: Vec::new(),

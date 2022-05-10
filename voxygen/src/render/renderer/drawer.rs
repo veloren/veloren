@@ -4,8 +4,9 @@ use super::{
         instances::Instances,
         model::{DynamicModel, Model, SubModel},
         pipelines::{
-            blit, bloom, clouds, debug, figure, fluid, lod_terrain, particle, shadow, skybox,
-            sprite, lod_object, terrain, trail, ui, ColLights, GlobalsBindGroup, ShadowTexturesBindGroup,
+            blit, bloom, clouds, debug, figure, fluid, lod_object, lod_terrain, particle, shadow,
+            skybox, sprite, terrain, trail, ui, ColLights, GlobalsBindGroup,
+            ShadowTexturesBindGroup,
         },
     },
     Renderer, ShadowMap, ShadowMapRenderer,
@@ -764,9 +765,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         }
     }
 
-    pub fn draw_lod_objects<'data: 'pass>(
-        &mut self,
-    ) -> LodObjectDrawer<'_, 'pass> {
+    pub fn draw_lod_objects<'data: 'pass>(&mut self) -> LodObjectDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("lod objects", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.lod_object.pipeline);
@@ -934,10 +933,8 @@ impl<'pass_ref, 'pass: 'pass_ref> LodObjectDrawer<'pass_ref, 'pass> {
         self.render_pass.set_vertex_buffer(0, model.buf().slice(..));
         self.render_pass
             .set_vertex_buffer(1, instances.buf().slice(..));
-        self.render_pass.draw(
-            0..model.len() as u32,
-            0..instances.count() as u32,
-        );
+        self.render_pass
+            .draw(0..model.len() as u32, 0..instances.count() as u32);
     }
 }
 

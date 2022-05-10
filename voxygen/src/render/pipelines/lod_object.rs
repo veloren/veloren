@@ -37,11 +37,12 @@ impl Vertex {
 }
 
 // impl Default for Vertex {
-//     fn default() -> Self { Self::new(Vec2::zero(), Vec3::zero(), Vec3::zero()) }
-// }
+//     fn default() -> Self { Self::new(Vec2::zero(), Vec3::zero(),
+// Vec3::zero()) } }
 
 impl VertexTrait for Vertex {
-    const QUADS_INDEX: Option<wgpu::IndexFormat> = None;//Some(wgpu::IndexFormat::Uint16);
+    const QUADS_INDEX: Option<wgpu::IndexFormat> = None;
+    //Some(wgpu::IndexFormat::Uint16);
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 
@@ -53,10 +54,7 @@ pub struct Instance {
 }
 
 impl Instance {
-    pub fn new(
-        inst_pos: Vec3<f32>,
-        flags: common::lod::Flags,
-    ) -> Self {
+    pub fn new(inst_pos: Vec3<f32>, flags: common::lod::Flags) -> Self {
         Self {
             inst_pos: inst_pos.into_array(),
             flags: flags.bits() as u32,
@@ -77,8 +75,8 @@ impl Instance {
 }
 
 // impl Default for Instance {
-//     fn default() -> Self { Self::new(Mat4::identity(), 0.0, 0.0, Vec3::zero(), 0, 1.0, 0.0, 0) }
-// }
+//     fn default() -> Self { Self::new(Mat4::identity(), 0.0, 0.0,
+// Vec3::zero(), 0, 1.0, 0.0, 0) } }
 
 // TODO: ColLightsWrapper instead?
 pub struct Locals;
@@ -100,10 +98,7 @@ impl LodObjectPipeline {
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("LoD object pipeline layout"),
                 push_constant_ranges: &[],
-                bind_group_layouts: &[
-                    &global_layout.globals,
-                    &global_layout.shadow_textures,
-                ],
+                bind_group_layouts: &[&global_layout.globals, &global_layout.shadow_textures],
             });
 
         let samples = match aa_mode {

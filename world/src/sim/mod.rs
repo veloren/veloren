@@ -2150,7 +2150,11 @@ impl WorldSim {
             })
     }
 
-    pub fn get_area_trees(&self, wpos_min: Vec2<i32>, wpos_max: Vec2<i32>) -> impl ParallelIterator<Item = TreeAttr> + '_ {
+    pub fn get_area_trees(
+        &self,
+        wpos_min: Vec2<i32>,
+        wpos_max: Vec2<i32>,
+    ) -> impl ParallelIterator<Item = TreeAttr> + '_ {
         self.gen_ctx
             .structure_gen
             .par_iter(wpos_min, wpos_max)
