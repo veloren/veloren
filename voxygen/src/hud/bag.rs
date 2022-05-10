@@ -925,8 +925,7 @@ impl<'a> Widget for Bag<'a> {
                     "Combat Rating" => self.imgs.combat_rating_ico,
                     "Protection" => self.imgs.protection_ico,
                     "Stun Resilience" => self.imgs.stun_res_ico,
-                    // FIXME: Add icon.
-                    // "Stealth (Items)" => self.imgs.stealth_ico,
+                    "Stealth (Items)" => self.imgs.stealth_rating_ico,
                     _ => self.imgs.nothing,
                 })
                 .w_h(20.0, 20.0)
