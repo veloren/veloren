@@ -113,7 +113,7 @@ image_ids! {
         crafting_icon_hover: "voxygen.element.ui.generic.buttons.anvil_hover",
         crafting_icon_press: "voxygen.element.ui.generic.buttons.anvil_press",
         quality_indicator: "voxygen.element.ui.crafting.quality_indicator",
-        icon_pelt: "voxygen.element.ui.crafting.icons.pelt",
+        icon_claw: "voxygen.element.ui.crafting.icons.claw",
         icon_ingot: "voxygen.element.ui.crafting.icons.ingot",
         icon_log: "voxygen.element.ui.crafting.icons.log",
         icon_armor: "voxygen.element.ui.crafting.icons.armors",

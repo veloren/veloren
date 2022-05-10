@@ -3511,6 +3511,9 @@ impl Hud {
                         }
                     } else if let Ability(AbilitySlot::Slot(index)) = from {
                         events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                    } else if let Crafting(c) = from {
+                        // Remove item from crafting input
+                        self.show.crafting_fields.recipe_inputs.remove(&c.index);
                     }
                 },
                 slot::Event::SplitDropped(from) => {

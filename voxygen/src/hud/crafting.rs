@@ -1061,7 +1061,7 @@ impl<'a> Widget for Crafting<'a> {
 
                     let sec_icon = match recipe_kind {
                         RecipeKind::ModularWeapon => self.imgs.icon_secondary_comp,
-                        RecipeKind::Component(_) => self.imgs.icon_pelt,
+                        RecipeKind::Component(_) => self.imgs.icon_claw,
                         _ => self.imgs.not_found,
                     };
 
