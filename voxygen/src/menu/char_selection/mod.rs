@@ -135,8 +135,9 @@ impl PlayState for CharSelectionState {
                         {
                             let mut c = self.client.borrow_mut();
                             c.request_character(character_id);
-                            //Send our ViewDistance
+                            //Send our ViewDistance and LoD distance
                             c.set_view_distance(global_state.settings.graphics.view_distance);
+                            c.set_lod_distance(global_state.settings.graphics.lod_distance);
                         }
                         return PlayStateResult::Switch(Box::new(SessionState::new(
                             global_state,
