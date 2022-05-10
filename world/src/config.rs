@@ -91,6 +91,8 @@ pub struct Features {
     pub site2_giant_trees: bool,
     // 1.0 is the default wildlife density
     pub wildlife_density: f32,
+    pub peak_naming: bool,
+    pub biome_naming: bool,
 }
 
 impl assets::Asset for Features {
