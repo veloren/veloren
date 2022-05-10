@@ -10,7 +10,7 @@ SpawnEntry (
                 (1, (1, 1, "common.entity.wild.peaceful.kelpie")),
                 (1, (1, 1, "common.entity.wild.aggressive.hakulaq")),
             ],
-            spawn_mode: Water,
+            spawn_mode: Land,
             day_period: [Night, Morning, Noon, Evening],
         ),
     ],
