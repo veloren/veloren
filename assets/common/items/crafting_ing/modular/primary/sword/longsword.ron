@@ -16,7 +16,7 @@ ItemDef(
             ),
             hand_restriction: None,
             weapon_name: HandednessDependent(
-                one_handed: "Arming Sword",
+                one_handed: "Shortsword",
                 two_handed: "Longsword",
             ),
         )
