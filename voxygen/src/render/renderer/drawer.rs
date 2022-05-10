@@ -765,7 +765,7 @@ impl<'pass> FirstPassDrawer<'pass> {
         }
     }
 
-    pub fn draw_lod_objects<'data: 'pass>(&mut self) -> LodObjectDrawer<'_, 'pass> {
+    pub fn draw_lod_objects(&mut self) -> LodObjectDrawer<'_, 'pass> {
         let mut render_pass = self.render_pass.scope("lod objects", self.borrow.device);
 
         render_pass.set_pipeline(&self.pipelines.lod_object.pipeline);

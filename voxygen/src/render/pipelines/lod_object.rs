@@ -1,9 +1,4 @@
-use super::{
-    super::{
-        buffer::Buffer, AaMode, GlobalsLayouts, Mesh, TerrainLayout, Texture, Vertex as VertexTrait,
-    },
-    lod_terrain, GlobalModel,
-};
+use super::super::{AaMode, GlobalsLayouts, Vertex as VertexTrait};
 use bytemuck::{Pod, Zeroable};
 use std::mem;
 use vek::*;

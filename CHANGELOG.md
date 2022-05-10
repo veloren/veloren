@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Waypoints saved between sessions and shared with group members.
 - New rocks
 - Weapon trails
@@ -19,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NPCs now have rudimentary personalities
 - Added Belarusian translation
 - Add FOV check for agents scanning for targets they are hostile to
+- Implemented an LoD system for objects, making trees visible far beyond the view distance
 
 ### Changed
 

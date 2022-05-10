@@ -4,7 +4,6 @@ use crate::{
         FirstPassDrawer, Instances, LodObjectInstance, LodObjectVertex, LodTerrainVertex, Mesh,
         Model, Quad, Renderer, Tri,
     },
-    scene::GlobalModel,
     settings::Settings,
 };
 use client::Client;
@@ -44,21 +43,15 @@ impl Lod {
              * water_color().into_array().into(), */
         );
         Self {
+            model: None,
+            data,
             zone_objects: HashMap::new(),
             object_data: [
-                (
-                    lod::ObjectKind::Oak,
-                    make_lod_object("oak", renderer, &data),
-                ),
-                (
-                    lod::ObjectKind::Pine,
-                    make_lod_object("pine", renderer, &data),
-                ),
+                (lod::ObjectKind::Oak, make_lod_object("oak", renderer)),
+                (lod::ObjectKind::Pine, make_lod_object("pine", renderer)),
             ]
             .into_iter()
             .collect(),
-            model: None,
-            data,
         }
     }
 
@@ -161,11 +154,7 @@ fn create_lod_terrain_mesh(detail: u32) -> Mesh<LodTerrainVertex> {
         .collect()
 }
 
-fn make_lod_object(
-    name: &str,
-    renderer: &mut Renderer,
-    lod_data: &LodData,
-) -> Model<LodObjectVertex> {
+fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex> {
     let model = ObjAsset::load_expect(&format!("voxygen.lod.{}", name));
     let mesh = model
         .read()
