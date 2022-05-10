@@ -1002,9 +1002,7 @@ impl CharacterAbility {
                          duration: _,
                          category: _,
                      }| {
-                        // Do we want to make buff_strength affect this instead of power?
-                        // Look into during modular weapon transition
-                        *strength *= stats.buff_strength * stats.power;
+                        *strength *= stats.diminished_buff_strength();
                     },
                 );
                 *range *= stats.range;
@@ -1044,9 +1042,7 @@ impl CharacterAbility {
                 buff_duration: _,
                 ref mut energy_cost,
             } => {
-                // Do we want to make buff_strength affect this instead of power?
-                // Look into during modular weapon transition
-                *buff_strength *= stats.buff_strength * stats.power;
+                *buff_strength *= stats.diminished_buff_strength();
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;

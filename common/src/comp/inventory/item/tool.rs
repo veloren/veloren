@@ -131,6 +131,18 @@ impl Stats {
             buff_strength: 1.0,
         }
     }
+
+    /// Calculates a diminished buff strength where the buff strength is clamped
+    /// by the power, and then excess buff strength above the power is added
+    /// with diminishing returns.
+    // TODO: Remove this later when there are more varied high tier materials.
+    // Mainly exists for now as a hack to allow some progression in strength of
+    // directly applied buffs.
+    pub fn diminished_buff_strength(&self) -> f32 {
+        let base = self.buff_strength.clamp(0.0, self.power);
+        let diminished = (self.buff_strength - base + 1.0).log(5.0);
+        base + diminished
+    }
 }
 
 impl Asset for Stats {

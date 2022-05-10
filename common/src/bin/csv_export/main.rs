@@ -73,7 +73,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
                 wtr.write_record(&[
                     item.item_definition_id()
-                        .raw()
+                        .itemdef_id()
                         .expect("All items from asset glob should be simple items"),
                     &kind,
                     &item.name(),
@@ -134,7 +134,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
 
             wtr.write_record(&[
                 item.item_definition_id()
-                    .raw()
+                    .itemdef_id()
                     .expect("All items from asset glob should be simple items"),
                 &kind,
                 &item.name(),
@@ -233,7 +233,7 @@ fn all_items() -> Result<(), Box<dyn Error>> {
 
         wtr.write_record(&[
             item.item_definition_id()
-                .raw()
+                .itemdef_id()
                 .expect("All items in asset glob should be simple items"),
             &item.name(),
             &kind,

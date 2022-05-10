@@ -236,7 +236,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                             let mut path = ASSETS_PATH.clone();
                             for part in item
                                 .item_definition_id()
-                                .raw()
+                                .itemdef_id()
                                 .expect("Csv import only works on simple items, not modular items")
                                 .split('.')
                             {
@@ -435,7 +435,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                         let mut path = ASSETS_PATH.clone();
                         for part in item
                             .item_definition_id()
-                            .raw()
+                            .itemdef_id()
                             .expect("Csv import only works on simple items, not modular items")
                             .split('.')
                         {

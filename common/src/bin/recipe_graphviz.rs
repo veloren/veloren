@@ -25,7 +25,7 @@ fn main() {
                 .output
                 .0
                 .item_definition_id()
-                .raw()
+                .itemdef_id()
                 .expect("Recipe book can only create simple items (probably)"),
         );
         let inputs = recipe
@@ -34,7 +34,7 @@ fn main() {
             .map(|(i, _, _)| i)
             .filter_map(|input| {
                 if let RecipeInput::Item(item) = input {
-                    item.item_definition_id().raw().map(String::from)
+                    item.item_definition_id().itemdef_id().map(String::from)
                 } else {
                     None
                 }
