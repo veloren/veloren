@@ -252,10 +252,10 @@ impl<'a> System<'a> for Sys {
         }
 
         // Send the chunk to all nearby players.
-        new_chunks.into_iter().for_each(|(key, chunk)| {
+        new_chunks.into_iter().for_each(|(key, _chunk)| {
             (&presences, &positions, &clients, &mut chunk_send_queues)
                 .join()
-                .for_each(|(presence, pos, client, chunk_send_queue)| {
+                .for_each(|(presence, pos, _client, chunk_send_queue)| {
                     let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
                     // Subtract 2 from the offset before computing squared magnitude
                     // 1 since chunks need neighbors to be meshed

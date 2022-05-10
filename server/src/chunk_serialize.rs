@@ -1,4 +1,5 @@
-use specs::Component;
+use crate::client::PreparedMsg;
+use specs::{Component, Entity};
 use specs_idvs::IdvStorage;
 use vek::Vec2;
 
@@ -16,4 +17,10 @@ pub struct ChunkSendQueue {
 
 impl Component for ChunkSendQueue {
     type Storage = IdvStorage<Self>;
+}
+
+pub struct SerializedChunk {
+    pub(crate) lossy_compression: bool,
+    pub(crate) msg: PreparedMsg,
+    pub(crate) recipients: Vec<Entity>,
 }

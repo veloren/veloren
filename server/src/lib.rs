@@ -283,13 +283,20 @@ impl Server {
                  compiled with the feature. Terrain modifications will *not* be persisted."
             );
         }
-        state
-            .ecs_mut()
-            .write_resource::<SlowJobPool>()
-            .configure("CHUNK_GENERATOR", |n| n / 2 + n / 4);
+        {
+            let pool = state.ecs_mut().write_resource::<SlowJobPool>();
+            pool.configure("CHUNK_GENERATOR", |n| n / 2 + n / 4);
+            pool.configure("CHUNK_SERIALIZER", |n| n / 2);
+        }
         state
             .ecs_mut()
             .insert(ChunkGenerator::new(chunk_gen_metrics));
+        {
+            let (sender, receiver) =
+                crossbeam_channel::bounded::<chunk_serialize::SerializedChunk>(10_000);
+            state.ecs_mut().insert(sender);
+            state.ecs_mut().insert(receiver);
+        }
 
         state.ecs_mut().insert(CharacterUpdater::new(
             Arc::<RwLock<DatabaseSettings>>::clone(&database_settings),

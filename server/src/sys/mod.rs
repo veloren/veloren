@@ -1,4 +1,5 @@
 pub mod agent;
+pub mod chunk_send;
 pub mod chunk_serialize;
 pub mod entity_sync;
 pub mod invite_timeout;
@@ -34,7 +35,10 @@ pub fn add_server_systems(dispatch_builder: &mut DispatcherBuilder) {
     dispatch::<persistence::Sys>(dispatch_builder, &[]);
     dispatch::<object::Sys>(dispatch_builder, &[]);
     dispatch::<wiring::Sys>(dispatch_builder, &[]);
+    // no dependency, as we only work once per sec anyway.
     dispatch::<chunk_serialize::Sys>(dispatch_builder, &[]);
+    // don't depend on chunk_serialize, as we assume everything is done in a SlowJow
+    dispatch::<chunk_send::Sys>(dispatch_builder, &[]);
 }
 
 pub fn run_sync_systems(ecs: &mut specs::World) {

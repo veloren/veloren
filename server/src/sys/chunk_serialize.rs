@@ -1,70 +1,16 @@
 use crate::{
-    chunk_serialize::ChunkSendQueue, client::Client, metrics::NetworkRequestMetrics,
-    presence::Presence, Tick,
+    chunk_serialize::{ChunkSendQueue, SerializedChunk},
+    client::Client,
+    presence::Presence,
+    Tick,
 };
 use common::{slowjob::SlowJobPool, terrain::TerrainGrid};
-
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{SerializedTerrainChunk, ServerGeneral};
 use hashbrown::HashMap;
-use specs::{Entities, Join, Read, ReadExpect, ReadStorage, WriteStorage};
-use std::cmp::Ordering;
-
-pub(crate) struct LazyTerrainMessage {
-    lazy_msg_lo: Option<crate::client::PreparedMsg>,
-    lazy_msg_hi: Option<crate::client::PreparedMsg>,
-}
-
-pub const SAFE_ZONE_RADIUS: f32 = 200.0;
-
-impl LazyTerrainMessage {
-    pub(crate) fn new() -> Self {
-        Self {
-            lazy_msg_lo: None,
-            lazy_msg_hi: None,
-        }
-    }
-
-    pub(crate) fn prepare_and_send<
-        'a,
-        A,
-        F: FnOnce() -> Result<&'a common::terrain::TerrainChunk, A>,
-    >(
-        &mut self,
-        network_metrics: &NetworkRequestMetrics,
-        client: &Client,
-        presence: &Presence,
-        chunk_key: &vek::Vec2<i32>,
-        generate_chunk: F,
-    ) -> Result<(), A> {
-        let lazy_msg = if presence.lossy_terrain_compression {
-            &mut self.lazy_msg_lo
-        } else {
-            &mut self.lazy_msg_hi
-        };
-        if lazy_msg.is_none() {
-            *lazy_msg = Some(client.prepare(ServerGeneral::TerrainChunkUpdate {
-                key: *chunk_key,
-                chunk: Ok(match generate_chunk() {
-                    Ok(chunk) => SerializedTerrainChunk::via_heuristic(
-                        chunk,
-                        presence.lossy_terrain_compression,
-                    ),
-                    Err(e) => return Err(e),
-                }),
-            }));
-        }
-        lazy_msg.as_ref().map(|msg| {
-            let _ = client.send_prepared(msg);
-            if presence.lossy_terrain_compression {
-                network_metrics.chunks_served_lossy.inc();
-            } else {
-                network_metrics.chunks_served_lossless.inc();
-            }
-        });
-        Ok(())
-    }
-}
+use network::StreamParams;
+use specs::{Entities, Entity, Join, Read, ReadExpect, ReadStorage, WriteStorage};
+use std::{cmp::Ordering, sync::Arc};
 
 /// This system will handle sending terrain to clients by
 /// collecting chunks that need to be send for a single generation run and then
@@ -80,7 +26,7 @@ impl<'a> System<'a> for Sys {
         WriteStorage<'a, ChunkSendQueue>,
         ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, TerrainGrid>,
-        ReadExpect<'a, NetworkRequestMetrics>,
+        ReadExpect<'a, crossbeam_channel::Sender<SerializedChunk>>,
     );
 
     const NAME: &'static str = "chunk_serialize";
@@ -97,15 +43,14 @@ impl<'a> System<'a> for Sys {
             mut chunk_send_queues,
             slow_jobs,
             terrain,
-            network_metrics,
+            chunk_sender,
         ): Self::SystemData,
     ) {
         // Only operate once per second
-        if tick.0.rem_euclid(60) != 0 {
+        //TODO: move out of this system and now even spawn this.
+        if tick.0.rem_euclid(30) != 0 {
             return;
         }
-
-        let mut chunks = HashMap::<_, Vec<_>>::new();
 
         for entity in (&entities, &clients, &presences, !&chunk_send_queues)
             .join()
@@ -115,9 +60,16 @@ impl<'a> System<'a> for Sys {
             let _ = chunk_send_queues.insert(entity, ChunkSendQueue::default());
         }
 
+        struct Metadata {
+            recipients: Vec<Entity>,
+            lossy_compression: bool,
+            params: StreamParams,
+        }
+
+        let mut chunks = HashMap::<_, Metadata>::new();
         // Grab all chunk requests for all clients and sort them
-        for (entity, _client, chunk_send_queue) in
-            (&entities, &clients, &mut chunk_send_queues).join()
+        for (entity, client, presence, chunk_send_queue) in
+            (&entities, &clients, &presences, &mut chunk_send_queues).join()
         {
             let mut chunk_send_queue = std::mem::take(chunk_send_queue);
             // dedup input
@@ -132,29 +84,44 @@ impl<'a> System<'a> for Sys {
             });
             chunk_send_queue.chunks.dedup();
             for chunk_key in chunk_send_queue.chunks {
-                let recipients = chunks.entry(chunk_key).or_default();
-                recipients.push(entity);
+                let meta = chunks.entry(chunk_key).or_insert_with(|| Metadata {
+                    recipients: Vec::default(),
+                    lossy_compression: true,
+                    params: client.terrain_params(),
+                });
+                meta.recipients.push(entity);
+                // We decide here, to ONLY send lossy compressed data If all clients want those.
+                // If at least 1 client here does not want lossy we don't compress it twice.
+                // It would just be too expensive for the server
+                meta.lossy_compression =
+                    meta.lossy_compression && presence.lossy_terrain_compression;
             }
         }
 
-        if !chunks.is_empty() {
-            let len = chunks.len();
-            print!("{}", len);
-            for (chunk_key, entities) in chunks {
-                let mut lazy_msg = LazyTerrainMessage::new();
-                for entity in entities {
-                    let client = clients.get(entity).unwrap();
-                    let presence = presences.get(entity).unwrap();
-                    if let Err(e) = lazy_msg.prepare_and_send(
-                        &network_metrics,
-                        client,
-                        presence,
-                        &chunk_key,
-                        || terrain.get_key(chunk_key).ok_or(()),
-                    ) {
-                        tracing::error!(?e, "error sending chunk");
-                    }
-                }
+        // Trigger serialization in a SlowJob
+        for (chunk_key, meta) in chunks {
+            if let Some(chunk) = terrain.get_key_arc(chunk_key) {
+                let chunk = Arc::clone(chunk);
+                let chunk_sender = chunk_sender.clone();
+                slow_jobs.spawn("CHUNK_SERIALIZER", move || {
+                    let msg = Client::prepare_terrain(
+                        ServerGeneral::TerrainChunkUpdate {
+                            key: chunk_key,
+                            chunk: Ok(SerializedTerrainChunk::via_heuristic(
+                                &chunk,
+                                meta.lossy_compression,
+                            )),
+                        },
+                        &meta.params,
+                    );
+                    if let Err(e) = chunk_sender.send(SerializedChunk {
+                        lossy_compression: meta.lossy_compression,
+                        msg,
+                        recipients: meta.recipients,
+                    }) {
+                        tracing::warn!(?e, "cannot send serialized chunk to sender")
+                    };
+                });
             }
         }
     }

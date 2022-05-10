@@ -216,6 +216,21 @@ impl Client {
         }
     }
 
+    pub(crate) fn terrain_params(&self) -> StreamParams { self.terrain_stream_params.clone() }
+
+    pub(crate) fn prepare_terrain(
+        terrain_chunk_update: ServerGeneral,
+        params: &StreamParams,
+    ) -> PreparedMsg {
+        if !matches!(
+            terrain_chunk_update,
+            ServerGeneral::TerrainChunkUpdate { .. }
+        ) {
+            unreachable!("You must not call this function without a terrain chunk update!")
+        }
+        PreparedMsg::new(5, &terrain_chunk_update, params)
+    }
+
     pub(crate) fn recv<M: DeserializeOwned>(
         &self,
         stream_id: u8,
