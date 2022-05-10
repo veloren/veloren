@@ -7,7 +7,7 @@ use crate::{
     sim::WorldSim,
     site::{namegen::NameGen, Castle, Settlement, Site as WorldSite, Tree},
     site2,
-    util::{attempt, seed_expan, DHashMap, DHashSet, NEIGHBORS},
+    util::{attempt, seed_expan, DHashMap, NEIGHBORS},
     Index, Land,
 };
 use common::{
@@ -77,23 +77,29 @@ impl<'a, R: Rng> GenCtx<'a, R> {
 
 impl Civs {
     pub fn generate(seed: u32, sim: &mut WorldSim, index: &mut Index) -> Self {
+        common_base::prof_span!("Civs::generate");
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        let initial_civ_count = initial_civ_count(sim.map_size_lg());
-        let mut ctx = GenCtx { sim, rng };
+        let name_rng = rng.clone();
+        let mut name_ctx = GenCtx { sim, rng: name_rng };
         if index.features().peak_naming {
             info!("starting peak naming");
-            this.name_peaks(&mut ctx);
+            this.name_peaks(&mut name_ctx);
         }
         if index.features().biome_naming {
             info!("starting biome naming");
-            this.name_biomes(&mut ctx);
+            this.name_biomes(&mut name_ctx);
         }
 
+        let initial_civ_count = initial_civ_count(sim.map_size_lg());
+        let mut ctx = GenCtx { sim, rng };
+
+        info!("starting cave generation");
         for _ in 0..ctx.sim.get_size().product() / 10_000 {
             this.generate_cave(&mut ctx);
         }
 
+        info!("starting civilisation creation");
         let mut start_locations: Vec<Vec2<i32>> = Vec::new();
         for _ in 0..initial_civ_count {
             debug!("Creating civilisation...");
@@ -528,42 +534,46 @@ impl Civs {
 
     /// Adds lake POIs and names them
     fn name_biomes(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        common_base::prof_span!("name_biomes");
         let map_size_lg = ctx.sim.map_size_lg();
+        let world_size = map_size_lg.chunks();
         let mut biomes: Vec<(common::terrain::BiomeKind, Vec<usize>)> = Vec::new();
-        let mut explored = DHashSet::default();
-        let mut to_explore = DHashSet::default();
-        let mut to_floodfill = DHashSet::default();
+        let mut explored = vec![false; world_size.x as usize * world_size.y as usize];
+        let mut to_floodfill = Vec::new();
+        let mut to_explore = Vec::new();
         // TODO: have start point in center and ignore ocean?
         let start_point = 0;
-        to_explore.insert(start_point);
-        explored.insert(start_point);
+        to_explore.push(start_point);
 
-        while !to_explore.is_empty() {
-            let exploring = *to_explore.iter().next().unwrap();
-            to_explore.remove(&exploring);
-            to_floodfill.insert(exploring);
+        while let Some(exploring) = to_explore.pop() {
+            if explored[exploring] {
+                continue;
+            }
+            to_floodfill.push(exploring);
             // Should always be a chunk on the map
             let biome = ctx.sim.chunks[exploring].get_biome();
-            biomes.push((biome, Vec::new()));
-            while !to_floodfill.is_empty() {
-                let filling = *to_floodfill.iter().next().unwrap();
-                to_explore.remove(&filling);
-                to_floodfill.remove(&filling);
-                explored.insert(filling);
-                biomes.last_mut().unwrap().1.push(filling);
+            let mut filled = Vec::new();
+
+            while let Some(filling) = to_floodfill.pop() {
+                explored[filling] = true;
+                filled.push(filling);
                 for neighbour in common::terrain::neighbors(map_size_lg, filling) {
-                    if explored.contains(&neighbour) {
+                    if explored[neighbour] {
                         continue;
                     }
                     let n_biome = ctx.sim.chunks[neighbour].get_biome();
                     if n_biome == biome {
-                        to_floodfill.insert(neighbour);
+                        to_floodfill.push(neighbour);
                     } else {
-                        to_explore.insert(neighbour);
+                        to_explore.push(neighbour);
                     }
                 }
             }
+
+            biomes.push((biome, filled));
         }
+
+        common_base::prof_span!("after flood fill");
         let mut biome_count = 0;
         for biome in biomes {
             let name = match biome.0 {
@@ -807,6 +817,7 @@ impl Civs {
 
     /// Adds mountain POIs and name them
     fn name_peaks(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        common_base::prof_span!("name_peaks");
         let map_size_lg = ctx.sim.map_size_lg();
         const MIN_MOUNTAIN_ALT: f32 = 600.0;
         const MIN_MOUNTAIN_CHAOS: f32 = 0.35;
