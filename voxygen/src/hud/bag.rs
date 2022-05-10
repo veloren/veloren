@@ -18,7 +18,7 @@ use crate::{
 use client::Client;
 use common::{
     assets::AssetExt,
-    combat::{combat_rating, Damage},
+    combat::{combat_rating, perception_dist_multiplier_from_stealth, Damage},
     comp::{
         inventory::InventorySortOrder,
         item::{ItemDef, ItemDesc, MaterialStatManifest, Quality},
@@ -629,12 +629,13 @@ impl<'a> Bag<'a> {
         }
     }
 }
-const STATS: [&str; 5] = [
+const STATS: [&str; 6] = [
     "Health",
     "Energy",
     "Protection",
     "Combat Rating",
     "Stun Resilience",
+    "Stealth (Items)",
 ];
 
 pub struct BagState {
@@ -924,6 +925,8 @@ impl<'a> Widget for Bag<'a> {
                     "Combat Rating" => self.imgs.combat_rating_ico,
                     "Protection" => self.imgs.protection_ico,
                     "Stun Resilience" => self.imgs.stun_res_ico,
+                    // FIXME: Add icon.
+                    // "Stealth (Items)" => self.imgs.stealth_ico,
                     _ => self.imgs.nothing,
                 })
                 .w_h(20.0, 20.0)
@@ -945,6 +948,11 @@ impl<'a> Widget for Bag<'a> {
                     "{}",
                     (100.0 * Poise::compute_poise_damage_reduction(inventory)) as i32
                 );
+                let stealth_from_items_txt = format!(
+                    "{:.1}%",
+                    ((1.0 - perception_dist_multiplier_from_stealth(Some(inventory), None))
+                        * 100.0)
+                );
                 let btn = if i.0 == 0 {
                     btn.top_left_with_margins_on(state.bg_ids.bg_frame, 55.0, 10.0)
                 } else {
@@ -956,6 +964,7 @@ impl<'a> Widget for Bag<'a> {
                     "Combat Rating" => i18n.get("hud.bag.combat_rating"),
                     "Protection" => i18n.get("hud.bag.protection"),
                     "Stun Resilience" => i18n.get("hud.bag.stun_res"),
+                    "Stealth (Items)" => i18n.get("hud.bag.stealth_from_items"),
                     _ => "",
                 };
                 let tooltip_txt = match i.1 {
@@ -978,6 +987,7 @@ impl<'a> Widget for Bag<'a> {
                     "Combat Rating" => &combat_rating_txt,
                     "Protection" => &protection_txt,
                     "Stun Resilience" => &stun_res_txt,
+                    "Stealth (Items)" => &stealth_from_items_txt,
                     _ => "",
                 })
                 .right_from(state.ids.stat_icons[i.0], 10.0)
