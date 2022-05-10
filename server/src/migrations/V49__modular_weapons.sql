@@ -1,3 +1,12 @@
+-- Remove old test items
+DELETE FROM item WHERE item_definition_id = 'common.items.crafting_ing.modular.damage.sword.metal_blade';
+DELETE FROM item WHERE item_definition_id = 'common.items.tag_examples.cloth_item';
+DELETE FROM item WHERE item_definition_id = 'common.items.tag_examples.leather';
+DELETE FROM item WHERE item_definition_id = 'common.items.tag_examples.leather_item';
+DELETE FROM item WHERE item_definition_id = 'common.items.tag_examples.metal_ingot';
+DELETE FROM item WHERE item_definition_id = 'common.items.tag_examples.placeholder';
+DELETE FROM item WHERE item_definition_id = 'common.items.tag_examples.textile';
+
 CREATE TEMP TABLE _temp_modular_items
 (
     existing_item_definition_id TEXT NOT NULL,

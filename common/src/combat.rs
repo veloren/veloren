@@ -976,7 +976,7 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 
     const ENERGY_EFFICIENCY_WEIGHT: f32 = 1.5;
     const BUFF_STRENGTH_WEIGHT: f32 = 1.5;
 
-    if let ItemKind::Tool(tool) = &*item.kind() {
+    let rating = if let ItemKind::Tool(tool) = &*item.kind() {
         let stats = tool.stats;
 
         // TODO: Look into changing the 0.5 to reflect armor later maybe?
@@ -1002,7 +1002,8 @@ pub fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 
             + buff_strength_rating * BUFF_STRENGTH_WEIGHT
     } else {
         0.0
-    }
+    };
+    rating.max(0.0)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
