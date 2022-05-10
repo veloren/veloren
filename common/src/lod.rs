@@ -19,6 +19,7 @@ pub enum ObjectKind {
     Oak,
     Pine,
     House,
+    GiantTree,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

@@ -543,6 +543,29 @@ impl World {
                 }),
         );
 
+        // Add giant trees
+        objects.extend(
+            index
+                .sites
+                .iter()
+                .filter(|(_, site)| {
+                    site.get_origin()
+                        .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
+                        .reduce_and()
+                })
+                .filter(|(_, site)| matches!(&site.kind, SiteKind::GiantTree(_)))
+                .map(|(_, site)| lod::Object {
+                    kind: lod::ObjectKind::GiantTree,
+                    pos: {
+                        let wpos2d = site.get_origin();
+                        (wpos2d - min_wpos)
+                            .map(|e| e as i16)
+                            .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16)
+                    },
+                    flags: lod::Flags::empty(),
+                }),
+        );
+
         lod::Zone { objects }
     }
 }
