@@ -1164,13 +1164,26 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
     })
 }
 
-/// Computes the sneak coefficient from armor. Agent perception distances are
-/// divided by the resulting f32.
+/// Returns a value to be included as a multiplicative factor in perception
+/// distance checks.
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_stealth_coefficient(inventory: Option<&Inventory>) -> f32 {
-    // Starts with a value of 2.0 when summing the stats from each armor piece, and
-    // defaults to a value of 2.0 if no inventory is equipped
-    inventory.map_or(2.0, |inv| {
+pub fn perception_dist_multiplier_from_stealth(
+    inventory: Option<&Inventory>,
+    character_state: Option<&CharacterState>,
+) -> f32 {
+    const SNEAK_MULTIPLIER: f32 = 0.7;
+
+    let item_stealth_multiplier = stealth_multiplier_from_items(inventory);
+    let is_sneaking = character_state.map_or(false, |state| state.is_stealthy());
+
+    let multiplier = item_stealth_multiplier * if is_sneaking { SNEAK_MULTIPLIER } else { 1.0 };
+
+    multiplier.clamp(0.0, 1.0)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
+    let stealth_sum = inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &item.kind() {
@@ -1179,8 +1192,10 @@ pub fn compute_stealth_coefficient(inventory: Option<&Inventory>) -> f32 {
                     None
                 }
             })
-            .fold(2.0, |a, b| a + b.max(0.0))
-    })
+            .sum()
+    });
+
+    (1.0 / (1.0 + stealth_sum)).clamp(0.0, 1.0)
 }
 
 /// Computes the total protection provided from armor. Is used to determine the

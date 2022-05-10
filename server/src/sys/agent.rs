@@ -20,7 +20,7 @@ use crate::{
     },
 };
 use common::{
-    combat::compute_stealth_coefficient,
+    combat::perception_dist_multiplier_from_stealth,
     comp::{
         self,
         agent::{
@@ -2429,26 +2429,17 @@ impl<'a> AgentData<'a> {
         other_pos: &Pos,
         read_data: &ReadData,
     ) -> bool {
-        let other_stealth_coefficient = {
-            let is_other_stealthy = read_data
-                .char_states
-                .get(other)
-                .map_or(false, CharacterState::is_stealthy);
+        let other_stealth_multiplier = {
+            let other_inventory = read_data.inventories.get(other);
+            let other_char_state = read_data.char_states.get(other);
 
-            if is_other_stealthy {
-                // TODO: We shouldn't have to check CharacterState. This should be factored in
-                // by the function (such as the one we're calling below) that supposedly
-                // computes a coefficient given stealthy-ness.
-                compute_stealth_coefficient(read_data.inventories.get(other))
-            } else {
-                1.0
-            }
+            perception_dist_multiplier_from_stealth(other_inventory, other_char_state)
         };
 
-        let dist_sqrd = other_pos.0.distance_squared(self.pos.0);
-
         let within_sight_dist = {
-            let sight_dist = agent.psyche.sight_dist / other_stealth_coefficient;
+            let sight_dist = agent.psyche.sight_dist * other_stealth_multiplier;
+            let dist_sqrd = other_pos.0.distance_squared(self.pos.0);
+
             dist_sqrd < sight_dist.powi(2)
         };
 
@@ -2458,7 +2449,7 @@ impl<'a> AgentData<'a> {
 
         let other_body = read_data.bodies.get(other);
 
-        within_sight_dist
+        (within_sight_dist)
             && within_fov
             && entities_have_line_of_sight(self.pos, self.body, other_pos, other_body, read_data)
     }
