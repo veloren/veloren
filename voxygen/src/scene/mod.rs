@@ -681,7 +681,7 @@ impl Scene {
         renderer.update_postprocess_locals(PostProcessLocals::new(proj_mat_inv, view_mat_inv));
 
         // Maintain LoD.
-        self.lod.maintain(renderer, client);
+        self.lod.maintain(renderer, client, focus_pos, &self.camera);
 
         // Maintain debug shapes
         self.debug.maintain(renderer);

@@ -318,7 +318,7 @@ impl<'a> Widget for Video<'a> {
         if let Some(new_val) = ImageSlider::discrete(
             self.global_state.settings.graphics.lod_distance,
             0,
-            250,
+            500,
             self.imgs.slider_indicator,
             self.imgs.slider,
         )
