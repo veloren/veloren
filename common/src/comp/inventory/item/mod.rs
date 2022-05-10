@@ -1098,6 +1098,13 @@ impl Item {
 
     pub fn item_hash(&self) -> u64 { self.hash }
 
+    pub fn persistence_item_id(&self) -> &str {
+        match &self.item_base {
+            ItemBase::Simple(item_def) => &item_def.item_definition_id,
+            ItemBase::Modular(mod_base) => mod_base.pseudo_item_id(),
+        }
+    }
+
     #[cfg(test)]
     pub fn create_test_item_from_kind(kind: ItemKind) -> Self {
         let ability_map = &AbilityMap::load().read();
