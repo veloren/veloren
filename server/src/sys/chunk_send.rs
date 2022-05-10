@@ -20,18 +20,22 @@ impl<'a> System<'a> for Sys {
     const PHASE: Phase = Phase::Create;
 
     fn run(_job: &mut Job<Self>, (clients, network_metrics, chunk_receiver): Self::SystemData) {
+        let mut lossy = 0u64;
+        let mut lossless = 0u64;
         for sc in chunk_receiver.try_iter() {
             for recipient in sc.recipients {
                 if let Some(client) = clients.get(recipient) {
                     if client.send_prepared(&sc.msg).is_err() {
                         if sc.lossy_compression {
-                            network_metrics.chunks_served_lossy.inc()
+                            lossy += 1;
                         } else {
-                            network_metrics.chunks_served_lossless.inc()
+                            lossless += 1;
                         }
                     }
                 }
             }
         }
+        network_metrics.chunks_served_lossy.inc_by(lossy);
+        network_metrics.chunks_served_lossless.inc_by(lossless);
     }
 }

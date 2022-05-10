@@ -1,6 +1,7 @@
 use crate::{
     chunk_serialize::{ChunkSendQueue, SerializedChunk},
     client::Client,
+    metrics::NetworkRequestMetrics,
     presence::Presence,
     Tick,
 };
@@ -24,6 +25,7 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Client>,
         ReadStorage<'a, Presence>,
         WriteStorage<'a, ChunkSendQueue>,
+        ReadExpect<'a, NetworkRequestMetrics>,
         ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, crossbeam_channel::Sender<SerializedChunk>>,
@@ -41,6 +43,7 @@ impl<'a> System<'a> for Sys {
             clients,
             presences,
             mut chunk_send_queues,
+            network_metrics,
             slow_jobs,
             terrain,
             chunk_sender,
@@ -68,6 +71,8 @@ impl<'a> System<'a> for Sys {
 
         let mut chunks = HashMap::<_, Metadata>::new();
         // Grab all chunk requests for all clients and sort them
+        let mut requests = 0u64;
+        let mut distinct_requests = 0u64;
         for (entity, client, presence, chunk_send_queue) in
             (&entities, &clients, &presences, &mut chunk_send_queues).join()
         {
@@ -83,11 +88,15 @@ impl<'a> System<'a> for Sys {
                 }
             });
             chunk_send_queue.chunks.dedup();
+            requests += chunk_send_queue.chunks.len() as u64;
             for chunk_key in chunk_send_queue.chunks {
-                let meta = chunks.entry(chunk_key).or_insert_with(|| Metadata {
-                    recipients: Vec::default(),
-                    lossy_compression: true,
-                    params: client.terrain_params(),
+                let meta = chunks.entry(chunk_key).or_insert_with(|| {
+                    distinct_requests += 1;
+                    Metadata {
+                        recipients: Vec::default(),
+                        lossy_compression: true,
+                        params: client.terrain_params(),
+                    }
                 });
                 meta.recipients.push(entity);
                 // We decide here, to ONLY send lossy compressed data If all clients want those.
@@ -97,13 +106,30 @@ impl<'a> System<'a> for Sys {
                     meta.lossy_compression && presence.lossy_terrain_compression;
             }
         }
+        network_metrics
+            .chunks_serialisation_requests
+            .inc_by(requests);
+        network_metrics
+            .chunks_distinct_serialisation_requests
+            .inc_by(distinct_requests);
 
         // Trigger serialization in a SlowJob
-        for (chunk_key, meta) in chunks {
-            if let Some(chunk) = terrain.get_key_arc(chunk_key) {
-                let chunk = Arc::clone(chunk);
-                let chunk_sender = chunk_sender.clone();
-                slow_jobs.spawn("CHUNK_SERIALIZER", move || {
+        const CHUNK_SIZE: usize = 25; // trigger one job per 25 chunks to reduce SlowJob overhead. as we use a channel, there is no disadvantage to this
+        let mut chunks_iter = chunks
+            .into_iter()
+            .filter_map(|(chunk_key, meta)| {
+                terrain
+                    .get_key_arc(chunk_key)
+                    .map(|chunk| (Arc::clone(chunk), chunk_key, meta))
+            })
+            .into_iter()
+            .peekable();
+
+        while chunks_iter.peek().is_some() {
+            let chunks: Vec<_> = chunks_iter.by_ref().take(CHUNK_SIZE).collect();
+            let chunk_sender = chunk_sender.clone();
+            slow_jobs.spawn("CHUNK_SERIALIZER", move || {
+                for (chunk, chunk_key, meta) in chunks {
                     let msg = Client::prepare_terrain(
                         ServerGeneral::TerrainChunkUpdate {
                             key: chunk_key,
@@ -119,10 +145,11 @@ impl<'a> System<'a> for Sys {
                         msg,
                         recipients: meta.recipients,
                     }) {
-                        tracing::warn!(?e, "cannot send serialized chunk to sender")
+                        tracing::warn!(?e, "cannot send serialized chunk to sender");
+                        break;
                     };
-                });
-            }
+                }
+            });
         }
     }
 }
