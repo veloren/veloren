@@ -121,9 +121,9 @@ impl Lod {
                     // TODO: Put this somewhere more easily configurable, like a manifest
                     let color = match object.kind {
                         lod::ObjectKind::Pine => Rgb::new(0, 25, 12),
-                        lod::ObjectKind::Oak => Rgb::new(13, 50, 5),
+                        lod::ObjectKind::Oak => Rgb::new(10, 50, 5),
                         lod::ObjectKind::House => Rgb::new(20, 15, 0),
-                        lod::ObjectKind::GiantTree => Rgb::new(13, 50, 5),
+                        lod::ObjectKind::GiantTree => Rgb::new(15, 35, 5),
                     };
                     objects
                         .entry(object.kind)
