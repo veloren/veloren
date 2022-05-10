@@ -31,13 +31,8 @@ impl Vertex {
     }
 }
 
-// impl Default for Vertex {
-//     fn default() -> Self { Self::new(Vec2::zero(), Vec3::zero(),
-// Vec3::zero()) } }
-
 impl VertexTrait for Vertex {
     const QUADS_INDEX: Option<wgpu::IndexFormat> = None;
-    //Some(wgpu::IndexFormat::Uint16);
     const STRIDE: wgpu::BufferAddress = mem::size_of::<Self>() as wgpu::BufferAddress;
 }
 

@@ -53,7 +53,6 @@ void main() {
 
     if ((inst_flags & FLAG_SNOW_COVERED) > 0u) {
         snow_cover = 1.0;
-        //f_col.rgb = mix(f_col.rgb, vec3(1), pow(max(f_norm.z, 0.0), 0.5));
     } else {
         snow_cover = 0.0;
     }

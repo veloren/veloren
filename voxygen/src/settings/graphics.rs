@@ -52,7 +52,7 @@ impl Default for GraphicsSettings {
     fn default() -> Self {
         Self {
             view_distance: 10,
-            lod_distance: 100,
+            lod_distance: 200,
             sprite_render_distance: 100,
             particles_enabled: true,
             lossy_terrain_compression: false,
