@@ -473,6 +473,7 @@ impl World {
 
         let mut objects = Vec::new();
 
+        // Add trees
         objects.append(
             &mut self
                 .sim()
@@ -497,8 +498,8 @@ impl World {
                             if rpos.is_any_negative() {
                                 return None;
                             } else {
-                                rpos.map(|e| e as u16).with_z(
-                                    self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as u16,
+                                rpos.map(|e| e as i16).with_z(
+                                    self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as i16,
                                 )
                             }
                         },
@@ -511,6 +512,35 @@ impl World {
                     })
                 })
                 .collect(),
+        );
+
+        // Add buildings
+        objects.extend(
+            index
+                .sites
+                .iter()
+                .filter(|(_, site)| {
+                    site.get_origin()
+                        .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
+                        .reduce_and()
+                })
+                .filter_map(|(_, site)| match &site.kind {
+                    SiteKind::Refactor(site) => {
+                        Some(site.plots().filter_map(|plot| match &plot.kind {
+                            site2::plot::PlotKind::House(_) => Some(site.tile_wpos(plot.root_tile)),
+                            _ => None,
+                        }))
+                    },
+                    _ => None,
+                })
+                .flatten()
+                .map(|wpos2d| lod::Object {
+                    kind: lod::ObjectKind::House,
+                    pos: (wpos2d - min_wpos)
+                        .map(|e| e as i16)
+                        .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16),
+                    flags: lod::Flags::empty(),
+                }),
         );
 
         lod::Zone { objects }

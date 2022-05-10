@@ -21,7 +21,8 @@ layout(location = 0) in vec3 v_pos;
 layout(location = 1) in vec3 v_norm;
 layout(location = 2) in vec3 v_col;
 layout(location = 3) in vec3 inst_pos;
-layout(location = 4) in uint inst_flags;
+layout(location = 4) in uvec3 inst_col;
+layout(location = 5) in uint inst_flags;
 
 const uint FLAG_SNOW_COVERED = 1;
 
@@ -47,9 +48,8 @@ void main() {
         f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
     #endif
 
-    // Hacky, very bad, 50 is ~ tree height
-    f_norm = v_norm;//mix(v_norm, vec3(0, 0, 1), clamp(model_pos.z / 50, 0, 1));
-    f_col = vec4(vec3(0.02, 0.1, 0.01) * (sin(inst_pos.xyy) * 0.33 + 0.66), 1.0);//vec4(v_col, 1.0);
+    f_norm = v_norm;
+    f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (sin(inst_pos.xyy) * 0.33 + 0.66), 1.0);
 
     if ((inst_flags & FLAG_SNOW_COVERED) > 0u) {
         snow_cover = 1.0;

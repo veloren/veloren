@@ -18,12 +18,13 @@ bitflags::bitflags! {
 pub enum ObjectKind {
     Oak,
     Pine,
+    House,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Object {
     pub kind: ObjectKind,
-    pub pos: Vec3<u16>,
+    pub pos: Vec3<i16>,
     pub flags: Flags,
 }
 

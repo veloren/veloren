@@ -12,7 +12,7 @@ pub struct Vertex {
 }
 
 impl Vertex {
-    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Vec3<f32>) -> Self {
+    pub fn new(pos: Vec3<f32>, norm: Vec3<f32>, col: Rgb<f32>) -> Self {
         Self {
             pos: pos.into_array(),
             norm: norm.into_array(),
@@ -40,21 +40,24 @@ impl VertexTrait for Vertex {
 #[derive(Copy, Clone, Debug, Zeroable, Pod)]
 pub struct Instance {
     inst_pos: [f32; 3],
+    inst_col: [u8; 4],
     flags: u32,
 }
 
 impl Instance {
-    pub fn new(inst_pos: Vec3<f32>, flags: common::lod::Flags) -> Self {
+    pub fn new(inst_pos: Vec3<f32>, col: Rgb<u8>, flags: common::lod::Flags) -> Self {
         Self {
             inst_pos: inst_pos.into_array(),
+            inst_col: Rgba::new(col.r, col.g, col.b, 255).into_array(),
             flags: flags.bits() as u32,
         }
     }
 
     fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        const ATTRIBUTES: [wgpu::VertexAttribute; 2] = wgpu::vertex_attr_array![
+        const ATTRIBUTES: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
             3 => Float32x3,
-            4 => Uint32,
+            4 => Uint8x4,
+            5 => Uint32,
         ];
         wgpu::VertexBufferLayout {
             array_stride: mem::size_of::<Self>() as wgpu::BufferAddress,

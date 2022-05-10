@@ -63,6 +63,7 @@ impl Lod {
             object_data: [
                 (lod::ObjectKind::Oak, make_lod_object("oak", renderer)),
                 (lod::ObjectKind::Pine, make_lod_object("pine", renderer)),
+                (lod::ObjectKind::House, make_lod_object("house", renderer)),
             ]
             .into_iter()
             .collect(),
@@ -113,10 +114,16 @@ impl Lod {
                             z_range.start.min(pos.z as i32)..z_range.end.max(pos.z as i32)
                         },
                     ));
+                    // TODO: Put this somewhere more easily configurable, like a manifest
+                    let color = match object.kind {
+                        lod::ObjectKind::Pine => Rgb::new(0, 25, 12),
+                        lod::ObjectKind::Oak => Rgb::new(13, 50, 5),
+                        lod::ObjectKind::House => Rgb::new(20, 15, 0),
+                    };
                     objects
                         .entry(object.kind)
                         .or_default()
-                        .push(LodObjectInstance::new(pos, object.flags));
+                        .push(LodObjectInstance::new(pos, color, object.flags));
                 }
                 objects
                     .into_iter()
@@ -226,7 +233,7 @@ fn make_lod_object(name: &str, renderer: &mut Renderer) -> Model<LodObjectVertex
                 LodObjectVertex::new(
                     v.position().into(),
                     v.normal().unwrap_or([0.0, 0.0, 1.0]).into(),
-                    Vec3::broadcast(1.0),
+                    Rgb::broadcast(1.0),
                     //v.color().unwrap_or([1.0; 3]).into(),
                 )
             });
