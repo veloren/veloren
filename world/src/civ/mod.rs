@@ -80,16 +80,19 @@ impl Civs {
         common_base::prof_span!("Civs::generate");
         let mut this = Self::default();
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
-        let initial_civ_count = initial_civ_count(sim.map_size_lg());
-        let mut ctx = GenCtx { sim, rng };
+        let name_rng = rng.clone();
+        let mut name_ctx = GenCtx { sim, rng: name_rng };
         if index.features().peak_naming {
             info!("starting peak naming");
-            this.name_peaks(&mut ctx);
+            this.name_peaks(&mut name_ctx);
         }
         if index.features().biome_naming {
             info!("starting biome naming");
-            this.name_biomes(&mut ctx);
+            this.name_biomes(&mut name_ctx);
         }
+
+        let initial_civ_count = initial_civ_count(sim.map_size_lg());
+        let mut ctx = GenCtx { sim, rng };
 
         info!("starting cave generation");
         for _ in 0..ctx.sim.get_size().product() / 10_000 {
