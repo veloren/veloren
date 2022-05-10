@@ -81,10 +81,14 @@ impl Civs {
         let rng = ChaChaRng::from_seed(seed_expan::rng_state(seed));
         let initial_civ_count = initial_civ_count(sim.map_size_lg());
         let mut ctx = GenCtx { sim, rng };
-        info!("starting peak naming");
-        this.name_peaks(&mut ctx);
-        info!("starting biome naming");
-        this.name_biomes(&mut ctx);
+        if index.features().peak_naming {
+            info!("starting peak naming");
+            this.name_peaks(&mut ctx);
+        }
+        if index.features().biome_naming {
+            info!("starting biome naming");
+            this.name_biomes(&mut ctx);
+        }
 
         for _ in 0..ctx.sim.get_size().product() / 10_000 {
             this.generate_cave(&mut ctx);
@@ -775,9 +779,11 @@ impl Civs {
                 let center = biome
                     .1
                     .iter()
-                    .map(|b| uniform_idx_as_vec2(map_size_lg, *b))
-                    .sum::<Vec2<i32>>()
-                    / biome.1.len() as i32;
+                    .map(|b| {
+                        uniform_idx_as_vec2(map_size_lg, *b).as_::<f32>() / biome.1.len() as f32
+                    })
+                    .sum::<Vec2<f32>>()
+                    .as_::<i32>();
                 // Select the point closest to the center
                 let idx = *biome
                     .1

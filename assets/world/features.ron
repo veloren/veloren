@@ -13,4 +13,6 @@
     site2_towns: true,
     site2_giant_trees: true,
     wildlife_density: 1.0,
+    peak_naming: true,
+    biome_naming: true,
 )
