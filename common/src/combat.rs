@@ -1176,11 +1176,7 @@ pub fn perception_dist_multiplier_from_stealth(
     let item_stealth_multiplier = stealth_multiplier_from_items(inventory);
     let is_sneaking = character_state.map_or(false, |state| state.is_stealthy());
 
-    let mut multiplier = item_stealth_multiplier;
-
-    if is_sneaking {
-        multiplier *= SNEAK_MULTIPLIER;
-    }
+    let multiplier = item_stealth_multiplier * if is_sneaking { SNEAK_MULTIPLIER } else { 1.0 };
 
     multiplier.clamp(0.0, 1.0)
 }
