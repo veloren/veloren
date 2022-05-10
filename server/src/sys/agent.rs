@@ -277,7 +277,7 @@ impl<'a> System<'a> for Sys {
                     } else if is_on_fire
                         && data.body.map_or(false, |b| b.is_humanoid())
                         && data.physics_state.on_ground.is_some()
-                        && rng.gen_bool((2.0 * read_data.dt.0).into())
+                        && rng.gen_bool((2.0 * read_data.dt.0).clamp(0.0, 1.0) as f64)
                     {
                         controller.inputs.move_dir = ori
                             .look_vec()
