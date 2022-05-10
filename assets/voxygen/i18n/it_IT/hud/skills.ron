@@ -246,9 +246,9 @@
         "hud.skill.pick_strike_speed_title": "Velocità Picconata",
         "hud.skill.pick_strike_speed": "Scavi le rocce più velocemente{SP}",
         "hud.skill.pick_strike_oregain_title": "Resa Materiali Grezzi Picconata",
-        "hud.skill.pick_strike_oregain": "Possibilità di ottenere materiale grezzo extra ({boost}% per level){SP}",
+        "hud.skill.pick_strike_oregain": "Possibilità di ottenere materiale grezzo extra del ({boost}% per livello){SP}",
         "hud.skill.pick_strike_gemgain_title": "Resa Gemme Picconata",
-        "hud.skill.pick_strike_gemgain": "Possibilità di ottenere gemme extra ({boost}% per level){SP}",
+        "hud.skill.pick_strike_gemgain": "Possibilità di ottenere gemme extra del ({boost}% per livello){SP}",
     },
 
 

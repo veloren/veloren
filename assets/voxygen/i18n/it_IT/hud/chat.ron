@@ -40,7 +40,7 @@
         "hud.chat.loot_msg": "Hai raccolto [{item}]",
         "hud.chat.loot_fail": "Il tuo inventario è pieno!",
         "hud.chat.goodbye": "Arrivederci!",
-        "hud.chat.connection_lost": "Connessione persa. Verrai cacciato in {time} secondi.",
+        "hud.chat.connection_lost": "Connessione persa. Verrai cacciato tra {time} secondi.",
     },
 
 
