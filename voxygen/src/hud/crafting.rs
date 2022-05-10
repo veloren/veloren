@@ -886,26 +886,22 @@ impl<'a> Widget for Crafting<'a> {
                         invslot: self.show.crafting_fields.recipe_inputs.get(&0).copied(),
                         requirement: match recipe_kind {
                             RecipeKind::ModularWeapon => |item, _, _| {
-                                item.map_or(false, |item| {
-                                    matches!(
-                                        &*item.kind(),
-                                        ItemKind::ModularComponent(
-                                            ModularComponent::ToolPrimaryComponent { .. }
-                                        )
+                                matches!(
+                                    &*item.kind(),
+                                    ItemKind::ModularComponent(
+                                        ModularComponent::ToolPrimaryComponent { .. }
                                     )
-                                })
+                                )
                             },
                             RecipeKind::Component(_) => |item, comp_recipes, info| {
                                 if let Some(CraftSlotInfo::Tool(toolkind)) = info {
-                                    item.map_or(false, |item| {
-                                        comp_recipes
-                                            .iter()
-                                            .filter(|(key, _)| key.toolkind == toolkind)
-                                            .any(|(key, _)| {
-                                                Some(key.material.as_str())
-                                                    == item.item_definition_id().itemdef_id()
-                                            })
-                                    })
+                                    comp_recipes
+                                        .iter()
+                                        .filter(|(key, _)| key.toolkind == toolkind)
+                                        .any(|(key, _)| {
+                                            Some(key.material.as_str())
+                                                == item.item_definition_id().itemdef_id()
+                                        })
                                 } else {
                                     false
                                 }
@@ -977,26 +973,22 @@ impl<'a> Widget for Crafting<'a> {
                         invslot: self.show.crafting_fields.recipe_inputs.get(&1).copied(),
                         requirement: match recipe_kind {
                             RecipeKind::ModularWeapon => |item, _, _| {
-                                item.map_or(false, |item| {
-                                    matches!(
-                                        &*item.kind(),
-                                        ItemKind::ModularComponent(
-                                            ModularComponent::ToolSecondaryComponent { .. }
-                                        )
+                                matches!(
+                                    &*item.kind(),
+                                    ItemKind::ModularComponent(
+                                        ModularComponent::ToolSecondaryComponent { .. }
                                     )
-                                })
+                                )
                             },
                             RecipeKind::Component(_) => |item, comp_recipes, info| {
                                 if let Some(CraftSlotInfo::Tool(toolkind)) = info {
-                                    item.map_or(false, |item| {
-                                        comp_recipes
-                                            .iter()
-                                            .filter(|(key, _)| key.toolkind == toolkind)
-                                            .any(|(key, _)| {
-                                                key.modifier.as_deref()
-                                                    == item.item_definition_id().itemdef_id()
-                                            })
-                                    })
+                                    comp_recipes
+                                        .iter()
+                                        .filter(|(key, _)| key.toolkind == toolkind)
+                                        .any(|(key, _)| {
+                                            key.modifier.as_deref()
+                                                == item.item_definition_id().itemdef_id()
+                                        })
                                 } else {
                                     false
                                 }

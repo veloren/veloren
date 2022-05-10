@@ -337,12 +337,15 @@ pub enum ModularWeaponCreationError {
 }
 
 /// Creates a random modular weapon primary component when provided with a
-/// toolkind, material, and optionally the handedness Note: The component
-/// produced is not necessarily restricted to that handedness, but rather is
-/// able to produce a weapon of that handedness depending on what secondary
-/// component is used Returns the comptabile handednesses that can be used with
-/// provided restriction and generated component (useful for cases where no
-/// restriction was passed in, but generated component has a restriction)
+/// toolkind, material, and optionally the handedness
+///
+/// Note: The component produced is not necessarily restricted to that
+/// handedness, but rather is able to produce a weapon of that handedness
+/// depending on what secondary component is used
+///
+/// Returns the comptabile handednesses that can be used with provided
+/// restriction and generated component (useful for cases where no restriction
+/// was passed in, but generated component has a restriction)
 pub fn random_weapon_primary_component(
     tool: ToolKind,
     material: Material,

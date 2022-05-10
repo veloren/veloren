@@ -3475,13 +3475,13 @@ impl Hud {
                         }
                     } else if let (Inventory(i), Crafting(c)) = (a, b) {
                         // Add item to crafting input
-                        if (c.requirement)(
-                            inventories
-                                .get(client.entity())
-                                .and_then(|inv| inv.get(i.slot)),
-                            client.component_recipe_book(),
-                            c.info,
-                        ) {
+                        if inventories
+                            .get(client.entity())
+                            .and_then(|inv| inv.get(i.slot))
+                            .map_or(false, |item| {
+                                (c.requirement)(item, client.component_recipe_book(), c.info)
+                            })
+                        {
                             self.show
                                 .crafting_fields
                                 .recipe_inputs

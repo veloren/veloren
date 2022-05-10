@@ -243,7 +243,7 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
 pub struct CraftSlot {
     pub index: u32,
     pub invslot: Option<InvSlotId>,
-    pub requirement: fn(Option<&Item>, &ComponentRecipeBook, Option<CraftSlotInfo>) -> bool,
+    pub requirement: fn(&Item, &ComponentRecipeBook, Option<CraftSlotInfo>) -> bool,
     pub info: Option<CraftSlotInfo>,
 }
 

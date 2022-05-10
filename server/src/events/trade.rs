@@ -238,7 +238,6 @@ fn commit_trade(ecs: &specs::World, trade: &PendingTrade) -> TradeResult {
     }
 
     // Hashmap to compute merged stackable stacks, including overflow checks
-    // TODO: add a ComponentKey struct to compare items properly, see issue #1226
     let mut stackable_items: HashMap<ItemDefinitionIdOwned, TradeQuantities> = HashMap::new();
     for who in [0, 1].iter().cloned() {
         for (slot, quantity) in trade.offers[who].iter() {
