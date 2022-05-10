@@ -98,7 +98,7 @@ impl Queue {
             id,
             name: name.to_owned(),
             task: Box::new(move || {
-                common_base::prof_span!(_guard, &name_cloned);
+                common_base::prof_span_alloc!(_guard, &name_cloned);
                 let execution_start = Instant::now();
                 f();
                 let execution_end = Instant::now();

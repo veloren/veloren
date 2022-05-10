@@ -32,6 +32,9 @@ lazy_static::lazy_static! {
 const TPS: u64 = 30;
 
 fn main() -> io::Result<()> {
+    #[cfg(feature = "tracy")]
+    common_base::tracy_client::Client::start();
+
     use clap::Parser;
     let app = ArgvApp::parse();
 
@@ -268,7 +271,7 @@ fn main() -> io::Result<()> {
         // Wait for the next tick.
         clock.tick();
         #[cfg(feature = "tracy")]
-        common_base::tracy_client::finish_continuous_frame!();
+        common_base::tracy_client::frame_mark();
     }
 
     Ok(())

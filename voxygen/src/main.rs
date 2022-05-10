@@ -29,6 +29,9 @@ use tracing::{error, info, warn};
 use veloren_voxygen::ui::egui::EguiState;
 
 fn main() {
+    #[cfg(feature = "tracy")]
+    common_base::tracy_client::Client::start();
+
     let userdata_dir = common_base::userdata_dir_workspace!();
 
     // Determine where Voxygen's logs should go
