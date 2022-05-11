@@ -307,7 +307,7 @@ lazy_static! {
     static ref SECONDARY_COMPONENT_POOL: SecondaryComponentPool = {
         let mut component_pool = HashMap::new();
 
-        const ASSET_PREFIX: &str = "common.items.crafting_ing.modular.secondary";
+        const ASSET_PREFIX: &str = "common.items.modular.weapon.secondary";
 
         for toolkind in SUPPORTED_TOOLKINDS {
             let directory = format!("{}.{}", ASSET_PREFIX, toolkind.identifier_name());
