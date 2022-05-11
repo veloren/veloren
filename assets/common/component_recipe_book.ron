@@ -3,7 +3,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.hammer",
+            item: "common.items.modular.weapon.primary.hammer.hammer",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: None,
@@ -15,7 +15,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.hammer",
+            item: "common.items.modular.weapon.primary.hammer.hammer",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: None,
@@ -27,7 +27,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.hammer",
+            item: "common.items.modular.weapon.primary.hammer.hammer",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: None,
@@ -39,7 +39,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.hammer",
+            item: "common.items.modular.weapon.primary.hammer.hammer",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: None,
@@ -51,7 +51,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.hammer",
+            item: "common.items.modular.weapon.primary.hammer.hammer",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: None,
@@ -63,7 +63,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.hammer",
+            item: "common.items.modular.weapon.primary.hammer.hammer",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: None,
@@ -75,7 +75,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.spikedmace",
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
@@ -87,7 +87,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.spikedmace",
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
@@ -99,7 +99,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.spikedmace",
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
@@ -111,7 +111,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.spikedmace",
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
@@ -123,7 +123,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.spikedmace",
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
@@ -135,7 +135,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.spikedmace",
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
@@ -147,7 +147,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.warhammer",
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
@@ -159,7 +159,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.warhammer",
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
@@ -171,7 +171,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.warhammer",
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
@@ -183,7 +183,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.warhammer",
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
@@ -195,7 +195,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.warhammer",
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
@@ -207,7 +207,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.warhammer",
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
@@ -219,7 +219,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.maul",
+            item: "common.items.modular.weapon.primary.hammer.maul",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
@@ -231,7 +231,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.maul",
+            item: "common.items.modular.weapon.primary.hammer.maul",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
@@ -243,7 +243,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.maul",
+            item: "common.items.modular.weapon.primary.hammer.maul",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
@@ -255,7 +255,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.maul",
+            item: "common.items.modular.weapon.primary.hammer.maul",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
@@ -267,7 +267,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.maul",
+            item: "common.items.modular.weapon.primary.hammer.maul",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
@@ -279,7 +279,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.maul",
+            item: "common.items.modular.weapon.primary.hammer.maul",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
@@ -291,7 +291,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greatmace",
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
@@ -303,7 +303,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greatmace",
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
@@ -315,7 +315,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greatmace",
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
@@ -327,7 +327,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greatmace",
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
@@ -339,7 +339,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greatmace",
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
@@ -351,7 +351,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greatmace",
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
@@ -363,7 +363,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greathammer",
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
@@ -375,7 +375,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greathammer",
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
@@ -387,7 +387,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greathammer",
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
@@ -399,7 +399,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greathammer",
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
@@ -411,7 +411,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greathammer",
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
@@ -423,7 +423,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.greathammer",
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
@@ -435,7 +435,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.ornate",
+            item: "common.items.modular.weapon.primary.hammer.ornate",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
@@ -447,7 +447,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.ornate",
+            item: "common.items.modular.weapon.primary.hammer.ornate",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
@@ -459,7 +459,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.ornate",
+            item: "common.items.modular.weapon.primary.hammer.ornate",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
@@ -471,7 +471,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.ornate",
+            item: "common.items.modular.weapon.primary.hammer.ornate",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
@@ -483,7 +483,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.ornate",
+            item: "common.items.modular.weapon.primary.hammer.ornate",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
@@ -495,7 +495,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Hammer,
-            item: "common.items.crafting_ing.modular.primary.hammer.ornate",
+            item: "common.items.modular.weapon.primary.hammer.ornate",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
@@ -508,7 +508,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.longsword",
+            item: "common.items.modular.weapon.primary.sword.longsword",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: None,
@@ -520,7 +520,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.longsword",
+            item: "common.items.modular.weapon.primary.sword.longsword",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: None,
@@ -532,7 +532,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.longsword",
+            item: "common.items.modular.weapon.primary.sword.longsword",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: None,
@@ -544,7 +544,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.longsword",
+            item: "common.items.modular.weapon.primary.sword.longsword",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: None,
@@ -556,7 +556,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.longsword",
+            item: "common.items.modular.weapon.primary.sword.longsword",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: None,
@@ -568,7 +568,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.longsword",
+            item: "common.items.modular.weapon.primary.sword.longsword",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: None,
@@ -580,7 +580,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sawblade",
+            item: "common.items.modular.weapon.primary.sword.sawblade",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
@@ -592,7 +592,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sawblade",
+            item: "common.items.modular.weapon.primary.sword.sawblade",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
@@ -604,7 +604,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sawblade",
+            item: "common.items.modular.weapon.primary.sword.sawblade",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
@@ -616,7 +616,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sawblade",
+            item: "common.items.modular.weapon.primary.sword.sawblade",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
@@ -628,7 +628,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sawblade",
+            item: "common.items.modular.weapon.primary.sword.sawblade",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
@@ -640,7 +640,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sawblade",
+            item: "common.items.modular.weapon.primary.sword.sawblade",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
@@ -652,7 +652,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.katana",
+            item: "common.items.modular.weapon.primary.sword.katana",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
@@ -664,7 +664,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.katana",
+            item: "common.items.modular.weapon.primary.sword.katana",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
@@ -676,7 +676,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.katana",
+            item: "common.items.modular.weapon.primary.sword.katana",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
@@ -688,7 +688,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.katana",
+            item: "common.items.modular.weapon.primary.sword.katana",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
@@ -700,7 +700,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.katana",
+            item: "common.items.modular.weapon.primary.sword.katana",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
@@ -712,7 +712,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.katana",
+            item: "common.items.modular.weapon.primary.sword.katana",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
@@ -724,7 +724,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.zweihander",
+            item: "common.items.modular.weapon.primary.sword.zweihander",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
@@ -736,7 +736,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.zweihander",
+            item: "common.items.modular.weapon.primary.sword.zweihander",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
@@ -748,7 +748,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.zweihander",
+            item: "common.items.modular.weapon.primary.sword.zweihander",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
@@ -760,7 +760,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.zweihander",
+            item: "common.items.modular.weapon.primary.sword.zweihander",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
@@ -772,7 +772,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.zweihander",
+            item: "common.items.modular.weapon.primary.sword.zweihander",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
@@ -784,7 +784,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.zweihander",
+            item: "common.items.modular.weapon.primary.sword.zweihander",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
@@ -796,7 +796,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sabre",
+            item: "common.items.modular.weapon.primary.sword.sabre",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
@@ -808,7 +808,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sabre",
+            item: "common.items.modular.weapon.primary.sword.sabre",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
@@ -820,7 +820,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sabre",
+            item: "common.items.modular.weapon.primary.sword.sabre",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
@@ -832,7 +832,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sabre",
+            item: "common.items.modular.weapon.primary.sword.sabre",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
@@ -844,7 +844,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sabre",
+            item: "common.items.modular.weapon.primary.sword.sabre",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
@@ -856,7 +856,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.sabre",
+            item: "common.items.modular.weapon.primary.sword.sabre",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
@@ -868,7 +868,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.greatsword",
+            item: "common.items.modular.weapon.primary.sword.greatsword",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
@@ -880,7 +880,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.greatsword",
+            item: "common.items.modular.weapon.primary.sword.greatsword",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
@@ -892,7 +892,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.greatsword",
+            item: "common.items.modular.weapon.primary.sword.greatsword",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
@@ -904,7 +904,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.greatsword",
+            item: "common.items.modular.weapon.primary.sword.greatsword",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
@@ -916,7 +916,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.greatsword",
+            item: "common.items.modular.weapon.primary.sword.greatsword",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
@@ -928,7 +928,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.greatsword",
+            item: "common.items.modular.weapon.primary.sword.greatsword",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
@@ -940,7 +940,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.ornate",
+            item: "common.items.modular.weapon.primary.sword.ornate",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
@@ -952,7 +952,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.ornate",
+            item: "common.items.modular.weapon.primary.sword.ornate",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
@@ -964,7 +964,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.ornate",
+            item: "common.items.modular.weapon.primary.sword.ornate",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
@@ -976,7 +976,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.ornate",
+            item: "common.items.modular.weapon.primary.sword.ornate",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
@@ -988,7 +988,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.ornate",
+            item: "common.items.modular.weapon.primary.sword.ornate",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
@@ -1000,7 +1000,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sword,
-            item: "common.items.crafting_ing.modular.primary.sword.ornate",
+            item: "common.items.modular.weapon.primary.sword.ornate",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
@@ -1013,7 +1013,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.axe",
+            item: "common.items.modular.weapon.primary.axe.axe",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: None,
@@ -1025,7 +1025,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.axe",
+            item: "common.items.modular.weapon.primary.axe.axe",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: None,
@@ -1037,7 +1037,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.axe",
+            item: "common.items.modular.weapon.primary.axe.axe",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: None,
@@ -1049,7 +1049,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.axe",
+            item: "common.items.modular.weapon.primary.axe.axe",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: None,
@@ -1061,7 +1061,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.axe",
+            item: "common.items.modular.weapon.primary.axe.axe",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: None,
@@ -1073,7 +1073,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.axe",
+            item: "common.items.modular.weapon.primary.axe.axe",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: None,
@@ -1085,7 +1085,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.jagged",
+            item: "common.items.modular.weapon.primary.axe.jagged",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
@@ -1097,7 +1097,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.jagged",
+            item: "common.items.modular.weapon.primary.axe.jagged",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
@@ -1109,7 +1109,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.jagged",
+            item: "common.items.modular.weapon.primary.axe.jagged",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
@@ -1121,7 +1121,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.jagged",
+            item: "common.items.modular.weapon.primary.axe.jagged",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
@@ -1133,7 +1133,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.jagged",
+            item: "common.items.modular.weapon.primary.axe.jagged",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
@@ -1145,7 +1145,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.jagged",
+            item: "common.items.modular.weapon.primary.axe.jagged",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
@@ -1157,7 +1157,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.battleaxe",
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
@@ -1169,7 +1169,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.battleaxe",
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
@@ -1181,7 +1181,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.battleaxe",
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
@@ -1193,7 +1193,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.battleaxe",
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
@@ -1205,7 +1205,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.battleaxe",
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
@@ -1217,7 +1217,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.battleaxe",
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
@@ -1229,7 +1229,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.poleaxe",
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
@@ -1241,7 +1241,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.poleaxe",
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
@@ -1253,7 +1253,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.poleaxe",
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
@@ -1265,7 +1265,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.poleaxe",
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
@@ -1277,7 +1277,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.poleaxe",
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
@@ -1289,7 +1289,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.poleaxe",
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
@@ -1301,7 +1301,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.labrys",
+            item: "common.items.modular.weapon.primary.axe.labrys",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
@@ -1313,7 +1313,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.labrys",
+            item: "common.items.modular.weapon.primary.axe.labrys",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
@@ -1325,7 +1325,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.labrys",
+            item: "common.items.modular.weapon.primary.axe.labrys",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
@@ -1337,7 +1337,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.labrys",
+            item: "common.items.modular.weapon.primary.axe.labrys",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
@@ -1349,7 +1349,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.labrys",
+            item: "common.items.modular.weapon.primary.axe.labrys",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
@@ -1361,7 +1361,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.labrys",
+            item: "common.items.modular.weapon.primary.axe.labrys",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
@@ -1373,7 +1373,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.greataxe",
+            item: "common.items.modular.weapon.primary.axe.greataxe",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
@@ -1385,7 +1385,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.greataxe",
+            item: "common.items.modular.weapon.primary.axe.greataxe",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
@@ -1397,7 +1397,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.greataxe",
+            item: "common.items.modular.weapon.primary.axe.greataxe",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
@@ -1409,7 +1409,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.greataxe",
+            item: "common.items.modular.weapon.primary.axe.greataxe",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
@@ -1421,7 +1421,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.greataxe",
+            item: "common.items.modular.weapon.primary.axe.greataxe",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
@@ -1433,7 +1433,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.greataxe",
+            item: "common.items.modular.weapon.primary.axe.greataxe",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
@@ -1445,7 +1445,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.ornate",
+            item: "common.items.modular.weapon.primary.axe.ornate",
         ),
         material: ("common.items.mineral.ingot.bronze", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
@@ -1457,7 +1457,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.ornate",
+            item: "common.items.modular.weapon.primary.axe.ornate",
         ),
         material: ("common.items.mineral.ingot.iron", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
@@ -1469,7 +1469,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.ornate",
+            item: "common.items.modular.weapon.primary.axe.ornate",
         ),
         material: ("common.items.mineral.ingot.steel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
@@ -1481,7 +1481,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.ornate",
+            item: "common.items.modular.weapon.primary.axe.ornate",
         ),
         material: ("common.items.mineral.ingot.cobalt", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
@@ -1493,7 +1493,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.ornate",
+            item: "common.items.modular.weapon.primary.axe.ornate",
         ),
         material: ("common.items.mineral.ingot.bloodsteel", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
@@ -1505,7 +1505,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Axe,
-            item: "common.items.crafting_ing.modular.primary.axe.ornate",
+            item: "common.items.modular.weapon.primary.axe.ornate",
         ),
         material: ("common.items.mineral.ingot.orichalcum", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
@@ -1518,7 +1518,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.bow",
+            item: "common.items.modular.weapon.primary.bow.bow",
         ),
         material: ("common.items.log.wood", 5),
         modifier: None,
@@ -1530,7 +1530,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.bow",
+            item: "common.items.modular.weapon.primary.bow.bow",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: None,
@@ -1542,7 +1542,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.bow",
+            item: "common.items.modular.weapon.primary.bow.bow",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: None,
@@ -1554,7 +1554,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.bow",
+            item: "common.items.modular.weapon.primary.bow.bow",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: None,
@@ -1566,7 +1566,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.bow",
+            item: "common.items.modular.weapon.primary.bow.bow",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: None,
@@ -1578,7 +1578,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.bow",
+            item: "common.items.modular.weapon.primary.bow.bow",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: None,
@@ -1590,7 +1590,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.composite",
+            item: "common.items.modular.weapon.primary.bow.composite",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
@@ -1602,7 +1602,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.composite",
+            item: "common.items.modular.weapon.primary.bow.composite",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
@@ -1614,7 +1614,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.composite",
+            item: "common.items.modular.weapon.primary.bow.composite",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
@@ -1626,7 +1626,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.composite",
+            item: "common.items.modular.weapon.primary.bow.composite",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
@@ -1638,7 +1638,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.composite",
+            item: "common.items.modular.weapon.primary.bow.composite",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
@@ -1650,7 +1650,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.composite",
+            item: "common.items.modular.weapon.primary.bow.composite",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
@@ -1662,7 +1662,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.greatbow",
+            item: "common.items.modular.weapon.primary.bow.greatbow",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
@@ -1674,7 +1674,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.greatbow",
+            item: "common.items.modular.weapon.primary.bow.greatbow",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
@@ -1686,7 +1686,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.greatbow",
+            item: "common.items.modular.weapon.primary.bow.greatbow",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
@@ -1698,7 +1698,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.greatbow",
+            item: "common.items.modular.weapon.primary.bow.greatbow",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
@@ -1710,7 +1710,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.greatbow",
+            item: "common.items.modular.weapon.primary.bow.greatbow",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
@@ -1722,7 +1722,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.greatbow",
+            item: "common.items.modular.weapon.primary.bow.greatbow",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
@@ -1734,7 +1734,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.longbow",
+            item: "common.items.modular.weapon.primary.bow.longbow",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
@@ -1746,7 +1746,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.longbow",
+            item: "common.items.modular.weapon.primary.bow.longbow",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
@@ -1758,7 +1758,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.longbow",
+            item: "common.items.modular.weapon.primary.bow.longbow",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
@@ -1770,7 +1770,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.longbow",
+            item: "common.items.modular.weapon.primary.bow.longbow",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
@@ -1782,7 +1782,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.longbow",
+            item: "common.items.modular.weapon.primary.bow.longbow",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
@@ -1794,7 +1794,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.longbow",
+            item: "common.items.modular.weapon.primary.bow.longbow",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
@@ -1806,7 +1806,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.ornate",
+            item: "common.items.modular.weapon.primary.bow.ornate",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
@@ -1818,7 +1818,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.ornate",
+            item: "common.items.modular.weapon.primary.bow.ornate",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
@@ -1830,7 +1830,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.ornate",
+            item: "common.items.modular.weapon.primary.bow.ornate",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
@@ -1842,7 +1842,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.ornate",
+            item: "common.items.modular.weapon.primary.bow.ornate",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
@@ -1854,7 +1854,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.ornate",
+            item: "common.items.modular.weapon.primary.bow.ornate",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
@@ -1866,7 +1866,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.ornate",
+            item: "common.items.modular.weapon.primary.bow.ornate",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
@@ -1878,7 +1878,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.shortbow",
+            item: "common.items.modular.weapon.primary.bow.shortbow",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
@@ -1890,7 +1890,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.shortbow",
+            item: "common.items.modular.weapon.primary.bow.shortbow",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
@@ -1902,7 +1902,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.shortbow",
+            item: "common.items.modular.weapon.primary.bow.shortbow",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
@@ -1914,7 +1914,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.shortbow",
+            item: "common.items.modular.weapon.primary.bow.shortbow",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
@@ -1926,7 +1926,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.shortbow",
+            item: "common.items.modular.weapon.primary.bow.shortbow",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
@@ -1938,7 +1938,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.shortbow",
+            item: "common.items.modular.weapon.primary.bow.shortbow",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
@@ -1950,7 +1950,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.warbow",
+            item: "common.items.modular.weapon.primary.bow.warbow",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
@@ -1962,7 +1962,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.warbow",
+            item: "common.items.modular.weapon.primary.bow.warbow",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
@@ -1974,7 +1974,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.warbow",
+            item: "common.items.modular.weapon.primary.bow.warbow",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
@@ -1986,7 +1986,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.warbow",
+            item: "common.items.modular.weapon.primary.bow.warbow",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
@@ -1998,7 +1998,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.warbow",
+            item: "common.items.modular.weapon.primary.bow.warbow",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
@@ -2010,7 +2010,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Bow,
-            item: "common.items.crafting_ing.modular.primary.bow.warbow",
+            item: "common.items.modular.weapon.primary.bow.warbow",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
@@ -2023,7 +2023,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.brand",
+            item: "common.items.modular.weapon.primary.staff.brand",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
@@ -2035,7 +2035,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.brand",
+            item: "common.items.modular.weapon.primary.staff.brand",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
@@ -2047,7 +2047,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.brand",
+            item: "common.items.modular.weapon.primary.staff.brand",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
@@ -2059,7 +2059,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.brand",
+            item: "common.items.modular.weapon.primary.staff.brand",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
@@ -2071,7 +2071,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.brand",
+            item: "common.items.modular.weapon.primary.staff.brand",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
@@ -2083,7 +2083,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.brand",
+            item: "common.items.modular.weapon.primary.staff.brand",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
@@ -2095,7 +2095,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
@@ -2107,7 +2107,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
@@ -2119,7 +2119,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
@@ -2131,7 +2131,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
@@ -2143,7 +2143,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
@@ -2155,7 +2155,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.grandstaff",
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
@@ -2167,7 +2167,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.longpole",
+            item: "common.items.modular.weapon.primary.staff.longpole",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
@@ -2179,7 +2179,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.longpole",
+            item: "common.items.modular.weapon.primary.staff.longpole",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
@@ -2191,7 +2191,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.longpole",
+            item: "common.items.modular.weapon.primary.staff.longpole",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
@@ -2203,7 +2203,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.longpole",
+            item: "common.items.modular.weapon.primary.staff.longpole",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
@@ -2215,7 +2215,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.longpole",
+            item: "common.items.modular.weapon.primary.staff.longpole",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
@@ -2227,7 +2227,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.longpole",
+            item: "common.items.modular.weapon.primary.staff.longpole",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
@@ -2239,7 +2239,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.ornate",
+            item: "common.items.modular.weapon.primary.staff.ornate",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
@@ -2251,7 +2251,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.ornate",
+            item: "common.items.modular.weapon.primary.staff.ornate",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
@@ -2263,7 +2263,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.ornate",
+            item: "common.items.modular.weapon.primary.staff.ornate",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
@@ -2275,7 +2275,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.ornate",
+            item: "common.items.modular.weapon.primary.staff.ornate",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
@@ -2287,7 +2287,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.ornate",
+            item: "common.items.modular.weapon.primary.staff.ornate",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
@@ -2299,7 +2299,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.ornate",
+            item: "common.items.modular.weapon.primary.staff.ornate",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
@@ -2311,7 +2311,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.pole",
+            item: "common.items.modular.weapon.primary.staff.pole",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
@@ -2323,7 +2323,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.pole",
+            item: "common.items.modular.weapon.primary.staff.pole",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
@@ -2335,7 +2335,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.pole",
+            item: "common.items.modular.weapon.primary.staff.pole",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
@@ -2347,7 +2347,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.pole",
+            item: "common.items.modular.weapon.primary.staff.pole",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
@@ -2359,7 +2359,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.pole",
+            item: "common.items.modular.weapon.primary.staff.pole",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
@@ -2371,7 +2371,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.pole",
+            item: "common.items.modular.weapon.primary.staff.pole",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
@@ -2383,7 +2383,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.rod",
+            item: "common.items.modular.weapon.primary.staff.rod",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
@@ -2395,7 +2395,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.rod",
+            item: "common.items.modular.weapon.primary.staff.rod",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
@@ -2407,7 +2407,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.rod",
+            item: "common.items.modular.weapon.primary.staff.rod",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
@@ -2419,7 +2419,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.rod",
+            item: "common.items.modular.weapon.primary.staff.rod",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
@@ -2431,7 +2431,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.rod",
+            item: "common.items.modular.weapon.primary.staff.rod",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
@@ -2443,7 +2443,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.rod",
+            item: "common.items.modular.weapon.primary.staff.rod",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
@@ -2455,7 +2455,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.staff",
+            item: "common.items.modular.weapon.primary.staff.staff",
         ),
         material: ("common.items.log.wood", 5),
         modifier: None,
@@ -2467,7 +2467,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.staff",
+            item: "common.items.modular.weapon.primary.staff.staff",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: None,
@@ -2479,7 +2479,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.staff",
+            item: "common.items.modular.weapon.primary.staff.staff",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: None,
@@ -2491,7 +2491,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.staff",
+            item: "common.items.modular.weapon.primary.staff.staff",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: None,
@@ -2503,7 +2503,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.staff",
+            item: "common.items.modular.weapon.primary.staff.staff",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: None,
@@ -2515,7 +2515,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Staff,
-            item: "common.items.crafting_ing.modular.primary.staff.staff",
+            item: "common.items.modular.weapon.primary.staff.staff",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: None,
@@ -2528,7 +2528,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
@@ -2540,7 +2540,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
@@ -2552,7 +2552,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
@@ -2564,7 +2564,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
@@ -2576,7 +2576,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
@@ -2588,7 +2588,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.arbor",
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
@@ -2600,7 +2600,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.cane",
+            item: "common.items.modular.weapon.primary.sceptre.cane",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
@@ -2612,7 +2612,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.cane",
+            item: "common.items.modular.weapon.primary.sceptre.cane",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
@@ -2624,7 +2624,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.cane",
+            item: "common.items.modular.weapon.primary.sceptre.cane",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
@@ -2636,7 +2636,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.cane",
+            item: "common.items.modular.weapon.primary.sceptre.cane",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
@@ -2648,7 +2648,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.cane",
+            item: "common.items.modular.weapon.primary.sceptre.cane",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
@@ -2660,7 +2660,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.cane",
+            item: "common.items.modular.weapon.primary.sceptre.cane",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
@@ -2672,7 +2672,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crook",
+            item: "common.items.modular.weapon.primary.sceptre.crook",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
@@ -2684,7 +2684,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crook",
+            item: "common.items.modular.weapon.primary.sceptre.crook",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
@@ -2696,7 +2696,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crook",
+            item: "common.items.modular.weapon.primary.sceptre.crook",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
@@ -2708,7 +2708,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crook",
+            item: "common.items.modular.weapon.primary.sceptre.crook",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
@@ -2720,7 +2720,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crook",
+            item: "common.items.modular.weapon.primary.sceptre.crook",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
@@ -2732,7 +2732,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crook",
+            item: "common.items.modular.weapon.primary.sceptre.crook",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
@@ -2744,7 +2744,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
@@ -2756,7 +2756,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
@@ -2768,7 +2768,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
@@ -2780,7 +2780,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
@@ -2792,7 +2792,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
@@ -2804,7 +2804,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.crozier",
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
@@ -2816,7 +2816,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
@@ -2828,7 +2828,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
@@ -2840,7 +2840,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
@@ -2852,7 +2852,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
@@ -2864,7 +2864,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
@@ -2876,7 +2876,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.grandsceptre",
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
@@ -2888,7 +2888,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
         ),
         material: ("common.items.log.wood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
@@ -2900,7 +2900,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
@@ -2912,7 +2912,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
@@ -2924,7 +2924,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
@@ -2936,7 +2936,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
@@ -2948,7 +2948,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.ornate",
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
@@ -2960,7 +2960,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
         ),
         material: ("common.items.log.wood", 5),
         modifier: None,
@@ -2972,7 +2972,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
         ),
         material: ("common.items.log.bamboo", 5),
         modifier: None,
@@ -2984,7 +2984,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
         ),
         material: ("common.items.log.hardwood", 5),
         modifier: None,
@@ -2996,7 +2996,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
         ),
         material: ("common.items.log.ironwood", 5),
         modifier: None,
@@ -3008,7 +3008,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
         ),
         material: ("common.items.log.frostwood", 5),
         modifier: None,
@@ -3020,7 +3020,7 @@
     (
         output: ToolPrimaryComponent(
             toolkind: Sceptre,
-            item: "common.items.crafting_ing.modular.primary.sceptre.sceptre",
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
         ),
         material: ("common.items.log.eldwood", 5),
         modifier: None,

@@ -1,5 +1,5 @@
 [
-    (1.0, Item("common.items.crafting_ing.modular.secondary.staff.light")),
-    (1.0, Item("common.items.crafting_ing.modular.secondary.staff.medium")),
-    (1.0, Item("common.items.crafting_ing.modular.secondary.staff.heavy")),
+    (1.0, Item("common.items.modular.weapon.secondary.staff.light")),
+    (1.0, Item("common.items.modular.weapon.secondary.staff.medium")),
+    (1.0, Item("common.items.modular.weapon.secondary.staff.heavy")),
 ]

@@ -1883,7 +1883,7 @@
     ),
 /// MODULAR WEAPONS/SWORDS/SECONDARY COMPONENTS
     "short hilt": (
-        output: ("common.items.crafting_ing.modular.secondary.sword.short", 1),
+        output: ("common.items.modular.weapon.secondary.sword.short", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
@@ -1892,7 +1892,7 @@
         is_recycling: false,
     ),
     "medium hilt": (
-        output: ("common.items.crafting_ing.modular.secondary.sword.medium", 1),
+        output: ("common.items.modular.weapon.secondary.sword.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
@@ -1901,7 +1901,7 @@
         is_recycling: false,
     ),
     "long hilt": (
-        output: ("common.items.crafting_ing.modular.secondary.sword.long", 1),
+        output: ("common.items.modular.weapon.secondary.sword.long", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 1, false),
@@ -1911,7 +1911,7 @@
     ),
 /// MODULAR WEAPONS/HAMMERS/SECONDARY COMPONENTS
     "short hammer haft": (
-        output: ("common.items.crafting_ing.modular.secondary.hammer.short", 1),
+        output: ("common.items.modular.weapon.secondary.hammer.short", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1920,7 +1920,7 @@
         is_recycling: false,
     ),
     "long hammer haft": (
-        output: ("common.items.crafting_ing.modular.secondary.hammer.long", 1),
+        output: ("common.items.modular.weapon.secondary.hammer.long", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1929,7 +1929,7 @@
         is_recycling: false,
     ),
     "medium hammer haft": (
-        output: ("common.items.crafting_ing.modular.secondary.hammer.medium", 1),
+        output: ("common.items.modular.weapon.secondary.hammer.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1939,7 +1939,7 @@
     ),
 /// MODULAR WEAPONS/AXES/SECONDARY COMPONENTS
     "short axe haft": (
-        output: ("common.items.crafting_ing.modular.secondary.axe.short", 1),
+        output: ("common.items.modular.weapon.secondary.axe.short", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1948,7 +1948,7 @@
         is_recycling: false,
     ),
     "long axe haft": (
-        output: ("common.items.crafting_ing.modular.secondary.axe.long", 1),
+        output: ("common.items.modular.weapon.secondary.axe.long", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1957,7 +1957,7 @@
         is_recycling: false,
     ),
     "medium axe haft": (
-        output: ("common.items.crafting_ing.modular.secondary.axe.medium", 1),
+        output: ("common.items.modular.weapon.secondary.axe.medium", 1),
         inputs: [
             (Item("common.items.log.wood"), 1, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1967,7 +1967,7 @@
     ),
 /// MODULAR WEAPONS/BOWS/SECONDARY COMPONENTS
     "medium bow grip": (
-        output: ("common.items.crafting_ing.modular.secondary.bow.medium", 1),
+        output: ("common.items.modular.weapon.secondary.bow.medium", 1),
         inputs: [
             (Item("common.items.flowers.plant_fiber"), 3, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1976,7 +1976,7 @@
         is_recycling: false,
     ),
     "short bow grip": (
-        output: ("common.items.crafting_ing.modular.secondary.bow.short", 1),
+        output: ("common.items.modular.weapon.secondary.bow.short", 1),
         inputs: [
             (Item("common.items.flowers.plant_fiber"), 3, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1985,7 +1985,7 @@
         is_recycling: false,
     ),
     "long bow grip": (
-        output: ("common.items.crafting_ing.modular.secondary.bow.long", 1),
+        output: ("common.items.modular.weapon.secondary.bow.long", 1),
         inputs: [
             (Item("common.items.flowers.plant_fiber"), 3, false),
             (Item("common.items.crafting_ing.leather.leather_strips"), 2, false),
@@ -1995,7 +1995,7 @@
     ),
 /// MODULAR WEAPONS/FIRE STAFFS/SECONDARY COMPONENTS
     "heavy pyrocore": (
-        output: ("common.items.crafting_ing.modular.secondary.staff.heavy", 1),
+        output: ("common.items.modular.weapon.secondary.staff.heavy", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2004,7 +2004,7 @@
         is_recycling: false,
     ),
     "pyrocore": (
-        output: ("common.items.crafting_ing.modular.secondary.staff.medium", 1),
+        output: ("common.items.modular.weapon.secondary.staff.medium", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2013,7 +2013,7 @@
         is_recycling: false,
     ),
     "light pyrocore": (
-        output: ("common.items.crafting_ing.modular.secondary.staff.light", 1),
+        output: ("common.items.modular.weapon.secondary.staff.light", 1),
         inputs: [
             (Item("common.items.mineral.gem.ruby"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2023,7 +2023,7 @@
     ),
 /// MODULAR WEAPONS/NATURE SCEPTRES/SECONDARY COMPONENTS
     "heavy biocore": (
-        output: ("common.items.crafting_ing.modular.secondary.sceptre.heavy", 1),
+        output: ("common.items.modular.weapon.secondary.sceptre.heavy", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2032,7 +2032,7 @@
         is_recycling: false,
     ),
     "biocore": (
-        output: ("common.items.crafting_ing.modular.secondary.sceptre.medium", 1),
+        output: ("common.items.modular.weapon.secondary.sceptre.medium", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
@@ -2041,7 +2041,7 @@
         is_recycling: false,
     ),
     "light biocore": (
-        output: ("common.items.crafting_ing.modular.secondary.sceptre.light", 1),
+        output: ("common.items.modular.weapon.secondary.sceptre.light", 1),
         inputs: [
             (Item("common.items.mineral.gem.emerald"), 1, false),
             (Item("common.items.mineral.ore.veloritefrag"), 3, false),
