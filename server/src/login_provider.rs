@@ -1,5 +1,5 @@
 use crate::{
-    settings::{AdminRecord, BanEntry, BanIdentity, WhitelistRecord},
+    settings::{AdminRecord, Banlist, WhitelistRecord},
     Client,
 };
 use authc::{AuthClient, AuthClientError, AuthToken, Uuid};
@@ -99,7 +99,7 @@ impl LoginProvider {
         client: &Client,
         admins: &HashMap<Uuid, AdminRecord>,
         whitelist: &HashMap<Uuid, WhitelistRecord>,
-        banlist: &HashMap<BanIdentity, BanEntry>,
+        banlist: &Banlist,
         player_count_exceeded: impl FnOnce(String, Uuid) -> (bool, R),
     ) -> Option<Result<R, RegisterError>> {
         match pending.pending_r.try_recv() {
@@ -109,15 +109,14 @@ impl LoginProvider {
                 // Hardcoded admins can always log in.
                 let admin = admins.get(&uuid);
                 if let Some(ban) = banlist
-                    .get(&BanIdentity::Uuid(uuid))
+                    .uuid_bans()
+                    .get(&uuid)
                     .and_then(|ban_record| ban_record.current.action.ban())
                     .or_else(|| {
-                        let ip = client.participant
-                            .as_ref()?
-                            .peer_socket_addr()?
-                            .ip();
+                        let ip = client.participant.as_ref()?.peer_socket_addr()?.ip();
                         banlist
-                            .get(&BanIdentity::Ip(ip))
+                            .ip_bans()
+                            .get(&ip)
                             .and_then(|ban_record| ban_record.current.action.ban())
                     })
                 {

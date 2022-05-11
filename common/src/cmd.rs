@@ -22,7 +22,7 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator, VariantNames};
 use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
-pub struct ChatCommandData {
+pub struct ServerChatCommandData {
     /// A list of arguments useful for both tab completion and parsing
     pub args: Vec<ArgumentSpec>,
     /// The i18n content for the description of the command
@@ -31,7 +31,7 @@ pub struct ChatCommandData {
     pub needs_role: Option<Role>,
 }
 
-impl ChatCommandData {
+impl ServerChatCommandData {
     pub fn new(args: Vec<ArgumentSpec>, description: Content, needs_role: Option<Role>) -> Self {
         Self {
             args,
@@ -334,6 +334,7 @@ pub enum ServerChatCommand {
     AreaRemove,
     Aura,
     Ban,
+    BanIp,
     BattleMode,
     BattleModeForce,
     Body,
@@ -414,6 +415,7 @@ pub enum ServerChatCommand {
     TimeScale,
     Tp,
     Unban,
+    UnbanIp,
     Version,
     Waypoint,
     WeatherZone,
@@ -423,11 +425,11 @@ pub enum ServerChatCommand {
 }
 
 impl ServerChatCommand {
-    pub fn data(&self) -> ChatCommandData {
+    pub fn data(&self) -> ServerChatCommandData {
         use ArgumentSpec::*;
         use Requirement::*;
         use Role::*;
-        let cmd = ChatCommandData::new;
+        let cmd = ServerChatCommandData::new;
         match self {
             ServerChatCommand::Adminify => cmd(
                 vec![PlayerName(Required), Enum("role", ROLES.clone(), Optional)],
@@ -485,6 +487,22 @@ impl ServerChatCommand {
                 ],
                 Content::localized("command-ban-desc"),
                 Some(Moderator),
+            ),
+            ServerChatCommand::BanIp => cmd(
+                vec![
+                    PlayerName(Required),
+                    Boolean("overwrite", "true".to_string(), Optional),
+                    Any("ban duration", Optional),
+                    Message(Optional),
+                ],
+                // TODO: Localize
+                Content::Plain(
+                    "Ban a player with a given username, for a given duration (if provided). \
+                     Unlike the normal ban this also additionally bans the IP-address associated \
+                     with this user. Pass true for overwrite to alter an existing ban.."
+                        .to_string(),
+                ),
+                Some(Admin),
             ),
             #[rustfmt::skip]
             ServerChatCommand::BattleMode => cmd(
@@ -956,7 +974,18 @@ impl ServerChatCommand {
             ),
             ServerChatCommand::Unban => cmd(
                 vec![PlayerName(Required)],
-                Content::localized("command-unban-desc"),
+                // TODO: Localize
+                // Content::localized("command-unban-desc"),
+                Content::Plain(
+                    "Remove the ban for the given username. If there is an linked IP ban it will \
+                     be removed as well."
+                        .to_string(),
+                ),
+                Some(Moderator),
+            ),
+            ServerChatCommand::UnbanIp => cmd(
+                vec![PlayerName(Required)],
+                Content::Plain("Remove just the IP ban for the given username.".to_string()),
                 Some(Moderator),
             ),
             ServerChatCommand::Version => {
@@ -1066,6 +1095,7 @@ impl ServerChatCommand {
             ServerChatCommand::AreaRemove => "area_remove",
             ServerChatCommand::Aura => "aura",
             ServerChatCommand::Ban => "ban",
+            ServerChatCommand::BanIp => "ban_ip",
             ServerChatCommand::BattleMode => "battlemode",
             ServerChatCommand::BattleModeForce => "battlemode_force",
             ServerChatCommand::Body => "body",
@@ -1135,6 +1165,7 @@ impl ServerChatCommand {
             ServerChatCommand::RtsimPurge => "rtsim_purge",
             ServerChatCommand::RtsimChunk => "rtsim_chunk",
             ServerChatCommand::Unban => "unban",
+            ServerChatCommand::UnbanIp => "unban_ip",
             ServerChatCommand::Version => "version",
             ServerChatCommand::Waypoint => "waypoint",
             ServerChatCommand::Wiring => "wiring",

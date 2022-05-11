@@ -34,10 +34,10 @@ pub enum ClientChatCommand {
 }
 
 impl ClientChatCommand {
-    pub fn data(&self) -> ChatCommandData {
+    pub fn data(&self) -> ServerChatCommandData {
         use ArgumentSpec::*;
         use Requirement::*;
-        let cmd = ChatCommandData::new;
+        let cmd = ServerChatCommandData::new;
         match self {
             ClientChatCommand::Clear => {
                 cmd(Vec::new(), Content::localized("command-clear-desc"), None)

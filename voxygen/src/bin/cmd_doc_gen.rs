@@ -1,4 +1,4 @@
-use common::cmd::{ChatCommandData, ServerChatCommand};
+use common::cmd::{ServerChatCommandData, ServerChatCommand};
 use i18n::{LocalizationGuard, LocalizationHandle};
 use veloren_voxygen::cmd::ClientChatCommand;
 
@@ -29,7 +29,7 @@ fn main() {
     }
 }
 
-fn format_row(keyword: &str, data: &ChatCommandData, i18n: &LocalizationGuard) -> String {
+fn format_row(keyword: &str, data: &ServerChatCommandData, i18n: &LocalizationGuard) -> String {
     let args = data
         .args
         .iter()

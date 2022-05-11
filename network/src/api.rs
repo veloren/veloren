@@ -517,9 +517,7 @@ impl Network {
 }
 
 impl Participant {
-    pub fn peer_socket_addr(&self) -> Option<SocketAddr> {
-        self.peer_socket_addr.clone()
-    }
+    pub fn peer_socket_addr(&self) -> Option<SocketAddr> { self.peer_socket_addr.clone() }
 
     pub(crate) fn new(
         peer_socket_addr: Option<SocketAddr>,
