@@ -14,7 +14,7 @@ use vek::Vec2;
 /// send to MULTIPLE clients
 /// TODO: store a urgent flag and seperate even more, 5 ticks vs 5 seconds
 #[derive(Debug, PartialEq)]
-pub struct ChunkSendQueue {
+pub struct ChunkSendEntry {
     pub(crate) entity: Entity,
     pub(crate) chunk_key: Vec2<i32>,
 }

@@ -218,7 +218,9 @@ impl Client {
 
     pub(crate) fn terrain_params(&self) -> StreamParams { self.terrain_stream_params.clone() }
 
-    pub(crate) fn prepare_terrain(
+    /// Only used for Serialize Chunks in a SlowJob.
+    /// TODO: find a more elegant version for this invariant
+    pub(crate) fn prepare_chunk_update_msg(
         terrain_chunk_update: ServerGeneral,
         params: &StreamParams,
     ) -> PreparedMsg {

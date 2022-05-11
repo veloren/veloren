@@ -249,7 +249,7 @@ impl Server {
         state.ecs_mut().insert(Vec::<ChunkRequest>::new());
         state
             .ecs_mut()
-            .insert(EventBus::<chunk_serialize::ChunkSendQueue>::default());
+            .insert(EventBus::<chunk_serialize::ChunkSendEntry>::default());
         state.ecs_mut().insert(Locations::default());
         state.ecs_mut().insert(LoginProvider::new(
             settings.auth_server_address.clone(),

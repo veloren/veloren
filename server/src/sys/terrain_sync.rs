@@ -1,4 +1,4 @@
-use crate::{chunk_serialize::ChunkSendQueue, client::Client, presence::Presence};
+use crate::{chunk_serialize::ChunkSendEntry, client::Client, presence::Presence};
 use common::{comp::Pos, event::EventBus, terrain::TerrainGrid};
 use common_ecs::{Job, Origin, Phase, System};
 use common_net::msg::{CompressedData, ServerGeneral};
@@ -14,7 +14,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         ReadExpect<'a, TerrainGrid>,
         Read<'a, TerrainChanges>,
-        ReadExpect<'a, EventBus<ChunkSendQueue>>,
+        ReadExpect<'a, EventBus<ChunkSendEntry>>,
         ReadStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
@@ -35,7 +35,7 @@ impl<'a> System<'a> for Sys {
             for (entity, presence, pos) in (&entities, &presences, &positions).join() {
                 if super::terrain::chunk_in_vd(pos.0, *chunk_key, &terrain, presence.view_distance)
                 {
-                    chunk_send_emitter.emit(ChunkSendQueue {
+                    chunk_send_emitter.emit(ChunkSendEntry {
                         entity,
                         chunk_key: *chunk_key,
                     });

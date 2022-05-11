@@ -1,5 +1,5 @@
 use crate::{
-    chunk_serialize::ChunkSendQueue, client::Client, lod::Lod, metrics::NetworkRequestMetrics,
+    chunk_serialize::ChunkSendEntry, client::Client, lod::Lod, metrics::NetworkRequestMetrics,
     presence::Presence, ChunkRequest,
 };
 use common::{
@@ -22,7 +22,7 @@ impl<'a> System<'a> for Sys {
     type SystemData = (
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
-        ReadExpect<'a, EventBus<ChunkSendQueue>>,
+        ReadExpect<'a, EventBus<ChunkSendEntry>>,
         ReadExpect<'a, TerrainGrid>,
         ReadExpect<'a, Lod>,
         ReadExpect<'a, NetworkRequestMetrics>,
@@ -86,7 +86,7 @@ impl<'a> System<'a> for Sys {
                                 if in_vd {
                                     if terrain.get_key_arc(key).is_some() {
                                         network_metrics.chunks_served_from_memory.inc();
-                                        chunk_send_emitter.emit(ChunkSendQueue {
+                                        chunk_send_emitter.emit(ChunkSendEntry {
                                             chunk_key: key,
                                             entity,
                                         });

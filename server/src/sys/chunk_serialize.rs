@@ -1,5 +1,5 @@
 use crate::{
-    chunk_serialize::{ChunkSendQueue, SerializedChunk},
+    chunk_serialize::{ChunkSendEntry, SerializedChunk},
     client::Client,
     metrics::NetworkRequestMetrics,
     presence::Presence,
@@ -23,7 +23,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, Tick>,
         ReadStorage<'a, Client>,
         ReadStorage<'a, Presence>,
-        ReadExpect<'a, EventBus<ChunkSendQueue>>,
+        ReadExpect<'a, EventBus<ChunkSendEntry>>,
         ReadExpect<'a, NetworkRequestMetrics>,
         ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, TerrainGrid>,
@@ -119,7 +119,7 @@ impl<'a> System<'a> for Sys {
             let chunk_sender = chunk_sender.clone();
             slow_jobs.spawn("CHUNK_SERIALIZER", move || {
                 for (chunk, chunk_key, mut meta) in chunks {
-                    let msg = Client::prepare_terrain(
+                    let msg = Client::prepare_chunk_update_msg(
                         ServerGeneral::TerrainChunkUpdate {
                             key: chunk_key,
                             chunk: Ok(SerializedTerrainChunk::via_heuristic(
@@ -129,7 +129,7 @@ impl<'a> System<'a> for Sys {
                         },
                         &meta.params,
                     );
-                    meta.recipients.sort();
+                    meta.recipients.sort_unstable();
                     meta.recipients.dedup();
                     if let Err(e) = chunk_sender.send(SerializedChunk {
                         lossy_compression: meta.lossy_compression,

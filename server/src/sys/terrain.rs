@@ -7,7 +7,7 @@ use world::{IndexOwned, World};
 
 use crate::{
     chunk_generator::ChunkGenerator,
-    chunk_serialize::ChunkSendQueue,
+    chunk_serialize::ChunkSendEntry,
     client::Client,
     presence::{Presence, RepositionOnChunkLoad},
     rtsim::RtSim,
@@ -63,7 +63,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, IndexOwned>,
         ReadExpect<'a, Arc<World>>,
-        ReadExpect<'a, EventBus<ChunkSendQueue>>,
+        ReadExpect<'a, EventBus<ChunkSendEntry>>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -268,7 +268,7 @@ impl<'a> System<'a> for Sys {
                             .magnitude_squared();
 
                         if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                            chunk_send_emitter.emit(ChunkSendQueue {
+                            chunk_send_emitter.emit(ChunkSendEntry {
                                 entity,
                                 chunk_key: key,
                             });
