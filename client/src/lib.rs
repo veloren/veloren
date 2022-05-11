@@ -658,7 +658,7 @@ impl Client {
             tick: 0,
             state,
             view_distance: None,
-            lod_distance: 4.0, // TODO: Make configurable
+            lod_distance: 4.0,
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),

@@ -33,11 +33,11 @@ layout(location = 3) out vec3 model_pos;
 layout(location = 4) out float snow_cover;
 
 void main() {
-    vec3 tree_pos = inst_pos - focus_off.xyz;
-    f_pos = tree_pos + v_pos;
+    vec3 obj_pos = inst_pos - focus_off.xyz;
+    f_pos = obj_pos + v_pos;
     model_pos = v_pos;
 
-    float pull_down = 1.0 / pow(distance(focus_pos.xy, tree_pos.xy) / (view_distance.x * 0.95), 150.0);
+    float pull_down = 1.0 / pow(distance(focus_pos.xy, obj_pos.xy) / (view_distance.x * 0.95), 150.0);
     #ifndef EXPERIMENTAL_NOTERRAINPOP
         f_pos.z -= pull_down;
     #else

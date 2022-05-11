@@ -103,7 +103,7 @@ impl Lod {
             ));
         }
 
-        // Create new LoD groups new a new zone has loaded
+        // Create new LoD groups when a new zone has loaded
         for (p, zone) in client.lod_zones() {
             self.zone_objects.entry(*p).or_insert_with(|| {
                 let mut objects = HashMap::<_, Vec<_>>::new();
