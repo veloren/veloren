@@ -63,6 +63,7 @@ impl<'a> System<'a> for Sys {
         ReadExpect<'a, SlowJobPool>,
         ReadExpect<'a, IndexOwned>,
         ReadExpect<'a, Arc<World>>,
+        ReadExpect<'a, EventBus<ChunkSendQueue>>,
         WriteExpect<'a, ChunkGenerator>,
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
@@ -73,7 +74,6 @@ impl<'a> System<'a> for Sys {
         ReadStorage<'a, Presence>,
         ReadStorage<'a, Client>,
         Entities<'a>,
-        WriteStorage<'a, ChunkSendQueue>,
         WriteStorage<'a, RepositionOnChunkLoad>,
         WriteStorage<'a, ForceUpdate>,
         WriteStorage<'a, Waypoint>,
@@ -96,6 +96,7 @@ impl<'a> System<'a> for Sys {
             slow_jobs,
             index,
             world,
+            chunk_send_bus,
             mut chunk_generator,
             mut terrain,
             mut terrain_changes,
@@ -106,7 +107,6 @@ impl<'a> System<'a> for Sys {
             presences,
             clients,
             entities,
-            mut chunk_send_queues,
             mut reposition_on_load,
             mut force_update,
             mut waypoints,
@@ -252,23 +252,30 @@ impl<'a> System<'a> for Sys {
         }
 
         // Send the chunk to all nearby players.
-        new_chunks.into_iter().for_each(|(key, _chunk)| {
-            (&presences, &positions, &clients, &mut chunk_send_queues)
-                .join()
-                .for_each(|(presence, pos, _client, chunk_send_queue)| {
-                    let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
-                    // Subtract 2 from the offset before computing squared magnitude
-                    // 1 since chunks need neighbors to be meshed
-                    // 1 to act as a buffer if the player moves in that direction
-                    let adjusted_dist_sqr = (chunk_pos - key)
-                        .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
-                        .magnitude_squared();
+        use rayon::iter::{IntoParallelIterator, ParallelIterator};
+        new_chunks.into_par_iter().for_each_init(
+            || chunk_send_bus.emitter(),
+            |chunk_send_emitter, (key, _chunk)| {
+                (&entities, &presences, &positions, &clients)
+                    .join()
+                    .for_each(|(entity, presence, pos, _client)| {
+                        let chunk_pos = terrain.pos_key(pos.0.map(|e| e as i32));
+                        // Subtract 2 from the offset before computing squared magnitude
+                        // 1 since chunks need neighbors to be meshed
+                        // 1 to act as a buffer if the player moves in that direction
+                        let adjusted_dist_sqr = (chunk_pos - key)
+                            .map(|e: i32| (e.unsigned_abs()).saturating_sub(2))
+                            .magnitude_squared();
 
-                    if adjusted_dist_sqr <= presence.view_distance.pow(2) {
-                        chunk_send_queue.chunks.push(key);
-                    }
-                });
-        });
+                        if adjusted_dist_sqr <= presence.view_distance.pow(2) {
+                            chunk_send_emitter.emit(ChunkSendQueue {
+                                entity,
+                                chunk_key: key,
+                            });
+                        }
+                    });
+            },
+        );
 
         // Remove chunks that are too far from players.
         let mut chunks_to_remove = Vec::new();

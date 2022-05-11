@@ -247,6 +247,9 @@ impl Server {
         });
         state.ecs_mut().insert(EventBus::<ServerEvent>::default());
         state.ecs_mut().insert(Vec::<ChunkRequest>::new());
+        state
+            .ecs_mut()
+            .insert(EventBus::<chunk_serialize::ChunkSendQueue>::default());
         state.ecs_mut().insert(Locations::default());
         state.ecs_mut().insert(LoginProvider::new(
             settings.auth_server_address.clone(),
@@ -329,9 +332,6 @@ impl Server {
         state.ecs_mut().register::<comp::Pet>();
         state.ecs_mut().register::<login_provider::PendingLogin>();
         state.ecs_mut().register::<RepositionOnChunkLoad>();
-        state
-            .ecs_mut()
-            .register::<chunk_serialize::ChunkSendQueue>();
 
         //Alias validator
         let banned_words_paths = &settings.banned_words_files;
