@@ -658,7 +658,7 @@ impl Client {
             tick: 0,
             state,
             view_distance: None,
-            lod_distance: 2.0, // TODO: Make configurable
+            lod_distance: 4.0, // TODO: Make configurable
             loaded_distance: 0.0,
 
             pending_chunks: HashMap::new(),
@@ -891,7 +891,7 @@ impl Client {
     }
 
     pub fn set_lod_distance(&mut self, lod_distance: u32) {
-        let lod_distance = lod_distance.max(1).min(1000) as f32 / lod::ZONE_SIZE as f32;
+        let lod_distance = lod_distance.max(0).min(1000) as f32 / lod::ZONE_SIZE as f32;
         self.lod_distance = lod_distance;
     }
 
@@ -1739,7 +1739,9 @@ impl Client {
                     .take((1 + self.lod_distance.ceil() as i32 * 2).pow(2) as usize)
                     .filter(|rpos| !self.lod_zones.contains_key(&(lod_zone + *rpos)))
                     .min_by_key(|rpos| rpos.magnitude_squared())
-                    .filter(|rpos| rpos.map(|e| e as f32).magnitude() < self.lod_distance)
+                    .filter(|rpos| {
+                        rpos.map(|e| e as f32).magnitude() < (self.lod_distance - 0.5).max(0.0)
+                    })
                 {
                     self.send_msg_err(ClientGeneral::LodZoneRequest {
                         key: lod_zone + rpos,
@@ -1750,8 +1752,7 @@ impl Client {
 
             // Cull LoD zones out of range
             self.lod_zones.retain(|p, _| {
-                (*p - lod_zone).map(|e| e as f32).magnitude_squared()
-                    < (self.lod_distance + 1.0).powi(2)
+                (*p - lod_zone).map(|e| e as f32).magnitude_squared() < self.lod_distance.powi(2)
             });
         }
 
