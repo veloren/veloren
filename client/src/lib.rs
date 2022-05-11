@@ -1662,6 +1662,7 @@ impl Client {
                 self.state.remove_chunk(key);
             }
 
+            let mut current_tick_send_chunk_requests = 0;
             // Request chunks from the server.
             self.loaded_distance = ((view_distance * TerrainChunkSize::RECT_SIZE.x) as f32).powi(2);
             // +1 so we can find a chunk that's outside the vd for better fog
@@ -1695,10 +1696,16 @@ impl Client {
                     for key in keys.iter() {
                         if self.state.terrain().get_key(*key).is_none() {
                             if !skip_mode && !self.pending_chunks.contains_key(key) {
-                                if self.pending_chunks.len() < 4 {
+                                const TOTAL_PENDING_CHUNKS_LIMIT: usize = 12;
+                                const CURRENT_TICK_PENDING_CHUNKS_LIMIT: usize = 2;
+                                if self.pending_chunks.len() < TOTAL_PENDING_CHUNKS_LIMIT
+                                    && current_tick_send_chunk_requests
+                                        < CURRENT_TICK_PENDING_CHUNKS_LIMIT
+                                {
                                     self.send_msg_err(ClientGeneral::TerrainChunkRequest {
                                         key: *key,
                                     })?;
+                                    current_tick_send_chunk_requests += 1;
                                     self.pending_chunks.insert(*key, Instant::now());
                                 } else {
                                     skip_mode = true;

@@ -36,6 +36,8 @@ pub struct NetworkRequestMetrics {
     pub chunks_generation_triggered: IntCounter,
     pub chunks_served_lossy: IntCounter,
     pub chunks_served_lossless: IntCounter,
+    pub chunks_serialisation_requests: IntCounter,
+    pub chunks_distinct_serialisation_requests: IntCounter,
 }
 
 pub struct ChunkGenMetrics {
@@ -202,12 +204,22 @@ impl NetworkRequestMetrics {
             "chunks_served_lossless",
             "number of chunks that were sent with lossless compression requested",
         ))?;
+        let chunks_serialisation_requests = IntCounter::with_opts(Opts::new(
+            "chunks_serialisation_requests",
+            "number of requests for the sys chunk_serialisation",
+        ))?;
+        let chunks_distinct_serialisation_requests = IntCounter::with_opts(Opts::new(
+            "chunks_distinct_serialisation_requests",
+            "number of distinct chunks in requests for the sys chunk_serialisation",
+        ))?;
 
         registry.register(Box::new(chunks_request_dropped.clone()))?;
         registry.register(Box::new(chunks_served_from_memory.clone()))?;
         registry.register(Box::new(chunks_generation_triggered.clone()))?;
         registry.register(Box::new(chunks_served_lossy.clone()))?;
         registry.register(Box::new(chunks_served_lossless.clone()))?;
+        registry.register(Box::new(chunks_serialisation_requests.clone()))?;
+        registry.register(Box::new(chunks_distinct_serialisation_requests.clone()))?;
 
         Ok(Self {
             chunks_request_dropped,
@@ -215,6 +227,8 @@ impl NetworkRequestMetrics {
             chunks_generation_triggered,
             chunks_served_lossy,
             chunks_served_lossless,
+            chunks_serialisation_requests,
+            chunks_distinct_serialisation_requests,
         })
     }
 }

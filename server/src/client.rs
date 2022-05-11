@@ -216,6 +216,23 @@ impl Client {
         }
     }
 
+    pub(crate) fn terrain_params(&self) -> StreamParams { self.terrain_stream_params.clone() }
+
+    /// Only used for Serialize Chunks in a SlowJob.
+    /// TODO: find a more elegant version for this invariant
+    pub(crate) fn prepare_chunk_update_msg(
+        terrain_chunk_update: ServerGeneral,
+        params: &StreamParams,
+    ) -> PreparedMsg {
+        if !matches!(
+            terrain_chunk_update,
+            ServerGeneral::TerrainChunkUpdate { .. }
+        ) {
+            unreachable!("You must not call this function without a terrain chunk update!")
+        }
+        PreparedMsg::new(5, &terrain_chunk_update, params)
+    }
+
     pub(crate) fn recv<M: DeserializeOwned>(
         &self,
         stream_id: u8,
