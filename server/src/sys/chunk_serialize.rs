@@ -49,9 +49,9 @@ impl<'a> System<'a> for Sys {
             chunk_sender,
         ): Self::SystemData,
     ) {
-        // Only operate once per second
+        // Only operate twice per second
         //TODO: move out of this system and now even spawn this.
-        if tick.0.rem_euclid(30) != 0 {
+        if tick.0.rem_euclid(15) != 0 {
             return;
         }
 
