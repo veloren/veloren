@@ -324,7 +324,7 @@ vec3 lod_norm(vec2 f_pos/*vec3 pos*/) {
         norm.xy += vec2(
             textureLod(sampler2D(t_noise, s_noise), wpos / 100, 0).x - 0.5,
             textureLod(sampler2D(t_noise, s_noise), wpos / 100 + 0.5, 0).x - 0.5
-        ) * 0.15 / pow(norm.z + 0.1, 3);
+        ) * 0.25 / pow(norm.z + 0.1, 3);
         norm = normalize(norm);
     #endif
 
@@ -373,6 +373,7 @@ vec3 lod_col(vec2 pos) {
 
     vec3 col = textureBicubic(t_map, s_map, pos_to_tex(pos)).rgb;
 
+    /*
     #ifdef EXPERIMENTAL_PROCEDURALLODDETAIL
         col *= pow(vec3(
             textureLod(sampler2D(t_noise, s_noise), wpos / 40, 0).x - 0.5,
@@ -380,6 +381,7 @@ vec3 lod_col(vec2 pos) {
             textureLod(sampler2D(t_noise, s_noise), wpos / 45 + 0.75, 0).x - 0.5
         ) + 1.0, vec3(0.5));
     #endif
+    */
 
     return col;
 }

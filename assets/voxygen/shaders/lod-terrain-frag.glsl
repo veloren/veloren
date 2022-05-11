@@ -333,26 +333,30 @@ void main() {
                 hit_xy ? vec3(0.0, 0.0, sides.z) : vec3(0.0, 0.0, 0.0);
     */
     vec3 voxel_norm;
-
     const float VOXELIZE_DIST = 2000;
     float voxelize_factor = clamp(1.0 - (distance(focus_pos.xy, f_pos.xy) - view_distance.x) / VOXELIZE_DIST, 0, 1);
     vec3 cam_dir = normalize(cam_pos.xyz - f_pos.xyz);
     vec3 side_norm = normalize(vec3(my_norm.xy, 0));
     vec3 top_norm = vec3(0, 0, 1);
-    float side_factor = 1.0 - my_norm.z;
-    // min(dot(vec3(0, -sign(cam_dir.y), 0), -cam_dir), dot(vec3(-sign(cam_dir.x), 0, 0), -cam_dir))
-    if (max(abs(my_norm.x), abs(my_norm.y)) < 0.01 || fract(my_alt) * clamp(dot(normalize(vec3(cam_dir.xy, 0)), side_norm), 0, 1) < cam_dir.z / my_norm.z) {
-        //f_ao *= mix(1.0, clamp(fract(my_alt) / length(my_norm.xy) + clamp(dot(side_norm, -cam_dir), 0, 1), 0, 1), voxelize_factor);
-        voxel_norm = top_norm;
-    } else {
-        f_ao *= mix(1.0, clamp(pow(fract(my_alt), 0.5), 0, 1), voxelize_factor);
-
-        if (fract(f_pos.x) * abs(my_norm.y / cam_dir.x) < fract(f_pos.y) * abs(my_norm.x / cam_dir.y)) {
-            voxel_norm = vec3(sign(cam_dir.x), 0, 0);
+    #ifdef EXPERIMENTAL_NOLODVOXELS
+        f_ao = 1.0;
+        voxel_norm = normalize(mix(side_norm, top_norm, max(cam_dir.z, 0.0)));
+    #else
+        float side_factor = 1.0 - my_norm.z;
+        // min(dot(vec3(0, -sign(cam_dir.y), 0), -cam_dir), dot(vec3(-sign(cam_dir.x), 0, 0), -cam_dir))
+        if (max(abs(my_norm.x), abs(my_norm.y)) < 0.01 || fract(my_alt) * clamp(dot(normalize(vec3(cam_dir.xy, 0)), side_norm), 0, 1) < cam_dir.z / my_norm.z) {
+            //f_ao *= mix(1.0, clamp(fract(my_alt) / length(my_norm.xy) + clamp(dot(side_norm, -cam_dir), 0, 1), 0, 1), voxelize_factor);
+            voxel_norm = top_norm;
         } else {
-            voxel_norm = vec3(0, sign(cam_dir.y), 0);
+            f_ao *= mix(1.0, clamp(pow(fract(my_alt), 0.5), 0, 1), voxelize_factor);
+
+            if (fract(f_pos.x) * abs(my_norm.y / cam_dir.x) < fract(f_pos.y) * abs(my_norm.x / cam_dir.y)) {
+                voxel_norm = vec3(sign(cam_dir.x), 0, 0);
+            } else {
+                voxel_norm = vec3(0, sign(cam_dir.y), 0);
+            }
         }
-    }
+    #endif
 
     // vec3 f_ao_view = max(vec3(dot(f_orig_view_dir.yz, sides.yz), dot(f_orig_view_dir.xz, sides.xz), dot(f_orig_view_dir.xy, sides.xy)), 0.0);
     // delta_sides *= sqrt(1.0 - f_ao_view * f_ao_view);

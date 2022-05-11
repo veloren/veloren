@@ -7,6 +7,7 @@ use common::{
     calendar::Calendar,
     character::{self, CharacterItem},
     comp::{self, invite::InviteKind, item::MaterialStatManifest},
+    lod,
     outcome::Outcome,
     recipe::RecipeBook,
     resources::TimeOfDay,
@@ -169,6 +170,10 @@ pub enum ServerGeneral {
         key: Vec2<i32>,
         chunk: Result<SerializedTerrainChunk, ()>,
     },
+    LodZoneUpdate {
+        key: Vec2<i32>,
+        zone: lod::Zone,
+    },
     TerrainBlockUpdates(CompressedData<HashMap<Vec3<i32>, Block>>),
     // Always possible
     PlayerListUpdate(PlayerListUpdate),
@@ -293,6 +298,7 @@ impl ServerMsg {
                         | ServerGeneral::ExitInGameSuccess
                         | ServerGeneral::InventoryUpdate(_, _)
                         | ServerGeneral::TerrainChunkUpdate { .. }
+                        | ServerGeneral::LodZoneUpdate { .. }
                         | ServerGeneral::TerrainBlockUpdates(_)
                         | ServerGeneral::SetViewDistance(_)
                         | ServerGeneral::Outcomes(_)

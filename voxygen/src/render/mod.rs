@@ -26,6 +26,7 @@ pub use self::{
             Locals as FigureLocals,
         },
         fluid::Vertex as FluidVertex,
+        lod_object::{Instance as LodObjectInstance, Vertex as LodObjectVertex},
         lod_terrain::{LodData, Vertex as LodTerrainVertex},
         particle::{Instance as ParticleInstance, Vertex as ParticleVertex},
         postprocess::Locals as PostProcessLocals,
@@ -459,4 +460,8 @@ pub enum ExperimentalShader {
     BareMinimum,
     /// Lowers strength of the glow effect for lights near the camera.
     LowGlowNearCamera,
+    /// Disable the fake voxel effect on LoD features.
+    NoLodVoxels,
+    // Disable the 'pop-in' effect when loading terrain.
+    NoTerrainPop,
 }

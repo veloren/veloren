@@ -1,4 +1,6 @@
-use crate::{client::Client, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest};
+use crate::{
+    client::Client, lod::Lod, metrics::NetworkRequestMetrics, presence::Presence, ChunkRequest,
+};
 use common::{
     comp::Pos,
     event::{EventBus, ServerEvent},
@@ -20,6 +22,7 @@ impl<'a> System<'a> for Sys {
         Entities<'a>,
         Read<'a, EventBus<ServerEvent>>,
         ReadExpect<'a, TerrainGrid>,
+        ReadExpect<'a, Lod>,
         ReadExpect<'a, NetworkRequestMetrics>,
         Write<'a, Vec<ChunkRequest>>,
         ReadStorage<'a, Pos>,
@@ -37,6 +40,7 @@ impl<'a> System<'a> for Sys {
             entities,
             server_event_bus,
             terrain,
+            lod,
             network_metrics,
             mut chunk_requests,
             positions,
@@ -100,6 +104,12 @@ impl<'a> System<'a> for Sys {
                             } else {
                                 network_metrics.chunks_request_dropped.inc();
                             }
+                        },
+                        ClientGeneral::LodZoneRequest { key } => {
+                            client.send(ServerGeneral::LodZoneUpdate {
+                                key,
+                                zone: lod.zone(key).clone(),
+                            })?;
                         },
                         _ => {
                             debug!(

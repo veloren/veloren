@@ -3,7 +3,7 @@ use crate::{
     block::block_from_structure,
     column::ColumnGen,
     util::{gen_cache::StructureGenCache, RandomPerm, Sampler, UnitChooser},
-    Canvas,
+    Canvas, ColumnSample,
 };
 use common::{
     assets::AssetHandle,
@@ -32,6 +32,23 @@ lazy_static! {
 static MODEL_RAND: RandomPerm = RandomPerm::new(0xDB21C052);
 static UNIT_CHOOSER: UnitChooser = UnitChooser::new(0x700F4EC7);
 static QUIRKY_RAND: RandomPerm = RandomPerm::new(0xA634460F);
+
+// Ensure that it's valid to place a tree here
+pub fn tree_valid_at(col: &ColumnSample, seed: u32) -> bool {
+    if col.alt < col.water_level
+        || col.spawn_rate < 0.9
+        || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
+        || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
+    {
+        return false;
+    }
+
+    if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
+        return false;
+    }
+
+    true
+}
 
 pub fn apply_trees_to(
     canvas: &mut Canvas,
@@ -68,17 +85,7 @@ pub fn apply_trees_to(
 
             let col = ColumnGen::new(info.chunks()).get((wpos, info.index(), calendar))?;
 
-            // Ensure that it's valid to place a *thing* here
-            if col.alt < col.water_level
-                || col.spawn_rate < 0.9
-                || col.water_dist.map(|d| d < 8.0).unwrap_or(false)
-                || col.path.map(|(d, _, _, _)| d < 12.0).unwrap_or(false)
-            {
-                return None;
-            }
-
-            // Ensure that it's valid to place a tree here
-            if ((seed.wrapping_mul(13)) & 0xFF) as f32 / 256.0 > col.tree_density {
+            if !tree_valid_at(&col, seed) {
                 return None;
             }
 

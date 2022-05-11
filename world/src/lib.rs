@@ -51,6 +51,7 @@ use common::{
     assets,
     calendar::Calendar,
     generation::{ChunkSupplement, EntityInfo},
+    lod,
     resources::TimeOfDay,
     terrain::{
         Block, BlockKind, SpriteKind, TerrainChunk, TerrainChunkMeta, TerrainChunkSize, TerrainGrid,
@@ -60,6 +61,7 @@ use common::{
 use common_net::msg::{world_msg, WorldMapMsg};
 use rand::{prelude::*, Rng};
 use rand_chacha::ChaCha8Rng;
+use rayon::iter::ParallelIterator;
 use serde::Deserialize;
 use std::time::Duration;
 use vek::*;
@@ -462,5 +464,108 @@ impl World {
         chunk.defragment();
 
         Ok((chunk, supplement))
+    }
+
+    // Zone coordinates
+    pub fn get_lod_zone(&self, pos: Vec2<i32>, index: IndexRef) -> lod::Zone {
+        let min_wpos = pos.map(lod::to_wpos);
+        let max_wpos = (pos + 1).map(lod::to_wpos);
+
+        let mut objects = Vec::new();
+
+        // Add trees
+        objects.append(
+            &mut self
+                .sim()
+                .get_area_trees(min_wpos, max_wpos)
+                .filter_map(|attr| {
+                    ColumnGen::new(self.sim())
+                        .get((attr.pos, index, self.sim().calendar.as_ref()))
+                        .filter(|col| layer::tree::tree_valid_at(col, attr.seed))
+                        .zip(Some(attr))
+                })
+                .filter_map(|(col, tree)| {
+                    Some(lod::Object {
+                        kind: match tree.forest_kind {
+                            all::ForestKind::Oak => lod::ObjectKind::Oak,
+                            all::ForestKind::Pine | all::ForestKind::Frostpine => {
+                                lod::ObjectKind::Pine
+                            },
+                            _ => lod::ObjectKind::Oak,
+                        },
+                        pos: {
+                            let rpos = tree.pos - min_wpos;
+                            if rpos.is_any_negative() {
+                                return None;
+                            } else {
+                                rpos.map(|e| e as i16).with_z(
+                                    self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as i16,
+                                )
+                            }
+                        },
+                        flags: lod::Flags::empty()
+                            | if col.snow_cover {
+                                lod::Flags::SNOW_COVERED
+                            } else {
+                                lod::Flags::empty()
+                            },
+                    })
+                })
+                .collect(),
+        );
+
+        // Add buildings
+        objects.extend(
+            index
+                .sites
+                .iter()
+                .filter(|(_, site)| {
+                    site.get_origin()
+                        .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
+                        .reduce_and()
+                })
+                .filter_map(|(_, site)| match &site.kind {
+                    SiteKind::Refactor(site) => {
+                        Some(site.plots().filter_map(|plot| match &plot.kind {
+                            site2::plot::PlotKind::House(_) => Some(site.tile_wpos(plot.root_tile)),
+                            _ => None,
+                        }))
+                    },
+                    _ => None,
+                })
+                .flatten()
+                .map(|wpos2d| lod::Object {
+                    kind: lod::ObjectKind::House,
+                    pos: (wpos2d - min_wpos)
+                        .map(|e| e as i16)
+                        .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16),
+                    flags: lod::Flags::empty(),
+                }),
+        );
+
+        // Add giant trees
+        objects.extend(
+            index
+                .sites
+                .iter()
+                .filter(|(_, site)| {
+                    site.get_origin()
+                        .map2(min_wpos.zip(max_wpos), |e, (min, max)| e >= min && e < max)
+                        .reduce_and()
+                })
+                .filter(|(_, site)| matches!(&site.kind, SiteKind::GiantTree(_)))
+                .map(|(_, site)| lod::Object {
+                    kind: lod::ObjectKind::GiantTree,
+                    pos: {
+                        let wpos2d = site.get_origin();
+                        (wpos2d - min_wpos)
+                            .map(|e| e as i16)
+                            .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16)
+                    },
+                    flags: lod::Flags::empty(),
+                }),
+        );
+
+        lod::Zone { objects }
     }
 }

@@ -39,6 +39,9 @@ widget_ids! {
         vd_slider,
         vd_text,
         vd_value,
+        ld_slider,
+        ld_text,
+        ld_value,
         lod_detail_slider,
         lod_detail_text,
         lod_detail_value,
@@ -280,8 +283,6 @@ impl<'a> Widget for Video<'a> {
         if let Some(new_val) = ImageSlider::discrete(
             self.global_state.settings.graphics.view_distance,
             1,
-            // FIXME: Move back to 64 once we support multiple texture atlases, or figure out a
-            // way to increase the size of the terrain atlas.
             65,
             self.imgs.slider_indicator,
             self.imgs.slider,
@@ -306,9 +307,44 @@ impl<'a> Widget for Video<'a> {
         .color(TEXT_COLOR)
         .set(state.ids.vd_value, ui);
 
+        // LoD Distance
+        Text::new(self.localized_strings.get("hud.settings.lod_distance"))
+            .down_from(state.ids.vd_slider, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.ld_text, ui);
+
+        if let Some(new_val) = ImageSlider::discrete(
+            self.global_state.settings.graphics.lod_distance,
+            0,
+            500,
+            self.imgs.slider_indicator,
+            self.imgs.slider,
+        )
+        .w_h(104.0, 22.0)
+        .down_from(state.ids.ld_text, 8.0)
+        .track_breadth(12.0)
+        .slider_length(10.0)
+        .pad_track((5.0, 5.0))
+        .set(state.ids.ld_slider, ui)
+        {
+            events.push(GraphicsChange::AdjustLodDistance(new_val));
+        }
+
+        Text::new(&format!(
+            "{}",
+            self.global_state.settings.graphics.lod_distance
+        ))
+        .right_from(state.ids.ld_slider, 8.0)
+        .font_size(self.fonts.cyri.scale(14))
+        .font_id(self.fonts.cyri.conrod_id)
+        .color(TEXT_COLOR)
+        .set(state.ids.ld_value, ui);
+
         // Max FPS
         Text::new(self.localized_strings.get("hud.settings.maximum_fps"))
-            .down_from(state.ids.vd_slider, 10.0)
+            .down_from(state.ids.ld_slider, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
             .color(TEXT_COLOR)
@@ -343,7 +379,7 @@ impl<'a> Widget for Video<'a> {
 
         // Max Background FPS
         Text::new(self.localized_strings.get("hud.settings.background_fps"))
-            .down_from(state.ids.vd_slider, 10.0)
+            .down_from(state.ids.ld_slider, 10.0)
             .right_from(state.ids.max_fps_value, 30.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
@@ -391,7 +427,7 @@ impl<'a> Widget for Video<'a> {
 
         // Present Mode
         Text::new(self.localized_strings.get("hud.settings.present_mode"))
-            .down_from(state.ids.vd_slider, 10.0)
+            .down_from(state.ids.ld_slider, 10.0)
             .right_from(state.ids.max_background_fps_value, 30.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)

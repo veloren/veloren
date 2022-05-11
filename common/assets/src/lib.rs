@@ -191,6 +191,22 @@ impl Asset for DotVoxAsset {
     const EXTENSION: &'static str = "vox";
 }
 
+pub struct ObjAsset(pub wavefront::Obj);
+
+impl Asset for ObjAsset {
+    type Loader = ObjAssetLoader;
+
+    const EXTENSION: &'static str = "obj";
+}
+
+pub struct ObjAssetLoader;
+impl Loader<ObjAsset> for ObjAssetLoader {
+    fn load(content: std::borrow::Cow<[u8]>, _: &str) -> Result<ObjAsset, BoxedError> {
+        let data = wavefront::Obj::from_reader(&*content)?;
+        Ok(ObjAsset(data))
+    }
+}
+
 /// Return path to repository root by searching 10 directories back
 pub fn find_root() -> Option<PathBuf> {
     std::env::current_dir().map_or(None, |path| {

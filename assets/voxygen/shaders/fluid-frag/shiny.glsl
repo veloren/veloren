@@ -188,7 +188,7 @@ void main() {
     }
 
     vec3 reflect_color = get_sky_color(/*reflect_ray_dir*/ray_dir, time_of_day.x, f_pos, vec3(-100000), 0.125, true);
-    reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.2);
+    reflect_color = get_cloud_color(reflect_color, ray_dir, f_pos.xyz, time_of_day.x, 100000.0, 0.1);
     reflect_color *= f_light;
 
     // Prevent the sky affecting light when underground

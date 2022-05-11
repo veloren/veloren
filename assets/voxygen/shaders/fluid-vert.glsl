@@ -54,7 +54,16 @@ void main() {
     // f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
     // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
 
-    f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+    // Terrain 'pop-in' effect
+    #ifndef EXPERIMENTAL_BAREMINIMUM
+        #ifndef EXPERIMENTAL_NOTERRAINPOP
+            f_pos.z -= 250.0 * (1.0 - min(1.0001 - 0.02 / pow(tick.x - load_time, 10.0), 1.0));
+            // f_pos.z -= min(32.0, 25.0 * pow(distance(focus_pos.xy, f_pos.xy) / view_distance.x, 20.0));
+        #endif
+    #endif
+
+    float pull_down = pow(distance(focus_pos.xy, f_pos.xy) / (view_distance.x * 0.95), 20.0) * 0.7;
+    f_pos.z -= pull_down;
 
     #ifdef EXPERIMENTAL_CURVEDWORLD
         f_pos.z -= pow(distance(f_pos.xy + focus_off.xy, focus_pos.xy + focus_off.xy) * 0.05, 2);
