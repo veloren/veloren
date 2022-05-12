@@ -5,10 +5,11 @@
     // Currency
     (3.0, ItemQuantity("common.items.utility.coins", 100, 200)),
     // Materials
-    (1.0, ItemQuantity("common.items.crafting_ing.cloth.lifecloth", 3, 10)),
-    (1.0, ItemQuantity("common.items.crafting_ing.hide.carapace", 3, 10)),
-    (1.0, ItemQuantity("common.items.mineral.ingot.cobalt", 3, 10)),
-    (1.0, ItemQuantity("common.items.log.ironwood", 3, 10)),
+    // Allow ironwood to have higher drops till entity droppers are implemented
+    (1.0, ItemQuantity("common.items.crafting_ing.cloth.lifecloth", 2, 6)),
+    (1.0, ItemQuantity("common.items.crafting_ing.hide.carapace", 2, 6)),
+    (1.0, ItemQuantity("common.items.mineral.ingot.cobalt", 2, 6)),
+    (1.0, ItemQuantity("common.items.log.ironwood", 3, 7)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.moderate")),
 ]

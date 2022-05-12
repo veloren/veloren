@@ -10,4 +10,7 @@
     (2.0, ItemQuantity("common.items.crafting_ing.hide.animal_hide", 5, 15)),
     //Flowers, pretty
     (2.0, ItemQuantity("common.items.flowers.red", 3, 6)),
+    //Weapon components
+    (1.0, LootTable("common.loot_tables.weapons.components.tier-2")),
+    (1.0, LootTable("common.loot_tables.weapons.components.tier-3")),
 ]

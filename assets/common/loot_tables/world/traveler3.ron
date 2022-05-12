@@ -20,4 +20,7 @@
     (3.0, ItemQuantity("common.items.flowers.red", 10, 20)),
     (2.0, ItemQuantity("common.items.flowers.moonbell", 6, 12)),
     (1.0, ItemQuantity("common.items.flowers.pyrebloom", 3, 6)),
+    //Weapon components
+    (1.5, LootTable("common.loot_tables.weapons.components.tier-4")),
+    (0.2, LootTable("common.loot_tables.weapons.components.tier-5")),
 ]
