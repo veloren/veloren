@@ -452,6 +452,24 @@ pub fn handle_orientation(
     efficiency: f32,
     dir_override: Option<Dir>,
 ) {
+    /// first check for horizontal
+    fn to_horizontal_fast(ori: &crate::comp::Ori) -> crate::comp::Ori {
+        if ori.to_quat().into_vec4().xy().is_approx_zero() {
+            // if ori.to_horizontal().dot(*ori) < (1.0 - 4.0 * f32::EPSILON) {
+            //     tracing::error!("{:?} {}", ori, ori.to_horizontal().dot(*ori));
+            // }
+            // debug_assert!(ori.to_horizontal().dot(*ori) >= (1.0 - 4.0 * f32::EPSILON));
+            *ori
+        } else {
+            //tracing::info!("non horizontal {:?}", ori);
+            ori.to_horizontal()
+        }
+    }
+    /// compute an upper limit for the difference of two orientations
+    fn ori_absdiff(a: &crate::comp::Ori, b: &crate::comp::Ori) -> f32 {
+        (a.to_quat().into_vec4() - b.to_quat().into_vec4()).reduce(|a, b| a.abs() + b.abs())
+    }
+
     // Direction is set to the override if one is provided, else if entity is
     // strafing or attacking the horiontal component of the look direction is used,
     // else the current horizontal movement direction is used
@@ -465,24 +483,74 @@ pub fn handle_orientation(
             .into()
     } else {
         Dir::from_unnormalized(data.inputs.move_dir.into())
-            .map_or_else(|| data.ori.to_horizontal(), |dir| dir.into())
+            .map_or_else(|| to_horizontal_fast(data.ori), |dir| dir.into())
     };
-    let rate = {
-        // Angle factor used to keep turning rate approximately constant by
-        // counteracting slerp turning more with a larger angle
-        let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
-        data.body.base_ori_rate()
-            * efficiency
-            * angle_factor
-            * if data.physics.on_ground.is_some() {
-                1.0
-            } else {
-                0.2
-            }
+    // unit is multiples of 180°
+    let half_turns_per_tick = data.body.base_ori_rate()
+        * efficiency
+        * if data.physics.on_ground.is_some() {
+            1.0
+        } else {
+            0.2
+        }
+        * data.dt.0;
+    // very rough guess
+    let ticks_from_target_guess = ori_absdiff(&update.ori, &target_ori) / half_turns_per_tick;
+    let instantaneous = ticks_from_target_guess < 1.0;
+    update.ori = if instantaneous {
+        // if (half_turns_per_tick * 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt()) <
+        // 1.0 {     tracing::error!(
+        //         "{:?} {} {} {:?} {:?} {:?} {:?} {}",
+        //         data.body.mass(),
+        //         data.body.base_ori_rate(),
+        //         update.ori.dot(target_ori),
+        //         update.ori.look_dir(),
+        //         target_ori.look_dir(),
+        //         update.ori,
+        //         target_ori,
+        //         ticks_from_target_guess
+        //     );
+        //     tracing::error!(
+        //         "{} {} {}",
+        //         half_turns_per_tick,
+        //         2.0 / (1.0 - update.ori.dot(target_ori)).sqrt(),
+        //         update.ori.angle_between(target_ori) * 180.0 / std::f32::consts::PI,
+        //     );
+        // }
+        // debug_assert!(
+        //     (half_turns_per_tick * 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt())
+        // >= 1.0 );
+        target_ori
+    } else {
+        // tracing::trace!(
+        //     "{} {} {} {:?} {} {:?} {:?}",
+        //     update.ori.dot(target_ori),
+        //     ticks_from_target_guess,
+        //     half_turns_per_tick,
+        //     data.body.mass(),
+        //     data.body.base_ori_rate(),
+        //     update.ori,
+        //     target_ori,
+        // );
+        let target_fraction = {
+            // Angle factor used to keep turning rate approximately constant by
+            // counteracting slerp turning more with a larger angle
+            let angle_factor = 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt();
+
+            half_turns_per_tick * angle_factor
+        };
+        //let res =
+        update
+            .ori
+            .slerped_towards(target_ori, target_fraction.min(1.0))
+        // tracing::trace!(
+        //     ">>{}<< {} {}",
+        //     target_fraction,
+        //     data.dt.0,
+        //     res.dot(target_ori)
+        // );
+        //res
     };
-    update.ori = update
-        .ori
-        .slerped_towards(target_ori, (data.dt.0 * rate).min(1.0));
 }
 
 /// Updates components to move player as if theyre swimming
