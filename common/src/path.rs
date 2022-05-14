@@ -121,11 +121,7 @@ impl Route {
     {
         let (next0, next1, next_tgt, be_precise) = loop {
             // If we've reached the end of the path, stop
-            self.next(0)?;
-
-            let next0 = self
-                .next(0)
-                .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
+            let next0 = self.next(0)?;
             let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
