@@ -121,11 +121,7 @@ impl Route {
     {
         let (next0, next1, next_tgt, be_precise) = loop {
             // If we've reached the end of the path, stop
-            self.next(0)?;
-
-            let next0 = self
-                .next(0)
-                .unwrap_or_else(|| pos.map(|e| e.floor() as i32));
+            let next0 = self.next(0)?;
             let next1 = self.next(1).unwrap_or(next0);
 
             // Stop using obstructed paths
@@ -384,9 +380,10 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if (end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete)
-                || thread_rng().gen::<f32>() < 0.001
-            {
+            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete {
+                None
+            } else if thread_rng().gen::<f32>() < 0.001 {
+                self.route = None;
                 None
             } else {
                 self.route
@@ -431,10 +428,7 @@ impl Chaser {
                         .iter()
                         .enumerate()
                         .min_by_key(|(_, node)| {
-                            node.xy()
-                                .map(|e| e as f32)
-                                .distance_squared(pos.xy() + tgt_dir)
-                                as i32
+                            node.map(|e| e as f32).distance_squared(pos + tgt_dir) as i32
                         })
                         .map(|(idx, _)| idx);
 
