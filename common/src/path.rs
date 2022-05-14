@@ -428,10 +428,7 @@ impl Chaser {
                         .iter()
                         .enumerate()
                         .min_by_key(|(_, node)| {
-                            node.xy()
-                                .map(|e| e as f32)
-                                .distance_squared(pos.xy() + tgt_dir)
-                                as i32
+                            node.map(|e| e as f32).distance_squared(pos + tgt_dir) as i32
                         })
                         .map(|(idx, _)| idx);
 
