@@ -598,15 +598,33 @@ impl<'a> Widget for Crafting<'a> {
             })
             .chain(
                 matches!(sel_crafting_tab, CraftingTab::Weapon | CraftingTab::All)
-                    .then_some(modular_entries.iter().map(|(recipe_name, (recipe, _))| {
-                        (
-                            recipe_name,
-                            *recipe,
-                            self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
-                                == recipe.craft_sprite,
-                            true,
-                        )
-                    }))
+                    .then_some(
+                        modular_entries
+                            .iter()
+                            .filter(|(_, (_, output_name))| {
+                                match search_filter {
+                                    SearchFilter::None => {
+                                        let output_name = output_name.to_lowercase();
+                                        search_keys
+                                            .iter()
+                                            .all(|&substring| output_name.contains(substring))
+                                    },
+                                    // TODO: Get input filtering to work here, probably requires
+                                    // checking component recipe book?
+                                    SearchFilter::Input => false,
+                                    SearchFilter::Nonexistant => false,
+                                }
+                            })
+                            .map(|(recipe_name, (recipe, _))| {
+                                (
+                                    recipe_name,
+                                    *recipe,
+                                    self.show.crafting_fields.craft_sprite.map(|(_, s)| s)
+                                        == recipe.craft_sprite,
+                                    true,
+                                )
+                            }),
+                    )
                     .into_iter()
                     .flatten(),
             )
