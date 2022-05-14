@@ -380,9 +380,10 @@ impl Chaser {
             // theory this shouldn't happen, but in practice the world is full
             // of unpredictable obstacles that are more than willing to mess up
             // our day. TODO: Come up with a better heuristic for this
-            if (end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete)
-                || thread_rng().gen::<f32>() < 0.001
-            {
+            if end_to_tgt > pos_to_tgt * 0.3 + 5.0 && complete {
+                None
+            } else if thread_rng().gen::<f32>() < 0.001 {
+                self.route = None;
                 None
             } else {
                 self.route
