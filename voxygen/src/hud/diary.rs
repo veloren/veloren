@@ -1112,7 +1112,7 @@ impl<'a> Widget for Diary<'a> {
                     "Stun-Resistance",
                     "Crit-Power",
                     "Energy Reward",
-                    "Stealth (Items)",
+                    "Stealth",
                     "Weapon Power",
                     "Weapon Speed",
                     "Weapon Poise",
@@ -1206,7 +1206,7 @@ impl<'a> Widget for Diary<'a> {
                                 combat::compute_energy_reward_mod(Some(self.inventory));
                             format!("{:+.0}%", (energy_rew - 1.0) * 100.0)
                         },
-                        "Stealth (Items)" => {
+                        "Stealth" => {
                             let stealth_perception_multiplier =
                                 combat::perception_dist_multiplier_from_stealth(
                                     Some(self.inventory),
