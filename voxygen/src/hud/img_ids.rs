@@ -521,6 +521,7 @@ image_ids! {
         stun_res_ico: "voxygen.element.ui.bag.icons.stun_res",
         combat_rating_ico: "voxygen.element.ui.bag.icons.combat_rating",
         combat_rating_ico_shadow: "voxygen.element.ui.bag.icons.combat_rating_shadow",
+        stealth_rating_ico: "voxygen.element.ui.bag.icons.stealth_rating",
 
         not_found: "voxygen.element.not_found",
 

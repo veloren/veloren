@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Belarusian translation
 - Add FOV check for agents scanning for targets they are hostile to
 - Implemented an LoD system for objects, making trees visible far beyond the view distance
+- Add stealth stat on Bag UI
 
 ### Changed
 
