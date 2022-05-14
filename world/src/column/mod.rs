@@ -116,7 +116,39 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             .map(|site| index.sites[*site].spawn_rules(wpos))
             .fold(SpawnRules::default(), |a, b| a.combine(b));
 
-        let gradient = sim.get_gradient_approx(chunk_pos);
+        const SAMP_RES: i32 = 8;
+        let altx0 = sim.get_interpolated(wpos - Vec2::new(1, 0) * SAMP_RES, |chunk| chunk.alt);
+        let altx1 = sim.get_interpolated(wpos + Vec2::new(1, 0) * SAMP_RES, |chunk| chunk.alt);
+        let alty0 = sim.get_interpolated(wpos - Vec2::new(0, 1) * SAMP_RES, |chunk| chunk.alt);
+        let alty1 = sim.get_interpolated(wpos + Vec2::new(0, 1) * SAMP_RES, |chunk| chunk.alt);
+        let gradient =
+            altx0
+                .zip(altx1)
+                .zip_with(alty0.zip(alty1), |(altx0, altx1), (alty0, alty1)| {
+                    Vec2::new(altx1 - altx0, alty1 - alty0)
+                        .map(f32::abs)
+                        .magnitude()
+                        / SAMP_RES as f32
+                });
+
+        let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
+
+        let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
+            .powi(3)
+            .add(1.0)
+            .mul(0.5);
+        let marble_mid = (sim.gen_ctx.hill_nz.get((wposf3d.div(12.0)).into_array()) as f32)
+            .mul(0.75)
+            .add(1.0)
+            .mul(0.5);
+        //.add(marble_small.sub(0.5).mul(0.25));
+        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
+            .mul(0.75)
+            .add(1.0)
+            .mul(0.5);
+        let marble_mixed = marble
+            .add(marble_mid.sub(0.5).mul(0.5))
+            .add(marble_small.sub(0.5).mul(0.25));
 
         let lake_width = (TerrainChunkSize::RECT_SIZE.x as f64 * 2.0f64.sqrt()) + 6.0;
         let neighbor_river_data = neighbor_river_data
@@ -830,7 +862,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let cliff_offset = cliff * cliff_height;
         let riverless_alt_delta = riverless_alt_delta + (cliff - 0.5) * cliff_height;
 
-        let warp_factor = water_dist.map_or(1.0, |d| d.max(0.0) / 64.0);
+        let warp_factor = water_dist.map_or(1.0, |d| (d / 64.0).clamped(0.0, 1.0));
 
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
@@ -838,7 +870,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let warp_factor = warp_factor * spawn_rules.max_warp;
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
-        let alt = alt + riverless_alt_delta;
+        let warp = ((marble_mid * 0.2 + marble * 0.8) * 2.0 - 1.0)
+            * 15.0
+            * gradient.unwrap_or(0.0).min(1.0)
+            * warp_factor;
+        let alt = alt + riverless_alt_delta + warp;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
         // Adjust this to make rock placement better
@@ -863,25 +899,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
                 .unwrap_or(1.0)
                 .clamped(0.0, 1.0),
         );
-
-        let wposf3d = Vec3::new(wposf.x, wposf.y, alt as f64);
-
-        let marble_small = (sim.gen_ctx.hill_nz.get((wposf3d.div(3.0)).into_array()) as f32)
-            .powi(3)
-            .add(1.0)
-            .mul(0.5);
-        let marble_mid = (sim.gen_ctx.hill_nz.get((wposf3d.div(12.0)).into_array()) as f32)
-            .mul(0.75)
-            .add(1.0)
-            .mul(0.5);
-        //.add(marble_small.sub(0.5).mul(0.25));
-        let marble = (sim.gen_ctx.hill_nz.get((wposf3d.div(48.0)).into_array()) as f32)
-            .mul(0.75)
-            .add(1.0)
-            .mul(0.5);
-        let marble_mixed = marble
-            .add(marble_mid.sub(0.5).mul(0.5))
-            .add(marble_small.sub(0.5).mul(0.25));
 
         // Colours
         let Colors {
