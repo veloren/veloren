@@ -498,9 +498,7 @@ impl World {
                             if rpos.is_any_negative() {
                                 return None;
                             } else {
-                                rpos.map(|e| e as i16).with_z(
-                                    self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as i16,
-                                )
+                                rpos.map(|e| e as i16).with_z(col.alt as i16)
                             }
                         },
                         flags: lod::Flags::empty()

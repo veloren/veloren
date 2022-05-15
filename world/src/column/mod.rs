@@ -862,6 +862,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } * (1.0 - near_water * 3.0).max(0.0).powi(2);
         let cliff_offset = cliff * cliff_height;
         let riverless_alt_delta = riverless_alt_delta + (cliff - 0.5) * cliff_height;
+        let basement_sub_alt =
+            sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
         let warp_factor = water_dist.map_or(1.0, |d| (d / 64.0).clamped(0.0, 1.0));
 
@@ -871,6 +873,8 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let warp_factor = warp_factor * spawn_rules.max_warp;
 
         let surface_rigidity = 1.0 - temp.max(0.0) * (1.0 - tree_density);
+        let surface_rigidity =
+            surface_rigidity.max(((basement_sub_alt + 3.0) / 1.5).clamped(0.0, 2.0));
         let warp = ((marble_mid * 0.2 + marble * 0.8) * 2.0 - 1.0)
             * 15.0
             * gradient.unwrap_or(0.0).min(1.0)
@@ -879,8 +883,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt + riverless_alt_delta + warp;
-        let basement =
-            alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
+        let basement = alt + basement_sub_alt;
         // Adjust this to make rock placement better
         let rock_density = rockiness;
 
