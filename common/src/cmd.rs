@@ -588,7 +588,7 @@ impl ChatCommand {
             // Uses Message because site names can contain spaces,
             // which would be assumed to be separators otherwise
             ChatCommand::Site => cmd(
-                vec![Message(Required)],
+                vec![SiteName(Required)],
                 "Teleport to a site",
                 Some(Moderator),
             ),
@@ -786,6 +786,7 @@ impl ChatCommand {
             .iter()
             .map(|arg| match arg {
                 ArgumentSpec::PlayerName(_) => "{}",
+                ArgumentSpec::SiteName(_) => "{/.*/}",
                 ArgumentSpec::Float(_, _, _) => "{}",
                 ArgumentSpec::Integer(_, _, _) => "{d}",
                 ArgumentSpec::Any(_, _) => "{}",
@@ -843,6 +844,8 @@ pub enum Requirement {
 pub enum ArgumentSpec {
     /// The argument refers to a player by alias
     PlayerName(Requirement),
+    // The argument refers to a site, by name.
+    SiteName(Requirement),
     /// The argument is a float. The associated values are
     /// * label
     /// * suggested tab-completion
@@ -882,6 +885,13 @@ impl ArgumentSpec {
                     "<player>".to_string()
                 } else {
                     "[player]".to_string()
+                }
+            },
+            ArgumentSpec::SiteName(req) => {
+                if &Requirement::Required == req {
+                    "<site>".to_string()
+                } else {
+                    "[site]".to_string()
                 }
             },
             ArgumentSpec::Float(label, _, req) => {

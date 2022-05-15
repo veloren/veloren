@@ -9,6 +9,7 @@ impl TabComplete for ArgumentSpec {
     fn complete(&self, part: &str, client: &Client) -> Vec<String> {
         match self {
             ArgumentSpec::PlayerName(_) => complete_player(part, client),
+            ArgumentSpec::SiteName(_) => complete_site(part, client),
             ArgumentSpec::Float(_, x, _) => {
                 if part.is_empty() {
                     vec![format!("{:.1}", x)]
@@ -48,6 +49,28 @@ fn complete_player(part: &str, client: &Client) -> Vec<String> {
         .map(|player_info| &player_info.player_alias)
         .filter(|alias| alias.starts_with(part))
         .cloned()
+        .collect()
+}
+
+fn complete_site(mut part: &str, client: &Client) -> Vec<String> {
+    if let Some(p) = part.strip_prefix('"') {
+        part = p;
+    }
+    client
+        .sites
+        .values()
+        .filter_map(|site| match site.site.kind {
+            common_net::msg::world_msg::SiteKind::Cave => None,
+            _ => site.site.name.as_ref(),
+        })
+        .filter(|name| name.starts_with(part))
+        .map(|name| {
+            if name.contains(' ') {
+                format!("\"{}\"", name)
+            } else {
+                name.clone()
+            }
+        })
         .collect()
 }
 

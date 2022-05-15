@@ -678,8 +678,11 @@ impl<'a> Widget for Chat<'a> {
 fn do_tab_completion(cursor: usize, input: &str, word: &str) -> (String, usize) {
     let mut pre_ws = None;
     let mut post_ws = None;
+    let mut in_quotation = false;
     for (char_i, (byte_i, c)) in input.char_indices().enumerate() {
-        if c.is_whitespace() && c != '\t' {
+        if c == '"' {
+            in_quotation = !in_quotation;
+        } else if !in_quotation && c.is_whitespace() && c != '\t' {
             if char_i < cursor {
                 pre_ws = Some(byte_i);
             } else {
