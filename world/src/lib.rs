@@ -498,9 +498,7 @@ impl World {
                             if rpos.is_any_negative() {
                                 return None;
                             } else {
-                                rpos.map(|e| e as i16).with_z(
-                                    self.sim().get_alt_approx(tree.pos).unwrap_or(0.0) as i16,
-                                )
+                                rpos.map(|e| e as i16).with_z(col.alt as i16)
                             }
                         },
                         flags: lod::Flags::empty()
@@ -554,15 +552,27 @@ impl World {
                         .reduce_and()
                 })
                 .filter(|(_, site)| matches!(&site.kind, SiteKind::GiantTree(_)))
-                .map(|(_, site)| lod::Object {
-                    kind: lod::ObjectKind::GiantTree,
-                    pos: {
-                        let wpos2d = site.get_origin();
-                        (wpos2d - min_wpos)
-                            .map(|e| e as i16)
-                            .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16)
-                    },
-                    flags: lod::Flags::empty(),
+                .filter_map(|(_, site)| {
+                    let wpos2d = site.get_origin();
+                    let col = ColumnGen::new(self.sim()).get((
+                        wpos2d,
+                        index,
+                        self.sim().calendar.as_ref(),
+                    ))?;
+                    Some(lod::Object {
+                        kind: lod::ObjectKind::GiantTree,
+                        pos: {
+                            (wpos2d - min_wpos)
+                                .map(|e| e as i16)
+                                .with_z(self.sim().get_alt_approx(wpos2d).unwrap_or(0.0) as i16)
+                        },
+                        flags: lod::Flags::empty()
+                            | if col.snow_cover {
+                                lod::Flags::SNOW_COVERED
+                            } else {
+                                lod::Flags::empty()
+                            },
+                    })
                 }),
         );
 

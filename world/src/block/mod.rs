@@ -58,9 +58,6 @@ impl<'a> BlockGen<'a> {
     }
 
     pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
-        let BlockGen { column_gen } = self;
-        let world = column_gen.sim;
-
         let z_cache = z_cache?;
         let sample = &z_cache.sample;
         let &ColumnSample {
@@ -68,64 +65,23 @@ impl<'a> BlockGen<'a> {
             basement,
             chaos,
             water_level,
-            warp_factor,
             surface_color,
             sub_surface_color,
-            //tree_density,
-            //forest_kind,
-            //close_structures,
-            marble: _,
-            marble_mid: _,
-            marble_small: _,
-            rock_density: _,
-            // temp,
-            // humidity,
             stone_col,
             snow_cover,
             cliff_offset,
             cliff_height,
-            // water_vel,
             ice_depth,
             ..
         } = sample;
 
         let wposf = wpos.map(|e| e as f64);
 
-        let (_definitely_underground, height, basement_height, water_height) =
-            if (wposf.z as f32) < alt - 64.0 * chaos {
-                // Shortcut warping
-                (true, alt, basement, water_level)
-            } else {
-                // Apply warping
-                let warp = world
-                    .gen_ctx
-                    .warp_nz
-                    .get(wposf.div(24.0))
-                    .mul((chaos - 0.1).max(0.0).min(1.0).powi(2))
-                    .mul(16.0);
-                let warp = Lerp::lerp(0.0, warp, warp_factor);
-
-                let height = alt + warp;
-
-                (
-                    false,
-                    height,
-                    basement + height - alt,
-                    (if water_level <= alt {
-                        water_level + warp
-                    } else {
-                        water_level
-                    }),
-                )
-            };
-
         // Sample blocks
-
         let water = Block::new(BlockKind::Water, Rgb::zero());
-
-        let grass_depth = (1.5 + 2.0 * chaos).min(height - basement_height);
-        if (wposf.z as f32) < height - grass_depth {
-            let stone_factor = (height - grass_depth - wposf.z as f32) * 0.15;
+        let grass_depth = (1.5 + 2.0 * chaos).min(alt - basement);
+        if (wposf.z as f32) < alt - grass_depth {
+            let stone_factor = (alt - grass_depth - wposf.z as f32) * 0.15;
             let col = Lerp::lerp(
                 sub_surface_color,
                 stone_col.map(|e| e as f32 / 255.0),
@@ -134,12 +90,12 @@ impl<'a> BlockGen<'a> {
             .map(|e| (e * 255.0) as u8);
 
             if stone_factor >= 0.5 {
-                if wposf.z as f32 > height - cliff_offset.max(0.0) {
+                if wposf.z as f32 > alt - cliff_offset.max(0.0) {
                     if cliff_offset.max(0.0)
                         > cliff_height
                             - (FastNoise::new(37).get(wposf / Vec3::new(6.0, 6.0, 10.0)) * 0.5
                                 + 0.5)
-                                * (height - grass_depth - wposf.z as f32)
+                                * (alt - grass_depth - wposf.z as f32)
                                     .mul(0.25)
                                     .clamped(0.0, 8.0)
                     {
@@ -159,12 +115,12 @@ impl<'a> BlockGen<'a> {
             } else {
                 Some(Block::new(BlockKind::Earth, col))
             }
-        } else if wposf.z as i32 <= height as i32 {
-            let grass_factor = (wposf.z as f32 - (height - grass_depth))
+        } else if wposf.z as i32 <= alt as i32 {
+            let grass_factor = (wposf.z as f32 - (alt - grass_depth))
                 .div(grass_depth)
                 .sqrt();
             // Surface
-            Some(if water_level > height.ceil() {
+            Some(if water_level > alt.ceil() {
                 Block::new(
                     BlockKind::Sand,
                     sub_surface_color.map(|e| (e * 255.0) as u8),
@@ -184,11 +140,11 @@ impl<'a> BlockGen<'a> {
             None
         }
         .or_else(|| {
-            let over_water = height < water_height;
+            let over_water = alt < water_level;
             // Water
-            if over_water && (wposf.z as f32 - water_height).abs() < ice_depth {
+            if over_water && (wposf.z as f32 - water_level).abs() < ice_depth {
                 Some(Block::new(BlockKind::Ice, CONFIG.ice_color))
-            } else if (wposf.z as f32) < water_height {
+            } else if (wposf.z as f32) < water_level {
                 // Ocean
                 Some(water)
             } else {

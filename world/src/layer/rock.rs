@@ -51,17 +51,17 @@ pub fn apply_rocks_to(canvas: &mut Canvas, _dynamic_rng: &mut impl Rng) {
                         rng.gen_range(1.0..4.0),
                         &mut rng,
                     ))),
-                    (5..=i32::MAX, _, 10..=i32::MAX) => {
+                    (5..=i32::MAX, _, 0..=i32::MAX) => {
                         if col.temp > CONFIG.desert_temp - 0.1
                             && col.humidity < CONFIG.desert_hum + 0.1
                         {
                             Some(RockKind::Sandstone(VoronoiCell::generate(
-                                rng.gen_range(2.0..20.0 - 15.0 * col.tree_density),
+                                rng.gen_range(2.0..20.0 - 10.0 * col.tree_density),
                                 &mut rng,
                             )))
                         } else {
                             Some(RockKind::Rock(VoronoiCell::generate(
-                                rng.gen_range(2.0..20.0 - 15.0 * col.tree_density),
+                                rng.gen_range(2.0..20.0 - 10.0 * col.tree_density),
                                 &mut rng,
                             )))
                         }

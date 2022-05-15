@@ -115,7 +115,6 @@ pub(crate) struct GenCtx {
     // Small amounts of noise for simulating rough terrain.
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
-    pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
     // TODO: unused, remove??? @zesterer
@@ -559,7 +558,6 @@ impl WorldSim {
 
             small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            warp_nz: FastNoise::new(rng.gen()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)
@@ -2348,6 +2346,10 @@ impl SimChunk {
         const MIN_TREE_HUM: f32 = 0.15;
         // Tree density increases exponentially with humidity...
         let tree_density = (tree_density * (humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
+            // Places that are *too* wet (like marshes) also get fewer trees because the ground isn't stable enough for
+            // them.
+            //.mul((1.0 - flux * 0.05/*(humidity - 0.9).max(0.0) / 0.1*/).max(0.0))
+            .mul(0.25 + flux * 0.05)
             // ...but is ultimately limited by available sunlight (and our tree generation system)
             .min(1.0);
 
