@@ -47,6 +47,8 @@ impl Path {
 pub struct Cave {
     pub width: f32, // Actually radius
     pub alt: f32,   // Actually radius
+    pub water_alt: i32,
+    pub water_dist: f32,
 }
 
 impl Default for Cave {
@@ -54,6 +56,8 @@ impl Default for Cave {
         Self {
             width: 32.0,
             alt: 0.0,
+            water_alt: i32::MIN,
+            water_dist: f32::INFINITY,
         }
     }
 }
@@ -65,6 +69,8 @@ impl Lerp for Cave {
         Self {
             width: Lerp::lerp(from.width, to.width, factor),
             alt: Lerp::lerp(from.alt, to.alt, factor),
+            water_alt: from.water_alt.max(to.water_alt),
+            water_dist: Lerp::lerp(from.water_dist, to.water_dist, factor),
         }
     }
 }

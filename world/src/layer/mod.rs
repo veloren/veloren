@@ -136,8 +136,13 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             let cave_floor = 0.0 - 0.5 * (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
             let cave_height = (1.0 - cave_x.powi(2)).max(0.0).sqrt() * cave.width;
 
+            let t = cave.water_dist.min(1.0);
             // Abs units
-            let cave_base = (cave.alt + cave_floor) as i32;
+            let cave_base = Lerp::lerp(
+                cave.alt + cave_floor,
+                (cave.water_alt as f32).max(cave.alt + cave_floor),
+                t,
+            ) as i32;
             let cave_roof = (cave.alt + cave_height) as i32;
 
             for z in cave_base..cave_roof {
@@ -148,14 +153,23 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                             .into_array(),
                     ) < 0.0
                 {
-                    // If the block a little above is liquid, we should stop carving out the cave in
-                    // order to leave a ceiling, and not floating water
-                    if canvas.get(Vec3::new(wpos2d.x, wpos2d.y, z + 2)).is_liquid() {
+                    // If the block a little above is liquid, and the water level is lower, we
+                    // should stop carving out the cave in order to leave a
+                    // ceiling, and not floating water.
+                    if z >= cave.water_alt
+                        && canvas.get(Vec3::new(wpos2d.x, wpos2d.y, z + 2)).is_liquid()
+                    {
                         break;
                     }
 
+                    let empty_block = if z < cave.water_alt {
+                        Block::water(SpriteKind::Empty)
+                    } else {
+                        EMPTY_AIR
+                    };
+
                     canvas.map(Vec3::new(wpos2d.x, wpos2d.y, z), |b| {
-                        if b.is_liquid() { b } else { EMPTY_AIR }
+                        if b.is_liquid() { b } else { empty_block }
                     });
                 }
             }
@@ -218,7 +232,9 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             //make pits
             for z in cave_base - pit_depth..cave_base {
                 if pit_condition && (cave_roof - cave_base) > 10 {
-                    let kind = if z < (cave_base - pit_depth) + (3 * pit_depth / 4) {
+                    let kind = if z < cave.water_alt {
+                        BlockKind::Water
+                    } else if z < (cave_base - pit_depth) + (3 * pit_depth / 4) {
                         BlockKind::Lava
                     } else {
                         BlockKind::Air
@@ -335,9 +351,34 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
             } else {
                 cave_base - floor_dist
             };
-
-            // Scatter things in caves
-            if cave_depth > 40.0 && cave_depth < 80.0 {
+            // Scatter things on cave floors
+            if cave_floor_adjusted + 1 < cave.water_alt {
+                if cave_depth > 40.0 && cave_depth < 80.0 {
+                    if rng.gen::<f32>() < 0.14 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
+                        let kind = *Lottery::<SpriteKind>::load_expect(
+                            "common.cave_scatter.shallow_water_floor",
+                        )
+                        .read()
+                        .choose();
+                        canvas.map(
+                            Vec3::new(wpos2d.x, wpos2d.y, cave_floor_adjusted),
+                            |block| block.with_sprite(kind),
+                        );
+                    }
+                } else if rng.gen::<f32>() < 0.065 * (cave_x.max(0.5).powf(4.0))
+                    && !vein_condition
+                    && cave_depth > 40.0
+                {
+                    let kind =
+                        *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep_water_floor")
+                            .read()
+                            .choose();
+                    canvas.map(
+                        Vec3::new(wpos2d.x, wpos2d.y, cave_floor_adjusted),
+                        |block| block.with_sprite(kind),
+                    );
+                };
+            } else if cave_depth > 40.0 && cave_depth < 80.0 {
                 if rng.gen::<f32>() < 0.14 * (cave_x.max(0.5).powf(4.0)) && !vein_condition {
                     let kind =
                         *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow_floor")
@@ -345,16 +386,6 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                             .choose();
                     canvas.map(
                         Vec3::new(wpos2d.x, wpos2d.y, cave_floor_adjusted),
-                        |block| block.with_sprite(kind),
-                    );
-                }
-                if rng.gen::<f32>() < 0.3 * (cave_x.max(0.5).powf(4.0)) && !ridge_condition {
-                    let kind =
-                        *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow_ceiling")
-                            .read()
-                            .choose();
-                    canvas.map(
-                        Vec3::new(wpos2d.x, wpos2d.y, cave_roof_adjusted - 1),
                         |block| block.with_sprite(kind),
                     );
                 }
@@ -369,6 +400,59 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                         |block| block.with_sprite(kind),
                     );
                 }
+            } else if rng.gen::<f32>() < 0.08 * (cave_x.max(0.5).powf(4.0))
+                && cave_depth > 40.0
+                && !vein_condition
+            {
+                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.dark_floor")
+                    .read()
+                    .choose();
+                canvas.map(
+                    Vec3::new(wpos2d.x, wpos2d.y, cave_floor_adjusted),
+                    |block| block.with_sprite(kind),
+                );
+            };
+
+            // Scatter things on cave ceilings
+            if cave_roof_adjusted - 1 < cave.water_alt {
+                if cave_depth > 40.0 && cave_depth < 80.0 {
+                    if rng.gen::<f32>() < 0.02 * (cave_x.max(0.5).powf(4.0)) && !ridge_condition {
+                        let kind = *Lottery::<SpriteKind>::load_expect(
+                            "common.cave_scatter.shallow_water_ceiling",
+                        )
+                        .read()
+                        .choose();
+                        canvas.map(
+                            Vec3::new(wpos2d.x, wpos2d.y, cave_roof_adjusted - 1),
+                            |block| block.with_sprite(kind),
+                        );
+                    }
+                } else if rng.gen::<f32>() < 0.1 * (cave_x.max(0.5).powf(4.0))
+                    && !ridge_condition
+                    && cave_depth > 40.0
+                {
+                    let kind = *Lottery::<SpriteKind>::load_expect(
+                        "common.cave_scatter.deep_water_ceiling",
+                    )
+                    .read()
+                    .choose();
+                    canvas.map(
+                        Vec3::new(wpos2d.x, wpos2d.y, cave_roof_adjusted - 1),
+                        |block| block.with_sprite(kind),
+                    );
+                };
+            } else if cave_depth > 40.0 && cave_depth < 80.0 {
+                if rng.gen::<f32>() < 0.3 * (cave_x.max(0.5).powf(4.0)) && !ridge_condition {
+                    let kind =
+                        *Lottery::<SpriteKind>::load_expect("common.cave_scatter.shallow_ceiling")
+                            .read()
+                            .choose();
+                    canvas.map(
+                        Vec3::new(wpos2d.x, wpos2d.y, cave_roof_adjusted - 1),
+                        |block| block.with_sprite(kind),
+                    );
+                }
+            } else if cave_depth < 200.0 && cave_depth > 80.0 {
                 if rng.gen::<f32>() < 0.3 * (cave_x.max(0.5).powf(4.0)) && !ridge_condition {
                     let kind =
                         *Lottery::<SpriteKind>::load_expect("common.cave_scatter.deep_ceiling")
@@ -379,33 +463,17 @@ pub fn apply_caves_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                         |block| block.with_sprite(kind),
                     );
                 }
-            } else {
-                if rng.gen::<f32>() < 0.08 * (cave_x.max(0.5).powf(4.0))
-                    && cave_depth > 40.0
-                    && !vein_condition
-                {
-                    let kind =
-                        *Lottery::<SpriteKind>::load_expect("common.cave_scatter.dark_floor")
-                            .read()
-                            .choose();
-                    canvas.map(
-                        Vec3::new(wpos2d.x, wpos2d.y, cave_floor_adjusted),
-                        |block| block.with_sprite(kind),
-                    );
-                }
-                if rng.gen::<f32>() < 0.02 * (cave_x.max(0.5).powf(4.0))
-                    && !ridge_condition
-                    && cave_depth > 40.0
-                {
-                    let kind =
-                        *Lottery::<SpriteKind>::load_expect("common.cave_scatter.dark_ceiling")
-                            .read()
-                            .choose();
-                    canvas.map(
-                        Vec3::new(wpos2d.x, wpos2d.y, cave_roof_adjusted - 1),
-                        |block| block.with_sprite(kind),
-                    );
-                }
+            } else if rng.gen::<f32>() < 0.02 * (cave_x.max(0.5).powf(4.0))
+                && !ridge_condition
+                && cave_depth > 40.0
+            {
+                let kind = *Lottery::<SpriteKind>::load_expect("common.cave_scatter.dark_ceiling")
+                    .read()
+                    .choose();
+                canvas.map(
+                    Vec3::new(wpos2d.x, wpos2d.y, cave_roof_adjusted - 1),
+                    |block| block.with_sprite(kind),
+                );
             };
         }
     });
@@ -460,7 +528,20 @@ pub fn apply_caves_supplement<'a>(
                     {
                         let entity = EntityInfo::at(wpos2d.map(|e| e as f32).with_z(z as f32));
                         let entity = {
-                            let asset = if cave_depth < 70.0 {
+                            let asset = if z < cave.water_alt {
+                                if cave_depth < 190.0 {
+                                    match dynamic_rng.gen_range(0..2) {
+                                        0 => "common.entity.wild.aggressive.sea_crocodile",
+                                        _ => "common.entity.wild.aggressive.hakulaq",
+                                    }
+                                } else {
+                                    match dynamic_rng.gen_range(0..3) {
+                                        0 => "common.entity.wild.aggressive.sea_crocodile",
+                                        1 => "common.entity.wild.aggressive.hakulaq",
+                                        _ => "common.entity.wild.aggressive.akhlut",
+                                    }
+                                }
+                            } else if cave_depth < 70.0 {
                                 match dynamic_rng.gen_range(0..4) {
                                     0 => "common.entity.wild.peaceful.truffler",
                                     1 => "common.entity.wild.aggressive.dodarock",

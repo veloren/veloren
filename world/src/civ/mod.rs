@@ -95,9 +95,7 @@ impl Civs {
         let mut ctx = GenCtx { sim, rng };
 
         info!("starting cave generation");
-        for _ in 0..ctx.sim.get_size().product() / 10_000 {
-            this.generate_cave(&mut ctx);
-        }
+        this.generate_caves(&mut ctx);
 
         info!("starting civilisation creation");
         let mut start_locations: Vec<Vec2<i32>> = Vec::new();
@@ -335,8 +333,46 @@ impl Civs {
         this
     }
 
+    fn generate_caves(&mut self, ctx: &mut GenCtx<impl Rng>) {
+        let mut water_caves = Vec::new();
+        for _ in 0..ctx.sim.get_size().product() / 10_000 {
+            self.generate_cave(ctx, &mut water_caves);
+        }
+
+        // Floodfills cave water.
+        while let Some(loc) = water_caves.pop() {
+            let cave = ctx.sim.get(loc).unwrap().cave.1;
+            for l in NEIGHBORS {
+                let l = loc + l;
+                if let Some(o_cave) = ctx.sim.get_mut(l).map(|c| &mut c.cave.1) {
+                    // Contains cave
+                    if o_cave.alt != 0.0 {
+                        let should_fill = o_cave.water_alt < cave.water_alt
+                            && o_cave.alt - o_cave.width < cave.water_alt as f32;
+                        if should_fill {
+                            o_cave.water_alt = cave.water_alt;
+                            o_cave.water_dist = 0.0;
+                            water_caves.push(l);
+                        }
+                        // If we don't fill and the cave has no water, continue filling distance
+                        else if o_cave.water_alt == i32::MIN
+                            && o_cave.water_dist > cave.water_dist + 1.0
+                        {
+                            o_cave.water_dist = cave.water_dist + 1.0;
+                            water_caves.push(l);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // TODO: Move this
-    fn generate_cave(&mut self, ctx: &mut GenCtx<impl Rng>) {
+    fn generate_cave(
+        &mut self,
+        ctx: &mut GenCtx<impl Rng>,
+        submerged_cave_chunks: &mut Vec<Vec2<i32>>,
+    ) {
         let mut pos = ctx
             .sim
             .get_size()
@@ -384,7 +420,6 @@ impl Civs {
             ctx.sim.get_mut(locs[2].0).unwrap().cave.0.neighbors |=
                 1 << ((to_next_idx as u8 + 4) % 8);
         }
-
         for loc in path.iter() {
             let mut chunk = ctx.sim.get_mut(loc.0).unwrap();
             let depth = loc.1 * 250.0 - 20.0;
@@ -396,7 +431,23 @@ impl Civs {
             if chunk.cave.1.alt + chunk.cave.1.width + 5.0 > chunk.alt {
                 chunk.spawn_rate = 0.0;
             }
+            let cave_min_alt = chunk.cave.1.alt - chunk.cave.1.width;
+            let cave_max_alt = chunk.cave.1.alt + chunk.cave.1.width;
+
+            let submerged = chunk.alt - 2.0 < chunk.water_alt
+                && chunk.alt < cave_max_alt
+                && cave_min_alt < chunk.water_alt
+                && chunk.river.near_water()
+                // Only do this for caves at the sea level for now. 
+                // The reason being that floodfilling from a water alt to an alt lower than the water alt causes problems.
+                && chunk.water_alt <= CONFIG.sea_level;
+            if submerged {
+                submerged_cave_chunks.push(loc.0);
+                chunk.cave.1.water_alt = chunk.water_alt as i32;
+                chunk.cave.1.water_dist = 0.0;
+            }
         }
+
         self.caves.insert(CaveInfo {
             location: (
                 path.first().unwrap().0 * TerrainChunkSize::RECT_SIZE.map(|e: u32| e as i32),
