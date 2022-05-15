@@ -87,7 +87,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
-        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
         let near_water =
             sim.get_interpolated(
                 wpos,
@@ -865,7 +864,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let basement_sub_alt =
             sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
 
-        let warp_factor = water_dist.map_or(1.0, |d| (d / 64.0).clamped(0.0, 1.0));
+        let warp_factor = water_dist.map_or(1.0, |d| ((d - 0.0) / 64.0).clamped(0.0, 1.0));
 
         // NOTE: To disable warp, uncomment this line.
         // let warp_factor = 0.0;
@@ -885,7 +884,11 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let alt = alt + riverless_alt_delta + warp;
         let basement = alt + basement_sub_alt;
         // Adjust this to make rock placement better
-        let rock_density = rockiness;
+        let rock_density = rockiness
+            + water_dist
+                .filter(|wd| *wd > 2.0)
+                .map(|wd| (1.0 - wd / 32.0).clamped(0.0, 1.0).powf(0.5) * 10.0)
+                .unwrap_or(0.0);
 
         // Columns near water have a more stable temperature and so get pushed towards
         // the average (0)

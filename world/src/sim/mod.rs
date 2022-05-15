@@ -115,7 +115,6 @@ pub(crate) struct GenCtx {
     // Small amounts of noise for simulating rough terrain.
     pub small_nz: BasicMulti,
     pub rock_nz: HybridMulti,
-    pub warp_nz: FastNoise,
     pub tree_nz: BasicMulti,
 
     // TODO: unused, remove??? @zesterer
@@ -559,7 +558,6 @@ impl WorldSim {
 
             small_nz: BasicMulti::new().set_octaves(2).set_seed(rng.gen()),
             rock_nz: HybridMulti::new().set_persistence(0.3).set_seed(rng.gen()),
-            warp_nz: FastNoise::new(rng.gen()),
             tree_nz: BasicMulti::new()
                 .set_octaves(12)
                 .set_persistence(0.75)

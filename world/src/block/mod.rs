@@ -58,9 +58,6 @@ impl<'a> BlockGen<'a> {
     }
 
     pub fn get_with_z_cache(&mut self, wpos: Vec3<i32>, z_cache: Option<&ZCache>) -> Option<Block> {
-        let BlockGen { column_gen } = self;
-        let world = column_gen.sim;
-
         let z_cache = z_cache?;
         let sample = &z_cache.sample;
         let &ColumnSample {
@@ -68,7 +65,6 @@ impl<'a> BlockGen<'a> {
             basement,
             chaos,
             water_level,
-            warp_factor,
             surface_color,
             sub_surface_color,
             stone_col,
@@ -76,7 +72,6 @@ impl<'a> BlockGen<'a> {
             cliff_offset,
             cliff_height,
             ice_depth,
-            gradient,
             ..
         } = sample;
 
