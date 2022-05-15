@@ -2348,6 +2348,10 @@ impl SimChunk {
         const MIN_TREE_HUM: f32 = 0.15;
         // Tree density increases exponentially with humidity...
         let tree_density = (tree_density * (humidity - MIN_TREE_HUM).max(0.0).mul(1.0 + MIN_TREE_HUM) / temp.max(0.75))
+            // Places that are *too* wet (like marshes) also get fewer trees because the ground isn't stable enough for
+            // them.
+            //.mul((1.0 - flux * 0.05/*(humidity - 0.9).max(0.0) / 0.1*/).max(0.0))
+            .mul(0.25 + flux * 0.05)
             // ...but is ultimately limited by available sunlight (and our tree generation system)
             .min(1.0);
 

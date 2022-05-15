@@ -192,7 +192,7 @@ void main() {
     reflect_color *= f_light;
 
     // Prevent the sky affecting light when underground
-    float not_underground = clamp((f_pos.z - f_alt) / 128.0 + 1.0, 0.0, 1.0);
+    float not_underground = clamp((f_pos.z - f_alt) / 32.0 + 1.0, 0.0, 1.0);
     reflect_color *= not_underground;
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.2, 0.5, 1.0));
     // /*const */vec3 water_color = srgb_to_linear(vec3(0.8, 0.9, 1.0));

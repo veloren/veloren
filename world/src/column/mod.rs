@@ -87,6 +87,7 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         let rockiness = sim.get_interpolated(wpos, |chunk| chunk.rockiness)?;
         let tree_density = sim.get_interpolated(wpos, |chunk| chunk.tree_density)?;
         let spawn_rate = sim.get_interpolated(wpos, |chunk| chunk.spawn_rate)?;
+        let flux = sim.get_interpolated(wpos, |chunk| chunk.flux)?;
         let near_water =
             sim.get_interpolated(
                 wpos,
@@ -1108,10 +1109,15 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
             })
             .max(-humidity.sub(CONFIG.desert_hum))
             .mul(4.0)
-            .add(((marble - 0.5) / 0.5) * 0.5)
-            .add(((marble_mid - 0.5) / 0.5) * 0.25)
-            .add(((marble_small - 0.5) / 0.5) * 0.175);
-        let (alt, ground, sub_surface_color) = if snow_factor <= 0.0 && alt > water_level {
+            .max(-0.25)
+            // 'Simulate' avalanches moving snow from areas with high gradients to areas with high flux
+            .add((gradient.unwrap_or(0.0) - 0.5).max(0.0) * 0.1)
+            // .add(-flux * 0.003 * gradient.unwrap_or(0.0))
+            .add(((marble - 0.5) / 0.5) * 0.25)
+            .add(((marble_mid - 0.5) / 0.5) * 0.125)
+            .add(((marble_small - 0.5) / 0.5) * 0.0625);
+        let snow_cover = snow_factor <= 0.0;
+        let (alt, ground, sub_surface_color) = if snow_cover && alt > water_level {
             // Allow snow cover.
             (
                 alt + 1.0 - snow_factor.max(0.0),
@@ -1121,7 +1127,6 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
         } else {
             (alt, ground, sub_surface_color)
         };
-        let snow_cover = snow_factor <= 0.0;
 
         // Make river banks not have grass
         let ground = water_dist

@@ -51,7 +51,7 @@ void main() {
     f_norm = v_norm;
     f_col = vec4(vec3(inst_col) * (1.0 / 255.0) * v_col * (hash(inst_pos.xyxy) * 0.35 + 0.65), 1.0);
 
-    if ((inst_flags & FLAG_SNOW_COVERED) > 0u) {
+    if ((inst_flags & FLAG_SNOW_COVERED) > 0u && f_norm.z > 0.0) {
         snow_cover = 1.0;
     } else {
         snow_cover = 0.0;
