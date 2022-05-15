@@ -869,11 +869,14 @@ impl<'a> Sampler<'a> for ColumnGen<'a> {
 
         let warp_factor = warp_factor * spawn_rules.max_warp;
 
-        let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
+        let surface_rigidity = 1.0 - temp.max(0.0) * (1.0 - tree_density);
         let warp = ((marble_mid * 0.2 + marble * 0.8) * 2.0 - 1.0)
             * 15.0
             * gradient.unwrap_or(0.0).min(1.0)
+            * surface_rigidity
             * warp_factor;
+
+        let riverless_alt_delta = Lerp::lerp(0.0, riverless_alt_delta, warp_factor);
         let alt = alt + riverless_alt_delta + warp;
         let basement =
             alt + sim.get_interpolated_monotone(wpos, |chunk| chunk.basement.sub(chunk.alt))?;
