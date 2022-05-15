@@ -1,0 +1,9 @@
+[package]
+name = "veloren-rtsim"
+version = "0.10.0"
+edition = "2021"
+
+[dependencies]
+common = { package = "veloren-common", path = "../common" }
+ron = "0.7"
+serde = { version = "1.0.110", features = ["derive"] }

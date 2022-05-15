@@ -6885,6 +6885,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "veloren-rtsim"
+version = "0.10.0"
+dependencies = [
+ "ron 0.7.0",
+ "serde",
+ "veloren-common",
+]
+
+[[package]]
 name = "veloren-server"
 version = "0.14.0"
 dependencies = [

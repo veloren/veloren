@@ -16,6 +16,7 @@ members = [
     "plugin/api",
     "plugin/derive",
     "plugin/rt",
+    "rtsim",
     "server",
     "server/agent",
     "server-cli",
