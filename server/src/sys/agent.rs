@@ -32,7 +32,7 @@ impl<'a> System<'a> for Sys {
         Read<'a, EventBus<ServerEvent>>,
         WriteStorage<'a, Agent>,
         WriteStorage<'a, Controller>,
-        WriteExpect<'a, RtSim>,
+        //WriteExpect<'a, RtSim>,
     );
 
     const NAME: &'static str = "agent";
@@ -41,9 +41,9 @@ impl<'a> System<'a> for Sys {
 
     fn run(
         job: &mut Job<Self>,
-        (read_data, event_bus, mut agents, mut controllers, mut rtsim): Self::SystemData,
+        (read_data, event_bus, mut agents, mut controllers /* mut rtsim */): Self::SystemData,
     ) {
-        let rtsim = &mut *rtsim;
+        //let rtsim = &mut *rtsim;
         job.cpu_stats.measure(ParMode::Rayon);
 
         (
@@ -161,10 +161,12 @@ impl<'a> System<'a> for Sys {
                         can_fly: body.map_or(false, |b| b.fly_thrust().is_some()),
                     };
                     let health_fraction = health.map_or(1.0, Health::fraction);
+                    /*
                     let rtsim_entity = read_data
                         .rtsim_entities
                         .get(entity)
                         .and_then(|rtsim_ent| rtsim.get_entity(rtsim_ent.0));
+                    */
 
                     if traversal_config.can_fly && matches!(body, Some(Body::Ship(_))) {
                         // hack (kinda): Never turn off flight airships
@@ -226,7 +228,7 @@ impl<'a> System<'a> for Sys {
                     // inputs.
                     let mut behavior_data = BehaviorData {
                         agent,
-                        rtsim_entity,
+                        // rtsim_entity,
                         agent_data: data,
                         read_data: &read_data,
                         event_emitter: &mut event_emitter,
@@ -240,6 +242,7 @@ impl<'a> System<'a> for Sys {
                     debug_assert!(controller.inputs.look_dir.map(|e| !e.is_nan()).reduce_and());
                 },
             );
+        /*
         for (agent, rtsim_entity) in (&mut agents, &read_data.rtsim_entities).join() {
             // Entity must be loaded in as it has an agent component :)
             // React to all events in the controller
@@ -258,5 +261,6 @@ impl<'a> System<'a> for Sys {
                 }
             }
         }
+        */
     }
 }

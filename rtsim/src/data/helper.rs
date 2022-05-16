@@ -3,6 +3,7 @@ use serde::{
     Deserialize, Deserializer, Serialize, Serializer,
 };
 
+#[derive(Copy, Clone, Default, PartialEq, Eq, Hash)]
 pub struct V<T>(pub T);
 
 impl<T: Serialize> Serialize for V<T> {
@@ -22,12 +23,12 @@ impl<'de, T: Version> Deserialize<'de> for V<T> {
 impl<U, T: Latest<U>> Latest<U> for V<T> {
     fn to_unversioned(self) -> U { self.0.to_unversioned() }
 
-    fn from_unversioned(x: U) -> Self { Self(T::from_unversioned(x)) }
+    fn from_unversioned(x: &U) -> Self { Self(T::from_unversioned(x)) }
 }
 
 pub trait Latest<T> {
     fn to_unversioned(self) -> T;
-    fn from_unversioned(x: T) -> Self;
+    fn from_unversioned(x: &T) -> Self;
 }
 
 pub trait Version: Sized + DeserializeOwned {

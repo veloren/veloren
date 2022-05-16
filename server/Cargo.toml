@@ -23,6 +23,7 @@ common-state = { package = "veloren-common-state", path = "../common/state" }
 common-systems = { package = "veloren-common-systems", path = "../common/systems" }
 common-net = { package = "veloren-common-net", path = "../common/net" }
 world = { package = "veloren-world", path = "../world" }
+rtsim2 = { package = "veloren-rtsim", path = "../rtsim" }
 network = { package = "veloren-network", path = "../network", features = ["metrics", "compression", "quic"], default-features = false }
 
 server-agent = {package = "veloren-server-agent", path = "agent"}

@@ -236,7 +236,7 @@ pub struct ReadData<'a> {
     pub light_emitter: ReadStorage<'a, LightEmitter>,
     #[cfg(feature = "worldgen")]
     pub world: ReadExpect<'a, Arc<world::World>>,
-    pub rtsim_entities: ReadStorage<'a, RtSimEntity>,
+    // pub rtsim_entities: ReadStorage<'a, RtSimEntity>,
     pub buffs: ReadStorage<'a, Buffs>,
     pub combos: ReadStorage<'a, Combo>,
     pub active_abilities: ReadStorage<'a, ActiveAbilities>,

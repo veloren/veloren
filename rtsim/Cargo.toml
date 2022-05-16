@@ -5,5 +5,7 @@ edition = "2021"
 
 [dependencies]
 common = { package = "veloren-common", path = "../common" }
-ron = "0.7"
+world = { package = "veloren-world", path = "../world" }
+ron = "0.8"
 serde = { version = "1.0.110", features = ["derive"] }
+hashbrown = { version = "0.12", features = ["rayon", "serde", "nightly"] }

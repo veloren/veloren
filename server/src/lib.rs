@@ -30,6 +30,7 @@ pub mod persistence;
 mod pet;
 pub mod presence;
 pub mod rtsim;
+pub mod rtsim2;
 pub mod settings;
 pub mod state_ext;
 pub mod sys;
@@ -548,6 +549,7 @@ impl Server {
         let connection_handler = ConnectionHandler::new(network, &runtime);
 
         // Initiate real-time world simulation
+        /*
         #[cfg(feature = "worldgen")]
         {
             rtsim::init(&mut state, &world, index.as_index_ref());
@@ -555,6 +557,20 @@ impl Server {
         }
         #[cfg(not(feature = "worldgen"))]
         rtsim::init(&mut state);
+        */
+
+        // Init rtsim, loading it from disk if possible
+        #[cfg(feature = "worldgen")]
+        {
+            match rtsim2::RtSim::new(&world, data_dir.to_owned()) {
+                Ok(rtsim) => state.ecs_mut().insert(rtsim),
+                Err(err) => {
+                    error!("Failed to load rtsim: {}", err);
+                    return Err(Error::RtsimError(err));
+                },
+            }
+            weather::init(&mut state, &world);
+        }
 
         let server_constants = ServerConstants {
             day_cycle_coefficient: 1440.0 / settings.day_length,
@@ -694,9 +710,16 @@ impl Server {
                 add_local_systems(dispatcher_builder);
                 sys::msg::add_server_systems(dispatcher_builder);
                 sys::add_server_systems(dispatcher_builder);
+                /*
                 #[cfg(feature = "worldgen")]
                 {
                     rtsim::add_server_systems(dispatcher_builder);
+                    weather::add_server_systems(dispatcher_builder);
+                }
+                */
+                #[cfg(feature = "worldgen")]
+                {
+                    rtsim2::add_server_systems(dispatcher_builder);
                     weather::add_server_systems(dispatcher_builder);
                 }
             },
@@ -805,6 +828,7 @@ impl Server {
         };
 
         for entity in to_delete {
+            /*
             // Assimilate entities that are part of the real-time world simulation
             if let Some(rtsim_entity) = self
                 .state
@@ -818,6 +842,7 @@ impl Server {
                     .write_resource::<RtSim>()
                     .assimilate_entity(rtsim_entity.0);
             }
+            */
 
             if let Err(e) = self.state.delete_entity_recorded(entity) {
                 error!(?e, "Failed to delete agent outside the terrain");

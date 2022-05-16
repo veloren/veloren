@@ -10,7 +10,7 @@ use crate::{
     chunk_serialize::ChunkSendEntry,
     client::Client,
     presence::{Presence, RepositionOnChunkLoad},
-    rtsim::RtSim,
+    rtsim2,
     settings::Settings,
     ChunkRequest, Tick,
 };
@@ -49,6 +49,11 @@ pub type TerrainPersistenceData<'a> = ();
 
 pub const SAFE_ZONE_RADIUS: f32 = 200.0;
 
+#[cfg(feature = "worldgen")]
+type RtSimData<'a> = WriteExpect<'a, rtsim2::RtSim>;
+#[cfg(not(feature = "worldgen"))]
+type RtSimData<'a> = ();
+
 /// This system will handle loading generated chunks and unloading
 /// unneeded chunks.
 ///     1. Inserts newly generated chunks into the TerrainGrid
@@ -73,7 +78,8 @@ impl<'a> System<'a> for Sys {
         WriteExpect<'a, TerrainGrid>,
         Write<'a, TerrainChanges>,
         Write<'a, Vec<ChunkRequest>>,
-        WriteExpect<'a, RtSim>,
+        //WriteExpect<'a, RtSim>,
+        RtSimData<'a>,
         TerrainPersistenceData<'a>,
         WriteStorage<'a, Pos>,
         ReadStorage<'a, Presence>,
@@ -105,7 +111,8 @@ impl<'a> System<'a> for Sys {
             mut terrain,
             mut terrain_changes,
             mut chunk_requests,
-            mut rtsim,
+            //mut rtsim,
+            mut rtsim2,
             mut _terrain_persistence,
             mut positions,
             presences,
@@ -174,7 +181,8 @@ impl<'a> System<'a> for Sys {
                 terrain_changes.modified_chunks.insert(key);
             } else {
                 terrain_changes.new_chunks.insert(key);
-                rtsim.hook_load_chunk(key);
+                #[cfg(feature = "worldgen")]
+                rtsim2.hook_load_chunk(key);
             }
 
             // Handle chunk supplement
@@ -378,7 +386,8 @@ impl<'a> System<'a> for Sys {
                 // TODO: code duplication for chunk insertion between here and state.rs
                 terrain.remove(key).map(|chunk| {
                     terrain_changes.removed_chunks.insert(key);
-                    rtsim.hook_unload_chunk(key);
+                    #[cfg(feature = "worldgen")]
+                    rtsim2.hook_unload_chunk(key);
                     chunk
                 })
             })

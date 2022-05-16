@@ -41,7 +41,7 @@ pub struct BehaviorData<'a, 'b, 'c> {
     pub agent: &'a mut Agent,
     pub agent_data: AgentData<'a>,
     // TODO: Move rtsim back into AgentData after rtsim2 when it has a separate crate
-    pub rtsim_entity: Option<&'a RtSimEntity>,
+    // pub rtsim_entity: Option<&'a RtSimEntity>,
     pub read_data: &'a ReadData<'a>,
     pub event_emitter: &'a mut Emitter<'c, ServerEvent>,
     pub controller: &'a mut Controller,
@@ -277,6 +277,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                         }
 
                         // Remember this attack if we're an RtSim entity
+                        /*
                         if let Some(attacker_stats) =
                             bdata.rtsim_entity.and(bdata.read_data.stats.get(attacker))
                         {
@@ -284,6 +285,7 @@ fn target_if_attacked(bdata: &mut BehaviorData) -> bool {
                                 .agent
                                 .add_fight_to_memory(&attacker_stats.name, bdata.read_data.time.0);
                         }
+                        */
                     }
                 }
             }
@@ -316,9 +318,11 @@ fn untarget_if_dead(bdata: &mut BehaviorData) -> bool {
         if let Some(tgt_health) = bdata.read_data.healths.get(target) {
             // If target is dead, forget them
             if tgt_health.is_dead {
+                /*
                 if let Some(tgt_stats) = bdata.rtsim_entity.and(bdata.read_data.stats.get(target)) {
                     bdata.agent.forget_enemy(&tgt_stats.name);
                 }
+                */
                 bdata.agent.target = None;
                 return true;
             }
@@ -496,7 +500,7 @@ fn handle_timed_events(bdata: &mut BehaviorData) -> bool {
                     bdata.controller,
                     bdata.read_data,
                     bdata.event_emitter,
-                    will_ambush(bdata.rtsim_entity, &bdata.agent_data),
+                    will_ambush(/* bdata.rtsim_entity */ None, &bdata.agent_data),
                 );
             } else {
                 bdata.agent_data.handle_sounds_heard(
@@ -639,7 +643,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
     let BehaviorData {
         agent,
         agent_data,
-        rtsim_entity,
+        // rtsim_entity,
         read_data,
         event_emitter,
         controller,
@@ -746,7 +750,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         controller,
                         read_data,
                         event_emitter,
-                        will_ambush(*rtsim_entity, agent_data),
+                        will_ambush(/* *rtsim_entity */None, agent_data),
                     );
                 }
 
@@ -764,9 +768,9 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
                         read_data,
                         event_emitter,
                         rng,
-                        remembers_fight_with(*rtsim_entity, read_data, target),
+                        remembers_fight_with(/* *rtsim_entity */None, read_data, target),
                     );
-                    remember_fight(*rtsim_entity, read_data, agent, target);
+                    remember_fight(/* *rtsim_entity */ None, read_data, agent, target);
                 }
             }
         }
@@ -775,6 +779,7 @@ fn do_combat(bdata: &mut BehaviorData) -> bool {
 }
 
 fn will_ambush(rtsim_entity: Option<&RtSimEntity>, agent_data: &AgentData) -> bool {
+    // TODO: implement for rtsim2
     agent_data
         .health
         .map_or(false, |h| h.current() / h.maximum() > 0.7)
@@ -786,6 +791,7 @@ fn remembers_fight_with(
     read_data: &ReadData,
     other: EcsEntity,
 ) -> bool {
+    // TODO: implement for rtsim2
     let name = || read_data.stats.get(other).map(|stats| stats.name.clone());
 
     rtsim_entity.map_or(false, |rtsim_entity| {

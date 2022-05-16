@@ -15,11 +15,17 @@
 //   conclusion that there's just no way to add the feature you want to add
 //   without creating a new version of the data structure in question.
 //
-// That said, here's how to make a change to one of the structures in this
-// module, or submodules.
+// Please note that in *very specific* cases, it is possible to make a change to
+// an existing data structure that is backward-compatible. For example, adding a
+// new variant to an enum or a new field to a struct (where said field is
+// annotated with `#[serde(default)]`) is generally considered to be a
+// backward-compatible change.
+//
+// That said, here's how to make a breaking change to one of the structures in
+// this module, or submodules.
 //
 // 1) Duplicate the latest version of the data structure  and the `Version` impl
-// for it (later    versions should be kept at the top of each file).
+// for it (later versions should be kept at the top of each file).
 //
 // 2) Rename the duplicated version, incrementing the version number (i.e: V0
 // becomes V1).
@@ -38,7 +44,8 @@
 // The *golden rule* is that, once merged to master, an old version's type must
 // not be changed!
 
-pub mod world;
+pub mod actor;
+pub mod nature;
 
 use super::{
     helper::{Bottom, Latest, Version, V},
@@ -46,23 +53,28 @@ use super::{
 };
 use serde::{Deserialize, Serialize};
 
-impl Latest<Data> for DataV0 {
+pub type LatestData = DataV0;
+
+impl Latest<Data> for LatestData {
     fn to_unversioned(self) -> Data {
         Data {
-            world: self.world.to_unversioned(),
+            nature: self.nature.to_unversioned(),
+            actors: self.actors.to_unversioned(),
         }
     }
 
-    fn from_unversioned(data: Data) -> Self {
+    fn from_unversioned(data: &Data) -> Self {
         Self {
-            world: Latest::from_unversioned(data.world),
+            nature: Latest::from_unversioned(&data.nature),
+            actors: Latest::from_unversioned(&data.actors),
         }
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DataV0 {
-    world: V<world::WorldV0>,
+    nature: V<nature::NatureV0>,
+    actors: V<actor::ActorsV0>,
 }
 
 impl Version for DataV0 {
