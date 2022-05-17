@@ -77,15 +77,6 @@ widget_ids! {
         sct_title,
         sct_show_text,
         sct_show_radio,
-        sct_single_dmg_text,
-        sct_single_dmg_radio,
-        sct_show_batch_text,
-        sct_show_batch_radio,
-        sct_batched_dmg_radio,
-        sct_inc_dmg_text,
-        sct_inc_dmg_radio,
-        sct_batch_inc_text,
-        sct_batch_inc_radio,
         sct_round_dmg_text,
         sct_round_dmg_radio,
         sct_dmg_accum_duration_slider,
@@ -719,9 +710,7 @@ impl<'a> Widget for Interface<'a> {
         /*Scrolling Combat text
 
         O Show Damage Numbers
-            O Show single Damage Numbers
                 O Damage Accumulation Duration: 0s ----I----2s
-            O Show batched dealt Damage
             O Show incoming Damage
                 O Incoming Damage Accumulation Duration: 0s ----I----2s
             O Batch incoming Numbers
@@ -770,197 +759,77 @@ impl<'a> Widget for Interface<'a> {
                 .settings
                 .interface
                 .sct_inc_dmg_accum_duration;
-            // Toggle single damage numbers
-            let show_sct_damage_batch = !ToggleButton::new(
-                !self.global_state.settings.interface.sct_damage_batch,
-                self.imgs.checkbox,
-                self.imgs.checkbox_checked,
-            )
-            .w_h(18.0, 18.0)
-            .down_from(state.ids.sct_show_text, 8.0)
-            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-            .set(state.ids.sct_single_dmg_radio, ui);
 
             Text::new(
                 self.localized_strings
-                    .get("hud.settings.single_damage_number"),
+                    .get("hud.settings.damage_accumulation_duration"),
             )
-            .right_from(state.ids.sct_single_dmg_radio, 10.0)
+            .down_from(state.ids.sct_show_radio, 8.0)
+            .right_from(state.ids.sct_show_radio, 10.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.sct_single_dmg_radio)
             .color(TEXT_COLOR)
-            .set(state.ids.sct_single_dmg_text, ui);
+            .set(state.ids.sct_dmg_accum_duration_text, ui);
 
-            if !show_sct_damage_batch {
-                Text::new(
-                    self.localized_strings
-                        .get("hud.settings.damage_accumulation_duration"),
-                )
-                .down_from(state.ids.sct_single_dmg_radio, 8.0)
-                .right_from(state.ids.sct_single_dmg_radio, 10.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_dmg_accum_duration_text, ui);
-
-                if let Some(new_val) = ImageSlider::continuous(
-                    sct_dmg_accum_duration,
-                    0.0,
-                    2.0,
-                    self.imgs.slider_indicator,
-                    self.imgs.slider,
-                )
-                .w_h(104.0, 22.0)
-                .down_from(state.ids.sct_dmg_accum_duration_text, 8.0)
-                .track_breadth(12.0)
-                .slider_length(10.0)
-                .pad_track((5.0, 5.0))
-                .set(state.ids.sct_dmg_accum_duration_slider, ui)
-                {
-                    events.push(SctDamageAccumDuration(new_val));
-                }
-
-                Text::new(&format!("{:.2}", sct_dmg_accum_duration,))
-                    .right_from(state.ids.sct_dmg_accum_duration_slider, 8.0)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .graphics_for(state.ids.sct_dmg_accum_duration_slider)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.sct_dmg_accum_duration_value, ui);
+            if let Some(new_val) = ImageSlider::continuous(
+                sct_dmg_accum_duration,
+                0.0,
+                2.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.sct_dmg_accum_duration_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.sct_dmg_accum_duration_slider, ui)
+            {
+                events.push(SctDamageAccumDuration(new_val));
             }
 
-            // Toggle Batched Damage
-            let show_sct_damage_batch = ToggleButton::new(
-                show_sct_damage_batch,
-                self.imgs.checkbox,
-                self.imgs.checkbox_checked,
-            )
-            .w_h(18.0, 18.0)
-            .down_from(
-                if show_sct_damage_batch {
-                    state.ids.sct_single_dmg_radio
-                } else {
-                    state.ids.sct_dmg_accum_duration_slider
-                },
-                8.0,
-            )
-            .and_if(!show_sct_damage_batch, |tb| {
-                tb.left_from(state.ids.sct_dmg_accum_duration_slider, 10.0)
-            })
-            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-            .set(state.ids.sct_show_batch_radio, ui);
-
-            if self.global_state.settings.interface.sct_damage_batch != show_sct_damage_batch {
-                events.push(SctDamageBatch(
-                    !self.global_state.settings.interface.sct_damage_batch,
-                ))
-            }
-
-            Text::new(self.localized_strings.get("hud.settings.cumulated_damage"))
-                .right_from(state.ids.sct_show_batch_radio, 10.0)
+            Text::new(&format!("{:.2}", sct_dmg_accum_duration,))
+                .right_from(state.ids.sct_dmg_accum_duration_slider, 8.0)
                 .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .graphics_for(state.ids.sct_batched_dmg_radio)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_show_batch_text, ui);
-            // Toggle Incoming Damage
-            let show_sct_player_batch = !ToggleButton::new(
-                !self.global_state.settings.interface.sct_player_batch,
-                self.imgs.checkbox,
-                self.imgs.checkbox_checked,
-            )
-            .w_h(18.0, 18.0)
-            .down_from(state.ids.sct_show_batch_radio, 8.0)
-            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-            .set(state.ids.sct_inc_dmg_radio, ui);
-
-            Text::new(self.localized_strings.get("hud.settings.incoming_damage"))
-                .right_from(state.ids.sct_inc_dmg_radio, 10.0)
-                .font_size(self.fonts.cyri.scale(14))
-                .font_id(self.fonts.cyri.conrod_id)
-                .graphics_for(state.ids.sct_inc_dmg_radio)
-                .color(TEXT_COLOR)
-                .set(state.ids.sct_inc_dmg_text, ui);
-
-            if !show_sct_player_batch {
-                Text::new(
-                    self.localized_strings
-                        .get("hud.settings.incoming_damage_accumulation_duration"),
-                )
-                .down_from(state.ids.sct_inc_dmg_radio, 8.0)
-                .right_from(state.ids.sct_inc_dmg_radio, 10.0)
-                .font_size(self.fonts.cyri.scale(14))
+                .graphics_for(state.ids.sct_dmg_accum_duration_slider)
                 .font_id(self.fonts.cyri.conrod_id)
                 .color(TEXT_COLOR)
-                .set(state.ids.sct_inc_dmg_accum_duration_text, ui);
+                .set(state.ids.sct_dmg_accum_duration_value, ui);
 
-                if let Some(new_val) = ImageSlider::continuous(
-                    sct_inc_dmg_accum_duration,
-                    0.0,
-                    2.0,
-                    self.imgs.slider_indicator,
-                    self.imgs.slider,
-                )
-                .w_h(104.0, 22.0)
-                .down_from(state.ids.sct_inc_dmg_accum_duration_text, 8.0)
-                .track_breadth(12.0)
-                .slider_length(10.0)
-                .pad_track((5.0, 5.0))
-                .set(state.ids.sct_inc_dmg_accum_duration_slider, ui)
-                {
-                    events.push(SctIncomingDamageAccumDuration(new_val));
-                }
-
-                Text::new(&format!("{:.2}", sct_inc_dmg_accum_duration,))
-                    .right_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
-                    .font_size(self.fonts.cyri.scale(14))
-                    .graphics_for(state.ids.sct_inc_dmg_accum_duration_slider)
-                    .font_id(self.fonts.cyri.conrod_id)
-                    .color(TEXT_COLOR)
-                    .set(state.ids.sct_inc_dmg_accum_duration_value, ui);
-            }
-
-            // Toggle Batched Incoming Damage
-            let show_sct_player_batch = ToggleButton::new(
-                show_sct_player_batch,
-                self.imgs.checkbox,
-                self.imgs.checkbox_checked,
-            )
-            .w_h(18.0, 18.0)
-            .down_from(
-                if show_sct_player_batch {
-                    state.ids.sct_inc_dmg_radio
-                } else {
-                    state.ids.sct_inc_dmg_accum_duration_slider
-                },
-                8.0,
-            )
-            .and_if(!show_sct_player_batch, |tb| {
-                tb.left_from(state.ids.sct_inc_dmg_accum_duration_slider, 10.0)
-            })
-            .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
-            .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
-            .set(state.ids.sct_batch_inc_radio, ui);
-
-            if self.global_state.settings.interface.sct_player_batch != show_sct_player_batch {
-                events.push(SctPlayerBatch(
-                    !self.global_state.settings.interface.sct_player_batch,
-                ))
-            }
             Text::new(
                 self.localized_strings
-                    .get("hud.settings.cumulated_incoming_damage"),
+                    .get("hud.settings.incoming_damage_accumulation_duration"),
             )
-            .right_from(state.ids.sct_batch_inc_radio, 10.0)
+            .down_from(state.ids.sct_dmg_accum_duration_slider, 8.0)
             .font_size(self.fonts.cyri.scale(14))
             .font_id(self.fonts.cyri.conrod_id)
-            .graphics_for(state.ids.sct_batch_inc_radio)
             .color(TEXT_COLOR)
-            .set(state.ids.sct_batch_inc_text, ui);
+            .set(state.ids.sct_inc_dmg_accum_duration_text, ui);
+
+            if let Some(new_val) = ImageSlider::continuous(
+                sct_inc_dmg_accum_duration,
+                0.0,
+                2.0,
+                self.imgs.slider_indicator,
+                self.imgs.slider,
+            )
+            .w_h(104.0, 22.0)
+            .down_from(state.ids.sct_inc_dmg_accum_duration_text, 8.0)
+            .track_breadth(12.0)
+            .slider_length(10.0)
+            .pad_track((5.0, 5.0))
+            .set(state.ids.sct_inc_dmg_accum_duration_slider, ui)
+            {
+                events.push(SctIncomingDamageAccumDuration(new_val));
+            }
+
+            Text::new(&format!("{:.2}", sct_inc_dmg_accum_duration,))
+                .right_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
+                .font_size(self.fonts.cyri.scale(14))
+                .graphics_for(state.ids.sct_inc_dmg_accum_duration_slider)
+                .font_id(self.fonts.cyri.conrod_id)
+                .color(TEXT_COLOR)
+                .set(state.ids.sct_inc_dmg_accum_duration_value, ui);
 
             // Round Damage
             let show_sct_damage_rounding = ToggleButton::new(
@@ -969,7 +838,7 @@ impl<'a> Widget for Interface<'a> {
                 self.imgs.checkbox_checked,
             )
             .w_h(18.0, 18.0)
-            .down_from(state.ids.sct_batch_inc_radio, 8.0)
+            .down_from(state.ids.sct_inc_dmg_accum_duration_slider, 8.0)
             .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
             .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
             .set(state.ids.sct_round_dmg_radio, ui);

@@ -1056,7 +1056,7 @@ fn handle_health(
                 amount: hp - health.current(),
                 by: None,
                 cause: None,
-                crit_mult: None,
+                crit: false,
                 time: *time,
                 instance: rand::random(),
             };

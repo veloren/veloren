@@ -66,7 +66,8 @@ pub fn handle_poise(server: &Server, entity: EcsEntity, change: comp::PoiseChang
 
 pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthChange) {
     let ecs = &server.state.ecs();
-    let mut outcomes = ecs.write_resource::<Vec<Outcome>>();
+    let outcomes = ecs.write_resource::<EventBus<Outcome>>();
+    let mut outcomes_emitter = outcomes.emitter();
     let mut changed = false;
     if let Some(mut health) = ecs.write_storage::<Health>().get_mut(entity) {
         changed = health.change_by(change);
@@ -78,13 +79,13 @@ pub fn handle_health_change(server: &Server, entity: EcsEntity, change: HealthCh
         // If the absolute health change amount was greater than the health epsilon,
         // push a new Damage outcome
         if changed {
-            outcomes.push(Outcome::Damage {
+            outcomes_emitter.emit(Outcome::Damage {
                 pos: pos.0,
                 info: DamageInfo {
                     amount: change.amount,
                     by: change.by,
                     target: *uid,
-                    crit_mult: change.crit_mult,
+                    crit: change.crit,
                     instance: change.instance,
                 },
             });

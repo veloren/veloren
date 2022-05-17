@@ -275,7 +275,7 @@ impl<'a> System<'a> for Sys {
                                             by: damage_contributor,
                                             cause,
                                             time: *read_data.time,
-                                            crit_mult: None,
+                                            crit: false,
                                             instance: *instance,
                                         },
                                     });

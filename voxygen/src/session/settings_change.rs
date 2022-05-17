@@ -96,8 +96,6 @@ pub enum Graphics {
 #[derive(Clone)]
 pub enum Interface {
     Sct(bool),
-    SctPlayerBatch(bool),
-    SctDamageBatch(bool),
     SctRoundDamage(bool),
     SctDamageAccumDuration(f32),
     SctIncomingDamageAccumDuration(f32),
@@ -459,12 +457,6 @@ impl SettingsChange {
                 match interface_change {
                     Interface::Sct(sct) => {
                         settings.interface.sct = sct;
-                    },
-                    Interface::SctPlayerBatch(sct_player_batch) => {
-                        settings.interface.sct_player_batch = sct_player_batch;
-                    },
-                    Interface::SctDamageBatch(sct_damage_batch) => {
-                        settings.interface.sct_damage_batch = sct_damage_batch;
                     },
                     Interface::SctRoundDamage(sct_round_damage) => {
                         settings.interface.sct_damage_rounding = sct_round_damage;

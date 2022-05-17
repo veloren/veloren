@@ -258,7 +258,7 @@ impl Attack {
                                     by: attacker.map(|x| x.into()),
                                     cause: Some(damage.damage.source),
                                     time,
-                                    crit_mult: is_crit.then(|| self.crit_multiplier),
+                                    crit: is_crit,
                                     instance: damage.instance,
                                 };
                                 emit(ServerEvent::HealthChange {
@@ -358,7 +358,7 @@ impl Attack {
                                     by: attacker.map(|a| a.into()),
                                     cause: None,
                                     time,
-                                    crit_mult: None,
+                                    crit: false,
                                     instance: rand::random(),
                                 };
                                 if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -393,7 +393,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
-                                crit_mult: None,
+                                crit: false,
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -506,7 +506,7 @@ impl Attack {
                                 by: attacker.map(|a| a.into()),
                                 cause: None,
                                 time,
-                                crit_mult: None,
+                                crit: false,
                                 instance: rand::random(),
                             };
                             if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -541,7 +541,7 @@ impl Attack {
                             by: attacker.map(|a| a.into()),
                             cause: None,
                             time,
-                            crit_mult: None,
+                            crit: false,
                             instance: rand::random(),
                         };
                         if change.amount.abs() > Health::HEALTH_EPSILON {
@@ -859,7 +859,7 @@ impl Damage {
                     by: damage_contributor,
                     cause: Some(self.source),
                     time,
-                    crit_mult: is_crit.then(|| crit_mult),
+                    crit: is_crit,
                     instance,
                 }
             },
@@ -873,7 +873,7 @@ impl Damage {
                     by: None,
                     cause: Some(self.source),
                     time,
-                    crit_mult: None,
+                    crit: false,
                     instance,
                 }
             },
@@ -882,7 +882,7 @@ impl Damage {
                 by: None,
                 cause: Some(self.source),
                 time,
-                crit_mult: None,
+                crit: false,
                 instance,
             },
         }
