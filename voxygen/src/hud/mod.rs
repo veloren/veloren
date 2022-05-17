@@ -4569,11 +4569,9 @@ impl Hud {
                                             == info.crit_mult.is_some())
                                 {
                                     floater.info.amount += info.amount;
-                                    floater.info.crit_mult = if info.crit_mult.is_some() {
-                                        info.crit_mult
-                                    } else {
-                                        floater.info.crit_mult
-                                    };
+                                    if info.crit_mult.is_some() {
+                                        floater.info.crit_mult = info.crit_mult
+                                    }
                                     return;
                                 }
                             }
@@ -4585,35 +4583,25 @@ impl Hud {
                                     f.info.amount < 0.0
                                 } else {
                                     f.info.amount > 0.0
-                                }) && if !hit_me {
+                                }) && (hit_me
                                     // Ignore crit floaters if damage isn't incoming
-                                    f.info.crit_mult.is_none()
-                                } else {
-                                    true
-                                }
+                                    || f.info.crit_mult.is_none())
                             });
 
                             match last_floater {
                                 Some(f)
                                 // If the batch option is enabled, group floaters together for a
                                 // default time
-                                if (if hit_me {
-                                        // Group up crits and regular attacks for incoming damage
-                                        f.timer
-                                            < if !interface.sct_player_batch {
-                                                interface.sct_inc_dmg_accum_duration
-                                            } else {
-                                                1.0
-                                            }
+                                if (f.timer < if interface.sct_damage_batch {
+                                        1.0
+                                    } else if hit_me {
+                                        interface.sct_inc_dmg_accum_duration
                                     } else {
-                                        f.timer
-                                            < if !interface.sct_damage_batch {
-                                                interface.sct_dmg_accum_duration
-                                            } else {
-                                                1.0
-                                            // To avoid grouping up crits with non-crits
-                                            } && info.crit_mult.is_none()
-                                    }) =>
+                                        interface.sct_dmg_accum_duration
+                                    }
+                                    // To avoid grouping up crits with non-crits
+                                    && (info.crit_mult.is_none() || hit_me)
+                                ) =>
                                 {
                                     f.jump_timer = 0.0;
                                     f.info.amount += info.amount;
