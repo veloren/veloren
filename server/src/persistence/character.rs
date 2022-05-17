@@ -54,7 +54,10 @@ struct CharacterContainers {
 /// Load the inventory/loadout
 ///
 /// Loading is done recursively to ensure that each is topologically sorted in
-/// the sense required by convert_inventory_from_database_items
+/// the sense required by convert_inventory_from_database_items.
+///
+/// For items with components, the parent item must sorted so that its
+/// components are after the parent item.
 pub fn load_items(connection: &Connection, root: i64) -> Result<Vec<Item>, PersistenceError> {
     let mut stmt = connection.prepare_cached(
         "

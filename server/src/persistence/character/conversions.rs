@@ -276,6 +276,10 @@ where
     // First checks if item is a component, if it is, tries to get a mutable
     // reference to itself by getting a mutable reference to the item that is its
     // parent
+    //
+    // It is safe to directly index into `inventory_items` with `index` as the
+    // parent item of a component is loaded before its components, therefore the
+    // index of a parent item should exist when loading the component.
     let parent_id = inventory_items[index].parent_container_item_id;
     if inventory_items[index].position.contains("component_") {
         if let Some(parent) = item_indices.get(&parent_id).map(move |i| {
@@ -344,6 +348,9 @@ pub fn convert_inventory_from_database_items(
     let mut inventory = Inventory::new_with_loadout(loadout);
     let mut item_indices = HashMap::new();
 
+    // In order to items with components to properly load, it is important that this
+    // item iteration occurs in order so that any modular items are loaded before
+    // its components.
     for (i, db_item) in inventory_items.iter().enumerate() {
         item_indices.insert(db_item.item_id, i);
 
@@ -442,6 +449,9 @@ pub fn convert_loadout_from_database_items(
     let mut loadout = loadout_builder.build();
     let mut item_indices = HashMap::new();
 
+    // In order to items with components to properly load, it is important that this
+    // item iteration occurs in order so that any modular items are loaded before
+    // its components.
     for (i, db_item) in database_items.iter().enumerate() {
         item_indices.insert(db_item.item_id, i);
 
