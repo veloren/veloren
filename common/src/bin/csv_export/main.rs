@@ -14,7 +14,7 @@ use veloren_common::{
         item::{
             armor::{ArmorKind, Protection},
             tool::{Hands, Tool, ToolKind},
-            Item, ItemKind,
+            Item,
         },
     },
     generation::{EntityConfig, EntityInfo},
@@ -201,42 +201,18 @@ fn get_armor_kind(kind: &ArmorKind) -> String {
     }
 }
 
-fn get_armor_kind_kind(kind: &ArmorKind) -> String {
-    match kind {
-        ArmorKind::Shoulder(x) => x.clone(),
-        ArmorKind::Chest(x) => x.clone(),
-        ArmorKind::Belt(x) => x.clone(),
-        ArmorKind::Hand(x) => x.clone(),
-        ArmorKind::Pants(x) => x.clone(),
-        ArmorKind::Foot(x) => x.clone(),
-        ArmorKind::Back(x) => x.clone(),
-        ArmorKind::Ring(x) => x.clone(),
-        ArmorKind::Neck(x) => x.clone(),
-        ArmorKind::Head(x) => x.clone(),
-        ArmorKind::Tabard(x) => x.clone(),
-        ArmorKind::Bag(x) => x.clone(),
-    }
-}
-
 fn all_items() -> Result<(), Box<dyn Error>> {
     let mut wtr = csv::Writer::from_path("items.csv")?;
-    wtr.write_record(&["Path", "Name", "Kind"])?;
+    wtr.write_record(&["Path", "Name"])?;
 
     for item in comp::item::Item::new_from_asset_glob("common.items.*")
         .expect("Failed to iterate over item folders!")
     {
-        let kind = match &*item.kind() {
-            ItemKind::Armor(armor) => get_armor_kind_kind(&armor.kind),
-            ItemKind::Lantern(lantern) => lantern.kind.clone(),
-            _ => "".to_owned(),
-        };
-
         wtr.write_record(&[
             item.item_definition_id()
                 .itemdef_id()
                 .expect("All items in asset glob should be simple items"),
             &item.name(),
-            &kind,
         ])?;
     }
 
