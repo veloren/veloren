@@ -3,7 +3,8 @@ ItemDef(
     description: "Easy to work with and multi-functional.",
     kind: Ingredient(
         kind: "Cotton",
+        descriptor: "Cotton",
     ),
     quality: Low,
-    tags: [Textile],
+    tags: [MaterialKind(Cloth)],
 )

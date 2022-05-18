@@ -1,0 +1,3032 @@
+[
+/// MODULAR WEAPONS/HAMMERS/PRIMARY COMPONENTS
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.hammer",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.hammer",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.hammer",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.hammer",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.hammer",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.hammer",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.spikedmace",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.warhammer",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.maul",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.maul",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.maul",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.maul",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.maul",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.maul",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greatmace",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.greathammer",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.ornate",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.ornate",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.ornate",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.ornate",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.ornate",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Hammer,
+            item: "common.items.modular.weapon.primary.hammer.ornate",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+/// MODULAR WEAPONS/SWORDS/PRIMARY COMPONENTS
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.longsword",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.longsword",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.longsword",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.longsword",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.longsword",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.longsword",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sawblade",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sawblade",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sawblade",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sawblade",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sawblade",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sawblade",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.katana",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.katana",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.katana",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.katana",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.katana",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.katana",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.zweihander",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.zweihander",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.zweihander",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.zweihander",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.zweihander",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.zweihander",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sabre",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sabre",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sabre",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sabre",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sabre",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.sabre",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.greatsword",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.greatsword",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.greatsword",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.greatsword",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.greatsword",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.greatsword",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.ornate",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.ornate",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.ornate",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.ornate",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.ornate",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sword,
+            item: "common.items.modular.weapon.primary.sword.ornate",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+/// MODULAR WEAPONS/AXES/PRIMARY COMPONENTS
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.axe",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.axe",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.axe",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.axe",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.axe",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.axe",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.jagged",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.jagged",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.jagged",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.jagged",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.jagged",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.jagged",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.battleaxe",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.poleaxe",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.labrys",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.labrys",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.labrys",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.labrys",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.labrys",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.labrys",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.greataxe",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.greataxe",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.greataxe",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.greataxe",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.greataxe",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.greataxe",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.ornate",
+        ),
+        material: ("common.items.mineral.ingot.bronze", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.ornate",
+        ),
+        material: ("common.items.mineral.ingot.iron", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.ornate",
+        ),
+        material: ("common.items.mineral.ingot.steel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.ornate",
+        ),
+        material: ("common.items.mineral.ingot.cobalt", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.ornate",
+        ),
+        material: ("common.items.mineral.ingot.bloodsteel", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Axe,
+            item: "common.items.modular.weapon.primary.axe.ornate",
+        ),
+        material: ("common.items.mineral.ingot.orichalcum", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
+        additional_inputs: [
+            (Item("common.items.tool.craftsman_hammer"), 0),
+        ],
+        craft_sprite: Some(Anvil),
+    ),
+/// MODULAR WEAPONS/BOWS/PRIMARY COMPONENTS
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.bow",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.bow",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.bow",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.bow",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.bow",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.bow",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.composite",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.composite",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.composite",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.composite",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.composite",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.composite",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.greatbow",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.greatbow",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.greatbow",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.greatbow",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.greatbow",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.greatbow",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.longbow",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.longbow",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.longbow",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.longbow",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.longbow",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.longbow",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.ornate",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.ornate",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.ornate",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.ornate",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.ornate",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.ornate",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.shortbow",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.shortbow",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.shortbow",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.shortbow",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.shortbow",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.shortbow",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.warbow",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.warbow",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.warbow",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.warbow",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.warbow",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Bow,
+            item: "common.items.modular.weapon.primary.bow.warbow",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.sticky_thread"), 3),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+/// MODULAR WEAPONS/FIRE STAFFS/PRIMARY COMPONENTS
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.brand",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.brand",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.brand",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.brand",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.brand",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.brand",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.grandstaff",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.longpole",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.longpole",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.longpole",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.longpole",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.longpole",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.longpole",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.ornate",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.ornate",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.ornate",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.ornate",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.ornate",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.ornate",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.pole",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.pole",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.pole",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.pole",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.pole",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.pole",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.rod",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.rod",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.rod",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.rod",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.rod",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.rod",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.staff",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.staff",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.staff",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.staff",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.staff",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Staff,
+            item: "common.items.modular.weapon.primary.staff.staff",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+/// MODULAR WEAPONS/NATURE SCEPTRES/PRIMARY COMPONENTS
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.arbor",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.long_tusk", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.cane",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.cane",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.cane",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.cane",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.cane",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.cane",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.strong_pincer", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crook",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crook",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crook",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crook",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crook",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crook",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.sharp_fang", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.crozier",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.claw", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.grandsceptre",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.large_horn", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 1)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 2)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 5)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 10)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 20)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.ornate",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: Some(("common.items.crafting_ing.animal_misc.elegant_crest", 50)),
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
+        ),
+        material: ("common.items.log.wood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
+        ),
+        material: ("common.items.log.bamboo", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
+        ),
+        material: ("common.items.log.hardwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
+        ),
+        material: ("common.items.log.ironwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
+        ),
+        material: ("common.items.log.frostwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+    (
+        output: ToolPrimaryComponent(
+            toolkind: Sceptre,
+            item: "common.items.modular.weapon.primary.sceptre.sceptre",
+        ),
+        material: ("common.items.log.eldwood", 5),
+        modifier: None,
+        additional_inputs: [
+            (Item("common.items.crafting_ing.leather.leather_strips"), 2),
+        ],
+        craft_sprite: Some(CraftingBench),
+    ),
+]

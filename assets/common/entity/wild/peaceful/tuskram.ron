@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("tuskram"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_medium.fanged"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.tuskram"),
     inventory: (
         loadout: FromBody,
     ),

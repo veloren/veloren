@@ -8,7 +8,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.chieftain"),
-            active_hands: ("common.items.npc_weapons.biped_small.gnarling.chieftain", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.gnarling.chieftain"), None)),
         )),
     ),
     meta: [

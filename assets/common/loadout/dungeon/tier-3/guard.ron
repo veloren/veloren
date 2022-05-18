@@ -1,8 +1,8 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.npc_armor.biped_small.haniwa.head.guard",
-    chest: "common.items.npc_armor.biped_small.haniwa.chest.guard",
-    gloves: "common.items.npc_armor.biped_small.haniwa.hand.guard",
-    legs: "common.items.npc_armor.biped_small.haniwa.pants.guard",
-    feet: "common.items.npc_armor.biped_small.haniwa.foot.guard",
+    head: Item("common.items.npc_armor.biped_small.haniwa.head.guard"),
+    chest: Item("common.items.npc_armor.biped_small.haniwa.chest.guard"),
+    gloves: Item("common.items.npc_armor.biped_small.haniwa.hand.guard"),
+    legs: Item("common.items.npc_armor.biped_small.haniwa.pants.guard"),
+    feet: Item("common.items.npc_armor.biped_small.haniwa.foot.guard"),
 )

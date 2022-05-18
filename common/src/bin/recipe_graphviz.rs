@@ -20,20 +20,27 @@ fn main() {
             .or_insert_with(|| graph.add_node(node.to_owned()))
     };
     for (_, recipe) in recipes.iter() {
-        let output = recipe.output.0.item_definition_id();
+        let output = String::from(
+            recipe
+                .output
+                .0
+                .item_definition_id()
+                .itemdef_id()
+                .expect("Recipe book can only create simple items (probably)"),
+        );
         let inputs = recipe
             .inputs
             .iter()
-            .map(|(i, _)| i)
+            .map(|(i, _, _)| i)
             .filter_map(|input| {
                 if let RecipeInput::Item(item) = input {
-                    Some(item.item_definition_id())
+                    item.item_definition_id().itemdef_id().map(String::from)
                 } else {
                     None
                 }
             })
             .collect::<Vec<_>>();
-        let out_node = add_node(&mut graph, output);
+        let out_node = add_node(&mut graph, &output);
         for input in inputs.iter() {
             let in_node = add_node(&mut graph, input);
             graph.add_edge(in_node, out_node, ());

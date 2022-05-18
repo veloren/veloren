@@ -3,7 +3,8 @@ ItemDef(
     description: "Shiny scale from an animal.",
     kind: Ingredient(
         kind: "Scale",
+        descriptor: "Scale",
     ),
     quality: Moderate,
-    tags: [],
+    tags: [MaterialKind(Hide), Material(Scale)],
 )

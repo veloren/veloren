@@ -4,8 +4,8 @@ use common::{
         inventory::trade_pricing::TradePricing,
         item::{
             armor::{Armor, ArmorKind, Protection},
-            tool::{Hands, StatKind, Stats, Tool, ToolKind},
-            Item, ItemDesc, ItemKind, MaterialKind, MaterialStatManifest, ModularComponent,
+            tool::{Hands, Tool, ToolKind},
+            ItemDesc, ItemKind, MaterialKind,
         },
         BuffKind,
     },
@@ -78,7 +78,17 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
             tool_kind(tool, i18n),
             tool_hands(tool, i18n)
         )),
-        ItemKind::ModularComponent(_mc) => Cow::Borrowed(i18n.get("common.bag.shoulders")),
+        ItemKind::ModularComponent(mc) => {
+            if let Some(toolkind) = mc.toolkind() {
+                Cow::Owned(format!(
+                    "{} {}",
+                    i18n.get(&format!("common.weapons.{}", toolkind.identifier_name())),
+                    i18n.get("common.kind.modular_component_partial")
+                ))
+            } else {
+                Cow::Borrowed(i18n.get("common.kind.modular_component"))
+            }
+        },
         ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),
         ItemKind::Consumable { .. } => Cow::Borrowed(i18n.get("common.kind.consumable")),
         ItemKind::Throwable { .. } => Cow::Borrowed(i18n.get("common.kind.throwable")),
@@ -99,29 +109,8 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> &'
     }
 }
 
-// TODO: localization, refactor when mc are player facing
-pub fn modular_component_desc(
-    mc: &ModularComponent,
-    components: &[Item],
-    msm: &MaterialStatManifest,
-    description: &str,
-) -> String {
-    let stats = StatKind::Direct(mc.stats).resolve_stats(msm, components);
-    let statblock = statblock_desc(&stats);
-    let mut result = format!("Modular Component\n\n{}\n\n{}", statblock, description);
-    if !components.is_empty() {
-        result += "\n\nMade from:\n";
-        for component in components {
-            result += component.name();
-            result += "\n"
-        }
-        result += "\n";
-    }
-    result
-}
-
 pub fn stats_count(item: &dyn ItemDesc) -> usize {
-    let mut count = match item.kind() {
+    let mut count = match &*item.kind() {
         ItemKind::Armor(armor) => {
             if matches!(armor.kind, ArmorKind::Bag(_)) {
                 0
@@ -133,13 +122,13 @@ pub fn stats_count(item: &dyn ItemDesc) -> usize {
                     + armor.stats.poise_resilience().is_some() as usize
             }
         },
-        ItemKind::Tool(_) => 4,
+        ItemKind::Tool(_) => 7,
         ItemKind::Consumable { effects, .. } => effects.len(),
-        ItemKind::ModularComponent { .. } => 1,
+        ItemKind::ModularComponent { .. } => 7,
         _ => 0,
     };
 
-    let is_bag = match item.kind() {
+    let is_bag = match &*item.kind() {
         ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag(_)),
         _ => false,
     };
@@ -282,17 +271,6 @@ pub fn tool_hands<'a>(tool: &Tool, i18n: &'a Localization) -> &'a str {
     hands
 }
 
-fn statblock_desc(stats: &Stats) -> String {
-    format!(
-        // TODO: Change display of Effect Power based on toolkind equipped and what effect power is
-        // affecting
-        "Power: {:0.1}\n\nPoise Strength: {:0.1}\n\nSpeed: {:0.1}\n\n",
-        stats.power * 10.0,
-        stats.effect_power * 10.0,
-        stats.speed,
-    ) + &format!("Crit chance: {:0.1}%\n\n", stats.crit_chance * 100.0,)
-}
-
 /// Compare two type, output a colored character to show comparison
 pub fn comparison<T: PartialOrd>(first: T, other: T) -> (&'static str, conrod_core::Color) {
     if first == other {
@@ -379,8 +357,8 @@ pub fn ability_image(imgs: &img_ids::Imgs, ability_id: &str) -> image::Id {
 }
 
 #[rustfmt::skip]
-pub fn ability_description(ability_id: &str) -> (&str, &str) {
-    match ability_id {
+pub fn ability_description(ability_id: &str) -> (Cow<str>, &str) {
+    let (name, desc) = match ability_id {
         // Debug stick
         "common.abilities.debug.possess" => (
             "Possessing Arrow",
@@ -420,5 +398,6 @@ pub fn ability_description(ability_id: &str) -> (&str, &str) {
             "Ability has no title",
             "Ability has no description."
         ),
-    }
+    };
+    (Cow::Borrowed(name), desc)
 }

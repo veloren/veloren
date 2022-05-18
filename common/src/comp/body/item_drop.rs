@@ -62,7 +62,7 @@ impl From<Body> for super::Body {
 
 impl From<&Item> for Body {
     fn from(item: &Item) -> Self {
-        match item.kind() {
+        match &*item.kind() {
             ItemKind::Tool(Tool { kind, .. }) => Body::Tool(*kind),
             ItemKind::ModularComponent(_) => Body::ModularComponent,
             ItemKind::Lantern(_) => Body::Lantern,

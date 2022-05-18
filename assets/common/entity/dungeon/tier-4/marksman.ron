@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-4.marksman"),
-            active_hands: ("common.items.npc_weapons.biped_small.myrmidon.marksman", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.myrmidon.marksman"), None)),
         )),
     ),
     meta: [

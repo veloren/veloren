@@ -1,9 +1,9 @@
 #![enable(implicit_some)]
 (
-    head: "common.items.armor.chef.hat",
-    chest: "common.items.armor.chef.chest",
-    gloves: "common.items.armor.cloth.linen.hand",
-    belt: "common.items.armor.chef.belt",
-    legs: "common.items.armor.chef.pants",
-    feet: "common.items.armor.cloth.linen.foot",
+    head: Item("common.items.armor.chef.hat"),
+    chest: Item("common.items.armor.chef.chest"),
+    gloves: Item("common.items.armor.cloth.linen.hand"),
+    belt: Item("common.items.armor.chef.belt"),
+    legs: Item("common.items.armor.chef.pants"),
+    feet: Item("common.items.armor.cloth.linen.foot"),
 )

@@ -1,0 +1,23 @@
+ItemDef(
+    name: "Maul Head",
+    description: "",
+    kind: ModularComponent(
+        ToolPrimaryComponent(
+            toolkind: Hammer,
+            stats: (
+                equip_time_secs: 0.25,
+                power: 0.8,
+                effect_power: 0.8,
+                speed: 0.8,
+                crit_chance: 0.2,
+                range: 1.3,
+                energy_efficiency: 0.8,
+                buff_strength: 0.8,
+            ),
+            hand_restriction: Some(Two),
+            weapon_name: Universal("Maul"),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)

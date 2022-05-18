@@ -3,6 +3,8 @@ ItemDef(
     description: "Used to craft various items.",
     kind: Ingredient(
         kind: "SewingSet",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Moderate,
     tags: [CraftingTool],

@@ -1,23 +1,23 @@
 #![enable(implicit_some)]
 (
-    shoulders: "common.items.armor.hide.primal.shoulder",
-    chest: "common.items.armor.hide.primal.chest",
-    gloves: "common.items.armor.hide.primal.hand",
-    back: [
-        (1, "common.items.armor.misc.back.backpack"),
-        (1, "common.items.npc_armor.back.backpack_blue"),
-        (1, "common.items.armor.hide.primal.back"),
+    shoulders: Item("common.items.armor.hide.primal.shoulder"),
+    chest: Item("common.items.armor.hide.primal.chest"),
+    gloves: Item("common.items.armor.hide.primal.hand"),
+    back: Choice([
+        (1, Item("common.items.armor.misc.back.backpack")),
+        (1, Item("common.items.npc_armor.back.backpack_blue")),
+        (1, Item("common.items.armor.hide.primal.back")),
         (1, None),
-    ],
-    belt: "common.items.armor.hide.primal.belt",
-    legs: "common.items.armor.hide.primal.pants",
-    feet: "common.items.armor.hide.primal.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
-        (1, "common.items.lantern.blue_0"),
-        (1, "common.items.lantern.green_0"),
-        (1, "common.items.lantern.red_0"),
-        (1, "common.items.lantern.geode_purp"),
-        (1, "common.items.boss_drops.lantern"),
-    ],
+    ]),
+    belt: Item("common.items.armor.hide.primal.belt"),
+    legs: Item("common.items.armor.hide.primal.pants"),
+    feet: Item("common.items.armor.hide.primal.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
+        (1, Item("common.items.lantern.blue_0")),
+        (1, Item("common.items.lantern.green_0")),
+        (1, Item("common.items.lantern.red_0")),
+        (1, Item("common.items.lantern.geode_purp")),
+        (1, Item("common.items.boss_drops.lantern")),
+    ]),
 )

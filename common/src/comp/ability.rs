@@ -94,7 +94,7 @@ impl ActiveAbilities {
     ) -> [AuxiliaryAbility; MAX_ABILITIES] {
         let tool_kind = |slot| {
             inv.and_then(|inv| inv.equipped(slot))
-                .and_then(|item| match item.kind() {
+                .and_then(|item| match &*item.kind() {
                     ItemKind::Tool(tool) => Some(tool.kind),
                     _ => None,
                 })
@@ -148,12 +148,12 @@ impl ActiveAbilities {
         };
 
         let scale_ability = |ability: CharacterAbility, equip_slot| {
-            let tool_kind =
-                inv.and_then(|inv| inv.equipped(equip_slot))
-                    .and_then(|item| match &item.kind {
-                        ItemKind::Tool(tool) => Some(tool.kind),
-                        _ => None,
-                    });
+            let tool_kind = inv
+                .and_then(|inv| inv.equipped(equip_slot))
+                .and_then(|item| match &*item.kind() {
+                    ItemKind::Tool(tool) => Some(tool.kind),
+                    _ => None,
+                });
             ability.adjusted_by_skills(skill_set, tool_kind)
         };
 
@@ -1002,9 +1002,7 @@ impl CharacterAbility {
                          duration: _,
                          category: _,
                      }| {
-                        // Do we want to make buff_strength affect this instead of power?
-                        // Look into during modular weapon transition
-                        *strength *= stats.power;
+                        *strength *= stats.diminished_buff_strength();
                     },
                 );
                 *range *= stats.range;
@@ -1044,9 +1042,7 @@ impl CharacterAbility {
                 buff_duration: _,
                 ref mut energy_cost,
             } => {
-                // Do we want to make buff_strength affect this instead of power?
-                // Look into during modular weapon transition
-                *buff_strength *= stats.power;
+                *buff_strength *= stats.diminished_buff_strength();
                 *buildup_duration /= stats.speed;
                 *cast_duration /= stats.speed;
                 *recover_duration /= stats.speed;

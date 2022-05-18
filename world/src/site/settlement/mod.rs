@@ -1086,12 +1086,12 @@ fn sort_wares(bag: &mut [Item]) {
         // sort by kind
         .then(
             Ord::cmp(
-                a.tags.first().map_or("", |tag| tag.name()),
-                b.tags.first().map_or("", |tag| tag.name()),
+                a.tags().first().map_or("", |tag| tag.name()),
+                b.tags().first().map_or("", |tag| tag.name()),
             )
         )
         // sort by name
-        .then(Ord::cmp(a.name(), b.name()))
+        .then(Ord::cmp(&a.name(), &b.name()))
     });
 }
 

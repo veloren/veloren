@@ -1,0 +1,23 @@
+ItemDef(
+    name: "Greathammer Head",
+    description: "",
+    kind: ModularComponent(
+        ToolPrimaryComponent(
+            toolkind: Hammer,
+            stats: (
+                equip_time_secs: 0.25,
+                power: 0.8,
+                effect_power: 1.5,
+                speed: 0.8,
+                crit_chance: 0.075,
+                range: 1.0,
+                energy_efficiency: 0.8,
+                buff_strength: 0.8,
+            ),
+            hand_restriction: Some(Two),
+            weapon_name: Universal("Greathammer"),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)

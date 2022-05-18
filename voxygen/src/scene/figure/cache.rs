@@ -15,7 +15,7 @@ use common::{
         item::{
             armor::{Armor, ArmorKind},
             item_key::ItemKey,
-            Item, ItemKind,
+            modular, Item, ItemDefinitionId, ItemKind,
         },
         CharacterState,
     },
@@ -26,6 +26,7 @@ use common::{
 use core::{hash::Hash, ops::Range};
 use crossbeam_utils::atomic;
 use hashbrown::{hash_map::Entry, HashMap};
+use serde::Deserialize;
 use std::sync::Arc;
 use vek::*;
 
@@ -71,10 +72,10 @@ pub struct FigureKey<Body> {
     pub(super) extra: Option<Arc<CharacterCacheKey>>,
 }
 
-#[derive(Eq, Hash, PartialEq)]
-pub(super) struct ToolKey {
-    pub name: String,
-    pub components: Vec<String>,
+#[derive(Deserialize, Eq, Hash, PartialEq, Debug)]
+pub enum ToolKey {
+    Tool(String),
+    Modular(modular::ModularWeaponKey),
 }
 
 /// Character data that should be visible when tools are visible (i.e. in third
@@ -151,6 +152,7 @@ impl CharacterCacheKey {
                     })) = inventory
                         .equipped(EquipSlot::Armor(ArmorSlot::Head))
                         .map(|i| i.kind())
+                        .as_deref()
                     {
                         Some(armor.clone())
                     } else {
@@ -162,6 +164,7 @@ impl CharacterCacheKey {
                     })) = inventory
                         .equipped(EquipSlot::Armor(ArmorSlot::Shoulders))
                         .map(|i| i.kind())
+                        .as_deref()
                     {
                         Some(armor.clone())
                     } else {
@@ -173,6 +176,7 @@ impl CharacterCacheKey {
                     })) = inventory
                         .equipped(EquipSlot::Armor(ArmorSlot::Chest))
                         .map(|i| i.kind())
+                        .as_deref()
                     {
                         Some(armor.clone())
                     } else {
@@ -184,6 +188,7 @@ impl CharacterCacheKey {
                     })) = inventory
                         .equipped(EquipSlot::Armor(ArmorSlot::Belt))
                         .map(|i| i.kind())
+                        .as_deref()
                     {
                         Some(armor.clone())
                     } else {
@@ -195,6 +200,7 @@ impl CharacterCacheKey {
                     })) = inventory
                         .equipped(EquipSlot::Armor(ArmorSlot::Back))
                         .map(|i| i.kind())
+                        .as_deref()
                     {
                         Some(armor.clone())
                     } else {
@@ -206,6 +212,7 @@ impl CharacterCacheKey {
                     })) = inventory
                         .equipped(EquipSlot::Armor(ArmorSlot::Legs))
                         .map(|i| i.kind())
+                        .as_deref()
                     {
                         Some(armor.clone())
                     } else {
@@ -214,13 +221,14 @@ impl CharacterCacheKey {
                 })
             },
             tool: if are_tools_visible {
-                let tool_key_from_item = |item: &Item| ToolKey {
-                    name: item.item_definition_id().to_owned(),
-                    components: item
-                        .components()
-                        .iter()
-                        .map(|comp| comp.item_definition_id().to_owned())
-                        .collect(),
+                let tool_key_from_item = |item: &Item| match item.item_definition_id() {
+                    ItemDefinitionId::Simple(id) => ToolKey::Tool(String::from(id)),
+                    ItemDefinitionId::Modular { .. } => {
+                        ToolKey::Modular(modular::weapon_to_key(item))
+                    },
+                    ItemDefinitionId::Compound { simple_base, .. } => {
+                        ToolKey::Tool(String::from(simple_base))
+                    },
                 };
                 Some(CharacterToolKey {
                     active: inventory
@@ -233,15 +241,19 @@ impl CharacterCacheKey {
             } else {
                 None
             },
-            lantern: if let Some(ItemKind::Lantern(lantern)) =
-                inventory.equipped(EquipSlot::Lantern).map(|i| i.kind())
+            lantern: if let Some(ItemKind::Lantern(lantern)) = inventory
+                .equipped(EquipSlot::Lantern)
+                .map(|i| i.kind())
+                .as_deref()
             {
                 Some(lantern.kind.clone())
             } else {
                 None
             },
-            glider: if let Some(ItemKind::Glider(glider)) =
-                inventory.equipped(EquipSlot::Glider).map(|i| i.kind())
+            glider: if let Some(ItemKind::Glider(glider)) = inventory
+                .equipped(EquipSlot::Glider)
+                .map(|i| i.kind())
+                .as_deref()
             {
                 Some(glider.kind.clone())
             } else {
@@ -253,6 +265,7 @@ impl CharacterCacheKey {
             })) = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Hands))
                 .map(|i| i.kind())
+                .as_deref()
             {
                 Some(armor.clone())
             } else {
@@ -264,6 +277,7 @@ impl CharacterCacheKey {
             })) = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Feet))
                 .map(|i| i.kind())
+                .as_deref()
             {
                 Some(armor.clone())
             } else {
@@ -275,6 +289,7 @@ impl CharacterCacheKey {
             })) = inventory
                 .equipped(EquipSlot::Armor(ArmorSlot::Head))
                 .map(|i| i.kind())
+                .as_deref()
             {
                 Some(armor.clone())
             } else {

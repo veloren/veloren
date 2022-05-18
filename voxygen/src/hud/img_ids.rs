@@ -113,6 +113,9 @@ image_ids! {
         crafting_icon_hover: "voxygen.element.ui.generic.buttons.anvil_hover",
         crafting_icon_press: "voxygen.element.ui.generic.buttons.anvil_press",
         quality_indicator: "voxygen.element.ui.crafting.quality_indicator",
+        icon_claw: "voxygen.element.ui.crafting.icons.claw",
+        icon_ingot: "voxygen.element.ui.crafting.icons.ingot",
+        icon_log: "voxygen.element.ui.crafting.icons.log",
         icon_armor: "voxygen.element.ui.crafting.icons.armors",
         icon_tools: "voxygen.element.ui.crafting.icons.crafting_tools",
         icon_dismantle: "voxygen.element.ui.crafting.icons.dismantle",
@@ -124,7 +127,10 @@ image_ids! {
         icon_weapon: "voxygen.element.ui.crafting.icons.weapons",
         icon_bag: "voxygen.element.items.item_bag_leather_large",
         icon_processed_material: "voxygen.element.ui.crafting.icons.processed_material",
-
+        crafting_modular_art: "voxygen.element.ui.crafting.modular_weps_art",
+        icon_primary_comp: "voxygen.element.ui.crafting.icons.blade",
+        icon_secondary_comp: "voxygen.element.ui.crafting.icons.handle",
+        icon_mod_weap: "voxygen.element.ui.bag.backgrounds.mainhand",
         // Group Window
         member_frame: "voxygen.element.ui.groups.group_member_frame",
         member_bg: "voxygen.element.ui.groups.group_member_bg",

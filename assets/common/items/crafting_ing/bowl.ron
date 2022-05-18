@@ -3,6 +3,8 @@ ItemDef(
     description: "A simple bowl for preparing meals.",
     kind: Ingredient(
         kind: "Bowl",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

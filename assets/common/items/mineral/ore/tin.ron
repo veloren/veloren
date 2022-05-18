@@ -3,6 +3,8 @@ ItemDef(
     description: "A silvery metal. One of the components of bronze.",
     kind: Ingredient(
         kind: "TinOre",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Low,
     tags: [],

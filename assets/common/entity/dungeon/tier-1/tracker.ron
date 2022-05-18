@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-1.tracker"),
-            active_hands: ("common.items.npc_weapons.biped_small.adlet.tracker", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.adlet.tracker"), None)),
         )),
     ),
     meta: [

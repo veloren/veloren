@@ -3,11 +3,11 @@ use crate::comp::{
         armor,
         armor::{ArmorKind, Protection},
         tool::AbilityMap,
-        ItemDef, ItemKind, MaterialStatManifest, Quality,
+        ItemBase, ItemDef, ItemKind, MaterialStatManifest, Quality,
     },
     Item,
 };
-use std::{default::Default, sync::Arc};
+use std::sync::Arc;
 
 pub(super) fn get_test_bag(slots: u16) -> Item {
     let item_def = ItemDef::new_test(
@@ -22,10 +22,10 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
         slots,
     );
 
-    Item::new_from_item_def(
-        Arc::new(item_def),
-        &[],
-        &AbilityMap::default(),
-        &MaterialStatManifest::default(),
+    Item::new_from_item_base(
+        ItemBase::Simple(Arc::new(item_def)),
+        Vec::new(),
+        &AbilityMap::load().read(),
+        &MaterialStatManifest::load().read(),
     )
 }

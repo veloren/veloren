@@ -1,0 +1,24 @@
+ItemDef(
+    name: "Composite Bow Limbs",
+    description: "",
+    kind: ModularComponent(
+        ToolPrimaryComponent(
+            toolkind: Bow,
+            stats: (
+                equip_time_secs: 0.25,
+                power: 1.0,
+                effect_power: 0.8,
+                speed: 0.7,
+                crit_chance: 0.075,
+                range: 1.0,
+                energy_efficiency: 0.8,
+                buff_strength: 1.5,
+            ),
+            hand_restriction: Some(Two),
+            weapon_name: Universal("Composite Bow"),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)
+

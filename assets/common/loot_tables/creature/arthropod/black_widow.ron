@@ -1,0 +1,5 @@
+[
+    (2.0, ItemQuantity("common.items.crafting_ing.sticky_thread", 2, 5)),
+    (1.0, Item("common.items.crafting_ing.animal_misc.venom_sac")),
+    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.strong_pincer", 1, 2)),
+]

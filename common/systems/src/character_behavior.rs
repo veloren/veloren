@@ -43,7 +43,7 @@ pub struct ReadData<'a> {
     stats: ReadStorage<'a, Stats>,
     skill_sets: ReadStorage<'a, SkillSet>,
     active_abilities: ReadStorage<'a, ActiveAbilities>,
-    msm: Read<'a, MaterialStatManifest>,
+    msm: ReadExpect<'a, MaterialStatManifest>,
     combos: ReadStorage<'a, Combo>,
     alignments: ReadStorage<'a, comp::Alignment>,
     terrain: ReadExpect<'a, TerrainGrid>,

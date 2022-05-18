@@ -1,0 +1,23 @@
+ItemDef(
+    name: "Medium Axe Haft",
+    description: "",
+    kind: ModularComponent(
+        ToolSecondaryComponent(
+            toolkind: Axe,
+            stats: (
+                equip_time_secs: 1.0,
+                power: 1.0,
+                effect_power: 1.0,
+                speed: 0.9,
+                crit_chance: 0.9,
+                range: 1.0,
+                energy_efficiency: 0.9,
+                buff_strength: 1.0,
+            ),
+            hand_restriction: None,
+        )
+    ),
+    quality: Common,
+    tags: [],
+)
+

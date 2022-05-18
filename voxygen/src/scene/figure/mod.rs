@@ -873,7 +873,7 @@ impl FigureMgr {
                 inventory
                     .and_then(|i| i.equipped(equip_slot))
                     .map(|i| {
-                        if let ItemKind::Tool(tool) = i.kind() {
+                        if let ItemKind::Tool(tool) = &*i.kind() {
                             (Some(tool.kind), Some(tool.hands), i.ability_spec())
                         } else {
                             (None, None, None)
@@ -884,8 +884,10 @@ impl FigureMgr {
 
             let (active_tool_kind, active_tool_hand, active_tool_spec) =
                 tool_info(EquipSlot::ActiveMainhand);
+            let active_tool_spec = active_tool_spec.as_deref();
             let (second_tool_kind, second_tool_hand, second_tool_spec) =
                 tool_info(EquipSlot::ActiveOffhand);
+            let second_tool_spec = second_tool_spec.as_deref();
 
             let hands = (active_tool_hand, second_tool_hand);
 

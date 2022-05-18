@@ -1,12 +1,12 @@
 #![enable(implicit_some)]
 (
     inherit: Asset("test.loadout.ok.just_rings"),
-    head: "common.items.armor.cultist.bandana",
-    active_hands: (
-        "common.items.weapons.axe_1h.orichalcum-0",
-        [
-           (1, "common.items.weapons.hammer_1h.orichalcum-0"),
-           (1, "common.items.weapons.axe_1h.orichalcum-0"),
-        ],
-    ),
+    head: Item("common.items.armor.cultist.bandana"),
+    active_hands: InHands((
+        ModularWeapon(tool: Axe, material: Orichalcum, hands: One),
+        Choice([
+           (1, ModularWeapon(tool: Hammer, material: Orichalcum, hands: One)),
+           (1, ModularWeapon(tool: Axe, material: Orichalcum, hands: One)),
+        ]),
+    )),
 )

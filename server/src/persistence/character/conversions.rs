@@ -11,7 +11,7 @@ use common::{
     character::CharacterId,
     comp::{
         inventory::{
-            item::{tool::AbilityMap, MaterialStatManifest},
+            item::{tool::AbilityMap, Item as VelorenItem, MaterialStatManifest},
             loadout::{Loadout, LoadoutError},
             loadout_builder::LoadoutBuilder,
             slot::InvSlotId,
@@ -36,8 +36,9 @@ pub struct ItemModelPair {
 // shouldn't matter unless someone's hot-reloading material stats on the live
 // server
 lazy_static! {
-    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest = MaterialStatManifest::default();
-    pub static ref ABILITY_MAP: AbilityMap = AbilityMap::default();
+    pub static ref MATERIAL_STATS_MANIFEST: MaterialStatManifest =
+        MaterialStatManifest::load().cloned();
+    pub static ref ABILITY_MAP: AbilityMap = AbilityMap::load().cloned();
 }
 
 /// Returns a vector that contains all item rows to upsert; parent is
@@ -166,7 +167,7 @@ pub fn convert_items_to_database_items(
 
             let upsert = ItemModelPair {
                 model: Item {
-                    item_definition_id: item.item_definition_id().to_owned(),
+                    item_definition_id: String::from(item.persistence_item_id()),
                     position,
                     parent_container_item_id,
                     item_id,
@@ -256,6 +257,76 @@ pub fn convert_waypoint_from_database_json(
     ))
 }
 
+// Used to handle cases of modular items that are composed of components.
+// When called with the index of a component's parent item, it can get a mutable
+// reference to that parent item so that the component can be added to the
+// parent item. If the item corresponding to the index this is called on is
+// itself a component, recursively goes through inventory until it grabs
+// component.
+fn get_mutable_item<'a, 'b, T>(
+    index: usize,
+    inventory_items: &'a [Item],
+    item_indices: &'a HashMap<i64, usize>,
+    inventory: &'b mut T,
+    get_mut_item: &'a impl Fn(&'b mut T, &str) -> Option<&'b mut VelorenItem>,
+) -> Result<&'a mut VelorenItem, PersistenceError>
+where
+    'b: 'a,
+{
+    // First checks if item is a component, if it is, tries to get a mutable
+    // reference to itself by getting a mutable reference to the item that is its
+    // parent
+    //
+    // It is safe to directly index into `inventory_items` with `index` as the
+    // parent item of a component is loaded before its components, therefore the
+    // index of a parent item should exist when loading the component.
+    let parent_id = inventory_items[index].parent_container_item_id;
+    if inventory_items[index].position.contains("component_") {
+        if let Some(parent) = item_indices.get(&parent_id).map(move |i| {
+            get_mutable_item(
+                *i,
+                inventory_items,
+                item_indices,
+                inventory,
+                // slot,
+                get_mut_item,
+            )
+        }) {
+            // Parses component index
+            let position = &inventory_items[index].position;
+            let component_index = position
+                .split('_')
+                .nth(1)
+                .and_then(|s| s.parse::<usize>().ok())
+                .ok_or_else(|| {
+                    PersistenceError::ConversionError(format!(
+                        "Failed to parse position stored in database: {position}."
+                    ))
+                })?;
+            // Returns mutable reference to component item by accessing the component
+            // through its parent item item
+            parent?
+                .persistence_access_mutable_component(component_index)
+                .ok_or_else(|| {
+                    PersistenceError::ConversionError(format!(
+                        "Component in position {component_index} doesn't exist on parent item \
+                         {parent_id}."
+                    ))
+                })
+        } else {
+            Err(PersistenceError::ConversionError(format!(
+                "Parent item with id {parent_id} does not exist in database."
+            )))
+        }
+    } else {
+        get_mut_item(inventory, &inventory_items[index].position).ok_or_else(|| {
+            PersistenceError::ConversionError(format!(
+                "Unable to retrieve parent veloren item {parent_id} of component from inventory."
+            ))
+        })
+    }
+}
+
 /// Properly-recursive items (currently modular weapons) occupy the same
 /// inventory slot as their parent. The caller is responsible for ensuring that
 /// inventory_items and loadout_items are topologically sorted (i.e. forall i,
@@ -277,6 +348,9 @@ pub fn convert_inventory_from_database_items(
     let mut inventory = Inventory::new_with_loadout(loadout);
     let mut item_indices = HashMap::new();
 
+    // In order to items with components to properly load, it is important that this
+    // item iteration occurs in order so that any modular items are loaded before
+    // its components.
     for (i, db_item) in inventory_items.iter().enumerate() {
         item_indices.insert(db_item.item_id, i);
 
@@ -344,15 +418,14 @@ pub fn convert_inventory_from_database_items(
                 ));
             }
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            if let Some(Some(parent)) = inventory.slot_mut(slot(&inventory_items[j].position)?) {
-                parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
-            } else {
-                return Err(PersistenceError::ConversionError(format!(
-                    "Parent slot {} for component {} was empty even though it occurred earlier in \
-                     the loop?",
-                    db_item.parent_container_item_id, db_item.item_id
-                )));
-            }
+            get_mutable_item(
+                j,
+                inventory_items,
+                &item_indices,
+                &mut inventory,
+                &|inv, s| inv.slot_mut(slot(s).ok()?).and_then(|a| a.as_mut()),
+            )?
+            .persistence_access_add_component(item);
         } else {
             return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in inventory",
@@ -360,6 +433,10 @@ pub fn convert_inventory_from_database_items(
             )));
         }
     }
+
+    // Some items may have had components added, so update the item config of each
+    // item to ensure that it correctly accounts for components that were added
+    inventory.persistence_update_all_item_states(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
 
     Ok(inventory)
 }
@@ -372,6 +449,9 @@ pub fn convert_loadout_from_database_items(
     let mut loadout = loadout_builder.build();
     let mut item_indices = HashMap::new();
 
+    // In order to items with components to properly load, it is important that this
+    // item iteration occurs in order so that any modular items are loaded before
+    // its components.
     for (i, db_item) in database_items.iter().enumerate() {
         item_indices.insert(db_item.item_id, i);
 
@@ -399,11 +479,10 @@ pub fn convert_loadout_from_database_items(
                 .set_item_at_slot_using_persistence_key(&db_item.position, item)
                 .map_err(convert_error)?;
         } else if let Some(&j) = item_indices.get(&db_item.parent_container_item_id) {
-            loadout
-                .update_item_at_slot_using_persistence_key(&database_items[j].position, |parent| {
-                    parent.add_component(item, &ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
-                })
-                .map_err(convert_error)?;
+            get_mutable_item(j, database_items, &item_indices, &mut loadout, &|l, s| {
+                l.get_mut_item_at_slot_using_persistence_key(s).ok()
+            })?
+            .persistence_access_add_component(item);
         } else {
             return Err(PersistenceError::ConversionError(format!(
                 "Couldn't find parent item {} before item {} in loadout",
@@ -411,6 +490,10 @@ pub fn convert_loadout_from_database_items(
             )));
         }
     }
+
+    // Some items may have had components added, so update the item config of each
+    // item to ensure that it correctly accounts for components that were added
+    loadout.persistence_update_all_item_states(&ABILITY_MAP, &MATERIAL_STATS_MANIFEST);
 
     Ok(loadout)
 }

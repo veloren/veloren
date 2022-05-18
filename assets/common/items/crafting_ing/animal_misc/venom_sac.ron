@@ -3,6 +3,8 @@ ItemDef(
     description: "A venomous sac from a poisonous creature.",
     kind: Ingredient(
         kind: "VenomSac",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

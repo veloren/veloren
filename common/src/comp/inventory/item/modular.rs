@@ -1,330 +1,518 @@
-use super::{tool, ItemKind, ItemTag, Quality, RawItemDef, TagExampleInfo, ToolKind};
-use crate::recipe::{RawRecipe, RawRecipeBook, RawRecipeInput};
+use super::{
+    tool::{self, AbilityMap, AbilitySpec, Hands, MaterialStatManifest},
+    Item, ItemBase, ItemDef, ItemDesc, ItemKind, ItemTag, Material, Quality, ToolKind,
+};
+use crate::{assets::AssetExt, recipe};
+use common_base::dev_panic;
 use hashbrown::HashMap;
 use lazy_static::lazy_static;
+use rand::{prelude::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
+use std::{borrow::Cow, sync::Arc};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub enum ModularComponentKind {
-    Damage,
-    Held,
+// Macro instead of constant to work with concat! macro.
+// DO NOT CHANGE. THIS PREFIX AFFECTS PERSISTENCE AND IF CHANGED A MIGRATION
+// MUST BE PERFORMED.
+#[macro_export]
+macro_rules! modular_item_id_prefix {
+    () => {
+        "veloren.core.pseudo_items.modular."
+    };
 }
 
-impl ModularComponentKind {
-    fn identifier_name(&self) -> &'static str {
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ModularBase {
+    Tool,
+}
+
+impl ModularBase {
+    // DO NOT CHANGE. THIS IS A PERSISTENCE RELATED FUNCTION. MUST MATCH THE
+    // FUNCTION BELOW.
+    pub fn pseudo_item_id(&self) -> &str {
         match self {
-            ModularComponentKind::Damage => "damage",
-            ModularComponentKind::Held => "held",
+            ModularBase::Tool => concat!(modular_item_id_prefix!(), "tool"),
+        }
+    }
+
+    // DO NOT CHANGE. THIS IS A PERSISTENCE RELATED FUNCTION. MUST MATCH THE
+    // FUNCTION ABOVE.
+    pub fn load_from_pseudo_id(id: &str) -> Self {
+        match id {
+            concat!(modular_item_id_prefix!(), "tool") => ModularBase::Tool,
+            _ => panic!("Attempted to load a non existent pseudo item: {}", id),
+        }
+    }
+
+    fn resolve_hands(components: &[Item]) -> Hands {
+        // Checks if weapon has components that restrict hands to two. Restrictions to
+        // one hand or no restrictions default to one-handed weapon.
+        // Note: Hand restriction here will never conflict on components
+        // TODO: Maybe look into adding an assert at some point?
+        let hand_restriction = components.iter().find_map(|comp| match &*comp.kind() {
+            ItemKind::ModularComponent(mc) => match mc {
+                ModularComponent::ToolPrimaryComponent {
+                    hand_restriction, ..
+                }
+                | ModularComponent::ToolSecondaryComponent {
+                    hand_restriction, ..
+                } => *hand_restriction,
+            },
+            _ => None,
+        });
+        // In the event of no hand restrictions on the components, default to one handed
+        hand_restriction.unwrap_or(Hands::One)
+    }
+
+    pub fn kind(&self, components: &[Item], msm: &MaterialStatManifest) -> Cow<ItemKind> {
+        fn resolve_stats(components: &[Item], msm: &MaterialStatManifest) -> tool::Stats {
+            components
+                .iter()
+                .filter_map(|comp| {
+                    if let ItemKind::ModularComponent(mod_comp) = &*comp.kind() {
+                        mod_comp.tool_stats(comp.components(), msm)
+                    } else {
+                        None
+                    }
+                })
+                .fold(tool::Stats::one(), |a, b| a * b)
+        }
+
+        let toolkind = components
+            .iter()
+            .find_map(|comp| match &*comp.kind() {
+                ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {
+                    toolkind,
+                    ..
+                }) => Some(*toolkind),
+                _ => None,
+            })
+            .unwrap_or(ToolKind::Empty);
+
+        match self {
+            ModularBase::Tool => Cow::Owned(ItemKind::Tool(tool::Tool {
+                kind: toolkind,
+                hands: Self::resolve_hands(components),
+                stats: resolve_stats(components, msm),
+            })),
+        }
+    }
+
+    /// Modular weapons are named as "{Material} {Weapon}" where {Weapon} is
+    /// from the damage component used and {Material} is from the material
+    /// the damage component is created from.
+    pub fn generate_name(&self, components: &[Item]) -> Cow<str> {
+        match self {
+            ModularBase::Tool => {
+                let name = components
+                    .iter()
+                    .find_map(|comp| match &*comp.kind() {
+                        ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {
+                            weapon_name,
+                            ..
+                        }) => {
+                            let material_name = comp
+                                .components()
+                                .iter()
+                                .find_map(|mat| match mat.kind() {
+                                    Cow::Owned(ItemKind::Ingredient { descriptor, .. }) => {
+                                        Some(Cow::Owned(descriptor))
+                                    },
+                                    Cow::Borrowed(ItemKind::Ingredient { descriptor, .. }) => {
+                                        Some(Cow::Borrowed(descriptor.as_str()))
+                                    },
+                                    _ => None,
+                                })
+                                .unwrap_or_else(|| "Modular".into());
+                            Some(format!(
+                                "{} {}",
+                                material_name,
+                                weapon_name.resolve_name(Self::resolve_hands(components))
+                            ))
+                        },
+                        _ => None,
+                    })
+                    .unwrap_or_else(|| "Modular Weapon".to_owned());
+                Cow::Owned(name)
+            },
+        }
+    }
+
+    pub fn compute_quality(&self, components: &[Item]) -> Quality {
+        components
+            .iter()
+            .fold(Quality::MIN, |a, b| a.max(b.quality()))
+    }
+
+    pub fn ability_spec(&self, components: &[Item]) -> Option<Cow<AbilitySpec>> {
+        match self {
+            ModularBase::Tool => components.iter().find_map(|comp| match &*comp.kind() {
+                ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent {
+                    toolkind,
+                    ..
+                }) => Some(Cow::Owned(AbilitySpec::Tool(*toolkind))),
+                _ => None,
+            }),
+        }
+    }
+
+    pub fn generate_tags(&self, components: &[Item]) -> Vec<ItemTag> {
+        match self {
+            ModularBase::Tool => {
+                if let Some(comp) = components.iter().find(|comp| {
+                    matches!(
+                        &*comp.kind(),
+                        ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { .. })
+                    )
+                }) {
+                    if let Some(material) =
+                        comp.components()
+                            .iter()
+                            .find_map(|comp| match &*comp.kind() {
+                                ItemKind::Ingredient { .. } => {
+                                    comp.tags().into_iter().find_map(|tag| match tag {
+                                        ItemTag::Material(material) => Some(material),
+                                        _ => None,
+                                    })
+                                },
+                                _ => None,
+                            })
+                    {
+                        vec![ItemTag::Material(material), ItemTag::SalvageInto(material)]
+                    } else {
+                        Vec::new()
+                    }
+                } else {
+                    Vec::new()
+                }
+            },
         }
     }
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ModularComponent {
-    pub toolkind: ToolKind,
-    pub modkind: ModularComponentKind,
-    pub stats: tool::Stats,
+pub enum ModularComponent {
+    ToolPrimaryComponent {
+        toolkind: ToolKind,
+        stats: tool::Stats,
+        hand_restriction: Option<Hands>,
+        weapon_name: WeaponName,
+    },
+    ToolSecondaryComponent {
+        toolkind: ToolKind,
+        stats: tool::Stats,
+        hand_restriction: Option<Hands>,
+    },
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct ModularComponentTag {
-    toolkind: ToolKind,
-    modkind: ModularComponentKind,
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum WeaponName {
+    Universal(String),
+    HandednessDependent {
+        one_handed: String,
+        two_handed: String,
+    },
 }
 
-impl TagExampleInfo for ModularComponentTag {
-    fn name(&self) -> &'static str {
-        match self.modkind {
-            ModularComponentKind::Damage => match self.toolkind {
-                ToolKind::Sword => "sword blade",
-                ToolKind::Axe => "axe head",
-                ToolKind::Hammer => "hammer head",
-                ToolKind::Bow => "bow limbs",
-                ToolKind::Dagger => "dagger blade",
-                ToolKind::Staff => "staff head",
-                ToolKind::Sceptre => "sceptre head",
-                // TODO: naming
-                ToolKind::Spear => "spear damage component",
-                ToolKind::Blowgun => "blowgun damage component",
-                ToolKind::Shield => "shield damage component",
-                ToolKind::Debug => "debug damage component",
-                ToolKind::Farming => "farming damage component",
-                ToolKind::Pick => "pickaxe head",
-                ToolKind::Natural => "natural damage component",
-                ToolKind::Empty => "empty damage component",
-            },
-            ModularComponentKind::Held => match self.toolkind {
-                ToolKind::Sword => "sword hilt",
-                ToolKind::Axe => "axe shaft",
-                ToolKind::Hammer => "hammer shaft",
-                ToolKind::Bow => "bow riser",
-                ToolKind::Dagger => "dagger grip",
-                ToolKind::Staff => "staff shaft",
-                ToolKind::Sceptre => "sceptre shaft",
-                // TODO: naming
-                ToolKind::Spear => "spear held component",
-                ToolKind::Blowgun => "blowgun held component",
-                ToolKind::Shield => "shield held component",
-                ToolKind::Natural => "natural held component",
-                ToolKind::Debug => "debug held component",
-                ToolKind::Farming => "farming held component",
-                ToolKind::Pick => "pickaxe handle",
-                ToolKind::Empty => "empty held component",
-            },
-        }
-    }
-
-    fn exemplar_identifier(&self) -> &'static str {
-        match self.modkind {
-            ModularComponentKind::Damage => match self.toolkind {
-                ToolKind::Sword => "common.items.tag_examples.modular.damage.sword",
-                ToolKind::Axe => "common.items.tag_examples.modular.damage.axe",
-                ToolKind::Hammer => "common.items.tag_examples.modular.damage.hammer",
-                ToolKind::Bow => "common.items.tag_examples.modular.damage.bow",
-                ToolKind::Dagger => "common.items.tag_examples.modular.damage.dagger",
-                ToolKind::Staff => "common.items.tag_examples.modular.damage.staff",
-                ToolKind::Sceptre => "common.items.tag_examples.modular.damage.sceptre",
-                ToolKind::Shield => "common.items.tag_examples.modular.damage.shield",
-                ToolKind::Spear => "common.items.tag_examples.modular.damage.spear",
-                ToolKind::Blowgun => "common.items.tag_examples.modular.damage.blowgun",
-                ToolKind::Natural => "common.items.tag_examples.modular.damage.natural",
-                ToolKind::Debug => "common.items.tag_examples.modular.damage.debug",
-                ToolKind::Farming => "common.items.tag_examples.modular.damage.farming",
-                ToolKind::Pick => "common.items.tag_examples.modular.damage.pick",
-                ToolKind::Empty => "common.items.tag_examples.modular.damage.empty",
-            },
-            ModularComponentKind::Held => match self.toolkind {
-                ToolKind::Sword => "common.items.tag_examples.modular.held.sword",
-                ToolKind::Axe => "common.items.tag_examples.modular.held.axe",
-                ToolKind::Hammer => "common.items.tag_examples.modular.held.hammer",
-                ToolKind::Bow => "common.items.tag_examples.modular.held.bow",
-                ToolKind::Dagger => "common.items.tag_examples.modular.held.dagger",
-                ToolKind::Staff => "common.items.tag_examples.modular.held.staff",
-                ToolKind::Sceptre => "common.items.tag_examples.modular.held.sceptre",
-                ToolKind::Shield => "common.items.tag_examples.modular.held.shield",
-                ToolKind::Spear => "common.items.tag_examples.modular.held.spear",
-                ToolKind::Blowgun => "common.items.tag_examples.modular.held.blowgun",
-                ToolKind::Natural => "common.items.tag_examples.modular.held.natural",
-                ToolKind::Debug => "common.items.tag_examples.modular.held.debug",
-                ToolKind::Farming => "common.items.tag_examples.modular.held.farming",
-                ToolKind::Pick => "common.items.tag_examples.modular.held.pick",
-                ToolKind::Empty => "common.items.tag_examples.modular.held.empty",
+impl WeaponName {
+    fn resolve_name(&self, handedness: Hands) -> &str {
+        match self {
+            Self::Universal(name) => name,
+            Self::HandednessDependent {
+                one_handed: name1,
+                two_handed: name2,
+            } => match handedness {
+                Hands::One => name1,
+                Hands::Two => name2,
             },
         }
     }
 }
 
-const SUPPORTED_TOOLKINDS: [ToolKind; 7] = [
+impl ModularComponent {
+    pub fn tool_stats(
+        &self,
+        components: &[Item],
+        msm: &MaterialStatManifest,
+    ) -> Option<tool::Stats> {
+        match self {
+            Self::ToolPrimaryComponent { stats, .. } => {
+                let average_material_mult = components
+                    .iter()
+                    .filter_map(|comp| {
+                        comp.item_definition_id()
+                            .itemdef_id()
+                            .and_then(|id| msm.0.get(id))
+                            .copied()
+                            .zip(Some(1))
+                    })
+                    .reduce(|(stats_a, count_a), (stats_b, count_b)| {
+                        (stats_a + stats_b, count_a + count_b)
+                    })
+                    .map_or_else(tool::Stats::one, |(stats_sum, count)| {
+                        stats_sum / (count as f32)
+                    });
+
+                Some(*stats * average_material_mult)
+            },
+            Self::ToolSecondaryComponent { stats, .. } => Some(*stats),
+        }
+    }
+
+    pub fn toolkind(&self) -> Option<ToolKind> {
+        match self {
+            Self::ToolPrimaryComponent { toolkind, .. }
+            | Self::ToolSecondaryComponent { toolkind, .. } => Some(*toolkind),
+        }
+    }
+}
+
+const SUPPORTED_TOOLKINDS: [ToolKind; 6] = [
     ToolKind::Sword,
     ToolKind::Axe,
     ToolKind::Hammer,
     ToolKind::Bow,
-    ToolKind::Dagger,
     ToolKind::Staff,
     ToolKind::Sceptre,
 ];
-const MODKINDS: [ModularComponentKind; 2] =
-    [ModularComponentKind::Damage, ModularComponentKind::Held];
 
-const COMPONENT_PREFIX: &str = "common.items.crafting_ing.modular";
-const WEAPON_PREFIX: &str = "common.items.weapons.modular";
-const TAG_EXAMPLES_PREFIX: &str = "common.items.tag_examples.modular";
-
-// AVERAGE_STAT_VALUE from the "Progression" google sheet
-// TODO: also get materials from there
-const AVERAGE_STAT_VALUE: [f32; 6] = [0.75, 1.0, 1.25, 1.5, 1.75, 2.0];
-
-fn make_component_def(
-    toolkind: ToolKind,
-    modkind: ModularComponentKind,
-    tier: usize,
-) -> (String, RawItemDef) {
-    let tag = ModularComponentTag { toolkind, modkind };
-    let identifier = format!(
-        "{}.{}.{}.tier{}",
-        COMPONENT_PREFIX,
-        modkind.identifier_name(),
-        toolkind.identifier_name(),
-        tier
-    );
-    let name = format!("Tier-{} {}", tier, tag.name());
-    let description = format!(
-        "A {} used to make {}s",
-        tag.name(),
-        toolkind.identifier_name()
-    );
-    let mc = ModularComponent {
-        toolkind,
-        modkind,
-        stats: tool::Stats {
-            equip_time_secs: 0.25,
-            power: if matches!(modkind, ModularComponentKind::Damage) {
-                AVERAGE_STAT_VALUE[tier]
-            } else {
-                0.0
-            },
-            effect_power: if matches!(modkind, ModularComponentKind::Damage) {
-                AVERAGE_STAT_VALUE[tier] * 0.75
-            } else {
-                0.0
-            },
-            speed: if matches!(modkind, ModularComponentKind::Held) {
-                //AVERAGE_STAT_VALUE[tier] * 0.5
-                1.0
-            } else {
-                0.0
-            },
-            crit_chance: if matches!(modkind, ModularComponentKind::Held) {
-                AVERAGE_STAT_VALUE[tier] * 0.1
-            } else {
-                0.0
-            },
-            range: 0.5,
-            energy_efficiency: 0.0,
-            buff_strength: 0.0,
-        },
-    };
-    let kind = ItemKind::ModularComponent(mc);
-    // TODO: tier -> quality?
-    let quality = Quality::Common;
-    let item = RawItemDef {
-        name,
-        description,
-        kind,
-        quality,
-        tags: vec![ItemTag::ModularComponent(tag)],
-        slots: 0,
-        ability_spec: None,
-    };
-    (identifier, item)
-}
-
-fn make_weapon_def(toolkind: ToolKind) -> (String, RawItemDef) {
-    let identifier = format!("{}.{}", WEAPON_PREFIX, toolkind.identifier_name(),);
-    let name = format!("Modular {}", toolkind.identifier_name());
-    let description = format!("A {} made of components", toolkind.identifier_name());
-    let tool = tool::Tool {
-        kind: toolkind,
-        hands: tool::Hands::Two,
-        stats: tool::StatKind::Modular,
-    };
-    let kind = ItemKind::Tool(tool);
-    let quality = Quality::Common;
-    let item = RawItemDef {
-        name,
-        description,
-        kind,
-        quality,
-        tags: Vec::new(),
-        slots: 0,
-        ability_spec: None,
-    };
-    (identifier, item)
-}
-
-fn make_recipe_def(identifier: String, toolkind: ToolKind) -> RawRecipe {
-    let output = (identifier, 1);
-    let mut inputs = Vec::new();
-    for &modkind in &MODKINDS {
-        let input = RawRecipeInput::Tag(ItemTag::ModularComponent(ModularComponentTag {
-            toolkind,
-            modkind,
-        }));
-        inputs.push((input, 1));
-    }
-    RawRecipe {
-        output,
-        inputs,
-        craft_sprite: None,
-    }
-}
-
-fn make_tagexample_def(
-    toolkind: ToolKind,
-    modkind: ModularComponentKind,
-    exemplars: &HashMap<ModularComponentTag, Vec<String>>,
-) -> (String, RawItemDef) {
-    let identifier = format!(
-        "{}.{}.{}",
-        TAG_EXAMPLES_PREFIX,
-        modkind.identifier_name(),
-        toolkind.identifier_name(),
-    );
-    let tag = ModularComponentTag { toolkind, modkind };
-    // TODO: i18n
-    let name = format!("Any {}", tag.name());
-    let description = format!(
-        "{}s used to make {}s",
-        tag.name(),
-        toolkind.identifier_name()
-    );
-    let kind = ItemKind::TagExamples {
-        item_ids: exemplars.get(&tag).cloned().unwrap_or_default(),
-    };
-    let quality = Quality::Common;
-
-    let item = RawItemDef {
-        name,
-        description,
-        kind,
-        quality,
-        tags: vec![ItemTag::ModularComponent(tag)],
-        slots: 0,
-        ability_spec: None,
-    };
-    (identifier, item)
-}
-
-fn initialize_modular_assets() -> (HashMap<String, RawItemDef>, RawRecipeBook) {
-    let mut itemdefs = HashMap::new();
-    let mut exemplars = HashMap::new();
-    let mut recipes = HashMap::new();
-    for &toolkind in &SUPPORTED_TOOLKINDS {
-        for &modkind in &MODKINDS {
-            for tier in 0..=5 {
-                let (identifier, item) = make_component_def(toolkind, modkind, tier);
-                let tag = ModularComponentTag { toolkind, modkind };
-                exemplars
-                    .entry(tag)
-                    .or_insert_with(Vec::new)
-                    .push(identifier.clone());
-                itemdefs.insert(identifier, item);
-            }
-        }
-        let (identifier, item) = make_weapon_def(toolkind);
-        itemdefs.insert(identifier.clone(), item);
-        let recipe = make_recipe_def(identifier.clone(), toolkind);
-        recipes.insert(identifier, recipe);
-    }
-    for &toolkind in &SUPPORTED_TOOLKINDS {
-        for &modkind in &MODKINDS {
-            let (identifier, item) = make_tagexample_def(toolkind, modkind, &exemplars);
-            itemdefs.insert(identifier, item);
-        }
-    }
-    (itemdefs, RawRecipeBook(recipes))
-}
+type PrimaryComponentPool = HashMap<(ToolKind, String), Vec<(Item, Option<Hands>)>>;
+type SecondaryComponentPool = HashMap<ToolKind, Vec<(Arc<ItemDef>, Option<Hands>)>>;
 
 lazy_static! {
-    static ref ITEM_DEFS_AND_RECIPES: (HashMap<String, RawItemDef>, RawRecipeBook) =
-        initialize_modular_assets();
+    static ref PRIMARY_COMPONENT_POOL: PrimaryComponentPool = {
+        let mut component_pool = HashMap::new();
+
+        // Load recipe book (done to check that material is valid for a particular component)
+        use crate::recipe::ComponentKey;
+        let recipes = recipe::default_component_recipe_book().read();
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+
+        recipes
+            .iter()
+            .for_each(|(ComponentKey { toolkind, material, .. }, recipe)| {
+                let component = recipe.item_output(ability_map, msm);
+                let hand_restriction = if let ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { hand_restriction, .. }) = &*component.kind() {
+                    *hand_restriction
+                } else {
+                    return;
+                };
+                let entry = component_pool.entry((*toolkind, String::from(material))).or_insert(Vec::new());
+                entry.push((component, hand_restriction));
+            });
+
+        component_pool
+    };
+
+    static ref SECONDARY_COMPONENT_POOL: SecondaryComponentPool = {
+        let mut component_pool = HashMap::new();
+
+        const ASSET_PREFIX: &str = "common.items.modular.weapon.secondary";
+
+        for toolkind in SUPPORTED_TOOLKINDS {
+            let directory = format!("{}.{}", ASSET_PREFIX, toolkind.identifier_name());
+            if let Ok(items) = Item::new_from_asset_glob(&directory) {
+                items
+                    .into_iter()
+                    .filter_map(|comp| Some(comp.item_definition_id().itemdef_id()?.to_owned()))
+                    .filter_map(|id| Arc::<ItemDef>::load_cloned(&id).ok())
+                    .for_each(|comp_def| {
+                        if let ItemKind::ModularComponent(ModularComponent::ToolSecondaryComponent { hand_restriction, .. }) = comp_def.kind {
+                            let entry = component_pool.entry(toolkind).or_insert(Vec::new());
+                            entry.push((Arc::clone(&comp_def), hand_restriction));
+                        }
+                    });
+            }
+        }
+
+        component_pool
+    };
 }
 
-pub(crate) fn append_modular_recipes(recipes: &mut RawRecipeBook) {
-    for (name, recipe) in ITEM_DEFS_AND_RECIPES.1.0.iter() {
-        // avoid clobbering recipes from the filesystem, to allow overrides
-        if !recipes.0.contains_key(name) {
-            recipes.0.insert(name.clone(), recipe.clone());
+#[derive(Debug)]
+pub enum ModularWeaponCreationError {
+    MaterialNotFound,
+    PrimaryComponentNotFound,
+    SecondaryComponentNotFound,
+}
+
+/// Creates a random modular weapon primary component when provided with a
+/// toolkind, material, and optionally the handedness
+///
+/// Note: The component produced is not necessarily restricted to that
+/// handedness, but rather is able to produce a weapon of that handedness
+/// depending on what secondary component is used
+///
+/// Returns the comptabile handednesses that can be used with provided
+/// restriction and generated component (useful for cases where no restriction
+/// was passed in, but generated component has a restriction)
+pub fn random_weapon_primary_component(
+    tool: ToolKind,
+    material: Material,
+    hand_restriction: Option<Hands>,
+    mut rng: &mut impl Rng,
+) -> Result<(Item, Option<Hands>), ModularWeaponCreationError> {
+    let result = (|| {
+        if let Some(material_id) = material.asset_identifier() {
+            // Loads default ability map and material stat manifest for later use
+            let ability_map = &AbilityMap::load().read();
+            let msm = &MaterialStatManifest::load().read();
+
+            let primary_components = PRIMARY_COMPONENT_POOL
+                .get(&(tool, material_id.to_owned()))
+                .into_iter()
+                .flatten()
+                .filter(|(_comp, hand)| match (hand_restriction, hand) {
+                    (Some(restriction), Some(hand)) => restriction == *hand,
+                    (None, _) | (_, None) => true,
+                })
+                .collect::<Vec<_>>();
+
+            let (comp, hand) = primary_components
+                .choose(&mut rng)
+                .ok_or(ModularWeaponCreationError::PrimaryComponentNotFound)?;
+            let comp = comp.duplicate(ability_map, msm);
+            Ok((comp, hand_restriction.or(*hand)))
+        } else {
+            Err(ModularWeaponCreationError::MaterialNotFound)
         }
+    })();
+    if let Err(err) = &result {
+        let error_str = format!(
+            "Failed to synthesize a primary component for a modular {tool:?} made of {material:?} \
+             that had a hand restriction of {hand_restriction:?}. Error: {err:?}"
+        );
+        dev_panic!(error_str)
+    }
+    result
+}
+
+/// Creates a random modular weapon when provided with a toolkind, material, and
+/// optionally the handedness
+pub fn random_weapon(
+    tool: ToolKind,
+    material: Material,
+    hand_restriction: Option<Hands>,
+    mut rng: &mut impl Rng,
+) -> Result<Item, ModularWeaponCreationError> {
+    let result = (|| {
+        // Loads default ability map and material stat manifest for later use
+        let ability_map = &AbilityMap::load().read();
+        let msm = &MaterialStatManifest::load().read();
+
+        let (primary_component, hand_restriction) =
+            random_weapon_primary_component(tool, material, hand_restriction, rng)?;
+
+        let secondary_components = SECONDARY_COMPONENT_POOL
+            .get(&tool)
+            .into_iter()
+            .flatten()
+            .filter(|(_def, hand)| match (hand_restriction, hand) {
+                (Some(restriction), Some(hand)) => restriction == *hand,
+                (None, _) | (_, None) => true,
+            })
+            .collect::<Vec<_>>();
+
+        let secondary_component = {
+            let def = &secondary_components
+                .choose(&mut rng)
+                .ok_or(ModularWeaponCreationError::SecondaryComponentNotFound)?
+                .0;
+            Item::new_from_item_base(
+                ItemBase::Simple(Arc::clone(def)),
+                Vec::new(),
+                ability_map,
+                msm,
+            )
+        };
+
+        // Create modular weapon
+        Ok(Item::new_from_item_base(
+            ItemBase::Modular(ModularBase::Tool),
+            vec![primary_component, secondary_component],
+            ability_map,
+            msm,
+        ))
+    })();
+    if let Err(err) = &result {
+        let error_str = format!(
+            "Failed to synthesize a modular {tool:?} made of {material:?} that had a hand \
+             restriction of {hand_restriction:?}. Error: {err:?}"
+        );
+        dev_panic!(error_str)
+    }
+    result
+}
+
+pub fn modify_name<'a>(item_name: &'a str, item: &'a Item) -> Cow<'a, str> {
+    if let ItemKind::ModularComponent(_) = &*item.kind() {
+        if let Some(material_name) = item
+            .components()
+            .iter()
+            .find_map(|comp| match &*comp.kind() {
+                ItemKind::Ingredient { descriptor, .. } => Some(descriptor.to_owned()),
+                _ => None,
+            })
+        {
+            Cow::Owned(format!("{} {}", material_name, item_name))
+        } else {
+            Cow::Borrowed(item_name)
+        }
+    } else {
+        Cow::Borrowed(item_name)
     }
 }
 
-/// Synthesize modular assets programmatically, to allow for the following:
-/// - Tweaking stats as a function of tier automatically
-/// - Allow the modular tag_examples to auto-update with the list of applicable
-///   components
-pub(super) fn synthesize_modular_asset(specifier: &str) -> Option<RawItemDef> {
-    let ret = ITEM_DEFS_AND_RECIPES.0.get(specifier).cloned();
-    tracing::trace!("synthesize_modular_asset({:?}) -> {:?}", specifier, ret);
-    ret
+/// This is used as a key to uniquely identify the modular weapon in asset
+/// manifests in voxygen (Main component, material, hands)
+pub type ModularWeaponKey = (String, String, Hands);
+
+pub fn weapon_to_key(mod_weap: impl ItemDesc) -> ModularWeaponKey {
+    let hands = if let ItemKind::Tool(tool) = &*mod_weap.kind() {
+        tool.hands
+    } else {
+        Hands::One
+    };
+
+    match mod_weap
+        .components()
+        .iter()
+        .find_map(|comp| match &*comp.kind() {
+            ItemKind::ModularComponent(ModularComponent::ToolPrimaryComponent { .. }) => {
+                let component_id = comp.item_definition_id().itemdef_id()?.to_owned();
+                let material_id = comp.components().iter().find_map(|mat| match &*mat.kind() {
+                    ItemKind::Ingredient { .. } => {
+                        Some(mat.item_definition_id().itemdef_id()?.to_owned())
+                    },
+                    _ => None,
+                });
+                Some((component_id, material_id))
+            },
+            _ => None,
+        }) {
+        Some((component_id, Some(material_id))) => (component_id, material_id, hands),
+        Some((component_id, None)) => (component_id, String::new(), hands),
+        None => (String::new(), String::new(), hands),
+    }
+}
+
+/// This is used as a key to uniquely identify the modular weapon in asset
+/// manifests in voxygen (Main component, material)
+pub type ModularWeaponComponentKey = (String, String);
+
+pub enum ModularWeaponComponentKeyError {
+    MaterialNotFound,
+}
+
+pub fn weapon_component_to_key(
+    item_def_id: &str,
+    components: &[Item],
+) -> Result<ModularWeaponComponentKey, ModularWeaponComponentKeyError> {
+    match components.iter().find_map(|mat| match &*mat.kind() {
+        ItemKind::Ingredient { .. } => Some(mat.item_definition_id().itemdef_id()?.to_owned()),
+        _ => None,
+    }) {
+        Some(material_id) => Ok((item_def_id.to_owned(), material_id)),
+        None => Err(ModularWeaponComponentKeyError::MaterialNotFound),
+    }
 }

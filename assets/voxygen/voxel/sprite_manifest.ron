@@ -3884,4 +3884,65 @@ EnsnaringWeb: Some((
     ],
     wind_sway: 0.0,
 )),
+// WOOOOOOD
+Wood: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.wood",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Bamboo: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.bamboo",
+            offset: (-6.5, -6.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Hardwood: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.hardwood",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Ironwood: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.ironwood",
+            offset: (-6.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Frostwood: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.frostwood",
+            offset: (-5.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
+Eldwood: Some((
+    variations: [
+        (
+            model: "voxygen.voxel.sprite.wood.log.eldwood",
+            offset: (-4.5, -5.5, 0.0),
+            lod_axes: (0.0, 0.0, 0.0),
+        ),
+    ],
+    wind_sway: 0.0,
+)),
 )

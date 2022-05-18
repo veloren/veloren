@@ -3,6 +3,8 @@ ItemDef(
     description: "Soft fur from an animal.",
     kind: Ingredient(
         kind: "Fur",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

@@ -194,6 +194,13 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 None,
             )
         }),
+        // Only spawn logs in temperate forests (arbitrarily set to ~20% twig density)
+        (Wood, Ground, |_, col| {
+            (
+                (col.tree_density * 1.25 - 0.25).powf(0.5).max(0.0) * 0.15e-3,
+                None,
+            )
+        }),
         (Stones, Ground, |chunk, _| {
             ((chunk.rockiness - 0.5).max(0.025) * 1.0e-3, None)
         }),

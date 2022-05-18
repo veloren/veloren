@@ -3,6 +3,8 @@ ItemDef(
     description: "Grows in warm and dry places.",
     kind: Ingredient(
         kind: "Cactus",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

@@ -1,21 +1,21 @@
 #![enable(implicit_some)]
 (
-    shoulders: "common.items.armor.mail.iron.shoulder",
-    chest: "common.items.armor.mail.iron.chest",
-    gloves: "common.items.armor.mail.iron.hand",
-    back: [
-        (1, "common.items.armor.misc.back.backpack"),
-        (1, "common.items.npc_armor.back.backpack_blue"),
-        (1, "common.items.armor.mail.iron.back"),
+    shoulders: Item("common.items.armor.mail.iron.shoulder"),
+    chest: Item("common.items.armor.mail.iron.chest"),
+    gloves: Item("common.items.armor.mail.iron.hand"),
+    back: Choice([
+        (1, Item("common.items.armor.misc.back.backpack")),
+        (1, Item("common.items.npc_armor.back.backpack_blue")),
+        (1, Item("common.items.armor.mail.iron.back")),
         (1, None),
-    ],
-    belt: "common.items.armor.mail.iron.belt",
-    legs: "common.items.armor.mail.iron.pants",
-    feet: "common.items.armor.mail.iron.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
-        (1, "common.items.lantern.blue_0"),
-        (1, "common.items.lantern.green_0"),
-        (1, "common.items.lantern.red_0"),
-    ],
+    ]),
+    belt: Item("common.items.armor.mail.iron.belt"),
+    legs: Item("common.items.armor.mail.iron.pants"),
+    feet: Item("common.items.armor.mail.iron.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
+        (1, Item("common.items.lantern.blue_0")),
+        (1, Item("common.items.lantern.green_0")),
+        (1, Item("common.items.lantern.red_0")),
+    ]),
 )

@@ -3,7 +3,8 @@ ItemDef(
     description: "Light and flexible.",
     kind: Ingredient(
         kind: "SimpleLeather",
+        descriptor: "Raw Hide",
     ),
     quality: Low,
-    tags: [BaseMaterial, Leather],
+    tags: [BaseMaterial, MaterialKind(Hide), Material(Rawhide)],
 )

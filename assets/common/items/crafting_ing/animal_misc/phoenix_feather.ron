@@ -3,6 +3,8 @@ ItemDef(
     description: "Said to have magical properties.",
     kind: Ingredient(
         kind: "PhoenixFeather",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Legendary,
     tags: [],

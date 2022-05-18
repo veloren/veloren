@@ -1,7 +1,9 @@
 use std::cmp::Ordering;
 
 use crate::{
-    comp::inventory::{slot::InvSlotId, trade_pricing::TradePricing, Inventory},
+    comp::inventory::{
+        item::ItemDefinitionIdOwned, slot::InvSlotId, trade_pricing::TradePricing, Inventory,
+    },
     terrain::BiomeKind,
     uid::Uid,
 };
@@ -387,7 +389,13 @@ impl SitePrices {
                     .as_ref()
                     .and_then(|ri| {
                         ri.inventory.get(slot).map(|item| {
-                            if let Some(vec) = TradePricing::get_materials(&item.name) {
+                            if let Some(vec) = item
+                                .name
+                                .as_ref()
+                                // TODO: This won't handle compound items with components well, or pure modular items at all
+                                .itemdef_id()
+                                .and_then(TradePricing::get_materials)
+                            {
                                 vec.iter()
                                     .map(|(amount2, material)| {
                                         self.values.get(material).copied().unwrap_or_default()
@@ -407,9 +415,9 @@ impl SitePrices {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct ReducedInventoryItem {
-    pub name: String,
+    pub name: ItemDefinitionIdOwned,
     pub amount: u32,
 }
 
@@ -425,7 +433,7 @@ impl ReducedInventory {
             .filter(|(_, it)| it.is_some())
             .map(|(sl, it)| {
                 (sl, ReducedInventoryItem {
-                    name: it.as_ref().unwrap().item_definition_id().to_string(),
+                    name: it.as_ref().unwrap().item_definition_id().to_owned(),
                     amount: it.as_ref().unwrap().amount(),
                 })
             })

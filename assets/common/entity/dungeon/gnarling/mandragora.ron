@@ -3,11 +3,11 @@
     name: Name("Mandragora"),
     body: RandomWith("mandragora"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.dungeon.tier-0.enemy"),
+    loot: LootTable("common.loot_tables.dungeon.tier-0.mandragora"),
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.gnarling.mandragora"),
-            active_hands: ("common.items.npc_weapons.biped_small.mandragora", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.mandragora"), None)),
         )),
     ),
     meta: [],

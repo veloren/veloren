@@ -25,6 +25,7 @@ use common::{
         chat::{KillSource, KillType},
         controller::CraftEvent,
         group,
+        inventory::item::{modular, tool, ItemKind},
         invite::{InviteKind, InviteResponse},
         skills::Skill,
         slot::{EquipSlot, InvSlotId, Slot},
@@ -38,7 +39,7 @@ use common::{
     lod,
     mounting::Rider,
     outcome::Outcome,
-    recipe::RecipeBook,
+    recipe::{ComponentRecipeBook, RecipeBook},
     resources::{PlayerEntity, TimeOfDay},
     spiral::Spiral2d,
     terrain::{
@@ -172,6 +173,7 @@ pub struct Client {
     pois: Vec<PoiInfo>,
     pub chat_mode: ChatMode,
     recipe_book: RecipeBook,
+    component_recipe_book: ComponentRecipeBook,
     available_recipes: HashMap<String, Option<SpriteKind>>,
     lod_zones: HashMap<Vec2<i32>, lod::Zone>,
     lod_last_requested: Option<Instant>,
@@ -290,6 +292,7 @@ impl Client {
             sites,
             pois,
             recipe_book,
+            component_recipe_book,
             max_group_size,
             client_timeout,
         ) = match loop {
@@ -305,6 +308,7 @@ impl Client {
                 client_timeout,
                 world_map,
                 recipe_book,
+                component_recipe_book,
                 material_stats,
                 ability_map,
             } => {
@@ -592,6 +596,7 @@ impl Client {
                     world_map.sites,
                     world_map.pois,
                     recipe_book,
+                    component_recipe_book,
                     max_group_size,
                     client_timeout,
                 ))
@@ -626,6 +631,7 @@ impl Client {
                 .collect(),
             pois,
             recipe_book,
+            component_recipe_book,
             available_recipes: HashMap::default(),
             chat_mode: ChatMode::default(),
 
@@ -1005,6 +1011,8 @@ impl Client {
 
     pub fn recipe_book(&self) -> &RecipeBook { &self.recipe_book }
 
+    pub fn component_recipe_book(&self) -> &ComponentRecipeBook { &self.component_recipe_book }
+
     pub fn available_recipes(&self) -> &HashMap<String, Option<SpriteKind>> {
         &self.available_recipes
     }
@@ -1071,6 +1079,79 @@ impl Client {
             )));
         }
         is_salvageable
+    }
+
+    /// Crafts modular weapon from components in the provided slots.
+    /// `sprite_pos` should be the location of the necessary crafting station in
+    /// range of the player.
+    /// Returns whether or not the networking event was sent (which is based on
+    /// whether the player has two modular components in the provided slots)
+    pub fn craft_modular_weapon(
+        &mut self,
+        primary_component: InvSlotId,
+        secondary_component: InvSlotId,
+        sprite_pos: Option<Vec3<i32>>,
+    ) -> bool {
+        let inventories = self.inventories();
+        let inventory = inventories.get(self.entity());
+
+        enum ModKind {
+            Primary,
+            Secondary,
+        }
+
+        // Closure to get inner modular component info from item in a given slot
+        let mod_kind = |slot| match inventory
+            .and_then(|inv| inv.get(slot).map(|item| item.kind()))
+            .as_deref()
+        {
+            Some(ItemKind::ModularComponent(modular::ModularComponent::ToolPrimaryComponent {
+                ..
+            })) => Some(ModKind::Primary),
+            Some(ItemKind::ModularComponent(
+                modular::ModularComponent::ToolSecondaryComponent { .. },
+            )) => Some(ModKind::Secondary),
+            _ => None,
+        };
+
+        if let (Some(ModKind::Primary), Some(ModKind::Secondary)) =
+            (mod_kind(primary_component), mod_kind(secondary_component))
+        {
+            drop(inventories);
+            self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+                InventoryEvent::CraftRecipe {
+                    craft_event: CraftEvent::ModularWeapon {
+                        primary_component,
+                        secondary_component,
+                    },
+                    craft_sprite: sprite_pos,
+                },
+            )));
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn craft_modular_weapon_component(
+        &mut self,
+        toolkind: tool::ToolKind,
+        material: InvSlotId,
+        modifier: Option<InvSlotId>,
+        slots: Vec<(u32, InvSlotId)>,
+        sprite_pos: Option<Vec3<i32>>,
+    ) {
+        self.send_msg(ClientGeneral::ControlEvent(ControlEvent::InventoryEvent(
+            InventoryEvent::CraftRecipe {
+                craft_event: CraftEvent::ModularWeaponPrimaryComponent {
+                    toolkind,
+                    material,
+                    modifier,
+                    slots,
+                },
+                craft_sprite: sprite_pos,
+            },
+        )));
     }
 
     fn update_available_recipes(&mut self) {
@@ -1439,7 +1520,7 @@ impl Client {
             .get(self.entity())
             .map_or((None, None), |inv| {
                 let tool_kind = |slot| {
-                    inv.equipped(slot).and_then(|item| match item.kind() {
+                    inv.equipped(slot).and_then(|item| match &*item.kind() {
                         comp::item::ItemKind::Tool(tool) => Some(tool.kind),
                         _ => None,
                     })

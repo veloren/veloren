@@ -1,21 +1,21 @@
 #![enable(implicit_some)]
 (
-    shoulders: "common.items.armor.cloth.druid.shoulder",
-    chest: "common.items.armor.cloth.druid.chest",
-    gloves: "common.items.armor.cloth.druid.hand",
-    back: [
-        (1, "common.items.armor.misc.back.backpack"),
-        (1, "common.items.npc_armor.back.backpack_blue"),
-        (1, "common.items.armor.cloth.druid.back"),
+    shoulders: Item("common.items.armor.cloth.druid.shoulder"),
+    chest: Item("common.items.armor.cloth.druid.chest"),
+    gloves: Item("common.items.armor.cloth.druid.hand"),
+    back: Choice([
+        (1, Item("common.items.armor.misc.back.backpack")),
+        (1, Item("common.items.npc_armor.back.backpack_blue")),
+        (1, Item("common.items.armor.cloth.druid.back")),
         (1, None),
-    ],
-    belt: "common.items.armor.cloth.druid.belt",
-    legs: "common.items.armor.cloth.druid.pants",
-    feet: "common.items.armor.cloth.druid.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
-        (1, "common.items.lantern.blue_0"),
-        (1, "common.items.lantern.green_0"),
-        (1, "common.items.lantern.geode_purp"),
-    ],
+    ]),
+    belt: Item("common.items.armor.cloth.druid.belt"),
+    legs: Item("common.items.armor.cloth.druid.pants"),
+    feet: Item("common.items.armor.cloth.druid.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
+        (1, Item("common.items.lantern.blue_0")),
+        (1, Item("common.items.lantern.green_0")),
+        (1, Item("common.items.lantern.geode_purp")),
+    ]),
 )

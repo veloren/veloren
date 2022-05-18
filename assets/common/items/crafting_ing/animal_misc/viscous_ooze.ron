@@ -3,6 +3,8 @@ ItemDef(
     description: "A measure of viscous ooze from a slimy creature.",
     kind: Ingredient(
         kind: "ViscousOoze",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

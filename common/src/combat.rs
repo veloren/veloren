@@ -3,11 +3,7 @@ use crate::comp::buff::{Buff, BuffChange, BuffData, BuffKind, BuffSource};
 use crate::{
     comp::{
         inventory::{
-            item::{
-                armor::Protection,
-                tool::{self, Tool, ToolKind},
-                Item, ItemDesc, ItemKind, MaterialStatManifest,
-            },
+            item::{armor::Protection, tool::ToolKind, ItemDesc, ItemKind, MaterialStatManifest},
             slot::EquipSlot,
         },
         skillset::SkillGroupKind,
@@ -949,76 +945,70 @@ impl CombatBuff {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-fn equipped_item_and_tool(inv: &Inventory, slot: EquipSlot) -> Option<(&Item, &Tool)> {
-    inv.equipped(slot).and_then(|i| {
-        if let ItemKind::Tool(tool) = &i.kind() {
-            Some((i, tool))
-        } else {
-            None
-        }
-    })
-}
-
-#[cfg(not(target_arch = "wasm32"))]
-pub fn get_weapons(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
+pub fn get_weapon_kinds(inv: &Inventory) -> (Option<ToolKind>, Option<ToolKind>) {
     (
-        equipped_item_and_tool(inv, EquipSlot::ActiveMainhand).map(|(_, tool)| tool.kind),
-        equipped_item_and_tool(inv, EquipSlot::ActiveOffhand).map(|(_, tool)| tool.kind),
+        inv.equipped(EquipSlot::ActiveMainhand).and_then(|i| {
+            if let ItemKind::Tool(tool) = &*i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        }),
+        inv.equipped(EquipSlot::ActiveOffhand).and_then(|i| {
+            if let ItemKind::Tool(tool) = &*i.kind() {
+                Some(tool.kind)
+            } else {
+                None
+            }
+        }),
     )
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn weapon_rating<T: ItemDesc>(item: &T, msm: &MaterialStatManifest) -> f32 {
-    const DAMAGE_WEIGHT: f32 = 2.0;
+// TODO: Either remove msm or use it as argument in fn kind
+pub fn weapon_rating<T: ItemDesc>(item: &T, _msm: &MaterialStatManifest) -> f32 {
+    const POWER_WEIGHT: f32 = 2.0;
     const SPEED_WEIGHT: f32 = 3.0;
-    const CRIT_CHANCE_WEIGHT: f32 = 1.25;
-    const RANGE_WEIGHT: f32 = 0.0;
-    const EFFECT_WEIGHT: f32 = 1.0;
-    const EQUIP_TIME_WEIGHT: f32 = 0.25;
-    const ENERGY_EFFICIENCY_WEIGHT: f32 = 0.0;
-    const BUFF_STRENGTH_WEIGHT: f32 = 0.0;
+    const CRIT_CHANCE_WEIGHT: f32 = 1.5;
+    const RANGE_WEIGHT: f32 = 0.8;
+    const EFFECT_WEIGHT: f32 = 1.5;
+    const EQUIP_TIME_WEIGHT: f32 = 0.0;
+    const ENERGY_EFFICIENCY_WEIGHT: f32 = 1.5;
+    const BUFF_STRENGTH_WEIGHT: f32 = 1.5;
 
-    if let ItemKind::Tool(tool) = item.kind() {
-        let stats = tool::Stats::from((msm, item.components(), tool));
+    let rating = if let ItemKind::Tool(tool) = &*item.kind() {
+        let stats = tool.stats;
 
         // TODO: Look into changing the 0.5 to reflect armor later maybe?
         // Since it is only for weapon though, it probably makes sense to leave
         // independent for now
 
-        let damage_rating = stats.power - 1.0;
+        let power_rating = stats.power;
         let speed_rating = stats.speed - 1.0;
-        let crit_chance_rating = stats.crit_chance - 0.1;
-        let range_rating = stats.range;
+        let crit_chance_rating = (stats.crit_chance - 0.1) * 10.0;
+        let range_rating = stats.range - 1.0;
         let effect_rating = stats.effect_power - 1.0;
         let equip_time_rating = 0.5 - stats.equip_time_secs;
-        let energy_efficiency_rating = stats.energy_efficiency;
-        let buff_strength_rating = stats.buff_strength;
+        let energy_efficiency_rating = stats.energy_efficiency - 1.0;
+        let buff_strength_rating = stats.buff_strength - 1.0;
 
-        0.5 + (1.0
-            + (damage_rating * DAMAGE_WEIGHT)
-            + (speed_rating * SPEED_WEIGHT)
-            + (crit_chance_rating * CRIT_CHANCE_WEIGHT)
-            + (range_rating * RANGE_WEIGHT)
-            + (effect_rating * EFFECT_WEIGHT)
-            + (equip_time_rating * EQUIP_TIME_WEIGHT)
-            + (energy_efficiency_rating * ENERGY_EFFICIENCY_WEIGHT)
-            + (buff_strength_rating * BUFF_STRENGTH_WEIGHT))
-            / (DAMAGE_WEIGHT
-                + SPEED_WEIGHT
-                + CRIT_CHANCE_WEIGHT
-                + RANGE_WEIGHT
-                + EFFECT_WEIGHT
-                + EQUIP_TIME_WEIGHT
-                + ENERGY_EFFICIENCY_WEIGHT
-                + BUFF_STRENGTH_WEIGHT)
+        power_rating * POWER_WEIGHT
+            + speed_rating * SPEED_WEIGHT
+            + crit_chance_rating * CRIT_CHANCE_WEIGHT
+            + range_rating * RANGE_WEIGHT
+            + effect_rating * EFFECT_WEIGHT
+            + equip_time_rating * EQUIP_TIME_WEIGHT
+            + energy_efficiency_rating * ENERGY_EFFICIENCY_WEIGHT
+            + buff_strength_rating * BUFF_STRENGTH_WEIGHT
     } else {
         0.0
-    }
+    };
+    rating.max(0.0)
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
-    let (mainhand, offhand) = get_weapons(inventory);
+    let (mainhand, offhand) = get_weapon_kinds(inventory);
     let mainhand_skills = if let Some(tool) = mainhand {
         skill_set.earned_sp(SkillGroupKind::Weapon(tool)) as f32
     } else {
@@ -1034,19 +1024,17 @@ fn weapon_skills(inventory: &Inventory, skill_set: &SkillSet) -> f32 {
 
 #[cfg(not(target_arch = "wasm32"))]
 fn get_weapon_rating(inventory: &Inventory, msm: &MaterialStatManifest) -> f32 {
-    let mainhand_rating =
-        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveMainhand) {
-            weapon_rating(item, msm)
-        } else {
-            0.0
-        };
+    let mainhand_rating = if let Some(item) = inventory.equipped(EquipSlot::ActiveMainhand) {
+        weapon_rating(item, msm)
+    } else {
+        0.0
+    };
 
-    let offhand_rating =
-        if let Some((item, _)) = equipped_item_and_tool(inventory, EquipSlot::ActiveOffhand) {
-            weapon_rating(item, msm)
-        } else {
-            0.0
-        };
+    let offhand_rating = if let Some(item) = inventory.equipped(EquipSlot::ActiveOffhand) {
+        weapon_rating(item, msm)
+    } else {
+        0.0
+    };
 
     mainhand_rating.max(offhand_rating)
 }
@@ -1118,7 +1106,7 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
     inventory.map_or(1.25, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.crit_power()
                 } else {
                     None
@@ -1136,7 +1124,7 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
     inventory.map_or(1.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.energy_reward()
                 } else {
                     None
@@ -1154,7 +1142,7 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
     inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.energy_max()
                 } else {
                     None
@@ -1186,7 +1174,7 @@ pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
     let stealth_sum = inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.stealth()
                 } else {
                     None
@@ -1206,7 +1194,7 @@ pub fn compute_protection(inventory: Option<&Inventory>) -> Option<f32> {
     inventory.map_or(Some(0.0), |inv| {
         inv.equipped_items()
             .filter_map(|item| {
-                if let ItemKind::Armor(armor) = &item.kind() {
+                if let ItemKind::Armor(armor) = &*item.kind() {
                     armor.protection()
                 } else {
                     None

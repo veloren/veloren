@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented an LoD system for objects, making trees visible far beyond the view distance
 - Add stealth stat on Bag UI
 - Water caves
+- Modular weapons
 
 ### Changed
 

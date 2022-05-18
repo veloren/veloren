@@ -1,0 +1,8 @@
+[
+    (1.0, ModularWeaponPrimaryComponent(tool: Sword, material: Iron, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Axe, material: Iron, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Hammer, material: Iron, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Bow, material: Bamboo, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Staff, material: Bamboo, hands: None)),
+    (1.0, ModularWeaponPrimaryComponent(tool: Sceptre, material: Bamboo, hands: None)),
+]

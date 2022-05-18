@@ -3,6 +3,8 @@ ItemDef(
     description: "Crushes and grinds things into\na fine powder or paste.\nUsed to craft various items.",
     kind: Ingredient(
         kind: "MortarPestle",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Moderate,
     tags: [CraftingTool],

@@ -1,0 +1,23 @@
+ItemDef(
+    name: "Light Biocore",
+    description: "",
+    kind: ModularComponent(
+        ToolSecondaryComponent(
+            toolkind: Sceptre,
+            stats: (
+                equip_time_secs: 1.0,
+                power: 0.9,
+                effect_power: 0.9,
+                speed: 1.1,
+                crit_chance: 1.1,
+                range: 1.0,
+                energy_efficiency: 1.1,
+                buff_strength: 0.9,
+            ),
+            hand_restriction: Some(Two),
+        )
+    ),
+    quality: Common,
+    tags: [],
+)
+

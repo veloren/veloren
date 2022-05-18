@@ -1,6 +1,6 @@
 [
     // Gear
-    (1.0, LootTable("common.loot_tables.weapons.tier-0")),
+    (1.0, LootTable("common.loot_tables.weapons.components.tier-0")),
     (1.0, LootTable("common.loot_tables.armor.tier-0")),
     // Currency
     (3.0, ItemQuantity("common.items.utility.coins", 10, 20)),
@@ -8,6 +8,7 @@
     (1.0, ItemQuantity("common.items.crafting_ing.cloth.linen", 3, 10)),
     (1.0, ItemQuantity("common.items.crafting_ing.leather.simple_leather", 3, 10)),
     (1.0, ItemQuantity("common.items.mineral.ingot.bronze", 3, 10)),
+    (1.0, ItemQuantity("common.items.log.wood", 3, 10)),
     // Consumables
     (2.0, LootTable("common.loot_tables.consumable.poor")),
 ]

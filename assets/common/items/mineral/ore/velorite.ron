@@ -2,7 +2,9 @@ ItemDef(
     name: "Velorite",
     description: "Just a slight touch makes you feel\nthe knowledge of ancient times",
     kind: Ingredient(
-        kind: "Velorite",      
+        kind: "Velorite",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [],

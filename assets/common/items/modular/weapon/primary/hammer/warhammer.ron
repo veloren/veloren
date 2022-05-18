@@ -1,0 +1,27 @@
+ItemDef(
+    name: "Warhammer Head",
+    description: "",
+    kind: ModularComponent(
+        ToolPrimaryComponent(
+            toolkind: Hammer,
+            stats: (
+                equip_time_secs: 0.25,
+                power: 0.8,
+                effect_power: 0.8,
+                speed: 1.25,
+                crit_chance: 0.075,
+                range: 1.0,
+                energy_efficiency: 0.8,
+                buff_strength: 0.8,
+            ),
+            hand_restriction: None,
+            weapon_name: HandednessDependent(
+                one_handed: "Mallet",
+                two_handed: "Warhammer",
+            ),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)
+

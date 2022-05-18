@@ -13,7 +13,7 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
-            tool::{Hands, MaterialStatManifest, Tool, ToolKind},
+            tool::{Hands, Tool, ToolKind},
             Item, ItemKind,
         },
     },
@@ -49,7 +49,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
     for item in comp::item::Item::new_from_asset_glob("common.items.armor.*")
         .expect("Failed to iterate over item folders!")
     {
-        match item.kind() {
+        match &*item.kind() {
             comp::item::ItemKind::Armor(armor) => {
                 let kind = get_armor_kind(&armor.kind);
                 if kind == "Bag" {
@@ -72,9 +72,11 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                 let stealth = armor.stealth().unwrap_or(0.0).to_string();
 
                 wtr.write_record(&[
-                    item.item_definition_id(),
+                    item.item_definition_id()
+                        .itemdef_id()
+                        .expect("All items from asset glob should be simple items"),
                     &kind,
-                    item.name(),
+                    &item.name(),
                     &format!("{:?}", item.quality()),
                     &protection,
                     &poise_resilience,
@@ -112,30 +114,30 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
         "Description",
     ])?;
 
-    let msm = MaterialStatManifest::default();
-
     // Does all items even outside weapon folder since we check if itemkind was a
     // tool anyways
     let items: Vec<comp::Item> = comp::Item::new_from_asset_glob("common.items.*")
         .expect("Failed to iterate over item folders!");
 
     for item in items.iter() {
-        if let comp::item::ItemKind::Tool(tool) = item.kind() {
-            let power = tool.base_power(&msm, &[]).to_string();
-            let effect_power = tool.base_effect_power(&msm, &[]).to_string();
-            let speed = tool.base_speed(&msm, &[]).to_string();
-            let crit_chance = tool.base_crit_chance(&msm, &[]).to_string();
-            let range = tool.base_range(&msm, &[]).to_string();
-            let energy_efficiency = tool.base_energy_efficiency(&msm, &[]).to_string();
-            let buff_strength = tool.base_buff_strength(&msm, &[]).to_string();
-            let equip_time = tool.equip_time(&msm, &[]).as_secs_f32().to_string();
+        if let comp::item::ItemKind::Tool(tool) = &*item.kind() {
+            let power = tool.base_power().to_string();
+            let effect_power = tool.base_effect_power().to_string();
+            let speed = tool.base_speed().to_string();
+            let crit_chance = tool.base_crit_chance().to_string();
+            let range = tool.base_range().to_string();
+            let energy_efficiency = tool.base_energy_efficiency().to_string();
+            let buff_strength = tool.base_buff_strength().to_string();
+            let equip_time = tool.equip_time().as_secs_f32().to_string();
             let kind = get_tool_kind(&tool.kind);
             let hands = get_tool_hands(tool);
 
             wtr.write_record(&[
-                item.item_definition_id(),
+                item.item_definition_id()
+                    .itemdef_id()
+                    .expect("All items from asset glob should be simple items"),
                 &kind,
-                item.name(),
+                &item.name(),
                 &hands,
                 &format!("{:?}", item.quality()),
                 &power,
@@ -223,13 +225,19 @@ fn all_items() -> Result<(), Box<dyn Error>> {
     for item in comp::item::Item::new_from_asset_glob("common.items.*")
         .expect("Failed to iterate over item folders!")
     {
-        let kind = match item.kind() {
+        let kind = match &*item.kind() {
             ItemKind::Armor(armor) => get_armor_kind_kind(&armor.kind),
             ItemKind::Lantern(lantern) => lantern.kind.clone(),
             _ => "".to_owned(),
         };
 
-        wtr.write_record(&[item.item_definition_id(), item.name(), &kind])?;
+        wtr.write_record(&[
+            item.item_definition_id()
+                .itemdef_id()
+                .expect("All items in asset glob should be simple items"),
+            &item.name(),
+            &kind,
+        ])?;
     }
 
     wtr.flush()?;
@@ -242,8 +250,8 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         "Relative Chance",
         "Kind",
         "Item",
-        "Lower Amount",
-        "Upper Amount",
+        "Lower Amount or Material",
+        "Upper Amount or Hands",
     ])?;
 
     let loot_table = "common.loot_tables.".to_owned() + loot_table;
@@ -261,6 +269,12 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
         .div(10_f32.powi(5))
         .to_string();
 
+        let get_hands = |hands| match hands {
+            Some(Hands::One) => "One",
+            Some(Hands::Two) => "Two",
+            None => "",
+        };
+
         match item {
             LootSpec::Item(item) => wtr.write_record(&[&chance, "Item", item, "", ""])?,
             LootSpec::ItemQuantity(item, lower, upper) => wtr.write_record(&[
@@ -274,6 +288,28 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                 wtr.write_record(&[&chance, "LootTable", table, "", ""])?
             },
             LootSpec::Nothing => wtr.write_record(&[&chance, "Nothing", "", ""])?,
+            LootSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => wtr.write_record(&[
+                &chance,
+                "Modular Weapon",
+                &get_tool_kind(tool),
+                material.into(),
+                get_hands(*hands),
+            ])?,
+            LootSpec::ModularWeaponPrimaryComponent {
+                tool,
+                material,
+                hands,
+            } => wtr.write_record(&[
+                &chance,
+                "Modular Weapon Primary Component",
+                &get_tool_kind(tool),
+                material.into(),
+                get_hands(*hands),
+            ])?,
         }
     }
 
@@ -378,6 +414,14 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
                     // Tab needed so excel doesn't think it is a date...
                     (Some(item), format!("{}-{}\t", lower, upper))
                 },
+                LootSpec::ModularWeapon { .. } => {
+                    // TODO: Figure out how modular weapons should work here
+                    (None, String::from("1"))
+                },
+                LootSpec::ModularWeaponPrimaryComponent { .. } => {
+                    // TODO: Figure out how modular weapon components should work here
+                    (None, String::from("1"))
+                },
                 LootSpec::LootTable(_) => panic!("Shouldn't exist"),
                 LootSpec::Nothing => (None, "-".to_string()),
             };
@@ -385,9 +429,9 @@ fn entity_drops(entity_config: &str) -> Result<(), Box<dyn Error>> {
             let item = item_asset.map(|asset| Item::new_from_asset_expect(asset));
 
             let item_name = if let Some(item) = &item {
-                item.name()
+                item.name().into_owned()
             } else {
-                "Nothing"
+                String::from("Nothing")
             };
 
             wtr.write_record(&[

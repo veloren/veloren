@@ -146,7 +146,7 @@ impl CombatEventMapper {
         inventory: &Inventory,
     ) -> SfxEvent {
         if let Some(item) = inventory.equipped(EquipSlot::ActiveMainhand) {
-            if let ItemKind::Tool(data) = item.kind() {
+            if let ItemKind::Tool(data) = &*item.kind() {
                 if character_state.is_attack() {
                     return SfxEvent::Attack(
                         CharacterAbilityType::from(character_state),

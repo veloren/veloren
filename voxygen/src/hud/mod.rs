@@ -533,6 +533,17 @@ pub enum Event {
         slot: InvSlotId,
         salvage_pos: Vec3<i32>,
     },
+    CraftModularWeapon {
+        primary_slot: InvSlotId,
+        secondary_slot: InvSlotId,
+        craft_sprite: Option<Vec3<i32>>,
+    },
+    CraftModularWeaponComponent {
+        toolkind: ToolKind,
+        material: InvSlotId,
+        modifier: Option<InvSlotId>,
+        craft_sprite: Option<Vec3<i32>>,
+    },
     InviteMember(Uid),
     AcceptInvite,
     DeclineInvite,
@@ -692,9 +703,7 @@ pub struct Show {
     chat_tab_settings_index: Option<usize>,
     settings_tab: SettingsTab,
     diary_fields: diary::DiaryShow,
-    crafting_tab: CraftingTab,
-    crafting_search_key: Option<String>,
-    craft_sprite: Option<(Vec3<i32>, SpriteKind)>,
+    crafting_fields: crafting::CraftingShow,
     social_search_key: Option<String>,
     want_grab: bool,
     stats: bool,
@@ -703,7 +712,6 @@ pub struct Show {
     camera_clamp: bool,
     prompt_dialog: Option<PromptDialogSettings>,
     location_markers: MapMarkers,
-    salvage: bool,
     trade_amount_input_key: Option<TradeAmountInput>,
 }
 impl Show {
@@ -712,7 +720,7 @@ impl Show {
             self.bag = open;
             self.map = false;
             self.want_grab = !open;
-            self.salvage = false;
+            self.crafting_fields.salvage = false;
 
             if !open {
                 self.crafting = false;
@@ -734,7 +742,7 @@ impl Show {
             self.map = open;
             self.bag = false;
             self.crafting = false;
-            self.salvage = false;
+            self.crafting_fields.salvage = false;
             self.social = false;
             self.diary = false;
             self.want_grab = !open;
@@ -760,7 +768,8 @@ impl Show {
                 self.search_crafting_recipe(None);
             }
             self.crafting = open;
-            self.salvage = false;
+            self.crafting_fields.salvage = false;
+            self.crafting_fields.recipe_inputs = HashMap::new();
             self.bag = open;
             self.map = false;
             self.want_grab = !open;
@@ -774,16 +783,18 @@ impl Show {
     ) {
         self.selected_crafting_tab(tab);
         self.crafting(true);
-        self.craft_sprite = self.craft_sprite.or(craft_sprite);
-        self.salvage = matches!(self.craft_sprite, Some((_, SpriteKind::DismantlingBench)))
-            && matches!(tab, CraftingTab::Dismantle);
+        self.crafting_fields.craft_sprite = self.crafting_fields.craft_sprite.or(craft_sprite);
+        self.crafting_fields.salvage = matches!(
+            self.crafting_fields.craft_sprite,
+            Some((_, SpriteKind::DismantlingBench))
+        ) && matches!(tab, CraftingTab::Dismantle);
     }
 
     fn diary(&mut self, open: bool) {
         if !self.esc_menu {
             self.social = false;
             self.crafting = false;
-            self.salvage = false;
+            self.crafting_fields.salvage = false;
             self.bag = false;
             self.map = false;
             self.diary_fields = diary::DiaryShow::default();
@@ -802,7 +813,7 @@ impl Show {
             self.bag = false;
             self.social = false;
             self.crafting = false;
-            self.salvage = false;
+            self.crafting_fields.salvage = false;
             self.diary = false;
             self.want_grab = !open;
         }
@@ -894,10 +905,12 @@ impl Show {
         self.social = false;
     }
 
-    fn selected_crafting_tab(&mut self, sel_cat: CraftingTab) { self.crafting_tab = sel_cat; }
+    fn selected_crafting_tab(&mut self, sel_cat: CraftingTab) {
+        self.crafting_fields.crafting_tab = sel_cat;
+    }
 
     fn search_crafting_recipe(&mut self, search_key: Option<String>) {
-        self.crafting_search_key = search_key;
+        self.crafting_fields.crafting_search_key = search_key;
     }
 
     fn search_social_players(&mut self, search_key: Option<String>) {
@@ -1106,9 +1119,7 @@ impl Hud {
                 chat_tab_settings_index: None,
                 settings_tab: SettingsTab::Interface,
                 diary_fields: diary::DiaryShow::default(),
-                crafting_tab: CraftingTab::All,
-                crafting_search_key: None,
-                craft_sprite: None,
+                crafting_fields: crafting::CraftingShow::default(),
                 social_search_key: None,
                 want_grab: true,
                 ingame: true,
@@ -1118,7 +1129,6 @@ impl Hud {
                 camera_clamp: false,
                 prompt_dialog: None,
                 location_markers: MapMarkers::default(),
-                salvage: false,
                 trade_amount_input_key: None,
             },
             to_focus: None,
@@ -2930,6 +2940,7 @@ impl Hud {
                     self.pulse,
                     &self.rot_imgs,
                     item_tooltip_manager,
+                    &mut self.slot_manager,
                     &self.item_imgs,
                     inventory,
                     &msm,
@@ -2942,7 +2953,37 @@ impl Hud {
                         crafting::Event::CraftRecipe(recipe) => {
                             events.push(Event::CraftRecipe {
                                 recipe,
-                                craft_sprite: self.show.craft_sprite,
+                                craft_sprite: self.show.crafting_fields.craft_sprite,
+                            });
+                        },
+                        crafting::Event::CraftModularWeapon {
+                            primary_slot,
+                            secondary_slot,
+                        } => {
+                            events.push(Event::CraftModularWeapon {
+                                primary_slot,
+                                secondary_slot,
+                                craft_sprite: self
+                                    .show
+                                    .crafting_fields
+                                    .craft_sprite
+                                    .map(|(pos, _sprite)| pos),
+                            });
+                        },
+                        crafting::Event::CraftModularWeaponComponent {
+                            toolkind,
+                            material,
+                            modifier,
+                        } => {
+                            events.push(Event::CraftModularWeaponComponent {
+                                toolkind,
+                                material,
+                                modifier,
+                                craft_sprite: self
+                                    .show
+                                    .crafting_fields
+                                    .craft_sprite
+                                    .map(|(pos, _sprite)| pos),
                             });
                         },
                         crafting::Event::Close => {
@@ -2963,6 +3004,9 @@ impl Hud {
                         },
                         crafting::Event::SearchRecipe(search_key) => {
                             self.show.search_crafting_recipe(search_key);
+                        },
+                        crafting::Event::ClearRecipeInputs => {
+                            self.show.crafting_fields.recipe_inputs.clear();
                         },
                     }
                 }
@@ -3352,6 +3396,7 @@ impl Hud {
                 Hotbar(_) => None,
                 Trade(_) => None,
                 Ability(_) => None,
+                Crafting(_) => None,
             };
             match event {
                 slot::Event::Dragged(a, b) => {
@@ -3428,6 +3473,23 @@ impl Hud {
                             },
                             (AbilitySlot::Ability(_), AbilitySlot::Ability(_)) => {},
                         }
+                    } else if let (Inventory(i), Crafting(c)) = (a, b) {
+                        // Add item to crafting input
+                        if inventories
+                            .get(client.entity())
+                            .and_then(|inv| inv.get(i.slot))
+                            .map_or(false, |item| {
+                                (c.requirement)(item, client.component_recipe_book(), c.info)
+                            })
+                        {
+                            self.show
+                                .crafting_fields
+                                .recipe_inputs
+                                .insert(c.index, i.slot);
+                        }
+                    } else if let (Crafting(c), Inventory(_)) = (a, b) {
+                        // Remove item from crafting input
+                        self.show.crafting_fields.recipe_inputs.remove(&c.index);
                     }
                 },
                 slot::Event::Dropped(from) => {
@@ -3449,6 +3511,9 @@ impl Hud {
                         }
                     } else if let Ability(AbilitySlot::Slot(index)) = from {
                         events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                    } else if let Crafting(c) = from {
+                        // Remove item from crafting input
+                        self.show.crafting_fields.recipe_inputs.remove(&c.index);
                     }
                 },
                 slot::Event::SplitDropped(from) => {
@@ -3535,11 +3600,14 @@ impl Hud {
                 slot::Event::Used(from) => {
                     // Item used (selected and then clicked again)
                     if let Some(from) = to_slot(from) {
-                        if self.show.salvage
-                            && matches!(self.show.crafting_tab, CraftingTab::Dismantle)
+                        if self.show.crafting_fields.salvage
+                            && matches!(
+                                self.show.crafting_fields.crafting_tab,
+                                CraftingTab::Dismantle
+                            )
                         {
                             if let (Slot::Inventory(slot), Some((salvage_pos, _sprite_kind))) =
-                                (from, self.show.craft_sprite)
+                                (from, self.show.crafting_fields.craft_sprite)
                             {
                                 events.push(Event::SalvageItem { slot, salvage_pos })
                             }
@@ -3575,6 +3643,9 @@ impl Hud {
                         });
                     } else if let Ability(AbilitySlot::Slot(index)) = from {
                         events.push(Event::ChangeAbility(index, AuxiliaryAbility::Empty));
+                    } else if let Crafting(c) = from {
+                        // Remove item from crafting input
+                        self.show.crafting_fields.recipe_inputs.remove(&c.index);
                     }
                 },
                 slot::Event::Request {
@@ -3623,8 +3694,10 @@ impl Hud {
                                         false,
                                     );
                                     if let Some(item) = inventory.get(slot) {
-                                        if let Some(materials) =
-                                            TradePricing::get_materials(item.item_definition_id())
+                                        if let Some(materials) = item
+                                            .item_definition_id()
+                                            .itemdef_id()
+                                            .and_then(TradePricing::get_materials)
                                         {
                                             let unit_price: f32 = materials
                                                 .iter()
@@ -4232,14 +4305,15 @@ impl Hud {
         }
 
         // Stop selecting a sprite to perform crafting with when out of range
-        self.show.craft_sprite = self.show.craft_sprite.filter(|(pos, _)| {
-            self.show.crafting
-                && if let Some(player_pos) = client.position() {
-                    pos.map(|e| e as f32 + 0.5).distance(player_pos) < MAX_PICKUP_RANGE
-                } else {
-                    false
-                }
-        });
+        self.show.crafting_fields.craft_sprite =
+            self.show.crafting_fields.craft_sprite.filter(|(pos, _)| {
+                self.show.crafting
+                    && if let Some(player_pos) = client.position() {
+                        pos.map(|e| e as f32 + 0.5).distance(player_pos) < MAX_PICKUP_RANGE
+                    } else {
+                        false
+                    }
+            });
 
         // Optimization: skip maintaining UI when it's off.
         if !self.show.ui {

@@ -3,6 +3,8 @@ ItemDef(
     description: "Greener than an orc's snout.",
     kind: Ingredient(
         kind: "Grass",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

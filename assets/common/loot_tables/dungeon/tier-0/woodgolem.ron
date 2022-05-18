@@ -1,0 +1,11 @@
+[
+    // Currency
+    (1.0, ItemQuantity("common.items.utility.coins", 10, 20)),
+    // Food
+    (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
+    // Consumables
+    (2.0, LootTable("common.loot_tables.consumable.poor")),
+    // Crafting ingredients
+    (1.0, ItemQuantity("common.items.log.wood", 5, 10)),
+    (0.5, LootTable("common.loot_tables.weapons.components.secondary.sceptre")),
+]

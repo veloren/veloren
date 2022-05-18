@@ -124,12 +124,12 @@ impl Inventory {
         let mut items: Vec<Item> = self.slots_mut().filter_map(mem::take).collect();
 
         items.sort_by(|a, b| match sort_order {
-            InventorySortOrder::Name => Ord::cmp(a.name(), b.name()),
+            InventorySortOrder::Name => Ord::cmp(&a.name(), &b.name()),
             // Quality is sorted in reverse since we want high quality items first
             InventorySortOrder::Quality => Ord::cmp(&b.quality(), &a.quality()),
             InventorySortOrder::Tag => Ord::cmp(
-                a.tags.first().map_or("", |tag| tag.name()),
-                b.tags.first().map_or("", |tag| tag.name()),
+                &a.tags().first().map_or("", |tag| tag.name()),
+                &b.tags().first().map_or("", |tag| tag.name()),
             ),
         });
 
@@ -540,7 +540,7 @@ impl Inventory {
     #[must_use = "Returned items will be lost if not used"]
     pub fn equip(&mut self, inv_slot: InvSlotId) -> Vec<Item> {
         self.get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(&*item.kind()))
             .map(|equip_slot| self.swap_inventory_loadout(inv_slot, equip_slot))
             .unwrap_or_else(Vec::new)
     }
@@ -551,7 +551,7 @@ impl Inventory {
     pub fn free_after_equip(&self, inv_slot: InvSlotId) -> i32 {
         let (inv_slot_for_equipped, slots_from_equipped) = self
             .get(inv_slot)
-            .and_then(|item| self.loadout.get_slot_to_equip_into(item.kind()))
+            .and_then(|item| self.loadout.get_slot_to_equip_into(&*item.kind()))
             .and_then(|equip_slot| self.equipped(equip_slot))
             .map_or((1, 0), |item| (0, item.slots().len()));
 
@@ -758,7 +758,7 @@ impl Inventory {
     pub fn can_swap(&self, inv_slot_id: InvSlotId, equip_slot: EquipSlot) -> bool {
         // Check if loadout slot can hold item
         if !self.get(inv_slot_id).map_or(true, |item| {
-            self.loadout.slot_can_hold(equip_slot, Some(item.kind()))
+            self.loadout.slot_can_hold(equip_slot, Some(&*item.kind()))
         }) {
             trace!("can_swap = false, equip slot can't hold item");
             return false;
@@ -775,11 +775,28 @@ impl Inventory {
         true
     }
 
-    pub fn equipped_items_of_kind(&self, item_kind: ItemKind) -> impl Iterator<Item = &Item> {
-        self.loadout.equipped_items_of_kind(item_kind)
+    pub fn equipped_items_replaceable_by<'a>(
+        &'a self,
+        item_kind: &'a ItemKind,
+    ) -> impl Iterator<Item = &'a Item> {
+        self.loadout.equipped_items_replaceable_by(item_kind)
     }
 
     pub fn swap_equipped_weapons(&mut self) { self.loadout.swap_equipped_weapons() }
+
+    /// Update internal computed state of all top level items in this loadout.
+    /// Used only when loading in persistence code.
+    pub fn persistence_update_all_item_states(
+        &mut self,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::tool::MaterialStatManifest,
+    ) {
+        self.slots_mut().for_each(|slot| {
+            if let Some(item) = slot {
+                item.update_item_state(ability_map, msm);
+            }
+        });
+    }
 }
 
 impl Component for Inventory {

@@ -1,21 +1,21 @@
 #![enable(implicit_some)]
 (
-    shoulders: "common.items.armor.cloth.silken.shoulder",
-    chest: "common.items.armor.cloth.silken.chest",
-    gloves: "common.items.armor.cloth.silken.hand",
-    back: [
-        (1, "common.items.armor.misc.back.backpack"),
-        (1, "common.items.npc_armor.back.backpack_blue"),
-        (1, "common.items.armor.cloth.silken.back"),
+    shoulders: Item("common.items.armor.cloth.silken.shoulder"),
+    chest: Item("common.items.armor.cloth.silken.chest"),
+    gloves: Item("common.items.armor.cloth.silken.hand"),
+    back: Choice([
+        (1, Item("common.items.armor.misc.back.backpack")),
+        (1, Item("common.items.npc_armor.back.backpack_blue")),
+        (1, Item("common.items.armor.cloth.silken.back")),
         (1, None),
-    ],
-    belt: "common.items.armor.cloth.silken.belt",
-    legs: "common.items.armor.cloth.silken.pants",
-    feet: "common.items.armor.cloth.silken.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
-        (1, "common.items.lantern.blue_0"),
-        (1, "common.items.lantern.green_0"),
-        (1, "common.items.lantern.geode_purp"),
-    ],
+    ]),
+    belt: Item("common.items.armor.cloth.silken.belt"),
+    legs: Item("common.items.armor.cloth.silken.pants"),
+    feet: Item("common.items.armor.cloth.silken.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
+        (1, Item("common.items.lantern.blue_0")),
+        (1, Item("common.items.lantern.green_0")),
+        (1, Item("common.items.lantern.geode_purp")),
+    ]),
 )

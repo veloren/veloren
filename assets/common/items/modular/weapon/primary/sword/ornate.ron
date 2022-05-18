@@ -1,0 +1,27 @@
+ItemDef(
+    name: "Ornate Sword Blade",
+    description: "",
+    kind: ModularComponent(
+        ToolPrimaryComponent(
+            toolkind: Sword,
+            stats: (
+                equip_time_secs: 0.25,
+                power: 0.8,
+                effect_power: 0.8,
+                speed: 0.8,
+                crit_chance: 0.1,
+                range: 1.0,
+                energy_efficiency: 1.5,
+                buff_strength: 0.8,
+            ),
+            hand_restriction: None,
+            weapon_name: HandednessDependent(
+                one_handed: "Rapier",
+                two_handed: "Ornate Sword",
+            ),
+        )
+    ),
+    quality: Low,
+    tags: [],
+)
+

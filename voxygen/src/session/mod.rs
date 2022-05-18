@@ -2,29 +2,32 @@ pub mod interactable;
 pub mod settings_change;
 mod target;
 
-use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, sync::Arc, time::Duration};
+use std::{cell::RefCell, collections::HashSet, rc::Rc, result::Result, time::Duration};
 
 #[cfg(not(target_os = "macos"))]
 use mumble_link::SharedLink;
 use ordered_float::OrderedFloat;
 use specs::{Join, WorldExt};
-use tracing::{error, info, warn};
+use tracing::{error, info};
 use vek::*;
 
 use client::{self, Client};
 use common::{
-    assets::AssetExt,
     comp,
     comp::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
-        item::{tool::ToolKind, ItemDef, ItemDesc},
+        item::{
+            tool::{AbilityMap, MaterialStatManifest, ToolKind},
+            ItemDesc,
+        },
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },
     consts::MAX_MOUNT_RANGE,
     link::Is,
     mounting::Mount,
     outcome::Outcome,
+    recipe,
     terrain::{Block, BlockKind},
     trade::TradeResult,
     util::{Dir, Plane},
@@ -250,21 +253,12 @@ impl SessionState {
                             }
                         },
                         InventoryUpdateEvent::Collected(item) => {
-                            match Arc::<ItemDef>::load_cloned(item.item_definition_id()) {
-                                Result::Ok(item_def) => {
-                                    self.hud.new_loot_message(LootMessage {
-                                        item: item_def,
-                                        amount: item.amount(),
-                                    });
-                                },
-                                Result::Err(e) => {
-                                    warn!(
-                                        ?e,
-                                        "Item not present on client: {}",
-                                        item.item_definition_id()
-                                    );
-                                },
-                            }
+                            let ability_map = AbilityMap::load().read();
+                            let msm = MaterialStatManifest::load().read();
+                            self.hud.new_loot_message(LootMessage {
+                                item: item.duplicate(&ability_map, &msm),
+                                amount: item.amount(),
+                            });
                         },
                         _ => {},
                     };
@@ -410,8 +404,8 @@ impl PlayState for SessionState {
                 .inventories()
                 .get(player_entity)
                 .and_then(|inv| inv.equipped(EquipSlot::ActiveMainhand))
-                .and_then(|item| item.tool())
-                .map_or(false, |tool| tool.kind == ToolKind::Pick)
+                .and_then(|item| item.tool_info())
+                .map_or(false, |tool_kind| tool_kind == ToolKind::Pick)
                 && client.is_wielding() == Some(true);
 
             // Check to see whether we're aiming at anything
@@ -1418,6 +1412,61 @@ impl PlayState for SessionState {
                             self.client
                                 .borrow_mut()
                                 .craft_recipe(&recipe, slots, craft_sprite);
+                        }
+                    },
+                    HudEvent::CraftModularWeapon {
+                        primary_slot,
+                        secondary_slot,
+                        craft_sprite,
+                    } => {
+                        self.client.borrow_mut().craft_modular_weapon(
+                            primary_slot,
+                            secondary_slot,
+                            craft_sprite,
+                        );
+                    },
+                    HudEvent::CraftModularWeaponComponent {
+                        toolkind,
+                        material,
+                        modifier,
+                        craft_sprite,
+                    } => {
+                        let additional_slots = {
+                            let client = self.client.borrow();
+                            let item_id = |slot| {
+                                client
+                                    .inventories()
+                                    .get(client.entity())
+                                    .and_then(|inv| inv.get(slot))
+                                    .and_then(|item| {
+                                        item.item_definition_id().itemdef_id().map(String::from)
+                                    })
+                            };
+                            if let Some(material_id) = item_id(material) {
+                                let key = recipe::ComponentKey {
+                                    toolkind,
+                                    material: material_id,
+                                    modifier: modifier.and_then(item_id),
+                                };
+                                if let Some(recipe) = client.component_recipe_book().get(&key) {
+                                    client.inventories().get(client.entity()).and_then(|inv| {
+                                        recipe.inventory_contains_additional_ingredients(inv).ok()
+                                    })
+                                } else {
+                                    None
+                                }
+                            } else {
+                                None
+                            }
+                        };
+                        if let Some(additional_slots) = additional_slots {
+                            self.client.borrow_mut().craft_modular_weapon_component(
+                                toolkind,
+                                material,
+                                modifier,
+                                additional_slots,
+                                craft_sprite,
+                            );
                         }
                     },
                     HudEvent::SalvageItem { slot, salvage_pos } => {

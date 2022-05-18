@@ -841,7 +841,7 @@ impl<'a> Widget for Diary<'a> {
                     let (ability_title, ability_desc) = if let Some(ability_id) = ability_id {
                         util::ability_description(ability_id)
                     } else {
-                        ("Drag an ability here to use it.", "")
+                        (Cow::Borrowed("Drag an ability here to use it."), "")
                     };
 
                     let image_size = 80.0;
@@ -863,7 +863,7 @@ impl<'a> Widget for Diary<'a> {
                     ability_slot
                         .with_tooltip(
                             self.tooltip_manager,
-                            ability_title,
+                            &ability_title,
                             ability_desc,
                             &diary_tooltip,
                             TEXT_COLOR,
@@ -899,7 +899,8 @@ impl<'a> Widget for Diary<'a> {
                     .equipped(EquipSlot::ActiveMainhand)
                     .zip(self.inventory.equipped(EquipSlot::ActiveOffhand))
                     .map_or(false, |(a, b)| {
-                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) = (&a.kind, &b.kind)
+                        if let (ItemKind::Tool(tool_a), ItemKind::Tool(tool_b)) =
+                            (&*a.kind(), &*b.kind())
                         {
                             (a.ability_spec(), tool_a.kind) == (b.ability_spec(), tool_b.kind)
                         } else {
@@ -1082,7 +1083,7 @@ impl<'a> Widget for Diary<'a> {
                             // otherwise
                             20.0 * 2.0 + 100.0
                         };
-                    Text::new(ability_title)
+                    Text::new(&ability_title)
                         .top_left_with_margins_on(state.ids.abilities[id_index], 5.0, 110.0)
                         .font_id(self.fonts.cyri.conrod_id)
                         .font_size(self.fonts.cyri.scale(28))
@@ -1152,20 +1153,16 @@ impl<'a> Widget for Diary<'a> {
                     let main_weap_stats = self
                         .inventory
                         .equipped(EquipSlot::ActiveMainhand)
-                        .and_then(|item| match &item.kind {
-                            ItemKind::Tool(tool) => {
-                                Some(tool.stats.resolve_stats(self.msm, item.components()))
-                            },
+                        .and_then(|item| match &*item.kind() {
+                            ItemKind::Tool(tool) => Some(tool.stats),
                             _ => None,
                         });
 
                     let off_weap_stats = self
                         .inventory
                         .equipped(EquipSlot::ActiveOffhand)
-                        .and_then(|item| match &item.kind {
-                            ItemKind::Tool(tool) => {
-                                Some(tool.stats.resolve_stats(self.msm, item.components()))
-                            },
+                        .and_then(|item| match &*item.kind() {
+                            ItemKind::Tool(tool) => Some(tool.stats),
                             _ => None,
                         });
 

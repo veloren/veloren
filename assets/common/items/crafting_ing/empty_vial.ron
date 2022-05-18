@@ -3,6 +3,8 @@ ItemDef(
     description: "Can be filled with fluids.",
     kind: Ingredient(
         kind: "EmptyVial",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

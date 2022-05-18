@@ -1,0 +1,11 @@
+ItemDef(
+    name: "Long Tusk",
+    description: "A pointy tusk from some beast.\n\nThis can be used when crafting weapons.",
+    kind: Ingredient(
+        kind: "LongTusk",
+        // Descriptor not needed
+        descriptor: "",
+    ),
+    quality: Common,
+    tags: [],
+)

@@ -1,6 +1,6 @@
 use crate::comp::{
     inventory::{
-        item::{Hands, ItemKind, Tool},
+        item::{self, tool::Tool, Hands, ItemKind},
         slot::{ArmorSlot, EquipSlot},
         InvSlot,
     },
@@ -138,11 +138,10 @@ impl Loadout {
         }
     }
 
-    pub fn update_item_at_slot_using_persistence_key<F: FnOnce(&mut Item)>(
+    pub fn get_mut_item_at_slot_using_persistence_key(
         &mut self,
         persistence_key: &str,
-        f: F,
-    ) -> Result<(), LoadoutError> {
+    ) -> Result<&mut Item, LoadoutError> {
         self.slots
             .iter_mut()
             .find(|loadout_slot| loadout_slot.persistence_key == persistence_key)
@@ -150,10 +149,7 @@ impl Loadout {
                 loadout_slot
                     .slot
                     .as_mut()
-                    .map_or(Err(LoadoutError::NoParentAtSlot), |item| {
-                        f(item);
-                        Ok(())
-                    })
+                    .ok_or(LoadoutError::NoParentAtSlot)
             })
     }
 
@@ -172,9 +168,13 @@ impl Loadout {
         assert_eq!(self.swap(equip_slot_a, item_b), None);
 
         // Check if items are valid in their new positions
-        if !self.slot_can_hold(equip_slot_a, self.equipped(equip_slot_a).map(|x| x.kind()))
-            || !self.slot_can_hold(equip_slot_b, self.equipped(equip_slot_b).map(|x| x.kind()))
-        {
+        if !self.slot_can_hold(
+            equip_slot_a,
+            self.equipped(equip_slot_a).map(|x| x.kind()).as_deref(),
+        ) || !self.slot_can_hold(
+            equip_slot_b,
+            self.equipped(equip_slot_b).map(|x| x.kind()).as_deref(),
+        ) {
             // If not, revert the swap
             let item_a = self.swap(equip_slot_a, None);
             let item_b = self.swap(equip_slot_b, item_a);
@@ -205,13 +205,13 @@ impl Loadout {
 
     /// Returns all items currently equipped that an item of the given ItemKind
     /// could replace
-    pub(super) fn equipped_items_of_kind(
-        &self,
-        item_kind: ItemKind,
-    ) -> impl Iterator<Item = &Item> {
+    pub(super) fn equipped_items_replaceable_by<'a>(
+        &'a self,
+        item_kind: &'a ItemKind,
+    ) -> impl Iterator<Item = &'a Item> {
         self.slots
             .iter()
-            .filter(move |s| self.slot_can_hold(s.equip_slot, Some(&item_kind)))
+            .filter(move |s| self.slot_can_hold(s.equip_slot, Some(item_kind)))
             .filter_map(|s| s.slot.as_ref())
     }
 
@@ -293,7 +293,7 @@ impl Loadout {
         let loadout_slot = self
             .slots
             .iter()
-            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, Some(item.kind())))
+            .find(|s| s.slot.is_none() && self.slot_can_hold(s.equip_slot, Some(&*item.kind())))
             .map(|s| s.equip_slot);
         if let Some(slot) = self
             .slots
@@ -322,18 +322,26 @@ impl Loadout {
         if !(match equip_slot {
             EquipSlot::ActiveMainhand => Loadout::is_valid_weapon_pair(
                 item_kind,
-                self.equipped(EquipSlot::ActiveOffhand).map(|x| &x.kind),
+                self.equipped(EquipSlot::ActiveOffhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
             ),
             EquipSlot::ActiveOffhand => Loadout::is_valid_weapon_pair(
-                self.equipped(EquipSlot::ActiveMainhand).map(|x| &x.kind),
+                self.equipped(EquipSlot::ActiveMainhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
                 item_kind,
             ),
             EquipSlot::InactiveMainhand => Loadout::is_valid_weapon_pair(
                 item_kind,
-                self.equipped(EquipSlot::InactiveOffhand).map(|x| &x.kind),
+                self.equipped(EquipSlot::InactiveOffhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
             ),
             EquipSlot::InactiveOffhand => Loadout::is_valid_weapon_pair(
-                self.equipped(EquipSlot::InactiveMainhand).map(|x| &x.kind),
+                self.equipped(EquipSlot::InactiveMainhand)
+                    .map(|x| x.kind())
+                    .as_deref(),
                 item_kind,
             ),
             _ => true,
@@ -341,7 +349,7 @@ impl Loadout {
             return false;
         }
 
-        item_kind.map_or(true, |item_kind| equip_slot.can_hold(item_kind))
+        item_kind.map_or(true, |item| equip_slot.can_hold(item))
     }
 
     #[rustfmt::skip]
@@ -358,7 +366,7 @@ impl Loadout {
         // nothing is equipped in slot
         let valid_slot = |equip_slot| {
             self.equipped(equip_slot)
-                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(i.kind())))
+                .map_or(true, |i| self.slot_can_hold(equip_slot, Some(&*i.kind())))
         };
 
         // If every weapon is currently in a valid slot, after this change they will
@@ -393,6 +401,20 @@ impl Loadout {
                     .is_none()
             );
         }
+    }
+
+    /// Update internal computed state of all top level items in this loadout.
+    /// Used only when loading in persistence code.
+    pub fn persistence_update_all_item_states(
+        &mut self,
+        ability_map: &item::tool::AbilityMap,
+        msm: &item::tool::MaterialStatManifest,
+    ) {
+        self.slots.iter_mut().for_each(|slot| {
+            if let Some(item) = &mut slot.slot {
+                item.update_item_state(ability_map, msm);
+            }
+        });
     }
 }
 

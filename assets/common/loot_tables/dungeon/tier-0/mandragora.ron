@@ -1,0 +1,4 @@
+[
+    (1.0, LootTable("common.loot_tables.dungeon.tier-0.enemy")),
+    (1.0, ItemQuantity("common.items.flowers.plant_fiber", 2, 4)),
+]

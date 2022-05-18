@@ -28,7 +28,7 @@
 
 use crate::{
     assets::{self, AssetExt},
-    comp::Item,
+    comp::{inventory::item, Item},
 };
 use rand::prelude::*;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
@@ -86,10 +86,22 @@ pub enum LootSpec<T: AsRef<str>> {
     LootTable(T),
     /// No loot given
     Nothing,
+    /// Modular weapon
+    ModularWeapon {
+        tool: item::tool::ToolKind,
+        material: item::Material,
+        hands: Option<item::tool::Hands>,
+    },
+    ModularWeaponPrimaryComponent {
+        tool: item::tool::ToolKind,
+        material: item::Material,
+        hands: Option<item::tool::Hands>,
+    },
 }
 
 impl<T: AsRef<str>> LootSpec<T> {
     pub fn to_item(&self) -> Option<Item> {
+        let mut rng = thread_rng();
         match self {
             Self::Item(item) => Item::new_from_asset(item.as_ref()).map_or_else(
                 |e| {
@@ -120,6 +132,43 @@ impl<T: AsRef<str>> LootSpec<T> {
                 .choose()
                 .to_item(),
             Self::Nothing => None,
+            Self::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => item::modular::random_weapon(*tool, *material, *hands, &mut rng).map_or_else(
+                |e| {
+                    warn!(
+                        ?e,
+                        "error while creating modular weapon. Toolkind: {:?}, Material: {:?}, \
+                         Hands: {:?}",
+                        tool,
+                        material,
+                        hands,
+                    );
+                    None
+                },
+                Option::Some,
+            ),
+            Self::ModularWeaponPrimaryComponent {
+                tool,
+                material,
+                hands,
+            } => item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng)
+                .map_or_else(
+                    |e| {
+                        warn!(
+                            ?e,
+                            "error while creating modular weapon primary component. Toolkind: \
+                             {:?}, Material: {:?}, Hands: {:?}",
+                            tool,
+                            material,
+                            hands,
+                        );
+                        None
+                    },
+                    |(comp, _)| Some(comp),
+                ),
         }
     }
 }
@@ -135,6 +184,7 @@ pub mod tests {
 
     #[cfg(test)]
     pub fn validate_loot_spec(item: &LootSpec<String>) {
+        let mut rng = thread_rng();
         match item {
             LootSpec::Item(item) => {
                 Item::new_from_asset_expect(item);
@@ -159,6 +209,33 @@ pub mod tests {
                 validate_table_contents(loot_table);
             },
             LootSpec::Nothing => {},
+            LootSpec::ModularWeapon {
+                tool,
+                material,
+                hands,
+            } => {
+                item::modular::random_weapon(*tool, *material, *hands, &mut rng).unwrap_or_else(
+                    |_| {
+                        panic!(
+                            "Failed to synthesize a modular {tool:?} made of {material:?} that \
+                             had a hand restriction of {hands:?}."
+                        )
+                    },
+                );
+            },
+            LootSpec::ModularWeaponPrimaryComponent {
+                tool,
+                material,
+                hands,
+            } => {
+                item::modular::random_weapon_primary_component(*tool, *material, *hands, &mut rng)
+                    .unwrap_or_else(|_| {
+                        panic!(
+                            "Failed to synthesize a modular weapon primary component: {tool:?} \
+                             made of {material:?} that had a hand restriction of {hands:?}."
+                        )
+                    });
+            },
         }
     }
 

@@ -11,7 +11,15 @@
     (0.03, Item("common.items.mineral.ore.silver")),
     (0.1, Item("common.items.mineral.ore.bloodstone")),
     (0.2, Item("common.items.mineral.ore.cobalt")),
-    (0.25, Item("common.items.mineral.ore.coal")),
+    (0.5, Item("common.items.mineral.ore.coal")),
+    (1.0, Item("common.items.mineral.ore.iron")),
+
+    // High tier woods
+    (0.05, Item("common.items.log.eldwood")),
+    (0.1, Item("common.items.log.frostwood")),
+    (0.2, Item("common.items.log.ironwood")),
+    (0.5, Item("common.items.log.hardwood")),
+    (1.0, Item("common.items.log.bamboo")),
 
     // High tier Animal Hide
     (0.025, Item("common.items.crafting_ing.hide.dragon_scale")),
@@ -19,7 +27,8 @@
     (0.05, Item("common.items.crafting_ing.hide.leather_troll")),
     (0.05, Item("common.items.crafting_ing.hide.rugged_hide")),
     (0.2, Item("common.items.crafting_ing.hide.carapace")),
-    (0.2, Item("common.items.crafting_ing.hide.scales")),
+    (0.5, Item("common.items.crafting_ing.hide.scales")),
+    (1.0, Item("common.items.crafting_ing.hide.tough_hide")),
 
     // High tier Mob drops
     (0.005, Item("common.items.crafting_ing.animal_misc.phoenix_feather")),

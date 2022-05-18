@@ -1,3 +1,4 @@
 [
-    (1.0, ItemQuantity("common.items.crafting_ing.hide.carapace", 2, 5)),
+    (1.5, ItemQuantity("common.items.crafting_ing.hide.carapace", 2, 5)),
+    (1.0, ItemQuantity("common.items.crafting_ing.animal_misc.strong_pincer", 1, 2)),
 ]

@@ -1,0 +1,5 @@
+[
+    (1.0, Item("common.items.modular.weapon.secondary.bow.short")),
+    (1.0, Item("common.items.modular.weapon.secondary.bow.medium")),
+    (1.0, Item("common.items.modular.weapon.secondary.bow.long")),
+]

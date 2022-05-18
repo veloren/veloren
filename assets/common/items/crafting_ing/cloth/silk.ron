@@ -3,7 +3,8 @@ ItemDef(
     description: "A fine and strong fibre produced by spiders.",
     kind: Ingredient(
         kind: "Silk",
+        descriptor: "Silken",
     ),
     quality: Moderate,
-    tags: [Textile],
+    tags: [MaterialKind(Cloth), Material(Silk)],
 )

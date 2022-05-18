@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("sunlizard"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.theropod.raptor"),
+    loot: LootTable("common.loot_tables.creature.theropod.scale"),
     inventory: (
         loadout: FromBody,
     ),

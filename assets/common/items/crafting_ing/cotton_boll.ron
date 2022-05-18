@@ -3,6 +3,8 @@ ItemDef(
     description: "Plucked from a common cotton plant.",
     kind: Ingredient(
         kind: "CottonBoll",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

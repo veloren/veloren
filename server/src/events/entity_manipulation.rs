@@ -1111,7 +1111,7 @@ fn handle_exp_gain(
     let mut add_tool_from_slot = |equip_slot| {
         let tool_kind = inventory
             .equipped(equip_slot)
-            .and_then(|i| match &i.kind() {
+            .and_then(|i| match &*i.kind() {
                 ItemKind::Tool(tool) if tool.kind.gains_combat_xp() => Some(tool.kind),
                 _ => None,
             });

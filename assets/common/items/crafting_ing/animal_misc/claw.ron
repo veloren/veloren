@@ -1,8 +1,10 @@
 ItemDef(
     name: "Predator Claw",
-    description: "Incredibly sharp claw from a predatory animal.",
+    description: "Incredibly sharp claw from a predatory animal.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         kind: "Claw",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

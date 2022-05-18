@@ -1,0 +1,9 @@
+// Potentially make more fine grained later if needed
+([
+    "common.items.log.wood",
+    "common.items.log.bamboo",
+    "common.items.log.hardwood",
+    "common.items.log.ironwood",
+    "common.items.log.frostwood",
+    "common.items.log.eldwood",
+])

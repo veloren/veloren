@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-1.icepicker"),
-            active_hands: ("common.items.npc_weapons.biped_small.adlet.icepicker", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.adlet.icepicker"), None)),
         )),
     ),
     meta: [

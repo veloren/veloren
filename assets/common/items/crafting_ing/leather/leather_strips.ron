@@ -3,6 +3,8 @@ ItemDef(
     description: "Simple and versatile.",
     kind: Ingredient(
         kind: "LeatherStrips",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [BaseMaterial],

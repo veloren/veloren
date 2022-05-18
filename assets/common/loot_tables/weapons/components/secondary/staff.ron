@@ -1,0 +1,5 @@
+[
+    (1.0, Item("common.items.modular.weapon.secondary.staff.light")),
+    (1.0, Item("common.items.modular.weapon.secondary.staff.medium")),
+    (1.0, Item("common.items.modular.weapon.secondary.staff.heavy")),
+]

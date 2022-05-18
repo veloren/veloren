@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("odonto"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.theropod.generic"),
+    loot: LootTable("common.loot_tables.creature.theropod.odonto"),
     inventory: (
         loadout: FromBody,
     ),

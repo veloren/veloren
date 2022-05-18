@@ -1,0 +1,9 @@
+// Potentially make more fine grained later if needed
+([
+    "common.items.mineral.ingot.bronze",
+    "common.items.mineral.ingot.iron",
+    "common.items.mineral.ingot.steel",
+    "common.items.mineral.ingot.cobalt",
+    "common.items.mineral.ingot.bloodsteel",
+    "common.items.mineral.ingot.orichalcum",
+])

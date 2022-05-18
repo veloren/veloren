@@ -1,8 +1,10 @@
 ItemDef(
     name: "Sharp Fang",
-    description: "Incredibly sharp tooth from a predatory animal.",
+    description: "Incredibly sharp tooth from a predatory animal.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         kind: "SharpFang",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

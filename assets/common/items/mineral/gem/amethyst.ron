@@ -3,6 +3,7 @@ ItemDef(
     description: "A precious purple gem.",
     kind: Ingredient(
         kind: "Amethyst",
+        descriptor: "Amethyst",
     ),
     quality: Common,
     tags: [],

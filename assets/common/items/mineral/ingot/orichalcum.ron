@@ -1,9 +1,10 @@
 ItemDef(
     name: "Orichalcum Ingot",
-    description: "An ingot made of refined orichalcum.",
+    description: "An ingot made of refined orichalcum.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
         kind: "OrichalcumIngot",
+        descriptor: "Orichalcum",
     ),
     quality: Legendary,
-    tags: [MetalIngot],
+    tags: [MaterialKind(Metal), Material(Orichalcum)],
 )

@@ -1,17 +1,17 @@
 #![enable(implicit_some)]
 (
-    active_hands: [
-        (1, (
-            "common.items.weapons.axe_1h.orichalcum-0",
-            "common.items.weapons.axe_1h.orichalcum-0",
-        )),
-        (1, (
-            "common.items.weapons.hammer_1h.orichalcum-0",
-            "common.items.weapons.axe_1h.orichalcum-0",
-        )),
-        (1, (
-            "common.items.weapons.sword.cultist",
+    active_hands: Choice([
+        (1, InHands((
+            Item("common.items.weapons.sword_1h.starter"),
+            Item("common.items.weapons.sword_1h.starter"),
+        ))),
+        (1, InHands((
+            ModularWeapon(tool: Hammer, material: Orichalcum, hands: One),
+            ModularWeapon(tool: Axe, material: Orichalcum, hands: One),
+        ))),
+        (1, InHands((
+            Item("common.items.weapons.sword.cultist"),
             None,
-        )),
-    ],
+        ))),
+    ]),
 )

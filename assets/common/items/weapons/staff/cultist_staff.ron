@@ -4,7 +4,7 @@ ItemDef(
     kind: Tool((
         kind: Staff,
         hands: Two,
-        stats: Direct((
+        stats: (
             equip_time_secs: 0.3,
             power: 2.0,
             effect_power: 1.0,
@@ -13,7 +13,7 @@ ItemDef(
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
     quality: Epic,
     tags: [],

@@ -7,17 +7,17 @@
 //(2.0, Some(Item("common.items.lantern.green_0"))),
 #![enable(implicit_some)]
 (
-    head: [
-        (1, "common.items.armor.misc.head.helmet"),
-    ],
-    shoulders: "common.items.armor.leather_plate.shoulder",
-    chest: "common.items.armor.leather_plate.chest",
-    gloves: "common.items.armor.leather_plate.hand",
-    belt: "common.items.armor.leather_plate.belt",
-    legs: "common.items.armor.leather_plate.pants",
-    feet: "common.items.armor.leather_plate.foot",
-    lantern: [
-        (1, "common.items.lantern.black_0"),
+    head: Choice([
+        (1, Item("common.items.armor.misc.head.helmet")),
+    ]),
+    shoulders: Item("common.items.armor.leather_plate.shoulder"),
+    chest: Item("common.items.armor.leather_plate.chest"),
+    gloves: Item("common.items.armor.leather_plate.hand"),
+    belt: Item("common.items.armor.leather_plate.belt"),
+    legs: Item("common.items.armor.leather_plate.pants"),
+    feet: Item("common.items.armor.leather_plate.foot"),
+    lantern: Choice([
+        (1, Item("common.items.lantern.black_0")),
         (2, None),
-    ],
+    ]),
 )

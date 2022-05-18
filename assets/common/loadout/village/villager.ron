@@ -2,28 +2,28 @@
 //(1.0, Some(Item("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"))),
 #![enable(implicit_some)]
 (
-    head: [
-        (1, "common.items.armor.misc.head.straw"),
+    head: Choice([
+        (1, Item("common.items.armor.misc.head.straw")),
         (2, None),
-    ],
-    chest: [
-        (1, "common.items.armor.misc.chest.worker_green_0"),
-        (1, "common.items.armor.misc.chest.worker_green_1"),
-        (1, "common.items.armor.misc.chest.worker_red_0"),
-        (1, "common.items.armor.misc.chest.worker_red_1"),
-        (1, "common.items.armor.misc.chest.worker_purple_0"),
-        (1, "common.items.armor.misc.chest.worker_purple_1"),
-        (1, "common.items.armor.misc.chest.worker_yellow_0"),
-        (1, "common.items.armor.misc.chest.worker_yellow_1"),
-        (1, "common.items.armor.misc.chest.worker_orange_0"),
-        (1, "common.items.armor.misc.chest.worker_orange_1"),
-    ],
-    legs: [
-        (1, "common.items.armor.misc.pants.worker_blue"),
-        (1, "common.items.armor.misc.pants.worker_brown"),
-    ],
-    feet: [
-        (1, "common.items.armor.misc.foot.sandals"),
-        (1, "common.items.armor.cloth_blue.foot"),
-    ],
+    ]),
+    chest: Choice([
+        (1, Item("common.items.armor.misc.chest.worker_green_0")),
+        (1, Item("common.items.armor.misc.chest.worker_green_1")),
+        (1, Item("common.items.armor.misc.chest.worker_red_0")),
+        (1, Item("common.items.armor.misc.chest.worker_red_1")),
+        (1, Item("common.items.armor.misc.chest.worker_purple_0")),
+        (1, Item("common.items.armor.misc.chest.worker_purple_1")),
+        (1, Item("common.items.armor.misc.chest.worker_yellow_0")),
+        (1, Item("common.items.armor.misc.chest.worker_yellow_1")),
+        (1, Item("common.items.armor.misc.chest.worker_orange_0")),
+        (1, Item("common.items.armor.misc.chest.worker_orange_1")),
+    ]),
+    legs: Choice([
+        (1, Item("common.items.armor.misc.pants.worker_blue")),
+        (1, Item("common.items.armor.misc.pants.worker_brown")),
+    ]),
+    feet: Choice([
+        (1, Item("common.items.armor.misc.foot.sandals")),
+        (1, Item("common.items.armor.cloth_blue.foot")),
+    ]),
 )

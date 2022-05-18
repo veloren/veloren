@@ -116,7 +116,15 @@ pub enum ChatCommand {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
-pub struct KitManifest(pub HashMap<String, Vec<(String, u32)>>);
+pub enum KitSpec {
+    Item(String),
+    ModularWeapon {
+        tool: comp::tool::ToolKind,
+        material: comp::item::Material,
+    },
+}
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct KitManifest(pub HashMap<String, Vec<(KitSpec, u32)>>);
 impl assets::Asset for KitManifest {
     type Loader = assets::RonLoader;
 
@@ -959,9 +967,22 @@ mod tests {
     #[test]
     fn test_load_kits() {
         let kits = KitManifest::load_expect(KIT_MANIFEST_PATH).read();
+        let mut rng = rand::thread_rng();
         for kit in kits.0.values() {
             for (item_id, _) in kit.iter() {
-                std::mem::drop(Item::new_from_asset_expect(item_id));
+                match item_id {
+                    KitSpec::Item(item_id) => {
+                        Item::new_from_asset_expect(item_id);
+                    },
+                    KitSpec::ModularWeapon { tool, material } => {
+                        comp::item::modular::random_weapon(*tool, *material, None, &mut rng)
+                            .unwrap_or_else(|_| {
+                                panic!(
+                                    "Failed to synthesize a modular {tool:?} made of {material:?}."
+                                )
+                            });
+                    },
+                }
             }
         }
     }

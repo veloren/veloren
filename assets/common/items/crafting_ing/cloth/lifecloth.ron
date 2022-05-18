@@ -3,7 +3,8 @@ ItemDef(
     description: "A fabric imbued with special properties.",
     kind: Ingredient(
         kind: "Lifecloth",
+        descriptor: "Lifecloth",
     ),
     quality: High,
-    tags: [Textile],
+    tags: [MaterialKind(Cloth), Material(Lifecloth)],
 )

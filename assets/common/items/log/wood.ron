@@ -1,9 +1,10 @@
 ItemDef(
     name: "Wood Logs",
-    description: "Regular, sturdy wooden logs.",
+    description: "Regular, sturdy wooden logs.\n\nThis can be used when crafting wooden weapons.",
     kind: Ingredient(
         kind: "WoodLogs",
+        descriptor: "Wooden",
     ),
-    quality: Common,
-    tags: [],
+    quality: Low,
+    tags: [MaterialKind(Wood), Material(Wood)],
 )

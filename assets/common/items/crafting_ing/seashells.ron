@@ -3,6 +3,8 @@ ItemDef(
     description: "Shells from a sea creature.",
     kind: Ingredient(
         kind: "Seashells",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

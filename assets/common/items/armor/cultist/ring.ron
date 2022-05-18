@@ -1,5 +1,5 @@
 ItemDef(
-    name: "Cultist Signet Ring ",
+    name: "Cultist Signet Ring",
     description: "Once belonged to a cultist.",
     kind: Armor((
         kind: Ring("Cultist"),

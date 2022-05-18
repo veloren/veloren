@@ -11,14 +11,14 @@
                 (1, Asset("common.loadout.world.traveler1.leather")),
                 (1, Asset("common.loadout.world.traveler1.wool")),
             ]),
-            active_hands: ([
-                (1, "common.items.weapons.sword.iron-0"),
-                (1, "common.items.weapons.axe.iron_axe-0"),
-                (1, "common.items.weapons.hammer.iron_hammer-0"),
-                (1, "common.items.weapons.bow.hardwood-0"),
-                (1, "common.items.weapons.staff.heated_arm"),
-                (1, "common.items.weapons.sceptre.staff_nature"),
-            ], None),
+            active_hands: InHands((Choice([
+                (1, ModularWeapon(tool: Sword, material: Iron, hands: None)),
+                (1, ModularWeapon(tool: Axe, material: Iron, hands: None)),
+                (1, ModularWeapon(tool: Hammer, material: Iron, hands: None)),
+                (1, ModularWeapon(tool: Bow, material: Bamboo, hands: None)),
+                (1, ModularWeapon(tool: Staff, material: Bamboo, hands: None)),
+                (1, ModularWeapon(tool: Sceptre, material: Bamboo, hands: None)),
+            ]), None)),
         )),
         items: [
             (25, "common.items.consumable.potion_minor"),

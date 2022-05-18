@@ -3,7 +3,8 @@ ItemDef(
     description: "An ingot primarily used to make bronze.",
     kind: Ingredient(
         kind: "TinIngot",
+        descriptor: "Tin",
     ),
     quality: Common,
-    tags: [MetalIngot],
+    tags: [],
 )

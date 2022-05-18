@@ -3,6 +3,8 @@ ItemDef(
     description: "Looks like a lollipop.",
     kind: Ingredient(
         kind: "Flower",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

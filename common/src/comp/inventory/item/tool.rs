@@ -2,13 +2,13 @@
 // version in voxygen\src\meta.rs in order to reset save files to being empty
 
 use crate::{
-    assets::{self, Asset, AssetExt},
-    comp::{item::ItemKind, skills::Skill, CharacterAbility, Item},
+    assets::{self, Asset, AssetExt, AssetHandle},
+    comp::{skills::Skill, CharacterAbility},
 };
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use std::{
-    ops::{AddAssign, DivAssign, MulAssign, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub},
     time::Duration,
 };
 
@@ -74,9 +74,20 @@ impl ToolKind {
                 | ToolKind::Shield
         )
     }
+
+    pub fn can_block(&self) -> bool {
+        matches!(
+            self,
+            ToolKind::Sword
+                | ToolKind::Axe
+                | ToolKind::Hammer
+                | ToolKind::Shield
+                | ToolKind::Dagger
+        )
+    }
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Hands {
     One,
     Two,
@@ -95,7 +106,7 @@ pub struct Stats {
 }
 
 impl Stats {
-    pub fn zeroed() -> Stats {
+    pub fn zero() -> Stats {
         Stats {
             equip_time_secs: 0.0,
             power: 0.0,
@@ -108,12 +119,29 @@ impl Stats {
         }
     }
 
-    #[must_use]
-    pub fn clamp_speed(mut self) -> Self {
-        // if a tool has 0.0 speed, that panics due to being infinite duration, so
-        // enforce speed >= 0.1 on the final product (but not the intermediates)
-        self.speed = self.speed.max(0.1);
-        self
+    pub fn one() -> Stats {
+        Stats {
+            equip_time_secs: 1.0,
+            power: 1.0,
+            effect_power: 1.0,
+            speed: 1.0,
+            crit_chance: 1.0,
+            range: 1.0,
+            energy_efficiency: 1.0,
+            buff_strength: 1.0,
+        }
+    }
+
+    /// Calculates a diminished buff strength where the buff strength is clamped
+    /// by the power, and then excess buff strength above the power is added
+    /// with diminishing returns.
+    // TODO: Remove this later when there are more varied high tier materials.
+    // Mainly exists for now as a hack to allow some progression in strength of
+    // directly applied buffs.
+    pub fn diminished_buff_strength(&self) -> f32 {
+        let base = self.buff_strength.clamp(0.0, self.power);
+        let diminished = (self.buff_strength - base + 1.0).log(5.0);
+        base + diminished
     }
 }
 
@@ -123,43 +151,25 @@ impl Asset for Stats {
     const EXTENSION: &'static str = "ron";
 }
 
-impl AddAssign<Stats> for Stats {
-    fn add_assign(&mut self, other: Stats) {
-        self.equip_time_secs += other.equip_time_secs;
-        self.power += other.power;
-        self.effect_power += other.effect_power;
-        self.speed += other.speed;
-        self.crit_chance += other.crit_chance;
-        self.range += other.range;
-        self.buff_strength += other.buff_strength;
-    }
-}
-impl MulAssign<Stats> for Stats {
-    fn mul_assign(&mut self, other: Stats) {
-        self.equip_time_secs *= other.equip_time_secs;
-        self.power *= other.power;
-        self.effect_power *= other.effect_power;
-        self.speed *= other.speed;
-        self.crit_chance *= other.crit_chance;
-        self.range *= other.range;
-        self.buff_strength *= other.buff_strength;
-    }
-}
-impl DivAssign<usize> for Stats {
-    fn div_assign(&mut self, scalar: usize) {
-        self.equip_time_secs /= scalar as f32;
-        // since averaging occurs when the stats are used multiplicatively, don't permit
-        // multiplying an equip_time_secs by 0, since that would be overpowered
-        self.equip_time_secs = self.equip_time_secs.max(0.001);
-        self.power /= scalar as f32;
-        self.effect_power /= scalar as f32;
-        self.speed /= scalar as f32;
-        self.crit_chance /= scalar as f32;
-        self.range /= scalar as f32;
-        self.buff_strength /= scalar as f32;
-    }
-}
+impl Add<Stats> for Stats {
+    type Output = Self;
 
+    fn add(self, other: Self) -> Self {
+        Self {
+            equip_time_secs: self.equip_time_secs + other.equip_time_secs,
+            power: self.power + other.power,
+            effect_power: self.effect_power + other.effect_power,
+            speed: self.speed + other.speed,
+            crit_chance: self.crit_chance + other.crit_chance,
+            range: self.range + other.range,
+            energy_efficiency: self.energy_efficiency + other.energy_efficiency,
+            buff_strength: self.buff_strength + other.buff_strength,
+        }
+    }
+}
+impl AddAssign<Stats> for Stats {
+    fn add_assign(&mut self, other: Stats) { *self = *self + other; }
+}
 impl Sub<Stats> for Stats {
     type Output = Self;
 
@@ -171,14 +181,56 @@ impl Sub<Stats> for Stats {
             speed: self.speed - other.speed,
             crit_chance: self.crit_chance - other.crit_chance,
             range: self.range - other.range,
-            energy_efficiency: self.range - other.energy_efficiency,
+            energy_efficiency: self.energy_efficiency - other.energy_efficiency,
             buff_strength: self.buff_strength - other.buff_strength,
         }
     }
 }
+impl Mul<Stats> for Stats {
+    type Output = Self;
+
+    fn mul(self, other: Self) -> Self {
+        Self {
+            equip_time_secs: self.equip_time_secs * other.equip_time_secs,
+            power: self.power * other.power,
+            effect_power: self.effect_power * other.effect_power,
+            speed: self.speed * other.speed,
+            crit_chance: self.crit_chance * other.crit_chance,
+            range: self.range * other.range,
+            energy_efficiency: self.energy_efficiency * other.energy_efficiency,
+            buff_strength: self.buff_strength * other.buff_strength,
+        }
+    }
+}
+impl MulAssign<Stats> for Stats {
+    fn mul_assign(&mut self, other: Stats) { *self = *self * other; }
+}
+impl Div<f32> for Stats {
+    type Output = Self;
+
+    fn div(self, scalar: f32) -> Self {
+        Self {
+            equip_time_secs: self.equip_time_secs / scalar,
+            power: self.power / scalar,
+            effect_power: self.effect_power / scalar,
+            speed: self.speed / scalar,
+            crit_chance: self.crit_chance / scalar,
+            range: self.range / scalar,
+            energy_efficiency: self.energy_efficiency / scalar,
+            buff_strength: self.buff_strength / scalar,
+        }
+    }
+}
+impl DivAssign<usize> for Stats {
+    fn div_assign(&mut self, scalar: usize) { *self = *self / (scalar as f32); }
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct MaterialStatManifest(pub HashMap<String, Stats>);
+
+impl MaterialStatManifest {
+    pub fn load() -> AssetHandle<Self> { Self::load_expect("common.material_stats_manifest") }
+}
 
 // This could be a Compound that also loads the keys, but the RecipeBook
 // Compound impl already does that, so checking for existence here is redundant.
@@ -188,99 +240,24 @@ impl Asset for MaterialStatManifest {
     const EXTENSION: &'static str = "ron";
 }
 
-impl Default for MaterialStatManifest {
-    fn default() -> MaterialStatManifest {
-        // TODO: Don't do this, loading a default should have no ability to panic
-        MaterialStatManifest::load_expect_cloned("common.material_stats_manifest")
-    }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-pub enum StatKind {
-    Direct(Stats),
-    Modular,
-}
-
-impl StatKind {
-    pub fn resolve_stats(&self, msm: &MaterialStatManifest, components: &[Item]) -> Stats {
-        let mut stats = match self {
-            StatKind::Direct(stats) => *stats,
-            StatKind::Modular => Stats::zeroed(),
-        };
-        let mut multipliers: Vec<Stats> = Vec::new();
-        for item in components.iter() {
-            match item.kind() {
-                ItemKind::ModularComponent(mc) => {
-                    let inner_stats =
-                        StatKind::Direct(mc.stats).resolve_stats(msm, item.components());
-                    stats += inner_stats;
-                },
-                ItemKind::Ingredient { .. } => {
-                    if let Some(mult_stats) = msm.0.get(item.item_definition_id()) {
-                        multipliers.push(*mult_stats);
-                    }
-                },
-                // TODO: add stats from enhancement slots
-                _ => (),
-            }
-        }
-        // Take the average of the material multipliers, to allow alloyed blades
-        if !multipliers.is_empty() {
-            let mut average_mult = Stats::zeroed();
-            for stat in multipliers.iter() {
-                average_mult += *stat;
-            }
-            average_mult /= multipliers.len();
-            stats *= average_mult;
-        }
-        stats
-    }
-}
-
-impl From<(&MaterialStatManifest, &[Item], &Tool)> for Stats {
-    fn from((msm, components, tool): (&MaterialStatManifest, &[Item], &Tool)) -> Self {
-        let raw_stats = tool.stats.resolve_stats(msm, components).clamp_speed();
-        let (power, speed, poise) = match tool.hands {
-            Hands::One => (0.67, 1.33, 0.67),
-            Hands::Two => (1.5, 0.75, 1.5),
-        };
-        Self {
-            equip_time_secs: raw_stats.equip_time_secs,
-            power: raw_stats.power * power,
-            effect_power: raw_stats.effect_power * poise,
-            speed: raw_stats.speed * speed,
-            crit_chance: raw_stats.crit_chance,
-            range: raw_stats.range,
-            energy_efficiency: raw_stats.energy_efficiency,
-            buff_strength: raw_stats.buff_strength,
-        }
-    }
-}
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Tool {
     pub kind: ToolKind,
     pub hands: Hands,
-    pub stats: StatKind,
+    pub stats: Stats,
     // TODO: item specific abilities
 }
 
 impl Tool {
     // DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING
     // Added for CSV import of stats
-    pub fn new(kind: ToolKind, hands: Hands, stats: Stats) -> Self {
-        Self {
-            kind,
-            hands,
-            stats: StatKind::Direct(stats),
-        }
-    }
+    pub fn new(kind: ToolKind, hands: Hands, stats: Stats) -> Self { Self { kind, hands, stats } }
 
     pub fn empty() -> Self {
         Self {
             kind: ToolKind::Empty,
             hands: Hands::One,
-            stats: StatKind::Direct(Stats {
+            stats: Stats {
                 equip_time_secs: 0.0,
                 power: 1.00,
                 effect_power: 1.00,
@@ -289,56 +266,28 @@ impl Tool {
                 range: 1.0,
                 energy_efficiency: 1.0,
                 buff_strength: 1.0,
-            }),
+            },
         }
     }
 
     // Keep power between 0.5 and 2.00
-    pub fn base_power(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).power
-    }
+    pub fn base_power(&self) -> f32 { self.stats.power }
 
-    pub fn base_effect_power(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).effect_power
-    }
+    pub fn base_effect_power(&self) -> f32 { self.stats.effect_power }
 
-    pub fn base_speed(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats
-            .resolve_stats(msm, components)
-            .clamp_speed()
-            .speed
-    }
+    /// Has floor to prevent infinite durations being created later down due to
+    /// a divide by zero
+    pub fn base_speed(&self) -> f32 { self.stats.speed.max(0.1) }
 
-    pub fn base_crit_chance(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).crit_chance
-    }
+    pub fn base_crit_chance(&self) -> f32 { self.stats.crit_chance }
 
-    pub fn base_range(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).range
-    }
+    pub fn base_range(&self) -> f32 { self.stats.range }
 
-    pub fn base_energy_efficiency(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).energy_efficiency
-    }
+    pub fn base_energy_efficiency(&self) -> f32 { self.stats.energy_efficiency }
 
-    pub fn base_buff_strength(&self, msm: &MaterialStatManifest, components: &[Item]) -> f32 {
-        self.stats.resolve_stats(msm, components).buff_strength
-    }
+    pub fn base_buff_strength(&self) -> f32 { self.stats.buff_strength }
 
-    pub fn equip_time(&self, msm: &MaterialStatManifest, components: &[Item]) -> Duration {
-        Duration::from_secs_f32(self.stats.resolve_stats(msm, components).equip_time_secs)
-    }
-
-    pub fn can_block(&self) -> bool {
-        matches!(
-            self.kind,
-            ToolKind::Sword
-                | ToolKind::Axe
-                | ToolKind::Hammer
-                | ToolKind::Shield
-                | ToolKind::Dagger
-        )
-    }
+    pub fn equip_time(&self) -> Duration { Duration::from_secs_f32(self.stats.equip_time_secs) }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -350,16 +299,10 @@ pub struct AbilitySet<T> {
 
 impl AbilitySet<AbilityItem> {
     #[must_use]
-    pub fn modified_by_tool(
-        self,
-        tool: &Tool,
-        msm: &MaterialStatManifest,
-        components: &[Item],
-    ) -> Self {
-        let stats = Stats::from((msm, components, tool));
+    pub fn modified_by_tool(self, tool: &Tool) -> Self {
         self.map(|a| AbilityItem {
             id: a.id,
-            ability: a.ability.adjusted_by_stats(stats),
+            ability: a.ability.adjusted_by_stats(tool.stats),
         })
     }
 }
@@ -413,16 +356,9 @@ pub struct AbilityItem {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct AbilityMap<T = AbilityItem>(HashMap<AbilitySpec, AbilitySet<T>>);
 
-impl Default for AbilityMap {
-    fn default() -> Self {
-        // TODO: Revert to old default
-        if let Ok(map) = Self::load_cloned("common.abilities.ability_set_manifest") {
-            map
-        } else {
-            let mut map = HashMap::new();
-            map.insert(AbilitySpec::Tool(ToolKind::Empty), AbilitySet::default());
-            AbilityMap(map)
-        }
+impl AbilityMap {
+    pub fn load() -> AssetHandle<Self> {
+        Self::load_expect("common.abilities.ability_set_manifest")
     }
 }
 

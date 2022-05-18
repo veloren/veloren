@@ -11,7 +11,7 @@ use common::{
         slot::{self, Slot},
     },
     consts::MAX_PICKUP_RANGE,
-    recipe::{self, default_recipe_book},
+    recipe::{self, default_component_recipe_book, default_recipe_book},
     terrain::SpriteKind,
     trade::Trades,
     uid::Uid,
@@ -32,11 +32,11 @@ use common_net::msg::ServerGeneral;
 pub fn swap_lantern(
     storage: &mut WriteStorage<comp::LightEmitter>,
     entity: EcsEntity,
-    lantern: &item::Lantern,
+    (lantern_color, lantern_strength): (Rgb<f32>, f32),
 ) {
     if let Some(mut light) = storage.get_mut(entity) {
-        light.strength = lantern.strength();
-        light.col = lantern.color();
+        light.strength = lantern_strength;
+        light.col = lantern_color;
     }
 }
 
@@ -178,7 +178,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                     let ecs = state.ecs();
                     if let Some(group_id) = ecs.read_storage::<comp::Group>().get(entity) {
-                        announce_loot_to_group(group_id, ecs, entity, &item_msg.name);
+                        announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
                     }
                     comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(item_msg))
                 },
@@ -208,7 +208,7 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                                 if let Some(group_id) =
                                     ecs.read_storage::<comp::Group>().get(entity)
                                 {
-                                    announce_loot_to_group(group_id, ecs, entity, &item_msg.name);
+                                    announce_loot_to_group(group_id, ecs, entity, &item_msg.name());
                                 }
                                 comp::InventoryUpdate::new(comp::InventoryUpdateEvent::Collected(
                                     item_msg,
@@ -264,16 +264,21 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 Slot::Inventory(slot) => {
                     use item::ItemKind;
 
-                    let (is_equippable, lantern_opt) =
+                    let (is_equippable, lantern_info) =
                         inventory.get(slot).map_or((false, None), |i| {
-                            (i.kind().is_equippable(), match i.kind() {
-                                ItemKind::Lantern(lantern) => Some(lantern),
+                            let kind = i.kind();
+                            let is_equippable = kind.is_equippable();
+                            let lantern_info = match &*kind {
+                                ItemKind::Lantern(lantern) => {
+                                    Some((lantern.color(), lantern.strength()))
+                                },
                                 _ => None,
-                            })
+                            };
+                            (is_equippable, lantern_info)
                         });
                     if is_equippable {
-                        if let Some(lantern) = lantern_opt {
-                            swap_lantern(&mut state.ecs().write_storage(), entity, lantern);
+                        if let Some(lantern_info) = lantern_info {
+                            swap_lantern(&mut state.ecs().write_storage(), entity, lantern_info);
                         }
                         if let Some(pos) = state.ecs().read_storage::<comp::Pos>().get(entity) {
                             dropped_items.extend(inventory.equip(slot).into_iter().map(|x| {
@@ -292,10 +297,12 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         &state.ecs().read_resource::<AbilityMap>(),
                         &state.ecs().read_resource::<item::MaterialStatManifest>(),
                     ) {
-                        match item.kind() {
+                        match &*item.kind() {
                             ItemKind::Consumable { effects, .. } => {
                                 maybe_effect = Some(effects.clone());
-                                Some(comp::InventoryUpdateEvent::Consumed(item.name().to_owned()))
+                                Some(comp::InventoryUpdateEvent::Consumed(
+                                    item.name().into_owned(),
+                                ))
                             },
                             ItemKind::Throwable { kind, .. } => {
                                 if let Some(pos) =
@@ -429,18 +436,22 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             }
         },
         comp::InventoryManip::Swap(a, b) => {
+            use item::ItemKind;
             let ecs = state.ecs();
 
-            if let Some(comp::item::ItemKind::Lantern(lantern)) = match (a, b) {
+            if let Some(lantern_info) = match (a, b) {
                 // Only current possible lantern swap is between Slot::Inventory and Slot::Equip
                 // add more cases if needed
                 (Slot::Equip(slot::EquipSlot::Lantern), Slot::Inventory(slot))
                 | (Slot::Inventory(slot), Slot::Equip(slot::EquipSlot::Lantern)) => {
-                    inventory.get(slot).map(|item| item.kind())
+                    inventory.get(slot).and_then(|i| match &*i.kind() {
+                        ItemKind::Lantern(lantern) => Some((lantern.color(), lantern.strength())),
+                        _ => None,
+                    })
                 },
                 _ => None,
             } {
-                swap_lantern(&mut ecs.write_storage(), entity, lantern);
+                swap_lantern(&mut ecs.write_storage(), entity, lantern_info);
             }
 
             if let Some(pos) = ecs.read_storage::<comp::Pos>().get(entity) {
@@ -584,37 +595,41 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             craft_sprite,
         } => {
             use comp::controller::CraftEvent;
+            use recipe::ComponentKey;
             let recipe_book = default_recipe_book().read();
             let ability_map = &state.ecs().read_resource::<AbilityMap>();
             let msm = state.ecs().read_resource::<MaterialStatManifest>();
+
+            let get_craft_sprite = |state, sprite_pos: Option<Vec3<i32>>| {
+                sprite_pos
+                    .filter(|pos| {
+                        let entity_cylinder = get_cylinder(state, entity);
+                        let in_range = within_pickup_range(entity_cylinder, || {
+                            Some(find_dist::Cube {
+                                min: pos.as_(),
+                                side_length: 1.0,
+                            })
+                        });
+                        if !in_range {
+                            debug!(
+                                ?entity_cylinder,
+                                "Failed to craft recipe as not within range of required sprite, \
+                                 sprite pos: {}",
+                                pos
+                            );
+                        }
+                        in_range
+                    })
+                    .and_then(|pos| state.terrain().get(pos).ok().copied())
+                    .and_then(|block| block.get_sprite())
+            };
 
             let crafted_items = match craft_event {
                 CraftEvent::Simple { recipe, slots } => recipe_book
                     .get(&recipe)
                     .filter(|r| {
                         if let Some(needed_sprite) = r.craft_sprite {
-                            let sprite = craft_sprite
-                                .filter(|pos| {
-                                    let entity_cylinder = get_cylinder(state, entity);
-                                    if !within_pickup_range(entity_cylinder, || {
-                                        Some(find_dist::Cube {
-                                            min: pos.as_(),
-                                            side_length: 1.0,
-                                        })
-                                    }) {
-                                        debug!(
-                                            ?entity_cylinder,
-                                            "Failed to craft recipe as not within range of \
-                                             required sprite, sprite pos: {}",
-                                            pos
-                                        );
-                                        false
-                                    } else {
-                                        true
-                                    }
-                                })
-                                .and_then(|pos| state.terrain().get(pos).ok().copied())
-                                .and_then(|block| block.get_sprite());
+                            let sprite = get_craft_sprite(state, craft_sprite);
                             Some(needed_sprite) == sprite
                         } else {
                             true
@@ -630,30 +645,70 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                         .ok()
                     }),
                 CraftEvent::Salvage(slot) => {
-                    let sprite = craft_sprite
-                        .filter(|pos| {
-                            let entity_cylinder = get_cylinder(state, entity);
-                            if !within_pickup_range(entity_cylinder, || {
-                                Some(find_dist::Cube {
-                                    min: pos.as_(),
-                                    side_length: 1.0,
-                                })
-                            }) {
-                                debug!(
-                                    ?entity_cylinder,
-                                    "Failed to craft recipe as not within range of required \
-                                     sprite, sprite pos: {}",
-                                    pos
-                                );
-                                false
-                            } else {
-                                true
-                            }
-                        })
-                        .and_then(|pos| state.terrain().get(pos).ok().copied())
-                        .and_then(|block| block.get_sprite());
+                    let sprite = get_craft_sprite(state, craft_sprite);
                     if matches!(sprite, Some(SpriteKind::DismantlingBench)) {
                         recipe::try_salvage(&mut inventory, slot, ability_map, &msm).ok()
+                    } else {
+                        None
+                    }
+                },
+                CraftEvent::ModularWeapon {
+                    primary_component,
+                    secondary_component,
+                } => {
+                    let sprite = get_craft_sprite(state, craft_sprite);
+                    if matches!(sprite, Some(SpriteKind::CraftingBench)) {
+                        recipe::modular_weapon(
+                            &mut inventory,
+                            primary_component,
+                            secondary_component,
+                            ability_map,
+                            &msm,
+                        )
+                        .ok()
+                        .map(|item| vec![item])
+                    } else {
+                        None
+                    }
+                },
+                CraftEvent::ModularWeaponPrimaryComponent {
+                    toolkind,
+                    material,
+                    modifier,
+                    slots,
+                } => {
+                    let component_recipes = default_component_recipe_book().read();
+                    let item_id = |slot| {
+                        inventory.get(slot).and_then(|item| {
+                            item.item_definition_id().itemdef_id().map(String::from)
+                        })
+                    };
+                    if let Some(material_item_id) = item_id(material) {
+                        component_recipes
+                            .get(&ComponentKey {
+                                toolkind,
+                                material: material_item_id,
+                                modifier: modifier.and_then(item_id),
+                            })
+                            .filter(|r| {
+                                if let Some(needed_sprite) = r.craft_sprite {
+                                    let sprite = get_craft_sprite(state, craft_sprite);
+                                    Some(needed_sprite) == sprite
+                                } else {
+                                    true
+                                }
+                            })
+                            .and_then(|r| {
+                                r.craft_component(
+                                    &mut inventory,
+                                    material,
+                                    modifier,
+                                    slots,
+                                    &state.ecs().read_resource::<AbilityMap>(),
+                                    &state.ecs().read_resource::<item::MaterialStatManifest>(),
+                                )
+                                .ok()
+                            })
                     } else {
                         None
                     }

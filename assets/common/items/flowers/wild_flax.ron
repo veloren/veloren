@@ -3,6 +3,8 @@ ItemDef(
     description: "Could be used to spin some simple cloth.",
     kind: Ingredient(
         kind: "WildFlax",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

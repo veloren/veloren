@@ -7,7 +7,7 @@
     inventory: (
         loadout: Inline((
             inherit: Asset("common.loadout.dungeon.tier-2.sniper"),
-            active_hands: ("common.items.npc_weapons.biped_small.sahagin.sniper", None),
+            active_hands: InHands((Item("common.items.npc_weapons.biped_small.sahagin.sniper"), None)),
         )),
     ),
     meta: [

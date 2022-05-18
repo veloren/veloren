@@ -3,7 +3,8 @@ ItemDef(
     description: "Strong and durable.",
     kind: Ingredient(
         kind: "ThickLeather",
+        descriptor: "Leather",
     ),
     quality: Common,
-    tags: [BaseMaterial, Leather],
+    tags: [BaseMaterial, MaterialKind(Hide), Material(Leather)],
 )

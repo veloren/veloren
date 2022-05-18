@@ -1,0 +1,23 @@
+ItemDef(
+    name: "Short Axe Haft",
+    description: "",
+    kind: ModularComponent(
+        ToolSecondaryComponent(
+            toolkind: Axe,
+            stats: (
+                equip_time_secs: 1.0,
+                power: 0.9,
+                effect_power: 0.9,
+                speed: 1.0,
+                crit_chance: 1.0,
+                range: 1.0,
+                energy_efficiency: 1.0,
+                buff_strength: 0.9,
+            ),
+            hand_restriction: Some(One),
+        )
+    ),
+    quality: Common,
+    tags: [],
+)
+

@@ -1,8 +1,10 @@
 ItemDef(
     name: "Large Horn",
-    description: "A huge sharp horn from an animal.",
+    description: "A huge sharp horn from an animal.\n\nThis can be used when crafting weapons.",
     kind: Ingredient(
         kind: "LargeHorn",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: Common,
     tags: [],

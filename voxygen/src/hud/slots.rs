@@ -5,13 +5,18 @@ use super::{
     util,
 };
 use crate::ui::slot::{self, SlotKey, SumSlot};
-use common::comp::{
-    ability::{Ability, AbilityInput, AuxiliaryAbility},
-    slot::InvSlotId,
-    ActiveAbilities, Body, Energy, Inventory, ItemKey, SkillSet,
+use common::{
+    comp::{
+        ability::{Ability, AbilityInput, AuxiliaryAbility},
+        item::tool::ToolKind,
+        slot::InvSlotId,
+        ActiveAbilities, Body, Energy, Inventory, Item, ItemKey, SkillSet,
+    },
+    recipe::ComponentRecipeBook,
 };
 use conrod_core::{image, Color};
 use specs::Entity as EcsEntity;
+use std::fmt::{Debug, Formatter};
 
 pub use common::comp::slot::{ArmorSlot, EquipSlot};
 
@@ -22,6 +27,7 @@ pub enum SlotKind {
     Hotbar(HotbarSlot),
     Trade(TradeSlot),
     Ability(AbilitySlot),
+    Crafting(CraftSlot),
     /* Spellbook(SpellbookSlot), TODO */
 }
 
@@ -233,6 +239,56 @@ impl<'a> SlotKey<AbilitiesSource<'a>, img_ids::Imgs> for AbilitySlot {
     }
 }
 
+#[derive(Clone, Copy)]
+pub struct CraftSlot {
+    pub index: u32,
+    pub invslot: Option<InvSlotId>,
+    pub requirement: fn(&Item, &ComponentRecipeBook, Option<CraftSlotInfo>) -> bool,
+    pub info: Option<CraftSlotInfo>,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum CraftSlotInfo {
+    Tool(ToolKind),
+}
+
+impl PartialEq for CraftSlot {
+    fn eq(&self, other: &Self) -> bool {
+        (self.index, self.invslot) == (other.index, other.invslot)
+    }
+}
+
+impl Debug for CraftSlot {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        f.debug_struct("CraftSlot")
+            .field("index", &self.index)
+            .field("invslot", &self.invslot)
+            .field("requirement", &"fn ptr")
+            .finish()
+    }
+}
+
+impl SlotKey<Inventory, ItemImgs> for CraftSlot {
+    type ImageKey = ItemKey;
+
+    fn image_key(&self, source: &Inventory) -> Option<(Self::ImageKey, Option<Color>)> {
+        self.invslot
+            .and_then(|invslot| source.get(invslot))
+            .map(|i| (i.into(), None))
+    }
+
+    fn amount(&self, source: &Inventory) -> Option<u32> {
+        self.invslot
+            .and_then(|invslot| source.get(invslot))
+            .map(|item| item.amount())
+            .filter(|amount| *amount > 1)
+    }
+
+    fn image_ids(key: &Self::ImageKey, source: &ItemImgs) -> Vec<image::Id> {
+        source.img_ids_or_not_found_img(key.clone())
+    }
+}
+
 impl From<InventorySlot> for SlotKind {
     fn from(inventory: InventorySlot) -> Self { Self::Inventory(inventory) }
 }
@@ -244,12 +300,17 @@ impl From<EquipSlot> for SlotKind {
 impl From<HotbarSlot> for SlotKind {
     fn from(hotbar: HotbarSlot) -> Self { Self::Hotbar(hotbar) }
 }
+
 impl From<TradeSlot> for SlotKind {
     fn from(trade: TradeSlot) -> Self { Self::Trade(trade) }
 }
 
 impl From<AbilitySlot> for SlotKind {
     fn from(ability: AbilitySlot) -> Self { Self::Ability(ability) }
+}
+
+impl From<CraftSlot> for SlotKind {
+    fn from(craft: CraftSlot) -> Self { Self::Crafting(craft) }
 }
 
 impl SumSlot for SlotKind {

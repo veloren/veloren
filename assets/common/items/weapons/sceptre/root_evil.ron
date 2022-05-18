@@ -4,18 +4,18 @@ ItemDef(
     kind: Tool((
         kind: Sceptre,
         hands: Two,
-        stats: Direct((
+        stats: (
             equip_time_secs: 0.4,
-            power: 2.5,
+            power: 2.0,
             effect_power: 1.0,
-            speed: 0.8,
-            crit_chance: 0.2,
+            speed: 1.0,
+            crit_chance: 0.140625,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
-    quality: Legendary,
+    quality: Epic,
     tags: [],
     ability_spec: None,
 )

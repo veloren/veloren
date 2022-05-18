@@ -4,16 +4,16 @@ ItemDef(
     kind: Tool((
         kind: Sword,
         hands: Two,
-        stats: Direct((
+        stats: (
             equip_time_secs: 0.3,
-            power: 2.5,
+            power: 3.0,
             effect_power: 1.0,
-            speed: 0.8,
+            speed: 0.6,
             crit_chance: 0.2,
             range: 1.0,
             energy_efficiency: 1.0,
             buff_strength: 1.0,
-        )),
+        ),
     )),
     quality: Legendary,
     tags: [],

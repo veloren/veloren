@@ -1,6 +1,7 @@
 use super::*;
 use crate::comp::{
     inventory::{slot::ArmorSlot, test_helpers::get_test_bag},
+    item::ItemDefinitionId,
     Item,
 };
 use lazy_static::lazy_static;
@@ -13,8 +14,8 @@ lazy_static! {
 /// Attempting to push into a full inventory should return the same item.
 #[test]
 fn push_full() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS
@@ -33,8 +34,8 @@ fn push_full() {
 /// Attempting to push a series into a full inventory should return them all.
 #[test]
 fn push_all_full() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS
@@ -63,8 +64,8 @@ fn push_all_full() {
 /// should work fine.
 #[test]
 fn push_unique_all_full() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: TEST_ITEMS
@@ -85,8 +86,8 @@ fn push_unique_all_full() {
 /// should work fine.
 #[test]
 fn push_all_empty() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
@@ -104,8 +105,8 @@ fn push_all_empty() {
 /// should work fine.
 #[test]
 fn push_all_unique_empty() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory {
         next_sort_order: InventorySortOrder::Name,
         slots: vec![None, None],
@@ -121,8 +122,8 @@ fn push_all_unique_empty() {
 
 #[test]
 fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(18);
@@ -141,8 +142,8 @@ fn free_slots_minus_equipped_item_items_only_present_in_equipped_bag_slots() {
 
 #[test]
 fn free_slots_minus_equipped_item() {
-    let ability_map = &AbilityMap::default();
-    let msm = &MaterialStatManifest::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(18);
@@ -221,11 +222,11 @@ fn can_swap_equipped_bag_into_only_empty_slot_provided_by_itself_should_return_t
 
 #[test]
 fn unequip_items_both_hands() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory::new_empty();
 
-    let sword = Item::new_from_asset_expect("common.items.weapons.sword.steel-8");
+    let sword = Item::new_from_asset_expect("common.items.weapons.sword.starter");
 
     inv.replace_loadout_item(
         EquipSlot::ActiveMainhand,
@@ -258,8 +259,8 @@ fn unequip_items_both_hands() {
 
 #[test]
 fn equip_replace_already_equipped_item() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
 
     let starting_sandles = Some(Item::new_from_asset_expect(
@@ -314,7 +315,7 @@ fn equip_equipping_smaller_bag_from_last_slot_of_big_bag() {
 
     assert_eq!(
         inv.get(InvSlotId::new(0, 0)).unwrap().item_definition_id(),
-        LARGE_BAG_ID
+        ItemDefinitionId::Simple(LARGE_BAG_ID)
     );
     assert!(result.is_empty());
 }
@@ -341,14 +342,14 @@ fn unequip_unequipping_bag_into_its_own_slot_with_no_other_free_slots_returns_on
     // by itself, the bag is returned to the caller
     assert_eq!(
         result[0].item_definition_id(),
-        "common.items.testing.test_bag"
+        ItemDefinitionId::Simple("common.items.testing.test_bag")
     );
 }
 
 #[test]
 fn equip_one_bag_equipped_equip_second_bag() {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let mut inv = Inventory::new_empty();
 
     let bag = get_test_bag(9);
@@ -485,14 +486,14 @@ fn backpack_crash() {
         inv.swap_inventory_loadout(InvSlotId::new(9, 17), EquipSlot::Armor(ArmorSlot::Back));
     assert_eq!(18, returned_items.len());
     assert_eq!(
-        "common.items.armor.misc.back.backpack",
+        ItemDefinitionId::Simple("common.items.armor.misc.back.backpack"),
         returned_items[0].item_definition_id()
     );
 }
 
 fn fill_inv_slots(inv: &mut Inventory, items: u16) {
-    let msm = &MaterialStatManifest::default();
-    let ability_map = &AbilityMap::default();
+    let msm = &MaterialStatManifest::load().read();
+    let ability_map = &AbilityMap::load().read();
     let boots = Item::new_from_asset_expect("common.items.testing.test_boots");
     for _ in 0..items {
         inv.push(boots.duplicate(ability_map, msm)).unwrap();

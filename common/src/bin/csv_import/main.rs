@@ -4,7 +4,7 @@
 use hashbrown::HashMap;
 use ron::ser::{to_string_pretty, PrettyConfig};
 use serde::Serialize;
-use std::{error::Error, fs::File, io::Write};
+use std::{error::Error, fs::File, io::Write, str::FromStr};
 use structopt::StructOpt;
 
 use veloren_common::{
@@ -13,8 +13,8 @@ use veloren_common::{
         self,
         item::{
             armor::{ArmorKind, Protection},
-            tool::{AbilitySpec, Stats},
-            ItemDesc, ItemKind, ItemTag, Quality,
+            tool::{AbilitySpec, Hands, Stats, ToolKind},
+            ItemDefinitionId, ItemKind, ItemTag, Material, Quality,
         },
     },
     lottery::LootSpec,
@@ -71,7 +71,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         for item in comp::item::Item::new_from_asset_glob("common.items.armor.*")
             .expect("Failed to iterate over item folders!")
         {
-            match item.kind() {
+            match &*item.kind() {
                 comp::item::ItemKind::Armor(armor) => {
                     if let ArmorKind::Bag(_) = armor.kind {
                         continue;
@@ -79,7 +79,9 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
 
                     if let Ok(ref record) = record {
                         if item.item_definition_id()
-                            == record.get(headers["Path"]).expect("No file path in csv?")
+                            == ItemDefinitionId::Simple(
+                                record.get(headers["Path"]).expect("No file path in csv?"),
+                            )
                         {
                             let protection =
                                 if let Some(protection_raw) = record.get(headers["Protection"]) {
@@ -222,7 +224,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 ItemKind::Armor(armor),
                                 quality,
                                 item.tags().to_vec(),
-                                item.ability_spec.clone(),
+                                item.ability_spec().map(|spec| spec.into_owned()),
                             );
 
                             let pretty_config = PrettyConfig::new()
@@ -232,7 +234,12 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 .enumerate_arrays(true);
 
                             let mut path = ASSETS_PATH.clone();
-                            for part in item.item_definition_id().split('.') {
+                            for part in item
+                                .item_definition_id()
+                                .itemdef_id()
+                                .expect("Csv import only works on simple items, not modular items")
+                                .split('.')
+                            {
                                 path.push(part);
                             }
                             path.set_extension("ron");
@@ -273,10 +280,12 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
             .expect("Failed to iterate over item folders!");
 
         for item in items.iter() {
-            if let comp::item::ItemKind::Tool(tool) = item.kind() {
+            if let comp::item::ItemKind::Tool(tool) = &*item.kind() {
                 if let Ok(ref record) = record {
                     if item.item_definition_id()
-                        == record.get(headers["Path"]).expect("No file path in csv?")
+                        == ItemDefinitionId::Simple(
+                            record.get(headers["Path"]).expect("No file path in csv?"),
+                        )
                     {
                         let kind = tool.kind;
                         let equip_time_secs: f32 = record
@@ -414,7 +423,7 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             ItemKind::Tool(tool),
                             quality,
                             item.tags().to_vec(),
-                            item.ability_spec.clone(),
+                            item.ability_spec().map(|spec| spec.into_owned()),
                         );
 
                         let pretty_config = PrettyConfig::new()
@@ -424,7 +433,12 @@ fn weapon_stats() -> Result<(), Box<dyn Error>> {
                             .enumerate_arrays(true);
 
                         let mut path = ASSETS_PATH.clone();
-                        for part in item.item_definition_id().split('.') {
+                        for part in item
+                            .item_definition_id()
+                            .itemdef_id()
+                            .expect("Csv import only works on simple items, not modular items")
+                            .split('.')
+                        {
                             path.push(part);
                         }
                         path.set_extension("ron");
@@ -458,12 +472,40 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
 
     let mut items = Vec::<(f32, LootSpec<String>)>::new();
 
+    let get_tool_kind = |tool: String| match tool.as_str() {
+        "Sword" => Some(ToolKind::Sword),
+        "Axe" => Some(ToolKind::Axe),
+        "Hammer" => Some(ToolKind::Hammer),
+        "Bow" => Some(ToolKind::Bow),
+        "Staff" => Some(ToolKind::Staff),
+        "Sceptre" => Some(ToolKind::Sceptre),
+        "Dagger" => Some(ToolKind::Dagger),
+        "Shield" => Some(ToolKind::Shield),
+        "Spear" => Some(ToolKind::Spear),
+        "Debug" => Some(ToolKind::Debug),
+        "Farming" => Some(ToolKind::Farming),
+        "Pick" => Some(ToolKind::Pick),
+        "Natural" => Some(ToolKind::Natural),
+        "Empty" => Some(ToolKind::Empty),
+        _ => None,
+    };
+
+    let get_tool_hands = |hands: String| match hands.as_str() {
+        "One" | "one" | "1" => Some(Hands::One),
+        "Two" | "two" | "2" => Some(Hands::Two),
+        _ => None,
+    };
+
     for ref record in rdr.records().flatten() {
         let item = match record.get(headers["Kind"]).expect("No loot specifier") {
             "Item" => {
                 if let (Some(Ok(lower)), Some(Ok(upper))) = (
-                    record.get(headers["Lower Amount"]).map(|a| a.parse()),
-                    record.get(headers["Upper Amount"]).map(|a| a.parse()),
+                    record
+                        .get(headers["Lower Amount or Material"])
+                        .map(|a| a.parse()),
+                    record
+                        .get(headers["Upper Amount or Hands"])
+                        .map(|a| a.parse()),
                 ) {
                     LootSpec::ItemQuantity(
                         record.get(headers["Item"]).expect("No item").to_string(),
@@ -481,6 +523,38 @@ fn loot_table(loot_table: &str) -> Result<(), Box<dyn Error>> {
                     .to_string(),
             ),
             "Nothing" => LootSpec::Nothing,
+            "Modular Weapon" => LootSpec::ModularWeapon {
+                tool: get_tool_kind(record.get(headers["Item"]).expect("No tool").to_string())
+                    .expect("Invalid tool kind"),
+                material: Material::from_str(
+                    record
+                        .get(headers["Lower Amount or Material"])
+                        .expect("No material"),
+                )
+                .expect("Invalid material type"),
+                hands: get_tool_hands(
+                    record
+                        .get(headers["Upper Amount or Hands"])
+                        .expect("No hands")
+                        .to_string(),
+                ),
+            },
+            "Modular Weapon Primary Component" => LootSpec::ModularWeaponPrimaryComponent {
+                tool: get_tool_kind(record.get(headers["Item"]).expect("No tool").to_string())
+                    .expect("Invalid tool kind"),
+                material: Material::from_str(
+                    record
+                        .get(headers["Lower Amount or Material"])
+                        .expect("No material"),
+                )
+                .expect("Invalid material type"),
+                hands: get_tool_hands(
+                    record
+                        .get(headers["Upper Amount or Hands"])
+                        .expect("No hands")
+                        .to_string(),
+                ),
+            },
             a => panic!(
                 "Loot specifier kind must be either \"Item\", \"LootTable\", or \"Nothing\"\n{}",
                 a

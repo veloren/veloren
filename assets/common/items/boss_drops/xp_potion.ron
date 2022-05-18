@@ -2,7 +2,9 @@ ItemDef(
     name: "Potion of Skill",
     description: "It doesn't seem to be doing anything...",
     kind: Ingredient(
-        kind: "Potion",        
+        kind: "Potion",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [Potion],

@@ -2,7 +2,9 @@ ItemDef(
     name: "Flask of Velorite Dust",
     description: "Take with plenty of water",
     kind: Ingredient(
-        kind: "PotionExp",        
+        kind: "PotionExp",
+        // Descriptor not needed
+        descriptor: "",
     ),
     quality: High,
     tags: [Potion],

@@ -3,7 +3,8 @@ ItemDef(
     description: "An ingot with a unique brown color.",
     kind: Ingredient(
         kind: "CopperIngot",
+        descriptor: "Copper",
     ),
     quality: Low,
-    tags: [MetalIngot],
+    tags: [],
 )
