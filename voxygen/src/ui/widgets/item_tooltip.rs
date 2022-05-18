@@ -802,7 +802,7 @@ impl<'a> Widget for ItemTooltip<'a> {
             },
             ItemKind::Armor(armor) => {
                 match armor.kind {
-                    ArmorKind::Bag(_) => {
+                    ArmorKind::Bag => {
                         // Bags
                         widget::Text::new(&format!(
                             "{} {}",

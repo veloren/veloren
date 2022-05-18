@@ -245,7 +245,7 @@ impl CraftingTab {
                 ItemKind::Armor(_) => !item.tags().contains(&ItemTag::Bag),
                 _ => false,
             },
-            CraftingTab::Glider => matches!(&*item.kind(), ItemKind::Glider(_)),
+            CraftingTab::Glider => matches!(&*item.kind(), ItemKind::Glider),
             CraftingTab::Potion => item.tags().contains(&ItemTag::Potion),
             CraftingTab::ProcessedMaterial => item
                 .tags()
@@ -782,7 +782,7 @@ impl<'a> Widget for Crafting<'a> {
                     Button::image(animate_by_pulse(
                         &self
                             .item_imgs
-                            .img_ids_or_not_found_img(ItemKey::Tool(station_img_str.to_string())),
+                            .img_ids_or_not_found_img(ItemKey::Simple(station_img_str.to_string())),
                         self.pulse,
                     ))
                     .image_color(color::LIGHT_RED)
@@ -1413,7 +1413,7 @@ impl<'a> Widget for Crafting<'a> {
                 Image::new(animate_by_pulse(
                     &self
                         .item_imgs
-                        .img_ids_or_not_found_img(ItemKey::Tool(station_img.to_string())),
+                        .img_ids_or_not_found_img(ItemKey::Simple(station_img.to_string())),
                     self.pulse,
                 ))
                 .w_h(25.0, 25.0)
@@ -1754,7 +1754,7 @@ impl<'a> Widget for Crafting<'a> {
             Image::new(animate_by_pulse(
                 &self
                     .item_imgs
-                    .img_ids_or_not_found_img(ItemKey::Tool("DismantlingBench".to_string())),
+                    .img_ids_or_not_found_img(ItemKey::Simple("DismantlingBench".to_string())),
                 self.pulse,
             ))
             .wh([size; 2])

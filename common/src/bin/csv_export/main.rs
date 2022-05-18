@@ -186,18 +186,18 @@ fn get_tool_hands(tool: &Tool) -> String {
 
 fn get_armor_kind(kind: &ArmorKind) -> String {
     match kind {
-        ArmorKind::Shoulder(_) => "Shoulder".to_string(),
-        ArmorKind::Chest(_) => "Chest".to_string(),
-        ArmorKind::Belt(_) => "Belt".to_string(),
-        ArmorKind::Hand(_) => "Hand".to_string(),
-        ArmorKind::Pants(_) => "Pants".to_string(),
-        ArmorKind::Foot(_) => "Foot".to_string(),
-        ArmorKind::Back(_) => "Back".to_string(),
-        ArmorKind::Ring(_) => "Ring".to_string(),
-        ArmorKind::Neck(_) => "Neck".to_string(),
-        ArmorKind::Head(_) => "Head".to_string(),
-        ArmorKind::Tabard(_) => "Tabard".to_string(),
-        ArmorKind::Bag(_) => "Bag".to_string(),
+        ArmorKind::Shoulder => "Shoulder".to_string(),
+        ArmorKind::Chest => "Chest".to_string(),
+        ArmorKind::Belt => "Belt".to_string(),
+        ArmorKind::Hand => "Hand".to_string(),
+        ArmorKind::Pants => "Pants".to_string(),
+        ArmorKind::Foot => "Foot".to_string(),
+        ArmorKind::Back => "Back".to_string(),
+        ArmorKind::Ring => "Ring".to_string(),
+        ArmorKind::Neck => "Neck".to_string(),
+        ArmorKind::Head => "Head".to_string(),
+        ArmorKind::Tabard => "Tabard".to_string(),
+        ArmorKind::Bag => "Bag".to_string(),
     }
 }
 

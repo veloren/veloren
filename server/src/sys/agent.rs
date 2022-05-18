@@ -167,7 +167,7 @@ impl<'a> System<'a> for Sys {
                         .equipped(EquipSlot::Glider)
                         .as_ref()
                         .map_or(false, |item| {
-                            matches!(&*item.kind(), comp::item::ItemKind::Glider(_))
+                            matches!(&*item.kind(), comp::item::ItemKind::Glider)
                         });
 
                     let is_gliding = matches!(

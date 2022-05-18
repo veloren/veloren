@@ -1,20 +1,20 @@
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, ops::Sub};
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ArmorKind {
-    Shoulder(String),
-    Chest(String),
-    Belt(String),
-    Hand(String),
-    Pants(String),
-    Foot(String),
-    Back(String),
-    Ring(String),
-    Neck(String),
-    Head(String),
-    Tabard(String),
-    Bag(String),
+    Shoulder,
+    Chest,
+    Belt,
+    Hand,
+    Pants,
+    Foot,
+    Back,
+    Ring,
+    Neck,
+    Head,
+    Tabard,
+    Bag,
 }
 
 impl Armor {

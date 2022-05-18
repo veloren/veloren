@@ -92,7 +92,7 @@ use common::{
     assets::{self, AssetExt, AssetHandle},
     comp::{
         beam, biped_large, biped_small, humanoid,
-        item::{ItemKind, ToolKind},
+        item::{ItemDefinitionId, ItemKind, ToolKind},
         object,
         poise::PoiseState,
         quadruped_low, quadruped_medium, quadruped_small, Body, CharacterAbilityType,
@@ -306,11 +306,10 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                     ItemKind::Tool(tool) => {
                         SfxEvent::Inventory(SfxInventoryEvent::CollectedTool(tool.kind))
                     },
-                    ItemKind::Ingredient { kind, .. } => match &kind[..] {
-                        "Diamond" | "Ruby" | "Emerald" | "Sapphire" | "Topaz" | "Amethyst" => {
-                            SfxEvent::Inventory(SfxInventoryEvent::CollectedItem(kind.clone()))
-                        },
-                        _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
+                    ItemKind::Ingredient { .. } if matches!(item.item_definition_id(), ItemDefinitionId::Simple(id) if id.contains("mineral.gem.")) => {
+                        SfxEvent::Inventory(SfxInventoryEvent::CollectedItem(String::from(
+                            "Gemstone",
+                        )))
                     },
                     _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                 }

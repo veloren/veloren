@@ -73,7 +73,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         {
             match &*item.kind() {
                 comp::item::ItemKind::Armor(armor) => {
-                    if let ArmorKind::Bag(_) = armor.kind {
+                    if let ArmorKind::Bag = armor.kind {
                         continue;
                     }
 
