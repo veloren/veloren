@@ -2,7 +2,7 @@ ItemDef(
     name: "Assassin Belt",
     description: "Only the best for a member of the creed.",
     kind: Armor((
-        kind: Belt("Assassin"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(2.0)),
         ),

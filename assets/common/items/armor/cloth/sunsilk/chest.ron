@@ -2,7 +2,7 @@ ItemDef(
     name: "Sunsilk Tunic",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
-        kind: Chest("Sunsilk"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(27.0)),
             energy_max: Some(30.0),

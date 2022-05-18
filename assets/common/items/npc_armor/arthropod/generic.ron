@@ -2,7 +2,7 @@ ItemDef(
     name: "Arthropod Armor",
     description: "Worn by arthropods.",
     kind: Armor((
-        kind: Chest("Arthropod"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(60.0)),
             poise_resilience: Some(Normal(1.0)),

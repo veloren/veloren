@@ -2,7 +2,7 @@ ItemDef(
     name: "Kappa",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Head("Kappa"),
+        kind: Head,
         stats: (
             protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(1.0)),

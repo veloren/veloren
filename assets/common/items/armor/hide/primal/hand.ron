@@ -2,7 +2,7 @@ ItemDef(
     name: "Primal Gauntlets",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
-        kind: Hand("Primal"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(12.0)),
             crit_power: Some(0.167),

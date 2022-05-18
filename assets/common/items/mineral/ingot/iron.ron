@@ -2,7 +2,6 @@ ItemDef(
     name: "Iron Ingot",
     description: "An incredibly commonplace metal.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
-        kind: "IronIngot",
         descriptor: "Iron",
     ),
     quality: Common,

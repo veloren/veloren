@@ -2,7 +2,7 @@ ItemDef(
     name: "Chef Belt",
     description: "",
     kind: Armor((
-        kind: Belt("Chef"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(8.0)),
             poise_resilience: Some(Normal(1.0)),

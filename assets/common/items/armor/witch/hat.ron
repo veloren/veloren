@@ -2,7 +2,7 @@ ItemDef(
     name: "Witch Hat",
     description: "Draws strength from dark arts.",
     kind: Armor((
-        kind: Head("Witch"),
+        kind: Head,
         stats: (
             protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(1.5)),

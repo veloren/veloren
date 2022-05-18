@@ -2,7 +2,7 @@ ItemDef(
     name: "Mandragora",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Hand("Mandragora"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(26.0)),
             poise_resilience: Some(Normal(4.0)),

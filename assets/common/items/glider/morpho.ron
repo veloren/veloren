@@ -1,11 +1,7 @@
 ItemDef(
     name: "Blue Morpho",
     description: "The delicate wings flutter faintly.",
-    kind: Glider(
-        (
-            kind: "ButterflyMorpho",
-        ),
-    ),
+    kind: Glider,
     quality: High,
     tags: [],
 )

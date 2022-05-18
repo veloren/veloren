@@ -2,7 +2,6 @@ ItemDef(
     name: "Coal",
     description: "A black rock that happens to be really good at burning.",
     kind: Ingredient(
-        kind: "Coal",
         // Descriptor not needed
         descriptor: "",
     ),

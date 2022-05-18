@@ -2,7 +2,7 @@ ItemDef(
     name: "Haniwa Guard",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Chest("HaniwaGuard"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(38.0)),
             poise_resilience: Some(Normal(5.0)),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Ferocious Shirt",
     description: "The dark side of nature",
     kind: Armor((
-        kind: Chest("Ferocious"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(60.0)),
         ),

@@ -3,7 +3,7 @@ ItemDef(
     description: "Used for unit tests do not delete",
     kind: Armor(
         (
-            kind: Bag("TestBag18Slot"),
+            kind: Bag,
             stats: (
             ),
         )

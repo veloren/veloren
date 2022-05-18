@@ -2,7 +2,7 @@ ItemDef(
     name: "Carapace Grips",
     description: "Shell that once shielded a beast.",
     kind: Armor((
-        kind: Hand("Carapace"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(10.0)),
             crit_power: Some(0.133),

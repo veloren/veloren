@@ -2,7 +2,7 @@ ItemDef(
     name: "Twig Boots",
     description: "Small twigs intertwined and imbued with magic to provide simple protection.",
     kind: Armor((
-        kind: Foot("Twigs"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(3.0)),
         ),

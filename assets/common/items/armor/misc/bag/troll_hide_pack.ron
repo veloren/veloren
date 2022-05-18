@@ -3,7 +3,7 @@ ItemDef(
     description: "Trolls were definitely hurt\nin the making of this.",
     kind: Armor(
         (
-            kind: Bag("GreenLarge"),
+            kind: Bag,
             stats: (
             ),
         )

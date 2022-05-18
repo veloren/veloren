@@ -2,7 +2,6 @@ ItemDef(
     name: "Oil",
     description: "A measure of thick, sludgy oil.",
     kind: Ingredient(
-        kind: "Oil",
         // Descriptor not needed
         descriptor: "",
     ),

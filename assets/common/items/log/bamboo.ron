@@ -2,7 +2,6 @@ ItemDef(
     name: "Bamboo",
     description: "A giant woody grass.\n\nThis can be used when crafting wooden weapons.",
     kind: Ingredient(
-        kind: "Bamboo",
         descriptor: "Bamboo",
     ),
     quality: Common,

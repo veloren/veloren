@@ -2,7 +2,6 @@ ItemDef(
     name: "Lifecloth",
     description: "A fabric imbued with special properties.",
     kind: Ingredient(
-        kind: "Lifecloth",
         descriptor: "Lifecloth",
     ),
     quality: High,

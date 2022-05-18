@@ -2,7 +2,7 @@ ItemDef(
     name: "Seashell Necklace",
     description: "Contains the guardian aura of the ocean",
     kind: Armor((
-        kind: Neck("Shell"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(1.0)),

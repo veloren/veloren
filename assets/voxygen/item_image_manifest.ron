@@ -3,89 +3,89 @@
 //  VoxTrans(specifier, offset, (x_rot, y_rot, z_rot), zoom)
 ({
     // Crafting Stations
-    Tool("Anvil"): VoxTrans(
+    Simple("Anvil"): VoxTrans(
         "voxel.sprite.anvil.anvil-0",
         (0.5, 0.5, 0.0), (0.0, 60.0, 90.0), 1.0,
     ),
-    Tool("Cauldron"): VoxTrans(
+    Simple("Cauldron"): VoxTrans(
         "voxel.sprite.cauldron.cauldron-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 1.0,
     ),
-    Tool("CookingPot"): VoxTrans(
+    Simple("CookingPot"): VoxTrans(
         "voxel.sprite.cooking_pot.pot-0",
         (0.0, 0.0, 0.0), (0.0, 90.0, 90.0), 1.2,
     ),
-    Tool("CraftingBench"): VoxTrans(
+    Simple("CraftingBench"): VoxTrans(
         "voxel.sprite.crafting_bench.crafting_bench-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 1.0,
     ),
-    Tool("Forge"): VoxTrans(
+    Simple("Forge"): VoxTrans(
         "voxel.object.forge",
         (0.0, 0.0, 0.0), (-80.0, 20.0, 0.0), 1.0,
     ),
-    Tool("Loom"): VoxTrans(
+    Simple("Loom"): VoxTrans(
         "voxel.object.loom",
         (0.0, 0.0, 0.0), (-100.0, 00.0, 0.0), 1.0,
     ),
-    Tool("SpinningWheel"): VoxTrans(
+    Simple("SpinningWheel"): VoxTrans(
         "voxel.object.spinning_wheel",
         (0.0, 0.0, 0.0), (-70.0, 10.0, 0.0), 1.0,
     ),
-    Tool("TanningRack"): VoxTrans(
+    Simple("TanningRack"): VoxTrans(
         "voxel.object.tanning_rack",
         (0.0, 0.0, 0.0), (-90.0, 20.0, 0.0), 1.0,
     ),
-    Tool("DismantlingBench"): VoxTrans(
+    Simple("DismantlingBench"): VoxTrans(
         "voxel.sprite.salvaging_station.salvaging_station-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 30.0), 0.9,
     ),
     // Weapons
     // Diary Example Images
-    Tool("example_utility"): VoxTrans(
+    Simple("example_utility"): VoxTrans(
         "voxel.weapon.projectile.fireworks_green-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Tool("example_sword"): VoxTrans(
+    Simple("example_sword"): VoxTrans(
         "voxel.weapon.sword.greatsword_2h_dullahan",
         (0.0, 0.0, 0.0), (90.0, 80.0, 0.0), 1.0,
     ),
-    Tool("example_axe"): VoxTrans(
+    Simple("example_axe"): VoxTrans(
         "voxel.weapon.axe.2haxe_malachite-0",
         (0.0, 0.0, 0.0), (-90.0, 70.0, 0.0), 1.0,
     ),
-    Tool("example_hammer"): VoxTrans(
+    Simple("example_hammer"): VoxTrans(
         "voxel.weapon.hammer.greatmace.bloodsteel-2h",
         (-1.0, 0.0, 0.0), (-70.0, 55.0, 0.0), 1.0,
     ),
-    Tool("example_bow"): VoxTrans(
+    Simple("example_bow"): VoxTrans(
         "voxel.weapon.bow.velorite",
         (-1.0, 0.0, 0.0), (90.0, 60.0, 0.0), 1.0,
     ),
-    Tool("example_staff_fire"): VoxTrans(
+    Simple("example_staff_fire"): VoxTrans(
         "voxel.weapon.staff.firestaff_saurok",
         (-1.0, 0.0, 0.0), (-100.0, -140.0, 0.0), 1.0,
     ),
-    Tool("example_sceptre"): VoxTrans(
+    Simple("example_sceptre"): VoxTrans(
         "voxel.weapon.sceptre.wood-nature",
         (-1.0, 0.0, 0.0), (-90.0, 55.0, 0.0), 1.0,
     ),
-    Tool("example_pick"): VoxTrans(
+    Simple("example_pick"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("example_dagger"): VoxTrans(
+    Simple("example_dagger"): VoxTrans(
         "voxel.weapon.dagger.dagger_basic-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("example_shield"): VoxTrans(
+    Simple("example_shield"): VoxTrans(
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("example_general_combat_left"): VoxTrans(
+    Simple("example_general_combat_left"): VoxTrans(
         "voxel.weapon.sword.long_2h_saurok",
         (0.0, 0.0, 0.0), (85.0, -90.0, -40.0), 1.0,
     ),
-    Tool("example_general_combat_right"): VoxTrans(
+    Simple("example_general_combat_right"): VoxTrans(
         "voxel.weapon.sword.long_2h_saurok",
         (0.0, 0.0, 0.0), (125.0, 90.0, 80.0), 1.0,
     ),
@@ -258,32 +258,32 @@
         "voxel.weapon.bow.warbow.eldwood",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.sagitta"): VoxTrans(
+    Simple("common.items.weapons.bow.sagitta"): VoxTrans(
         "voxel.weapon.bow.sagitta",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.starter"): VoxTrans(
+    Simple("common.items.weapons.bow.starter"): VoxTrans(
         "voxel.weapon.bow.starter",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.bow.velorite"): VoxTrans(
+    Simple("common.items.weapons.bow.velorite"): VoxTrans(
         "voxel.weapon.bow.velorite",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.debug.velorite_bow_debug"): VoxTrans(
+    Simple("common.items.debug.velorite_bow_debug"): VoxTrans(
         "voxel.weapon.bow.velorite",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.0,
     ),
     // Daggers
-    Tool("common.items.weapons.dagger.starter_dagger"): VoxTrans(
+    Simple("common.items.weapons.dagger.starter_dagger"): VoxTrans(
         "voxel.weapon.dagger.dagger_rusty",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.dagger.basic_0"): VoxTrans(
+    Simple("common.items.weapons.dagger.basic_0"): VoxTrans(
         "voxel.weapon.dagger.dagger_basic-0",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.dagger.cultist_0"): VoxTrans(
+    Simple("common.items.weapons.dagger.cultist_0"): VoxTrans(
         "voxel.weapon.dagger.dagger_cult-0",
         (0.0, 0.0, -4.0), (-120.0, 90.0, 0.0), 1.1,
     ),
@@ -456,27 +456,27 @@
         "voxel.weapon.sword.zweihander.orichalcum-2h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.sword.caladbolg"): VoxTrans(
+    Simple("common.items.weapons.sword.caladbolg"): VoxTrans(
         "voxel.weapon.sword.caladbolg",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.cultist"): VoxTrans(
+    Simple("common.items.weapons.sword.cultist"): VoxTrans(
         "voxel.weapon.sword.cultist",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.frost-0"): VoxTrans(
+    Simple("common.items.weapons.sword.frost-0"): VoxTrans(
         "voxel.weapon.sword.frost-0",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.frost-1"): VoxTrans(
+    Simple("common.items.weapons.sword.frost-1"): VoxTrans(
         "voxel.weapon.sword.frost-1",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sword.starter"): VoxTrans(
+    Simple("common.items.weapons.sword.starter"): VoxTrans(
         "voxel.weapon.sword.starter",
         (0.0, 0.0, -4.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.debug.admin_sword"): VoxTrans(
+    Simple("common.items.debug.admin_sword"): VoxTrans(
         "voxel.weapon.sword.frost-1",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.5,
     ),
@@ -601,7 +601,7 @@
         "voxel.weapon.sword.sawblade.orichalcum-1h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.sword_1h.starter"): VoxTrans(
+    Simple("common.items.weapons.sword_1h.starter"): VoxTrans(
         "voxel.weapon.sword.starter_1h",
         (-1.0, 1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
@@ -774,15 +774,15 @@
         "voxel.weapon.axe.poleaxe.orichalcum-2h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.axe.starter_axe"): VoxTrans(
+    Simple("common.items.weapons.axe.starter_axe"): VoxTrans(
         "voxel.weapon.axe.2haxe_rusty",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.axe.malachite_axe-0"): VoxTrans(
+    Simple("common.items.weapons.axe.malachite_axe-0"): VoxTrans(
         "voxel.weapon.axe.2haxe_malachite-0",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.axe.parashu"): VoxTrans(
+    Simple("common.items.weapons.axe.parashu"): VoxTrans(
         "voxel.weapon.axe.parashu",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
@@ -1052,27 +1052,27 @@
         "voxel.weapon.hammer.warhammer.orichalcum-2h",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.hammer.hammer_1"): VoxTrans(
+    Simple("common.items.weapons.hammer.hammer_1"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_rusty",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.hammer.starter_hammer"): VoxTrans(
+    Simple("common.items.weapons.hammer.starter_hammer"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_rusty",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.hammer.flimsy_hammer"): VoxTrans(
+    Simple("common.items.weapons.hammer.flimsy_hammer"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_flimsy",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.hammer.mjolnir"): VoxTrans(
+    Simple("common.items.weapons.hammer.mjolnir"): VoxTrans(
         "voxel.weapon.hammer.2hhammer_mjolnir",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.hammer.cultist_purp_2h-0"): VoxTrans(
+    Simple("common.items.weapons.hammer.cultist_purp_2h-0"): VoxTrans(
         "voxel.weapon.hammer.cult_purp-0",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.hammer.burnt_drumstick"): VoxTrans(
+    Simple("common.items.weapons.hammer.burnt_drumstick"): VoxTrans(
         "voxel.weapon.hammer.burnt_drumstick",
         (2.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
@@ -1342,19 +1342,19 @@
         "voxel.weapon.staff.staff.eldwood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.staff.staff_1"): VoxTrans(
+    Simple("common.items.weapons.staff.staff_1"): VoxTrans(
         "voxel.weapon.staff.firestaff_starter",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.staff.starter_staff"): VoxTrans(
+    Simple("common.items.weapons.staff.starter_staff"): VoxTrans(
         "voxel.weapon.staff.firestaff_starter",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.staff.cultist_staff"): VoxTrans(
+    Simple("common.items.weapons.staff.cultist_staff"): VoxTrans(
         "voxel.weapon.staff.firestaff_cultist",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.staff.laevateinn"): VoxTrans(
+    Simple("common.items.weapons.staff.laevateinn"): VoxTrans(
         "voxel.weapon.staff.laevateinn",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
     ),
@@ -1527,2037 +1527,2046 @@
         "voxel.weapon.sceptre.sceptre.eldwood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.sceptre.starter_sceptre"): VoxTrans(
+    Simple("common.items.weapons.sceptre.starter_sceptre"): VoxTrans(
         "voxel.weapon.sceptre.wood-simple",
         (0.0, -0.0, 0.0), (-130., 90.0, 0.0), 1.25,
     ),
-    Tool("common.items.weapons.sceptre.root_evil"): VoxTrans(
+    Simple("common.items.weapons.sceptre.root_evil"): VoxTrans(
         "voxel.weapon.sceptre.root_evil",
         (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.sceptre.sceptre_velorite_0"): VoxTrans(
+    Simple("common.items.weapons.sceptre.sceptre_velorite_0"): VoxTrans(
         "voxel.weapon.sceptre.ore-nature",
         (1.0, -1.0, 0.0), (-130., 90.0, 0.0), 1.15,
     ),
-    Tool("common.items.weapons.sceptre.caduceus"): VoxTrans(
+    Simple("common.items.weapons.sceptre.caduceus"): VoxTrans(
         "voxel.weapon.sceptre.caduceus",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.sceptre.amethyst"): VoxTrans(
+    Simple("common.items.weapons.sceptre.amethyst"): VoxTrans(
         "voxel.weapon.sceptre.amethyst",
         (1.0, 0.0, 0.0), (-130., 90.0, 0.0), 1.12,
     ),
     // Shields
-    Tool("common.items.weapons.shield.shield_1"): VoxTrans(
+    Simple("common.items.weapons.shield.shield_1"): VoxTrans(
         "voxel.weapon.shield.wood-0",
         (0.0, 0.0, 0.0), (-90.0, 90.0, 0.0), 2.4,
     ),
     // Lanterns
-    Lantern("Black0"): VoxTrans(
+    Simple("common.items.lantern.black_0"): VoxTrans(
         "voxel.lantern.black-0",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Green0"): VoxTrans(
+    Simple("common.items.lantern.green_0"): VoxTrans(
         "voxel.lantern.green-0",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Magic"): VoxTrans(
+    Simple("common.items.boss_drops.lantern"): VoxTrans(
         "voxel.lantern.magic_lantern",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Blue0"): VoxTrans(
+    Simple("common.items.lantern.blue_0"): VoxTrans(
         "voxel.lantern.blue-0",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("Red0"): VoxTrans(
+    Simple("common.items.lantern.red_0"): VoxTrans(
         "voxel.lantern.red-0",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("GeodePurp"): VoxTrans(
+    Simple("common.items.lantern.geode_purp"): VoxTrans(
         "voxel.lantern.geode_purp",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Lantern("PumpkinLantern"): VoxTrans(
+    Simple("common.items.lantern.pumpkin"): VoxTrans(
         "voxel.lantern.pumpkin",
         (0.0, 0.0, 0.0), (-100.0, 205.0, 7.0), 0.9,
     ),
-    Lantern("PolarisLantern"): VoxTrans(
+    Simple("common.items.lantern.polaris"): VoxTrans(
         "voxel.lantern.polaris",
     (0.0, 0.0, 0.0), (-90.0, 120.0, 0.0), 0.9,
     ),
     // Farming Equipment
-    Tool("common.items.weapons.tool.broom"): VoxTrans(
+    Simple("common.items.weapons.tool.broom"): VoxTrans(
         "voxel.weapon.tool.broom-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.tool.hoe"): VoxTrans(
+    Simple("common.items.weapons.tool.hoe"): VoxTrans(
         "voxel.weapon.tool.hoe_green",
         (0.0, 0.0, 0.0), (130.0, 35.0, 180.0), 1.0,
     ),
-    Tool("common.items.weapons.tool.pitchfork"): VoxTrans(
+    Simple("common.items.weapons.tool.pitchfork"): VoxTrans(
         "voxel.weapon.tool.pitchfork-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
-    Tool("common.items.weapons.tool.rake"): VoxTrans(
+    Simple("common.items.weapons.tool.rake"): VoxTrans(
         "voxel.weapon.tool.rake-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.tool.fishing_rod"): VoxTrans(
+    Simple("common.items.weapons.tool.fishing_rod"): VoxTrans(
         "voxel.weapon.tool.fishing_rod_blue-0",
         (0.0, 0.0, 0.0), (90.0, 90.0, 0.0), 1.5,
     ),
-    Tool("common.items.weapons.tool.pickaxe"): VoxTrans(
+    Simple("common.items.weapons.tool.pickaxe"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.weapons.tool.shovel-0"): VoxTrans(
+    Simple("common.items.weapons.tool.shovel-0"): VoxTrans(
         "voxel.weapon.tool.shovel_green",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
-    Tool("common.items.weapons.tool.shovel-1"): VoxTrans(
+    Simple("common.items.weapons.tool.shovel-1"): VoxTrans(
         "voxel.weapon.tool.shovel_gold",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.2,
     ),
     // Picks
-    Tool("common.items.tool.pickaxe_stone"): VoxTrans(
+    Simple("common.items.tool.pickaxe_stone"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-0",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.tool.pickaxe_steel"): VoxTrans(
+    Simple("common.items.tool.pickaxe_steel"): VoxTrans(
         "voxel.weapon.tool.pickaxe_green-1",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
     // Other
-    Utility(Coins): VoxTrans(
+    Simple("common.items.utility.coins"): VoxTrans(
         "voxel.object.v-coin",
         (0.0, 0.0, 0.0), (-10.0, 15.0, 0.0), 0.8,
     ),
-    Utility(Collar): VoxTrans(
+    Simple("common.items.utility.collar"): VoxTrans(
         "voxel.object.collar",
         (0.1, 0.0, 0.0), (-60.0, 20.0, 10.0), 0.9,
     ),
     // Armor
     // Starter Parts
-    Armor(Foot("Sandal")): VoxTrans(
+    Simple("common.items.armor.misc.foot.sandals"): VoxTrans(
         "voxel.armor.misc.foot.cloth_sandal",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Pants("Rugged")): VoxTrans(
+    Simple("common.items.armor.rugged.pants"): VoxTrans(
         "voxel.armor.rugged.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Chest("Rugged")): VoxTrans(
+    Simple("common.items.armor.rugged.chest"): VoxTrans(
         "voxel.armor.rugged.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerPurpBrown")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_purple_brown"): VoxTrans(
         "voxel.armor.misc.chest.worker_purp_brown",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("WorkerBrown")): VoxTrans(
+    Simple("common.items.armor.misc.pants.worker_brown"): VoxTrans(
         "voxel.armor.misc.pants.worker_brown",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     // Cultist Clothing
-    Armor(Chest("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.chest"): VoxTrans(
         "voxel.armor.cultist.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.pants"): VoxTrans(
         "voxel.armor.cultist.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.belt"): VoxTrans(
         "voxel.armor.cultist.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.foot"): VoxTrans(
         "voxel.armor.cultist.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.hand"): VoxTrans(
         "voxel.armor.cultist.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.shoulder"): VoxTrans(
         "voxel.armor.cultist.shoulder",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("Cultist")): VoxTrans(
-        "voxel.armor.cultist.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Cultist")): VoxTrans(
-        "voxel.armor.cultist.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Cultist")): VoxTrans(
-        "voxel.armor.cultist.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Shoulder("Cultist")): VoxTrans(
-        "voxel.armor.cultist.shoulder",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Head("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.bandana"): VoxTrans(
         "voxel.armor.cultist.bandana",
         (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
     ),
     // Villager Clothing
-    Armor(Pants("WorkerBlue")): VoxTrans(
+    Simple("common.items.armor.misc.pants.worker_blue"): VoxTrans(
         "voxel.armor.misc.pants.worker_blue",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Chest("WorkerGreen0")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_green_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerGreen1")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_green_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerRed0")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_red_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerRed1")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_red_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerPurple0")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_purple_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerPurple1")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_purple_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerYellow0")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_yellow_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerYellow1")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_yellow_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerOrange0")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_orange_0"): VoxTrans(
         "voxel.armor.misc.chest.worker_green",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("WorkerOrange1")): VoxTrans(
+    Simple("common.items.armor.misc.chest.worker_orange_1"): VoxTrans(
         "voxel.armor.misc.chest.shirt_white",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
     // Merchant
-    Armor(Chest("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.chest"): VoxTrans(
         "voxel.armor.merchant.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.pants"): VoxTrans(
         "voxel.armor.merchant.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.belt"): VoxTrans(
         "voxel.armor.merchant.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.foot"): VoxTrans(
         "voxel.armor.merchant.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.hand"): VoxTrans(
         "voxel.armor.merchant.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.shoulder"): VoxTrans(
         "voxel.armor.merchant.shoulder_l",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Chest("Merchant")): VoxTrans(
-        "voxel.armor.merchant.chest",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
-    ),
-    Armor(Pants("Merchant")): VoxTrans(
-        "voxel.armor.merchant.pants",
-        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Hand("Merchant")): VoxTrans(
-        "voxel.armor.merchant.hand",
-        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
-    ),
-    Armor(Head("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.turban"): VoxTrans(
         "voxel.armor.merchant.turban",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Merchant")): VoxTrans(
+    Simple("common.items.armor.merchant.back"): VoxTrans(
         "voxel.armor.merchant.back",
         (0.0, 0.0, 0.0), (-90.0, 45.0,0.0), 0.9,
     ),
     // Velorite Battlemage Set
-    Armor(Chest("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.chest"): VoxTrans(
         "voxel.armor.velorite_battlemage.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.pants"): VoxTrans(
         "voxel.armor.velorite_battlemage.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.belt"): VoxTrans(
         "voxel.armor.velorite_battlemage.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.foot"): VoxTrans(
         "voxel.armor.velorite_battlemage.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.hand"): VoxTrans(
         "voxel.armor.velorite_battlemage.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.shoulder"): VoxTrans(
         "voxel.armor.velorite_battlemage.shoulder",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Back("VeloriteMage")): VoxTrans(
+    Simple("common.items.armor.velorite_mage.back"): VoxTrans(
+        "voxel.armor.velorite_battlemage.back",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    // Admin Set
+    Simple("common.items.debug.cultist_chest_blue"): VoxTrans(
+        "voxel.armor.velorite_battlemage.chest",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Simple("common.items.debug.cultist_legs_blue"): VoxTrans(
+        "voxel.armor.velorite_battlemage.pants",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.debug.cultist_belt"): VoxTrans(
+        "voxel.armor.velorite_battlemage.belt",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.debug.cultist_boots"): VoxTrans(
+        "voxel.armor.velorite_battlemage.foot",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.debug.cultist_hands_blue"): VoxTrans(
+        "voxel.armor.velorite_battlemage.hand",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.debug.cultist_shoulder_blue"): VoxTrans(
+        "voxel.armor.velorite_battlemage.shoulder",
+        (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
+    ),
+    Simple("common.items.debug.dungeon_purple"): VoxTrans(
         "voxel.armor.velorite_battlemage.back",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
     // Assassin Set
-    Armor(Chest("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.chest"): VoxTrans(
         "voxel.armor.assassin.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.pants"): VoxTrans(
         "voxel.armor.assassin.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.belt"): VoxTrans(
         "voxel.armor.assassin.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.foot"): VoxTrans(
         "voxel.armor.assassin.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.hand"): VoxTrans(
         "voxel.armor.assassin.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.shoulder"): VoxTrans(
         "voxel.armor.assassin.shoulder",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
     //PlateLeather Armor
-    Armor(Chest("LeatherPlate")): VoxTrans(
+    Simple("common.items.armor.leather_plate.chest"): VoxTrans(
         "voxel.armor.leather_plate.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("LeatherPlate")): VoxTrans(
+    Simple("common.items.armor.leather_plate.pants"): VoxTrans(
         "voxel.armor.leather_plate.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("LeatherPlate")): VoxTrans(
+    Simple("common.items.armor.leather_plate.belt"): VoxTrans(
         "voxel.armor.leather_plate.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("LeatherPlate")): VoxTrans(
+    Simple("common.items.armor.leather_plate.foot"): VoxTrans(
         "voxel.armor.leather_plate.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("LeatherPlate")): VoxTrans(
+    Simple("common.items.armor.leather_plate.hand"): VoxTrans(
         "voxel.armor.leather_plate.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("LeatherPlate")): VoxTrans(
+    Simple("common.items.armor.leather_plate.shoulder"): VoxTrans(
         "voxel.armor.leather_plate.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //Ferocious Armor
-    Armor(Chest("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.chest"): VoxTrans(
         "voxel.armor.ferocious.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.pants"): VoxTrans(
         "voxel.armor.ferocious.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.belt"): VoxTrans(
         "voxel.armor.ferocious.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.foot"): VoxTrans(
         "voxel.armor.ferocious.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.hand"): VoxTrans(
         "voxel.armor.ferocious.hand",
         (0.0, 0.0, 0.0), (-90.0, 135.0, 0.0), 1.0,
     ),
-    Armor(Shoulder("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.shoulder"): VoxTrans(
         "voxel.armor.ferocious.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Ferocious")): VoxTrans(
+    Simple("common.items.armor.ferocious.back"): VoxTrans(
         "voxel.armor.ferocious.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Blue Leather Armor
-    Armor(Chest("BlueLeather")): VoxTrans(
+    Simple("common.items.npc_armor.chest.leather_blue"): VoxTrans(
         "voxel.armor.leather_blue.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("BlueLeather")): VoxTrans(
+    Simple("common.items.npc_armor.chest.leather_blue"): VoxTrans(
         "voxel.armor.leather_blue.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Linen Cloth
-    Armor(Chest("ClothBlue")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.chest"): VoxTrans(
         "voxel.armor.cloth_blue.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("ClothBlue")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.pants"): VoxTrans(
         "voxel.armor.cloth_blue.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("ClothBlue")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.belt"): VoxTrans(
         "voxel.armor.cloth_blue.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("ClothBlue")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.foot"): VoxTrans(
         "voxel.armor.cloth_blue.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("ClothBlue")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.hand"): VoxTrans(
         "voxel.armor.cloth_blue.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("ClothBlue0")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.shoulder_0"): VoxTrans(
         "voxel.armor.cloth_blue.shoulder_0",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("ClothBlue1")): VoxTrans(
+    Simple("common.items.armor.cloth_blue.shoulder_1"): VoxTrans(
         "voxel.armor.cloth_blue.shoulder_1",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //////////////
-    Armor(Chest("ClothGreen")): VoxTrans(
+    Simple("common.items.armor.cloth_green.chest"): VoxTrans(
         "voxel.armor.cloth_green.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("ClothGreen")): VoxTrans(
+    Simple("common.items.armor.cloth_green.pants"): VoxTrans(
         "voxel.armor.cloth_green.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("ClothGreen")): VoxTrans(
+    Simple("common.items.armor.cloth_green.belt"): VoxTrans(
         "voxel.armor.cloth_green.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("ClothGreen")): VoxTrans(
+    Simple("common.items.armor.cloth_green.foot"): VoxTrans(
         "voxel.armor.cloth_green.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("ClothGreen")): VoxTrans(
+    Simple("common.items.armor.cloth_green.hand"): VoxTrans(
         "voxel.armor.cloth_green.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("ClothGreen")): VoxTrans(
+    Simple("common.items.armor.cloth_green.shoulder"): VoxTrans(
         "voxel.armor.cloth_green.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //////
-    Armor(Chest("ClothPurple")): VoxTrans(
+    Simple("common.items.armor.cloth_purple.chest"): VoxTrans(
         "voxel.armor.cloth_purple.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("ClothPurple")): VoxTrans(
+    Simple("common.items.armor.cloth_purple.pants"): VoxTrans(
         "voxel.armor.cloth_purple.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("ClothPurple")): VoxTrans(
+    Simple("common.items.armor.cloth_purple.belt"): VoxTrans(
         "voxel.armor.cloth_purple.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("ClothPurple")): VoxTrans(
+    Simple("common.items.armor.cloth_purple.foot"): VoxTrans(
         "voxel.armor.cloth_purple.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("ClothPurple")): VoxTrans(
+    Simple("common.items.armor.cloth_purple.hand"): VoxTrans(
         "voxel.armor.cloth_purple.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("ClothPurple")): VoxTrans(
+    Simple("common.items.armor.cloth_purple.shoulder"): VoxTrans(
         "voxel.armor.cloth_purple.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("IronSpikes")): VoxTrans(
+    Simple("common.items.armor.misc.shoulder.iron_spikes"): VoxTrans(
         "voxel.armor.misc.shoulder.iron_spikes",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("IronLeather3")): VoxTrans(
+    Simple("common.items.armor.misc.shoulder.leather_iron_3"): VoxTrans(
         "voxel.armor.misc.shoulder.leather_iron_3",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("IronLeather2")): VoxTrans(
+    Simple("common.items.armor.misc.shoulder.leather_iron_2"): VoxTrans(
         "voxel.armor.misc.shoulder.leather_iron_2",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("IronLeather1")): VoxTrans(
+    Simple("common.items.armor.misc.shoulder.leather_iron_1"): VoxTrans(
         "voxel.armor.misc.shoulder.leather_iron_1",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("IronLeather0")): VoxTrans(
+    Simple("common.items.armor.misc.shoulder.leather_iron_0"): VoxTrans(
         "voxel.armor.misc.shoulder.leather_iron_0",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Shoulder("LeatherStrip")): VoxTrans(
+    Simple("common.items.armor.misc.shoulder.leather_strip"): VoxTrans(
         "voxel.armor.misc.shoulder.leather_strip",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Foot("Jackalope")): VoxTrans(
+    Simple("common.items.armor.misc.foot.jackalope_slippers"): VoxTrans(
         "voxel.armor.misc.foot.jackalope",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Twig Set
-    Armor(Chest("Twigs")): VoxTrans(
+    Simple("common.items.armor.twigs.chest"): VoxTrans(
         "voxel.armor.twigs.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Twigs")): VoxTrans(
+    Simple("common.items.armor.twigs.pants"): VoxTrans(
         "voxel.armor.twigs.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Twigs")): VoxTrans(
+    Simple("common.items.armor.twigs.belt"): VoxTrans(
         "voxel.armor.twigs.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Twigs")): VoxTrans(
+    Simple("common.items.armor.twigs.foot"): VoxTrans(
         "voxel.armor.twigs.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Twigs")): VoxTrans(
+    Simple("common.items.armor.twigs.hand"): VoxTrans(
         "voxel.armor.twigs.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Twigs")): VoxTrans(
+    Simple("common.items.armor.twigs.shoulder"): VoxTrans(
         "voxel.armor.twigs.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //TwigsLeaves Set
-    Armor(Chest("TwigsLeaves")): VoxTrans(
+    Simple("common.items.armor.twigsleaves.chest"): VoxTrans(
         "voxel.armor.twigsleaves.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("TwigsLeaves")): VoxTrans(
+    Simple("common.items.armor.twigsleaves.pants"): VoxTrans(
         "voxel.armor.twigsleaves.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("TwigsLeaves")): VoxTrans(
+    Simple("common.items.armor.twigsleaves.belt"): VoxTrans(
         "voxel.armor.twigsleaves.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("TwigsLeaves")): VoxTrans(
+    Simple("common.items.armor.twigsleaves.foot"): VoxTrans(
         "voxel.armor.twigsleaves.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("TwigsLeaves")): VoxTrans(
+    Simple("common.items.armor.twigsleaves.hand"): VoxTrans(
         "voxel.armor.twigsleaves.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("TwigsLeaves")): VoxTrans(
+    Simple("common.items.armor.twigsleaves.shoulder"): VoxTrans(
         "voxel.armor.twigsleaves.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //TwigsFlowers Set
-    Armor(Chest("TwigsFlowers")): VoxTrans(
+    Simple("common.items.armor.twigsflowers.chest"): VoxTrans(
         "voxel.armor.twigsflowers.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("TwigsFlowers")): VoxTrans(
+    Simple("common.items.armor.twigsflowers.pants"): VoxTrans(
         "voxel.armor.twigsflowers.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("TwigsFlowers")): VoxTrans(
+    Simple("common.items.armor.twigsflowers.belt"): VoxTrans(
         "voxel.armor.twigsflowers.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("TwigsFlowers")): VoxTrans(
+    Simple("common.items.armor.twigsflowers.foot"): VoxTrans(
         "voxel.armor.twigsflowers.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("TwigsFlowers")): VoxTrans(
+    Simple("common.items.armor.twigsflowers.hand"): VoxTrans(
         "voxel.armor.twigsflowers.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("TwigsFlowers")): VoxTrans(
+    Simple("common.items.armor.twigsflowers.shoulder"): VoxTrans(
         "voxel.armor.twigsflowers.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //Tarasque Set
-    Armor(Chest("Tarasque")): VoxTrans(
+    Simple("common.items.armor.tarasque.chest"): VoxTrans(
         "voxel.armor.tarasque.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Tarasque")): VoxTrans(
+    Simple("common.items.armor.tarasque.pants"): VoxTrans(
         "voxel.armor.tarasque.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Tarasque")): VoxTrans(
+    Simple("common.items.armor.tarasque.belt"): VoxTrans(
         "voxel.armor.tarasque.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Tarasque")): VoxTrans(
+    Simple("common.items.armor.tarasque.foot"): VoxTrans(
         "voxel.armor.tarasque.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Tarasque")): VoxTrans(
+    Simple("common.items.armor.tarasque.hand"): VoxTrans(
         "voxel.armor.tarasque.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Tarasque")): VoxTrans(
+    Simple("common.items.armor.tarasque.shoulder"): VoxTrans(
         "voxel.armor.tarasque.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //Bonerattler Set
-    Armor(Chest("Bonerattler")): VoxTrans(
+    Simple("common.items.armor.bonerattler.chest"): VoxTrans(
         "voxel.armor.bonerattler.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Bonerattler")): VoxTrans(
+    Simple("common.items.armor.bonerattler.pants"): VoxTrans(
         "voxel.armor.bonerattler.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Bonerattler")): VoxTrans(
+    Simple("common.items.armor.bonerattler.belt"): VoxTrans(
         "voxel.armor.bonerattler.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Bonerattler")): VoxTrans(
+    Simple("common.items.armor.bonerattler.foot"): VoxTrans(
         "voxel.armor.bonerattler.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Bonerattler")): VoxTrans(
+    Simple("common.items.armor.bonerattler.hand"): VoxTrans(
         "voxel.armor.bonerattler.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Bonerattler")): VoxTrans(
+    Simple("common.items.armor.bonerattler.shoulder"): VoxTrans(
         "voxel.armor.bonerattler.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
     //Rawhide Set
-    Armor(Chest("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.chest"): VoxTrans(
         "voxel.armor.hide.rawhide.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.pants"): VoxTrans(
         "voxel.armor.hide.rawhide.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.belt"): VoxTrans(
         "voxel.armor.hide.rawhide.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.foot"): VoxTrans(
         "voxel.armor.hide.rawhide.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.hand"): VoxTrans(
         "voxel.armor.hide.rawhide.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.shoulder"): VoxTrans(
         "voxel.armor.hide.rawhide.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Rawhide")): VoxTrans(
+    Simple("common.items.armor.hide.rawhide.back"): VoxTrans(
         "voxel.armor.hide.rawhide.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Leather set
-    Armor(Chest("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.chest"): VoxTrans(
         "voxel.armor.hide.leather.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.pants"): VoxTrans(
         "voxel.armor.hide.leather.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.belt"): VoxTrans(
         "voxel.armor.hide.leather.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.foot"): VoxTrans(
         "voxel.armor.hide.leather.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.hand"): VoxTrans(
         "voxel.armor.hide.leather.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.shoulder"): VoxTrans(
         "voxel.armor.hide.leather.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.back"): VoxTrans(
         "voxel.armor.hide.leather.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Scale Set
-    Armor(Chest("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.chest"): VoxTrans(
         "voxel.armor.hide.scale.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.pants"): VoxTrans(
         "voxel.armor.hide.scale.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.belt"): VoxTrans(
         "voxel.armor.hide.scale.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.foot"): VoxTrans(
         "voxel.armor.hide.scale.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.hand"): VoxTrans(
         "voxel.armor.hide.scale.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.shoulder"): VoxTrans(
         "voxel.armor.hide.scale.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Scale")): VoxTrans(
+    Simple("common.items.armor.hide.scale.back"): VoxTrans(
         "voxel.armor.hide.scale.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Carapace Set
-    Armor(Chest("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.chest"): VoxTrans(
         "voxel.armor.hide.carapace.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.pants"): VoxTrans(
         "voxel.armor.hide.carapace.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.belt"): VoxTrans(
         "voxel.armor.hide.carapace.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.foot"): VoxTrans(
         "voxel.armor.hide.carapace.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.hand"): VoxTrans(
         "voxel.armor.hide.carapace.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.shoulder"): VoxTrans(
         "voxel.armor.hide.carapace.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Carapace")): VoxTrans(
+    Simple("common.items.armor.hide.carapace.back"): VoxTrans(
         "voxel.armor.hide.carapace.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Primal Set
-    Armor(Chest("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.chest"): VoxTrans(
         "voxel.armor.hide.primal.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.pants"): VoxTrans(
         "voxel.armor.hide.primal.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.belt"): VoxTrans(
         "voxel.armor.hide.primal.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.foot"): VoxTrans(
         "voxel.armor.hide.primal.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.hand"): VoxTrans(
         "voxel.armor.hide.primal.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.shoulder"): VoxTrans(
         "voxel.armor.hide.primal.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Primal")): VoxTrans(
+    Simple("common.items.armor.hide.primal.back"): VoxTrans(
         "voxel.armor.hide.primal.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Dragonscale Set
-    Armor(Chest("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.chest"): VoxTrans(
         "voxel.armor.hide.dragonscale.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.pants"): VoxTrans(
         "voxel.armor.hide.dragonscale.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.belt"): VoxTrans(
         "voxel.armor.hide.dragonscale.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.foot"): VoxTrans(
         "voxel.armor.hide.dragonscale.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.hand"): VoxTrans(
         "voxel.armor.hide.dragonscale.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.shoulder"): VoxTrans(
         "voxel.armor.hide.dragonscale.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Dragonscale")): VoxTrans(
+    Simple("common.items.armor.hide.dragonscale.back"): VoxTrans(
         "voxel.armor.hide.dragonscale.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Savage Set
-    Armor(Chest("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.chest"): VoxTrans(
         "voxel.armor.savage.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.pants"): VoxTrans(
         "voxel.armor.savage.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.belt"): VoxTrans(
         "voxel.armor.savage.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.foot"): VoxTrans(
         "voxel.armor.savage.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.hand"): VoxTrans(
         "voxel.armor.savage.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.shoulder"): VoxTrans(
         "voxel.armor.savage.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Savage")): VoxTrans(
+    Simple("common.items.armor.savage.back"): VoxTrans(
         "voxel.armor.savage.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Linen Set
-    Armor(Chest("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.chest"): VoxTrans(
         "voxel.armor.cloth.linen.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.pants"): VoxTrans(
         "voxel.armor.cloth.linen.pants",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.belt"): VoxTrans(
         "voxel.armor.cloth.linen.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.foot"): VoxTrans(
         "voxel.armor.cloth.linen.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.hand"): VoxTrans(
         "voxel.armor.cloth.linen.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.shoulder"): VoxTrans(
         "voxel.armor.cloth.linen.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Linen")): VoxTrans(
+    Simple("common.items.armor.cloth.linen.back"): VoxTrans(
         "voxel.armor.cloth.linen.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Woolen Set
-    Armor(Chest("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.chest"): VoxTrans(
         "voxel.armor.cloth.woolen.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.pants"): VoxTrans(
         "voxel.armor.cloth.woolen.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.belt"): VoxTrans(
         "voxel.armor.cloth.woolen.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.foot"): VoxTrans(
         "voxel.armor.cloth.woolen.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.hand"): VoxTrans(
         "voxel.armor.cloth.woolen.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.shoulder"): VoxTrans(
         "voxel.armor.cloth.woolen.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Woolen")): VoxTrans(
+    Simple("common.items.armor.cloth.woolen.back"): VoxTrans(
         "voxel.armor.cloth.woolen.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Silken Set
-    Armor(Chest("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.chest"): VoxTrans(
         "voxel.armor.cloth.silken.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.pants"): VoxTrans(
         "voxel.armor.cloth.silken.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.belt"): VoxTrans(
         "voxel.armor.cloth.silken.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.foot"): VoxTrans(
         "voxel.armor.cloth.silken.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.hand"): VoxTrans(
         "voxel.armor.cloth.silken.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.shoulder"): VoxTrans(
         "voxel.armor.cloth.silken.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Silken")): VoxTrans(
+    Simple("common.items.armor.cloth.silken.back"): VoxTrans(
         "voxel.armor.cloth.silken.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Druid Set
-    Armor(Chest("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.chest"): VoxTrans(
         "voxel.armor.cloth.druid.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.pants"): VoxTrans(
         "voxel.armor.cloth.druid.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.belt"): VoxTrans(
         "voxel.armor.cloth.druid.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.foot"): VoxTrans(
         "voxel.armor.cloth.druid.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.hand"): VoxTrans(
         "voxel.armor.cloth.druid.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.shoulder"): VoxTrans(
         "voxel.armor.cloth.druid.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Druid")): VoxTrans(
+    Simple("common.items.armor.cloth.druid.back"): VoxTrans(
         "voxel.armor.cloth.druid.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Moonweave Set
-    Armor(Chest("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.chest"): VoxTrans(
         "voxel.armor.cloth.moonweave.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.pants"): VoxTrans(
         "voxel.armor.cloth.moonweave.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.belt"): VoxTrans(
         "voxel.armor.cloth.moonweave.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.foot"): VoxTrans(
         "voxel.armor.cloth.moonweave.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.hand"): VoxTrans(
         "voxel.armor.cloth.moonweave.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.shoulder"): VoxTrans(
         "voxel.armor.cloth.moonweave.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Moonweave")): VoxTrans(
+    Simple("common.items.armor.cloth.moonweave.back"): VoxTrans(
         "voxel.armor.cloth.moonweave.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Sunsilk Set
-    Armor(Chest("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.chest"): VoxTrans(
         "voxel.armor.cloth.sunsilk.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.pants"): VoxTrans(
         "voxel.armor.cloth.sunsilk.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.belt"): VoxTrans(
         "voxel.armor.cloth.sunsilk.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.foot"): VoxTrans(
         "voxel.armor.cloth.sunsilk.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.hand"): VoxTrans(
         "voxel.armor.cloth.sunsilk.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.shoulder"): VoxTrans(
         "voxel.armor.cloth.sunsilk.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Sunsilk")): VoxTrans(
+    Simple("common.items.armor.cloth.sunsilk.back"): VoxTrans(
         "voxel.armor.cloth.sunsilk.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Bronze Set
-    Armor(Chest("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.chest"): VoxTrans(
         "voxel.armor.mail.bronze.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.pants"): VoxTrans(
         "voxel.armor.mail.bronze.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.belt"): VoxTrans(
         "voxel.armor.mail.bronze.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.foot"): VoxTrans(
         "voxel.armor.mail.bronze.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.hand"): VoxTrans(
         "voxel.armor.mail.bronze.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.shoulder"): VoxTrans(
         "voxel.armor.mail.bronze.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Bronze")): VoxTrans(
+    Simple("common.items.armor.mail.bronze.back"): VoxTrans(
         "voxel.armor.mail.bronze.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Iron Set
-    Armor(Chest("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.chest"): VoxTrans(
         "voxel.armor.mail.iron.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.pants"): VoxTrans(
         "voxel.armor.mail.iron.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.belt"): VoxTrans(
         "voxel.armor.mail.iron.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.foot"): VoxTrans(
         "voxel.armor.mail.iron.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.hand"): VoxTrans(
         "voxel.armor.mail.iron.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.shoulder"): VoxTrans(
         "voxel.armor.mail.iron.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Iron")): VoxTrans(
+    Simple("common.items.armor.mail.iron.back"): VoxTrans(
         "voxel.armor.mail.iron.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Steel Set
-    Armor(Chest("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.chest"): VoxTrans(
         "voxel.armor.mail.steel.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.pants"): VoxTrans(
         "voxel.armor.mail.steel.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.belt"): VoxTrans(
         "voxel.armor.mail.steel.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.foot"): VoxTrans(
         "voxel.armor.mail.steel.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.hand"): VoxTrans(
         "voxel.armor.mail.steel.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.shoulder"): VoxTrans(
         "voxel.armor.mail.steel.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Steel")): VoxTrans(
+    Simple("common.items.armor.mail.steel.back"): VoxTrans(
         "voxel.armor.mail.steel.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Cobalt Set
-    Armor(Chest("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.chest"): VoxTrans(
         "voxel.armor.mail.cobalt.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.pants"): VoxTrans(
         "voxel.armor.mail.cobalt.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.belt"): VoxTrans(
         "voxel.armor.mail.cobalt.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.foot"): VoxTrans(
         "voxel.armor.mail.cobalt.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.hand"): VoxTrans(
         "voxel.armor.mail.cobalt.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.shoulder"): VoxTrans(
         "voxel.armor.mail.cobalt.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Cobalt")): VoxTrans(
+    Simple("common.items.armor.mail.cobalt.back"): VoxTrans(
         "voxel.armor.mail.cobalt.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Bloodsteel Set
-    Armor(Chest("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.chest"): VoxTrans(
         "voxel.armor.mail.bloodsteel.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.pants"): VoxTrans(
         "voxel.armor.mail.bloodsteel.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.belt"): VoxTrans(
         "voxel.armor.mail.bloodsteel.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.foot"): VoxTrans(
         "voxel.armor.mail.bloodsteel.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.hand"): VoxTrans(
         "voxel.armor.mail.bloodsteel.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.shoulder"): VoxTrans(
         "voxel.armor.mail.bloodsteel.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Bloodsteel")): VoxTrans(
+    Simple("common.items.armor.mail.bloodsteel.back"): VoxTrans(
         "voxel.armor.mail.bloodsteel.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Orichalcum Set
-    Armor(Chest("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.chest"): VoxTrans(
         "voxel.armor.mail.orichalcum.chest",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 1.1,
     ),
-    Armor(Pants("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.pants"): VoxTrans(
         "voxel.armor.mail.orichalcum.pants",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Belt("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.belt"): VoxTrans(
         "voxel.armor.mail.orichalcum.belt",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Foot("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.foot"): VoxTrans(
         "voxel.armor.mail.orichalcum.foot",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Hand("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.hand"): VoxTrans(
         "voxel.armor.mail.orichalcum.hand",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Shoulder("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.shoulder"): VoxTrans(
         "voxel.armor.mail.orichalcum.shoulder",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Back("Orichalcum")): VoxTrans(
+    Simple("common.items.armor.mail.orichalcum.back"): VoxTrans(
         "voxel.armor.mail.orichalcum.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //misc
-    Armor(Pants("Hunting")): VoxTrans(
+    Simple("common.items.armor.misc.pants.hunting"): VoxTrans(
         "voxel.armor.misc.pants.grayscale",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     // Backs
-    Armor(Back("Short0")): VoxTrans(
+    Simple("common.items.armor.misc.back.short_0"): VoxTrans(
         "voxel.armor.misc.back.short-0",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Back("Short1")): VoxTrans(
+    Simple("common.items.armor.misc.back.short_1"): VoxTrans(
         "voxel.armor.misc.back.short-1",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Back("Admin")): VoxTrans(
+    Simple("common.items.armor.misc.back.admin"): VoxTrans(
         "voxel.armor.misc.back.admin",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Back("DungeonPurple")): VoxTrans(
+    Simple("common.items.debug.admin_back"): VoxTrans(
+        "voxel.armor.misc.back.admin",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.misc.back.dungeon_purple"): VoxTrans(
         "voxel.armor.misc.back.dungeon_purple",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Back("LeatherBlue")): VoxTrans(
+    Simple("common.items.npc_armor.back.leather_blue"): VoxTrans(
         "voxel.armor.leather_blue.back",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Back("Backpack")): VoxTrans(
+    Simple("common.items.armor.misc.back.backpack"): VoxTrans(
         "voxel.armor.misc.back.backpack",
         (0.0, 0.0, 0.0), (-75.0, 45.0,0.0), 0.9,
     ),
-    Armor(Back("BackpackBlue")): VoxTrans(
+    Simple("common.items.npc_armor.back.backpack_blue"): VoxTrans(
         "voxel.armor.misc.back.backpack",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
     //Hats
-    Armor(Head("Witch")): VoxTrans(
+    Simple("common.items.armor.witch.hat"): VoxTrans(
         "voxel.armor.witch.hat",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Head("HogHood")): VoxTrans(
+    Simple("common.items.armor.misc.head.hog_hood"): VoxTrans(
         "voxel.armor.misc.head.hog_hood",
         (0.0, 2.0, -0.0), (-110.0, 210.0,15.0), 1.4,
     ),
-    Armor(Head("BambooTwig")): VoxTrans(
+    Simple("common.items.armor.misc.head.bamboo_twig"): VoxTrans(
         "voxel.armor.misc.head.bamboo_twig",
         (2.5, 4.5, 0.0), (-120.0, -240.0,1.0), 2.3,
     ),
-    Armor(Head("Pirate")): VoxTrans(
+    Simple("common.items.armor.pirate.hat"): VoxTrans(
         "voxel.armor.pirate.hat",
         (1.0, 2.0, 0.0), (-120.0, 210.0,15.0), 1.0,
     ),
-    Armor(Head("Thief")): VoxTrans(
+    Simple("common.items.armor.misc.head.bandana.thief"): VoxTrans(
         "voxel.armor.misc.head.bandana.thief",
         (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
     ),
-	Armor(Head("WanderersHat")): VoxTrans(
+	Simple("common.items.armor.misc.head.wanderers_hat"): VoxTrans(
         "voxel.armor.misc.head.wanderers_hat",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Head("Red")): VoxTrans(
+    Simple("common.items.armor.misc.head.bandana.red"): VoxTrans(
         "voxel.armor.misc.head.bandana.red",
         (0.0, -2.0, 0.0), (-120.0, 210.0,15.0), 1.9,
     ),
-    Armor(Head("Straw")): VoxTrans(
+    Simple("common.items.armor.misc.head.straw"): VoxTrans(
         "voxel.armor.misc.head.straw",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
-    Armor(Head("Hood")): VoxTrans(
+    Simple("common.items.armor.misc.head.hood"): VoxTrans(
         "voxel.armor.misc.head.hood",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("DarkHood")): VoxTrans(
+    Simple("common.items.armor.misc.head.hood_dark"): VoxTrans(
         "voxel.armor.misc.head.hood_dark",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("Crown")): VoxTrans(
+    Simple("common.items.armor.misc.head.crown"): VoxTrans(
         "voxel.armor.misc.head.crown",
         (0.0, 4.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("Mitre")): VoxTrans(
+    Simple("common.items.armor.misc.head.mitre"): VoxTrans(
         "voxel.armor.misc.head.mitre",
         (0.0, 4.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("Spikeguard")): VoxTrans(
+    Simple("common.items.armor.misc.head.spikeguard"): VoxTrans(
         "voxel.armor.misc.head.spikeguard",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("WingedCoronet")): VoxTrans(
+    Simple("common.items.armor.misc.head.winged_coronet"): VoxTrans(
         "voxel.armor.misc.head.winged_coronet",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("BorealWarhelm")): VoxTrans(
+    Simple("common.items.armor.misc.head.boreal_warhelm"): VoxTrans(
         "voxel.armor.misc.head.boreal_warhelm",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("WoollyWintercap")): VoxTrans(
+    Simple("common.items.calendar.christmas.armor.misc.head.woolly_wintercap"): VoxTrans(
         "voxel.armor.misc.head.woolly_wintercap",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
-    Armor(Head("Helmet")): VoxTrans(
+    Simple("common.items.armor.misc.head.helmet"): VoxTrans(
         "voxel.armor.misc.head.helmet",
         (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 1.3,
     ),
     // Rings
-    Armor(Ring("Scratched")): VoxTrans(
+    Simple("common.items.armor.misc.ring.scratched"): VoxTrans(
         "voxel.armor.misc.ring.scratched",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Gold")): VoxTrans(
+    Simple("common.items.armor.misc.ring.gold"): VoxTrans(
         "voxel.armor.misc.ring.gold",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Topaz")): VoxTrans(
+    Simple("common.items.armor.misc.ring.topaz"): VoxTrans(
         "voxel.armor.misc.ring.topaz",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Amethyst")): VoxTrans(
+    Simple("common.items.armor.misc.ring.amethyst"): VoxTrans(
         "voxel.armor.misc.ring.amethyst",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Sapphire")): VoxTrans(
+    Simple("common.items.armor.misc.ring.sapphire"): VoxTrans(
         "voxel.armor.misc.ring.sapphire",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Emerald")): VoxTrans(
+    Simple("common.items.armor.misc.ring.emerald"): VoxTrans(
         "voxel.armor.misc.ring.emerald",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Ruby")): VoxTrans(
+    Simple("common.items.armor.misc.ring.ruby"): VoxTrans(
         "voxel.armor.misc.ring.ruby",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
-    Armor(Ring("Diamond")): VoxTrans(
+    Simple("common.items.armor.misc.ring.diamond"): VoxTrans(
         "voxel.armor.misc.ring.diamond",
         (0.0, 0.0, 0.0), (45.0, 20.0, 0.0), 0.9,
     ),
-    Armor(Ring("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.ring"): VoxTrans(
         "voxel.armor.cultist.ring",
         (0.0, 0.0, 0.0), (45.0, 15.0, 0.0), 0.9,
     ),
     // Necks
-    Armor(Neck("Ankh")): VoxTrans(
+    Simple("common.items.armor.misc.neck.ankh_of_life"): VoxTrans(
         "voxel.armor.misc.neck.ankh_of_life",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Carcanet")): VoxTrans(
+    Simple("common.items.armor.misc.neck.carcanet_of_wrath"): VoxTrans(
         "voxel.armor.misc.neck.carcanet_of_wrath",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Fang")): VoxTrans(
+    Simple("common.items.armor.misc.neck.fang"): VoxTrans(
         "voxel.armor.misc.neck.fang",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Honeycomb")): VoxTrans(
+    Simple("common.items.armor.misc.neck.honeycomb_pendant"): VoxTrans(
         "voxel.armor.misc.neck.honeycomb_pendant",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Haniwa")): VoxTrans(
+    Simple("common.items.armor.misc.neck.haniwa_talisman"): VoxTrans(
         "voxel.armor.misc.neck.haniwa_talisman",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Pendant")): VoxTrans(
+    Simple("common.items.armor.misc.neck.pendant_of_protection"): VoxTrans(
         "voxel.armor.misc.neck.pendant_of_protection",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("ResilienceGem")): VoxTrans(
+    Simple("common.items.armor.misc.neck.gem_of_resilience"): VoxTrans(
         "voxel.armor.misc.neck.resilience_gem",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Shell")): VoxTrans(
+    Simple("common.items.armor.misc.neck.shell"): VoxTrans(
         "voxel.armor.misc.neck.shell",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Amethyst")): VoxTrans(
+    Simple("common.items.armor.misc.neck.amethyst"): VoxTrans(
         "voxel.armor.misc.neck.amethyst",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Diamond")): VoxTrans(
+    Simple("common.items.armor.misc.neck.diamond"): VoxTrans(
         "voxel.armor.misc.neck.diamond",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Cultist")): VoxTrans(
+    Simple("common.items.armor.cultist.necklace"): VoxTrans(
         "voxel.armor.cultist.necklace",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Ruby")): VoxTrans(
+    Simple("common.items.armor.misc.neck.ruby"): VoxTrans(
         "voxel.armor.misc.neck.ruby",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Topaz")): VoxTrans(
+    Simple("common.items.armor.misc.neck.topaz"): VoxTrans(
         "voxel.armor.misc.neck.topaz",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Emerald")): VoxTrans(
+    Simple("common.items.armor.misc.neck.emerald"): VoxTrans(
         "voxel.armor.misc.neck.emerald",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Gold")): VoxTrans(
+    Simple("common.items.armor.misc.neck.gold"): VoxTrans(
         "voxel.armor.misc.neck.gold",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Sapphire")): VoxTrans(
+    Simple("common.items.armor.misc.neck.sapphire"): VoxTrans(
         "voxel.armor.misc.neck.sapphire",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
-    Armor(Neck("Scratched")): VoxTrans(
+    Simple("common.items.armor.misc.neck.scratched"): VoxTrans(
         "voxel.armor.misc.neck.scratched",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
 
     // Tabards
-    Armor(Tabard("Admin")): VoxTrans(
+    Simple("common.items.armor.misc.tabard.admin"): VoxTrans(
+        "voxel.armor.tabard_admin",
+        (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
+    ),
+    Simple("common.items.debug.admin"): VoxTrans(
         "voxel.armor.tabard_admin",
         (0.0, 0.2, 0.0), (-70.0, 20.0, 10.0), 0.9,
     ),
     // Heads
-    Armor(Head("Leather")): VoxTrans(
+    Simple("common.items.armor.hide.leather.head"): VoxTrans(
         "voxel.armor.misc.head.leather-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-    Armor(Head("Assassin")): VoxTrans(
+    Simple("common.items.armor.assassin.head"): VoxTrans(
         "voxel.armor.misc.head.assa_mask-0",
         (0.0, 0.0, 0.0), (-90.0, 180.0, 0.0), 1.0,
     ),
-    Armor(Head("Exclamation")): VoxTrans(
+    Simple("common.items.armor.misc.head.exclamation"): VoxTrans(
         "voxel.armor.misc.head.exclamation",
         (0.0, 15.0, 0.0), (-75.0, 135.0, 0.0), 3.0,
     ),
     // Bags
-    Armor(Bag("RedFace")): VoxTrans(
+    Simple("common.items.armor.misc.bag.soulkeeper_cursed"): VoxTrans(
         "voxel.armor.misc.bag.soulkeeper_cursed",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BlackHole")): VoxTrans(
+    Simple("common.items.debug.admin_black_hole"): VoxTrans(
         "voxel.armor.misc.bag.admin_black_hole",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BlueFace")): VoxTrans(
+    Simple("common.items.armor.misc.bag.soulkeeper_pure"): VoxTrans(
         "voxel.armor.misc.bag.soulkeeper_pure",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("PurpleSkull")): VoxTrans(
+    Simple("common.items.armor.misc.bag.mindflayer_spellbag"): VoxTrans(
         "voxel.armor.misc.bag.mindflayer_spellbag",
         (0.0, 0.1, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("GreenLarge")): VoxTrans(
+    Simple("common.items.armor.misc.bag.troll_hide_pack"): VoxTrans(
         "voxel.armor.misc.bag.troll_hide_pack",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("LeatherLarge")): VoxTrans(
+    Simple("common.items.armor.misc.bag.reliable_backpack"): VoxTrans(
         "voxel.armor.misc.bag.reliable_backpack",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("GreenMid")): VoxTrans(
+    Simple("common.items.armor.misc.bag.liana_kit"): VoxTrans(
         "voxel.armor.misc.bag.liana_kit",
         (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("LeatherSmall")): VoxTrans(
+    Simple("common.items.armor.misc.bag.tiny_leather_pouch"): VoxTrans(
         "voxel.armor.misc.bag.tiny_leather_pouch",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("RedLarge")): VoxTrans(
+    Simple("common.items.armor.misc.bag.sturdy_red_backpack"): VoxTrans(
         "voxel.armor.misc.bag.sturdy_red_backpack",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("RedMed")): VoxTrans(
+    Simple("common.items.armor.misc.bag.woven_red_bag"): VoxTrans(
         "voxel.armor.misc.bag.woven_red_bag",
         (0.5, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("RedSmall")): VoxTrans(
+    Simple("common.items.armor.misc.bag.knitted_red_pouch"): VoxTrans(
         "voxel.armor.misc.bag.knitted_red_pouch",
         (0.3, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.8,
     ),
-    Armor(Bag("RedTiny")): VoxTrans(
+    Simple("common.items.armor.misc.bag.tiny_red_pouch"): VoxTrans(
         "voxel.armor.misc.bag.tiny_red_pouch",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
-    Armor(Bag("BluePouch")): VoxTrans(
+    Simple("common.items.armor.misc.bag.heavy_seabag"): VoxTrans(
         "voxel.armor.misc.bag.heavy_seabag",
         (0.0, 0.0, 0.0), (-75.0, 20.0, 5.0), 0.9,
     ),
     // Consumables
-    Consumable("common.items.food.apple"): VoxTrans(
+    Simple("common.items.food.apple"): VoxTrans(
         "voxel.object.apple_half",
         (-0.5, 0.5, 0.0), (-60.0, -45.0, -15.0), 0.9,
     ),
-    Consumable("common.items.food.coconut"): VoxTrans(
+    Simple("common.items.food.coconut"): VoxTrans(
         "voxel.object.coconut_half",
         (0.1, -0.5, 0.0), (-55.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.cactus_colada"): VoxTrans(
+    Simple("common.items.food.cactus_colada"): VoxTrans(
         "voxel.object.cactus_drink",
         (-1.0, 1.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.consumable.potion_med"): VoxTrans(
+    Simple("common.items.consumable.potion_med"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Consumable("common.items.consumable.potion_minor"): VoxTrans(
+    Simple("common.items.consumable.potion_minor"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.5,
     ),
-    Consumable("common.items.consumable.potion_big"): VoxTrans(
+    Simple("common.items.consumable.potion_big"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Consumable("common.items.boss_drops.potions"): VoxTrans(
+    Simple("common.items.boss_drops.potions"): VoxTrans(
         "voxel.object.potion_red",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.cheese"): VoxTrans(
+    Simple("common.items.food.cheese"): VoxTrans(
         "voxel.object.cheese",
         (0.0, 0.0, 0.0), (-60.0, 27.0, 17.0), 0.7,
     ),
-    Consumable("common.items.food.blue_cheese"): VoxTrans(
+    Simple("common.items.food.blue_cheese"): VoxTrans(
         "voxel.object.blue_cheese",
         (0.0, 0.0, 0.0), (-60.0, -10.0, 0.0), 0.8,
     ),
-    Consumable("common.items.food.mushroom"): VoxTrans(
+    Simple("common.items.food.mushroom"): VoxTrans(
         "voxel.sprite.mushrooms.mushroom-10",
         (0.0, 0.0, 0.0), (-50.0, 70.0, 40.0), 1.0,
     ),
-    Ingredient("Velorite"): VoxTrans(
+    Simple("common.items.mineral.ore.velorite"): VoxTrans(
         "voxel.sprite.velorite.velorite_ore",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient("VeloriteFrag"): VoxTrans(
+    Simple("common.items.mineral.ore.veloritefrag"): VoxTrans(
         "voxel.sprite.velorite.velorite_1",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.apple_mushroom_curry"): VoxTrans(
+    Simple("common.items.food.apple_mushroom_curry"): VoxTrans(
         "voxel.object.mushroom_curry",
         (0.0, 0.0, 0.0), (-50.0, 20.0, 17.0), 0.9,
     ),
-    Consumable("common.items.food.spore_corruption"): VoxTrans(
+    Simple("common.items.food.spore_corruption"): VoxTrans(
         "voxel.sprite.spore.corruption_spore",
         (0.0, 0.0, 0.0), (-30.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.apple_stick"): VoxTrans(
+    Simple("common.items.food.apple_stick"): VoxTrans(
         "voxel.object.apple_stick",
         (-0.5, -0.3, 0.0), (-55.0, 60.0, 5.0), 1.0,
     ),
-    Consumable("common.items.food.mushroom_stick"): VoxTrans(
+    Simple("common.items.food.mushroom_stick"): VoxTrans(
         "voxel.object.mushroom_stick",
         (0.3, 0.0, 0.0), (-55.0, 60.0, 5.0), 1.0,
     ),
-    Consumable("common.items.food.sunflower_icetea"): VoxTrans(
+    Simple("common.items.food.sunflower_icetea"): VoxTrans(
         "voxel.object.sunflower_ice_tea",
         (0.0, 0.0, 0.0), (-50.0, -60.0, -35.0), 0.9,
     ),
-    Consumable("common.items.food.carrot"): VoxTrans(
+    Simple("common.items.food.carrot"): VoxTrans(
         "voxel.sprite.carrot.carrot",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.tomato"): VoxTrans(
+    Simple("common.items.food.tomato"): VoxTrans(
         "voxel.sprite.tomato.tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.lettuce"): VoxTrans(
+    Simple("common.items.food.lettuce"): VoxTrans(
         "voxel.sprite.cabbage.cabbage",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.meat.fish_raw"): VoxTrans(
+    Simple("common.items.food.meat.fish_raw"): VoxTrans(
         "voxel.sprite.food.meat.fish_raw",
         (0.1, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.meat.fish_cooked"): VoxTrans(
+    Simple("common.items.food.meat.fish_cooked"): VoxTrans(
         "voxel.sprite.food.meat.fish_cooked",
         (0.1, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.meat.bird_raw"): VoxTrans(
+    Simple("common.items.food.meat.bird_raw"): VoxTrans(
         "voxel.sprite.food.meat.bird_raw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.meat.bird_cooked"): VoxTrans(
+    Simple("common.items.food.meat.bird_cooked"): VoxTrans(
         "voxel.sprite.food.meat.bird_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.meat.bird_large_raw"): VoxTrans(
+    Simple("common.items.food.meat.bird_large_raw"): VoxTrans(
         "voxel.sprite.food.meat.bird_large_raw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.meat.bird_large_cooked"): VoxTrans(
+    Simple("common.items.food.meat.bird_large_cooked"): VoxTrans(
         "voxel.sprite.food.meat.bird_large_cooked",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Consumable("common.items.food.meat.beast_small_raw"): VoxTrans(
+    Simple("common.items.food.meat.beast_small_raw"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_raw",
         (1.1, 0.0, 0.0), (-50.0, 30.0, 0.0), 1.0,
     ),
-    Consumable("common.items.food.meat.beast_small_cooked"): VoxTrans(
+    Simple("common.items.food.meat.beast_small_cooked"): VoxTrans(
         "voxel.sprite.food.meat.beast_small_cooked",
         (1.1, 0.0, 0.0), (-50.0, 30.0, 0.0), 1.0,
     ),
-    Consumable("common.items.food.meat.tough_raw"): VoxTrans(
+    Simple("common.items.food.meat.tough_raw"): VoxTrans(
         "voxel.sprite.food.meat.tough_raw",
         (0.0, 0.0, 0.0), (-50.0, 10.0, 0.0), 0.9,
     ),
-    Consumable("common.items.food.meat.tough_cooked"): VoxTrans(
+    Simple("common.items.food.meat.tough_cooked"): VoxTrans(
         "voxel.sprite.food.meat.tough_cooked",
         (0.0, 0.0, 0.0), (-50.0, 20.0, 0.0), 0.9,
     ),
-    Consumable("common.items.food.meat.beast_large_raw"): VoxTrans(
+    Simple("common.items.food.meat.beast_large_raw"): VoxTrans(
         "voxel.sprite.food.meat.beast_large_raw",
         (0.4, 0.0, 0.0), (-60.0, 35.0, 0.0), 0.9,
     ),
-    Consumable("common.items.food.meat.beast_large_cooked"): VoxTrans(
+    Simple("common.items.food.meat.beast_large_cooked"): VoxTrans(
         "voxel.sprite.food.meat.beast_large_cooked",
         (0.4, 0.0, 0.0), (-60.0, 35.0, 0.0), 0.9,
     ),
-    Consumable("common.items.food.plainsalad"): VoxTrans(
+    Simple("common.items.food.plainsalad"): VoxTrans(
         "voxel.sprite.food.salad_plain",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Consumable("common.items.food.tomatosalad"): VoxTrans(
+    Simple("common.items.food.tomatosalad"): VoxTrans(
         "voxel.sprite.food.salad_tomato",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Throwables
-    Throwable(Bomb): VoxTrans(
+    Simple("common.items.utility.bomb"): VoxTrans(
         "voxel.object.bomb",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(Firework(Blue)): VoxTrans(
+    Simple("common.items.utility.firework_blue"): VoxTrans(
         "voxel.weapon.projectile.fireworks_blue-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(Firework(Green)): VoxTrans(
+    Simple("common.items.utility.firework_green"): VoxTrans(
         "voxel.weapon.projectile.fireworks_green-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(Firework(Purple)): VoxTrans(
+    Simple("common.items.utility.firework_purple"): VoxTrans(
         "voxel.weapon.projectile.fireworks_purple-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(Firework(Red)): VoxTrans(
+    Simple("common.items.utility.firework_red"): VoxTrans(
         "voxel.weapon.projectile.fireworks_red-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(Firework(White)): VoxTrans(
+    Simple("common.items.utility.firework_white"): VoxTrans(
         "voxel.weapon.projectile.fireworks_white-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(Firework(Yellow)): VoxTrans(
+    Simple("common.items.utility.firework_yellow"): VoxTrans(
         "voxel.weapon.projectile.fireworks_yellow-0",
         (0.0, 0.5, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Throwable(TrainingDummy): VoxTrans(
+    Simple("common.items.utility.training_dummy"): VoxTrans(
         "voxel.object.training_dummy",
         (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
     // Ingredients
-    Tool("common.items.tool.craftsman_hammer"): VoxTrans(
+    Simple("common.items.tool.craftsman_hammer"): VoxTrans(
         "voxel.weapon.hammer.craftsman",
         (1.0, -1.0, 0.0), (-135.0, 90.0, 0.0), 0.9,
     ),
-    Ingredient("SewingSet"): VoxTrans(
+    Simple("common.items.crafting_tools.sewing_set"): VoxTrans(
         "voxel.object.sewing_set",
         (0.0, -0.1, 0.0), (-45.0, 15.0, 15.0), 1.0,
     ),
-    Ingredient("Flower"): VoxTrans(
+    Simple("common.items.flowers.sunflower"): VoxTrans(
         "voxel.sprite.flowers.sunflower_1",
         (-2.0, -0.5, -1.0), (-60.0, 40.0, 20.0), 1.1,
     ),
-    Ingredient("FlowerRed"): VoxTrans(
+    Simple("common.items.flowers.red"): VoxTrans(
         "voxel.sprite.flowers.flower_red-4",
         (0.0, 0.5, 0.0), (-70.0, 10.0, 0.0), 0.8,
     ),
-    Ingredient("Sunflower"): VoxTrans(
-        "voxel.sprite.flowers.sunflower_1",
-        (0.0, -1.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
-    ),
-    Ingredient("Grass"): VoxTrans(
+    Simple("common.items.grasses.long"): VoxTrans(
         "voxel.sprite.grass.grass_long_5",
         (0.0, 0.0, 0.0), (-90.0, 50.0, 0.0), 1.0,
     ),
-    Ingredient("Stones"): VoxTrans(
+    Simple("common.items.crafting_ing.stones"): VoxTrans(
         "voxel.sprite.rocks.rock-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient("Cactus"): VoxTrans(
+    Simple("common.items.crafting_ing.cactus"): VoxTrans(
         "voxel.sprite.cacti.flat_cactus_med",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.9,
     ),
-    Ingredient("Seashells"): VoxTrans(
+    Simple("common.items.crafting_ing.seashells"): VoxTrans(
         "voxel.sprite.seashells.shell-0",
         (0.0, 0.0, 0.0), (-50.0, 40.0, 20.0), 0.8,
     ),
-    Ingredient("IcyShard"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.icy_fang"): VoxTrans(
         "voxel.object.ice_shard",
         (0.0, 0.0, 0.0), (10.0, -20.0, 30.0), 1.0,
     ),
-    Ingredient("FlayerBagDamaged"): VoxTrans(
+    Simple("common.items.crafting_ing.mindflayer_bag_damaged"): VoxTrans(
         "voxel.object.glowing_remains",
         (0.0, 0.0, 0.0), (-20.0, 20.0, .0), 0.9,
     ),
-    Ingredient("RaptorFeather"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.raptor_feather"): VoxTrans(
         "voxel.object.raptor_feather",
         (-0.2, 0.0, 0.0), (10.0, 30.0, -2.0), 1.0,
     ),
-    Ingredient("Twigs"): VoxTrans(
+    Simple("common.items.crafting_ing.twigs"): VoxTrans(
         "voxel.sprite.twigs.twigs-0",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("AnimalHide"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.animal_hide"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.animal_hide",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("ToughHide"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.tough_hide"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.tough_hide",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("RuggedHide"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.rugged_hide"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.rugged_hide",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("SimpleLeather"): VoxTrans(
+    Simple("common.items.crafting_ing.leather.simple_leather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.simple_leather",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("ThickLeather"): VoxTrans(
+    Simple("common.items.crafting_ing.leather.thick_leather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.thick_leather",
         (-0.3, 0.0, 0.0), (-20.0, 15.0, 20.0), 0.9,
     ),
-    Ingredient("RigidLeather"): VoxTrans(
+    Simple("common.items.crafting_ing.leather.rigid_leather"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.rigid_leather",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("TrollLeather"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.leather_troll"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.troll_hide",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("LeatherStrips"): VoxTrans(
+    Simple("common.items.crafting_ing.leather.leather_strips"): VoxTrans(
         "voxel.sprite.crafting_ing.leather.leather_strips",
         (0.5, 0.0, 0.0), (-20.0, 10.0, 60.0), 1.0,
     ),
-    Ingredient("Plate"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.plate"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.plate",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
     ),
-    Ingredient("Carapace"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.carapace"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.carapace",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Scale"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.scales"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.scale",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.8,
     ),
-    Ingredient("DragonScale"): VoxTrans(
+    Simple("common.items.crafting_ing.hide.dragon_scale"): VoxTrans(
         "voxel.sprite.crafting_ing.hide.dragon_scale",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Claw"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.claw"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.claw",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("ElegantCrest"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.elegant_crest"): VoxTrans(
         "voxel.object.elegant_crest",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("VenomSac"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.venom_sac"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.venom_sac",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("LivelyVine"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.lively_vine"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.lively_vine",
         (0.0, 0.0, 0.0), (-40.0, -40.0, 20.0), 1.2,
     ),
-    Ingredient("SharpFang"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.sharp_fang"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.sharp_fang",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 1.0,
     ),
-    Ingredient("StrongPincer"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.strong_pincer"): VoxTrans(
         "voxel.object.strong_pincer",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Fur"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.fur"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.fur",
         (0.0, 0.0, 0.0), (-40.0, -10.0, 10.0), 1.0,
     ),
-    Ingredient("LargeHorn"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.large_horn"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.large_horn",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("LongTusk"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.long_tusk"): VoxTrans(
         "voxel.object.long_tusk",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("GrimEyeball"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.grim_eyeball"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.grim_eyeball",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("PlantFiber"): VoxTrans(
+    Simple("common.items.flowers.plant_fiber"): VoxTrans(
         "voxel.sprite.crafting_ing.plant_fiber",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Moonbell"): VoxTrans(
+    Simple("common.items.flowers.moonbell"): VoxTrans(
         "voxel.sprite.flowers.moonbell",
         (0.0, 0.0, 0.0), (-65.0, 40.0, 20.0), 0.9,
     ),
-    Ingredient("Pyrebloom"): VoxTrans(
+    Simple("common.items.flowers.pyrebloom"): VoxTrans(
         "voxel.sprite.flowers.pyrebloom",
         (0.0, 0.0, 0.0), (-75.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("WildFlax"): VoxTrans(
+    Simple("common.items.flowers.wild_flax"): VoxTrans(
         "voxel.sprite.flowers.flax",
         (0.0, 0.0, 0.0), (-75.0, 0.0, 20.0), 0.8,
     ),
-    Ingredient("CottonBoll"): VoxTrans(
+    Simple("common.items.crafting_ing.cotton_boll"): VoxTrans(
         "voxel.sprite.crafting_ing.cotton_boll",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("Cotton"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.cotton"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.cotton",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("Linen"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.linen"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.linen",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("Wool"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.wool"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.wool",
         (0.0, 0.0, 0.0), (-20.0, 10.0, 20.0), 0.9,
     ),
-    Ingredient("Silk"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.silk"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.silk",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("Lifecloth"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.lifecloth"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.lifecloth",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("Moonweave"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.moonweave"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.moonweave",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("Sunsilk"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.sunsilk"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.sunsilk",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("LinenRed"): VoxTrans(
+    Simple("common.items.crafting_ing.cloth.linen_red"): VoxTrans(
         "voxel.sprite.crafting_ing.cloth.linen_red",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("StickyThread"): VoxTrans(
+    Simple("common.items.crafting_ing.sticky_thread"): VoxTrans(
         "voxel.sprite.crafting_ing.sticky_thread",
         (0.0, 0.0, 0.0), (-65.0, 0.0, 20.0), 0.9,
     ),
-    Ingredient("SilverIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.silver"): VoxTrans(
         "voxel.sprite.mineral.ingot.silver",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("GoldIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.gold"): VoxTrans(
         "voxel.sprite.mineral.ingot.gold",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("OrichalcumIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.orichalcum"): VoxTrans(
         "voxel.sprite.mineral.ingot.orichalcum",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("BloodsteelIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.bloodsteel"): VoxTrans(
         "voxel.sprite.mineral.ingot.bloodsteel",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("BronzeIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.bronze"): VoxTrans(
         "voxel.sprite.mineral.ingot.bronze",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("CobaltIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.cobalt"): VoxTrans(
         "voxel.sprite.mineral.ingot.cobalt",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("CopperIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.copper"): VoxTrans(
         "voxel.sprite.mineral.ingot.copper",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("IronIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.iron"): VoxTrans(
         "voxel.sprite.mineral.ingot.iron",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("SteelIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.steel"): VoxTrans(
         "voxel.sprite.mineral.ingot.steel",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("TinIngot"): VoxTrans(
+    Simple("common.items.mineral.ingot.tin"): VoxTrans(
         "voxel.sprite.mineral.ingot.tin",
         (0.0, 0.0, 0.0), (70.0, 30.0, 170.0), 0.85,
     ),
-    Ingredient("GoldOre"): VoxTrans(
+    Simple("common.items.mineral.ore.gold"): VoxTrans(
         "voxel.sprite.mineral.ore.gold",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("SilverOre"): VoxTrans(
+    Simple("common.items.mineral.ore.silver"): VoxTrans(
         "voxel.sprite.mineral.ore.silver",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("BloodstoneOre"): VoxTrans(
+    Simple("common.items.mineral.ore.bloodstone"): VoxTrans(
         "voxel.sprite.mineral.ore.bloodstone",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("CobaltOre"): VoxTrans(
+    Simple("common.items.mineral.ore.cobalt"): VoxTrans(
         "voxel.sprite.mineral.ore.cobalt",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("CopperOre"): VoxTrans(
+    Simple("common.items.mineral.ore.copper"): VoxTrans(
         "voxel.sprite.mineral.ore.copper",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("IronOre"): VoxTrans(
+    Simple("common.items.mineral.ore.iron"): VoxTrans(
         "voxel.sprite.mineral.ore.iron",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("TinOre"): VoxTrans(
+    Simple("common.items.mineral.ore.tin"): VoxTrans(
         "voxel.sprite.mineral.ore.tin",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("Coal"): VoxTrans(
+    Simple("common.items.mineral.stone.coal"): VoxTrans(
         "voxel.sprite.mineral.ore.coal",
         (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
     ),
-    Ingredient("Honey"): VoxTrans(
+    Simple("common.items.mineral.ore.coal"): VoxTrans(
+        "voxel.sprite.mineral.ore.coal",
+        (0.0, 0.0, 0.0), (-60.0, 30.0, 15.0), 0.9,
+    ),
+    Simple("common.items.crafting_ing.honey"): VoxTrans(
         "voxel.object.honey",
         (1.0, 0.0, 0.0), (-20.0, 20.0, -30.0), 0.9,
     ),
-    Ingredient("MortarPestle"): VoxTrans(
+    Simple("common.items.crafting_tools.mortar_pestle"): VoxTrans(
         "voxel.object.mortar_pestle",
         (0.0, 0.0, 0.0), (-40.0, 15.0, 17.0), 0.8,
     ),
-    Ingredient("EmptyVial"): VoxTrans(
+    Simple("common.items.crafting_ing.empty_vial"): VoxTrans(
         "voxel.object.potion_empty",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("Bowl"): VoxTrans(
+    Simple("common.items.crafting_ing.bowl"): VoxTrans(
         "voxel.sprite.crafting_ing.bowl",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("Oil"): VoxTrans(
+    Simple("common.items.crafting_ing.oil"): VoxTrans(
         "voxel.sprite.crafting_ing.oil",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("ViscousOoze"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.viscous_ooze"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.viscous_ooze",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("PhoenixFeather"): VoxTrans(
+    Simple("common.items.crafting_ing.animal_misc.phoenix_feather"): VoxTrans(
         "voxel.sprite.crafting_ing.animal_misc.phoenix_feather",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.2,
     ),
-    Ingredient("Bamboo"): VoxTrans(
+    Simple("common.items.log.bamboo"): VoxTrans(
         "voxel.sprite.wood.item.bamboo",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("EldwoodLogs"): VoxTrans(
+    Simple("common.items.log.eldwood"): VoxTrans(
         "voxel.sprite.wood.item.eldwood",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("FrostwoodLogs"): VoxTrans(
+    Simple("common.items.log.frostwood"): VoxTrans(
         "voxel.sprite.wood.item.frostwood",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("HardwoodLogs"): VoxTrans(
+    Simple("common.items.log.hardwood"): VoxTrans(
         "voxel.sprite.wood.item.hardwood",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("IronwoodLogs"): VoxTrans(
+    Simple("common.items.log.ironwood"): VoxTrans(
         "voxel.sprite.wood.item.ironwood",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
-    Ingredient("WoodLogs"): VoxTrans(
+    Simple("common.items.log.wood"): VoxTrans(
         "voxel.sprite.wood.item.wood",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.8,
     ),
     // Gliders
-    Glider("Starter"): VoxTrans(
+    Simple("common.items.glider.cloverleaf"): VoxTrans(
         "voxel.glider.starter",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Glider("PlainCloth"): VoxTrans(
+    Simple("common.items.glider.basic_white"): VoxTrans(
         "voxel.glider.basic_white",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Glider("RedCloth"): VoxTrans(
+    Simple("common.items.glider.basic_red"): VoxTrans(
         "voxel.glider.basic_red",
         (-2.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.9,
     ),
-    Glider("Blue0"): VoxTrans(
+    Simple("common.items.glider.blue"): VoxTrans(
         "voxel.glider.blue",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("ButterflyMorpho"): VoxTrans(
+    Simple("common.items.glider.morpho"): VoxTrans(
         "voxel.glider.butterfly1",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("ButterflyMonarch"): VoxTrans(
+    Simple("common.items.glider.monarch"): VoxTrans(
         "voxel.glider.butterfly2",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("ButterflyLove"): VoxTrans(
+    Simple("common.items.glider.butterfly3"): VoxTrans(
         "voxel.glider.butterfly3",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("MothLuna"): VoxTrans(
+    Simple("common.items.glider.moth"): VoxTrans(
         "voxel.glider.moth",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("SandRaptor"): VoxTrans(
+    Simple("common.items.glider.sandraptor"): VoxTrans(
         "voxel.glider.sandraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("SnowRaptor"): VoxTrans(
+    Simple("common.items.glider.snowraptor"): VoxTrans(
         "voxel.glider.snowraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("WoodRaptor"): VoxTrans(
+    Simple("common.items.glider.woodraptor"): VoxTrans(
         "voxel.glider.woodraptor",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("Sunset"): VoxTrans(
+    Simple("common.items.glider.sunset"): VoxTrans(
         "voxel.glider.sunset",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("Moonrise"): VoxTrans(
+    Simple("common.items.glider.moonrise"): VoxTrans(
         "voxel.glider.moonrise",
         (6.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("Purple0"): VoxTrans(
+    Simple("common.items.glider.skullgrin"): VoxTrans(
         "voxel.glider.cultists",
         (5.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
-    Glider("Leaves"): VoxTrans(
+    Simple("common.items.glider.leaves"): VoxTrans(
         "voxel.glider.leaves",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 1.1,
     ),
     // Debug Items
-    Tool("common.items.debug.admin_stick"): VoxTrans(
+    Simple("common.items.debug.admin_stick"): VoxTrans(
         "voxel.weapon.tool.broom_belzeshrub_purple",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.1,
     ),
     // Misc
-    Tool("common.items.weapons.tool.golf_club"): VoxTrans(
+    Simple("common.items.weapons.tool.golf_club"): VoxTrans(
         "voxel.weapon.tool.golf_club",
         (2.0, -1.0, 0.0), (-135.0, 25.0, 0.0), 1.1,
     ),
     // Gems
-    Ingredient("Amethyst"): VoxTrans(
+    Simple("common.items.mineral.gem.amethyst"): VoxTrans(
         "voxel.sprite.mineral.gem.amethystgem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Ingredient("Topaz"): VoxTrans(
+    Simple("common.items.mineral.gem.topaz"): VoxTrans(
         "voxel.sprite.mineral.gem.topazgem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Ingredient("Sapphire"): VoxTrans(
+    Simple("common.items.mineral.gem.sapphire"): VoxTrans(
         "voxel.sprite.mineral.gem.sapphiregem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.6,
     ),
-    Ingredient("Emerald"): VoxTrans(
+    Simple("common.items.mineral.gem.emerald"): VoxTrans(
         "voxel.sprite.mineral.gem.emeraldgem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Ingredient("Ruby"): VoxTrans(
+    Simple("common.items.mineral.gem.ruby"): VoxTrans(
         "voxel.sprite.mineral.gem.rubygem",
         (0.0, 0.0, 0.0), (-50.0, 30.0, 20.0), 0.7,
     ),
-    Ingredient("Diamond"): VoxTrans(
+    Simple("common.items.mineral.gem.diamond"): VoxTrans(
         "voxel.sprite.mineral.gem.diamondgem",
         (0.0, 0.0, 0.0), (-55.0, 30.0, 20.0), 0.6,
     ),
@@ -3731,15 +3740,15 @@
         "voxel.weapon.component.sword.zweihander.orichalcum",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.sword.long"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.sword.long"): VoxTrans(
         "voxel.weapon.component.sword.hilt.long",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.sword.medium"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.sword.medium"): VoxTrans(
         "voxel.weapon.component.sword.hilt.medium",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.sword.short"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.sword.short"): VoxTrans(
         "voxel.weapon.component.sword.hilt.short",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
@@ -3912,15 +3921,15 @@
         "voxel.weapon.component.axe.poleaxe.orichalcum",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.axe.long"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.axe.long"): VoxTrans(
         "voxel.weapon.component.axe.haft.long",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.axe.medium"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.axe.medium"): VoxTrans(
         "voxel.weapon.component.axe.haft.medium",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.axe.short"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.axe.short"): VoxTrans(
         "voxel.weapon.component.axe.haft.short",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
@@ -4093,15 +4102,15 @@
         "voxel.weapon.component.hammer.warhammer.orichalcum",
         (0.0, 0.0, 0.0), (-135.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.hammer.long"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.hammer.long"): VoxTrans(
         "voxel.weapon.component.hammer.shaft.long",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.hammer.medium"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.hammer.medium"): VoxTrans(
         "voxel.weapon.component.hammer.shaft.medium",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.hammer.short"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.hammer.short"): VoxTrans(
         "voxel.weapon.component.hammer.shaft.short",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 1.0,
     ),
@@ -4274,15 +4283,15 @@
         "voxel.weapon.component.bow.warbow.eldwood",
         (0.0, 0.0, 0.0), (0.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.bow.long"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.bow.long"): VoxTrans(
         "voxel.weapon.component.bow.grip.long",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.bow.medium"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.bow.medium"): VoxTrans(
         "voxel.weapon.component.bow.grip.medium",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.bow.short"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.bow.short"): VoxTrans(
         "voxel.weapon.component.bow.grip.short",
         (0.0, 0.0, 0.0), (180.0, 210.0, 135.0), 0.7,
     ),
@@ -4455,15 +4464,15 @@
         "voxel.weapon.component.staff.staff.eldwood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.staff.heavy"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.staff.heavy"): VoxTrans(
         "voxel.weapon.component.staff.core.heavy",
         (0.0, 0.0, 0.0),   (-100.0, 210.0, 15.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.staff.medium"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.staff.medium"): VoxTrans(
         "voxel.weapon.component.staff.core.medium",
         (0.0, 0.0, 0.0),   (-100.0, 210.0, 15.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.staff.light"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.staff.light"): VoxTrans(
         "voxel.weapon.component.staff.core.light",
         (0.0, 0.0, 0.0),  (-100.0, 210.0, 15.0), 0.7,
     ),
@@ -4636,15 +4645,15 @@
         "voxel.weapon.component.sceptre.sceptre.eldwood",
         (0.0, 0.0, 0.0), (-130.0, 90.0, 0.0), 1.0,
     ),
-    Tool("common.items.modular.weapon.secondary.sceptre.heavy"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.sceptre.heavy"): VoxTrans(
         "voxel.weapon.component.sceptre.core.heavy",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.sceptre.medium"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.sceptre.medium"): VoxTrans(
         "voxel.weapon.component.sceptre.core.medium",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 0.7,
     ),
-    Tool("common.items.modular.weapon.secondary.sceptre.light"): VoxTrans(
+    Simple("common.items.modular.weapon.secondary.sceptre.light"): VoxTrans(
         "voxel.weapon.component.sceptre.core.light",
         (0.0, 0.0, 0.0), (-100.0, 250.0, 15.0), 0.7,
     ),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Chef Jacket",
     description: "",
     kind: Armor((
-        kind: Chest("Chef"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(48.0)),
             poise_resilience: Some(Normal(6.0)),

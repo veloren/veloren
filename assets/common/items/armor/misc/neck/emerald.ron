@@ -2,7 +2,7 @@ ItemDef(
     name: "Emerald Necklace",
     description: "A cobalt necklace, bearing beautiful emerald gems.",
     kind: Armor((
-        kind: Neck("Emerald"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
             energy_max: Some(20.0),

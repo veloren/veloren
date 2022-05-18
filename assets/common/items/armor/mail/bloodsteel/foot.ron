@@ -2,7 +2,7 @@ ItemDef(
     name: "Bloodsteel Sabatons",
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
-        kind: Foot("Bloodsteel"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(20.0)),
             poise_resilience: Some(Normal(5.0)),

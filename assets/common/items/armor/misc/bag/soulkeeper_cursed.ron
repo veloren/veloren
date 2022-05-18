@@ -3,7 +3,7 @@ ItemDef(
     description: "WIP",
     kind: Armor(
         (
-            kind: Bag("RedFace"),
+            kind: Bag,
             stats: (
             ),
         )

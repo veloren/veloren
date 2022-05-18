@@ -2,7 +2,7 @@ ItemDef(
     name: "Hood",
     description: "Become one with the treetops.",
     kind: Armor((
-        kind: Head("Hood"),
+        kind: Head,
         stats: (
             protection: Some(Normal(3.0)),
             crit_power: Some(0.021),

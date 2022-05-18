@@ -2,7 +2,7 @@ ItemDef(
     name: "Velorite Battlemage Vest",
     description: "",
     kind: Armor((
-        kind: Chest("VeloriteMage"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(28.0)),
         ),

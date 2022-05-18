@@ -2,7 +2,7 @@ ItemDef(
     name: "Savage Boots",
     description: "Brings the fury of the barbarians.",
     kind: Armor((
-        kind: Foot("Savage"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(5.0)),
         ),

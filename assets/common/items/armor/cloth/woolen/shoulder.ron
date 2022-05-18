@@ -2,7 +2,7 @@ ItemDef(
     name: "Woolen Shoulders",
     description: "Thick and ready for the snow.",
     kind: Armor((
-        kind: Shoulder("Woolen"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(6.0)),
             energy_max: Some(6.6),

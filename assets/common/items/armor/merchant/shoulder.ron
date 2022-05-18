@@ -2,7 +2,7 @@ ItemDef(
     name: "Merchant Mantle",
     description: "",
     kind: Armor((
-        kind: Shoulder("Merchant"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(5.0)),

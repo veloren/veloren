@@ -3,76 +3,76 @@
         vox_spec: ("armor_none", (-5.0, -3.5, 1.0)),
     ),
     map: {
-        "Gnome": (
+        "common.items.npc_armor.biped_small.gnome.chest.gnome": (
             vox_spec: ("npc.gnome.male.chest", (-5.0, -3.0, -2.5)),
         ),
-        "SahaginSpearman": (
+        "common.items.npc_armor.biped_small.sahagin.chest.spearman": (
             vox_spec: ("npc.sahagin.spearman.chest", (-4.5, -8.0, -8.0)),
         ),
-        "SahaginSorcerer": (
+        "common.items.npc_armor.biped_small.sahagin.chest.sorcerer": (
             vox_spec: ("npc.sahagin.sorcerer.chest", (-4.5, -8.0, -8.0)),
         ),
-        "SahaginSniper": (
+        "common.items.npc_armor.biped_small.sahagin.chest.sniper": (
             vox_spec: ("npc.sahagin.sniper.chest", (-4.5, -8.0, -8.0)),
         ),
-        "AdletHunter": (
+        "common.items.npc_armor.biped_small.adlet.chest.hunter": (
             vox_spec: ("npc.adlet.hunter.chest", (-5.0, -3.5, -2.0)),
         ),
-        "AdletIcepicker": (
+        "common.items.npc_armor.biped_small.adlet.chest.icepicker": (
             vox_spec: ("npc.adlet.icepicker.chest", (-5.0, -3.5, -2.0)),
         ),
-        "AdletTracker": (
+        "common.items.npc_armor.biped_small.adlet.chest.tracker": (
             vox_spec: ("npc.adlet.tracker.chest", (-5.0, -3.5, -2.0)),
         ),
-        "GnarlingMugger": (
+        "common.items.npc_armor.biped_small.gnarling.chest.mugger": (
             vox_spec: ("npc.gnarling.mugger.chest", (-4.5, -3.5, -2.5)),
         ),
-        "GnarlingStalker": (
+        "common.items.npc_armor.biped_small.gnarling.chest.stalker": (
             vox_spec: ("npc.gnarling.stalker.chest", (-4.5, -3.5, -2.5)),
         ),
-        "GnarlingLogger": (
+        "common.items.npc_armor.biped_small.gnarling.chest.logger": (
             vox_spec: ("npc.gnarling.logger.chest", (-4.5, -3.5, -2.5)),
         ),
-        "GnarlingChieftain": (
+        "common.items.npc_armor.biped_small.gnarling.chest.chieftain": (
             vox_spec: ("npc.gnarling.chieftain.chest", (-4.5, -3.5, -1.0)),
         ),
-        "Mandragora": (
+        "common.items.npc_armor.biped_small.mandragora.chest.mandragora": (
             vox_spec: ("npc.mandragora.male.chest", (-11.0, -11.0, 0.0)),
         ),
-        "Kappa": (
+        "common.items.npc_armor.biped_small.kappa.chest.kappa": (
             vox_spec: ("npc.kappa.male.chest", (-6.5, -8.0, -7.0)),
         ),
         "Cactid": (
             vox_spec: ("npc.cactid.male.chest", (-3.0, -3.0, -2.5)),
         ),
-        "GnollShaman": (
+        "common.items.npc_armor.biped_small.gnoll.chest.shaman": (
             vox_spec: ("npc.gnoll.shaman.chest", (-5.0, -4.5, -6.0)),
         ),
-        "GnollRogue": (
+        "common.items.npc_armor.biped_small.gnoll.chest.rogue": (
             vox_spec: ("npc.gnoll.rogue.chest", (-5.0, -4.5, -6.0)),
         ),
-        "GnollTrapper": (
+        "common.items.npc_armor.biped_small.gnoll.chest.trapper": (
             vox_spec: ("npc.gnoll.trapper.chest", (-5.0, -4.5, -6.0)),
         ),
-        "HaniwaGuard": (
+        "common.items.npc_armor.biped_small.haniwa.chest.guard": (
             vox_spec: ("npc.haniwa.guard.chest", (-6.5, -4.0, -3.0)),
         ),
-        "HaniwaArcher": (
+        "common.items.npc_armor.biped_small.haniwa.chest.archer": (
             vox_spec: ("npc.haniwa.archer.chest", (-6.5, -4.0, -3.0)),
         ),
-        "HaniwaSoldier": (
+        "common.items.npc_armor.biped_small.haniwa.chest.soldier": (
             vox_spec: ("npc.haniwa.soldier.chest", (-6.5, -4.0, -3.0)),
         ),
-        "MyrmidonHoplite": (
+        "common.items.npc_armor.biped_small.myrmidon.chest.hoplite": (
             vox_spec: ("npc.myrmidon.hoplite.chest", (-5.5, -4.0, -3.0)),
         ),
-        "MyrmidonStrategian": (
+        "common.items.npc_armor.biped_small.myrmidon.chest.strategian": (
             vox_spec: ("npc.myrmidon.strategian.chest", (-5.5, -4.0, -3.0)),
         ),
-        "MyrmidonMarksman": (
+        "common.items.npc_armor.biped_small.myrmidon.chest.marksman": (
             vox_spec: ("npc.myrmidon.marksman.chest", (-5.5, -4.0, -3.0)),
         ),
-        "Husk": (
+        "common.items.npc_armor.biped_small.husk.chest.husk": (
             vox_spec: ("npc.husk.male.chest", (-6.0, -4.5, -4.0)),
         ),
     },

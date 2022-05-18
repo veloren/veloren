@@ -2,7 +2,7 @@ ItemDef(
     name: "Assassin Shoulder Guard",
     description: "Only the best for a member of the creed.",
     kind: Armor((
-        kind: Shoulder("Assassin"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(8.0)),
         ),

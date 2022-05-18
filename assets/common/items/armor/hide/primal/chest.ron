@@ -2,7 +2,7 @@ ItemDef(
     name: "Primal Cuirass",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
-        kind: Chest("Primal"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(36.0)),
             crit_power: Some(0.501),

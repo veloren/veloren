@@ -2,7 +2,7 @@ ItemDef(
     name: "Woolen Boots",
     description: "Thick and ready for the snow.",
     kind: Armor((
-        kind: Foot("Woolen"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(3.0)),
             energy_max: Some(3.3),

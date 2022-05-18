@@ -3,7 +3,7 @@ ItemDef(
     description: "A chestplate forged from iron.",
     kind: Armor(
         (
-            kind: Chest("PlateRed"),
+            kind: Chest,
             stats: (
                 protection: Some(Normal(5.0)),
                 poise_resilience: Some(Normal(5.0)),

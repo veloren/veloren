@@ -2,7 +2,7 @@ ItemDef(
     name: "Orichalcum Chestguard",
     description: "An ancient alloy. Myths remain of heroes who wore this metal.",
     kind: Armor((
-        kind: Chest("Orichalcum"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(72.0)),
             poise_resilience: Some(Normal(18.0)),

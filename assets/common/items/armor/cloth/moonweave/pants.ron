@@ -2,7 +2,7 @@ ItemDef(
     name: "Moonweave Legs",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
-        kind: Pants("Moonweave"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(17.0)),
             energy_max: Some(16.5),

@@ -3,7 +3,6 @@ ItemDef(
     description: "Emits a calming glow",
     kind: Lantern(
         (
-            kind: "GeodePurp",
             color: (r: 144, g: 88, b: 181),
             strength_thousandths: 8000,
             flicker_thousandths: 600,

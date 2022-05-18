@@ -2,7 +2,7 @@ ItemDef(
     name: "Alchemist Hat",
     description: "It seems like a parrot was perched up here.",
     kind: Armor((
-        kind: Head("Alchemist"),
+        kind: Head,
         stats: (
             protection: Some(Normal(4.0)),
             poise_resilience: Some(Normal(1.0)),

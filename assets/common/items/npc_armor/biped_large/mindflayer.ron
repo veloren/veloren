@@ -2,7 +2,7 @@ ItemDef(
     name: "Mindflayer Armor",
     description: "Worn by mindflayer.",
     kind: Armor((
-        kind: Chest("Mindflayer"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(110.0)),
             poise_resilience: Some(Normal(1.0)),

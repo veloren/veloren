@@ -2,7 +2,7 @@ ItemDef(
     name: "Amethyst Necklace",
     description: "A tin necklace lined with amethyst gems.",
     kind: Armor((
-        kind: Neck("Amethyst"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
             energy_reward: Some(0.1),

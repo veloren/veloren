@@ -2,7 +2,7 @@ ItemDef(
     name: "Druid Leggings",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
-        kind: Pants("Druid"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(12.0)),
             energy_max: Some(13.2),

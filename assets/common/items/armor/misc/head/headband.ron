@@ -2,7 +2,7 @@ ItemDef(
     name: "Headband",
     description: "yep.",
     kind: Armor((
-        kind: Head("Headband"),
+        kind: Head,
         stats: (
         ),
     )),

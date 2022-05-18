@@ -1,11 +1,7 @@
 ItemDef(
     name: "Cloverleaf",
     description: "Brings luck to its owner.",
-    kind: Glider(
-        (
-            kind: "Starter",
-        ),
-    ),
+    kind: Glider,
     quality: Moderate,
     tags: [],
 )

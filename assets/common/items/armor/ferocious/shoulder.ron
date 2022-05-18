@@ -2,7 +2,7 @@ ItemDef(
     name: "Ferocious Guards",
     description: "The dark side of nature",
     kind: Armor((
-        kind: Shoulder("Ferocious"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(36.0)),
         ),

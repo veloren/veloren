@@ -2,7 +2,6 @@ ItemDef(
     name: "Rigid Leather",
     description: "Light but layered, perfect for protection.",
     kind: Ingredient(
-        kind: "RigidLeather",
         // Descriptor not needed
         descriptor: "",
     ),

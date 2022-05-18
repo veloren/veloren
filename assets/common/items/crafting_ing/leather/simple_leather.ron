@@ -2,7 +2,6 @@ ItemDef(
     name: "Simple Leather",
     description: "Light and flexible.",
     kind: Ingredient(
-        kind: "SimpleLeather",
         descriptor: "Raw Hide",
     ),
     quality: Low,

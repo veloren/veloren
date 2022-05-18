@@ -2,7 +2,7 @@ ItemDef(
     name: "Sapphire Necklace",
     description: "A sturdy iron necklace, with polished sapphire gems embedded into it.",
     kind: Armor((
-        kind: Neck("Sapphire"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
             crit_power: Some(0.05),

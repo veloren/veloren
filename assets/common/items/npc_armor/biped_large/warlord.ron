@@ -2,7 +2,7 @@ ItemDef(
     name: "Giant Warlord Chest",
     description: "Made of darkest steel.",
     kind: Armor((
-        kind: Chest("GiantWarlord"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(300.0)),
             poise_resilience: Some(Normal(1.0)),

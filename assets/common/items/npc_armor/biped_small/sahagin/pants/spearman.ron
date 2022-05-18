@@ -2,7 +2,7 @@ ItemDef(
     name: "Sahagin Spearman",
     description: "Ceremonial attire used by members..",
     kind: Armor((
-        kind: Pants("SahaginSpearman"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(13.0)),
             poise_resilience: Some(Normal(4.0)),

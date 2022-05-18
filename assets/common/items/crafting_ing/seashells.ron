@@ -2,7 +2,6 @@ ItemDef(
     name: "Seashells",
     description: "Shells from a sea creature.",
     kind: Ingredient(
-        kind: "Seashells",
         // Descriptor not needed
         descriptor: "",
     ),

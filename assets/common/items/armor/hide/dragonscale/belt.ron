@@ -2,7 +2,7 @@ ItemDef(
     name: "Dragonscale Sash",
     description: "Power pulses through it.",
     kind: Armor((
-        kind: Belt("Dragonscale"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(7.0)),
             crit_power: Some(0.1),

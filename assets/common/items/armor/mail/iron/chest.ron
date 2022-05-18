@@ -2,7 +2,7 @@ ItemDef(
     name: "Iron Chestguard",
     description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
-        kind: Chest("Iron"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(24.0)),
             poise_resilience: Some(Normal(6.0)),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Primal Shoulders",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
-        kind: Shoulder("Primal"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(24.0)),
             crit_power: Some(0.334),

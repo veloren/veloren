@@ -2,7 +2,7 @@ ItemDef(
     name: "Dragonscale Gloves",
     description: "Power pulses through it.",
     kind: Armor((
-        kind: Hand("Dragonscale"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(14.0)),
             crit_power: Some(0.2),

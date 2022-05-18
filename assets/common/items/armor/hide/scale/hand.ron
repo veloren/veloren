@@ -2,7 +2,7 @@ ItemDef(
     name: "Scale Fists",
     description: "Each embedded scale provides protection.",
     kind: Armor((
-        kind: Hand("Scale"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(7.0)),
             crit_power: Some(0.1),

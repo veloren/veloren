@@ -2,7 +2,7 @@ ItemDef(
     name: "Helmet",
     description: "yep.",
     kind: Armor((
-        kind: Head("Helmet"),
+        kind: Head,
         stats: (
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(3.0)),

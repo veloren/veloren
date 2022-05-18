@@ -2,7 +2,7 @@ ItemDef(
     name: "Linen Vest",
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
-        kind: Chest("Linen"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(5.0)),
             energy_max: Some(5.0),

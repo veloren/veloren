@@ -2,7 +2,7 @@ ItemDef(
     name: "Velorite Battlemage Cloak",
     description: "Keeps your shoulders warm.",
     kind: Armor((
-        kind: Back("VeloriteMage"),
+        kind: Back,
         stats: (
             protection: Some(Normal(2.8)),
         ),

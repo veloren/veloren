@@ -2,7 +2,7 @@ ItemDef(
     name: "Adlet Icepicker",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Foot("AdletIcepicker"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(4.0)),
             poise_resilience: Some(Normal(2.0)),

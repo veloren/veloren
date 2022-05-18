@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Plate Helmet",
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
-        kind: Head("LeatherPlate"),
+        kind: Head,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(8.0)),

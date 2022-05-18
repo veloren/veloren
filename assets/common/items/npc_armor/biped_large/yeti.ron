@@ -2,7 +2,7 @@ ItemDef(
     name: "Yeti Hide",
     description: "Strong as Yeti itself.",
     kind: Armor((
-        kind: Chest("Yeti"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(0.0)),
             poise_resilience: Some(Normal(0.0)),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Ferocious Shorts",
     description: "The dark side of nature",
     kind: Armor((
-        kind: Pants("Ferocious"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(48.0)),
         ),

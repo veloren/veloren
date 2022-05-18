@@ -2,7 +2,6 @@ ItemDef(
     name: "Grim Eyeball",
     description: "Casts a petrifying gaze.",
     kind: Ingredient(
-        kind: "GrimEyeball",
         // Descriptor not needed
         descriptor: "",
     ),

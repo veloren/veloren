@@ -20,155 +20,155 @@
             vox_spec: ("armor.misc.belt.cloth_black", (-4.0, -3.5, -6.0)),
             color: Some((29, 26, 33))
         ),
-        "Assassin": (
+        "common.items.armor.assassin.belt": (
             vox_spec: ("armor.assassin.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
-        "Ferocious": (
+        "common.items.armor.ferocious.belt": (
             vox_spec: ("armor.ferocious.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
-        "ClothPurple": (
+        "common.items.armor.cloth_purple.belt": (
             vox_spec: ("armor.cloth_purple.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
-        "ClothBlue": (
+        "common.items.armor.cloth_blue.belt": (
             vox_spec: ("armor.cloth_blue.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
-        "ClothGreen": (
+        "common.items.armor.cloth_green.belt": (
             vox_spec: ("armor.cloth_green.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
-        "Cultist": (
+        "common.items.armor.cultist.belt": (
             vox_spec: ("armor.cultist.belt", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        "LeatherPlate": (
+        "common.items.armor.leather_plate.belt": (
             vox_spec: ("armor.leather_plate.belt", (-4.0, -4.5, 2.0)),
             color: None
         ),
-        "Twigs": (
+        "common.items.armor.twigs.belt": (
             vox_spec: ("armor.twigs.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
-        "TwigsLeaves": (
+        "common.items.armor.twigsleaves.belt": (
             vox_spec: ("armor.twigsleaves.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
-        "TwigsFlowers": (
+        "common.items.armor.twigsflowers.belt": (
             vox_spec: ("armor.twigsflowers.belt", (-4.0, -3.5, -1.0)),
             color: None
         ),
-        "Tarasque":(
+        "common.items.armor.tarasque.belt":(
             vox_spec: ("armor.tarasque.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
-        "Bonerattler":(
+        "common.items.armor.bonerattler.belt":(
             vox_spec: ("armor.bonerattler.belt", (-5.0, -4.5, 2.0)),
             color: None
         ),
-        "VeloriteMage": (
+        "common.items.armor.velorite_mage.belt": (
           vox_spec: ("armor.velorite_battlemage.belt", (-5.0, -3.5, 2.0)),
           color: None
         ),
-        "Rawhide": (
+        "common.items.armor.hide.rawhide.belt": (
             vox_spec: ("armor.hide.rawhide.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
-        "Leather": (
+        "common.items.armor.hide.leather.belt": (
             vox_spec: ("armor.hide.leather.belt", (-5.0, -3.5, 2.0)),
             color: None
         ),
-        "Scale":(
+        "common.items.armor.hide.scale.belt":(
             vox_spec: ("armor.hide.scale.belt", (-4.0, -3.5, 2.0)),
             color: None
         ),
-        "Carapace":(
+        "common.items.armor.hide.carapace.belt":(
             vox_spec: ("armor.hide.carapace.belt", (-4.0, -4.0, 1.5)),
             color: None
         ),
-        "Primal":(
+        "common.items.armor.hide.primal.belt":(
             vox_spec: ("armor.hide.primal.belt", (-4.0, -4.0, 1.0)),
             color: None
         ),
-        "Dragonscale":(
+        "common.items.armor.hide.dragonscale.belt":(
             vox_spec: ("armor.hide.dragonscale.belt", (-4.0, -3.5, 1.5)),
             color: None
         ),
-        "Savage":(
+        "common.items.armor.savage.belt":(
             vox_spec: ("armor.savage.belt", (-4.0, -4.0, 1.0)),
             color: None
         ),
-        "Witch":(
+        "common.items.armor.witch.belt":(
             vox_spec: ("armor.witch.belt", (-4.0, -3.5, -2.0)),
             color: None
         ),
-        "Pirate":(
+        "common.items.armor.pirate.belt":(
             vox_spec: ("armor.pirate.belt", (-4.0, -4.0, 2.5)),
             color: None
         ),
-        "Alchemist":(
+        "common.items.armor.alchemist.belt":(
             vox_spec: ("armor.alchemist.belt", (-4.0, -4.0, 2.5)),
             color: None
         ),
-        "Blacksmith":(
+        "common.items.armor.blacksmith.belt":(
             vox_spec: ("armor.blacksmith.belt", (-4.0, -4.0, 2.0)),
             color: None
         ),
-        "Chef":(
+        "common.items.armor.chef.belt":(
             vox_spec: ("armor.chef.belt", (-4.0, -4.0, 2.0)),
             color: None
         ),
-        "Linen":(
+        "common.items.armor.cloth.linen.belt":(
             vox_spec: ("armor.cloth.linen.belt", (-4.0, -4.0, 0.0)),
             color: None
         ),
-        "Woolen":(
+        "common.items.armor.cloth.woolen.belt":(
             vox_spec: ("armor.cloth.woolen.belt", (-4.0, -4.0, 1.0)),
             color: None
         ),
-        "Silken":(
+        "common.items.armor.cloth.silken.belt":(
             vox_spec: ("armor.cloth.silken.belt", (-4.0, -3.5, -3.0)),
             color: None
         ),
-        "Druid":(
+        "common.items.armor.cloth.druid.belt":(
             vox_spec: ("armor.cloth.druid.belt", (-4.0, -4.0, -0.5)),
             color: None
         ),
-        "Moonweave":(
+        "common.items.armor.cloth.moonweave.belt":(
             vox_spec: ("armor.cloth.moonweave.belt", (-4.0, -3.5, 1.0)),
             color: None
         ),
-        "Sunsilk":(
+        "common.items.armor.cloth.sunsilk.belt":(
             vox_spec: ("armor.cloth.sunsilk.belt", (-4.0, -3.5, -2.5)),
             color: None
         ),
-        "Bronze":(
+        "common.items.armor.mail.bronze.belt":(
             vox_spec: ("armor.mail.bronze.belt", (-4.0, -4.0, 2.0)),
             color: None
         ),
-        "Iron":(
+        "common.items.armor.mail.iron.belt":(
             vox_spec: ("armor.mail.iron.belt", (-4.0, -4.0, 2.0)),
             color: None
         ),
-        "Steel":(
+        "common.items.armor.mail.steel.belt":(
             vox_spec: ("armor.mail.steel.belt", (-5.0, -4.0, 1.0)),
             color: None
         ),
-        "Cobalt":(
+        "common.items.armor.mail.cobalt.belt":(
             vox_spec: ("armor.mail.cobalt.belt", (-5.0, -4.0, 1.0)),
             color: None
         ),
-        "Bloodsteel":(
+        "common.items.armor.mail.bloodsteel.belt":(
             vox_spec: ("armor.mail.bloodsteel.belt", (-5.0, -3.5, 1.0)),
             color: None
         ),
-        "Orichalcum":(
+        "common.items.armor.mail.orichalcum.belt":(
             vox_spec: ("armor.mail.orichalcum.belt", (-4.0, -3.5, 1.0)),
             color: None
         ),
-        "Merchant": (
+        "common.items.armor.merchant.belt": (
             vox_spec: ("armor.merchant.belt", (-5.0, -4.0, 2.0)),
             color: None
         ),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Bamboo Twig",
     description: "A tiny stray shoot from a larger bamboo shaft.",
 	kind: Armor((
-        kind: Head("BambooTwig"),
+        kind: Head,
         stats: (
             energy_reward: Some(0.033),
         ),

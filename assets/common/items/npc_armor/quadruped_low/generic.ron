@@ -2,7 +2,7 @@ ItemDef(
     name: "Quad Low Generic",
     description: "Scaly.",
     kind: Armor((
-        kind: Chest("QuadrupedLowGeneric"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(40.0)),
             poise_resilience: Some(Normal(0.0)),

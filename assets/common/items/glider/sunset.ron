@@ -1,11 +1,7 @@
 ItemDef(
     name: "Horizon",
     description: "It isn't high noon.",
-    kind: Glider(
-        (
-            kind: "Sunset",
-        ),
-    ),
+    kind: Glider,
     quality: Epic,
     tags: [],
 )

@@ -2,7 +2,7 @@ ItemDef(
     name: "Savage Belt",
     description: "Brings the fury of the barbarians.",
     kind: Armor((
-        kind: Belt("Savage"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(4.0)),
         ),

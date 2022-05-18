@@ -2,7 +2,7 @@ ItemDef(
     name: "Tarasque Gauntlets",
     description: "Shattered fragments from a tarasque shell shaped into a protective gauntlets.",
     kind: Armor((
-        kind: Hand("Tarasque"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(6.0)),
         ),

@@ -3,7 +3,7 @@ ItemDef(
     description: "Commonly used by sailors.",
     kind: Armor(
         (
-            kind: Bag("BluePouch"),
+            kind: Bag,
             stats: (
             ),
         )

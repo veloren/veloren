@@ -2,7 +2,7 @@ ItemDef(
     name: "Impressive Turban",
     description: "Fancy.",
     kind: Armor((
-        kind: Head("Merchant"),
+        kind: Head,
         stats: (
             protection: Some(Normal(5.0)),
             poise_resilience: Some(Normal(2.0)),
@@ -11,5 +11,5 @@ ItemDef(
         ),
     )),
     quality: Epic,
-    tags: [],    
+    tags: [],
 )

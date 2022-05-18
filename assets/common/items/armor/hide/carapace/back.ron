@@ -2,7 +2,7 @@ ItemDef(
     name: "Carapace Cape",
     description: "Shell that once shielded a beast.",
     kind: Armor((
-        kind: Back("Carapace"),
+        kind: Back,
         stats: (
             protection: Some(Normal(5.0)),
             crit_power: Some(0.067),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Husk",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Head("Husk"),
+        kind: Head,
         stats: (
             protection: Some(Normal(14.0)),
             poise_resilience: Some(Normal(1.0)),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Sahagin Sniper",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Head("SahaginSniper"),
+        kind: Head,
         stats: (
             protection: Some(Normal(13.0)),
             poise_resilience: Some(Normal(4.0)),

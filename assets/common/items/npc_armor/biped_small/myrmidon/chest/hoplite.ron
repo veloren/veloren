@@ -2,7 +2,7 @@ ItemDef(
     name: "Myrmidon Hoplite",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Chest("MyrmidonHoplite"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(48.0)),
             poise_resilience: Some(Normal(6.0)),

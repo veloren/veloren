@@ -2,7 +2,7 @@ ItemDef(
     name: "Blue Linen Skirt",
     description: "A stylish, rough fabric skirt, dyed blue.",
     kind: Armor((
-        kind: Pants("ClothBlue"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(1.0)),
         ),

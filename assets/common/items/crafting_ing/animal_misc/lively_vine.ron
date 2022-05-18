@@ -2,7 +2,6 @@ ItemDef(
     name: "Lively Vine",
     description: "I think it just moved.",
     kind: Ingredient(
-        kind: "LivelyVine",
         // Descriptor not needed
         descriptor: "",
     ),

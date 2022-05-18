@@ -2,7 +2,7 @@ ItemDef(
     name: "Topaz Ring",
     description: "A copper ring with a topaz gem.",
     kind: Armor((
-        kind: Ring("Topaz"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(0.5)),
             energy_max: Some(5.0),

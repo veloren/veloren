@@ -2,7 +2,7 @@ ItemDef(
     name: "Druid Cape",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
-        kind: Back("Druid"),
+        kind: Back,
         stats: (
             protection: Some(Normal(3.0)),
             energy_max: Some(3.3),

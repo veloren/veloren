@@ -2,7 +2,7 @@ ItemDef(
     name: "Purple Cultist Cape",
     description: "Smells like dark magic and candles.",
     kind: Armor((
-        kind: Back("DungeonPurple"),
+        kind: Back,
         stats: (
             protection: Some(Normal(8.0)),
             poise_resilience: Some(Normal(1.0)),

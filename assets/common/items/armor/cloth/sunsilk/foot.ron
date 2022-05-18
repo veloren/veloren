@@ -2,7 +2,7 @@ ItemDef(
     name: "Sunsilk Footwraps",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
-        kind: Foot("Sunsilk"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(9.0)),
             energy_max: Some(10.0),

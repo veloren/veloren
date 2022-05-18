@@ -2,7 +2,7 @@ ItemDef(
     name: "Witch Cape",
     description: "",
     kind: Armor((
-        kind: Back("Witch"),
+        kind: Back,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(5.0)),

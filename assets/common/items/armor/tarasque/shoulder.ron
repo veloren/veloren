@@ -2,7 +2,7 @@ ItemDef(
     name: "Tarasque Shoulder Pad",
     description: "Spiky tarasque shell fragments formed to fit as shoulder guards.",
     kind: Armor((
-        kind: Shoulder("Tarasque"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(16.0)),
         ),

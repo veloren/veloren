@@ -2,7 +2,7 @@ ItemDef(
     name: "Pirate Boots",
     description: "",
     kind: Armor((
-        kind: Foot("Pirate"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(2.0)),

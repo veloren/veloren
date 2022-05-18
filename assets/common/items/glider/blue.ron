@@ -1,11 +1,7 @@
 ItemDef(
     name: "Blue Falcon",
     description: "Sky colored.",
-    kind: Glider(
-        (
-            kind: "Blue0",
-        ),
-    ),
+    kind: Glider,
     quality: High,
     tags: [],
 )

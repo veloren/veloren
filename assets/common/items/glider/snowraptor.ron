@@ -1,11 +1,7 @@
 ItemDef(
     name: "Snow Raptor Wings",
     description: "Take flight with the wings of a predator.",
-    kind: Glider(
-        (
-            kind: "SnowRaptor",
-        ),
-    ),
+    kind: Glider,
     quality: High,
     tags: [],
 )

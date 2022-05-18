@@ -2,7 +2,7 @@ ItemDef(
     name: "Winged Coronet",
     description: "You feel more connected with nature.",
     kind: Armor((
-        kind: Head("WingedCoronet"),
+        kind: Head,
         stats: (
             protection: Some(Normal(2.0)),
             energy_max: Some(4.0),

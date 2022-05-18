@@ -2,7 +2,7 @@ ItemDef(
     name: "Druid Handwraps",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
-        kind: Hand("Druid"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(6.0)),
             energy_max: Some(6.6),

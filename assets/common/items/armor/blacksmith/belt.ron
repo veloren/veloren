@@ -2,7 +2,7 @@ ItemDef(
     name: "Blacksmith Belt",
     description: "",
     kind: Armor((
-        kind: Belt("Blacksmith"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(8.0)),
             poise_resilience: Some(Normal(1.0)),

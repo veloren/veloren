@@ -2,7 +2,7 @@ ItemDef(
     name: "Carcanet of Wrath",
     description: "A necklace that gives even the most feeble beings immense amounts of power.",
     kind: Armor((
-        kind: Neck("Carcanet"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(2.0)),
             crit_power: Some(0.2),
