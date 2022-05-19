@@ -2,7 +2,7 @@ ItemDef(
     name: "Rawhide Bracers",
     description: "'Tightly packed pieces of leather to endure all weather.'",
     kind: Armor((
-        kind: Hand("Rawhide"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(2.0)),
             crit_power: Some(0.033),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Crown",
     description: "Fit for a king.",
     kind: Armor((
-        kind: Head("Crown"),
+        kind: Head,
         stats: (
             protection: Some(Normal(12.0)),
             poise_resilience: Some(Normal(2.0)),

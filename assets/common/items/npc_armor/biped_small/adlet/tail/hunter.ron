@@ -2,7 +2,7 @@ ItemDef(
     name: "Adlet Hunter",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Belt("AdletHunter"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(3.0)),
             poise_resilience: Some(Normal(3.0)),

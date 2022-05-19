@@ -2,7 +2,7 @@ ItemDef(
     name: "Gnarling Chieftain",
     description: "Only worn by the most spiritual of Gnarlings.",
     kind: Armor((
-        kind: Chest("GnarlingChieftain"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(80.0)),
             poise_resilience: Some(Normal(60.0)),

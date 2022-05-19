@@ -2,7 +2,6 @@ ItemDef(
     name: "Soft Wool",
     description: "Soft wool from an animal.",
     kind: Ingredient(
-        kind: "Wool",
         descriptor: "Woolen",
     ),
     quality: Common,

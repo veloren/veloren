@@ -2,7 +2,7 @@ ItemDef(
     name: "Druid Chestguard",
     description: "Incredibly light, with the essence of nature.",
     kind: Armor((
-        kind: Chest("Druid"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(18.0)),
             energy_max: Some(19.8),

@@ -474,7 +474,7 @@ mod tests {
 
         let result = loadout
             .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
-                ArmorKind::Bag("test".to_string()),
+                ArmorKind::Bag,
                 Protection::Normal(0.0),
                 Protection::Normal(0.0),
             )))
@@ -494,7 +494,7 @@ mod tests {
 
         let result = loadout
             .get_slot_to_equip_into(&ItemKind::Armor(Armor::test_armor(
-                ArmorKind::Bag("test".to_string()),
+                ArmorKind::Bag,
                 Protection::Normal(0.0),
                 Protection::Normal(0.0),
             )))

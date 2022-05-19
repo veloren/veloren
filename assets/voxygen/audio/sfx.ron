@@ -611,37 +611,7 @@
             ],
             threshold: 0.3,
         ),
-        Inventory(CollectedItem("Diamond")): (
-            files: [
-                "voxygen.audio.sfx.inventory.collect_gemstone",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(CollectedItem("Ruby")): (
-            files: [
-                "voxygen.audio.sfx.inventory.collect_gemstone",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(CollectedItem("Emerald")): (
-            files: [
-                "voxygen.audio.sfx.inventory.collect_gemstone",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(CollectedItem("Sapphire")): (
-            files: [
-                "voxygen.audio.sfx.inventory.collect_gemstone",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(CollectedItem("Topaz")): (
-            files: [
-                "voxygen.audio.sfx.inventory.collect_gemstone",
-            ],
-            threshold: 0.3,
-        ),
-        Inventory(CollectedItem("Amethyst")): (
+        Inventory(CollectedItem("Gemstone")): (
             files: [
                 "voxygen.audio.sfx.inventory.collect_gemstone",
             ],

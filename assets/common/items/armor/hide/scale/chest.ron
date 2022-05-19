@@ -2,7 +2,7 @@ ItemDef(
     name: "Scale Chestpiece",
     description: "Each embedded scale provides protection.",
     kind: Armor((
-        kind: Chest("Scale"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(21.0)),
             crit_power: Some(0.3),

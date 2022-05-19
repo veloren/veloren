@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Pants",
     description: "Swift like the wind.",
     kind: Armor((
-        kind: Pants("Leather"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(10.0)),
             crit_power: Some(0.134),

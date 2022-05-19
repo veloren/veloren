@@ -3,7 +3,7 @@ ItemDef(
     description: "You can almost feel the Mindflayer's\nevil presence flowing through the fabric.",
     kind: Armor(
         (
-            kind: Bag("PurpleSkull"),
+            kind: Bag,
             stats: (
             ),
         )

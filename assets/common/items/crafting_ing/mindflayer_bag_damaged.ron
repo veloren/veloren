@@ -2,7 +2,6 @@ ItemDef(
     name: "Glowing Remains",
     description: "Looted from an evil being.\n\nWith some additional work it can surely be\nbrought back to its former glory...",
     kind: Ingredient(
-        kind: "FlayerBagDamaged",
         // Descriptor not needed
         descriptor: "",
     ),

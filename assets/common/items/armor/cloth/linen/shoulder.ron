@@ -2,7 +2,7 @@ ItemDef(
     name: "Linen Shoulders",
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
-        kind: Shoulder("Linen"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(3.0)),
             energy_max: Some(3.3),

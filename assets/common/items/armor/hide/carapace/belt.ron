@@ -2,7 +2,7 @@ ItemDef(
     name: "Carapace Belt",
     description: "Shell that once shielded a beast.",
     kind: Armor((
-        kind: Belt("Carapace"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(5.0)),
             crit_power: Some(0.067),

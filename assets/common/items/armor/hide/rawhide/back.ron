@@ -2,7 +2,7 @@ ItemDef(
     name: "Rawhide Cloak",
     description: "'Tightly packed pieces of leather to endure all weather.'",
     kind: Armor((
-        kind: Back("Rawhide"),
+        kind: Back,
         stats: (
             protection: Some(Normal(1.0)),
             crit_power: Some(0.017),

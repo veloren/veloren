@@ -2,7 +2,7 @@ ItemDef(
     name: "Woolen Parka",
     description: "Thick and ready for the snow.",
     kind: Armor((
-        kind: Chest("Woolen"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(9.0)),
             energy_max: Some(9.9),

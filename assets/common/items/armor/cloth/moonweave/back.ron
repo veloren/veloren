@@ -2,7 +2,7 @@ ItemDef(
     name: "Moonweave Cape",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
-        kind: Back("Moonweave"),
+        kind: Back,
         stats: (
             protection: Some(Normal(4.0)),
             energy_max: Some(4.1),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Chestpiece",
     description: "Swift like the wind.",
     kind: Armor((
-        kind: Chest("Leather"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(14.0)),
             crit_power: Some(0.201),

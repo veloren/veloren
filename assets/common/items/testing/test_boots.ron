@@ -3,7 +3,7 @@ ItemDef(
     description: "Hopefully this test doesn't break!",
     kind: Armor(
         (
-            kind: Foot("Dark"),
+            kind: Foot,
             stats: (
             ),
         )

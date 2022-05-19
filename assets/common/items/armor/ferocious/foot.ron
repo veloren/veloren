@@ -2,7 +2,7 @@ ItemDef(
     name: "Ferocious Waraji",
     description: "The dark side of nature",
     kind: Armor((
-        kind: Foot("Ferocious"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(12.0)),
         ),

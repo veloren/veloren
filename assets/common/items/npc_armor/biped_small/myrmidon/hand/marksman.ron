@@ -2,7 +2,7 @@ ItemDef(
     name: "Myrmidon Marksman",
     description: "Ceremonial attire used by members..",
     kind: Armor((
-        kind: Hand("MyrmidonMarksman"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(2.0)),

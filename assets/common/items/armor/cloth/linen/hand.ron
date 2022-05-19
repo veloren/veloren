@@ -2,7 +2,7 @@ ItemDef(
     name: "Linen Handwraps",
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
-        kind: Hand("Linen"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(2.0)),
             energy_max: Some(1.7),

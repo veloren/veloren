@@ -2,7 +2,7 @@ ItemDef(
     name: "Tidal Warrior Armor",
     description: "Made of fish scales.",
     kind: Armor((
-        kind: Chest("Tidal Warrior"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(20.0)),
             poise_resilience: Some(Normal(0.0)),

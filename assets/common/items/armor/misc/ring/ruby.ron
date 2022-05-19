@@ -2,7 +2,7 @@ ItemDef(
     name: "Ruby Ring",
     description: "A silver ring with a ruby gem.",
     kind: Armor((
-        kind: Ring("Ruby"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(0.5)),
             energy_reward: Some(0.1),

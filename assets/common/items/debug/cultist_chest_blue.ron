@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Armor(
         (
-            kind: Chest("VeloriteMage"),
+            kind: Chest,
             stats: (
             ),
         )

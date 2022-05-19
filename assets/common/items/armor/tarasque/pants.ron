@@ -2,7 +2,7 @@ ItemDef(
     name: "Tarasque Chausses",
     description: "Fragmented tarasque shell tied together to form protective leg armor.",
     kind: Armor((
-        kind: Pants("Tarasque"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(20.0)),
         ),

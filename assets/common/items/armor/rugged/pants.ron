@@ -2,7 +2,7 @@ ItemDef(
     name: "Rugged Commoner's Pants",
     description: "They remind you of the old days.",
     kind: Armor((
-        kind: Pants("Rugged"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(1.0)),
         ),

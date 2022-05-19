@@ -3,7 +3,7 @@ ItemDef(
     description: "It will never give you up.",
     kind: Armor(
         (
-            kind: Bag("LeatherLarge"),
+            kind: Bag,
             stats: (
             ),
         )

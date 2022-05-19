@@ -2,7 +2,7 @@ ItemDef(
     name: "Thief Bandana",
     description: "Common bandit's mask.",
     kind: Armor((
-        kind: Head("Thief"),
+        kind: Head,
         stats: (
             crit_power: Some(0.006),
             stealth: Some(0.18),

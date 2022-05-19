@@ -2,7 +2,7 @@ ItemDef(
     name: "Haniwa Talisman",
     description: "A talisman depicting a figure of unkown origin.",
     kind: Armor((
-        kind: Neck("Haniwa"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(3.0)),
             poise_resilience: Some(Normal(2.0)),

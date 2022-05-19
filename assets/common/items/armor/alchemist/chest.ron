@@ -2,7 +2,7 @@ ItemDef(
     name: "Alchemist Jacket",
     description: "",
     kind: Armor((
-        kind: Chest("Alchemist"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(48.0)),
             poise_resilience: Some(Normal(6.0)),

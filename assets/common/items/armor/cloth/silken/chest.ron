@@ -2,7 +2,7 @@ ItemDef(
     name: "Silken Robe",
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
-        kind: Chest("Silken"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(14.0)),
             energy_max: Some(14.9),

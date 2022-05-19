@@ -2,7 +2,7 @@ ItemDef(
     name: "Gnoll Rogue",
     description: "Ceremonial attire used by members..",
     kind: Armor((
-        kind: Foot("GnollRogue"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(10.0)),
             poise_resilience: Some(Normal(5.0)),

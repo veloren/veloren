@@ -2,7 +2,6 @@ ItemDef(
     name: "Leather Strips",
     description: "Simple and versatile.",
     kind: Ingredient(
-        kind: "LeatherStrips",
         // Descriptor not needed
         descriptor: "",
     ),

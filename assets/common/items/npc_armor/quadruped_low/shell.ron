@@ -2,7 +2,7 @@ ItemDef(
     name: "Quad Low Shell",
     description: "Shell.",
     kind: Armor((
-        kind: Chest("QuadrupedLowShell"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(320.0)),
             poise_resilience: Some(Normal(0.0)),

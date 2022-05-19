@@ -2,7 +2,6 @@ ItemDef(
     name: "Sapphire",
     description: "A colorful cobalt gem.",
     kind: Ingredient(
-        kind: "Sapphire",
         descriptor: "Sapphire",
     ),
     quality: High,

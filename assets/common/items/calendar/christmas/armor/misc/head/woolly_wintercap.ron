@@ -2,7 +2,7 @@ ItemDef(
     name: "Woolly Wintercap",
     description: "Simple, stylish, and festive.",
     kind: Armor((
-        kind: Head("WoollyWintercap"),
+        kind: Head,
         stats: (
             protection: Some(Normal(0.0)),
             poise_resilience: Some(Normal(0.0)),

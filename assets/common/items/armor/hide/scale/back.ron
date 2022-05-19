@@ -2,7 +2,7 @@ ItemDef(
     name: "Scale Cape",
     description: "Each embedded scale provides protection.",
     kind: Armor((
-        kind: Back("Scale"),
+        kind: Back,
         stats: (
             protection: Some(Normal(4.0)),
             crit_power: Some(0.05),

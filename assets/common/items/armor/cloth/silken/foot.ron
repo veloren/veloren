@@ -2,7 +2,7 @@ ItemDef(
     name: "Silken Feet",
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
-        kind: Foot("Silken"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(5.0)),
             energy_max: Some(5.0),

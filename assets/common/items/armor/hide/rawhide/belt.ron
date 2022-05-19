@@ -2,7 +2,7 @@ ItemDef(
     name: "Rawhide Belt",
     description: "'Tightly packed pieces of leather to endure all weather.'",
     kind: Armor((
-        kind: Belt("Rawhide"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(1.0)),
             crit_power: Some(0.017),

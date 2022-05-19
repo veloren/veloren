@@ -1,11 +1,7 @@
 ItemDef(
     name: "Leaves Glider",
     description: "Soar among the trees",
-    kind: Glider(
-        (
-            kind: "Leaves",
-        ),
-    ),
+    kind: Glider,
     quality: Moderate,
     tags: [],
 )

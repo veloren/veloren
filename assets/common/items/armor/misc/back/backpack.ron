@@ -2,7 +2,7 @@ ItemDef(
     name: "Traveler's Backpack",
     description: "Comfort and capacity united.",
     kind: Armor((
-        kind: Back("Backpack"),
+        kind: Back,
         stats: (
         ),
     )),

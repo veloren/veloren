@@ -53,7 +53,6 @@ pub enum Utility {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct Lantern {
-    pub kind: String,
     color: Rgb<u32>,
     strength_thousandths: u32,
     flicker_thousandths: u32,
@@ -63,11 +62,6 @@ impl Lantern {
     pub fn strength(&self) -> f32 { self.strength_thousandths as f32 / 1000_f32 }
 
     pub fn color(&self) -> Rgb<f32> { self.color.map(|c| c as f32 / 255.0) }
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Glider {
-    pub kind: String,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Copy, PartialOrd, Ord)]
@@ -273,7 +267,7 @@ pub enum ItemKind {
     ModularComponent(modular::ModularComponent),
     Lantern(Lantern),
     Armor(armor::Armor),
-    Glider(Glider),
+    Glider,
     Consumable {
         kind: ConsumableKind,
         effects: Vec<Effect>,
@@ -285,7 +279,6 @@ pub enum ItemKind {
         kind: Utility,
     },
     Ingredient {
-        kind: String,
         /// Used to generate names for modular items composed of this ingredient
         descriptor: String,
     },
@@ -307,7 +300,7 @@ impl ItemKind {
     pub fn is_equippable(&self) -> bool {
         matches!(
             self,
-            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Glider(_) | ItemKind::Lantern(_)
+            ItemKind::Tool(_) | ItemKind::Armor { .. } | ItemKind::Glider | ItemKind::Lantern(_)
         )
     }
 }

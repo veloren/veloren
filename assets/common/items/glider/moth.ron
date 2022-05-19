@@ -1,11 +1,7 @@
 ItemDef(
     name: "Green Luna",
     description: "The delicate wings flutter faintly.",
-    kind: Glider(
-        (
-            kind: "MothLuna",
-        ),
-    ),
+    kind: Glider,
     quality: High,
     tags: [],
 )

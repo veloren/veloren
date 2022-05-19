@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Boots",
     description: "Swift like the wind.",
     kind: Armor((
-        kind: Foot("Leather"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(5.0)),
             crit_power: Some(0.067),

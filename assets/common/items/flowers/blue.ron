@@ -2,7 +2,6 @@ ItemDef(
     name: "Blue Flower",
     description: "Matches the color of the sky.",
     kind: Ingredient(
-        kind: "Flower",
         // Descriptor not needed
         descriptor: "",
     ),

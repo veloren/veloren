@@ -2,7 +2,7 @@ ItemDef(
     name: "Steel Boots",
     description: "Metal alloy boots providing a more comfortable and durable protection.",
     kind: Armor((
-        kind: Foot("Steel"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(12.0)),
             poise_resilience: Some(Normal(3.0)),

@@ -2,7 +2,6 @@ ItemDef(
     name: "Stones",
     description: "Pebbles from the ground.",
     kind: Ingredient(
-        kind: "Stones",
         // Descriptor not needed
         descriptor: "",
     ),

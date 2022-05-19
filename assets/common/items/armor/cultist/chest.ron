@@ -2,7 +2,7 @@ ItemDef(
     name: "Cultist Chest",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Chest("Cultist"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(44.0)),
             poise_resilience: Some(Normal(5.0)),

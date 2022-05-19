@@ -2,7 +2,7 @@ ItemDef(
     name: "Gold Necklace",
     description: "An expensive gold necklace... looks stolen.",
     kind: Armor((
-        kind: Neck("Gold"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
             energy_max: Some(10),

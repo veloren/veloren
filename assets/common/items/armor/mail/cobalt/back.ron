@@ -2,7 +2,7 @@ ItemDef(
     name: "Cobalt Cape",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
-        kind: Back("Cobalt"),
+        kind: Back,
         stats: (
             protection: Some(Normal(8.0)),
             poise_resilience: Some(Normal(2.0)),

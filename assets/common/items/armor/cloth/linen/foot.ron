@@ -2,7 +2,7 @@ ItemDef(
     name: "Linen Feet",
     description: "Roughly stitched, but it seems to hold.",
     kind: Armor((
-        kind: Foot("Linen"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(2.0)),
             energy_max: Some(1.7),

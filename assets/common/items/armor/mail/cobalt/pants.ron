@@ -2,7 +2,7 @@ ItemDef(
     name: "Cobalt Leggings",
     description: "Ornamental and impenetrable, the metal will never dull.",
     kind: Armor((
-        kind: Pants("Cobalt"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(8.0)),

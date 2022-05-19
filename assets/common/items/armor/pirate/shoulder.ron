@@ -2,7 +2,7 @@ ItemDef(
     name: "Pirate Mantle",
     description: "",
     kind: Armor((
-        kind: Shoulder("Pirate"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(5.0)),

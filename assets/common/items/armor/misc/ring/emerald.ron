@@ -2,7 +2,7 @@ ItemDef(
     name: "Emerald Ring",
     description: "A cobalt ring with an emerald gem.",
     kind: Armor((
-        kind: Ring("Emerald"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(0.5)),
             energy_max: Some(10.0),

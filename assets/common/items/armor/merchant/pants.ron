@@ -2,7 +2,7 @@ ItemDef(
     name: "Merchant Pants",
     description: "",
     kind: Armor((
-        kind: Pants("Merchant"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(4.0)),

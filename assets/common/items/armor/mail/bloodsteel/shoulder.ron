@@ -2,7 +2,7 @@ ItemDef(
     name: "Bloodsteel Pauldrons",
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
-        kind: Shoulder("Bloodsteel"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(40.0)),
             poise_resilience: Some(Normal(10.0)),

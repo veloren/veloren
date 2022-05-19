@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Armor(
         (
-            kind: Hand("VeloriteMage"),
+            kind: Hand,
             stats: (
             ),
         )

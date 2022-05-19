@@ -2,7 +2,7 @@ ItemDef(
     name: "Sunsilk Sash",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
-        kind: Belt("Sunsilk"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(5.0)),
             energy_max: Some(5.0),

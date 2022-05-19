@@ -3,55 +3,55 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
     ),
     map: {
-        "SahaginSpearman": (
+        "common.items.npc_armor.biped_small.sahagin.tail.spearman": (
             vox_spec: ("npc.sahagin.spearman.tail", (-1.5, -13.0, -5.0)),
         ),
-        "SahaginSorcerer": (
+        "common.items.npc_armor.biped_small.sahagin.tail.sorcerer": (
             vox_spec: ("npc.sahagin.sorcerer.tail", (-1.5, -13.0, -5.0)),
         ),
-        "SahaginSniper": (
+        "common.items.npc_armor.biped_small.sahagin.tail.sniper": (
             vox_spec: ("npc.sahagin.sniper.tail", (-1.5, -13.0, -5.0)),
         ),
-        "AdletHunter": (
+        "common.items.npc_armor.biped_small.adlet.tail.hunter": (
             vox_spec: ("npc.adlet.hunter.tail", (-1.0, -5.0, -1.0)),
         ),
-        "AdletTracker": (
+        "common.items.npc_armor.biped_small.adlet.tail.tracker": (
             vox_spec: ("npc.adlet.tracker.tail", (-1.0, -5.0, -1.0)),
         ),
-        "AdletIcepicker": (
+        "common.items.npc_armor.biped_small.adlet.tail.icepicker": (
             vox_spec: ("npc.adlet.icepicker.tail", (-1.0, -5.0, -1.0)),
         ),
-        "GnarlingMugger": (
+        "common.items.npc_armor.biped_small.gnarling.tail.mugger": (
             vox_spec: ("npc.gnarling.mugger.tail", (-1.5, -13.0, -3.0)),
         ),
-        "GnarlingStalker": (
+        "common.items.npc_armor.biped_small.gnarling.tail.stalker": (
             vox_spec: ("npc.gnarling.stalker.tail", (-1.5, -13.0, -3.0)),
         ),
-        "GnarlingLogger": (
+        "common.items.npc_armor.biped_small.gnarling.tail.logger": (
             vox_spec: ("npc.gnarling.logger.tail", (-1.5, -13.0, -3.0)),
         ),
-        "GnarlingChieftain": (
+        "common.items.npc_armor.biped_small.gnarling.tail.chieftain": (
             vox_spec: ("npc.gnarling.chieftain.tail", (-1.5, -14.0, -3.0)),
         ),
-        "Kappa": (
+        "common.items.npc_armor.biped_small.kappa.tail.kappa": (
             vox_spec: ("npc.kappa.male.tail", (-2.5, -10.0, -5.0)),
         ),
-        "GnollRogue": (
+        "common.items.npc_armor.biped_small.gnoll.tail.rogue": (
             vox_spec: ("npc.gnoll.rogue.tail", (-1.0, -11.0, -1.0)),
         ),
-        "GnollShaman": (
+        "common.items.npc_armor.biped_small.gnoll.tail.shaman": (
             vox_spec: ("npc.gnoll.shaman.tail", (-1.0, -11.0, -1.0)),
         ),
-        "GnollTrapper": (
+        "common.items.npc_armor.biped_small.gnoll.tail.trapper": (
             vox_spec: ("npc.gnoll.trapper.tail", (-1.0, -11.0, -1.0)),
         ),
-        "MyrmidonHoplite": (
+        "common.items.npc_armor.biped_small.myrmidon.tail.hoplite": (
             vox_spec: ("npc.myrmidon.hoplite.tail", (-2.5, -7.0, -2.5)),
         ),
-        "MyrmidonMarksman": (
+        "common.items.npc_armor.biped_small.myrmidon.tail.marksman": (
             vox_spec: ("npc.myrmidon.marksman.tail", (-2.5, -7.0, -2.5)),
         ),
-        "MyrmidonStrategian": (
+        "common.items.npc_armor.biped_small.myrmidon.tail.strategian": (
             vox_spec: ("npc.myrmidon.strategian.tail", (-2.5, -7.0, -2.5)),
         ),
     },

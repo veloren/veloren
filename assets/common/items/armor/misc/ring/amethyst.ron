@@ -2,7 +2,7 @@ ItemDef(
     name: "Amethyst Ring",
     description: "A tin ring with an amethyst gem.",
     kind: Armor((
-        kind: Ring("Amethyst"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(0.5)),
             energy_reward: Some(0.05),

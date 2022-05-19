@@ -2,7 +2,7 @@ ItemDef(
     name: "Moonweave Shoulders",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
-        kind: Shoulder("Moonweave"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(17.0)),
             energy_max: Some(16.5),

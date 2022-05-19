@@ -2,7 +2,7 @@ ItemDef(
     name: "Moonweave Gloves",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
-        kind: Hand("Moonweave"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(8.0)),
             energy_max: Some(8.3),

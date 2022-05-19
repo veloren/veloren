@@ -2,7 +2,7 @@ ItemDef(
     name: "Bronze Shoes",
     description: "'Heavy and dull, but it can take a punch.",
     kind: Armor((
-        kind: Foot("Bronze"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(4.0)),
             poise_resilience: Some(Normal(1.0)),

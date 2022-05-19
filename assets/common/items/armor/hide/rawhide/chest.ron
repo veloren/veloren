@@ -2,7 +2,7 @@ ItemDef(
     name: "Rawhide Chestpiece",
     description: "Tightly packed pieces of leather to endure all weather.",
     kind: Armor((
-        kind: Chest("Rawhide"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(7.0)),
             crit_power: Some(0.099),

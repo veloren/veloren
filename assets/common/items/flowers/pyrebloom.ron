@@ -2,7 +2,6 @@ ItemDef(
     name: "Pyrebloom",
     description: "Warm to the touch, long after picking.",
     kind: Ingredient(
-        kind: "Pyrebloom",
         // Descriptor not needed
         descriptor: "",
     ),

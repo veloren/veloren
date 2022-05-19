@@ -2,7 +2,6 @@ ItemDef(
     name: "Diamond",
     description: "A sparkling silver gem.",
     kind: Ingredient(
-        kind: "Diamond",
         descriptor: "Diamond",
     ),
     quality: Epic,

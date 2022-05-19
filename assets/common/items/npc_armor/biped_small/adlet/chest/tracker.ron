@@ -2,7 +2,7 @@ ItemDef(
     name: "Adlet Tracker",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Chest("AdletTracker"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(14.0)),
             poise_resilience: Some(Normal(2.0)),

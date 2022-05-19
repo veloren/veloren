@@ -2,7 +2,7 @@ ItemDef(
     name: "Green Linen Boots",
     description: "Cobbled rough fabric boots, dyed green.",
     kind: Armor((
-        kind: Foot("ClothGreen"),
+        kind: Foot,
         stats: (
         ),
     )),

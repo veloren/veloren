@@ -8,7 +8,7 @@
         )
     ),
     map: {
-        "Gnome": (
+        "common.items.npc_armor.biped_small.gnome.foot.gnome": (
             left: (
                 vox_spec: ("npc.gnome.male.foot_r", (-1.5, -2.0, -4.0)),
             ),
@@ -16,7 +16,7 @@
                 vox_spec: ("npc.gnome.male.foot_r", (-1.5, -2.0, -4.0)),
             )
         ),
-        "SahaginSpearman": (
+        "common.items.npc_armor.biped_small.sahagin.foot.spearman": (
             left: (
                 vox_spec: ("npc.sahagin.spearman.foot_r", (-2.5, -2.0, -8.0)),
             ),
@@ -24,7 +24,7 @@
                 vox_spec: ("npc.sahagin.spearman.foot_r", (-2.5, -2.0, -8.0)),
             )
         ),
-        "SahaginSorcerer": (
+        "common.items.npc_armor.biped_small.sahagin.foot.sorcerer": (
             left: (
                 vox_spec: ("npc.sahagin.sorcerer.foot_r", (-2.5, -2.0, -8.0)),
             ),
@@ -32,7 +32,7 @@
                 vox_spec: ("npc.sahagin.sorcerer.foot_r", (-2.5, -2.0, -8.0)),
             )
         ),
-        "SahaginSniper": (
+        "common.items.npc_armor.biped_small.sahagin.foot.sniper": (
             left: (
                 vox_spec: ("npc.sahagin.sniper.foot_r", (-2.5, -2.0, -8.0)),
             ),
@@ -40,7 +40,7 @@
                 vox_spec: ("npc.sahagin.sniper.foot_r", (-2.5, -2.0, -8.0)),
             )
         ),
-        "AdletHunter": (
+        "common.items.npc_armor.biped_small.adlet.foot.hunter": (
             left: (
                 vox_spec: ("npc.adlet.hunter.foot_r", (-1.5, -3.0, -7.0)),
             ),
@@ -48,7 +48,7 @@
                 vox_spec: ("npc.adlet.hunter.foot_r", (-1.5, -3.0, -7.0)),
             )
         ),
-        "AdletTracker": (
+        "common.items.npc_armor.biped_small.adlet.foot.tracker": (
             left: (
                 vox_spec: ("npc.adlet.tracker.foot_r", (-1.5, -3.0, -7.0)),
             ),
@@ -56,7 +56,7 @@
                 vox_spec: ("npc.adlet.tracker.foot_r", (-1.5, -3.0, -7.0)),
             )
         ),
-        "AdletIcepicker": (
+        "common.items.npc_armor.biped_small.adlet.foot.icepicker": (
             left: (
                 vox_spec: ("npc.adlet.icepicker.foot_r", (-1.5, -3.0, -7.0)),
             ),
@@ -64,7 +64,7 @@
                 vox_spec: ("npc.adlet.icepicker.foot_r", (-1.5, -3.0, -7.0)),
             )
         ),
-        "GnarlingMugger": (
+        "common.items.npc_armor.biped_small.gnarling.foot.mugger": (
             left: (
                 vox_spec: ("npc.gnarling.mugger.foot_r", (-1.0, -2.0, -5.0)),
             ),
@@ -72,7 +72,7 @@
                 vox_spec: ("npc.gnarling.mugger.foot_r", (-1.0, -2.0, -5.0)),
             )
         ),
-        "GnarlingStalker": (
+        "common.items.npc_armor.biped_small.gnarling.foot.stalker": (
             left: (
                 vox_spec: ("npc.gnarling.stalker.foot_r", (-1.0, -2.0, -5.0)),
             ),
@@ -80,7 +80,7 @@
                 vox_spec: ("npc.gnarling.stalker.foot_r", (-1.0, -2.0, -5.0)),
             )
         ),
-        "GnarlingLogger": (
+        "common.items.npc_armor.biped_small.gnarling.foot.logger": (
             left: (
                 vox_spec: ("npc.gnarling.logger.foot_r", (-1.0, -2.0, -5.0)),
             ),
@@ -88,7 +88,7 @@
                 vox_spec: ("npc.gnarling.logger.foot_r", (-1.0, -2.0, -5.0)),
             )
         ),
-        "GnarlingChieftain": (
+        "common.items.npc_armor.biped_small.gnarling.foot.chieftain": (
             left: (
                 vox_spec: ("npc.gnarling.chieftain.foot_r", (-1.0, -2.0, -5.0)),
             ),
@@ -96,7 +96,7 @@
                 vox_spec: ("npc.gnarling.chieftain.foot_r", (-1.0, -2.0, -5.0)),
             )
         ),
-        "Mandragora": (
+        "common.items.npc_armor.biped_small.mandragora.foot.mandragora": (
             left: (
                 vox_spec: ("npc.mandragora.male.foot_r", (-1.0, -1.5, -4.0)),
             ),
@@ -104,7 +104,7 @@
                 vox_spec: ("npc.mandragora.male.foot_r", (-1.0, -1.5, -4.0)),
             )
         ),
-        "Kappa": (
+        "common.items.npc_armor.biped_small.kappa.foot.kappa": (
             left: (
                 vox_spec: ("npc.kappa.male.foot_r", (-2.5, -3.0, -9.0)),
             ),
@@ -120,7 +120,7 @@
                 vox_spec: ("npc.cactid.male.foot_r", (-1.5, -2.0, -5.0)),
             )
         ),
-        "GnollRogue": (
+        "common.items.npc_armor.biped_small.gnoll.foot.rogue": (
             left: (
                 vox_spec: ("npc.gnoll.rogue.foot_r", (-1.5, -3.0, -7.0)),
             ),
@@ -128,7 +128,7 @@
                  vox_spec: ("npc.gnoll.rogue.foot_r", (-1.5, -3.0, -7.0)),
             )
         ),
-        "GnollTrapper": (
+        "common.items.npc_armor.biped_small.gnoll.foot.trapper": (
             left: (
                 vox_spec: ("npc.gnoll.trapper.foot_r", (-1.5, -3.0, -7.0)),
             ),
@@ -136,7 +136,7 @@
                  vox_spec: ("npc.gnoll.trapper.foot_r", (-1.5, -3.0, -7.0)),
             )
         ),
-        "GnollShaman": (
+        "common.items.npc_armor.biped_small.gnoll.foot.shaman": (
             left: (
                 vox_spec: ("npc.gnoll.shaman.foot_r", (-1.5, -3.0, -7.0)),
             ),
@@ -144,7 +144,7 @@
                  vox_spec: ("npc.gnoll.shaman.foot_r", (-1.5, -3.0, -7.0)),
             )
         ),
-        "HaniwaGuard": (
+        "common.items.npc_armor.biped_small.haniwa.foot.guard": (
             left: (
                 vox_spec: ("npc.haniwa.guard.foot_r", (-2.0, -2.5, -8.0)),
             ),
@@ -152,7 +152,7 @@
                  vox_spec: ("npc.haniwa.guard.foot_r", (-2.0, -2.5, -8.0)),
             )
         ),
-        "HaniwaArcher": (
+        "common.items.npc_armor.biped_small.haniwa.foot.archer": (
             left: (
                 vox_spec: ("npc.haniwa.archer.foot_r", (-2.0, -2.5, -8.0)),
             ),
@@ -160,7 +160,7 @@
                  vox_spec: ("npc.haniwa.archer.foot_r", (-2.0, -2.5, -8.0)),
             )
         ),
-        "HaniwaSoldier": (
+        "common.items.npc_armor.biped_small.haniwa.foot.soldier": (
             left: (
                 vox_spec: ("npc.haniwa.soldier.foot_r", (-2.0, -2.5, -8.0)),
             ),
@@ -168,7 +168,7 @@
                  vox_spec: ("npc.haniwa.soldier.foot_r", (-2.0, -2.5, -8.0)),
             )
         ),
-        "MyrmidonHoplite": (
+        "common.items.npc_armor.biped_small.myrmidon.foot.hoplite": (
             left: (
                 vox_spec: ("npc.myrmidon.hoplite.foot_r", (-1.5, -2.5, -7.0)),
             ),
@@ -176,7 +176,7 @@
                  vox_spec: ("npc.myrmidon.hoplite.foot_r", (-1.5, -2.5, -7.0)),
             )
         ),
-        "MyrmidonMarksman": (
+        "common.items.npc_armor.biped_small.myrmidon.foot.marksman": (
             left: (
                 vox_spec: ("npc.myrmidon.marksman.foot_r", (-1.5, -2.5, -7.0)),
             ),
@@ -184,7 +184,7 @@
                  vox_spec: ("npc.myrmidon.marksman.foot_r", (-1.5, -2.5, -7.0)),
             )
         ),
-        "MyrmidonStrategian": (
+        "common.items.npc_armor.biped_small.myrmidon.foot.strategian": (
             left: (
                 vox_spec: ("npc.myrmidon.strategian.foot_r", (-1.5, -2.5, -7.0)),
             ),
@@ -192,7 +192,7 @@
                  vox_spec: ("npc.myrmidon.strategian.foot_r", (-1.5, -2.5, -7.0)),
             )
         ),
-        "Husk": (
+        "common.items.npc_armor.biped_small.husk.foot.husk": (
             left: (
                 vox_spec: ("npc.husk.male.foot_r", (-2.0, -3.5, -7.0)),
             ),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Blue Worker Pants",
     description: "Resilient and reliable.",
     kind: Armor((
-        kind: Pants("WorkerBlue"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(0.1)),
         ),

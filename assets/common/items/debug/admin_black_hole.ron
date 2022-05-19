@@ -3,7 +3,7 @@ ItemDef(
     description: "It just works.",
     kind: Armor(
         (
-            kind: Bag("BlackHole"),
+            kind: Bag,
             stats: (
             ),
         )

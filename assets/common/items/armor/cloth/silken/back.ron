@@ -2,7 +2,7 @@ ItemDef(
     name: "Silken Cape",
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
-        kind: Back("Silken"),
+        kind: Back,
         stats: (
             protection: Some(Normal(2.0)),
             energy_max: Some(2.5),

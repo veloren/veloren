@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Cap",
     description: "Swift like the wind.",
     kind: Armor((
-        kind: Head("Leather"),
+        kind: Head,
         stats: (
             protection: Some(Normal(1.0)),
         ),

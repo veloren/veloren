@@ -2,7 +2,7 @@ ItemDef(
     name: "Bronze Cloak",
     description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
-        kind: Back("Bronze"),
+        kind: Back,
         stats: (
             protection: Some(Normal(2.0)),
             poise_resilience: Some(Normal(0.5)),

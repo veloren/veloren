@@ -2,7 +2,7 @@ ItemDef(
     name: "Woolen Belt",
     description: "Thick and ready for the snow.",
     kind: Armor((
-        kind: Belt("Woolen"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(2.0)),
             energy_max: Some(1.7),

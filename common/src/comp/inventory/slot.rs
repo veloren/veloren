@@ -127,7 +127,7 @@ impl EquipSlot {
             (Self::InactiveMainhand, ItemKind::Tool(_)) => true,
             (Self::InactiveOffhand, ItemKind::Tool(tool)) => matches!(tool.hands, tool::Hands::One),
             (Self::Lantern, ItemKind::Lantern(_)) => true,
-            (Self::Glider, ItemKind::Glider(_)) => true,
+            (Self::Glider, ItemKind::Glider) => true,
             _ => false,
         }
     }
@@ -137,22 +137,22 @@ impl ArmorSlot {
     fn can_hold(self, armor: &item::armor::ArmorKind) -> bool {
         matches!(
             (self, armor),
-            (Self::Head, ArmorKind::Head(_))
-                | (Self::Neck, ArmorKind::Neck(_))
-                | (Self::Shoulders, ArmorKind::Shoulder(_))
-                | (Self::Chest, ArmorKind::Chest(_))
-                | (Self::Hands, ArmorKind::Hand(_))
-                | (Self::Ring1, ArmorKind::Ring(_))
-                | (Self::Ring2, ArmorKind::Ring(_))
-                | (Self::Back, ArmorKind::Back(_))
-                | (Self::Belt, ArmorKind::Belt(_))
-                | (Self::Legs, ArmorKind::Pants(_))
-                | (Self::Feet, ArmorKind::Foot(_))
-                | (Self::Tabard, ArmorKind::Tabard(_))
-                | (Self::Bag1, ArmorKind::Bag(_))
-                | (Self::Bag2, ArmorKind::Bag(_))
-                | (Self::Bag3, ArmorKind::Bag(_))
-                | (Self::Bag4, ArmorKind::Bag(_))
+            (Self::Head, ArmorKind::Head)
+                | (Self::Neck, ArmorKind::Neck)
+                | (Self::Shoulders, ArmorKind::Shoulder)
+                | (Self::Chest, ArmorKind::Chest)
+                | (Self::Hands, ArmorKind::Hand)
+                | (Self::Ring1, ArmorKind::Ring)
+                | (Self::Ring2, ArmorKind::Ring)
+                | (Self::Back, ArmorKind::Back)
+                | (Self::Belt, ArmorKind::Belt)
+                | (Self::Legs, ArmorKind::Pants)
+                | (Self::Feet, ArmorKind::Foot)
+                | (Self::Tabard, ArmorKind::Tabard)
+                | (Self::Bag1, ArmorKind::Bag)
+                | (Self::Bag2, ArmorKind::Bag)
+                | (Self::Bag3, ArmorKind::Bag)
+                | (Self::Bag4, ArmorKind::Bag)
         )
     }
 }

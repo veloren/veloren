@@ -2,7 +2,7 @@ ItemDef(
     name: "Dragonscale Mantle",
     description: "Power pulses through it.",
     kind: Armor((
-        kind: Shoulder("Dragonscale"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(28.0)),
             crit_power: Some(0.4),

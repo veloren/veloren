@@ -2,7 +2,7 @@ ItemDef(
     name: "Ferocious Mantle",
     description: "The dark side of nature",
     kind: Armor((
-        kind: Back("Ferocious"),
+        kind: Back,
         stats: (
             protection: Some(Normal(6.0)),
         ),

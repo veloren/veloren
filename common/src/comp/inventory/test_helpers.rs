@@ -13,7 +13,7 @@ pub(super) fn get_test_bag(slots: u16) -> Item {
     let item_def = ItemDef::new_test(
         "common.items.testing.test_bag".to_string(),
         ItemKind::Armor(armor::Armor::test_armor(
-            ArmorKind::Bag("Test Bag".to_string()),
+            ArmorKind::Bag,
             Protection::Normal(0.0),
             Protection::Normal(0.0),
         )),

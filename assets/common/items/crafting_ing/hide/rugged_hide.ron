@@ -2,7 +2,6 @@ ItemDef(
     name: "Rugged Hide",
     description: "A durable pelt, favored by leatherworkers.",
     kind: Ingredient(
-        kind: "RuggedHide",
         // Descriptor not needed
         descriptor: "",
     ),

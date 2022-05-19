@@ -3,7 +3,7 @@ ItemDef(
     description: "Made from some patches of dyed cloth.",
     kind: Armor(
         (
-            kind: Bag("RedMed"),
+            kind: Bag,
             stats: (
             ),
         )

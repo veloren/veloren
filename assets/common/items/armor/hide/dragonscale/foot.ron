@@ -2,7 +2,7 @@ ItemDef(
     name: "Dragonscale Spurs",
     description: "Power pulses through it.",
     kind: Armor((
-        kind: Foot("Dragonscale"),
+        kind: Foot,
         stats: (
             protection: Some(Normal(14.0)),
             crit_power: Some(0.2),

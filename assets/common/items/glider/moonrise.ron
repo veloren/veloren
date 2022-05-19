@@ -1,11 +1,7 @@
 ItemDef(
     name: "Aquatic Night",
     description: "The stars are beautiful tonight.",
-    kind: Glider(
-        (
-            kind: "Moonrise",
-        ),
-    ),
+    kind: Glider,
     quality: Epic,
     tags: [],
 )

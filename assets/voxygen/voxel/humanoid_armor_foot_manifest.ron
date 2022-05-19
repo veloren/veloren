@@ -8,7 +8,7 @@
             vox_spec: ("armor.misc.foot.dark", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Assassin": (
+        "common.items.armor.assassin.foot": (
             vox_spec: ("armor.assassin.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
@@ -16,147 +16,147 @@
             vox_spec: ("armor.misc.foot.dark_jester_elf", (-2.5, -3.0, -2.0)),
             color: None
         ),
-        "ClothPurple": (
+        "common.items.armor.cloth_purple.foot": (
             vox_spec: ("armor.cloth_purple.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Ferocious": (
+        "common.items.armor.ferocious.foot": (
             vox_spec: ("armor.ferocious.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "ClothBlue": (
+        "common.items.armor.cloth_blue.foot": (
             vox_spec: ("armor.cloth_blue.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "ClothGreen": (
+        "common.items.armor.cloth_green.foot": (
             vox_spec: ("armor.cloth_green.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Sandal": (
+        "common.items.armor.misc.foot.sandals": (
             vox_spec: ("armor.misc.foot.cloth_sandal", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Cultist": (
+        "common.items.armor.cultist.foot": (
             vox_spec: ("armor.cultist.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "LeatherPlate": (
+        "common.items.armor.leather_plate.foot": (
             vox_spec: ("armor.leather_plate.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Jackalope": (
+        "common.items.armor.misc.foot.jackalope_slippers": (
             vox_spec: ("armor.misc.foot.jackalope", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Twigs": (
+        "common.items.armor.twigs.foot": (
             vox_spec: ("armor.twigs.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "TwigsLeaves": (
+        "common.items.armor.twigsleaves.foot": (
             vox_spec: ("armor.twigsleaves.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "TwigsFlowers": (
+        "common.items.armor.twigsflowers.foot": (
             vox_spec: ("armor.twigsflowers.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Tarasque":(
+        "common.items.armor.tarasque.foot":(
             vox_spec: ("armor.tarasque.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Bonerattler":(
+        "common.items.armor.bonerattler.foot":(
             vox_spec: ("armor.bonerattler.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "VeloriteMage": (
+        "common.items.armor.velorite_mage.foot": (
           vox_spec: ("armor.velorite_battlemage.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Rawhide": (
+        "common.items.armor.hide.rawhide.foot": (
             vox_spec: ("armor.hide.rawhide.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Leather": (
+        "common.items.armor.hide.leather.foot": (
             vox_spec: ("armor.hide.leather.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
-        "Scale": (
+        "common.items.armor.hide.scale.foot": (
           vox_spec: ("armor.hide.scale.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Carapace": (
+        "common.items.armor.hide.carapace.foot": (
           vox_spec: ("armor.hide.carapace.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Primal": (
+        "common.items.armor.hide.primal.foot": (
           vox_spec: ("armor.hide.primal.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Dragonscale": (
+        "common.items.armor.hide.dragonscale.foot": (
           vox_spec: ("armor.hide.dragonscale.foot", (-2.5, -5.5, -2.0)),
           color: None
         ),
-        "Savage": (
+        "common.items.armor.savage.foot": (
           vox_spec: ("armor.savage.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Witch": (
+        "common.items.armor.witch.foot": (
           vox_spec: ("armor.witch.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Pirate": (
+        "common.items.armor.pirate.foot": (
           vox_spec: ("armor.pirate.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Linen": (
+        "common.items.armor.cloth.linen.foot": (
           vox_spec: ("armor.cloth.linen.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Woolen": (
+        "common.items.armor.cloth.woolen.foot": (
           vox_spec: ("armor.cloth.woolen.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Silken": (
+        "common.items.armor.cloth.silken.foot": (
           vox_spec: ("armor.cloth.silken.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Druid": (
+        "common.items.armor.cloth.druid.foot": (
           vox_spec: ("armor.cloth.druid.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Moonweave": (
+        "common.items.armor.cloth.moonweave.foot": (
           vox_spec: ("armor.cloth.moonweave.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Sunsilk": (
+        "common.items.armor.cloth.sunsilk.foot": (
           vox_spec: ("armor.cloth.sunsilk.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Bronze": (
+        "common.items.armor.mail.bronze.foot": (
           vox_spec: ("armor.mail.bronze.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Iron": (
+        "common.items.armor.mail.iron.foot": (
           vox_spec: ("armor.mail.iron.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Steel": (
+        "common.items.armor.mail.steel.foot": (
           vox_spec: ("armor.mail.steel.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Cobalt": (
+        "common.items.armor.mail.cobalt.foot": (
           vox_spec: ("armor.mail.cobalt.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Bloodsteel": (
+        "common.items.armor.mail.bloodsteel.foot": (
           vox_spec: ("armor.mail.bloodsteel.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Orichalcum": (
+        "common.items.armor.mail.orichalcum.foot": (
           vox_spec: ("armor.mail.orichalcum.foot", (-2.5, -3.5, -2.0)),
           color: None
         ),
-        "Merchant": (
+        "common.items.armor.merchant.foot": (
             vox_spec: ("armor.merchant.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),

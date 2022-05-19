@@ -2,7 +2,7 @@ ItemDef(
     name: "Merchant Backpack",
     description: "",
     kind: Armor((
-        kind: Back("Merchant"),
+        kind: Back,
         stats: (
             protection: Some(Normal(1.0)),
             crit_power: Some(0.017),

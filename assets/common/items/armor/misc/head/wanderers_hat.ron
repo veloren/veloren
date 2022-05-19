@@ -2,7 +2,7 @@ ItemDef(
     name: "Wanderer's Hat",
     description: "A practical hat: light, shady and relatively easy to replace. The perfect headwear for those who feel at home on the highways and byways of Veloren.",
     kind: Armor((
-        kind: Head("WanderersHat"),
+        kind: Head,
         stats: (
             poise_resilience: Some(Normal(1.0)),
             crit_power: Some(0.033),

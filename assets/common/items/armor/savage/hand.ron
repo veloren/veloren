@@ -2,7 +2,7 @@ ItemDef(
     name: "Savage Gauntlets",
     description: "Brings the fury of the barbarians.",
     kind: Armor((
-        kind: Hand("Savage"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(10.0)),
         ),

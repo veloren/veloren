@@ -2,7 +2,7 @@ ItemDef(
     name: "Generic Biped Large",
     description: "Worn by bipeds.",
     kind: Armor((
-        kind: Chest("GenericBipedLarge"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(45.0)),
             poise_resilience: Some(Normal(1.0)),

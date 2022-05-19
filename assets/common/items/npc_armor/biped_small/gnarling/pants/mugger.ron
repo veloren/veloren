@@ -2,7 +2,7 @@ ItemDef(
     name: "Gnarling",
     description: "Ceremonial attire used by members..",
     kind: Armor((
-        kind: Pants("GnarlingMugger"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(1.0)),
             poise_resilience: Some(Normal(1.0)),

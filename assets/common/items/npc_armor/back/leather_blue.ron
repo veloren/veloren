@@ -3,7 +3,7 @@ ItemDef(
     description: "",
     kind: Armor(
         (
-            kind: Back("LeatherBlue"),
+            kind: Back,
             stats: (
                 protection: Some(Normal(1.0)),
                 poise_resilience: Some(Normal(0.0)),

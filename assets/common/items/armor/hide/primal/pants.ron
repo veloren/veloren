@@ -2,7 +2,7 @@ ItemDef(
     name: "Primal Legs",
     description: "Smithed from hide tougher than steel.",
     kind: Armor((
-        kind: Pants("Primal"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(24.0)),
             crit_power: Some(0.334),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Cultist Skirt",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Pants("Cultist"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(30.0)),
             poise_resilience: Some(Normal(4.0)),

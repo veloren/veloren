@@ -2,7 +2,7 @@ ItemDef(
     name: "Orange Worker Shirt",
     description: "Was used by a farmer, until recently.",
     kind: Armor((
-        kind: Chest("WorkerOrange0"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(1.0)),
         ),

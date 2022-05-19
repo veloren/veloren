@@ -2,7 +2,7 @@ ItemDef(
     name: "Cultist Amulet",
     description: "You can still feel the Mindflayer's presence within this amulet...",
     kind: Armor((
-        kind: Neck("Cultist"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(2.0)),
             energy_max: Some(4.5),

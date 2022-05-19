@@ -2,7 +2,7 @@ ItemDef(
     name: "Exclamation hat",
     description: "You feel like bestowing quests.",
     kind: Armor((
-        kind: Head("Exclamation"),
+        kind: Head,
         stats: (
         ),
     )),

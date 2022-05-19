@@ -3,7 +3,6 @@ ItemDef(
     description: "Did it just blink?!",
     kind: Lantern(
         (
-            kind: "PumpkinLantern",
             color: (r: 31, g: 255, b: 22),
             strength_thousandths: 8000,
             flicker_thousandths: 600,

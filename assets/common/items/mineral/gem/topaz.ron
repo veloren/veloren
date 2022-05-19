@@ -2,7 +2,6 @@ ItemDef(
     name: "Topaz",
     description: "An outstanding orange gem.",
     kind: Ingredient(
-        kind: "Topaz",
         descriptor: "Topaz",
     ),
     quality: Common,

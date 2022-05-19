@@ -2,7 +2,7 @@ ItemDef(
     name: "Witch Handwarmers",
     description: "",
     kind: Armor((
-        kind: Hand("Witch"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(2.0)),

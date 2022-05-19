@@ -2,7 +2,6 @@ ItemDef(
     name: "Feather",
     description: "Feather from a bird.",
     kind: Ingredient(
-        kind: "Feather",
         // Descriptor not needed
         descriptor: "",
     ),

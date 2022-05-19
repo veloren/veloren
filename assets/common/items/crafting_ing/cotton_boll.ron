@@ -2,7 +2,6 @@ ItemDef(
     name: "Cotton Boll",
     description: "Plucked from a common cotton plant.",
     kind: Ingredient(
-        kind: "CottonBoll",
         // Descriptor not needed
         descriptor: "",
     ),

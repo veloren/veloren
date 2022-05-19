@@ -3,7 +3,7 @@ ItemDef(
     description: "Keeps all your stuff together.",
     kind: Armor(
         (
-            kind: Back("BackpackBlue"),
+            kind: Back,
             stats: (
                 protection: Some(Normal(0.0)),
                 poise_resilience: Some(Normal(0.0)),

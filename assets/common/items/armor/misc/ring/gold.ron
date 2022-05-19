@@ -2,7 +2,7 @@ ItemDef(
     name: "Gold Ring",
     description: "A plain gold ring... almost as if it is missing a gem.",
     kind: Armor((
-        kind: Ring("Gold"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(0.5)),
             energy_max: Some(5),

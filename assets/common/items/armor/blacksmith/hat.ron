@@ -2,7 +2,7 @@ ItemDef(
     name: "Blacksmith Hat",
     description: "",
     kind: Armor((
-        kind: Head("Blacksmith"),
+        kind: Head,
         stats: (
             protection: Some(Normal(4.0)),
             poise_resilience: Some(Normal(1.0)),

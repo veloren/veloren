@@ -2,7 +2,7 @@ ItemDef(
     name: "Bloodsteel Chest",
     description: "Forged to preserve life, at the cost of another.",
     kind: Armor((
-        kind: Chest("Bloodsteel"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(60.0)),
             poise_resilience: Some(Normal(15.0)),

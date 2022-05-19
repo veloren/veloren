@@ -73,7 +73,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
         {
             match &*item.kind() {
                 comp::item::ItemKind::Armor(armor) => {
-                    if let ArmorKind::Bag(_) = armor.kind {
+                    if let ArmorKind::Bag = armor.kind {
                         continue;
                     }
 
@@ -173,7 +173,7 @@ fn armor_stats() -> Result<(), Box<dyn Error>> {
                                 None
                             };
 
-                            let kind = armor.kind.clone();
+                            let kind = armor.kind;
                             let armor_stats = comp::item::armor::Stats::new(
                                 protection,
                                 poise_resilience,

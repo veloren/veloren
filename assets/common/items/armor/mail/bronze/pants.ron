@@ -2,7 +2,7 @@ ItemDef(
     name: "Bronze Pantalons",
     description: "'Heavy and dull, but it can take a punch.'",
     kind: Armor((
-        kind: Pants("Bronze"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(8.0)),
             poise_resilience: Some(Normal(2.0)),

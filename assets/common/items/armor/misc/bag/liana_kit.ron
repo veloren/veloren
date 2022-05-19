@@ -3,7 +3,7 @@ ItemDef(
     description: "Woven from dried lianas.",
     kind: Armor(
         (
-            kind: Bag("GreenMid"),
+            kind: Bag,
             stats: (
             ),
         )

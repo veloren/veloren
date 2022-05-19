@@ -3,76 +3,76 @@
         vox_spec: ("armor.empty", (0.0, 0.0, 0.0)),
     ),
     map: {
-        "Gnome": (
+        "common.items.npc_armor.biped_small.gnome.pants.gnome": (
             vox_spec: ("npc.gnome.male.pants", (-4.0, -3.5, -2.5)),
         ),
-        "SahaginSpearman": (
+        "common.items.npc_armor.biped_small.sahagin.pants.spearman": (
             vox_spec: ("npc.sahagin.spearman.pants", (-2.5, -3.5, -2.0)),
         ),
-        "SahaginSorcerer": (
+        "common.items.npc_armor.biped_small.sahagin.pants.sorcerer": (
             vox_spec: ("npc.sahagin.sorcerer.pants", (-2.5, -3.5, -2.0)),
         ),
-        "SahaginSniper": (
+        "common.items.npc_armor.biped_small.sahagin.pants.sniper": (
             vox_spec: ("npc.sahagin.sniper.pants", (-2.5, -3.5, -2.0)),
         ),
-        "AdletHunter": (
+        "common.items.npc_armor.biped_small.adlet.pants.hunter": (
             vox_spec: ("npc.adlet.hunter.pants", (-5.0, -4.5, -3.0)),
         ),
-        "AdletTracker": (
+        "common.items.npc_armor.biped_small.adlet.pants.tracker": (
             vox_spec: ("npc.adlet.tracker.pants", (-5.0, -4.5, -3.0)),
         ),
-        "AdletIcepicker": (
+        "common.items.npc_armor.biped_small.adlet.pants.icepicker": (
             vox_spec: ("npc.adlet.icepicker.pants", (-5.0, -4.5, -3.0)),
         ),
-        "GnarlingMugger": (
+        "common.items.npc_armor.biped_small.gnarling.pants.mugger": (
             vox_spec: ("npc.gnarling.mugger.pants", (-3.5, -3.0, -2.5)),
         ),
-        "GnarlingStalker": (
+        "common.items.npc_armor.biped_small.gnarling.pants.stalker": (
             vox_spec: ("npc.gnarling.stalker.pants", (-3.5, -3.0, -2.5)),
         ),
-        "GnarlingLogger": (
+        "common.items.npc_armor.biped_small.gnarling.pants.logger": (
             vox_spec: ("npc.gnarling.logger.pants", (-3.5, -3.0, -2.5)),
         ),
-        "GnarlingChieftain": (
+        "common.items.npc_armor.biped_small.gnarling.pants.chieftain": (
             vox_spec: ("npc.gnarling.chieftain.pants", (-3.5, -3.0, -3.5)),
         ),
-        "Mandragora": (
+        "common.items.npc_armor.biped_small.mandragora.pants.mandragora": (
             vox_spec: ("npc.mandragora.male.pants", (-3.0, -3.0, -1.0)),
         ),
-        "Kappa": (
+        "common.items.npc_armor.biped_small.kappa.pants.kappa": (
             vox_spec: ("npc.kappa.male.pants", (-3.5, -4.0, -1.5)),
         ),
         "Cactid": (
             vox_spec: ("npc.cactid.male.pants", (-3.0, -2.0, -1.0)),
         ),
-        "GnollRogue": (
+        "common.items.npc_armor.biped_small.gnoll.pants.rogue": (
             vox_spec: ("npc.gnoll.rogue.pants", (-5.0, -4.0, -3.0)),
         ),
-        "GnollShaman": (
+        "common.items.npc_armor.biped_small.gnoll.pants.shaman": (
             vox_spec: ("npc.gnoll.shaman.pants", (-5.0, -4.0, -3.0)),
         ),
-        "GnollTrapper": (
+        "common.items.npc_armor.biped_small.gnoll.pants.trapper": (
             vox_spec: ("npc.gnoll.trapper.pants", (-5.0, -4.0, -3.0)),
         ),
-        "HaniwaGuard": (
+        "common.items.npc_armor.biped_small.haniwa.pants.guard": (
             vox_spec: ("npc.haniwa.guard.pants", (-4.5, -4.5, -1.5)),
         ),
-        "HaniwaArcher": (
+        "common.items.npc_armor.biped_small.haniwa.pants.archer": (
             vox_spec: ("npc.haniwa.archer.pants", (-4.5, -4.5, -1.5)),
         ),
-        "HaniwaSoldier": (
+        "common.items.npc_armor.biped_small.haniwa.pants.soldier": (
             vox_spec: ("npc.haniwa.soldier.pants", (-4.5, -4.5, -1.5)),
         ),
-        "MyrmidonHoplite": (
+        "common.items.npc_armor.biped_small.myrmidon.pants.hoplite": (
             vox_spec: ("npc.myrmidon.hoplite.pants", (-2.5, -4.5, -1.5)),
         ),
-        "MyrmidonMarksman": (
+        "common.items.npc_armor.biped_small.myrmidon.pants.marksman": (
             vox_spec: ("npc.myrmidon.marksman.pants", (-2.5, -4.5, -1.5)),
         ),
-        "MyrmidonStrategian": (
+        "common.items.npc_armor.biped_small.myrmidon.pants.strategian": (
             vox_spec: ("npc.myrmidon.strategian.pants", (-2.5, -4.5, -1.5)),
         ),
-        "Husk": (
+        "common.items.npc_armor.biped_small.husk.pants.husk": (
             vox_spec: ("npc.husk.male.pants", (-5.0, -4.5, -6.0)),
         ),
     },

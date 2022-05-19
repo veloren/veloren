@@ -2,7 +2,7 @@ ItemDef(
     name: "Silken Shoulders",
     description: "Weaved with care by a skilled tailor.",
     kind: Armor((
-        kind: Shoulder("Silken"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(9.0)),
             energy_max: Some(9.9),

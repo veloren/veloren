@@ -12,11 +12,7 @@ use common::{
             slot::{ArmorSlot, EquipSlot},
             Inventory,
         },
-        item::{
-            armor::{Armor, ArmorKind},
-            item_key::ItemKey,
-            modular, Item, ItemDefinitionId, ItemKind,
-        },
+        item::{item_key::ItemKey, modular, Item, ItemDefinitionId},
         CharacterState,
     },
     figure::Segment,
@@ -128,6 +124,20 @@ impl CharacterCacheKey {
             CameraMode::ThirdPerson | CameraMode::Freefly => false,
         };
 
+        let key_from_slot = |slot| {
+            inventory
+                .equipped(slot)
+                .map(|i| i.item_definition_id())
+                .map(|id| match id {
+                    // TODO: Properly handle items with components here. Probably wait until modular
+                    // armor?
+                    ItemDefinitionId::Simple(id) => id,
+                    ItemDefinitionId::Compound { simple_base, .. } => simple_base,
+                    ItemDefinitionId::Modular { pseudo_base, .. } => pseudo_base,
+                })
+                .map(String::from)
+        };
+
         // Third person tools are only modeled when the camera is either not first
         // person, or the camera is first person and we are in a tool-using
         // state.
@@ -146,78 +156,12 @@ impl CharacterCacheKey {
                 None
             } else {
                 Some(CharacterThirdPersonKey {
-                    head: if let Some(ItemKind::Armor(Armor {
-                        kind: ArmorKind::Head(armor),
-                        ..
-                    })) = inventory
-                        .equipped(EquipSlot::Armor(ArmorSlot::Head))
-                        .map(|i| i.kind())
-                        .as_deref()
-                    {
-                        Some(armor.clone())
-                    } else {
-                        None
-                    },
-                    shoulder: if let Some(ItemKind::Armor(Armor {
-                        kind: ArmorKind::Shoulder(armor),
-                        ..
-                    })) = inventory
-                        .equipped(EquipSlot::Armor(ArmorSlot::Shoulders))
-                        .map(|i| i.kind())
-                        .as_deref()
-                    {
-                        Some(armor.clone())
-                    } else {
-                        None
-                    },
-                    chest: if let Some(ItemKind::Armor(Armor {
-                        kind: ArmorKind::Chest(armor),
-                        ..
-                    })) = inventory
-                        .equipped(EquipSlot::Armor(ArmorSlot::Chest))
-                        .map(|i| i.kind())
-                        .as_deref()
-                    {
-                        Some(armor.clone())
-                    } else {
-                        None
-                    },
-                    belt: if let Some(ItemKind::Armor(Armor {
-                        kind: ArmorKind::Belt(armor),
-                        ..
-                    })) = inventory
-                        .equipped(EquipSlot::Armor(ArmorSlot::Belt))
-                        .map(|i| i.kind())
-                        .as_deref()
-                    {
-                        Some(armor.clone())
-                    } else {
-                        None
-                    },
-                    back: if let Some(ItemKind::Armor(Armor {
-                        kind: ArmorKind::Back(armor),
-                        ..
-                    })) = inventory
-                        .equipped(EquipSlot::Armor(ArmorSlot::Back))
-                        .map(|i| i.kind())
-                        .as_deref()
-                    {
-                        Some(armor.clone())
-                    } else {
-                        None
-                    },
-                    pants: if let Some(ItemKind::Armor(Armor {
-                        kind: ArmorKind::Pants(armor),
-                        ..
-                    })) = inventory
-                        .equipped(EquipSlot::Armor(ArmorSlot::Legs))
-                        .map(|i| i.kind())
-                        .as_deref()
-                    {
-                        Some(armor.clone())
-                    } else {
-                        None
-                    },
+                    head: key_from_slot(EquipSlot::Armor(ArmorSlot::Head)),
+                    shoulder: key_from_slot(EquipSlot::Armor(ArmorSlot::Shoulders)),
+                    chest: key_from_slot(EquipSlot::Armor(ArmorSlot::Chest)),
+                    belt: key_from_slot(EquipSlot::Armor(ArmorSlot::Belt)),
+                    back: key_from_slot(EquipSlot::Armor(ArmorSlot::Back)),
+                    pants: key_from_slot(EquipSlot::Armor(ArmorSlot::Legs)),
                 })
             },
             tool: if are_tools_visible {
@@ -241,60 +185,11 @@ impl CharacterCacheKey {
             } else {
                 None
             },
-            lantern: if let Some(ItemKind::Lantern(lantern)) = inventory
-                .equipped(EquipSlot::Lantern)
-                .map(|i| i.kind())
-                .as_deref()
-            {
-                Some(lantern.kind.clone())
-            } else {
-                None
-            },
-            glider: if let Some(ItemKind::Glider(glider)) = inventory
-                .equipped(EquipSlot::Glider)
-                .map(|i| i.kind())
-                .as_deref()
-            {
-                Some(glider.kind.clone())
-            } else {
-                None
-            },
-            hand: if let Some(ItemKind::Armor(Armor {
-                kind: ArmorKind::Hand(armor),
-                ..
-            })) = inventory
-                .equipped(EquipSlot::Armor(ArmorSlot::Hands))
-                .map(|i| i.kind())
-                .as_deref()
-            {
-                Some(armor.clone())
-            } else {
-                None
-            },
-            foot: if let Some(ItemKind::Armor(Armor {
-                kind: ArmorKind::Foot(armor),
-                ..
-            })) = inventory
-                .equipped(EquipSlot::Armor(ArmorSlot::Feet))
-                .map(|i| i.kind())
-                .as_deref()
-            {
-                Some(armor.clone())
-            } else {
-                None
-            },
-            head: if let Some(ItemKind::Armor(Armor {
-                kind: ArmorKind::Head(armor),
-                ..
-            })) = inventory
-                .equipped(EquipSlot::Armor(ArmorSlot::Head))
-                .map(|i| i.kind())
-                .as_deref()
-            {
-                Some(armor.clone())
-            } else {
-                None
-            },
+            lantern: key_from_slot(EquipSlot::Lantern),
+            glider: key_from_slot(EquipSlot::Glider),
+            hand: key_from_slot(EquipSlot::Armor(ArmorSlot::Hands)),
+            foot: key_from_slot(EquipSlot::Armor(ArmorSlot::Feet)),
+            head: key_from_slot(EquipSlot::Armor(ArmorSlot::Head)),
         }
     }
 }

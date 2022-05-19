@@ -2,7 +2,7 @@ ItemDef(
     name: "Savage Cape",
     description: "Brings the fury of the barbarians.",
     kind: Armor((
-        kind: Back("Savage"),
+        kind: Back,
         stats: (
             protection: Some(Normal(4.0)),
         ),

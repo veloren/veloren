@@ -2,7 +2,7 @@ ItemDef(
     name: "Pendant of Protection",
     description: "You feel as if something is always watching you...",
     kind: Armor((
-        kind: Neck("Pendant"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
         ),

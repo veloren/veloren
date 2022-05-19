@@ -2,7 +2,7 @@ ItemDef(
     name: "Giant Warlock Chest",
     description: "Made of darkest silk.",
     kind: Armor((
-        kind: Chest("GiantWarlock"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(250.0)),
             poise_resilience: Some(Normal(1.0)),

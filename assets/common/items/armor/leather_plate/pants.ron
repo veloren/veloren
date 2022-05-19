@@ -2,7 +2,7 @@ ItemDef(
     name: "Leather Plate Chausses",
     description: "Leather adorned with steel for better protection.",
     kind: Armor((
-        kind: Pants("LeatherPlate"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(32.0)),
             poise_resilience: Some(Normal(8.0)),

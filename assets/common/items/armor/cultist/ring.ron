@@ -2,7 +2,7 @@ ItemDef(
     name: "Cultist Signet Ring",
     description: "Once belonged to a cultist.",
     kind: Armor((
-        kind: Ring("Cultist"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(1.0)),
             energy_max: Some(5),

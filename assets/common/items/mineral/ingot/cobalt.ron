@@ -2,7 +2,6 @@ ItemDef(
     name: "Cobalt Ingot",
     description: "A strikingly blue ingot.\n\nThis can be used when crafting metal weapons.",
     kind: Ingredient(
-        kind: "CobaltIngot",
         descriptor: "Cobalt",
     ),
     quality: High,

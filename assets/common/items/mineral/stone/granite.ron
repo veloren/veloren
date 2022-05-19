@@ -2,7 +2,6 @@ ItemDef(
     name: "Granite",
     description: "A light-colored igneous rock.",
     kind: Ingredient(
-        kind: "Granite",
         descriptor: "Granite",
     ),
     quality: Common,

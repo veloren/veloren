@@ -2,7 +2,7 @@ ItemDef(
     name: "Savage Shoulder Pad",
     description: "Brings the fury of the barbarians.",
     kind: Armor((
-        kind: Shoulder("Savage"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(15.0)),
         ),

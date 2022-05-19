@@ -2,7 +2,7 @@ ItemDef(
     name: "Scratched Ring",
     description: "Barely fits your finger.",
     kind: Armor((
-        kind: Ring("Scratched"),
+        kind: Ring,
         stats: (
             protection: Some(Normal(0.5)),
         ),

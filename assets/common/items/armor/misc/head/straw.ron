@@ -2,7 +2,7 @@ ItemDef(
     name: "Straw Hat",
     description: "Simple and stylish.",
     kind: Armor((
-        kind: Head("Straw"),
+        kind: Head,
         stats: (
             energy_max: Some(4.0),
             energy_reward: Some(0.02),

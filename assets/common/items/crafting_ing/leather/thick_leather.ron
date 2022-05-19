@@ -2,7 +2,6 @@ ItemDef(
     name: "Thick Leather",
     description: "Strong and durable.",
     kind: Ingredient(
-        kind: "ThickLeather",
         descriptor: "Leather",
     ),
     quality: Common,

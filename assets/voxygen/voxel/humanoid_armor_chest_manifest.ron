@@ -28,11 +28,11 @@
             vox_spec: ("armor.misc.chest.grayscale", (-7.0, -3.5, 2.0)),
             color: Some((29, 26, 33))
         ),
-        "Ferocious": (
+        "common.items.armor.ferocious.chest": (
             vox_spec: ("armor.ferocious.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "Assassin": (
+        "common.items.armor.assassin.chest": (
             vox_spec: ("armor.assassin.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
@@ -40,205 +40,205 @@
             vox_spec: ("armor.misc.chest.cloth_red_kimono", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "PlateRed": (
+        "common.items.npc_armor.chest.plate_red": (
             vox_spec: ("armor.misc.chest.plate_grey", (-7.0, -3.5, 2.0)),
             color: Some((124, 38, 46))
         ),
-        "LeatherBlue": (
+        "common.items.npc_armor.chest.leather_blue": (
             vox_spec: ("armor.leather_blue.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "ClothPurple": (
+        "common.items.armor.cloth_purple.chest": (
             vox_spec: ("armor.cloth_purple.chest", (-7.0, -3.5, 1.0)),
             color: None
         ),
-        "ClothBlue": (
+        "common.items.armor.cloth_blue.chest": (
             vox_spec: ("armor.cloth_blue.chest", (-7.0, -3.5, 1.0)),
             color: None
         ),
-        "ClothGreen": (
+        "common.items.armor.cloth_green.chest": (
             vox_spec: ("armor.cloth_green.chest", (-7.0, -3.5, 1.0)),
             color: None
         ),
-        "Rugged": (
+        "common.items.armor.rugged.chest": (
             vox_spec: ("armor.rugged.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "WorkerPurpBrown": (
+        "common.items.armor.misc.chest.worker_purple_brown": (
             vox_spec: ("armor.misc.chest.worker_purp_brown", (-7.0, -3.5, 2.0)),
             color: None
         ),
         // Villagers
-        "WorkerGreen0": (
+        "common.items.armor.misc.chest.worker_green_0": (
             vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),
             color: Some((88, 108, 65))
         ),
-        "WorkerGreen1": (
+        "common.items.armor.misc.chest.worker_green_1": (
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((88, 108, 65))
         ),
-        "WorkerRed0": (
+        "common.items.armor.misc.chest.worker_red_0": (
             vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),
             color: Some((124, 38, 46))
         ),
-        "WorkerRed1": (
+        "common.items.armor.misc.chest.worker_red_1": (
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((124, 38, 46))
         ),
-        "WorkerPurple0": (
+        "common.items.armor.misc.chest.worker_purple_0": (
             vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),
             color: Some((64, 47, 56))
         ),
-        "WorkerPurple1": (
+        "common.items.armor.misc.chest.worker_purple_1": (
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((64, 47, 56))
         ),
-        "WorkerYellow0": (
+        "common.items.armor.misc.chest.worker_yellow_0": (
             vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),
             color: Some((184, 132, 40))
         ),
-        "WorkerYellow1": (
+        "common.items.armor.misc.chest.worker_yellow_1": (
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((184, 132, 40))
         ),
-        "WorkerOrange0": (
+        "common.items.armor.misc.chest.worker_orange_0": (
             vox_spec: ("armor.misc.chest.worker_white", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
         ),
-        "WorkerOrange1": (
+        "common.items.armor.misc.chest.worker_orange_1": (
             vox_spec: ("armor.misc.chest.shirt_white", (-7.0, -3.5, 2.0)),
             color: Some((135, 82, 67))
         ),
-        "Twigs": (
+        "common.items.armor.twigs.chest": (
             vox_spec: ("armor.twigs.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "TwigsLeaves": (
+        "common.items.armor.twigsleaves.chest": (
             vox_spec: ("armor.twigsleaves.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "TwigsFlowers": (
+        "common.items.armor.twigsflowers.chest": (
             vox_spec: ("armor.twigsflowers.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
         // Cultists
-        "Cultist": (
+        "common.items.armor.cultist.chest": (
             vox_spec: ("armor.cultist.chest", (-7.0, -3.5, 2.0)),
             color: Some((30, 0, 64))
         ),
-        "LeatherPlate": (
+        "common.items.armor.leather_plate.chest": (
             vox_spec: ("armor.leather_plate.chest", (-8.0, -5.5, 2.0)),
             color: None
         ),
-        "Tarasque":(
+        "common.items.armor.tarasque.chest":(
             vox_spec: ("armor.tarasque.chest", (-8.0, -4.5, 2.0)),
             color: None
         ),
-        "Bonerattler":(
+        "common.items.armor.bonerattler.chest":(
             vox_spec: ("armor.bonerattler.chest", (-7.0, -4.5, 2.0)),
             color: None
         ),
-        "VeloriteMage": (
+        "common.items.armor.velorite_mage.chest": (
           vox_spec: ("armor.velorite_battlemage.chest", (-7.0, -3.5, 0.5)),
           color: None
         ),
-        "Rawhide": (
+        "common.items.armor.hide.rawhide.chest": (
             vox_spec: ("armor.hide.rawhide.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "Leather": (
+        "common.items.armor.hide.leather.chest": (
             vox_spec: ("armor.hide.leather.chest", (-7.0, -3.5, 2.0)),
             color: None
         ),
-        "Scale": (
+        "common.items.armor.hide.scale.chest": (
           vox_spec: ("armor.hide.scale.chest", (-7.0, -3.5, 2.0)),
           color: None
         ),
-        "Carapace": (
+        "common.items.armor.hide.carapace.chest": (
           vox_spec: ("armor.hide.carapace.chest", (-7.0, -3.5, 1.5)),
           color: None
         ),
-        "Primal": (
+        "common.items.armor.hide.primal.chest": (
           vox_spec: ("armor.hide.primal.chest", (-7.0, -3.5, 0.5)),
           color: None
         ),
-        "Dragonscale": (
+        "common.items.armor.hide.dragonscale.chest": (
           vox_spec: ("armor.hide.dragonscale.chest", (-7.0, -3.5, 1.5)),
           color: None
         ),
-        "Savage": (
+        "common.items.armor.savage.chest": (
           vox_spec: ("armor.hide.savage.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
-        "Witch": (
+        "common.items.armor.witch.chest": (
           vox_spec: ("armor.witch.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Pirate": (
+        "common.items.armor.pirate.chest": (
           vox_spec: ("armor.pirate.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Alchemist": (
+        "common.items.armor.alchemist.chest": (
           vox_spec: ("armor.alchemist.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Blacksmith": (
+        "common.items.armor.blacksmith.chest": (
           vox_spec: ("armor.blacksmith.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Chef": (
+        "common.items.armor.chef.chest": (
           vox_spec: ("armor.chef.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Linen": (
+        "common.items.armor.cloth.linen.chest": (
           vox_spec: ("armor.cloth.linen.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Woolen": (
+        "common.items.armor.cloth.woolen.chest": (
           vox_spec: ("armor.cloth.woolen.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
-        "Silken": (
+        "common.items.armor.cloth.silken.chest": (
           vox_spec: ("armor.cloth.silken.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
-        "Druid": (
+        "common.items.armor.cloth.druid.chest": (
           vox_spec: ("armor.cloth.druid.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Moonweave": (
+        "common.items.armor.cloth.moonweave.chest": (
           vox_spec: ("armor.cloth.moonweave.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
-        "Sunsilk": (
+        "common.items.armor.cloth.sunsilk.chest": (
           vox_spec: ("armor.cloth.sunsilk.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
-        "Bronze": (
+        "common.items.armor.mail.bronze.chest": (
           vox_spec: ("armor.mail.bronze.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Iron": (
+        "common.items.armor.mail.iron.chest": (
           vox_spec: ("armor.mail.iron.chest", (-7.0, -4.0, 2.0)),
           color: None
         ),
-        "Steel": (
+        "common.items.armor.mail.steel.chest": (
           vox_spec: ("armor.mail.steel.chest", (-8.0, -4.0, 1.0)),
           color: None
         ),
-        "Cobalt": (
+        "common.items.armor.mail.cobalt.chest": (
           vox_spec: ("armor.mail.cobalt.chest", (-8.0, -4.0, 1.0)),
           color: None
         ),
-        "Bloodsteel": (
+        "common.items.armor.mail.bloodsteel.chest": (
           vox_spec: ("armor.mail.bloodsteel.chest", (-8.0, -4.0, 1.0)),
           color: None
         ),
-        "Orichalcum": (
+        "common.items.armor.mail.orichalcum.chest": (
           vox_spec: ("armor.mail.orichalcum.chest", (-7.0, -4.0, 1.0)),
           color: None
         ),
-        "Merchant": (
+        "common.items.armor.merchant.chest": (
             vox_spec: ("armor.merchant.chest", (-7.0, -4.0, 1.0)),
             color: None
         ),

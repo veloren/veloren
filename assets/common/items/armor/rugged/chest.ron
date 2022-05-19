@@ -2,7 +2,7 @@ ItemDef(
     name: "Rugged Shirt",
     description: "Smells like Adventure.",
     kind: Armor((
-        kind: Chest("Rugged"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(3.0)),
         ),

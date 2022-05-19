@@ -2,7 +2,7 @@ ItemDef(
     name: "Scale Girdle",
     description: "Each embedded scale provides protection.",
     kind: Armor((
-        kind: Belt("Scale"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(4.0)),
             crit_power: Some(0.05),

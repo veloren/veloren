@@ -2,7 +2,7 @@ ItemDef(
     name: "Moonweave Vest",
     description: "The fabric dances silently, like moonlight.",
     kind: Armor((
-        kind: Chest("Moonweave"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(23.0)),
             energy_max: Some(24.8),

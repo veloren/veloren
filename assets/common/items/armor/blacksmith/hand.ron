@@ -2,7 +2,7 @@ ItemDef(
     name: "Blacksmith Gloves",
     description: "",
     kind: Armor((
-        kind: Hand("Blacksmith"),
+        kind: Hand,
         stats: (
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(2.0)),

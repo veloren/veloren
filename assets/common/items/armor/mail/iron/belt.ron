@@ -2,7 +2,7 @@ ItemDef(
     name: "Iron Belt",
     description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
-        kind: Belt("Iron"),
+        kind: Belt,
         stats: (
             protection: Some(Normal(4.0)),
             poise_resilience: Some(Normal(1.0)),

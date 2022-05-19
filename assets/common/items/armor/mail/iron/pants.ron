@@ -2,7 +2,7 @@ ItemDef(
     name: "Iron Pants",
     description: "Sturdy and unyielding, across ages of war.",
     kind: Armor((
-        kind: Pants("Iron"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(16.0)),
             poise_resilience: Some(Normal(4.0)),

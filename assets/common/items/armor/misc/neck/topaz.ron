@@ -2,7 +2,7 @@ ItemDef(
     name: "Topaz Necklace",
     description: "A copper necklace, with topaz embedded in the center.",
     kind: Armor((
-        kind: Neck("Topaz"),
+        kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
             energy_max: Some(10.0),

@@ -2,7 +2,7 @@ ItemDef(
     name: "Sahagin Sorcerer",
     description: "Ceremonial attire used by members.",
     kind: Armor((
-        kind: Chest("SahaginSorcerer"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(26.0)),
             poise_resilience: Some(Normal(4.0)),

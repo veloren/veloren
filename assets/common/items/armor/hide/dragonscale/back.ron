@@ -2,7 +2,7 @@ ItemDef(
     name: "Dragonscale Cape",
     description: "Power pulses through it.",
     kind: Armor((
-        kind: Back("Dragonscale"),
+        kind: Back,
         stats: (
             protection: Some(Normal(7.0)),
             crit_power: Some(0.1),

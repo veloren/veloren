@@ -2,7 +2,7 @@ ItemDef(
     name: "Sunsilk Kilt",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
-        kind: Pants("Sunsilk"),
+        kind: Pants,
         stats: (
             protection: Some(Normal(18.0)),
             energy_max: Some(20.0),

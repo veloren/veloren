@@ -89,7 +89,7 @@ pub fn kind_text<'a>(kind: &ItemKind, i18n: &'a Localization) -> Cow<'a, str> {
                 Cow::Borrowed(i18n.get("common.kind.modular_component"))
             }
         },
-        ItemKind::Glider(_glider) => Cow::Borrowed(i18n.get("common.kind.glider")),
+        ItemKind::Glider => Cow::Borrowed(i18n.get("common.kind.glider")),
         ItemKind::Consumable { .. } => Cow::Borrowed(i18n.get("common.kind.consumable")),
         ItemKind::Throwable { .. } => Cow::Borrowed(i18n.get("common.kind.throwable")),
         ItemKind::Utility { .. } => Cow::Borrowed(i18n.get("common.kind.utility")),
@@ -112,7 +112,7 @@ pub fn material_kind_text<'a>(kind: &MaterialKind, i18n: &'a Localization) -> &'
 pub fn stats_count(item: &dyn ItemDesc) -> usize {
     let mut count = match &*item.kind() {
         ItemKind::Armor(armor) => {
-            if matches!(armor.kind, ArmorKind::Bag(_)) {
+            if matches!(armor.kind, ArmorKind::Bag) {
                 0
             } else {
                 armor.stats.energy_reward().is_some() as usize
@@ -129,7 +129,7 @@ pub fn stats_count(item: &dyn ItemDesc) -> usize {
     };
 
     let is_bag = match &*item.kind() {
-        ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag(_)),
+        ItemKind::Armor(armor) => matches!(armor.kind, ArmorKind::Bag),
         _ => false,
     };
     if item.num_slots() != 0 && !is_bag {
@@ -224,18 +224,18 @@ pub fn consumable_desc(effects: &[Effect], i18n: &Localization) -> Vec<String> {
 // Armor
 fn armor_kind<'a>(armor: &Armor, i18n: &'a Localization) -> &'a str {
     let kind = match armor.kind {
-        ArmorKind::Shoulder(_) => i18n.get("hud.bag.shoulders"),
-        ArmorKind::Chest(_) => i18n.get("hud.bag.chest"),
-        ArmorKind::Belt(_) => i18n.get("hud.bag.belt"),
-        ArmorKind::Hand(_) => i18n.get("hud.bag.hands"),
-        ArmorKind::Pants(_) => i18n.get("hud.bag.legs"),
-        ArmorKind::Foot(_) => i18n.get("hud.bag.feet"),
-        ArmorKind::Back(_) => i18n.get("hud.bag.back"),
-        ArmorKind::Ring(_) => i18n.get("hud.bag.ring"),
-        ArmorKind::Neck(_) => i18n.get("hud.bag.neck"),
-        ArmorKind::Head(_) => i18n.get("hud.bag.head"),
-        ArmorKind::Tabard(_) => i18n.get("hud.bag.tabard"),
-        ArmorKind::Bag(_) => i18n.get("hud.bag.bag"),
+        ArmorKind::Shoulder => i18n.get("hud.bag.shoulders"),
+        ArmorKind::Chest => i18n.get("hud.bag.chest"),
+        ArmorKind::Belt => i18n.get("hud.bag.belt"),
+        ArmorKind::Hand => i18n.get("hud.bag.hands"),
+        ArmorKind::Pants => i18n.get("hud.bag.legs"),
+        ArmorKind::Foot => i18n.get("hud.bag.feet"),
+        ArmorKind::Back => i18n.get("hud.bag.back"),
+        ArmorKind::Ring => i18n.get("hud.bag.ring"),
+        ArmorKind::Neck => i18n.get("hud.bag.neck"),
+        ArmorKind::Head => i18n.get("hud.bag.head"),
+        ArmorKind::Tabard => i18n.get("hud.bag.tabard"),
+        ArmorKind::Bag => i18n.get("hud.bag.bag"),
     };
     kind
 }

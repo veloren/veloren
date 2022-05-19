@@ -2,7 +2,7 @@ ItemDef(
     name: "Savage Cuirass",
     description: "Brings the fury of the barbarians.",
     kind: Armor((
-        kind: Chest("Savage"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(25.0)),
         ),

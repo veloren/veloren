@@ -2,7 +2,7 @@ ItemDef(
     name: "Theropod Rugged",
     description: "stronk.",
     kind: Armor((
-        kind: Chest("TheropodRugged"),
+        kind: Chest,
         stats: (
             protection: Some(Normal(80.0)),
             poise_resilience: Some(Normal(0.0)),

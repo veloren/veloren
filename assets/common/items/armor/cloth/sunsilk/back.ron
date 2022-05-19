@@ -2,7 +2,7 @@ ItemDef(
     name: "Sunsilk Cape",
     description: "It radiates with the sun's power, and the grace to harness it.",
     kind: Armor((
-        kind: Back("Sunsilk"),
+        kind: Back,
         stats: (
             protection: Some(Normal(5.0)),
             energy_max: Some(5.0),

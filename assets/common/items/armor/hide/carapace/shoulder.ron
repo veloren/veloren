@@ -2,7 +2,7 @@ ItemDef(
     name: "Carapace Shoulderpads",
     description: "Shell that once shielded a beast.",
     kind: Armor((
-        kind: Shoulder("Carapace"),
+        kind: Shoulder,
         stats: (
             protection: Some(Normal(19.0)),
             crit_power: Some(0.266),
