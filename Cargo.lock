@@ -6511,6 +6511,7 @@ dependencies = [
  "veloren-common-base",
  "veloren-common-ecs",
  "veloren-common-net",
+ "veloren-common-state",
 ]
 
 [[package]]
