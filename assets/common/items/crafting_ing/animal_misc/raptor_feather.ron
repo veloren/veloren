@@ -1,6 +1,6 @@
 ItemDef(
     name: "Raptor Feather",
-    description: "Large colorful feather from a raptor.",
+    description: "A large colorful feather from a raptor.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

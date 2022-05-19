@@ -5,10 +5,10 @@ ItemDef(
         kind: Neck,
         stats: (
             protection: Some(Normal(1.0)),
-            energy_max: Some(10),
-            energy_reward: Some(0.05),
+            energy_max: Some(8.0),
+            energy_reward: Some(0.04),
         ),
     )),
-    quality: High,
+    quality: Moderate,
     tags: [],
 )

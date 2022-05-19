@@ -1,6 +1,6 @@
 ItemDef(
     name: "Minor Potion",
-    description: "Made of apples with love.",
+    description: "A small potion concocted from apples and honey.",
     kind: Consumable(
         kind: Drink,
         effects: [

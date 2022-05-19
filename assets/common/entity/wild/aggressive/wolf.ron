@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("wolf"),
     alignment: Alignment(Enemy),
-    loot: LootTable("common.loot_tables.creature.quad_medium.fanged"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.wolf"),
     inventory: (
         loadout: FromBody,
     ),

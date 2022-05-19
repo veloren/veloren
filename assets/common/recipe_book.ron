@@ -194,7 +194,7 @@
         craft_sprite: Some(CookingPot),
     ),
     "leather strips": (
-        output: ("common.items.crafting_ing.leather.leather_strips", 4),
+        output: ("common.items.crafting_ing.leather.leather_strips", 3),
         inputs: [
             (Item("common.items.crafting_ing.leather.simple_leather"), 1, false),
         ],
@@ -235,17 +235,17 @@
         ],
         craft_sprite: Some(Forge),
     ),
-    "iron ingot": (
+   "iron ingot": (
         output: ("common.items.mineral.ingot.iron", 1),
         inputs: [
-            (Item("common.items.mineral.ore.iron"), 1, false),
+            (Item("common.items.mineral.ore.iron"), 2, false),
         ],
         craft_sprite: Some(Forge),
     ),
     "cobalt ingot": (
         output: ("common.items.mineral.ingot.cobalt", 1),
         inputs: [
-            (Item("common.items.mineral.ore.cobalt"), 1, false),
+            (Item("common.items.mineral.ore.cobalt"), 2, false),
         ],
         craft_sprite: Some(Forge),
     ),
@@ -307,14 +307,14 @@
     "cotton": (
         output: ("common.items.crafting_ing.cloth.cotton", 1),
         inputs: [
-            (Item("common.items.crafting_ing.cotton_boll"), 1, false),
+            (Item("common.items.crafting_ing.cotton_boll"), 2, false),
         ],
         craft_sprite: Some(SpinningWheel),
     ),
     "linen_flax": (
         output: ("common.items.crafting_ing.cloth.linen", 1),
         inputs: [
-            (Item("common.items.flowers.wild_flax"), 1, false),
+            (Item("common.items.flowers.wild_flax"), 2, false),
         ],
         craft_sprite: Some(SpinningWheel),
     ),
@@ -336,14 +336,14 @@
     "moonweave": (
         output: ("common.items.crafting_ing.cloth.moonweave", 1),
         inputs: [
-            (Item("common.items.flowers.moonbell"), 1, false),
+            (Item("common.items.flowers.moonbell"), 2, false),
         ],
         craft_sprite: Some(SpinningWheel),
     ),
     "sunsilk": (
         output: ("common.items.crafting_ing.cloth.sunsilk", 1),
         inputs: [
-            (Item("common.items.flowers.pyrebloom"), 1, false),
+            (Item("common.items.flowers.pyrebloom"), 2, false),
         ],
         craft_sprite: Some(SpinningWheel),
     ),

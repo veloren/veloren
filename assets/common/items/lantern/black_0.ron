@@ -1,6 +1,6 @@
 ItemDef(
     name: "Black Lantern",
-    description: "Used by city guards.",
+    description: "Quite common due to popular use of budding adventurers!",
     kind: Lantern(
         (
             color: (r: 255, g: 128, b: 26),

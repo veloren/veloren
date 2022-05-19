@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("cattle"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_medium.gentle"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.cattle"),
     inventory: (
         loadout: FromBody,
     ),

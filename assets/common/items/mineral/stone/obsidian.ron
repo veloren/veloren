@@ -1,6 +1,6 @@
 ItemDef(
     name: "Obsidian",
-    description: "An igneous rock that comes from melted rock.",
+    description: "An igneous rock that comes from felsic lava, it never seems to dwindle.",
     kind: Ingredient(
         descriptor: "Obsidian",
     ),

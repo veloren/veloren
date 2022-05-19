@@ -1,6 +1,6 @@
 ItemDef(
     name: "Sturdy Red Saddlebag",
-    description: "Made from a large amount of dyed cloth patches.",
+    description: "A truly reliable and sizeable bag, embroidered with amethyst and thick leather.",
     kind: Armor(
         (
             kind: Bag,

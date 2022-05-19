@@ -6,7 +6,7 @@
         body_type: Female,
     ))),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_low.salamander"),
+    loot: LootTable("common.loot_tables.creature.quad_low.elbst"),
     inventory: (
         loadout: FromBody,
     ),

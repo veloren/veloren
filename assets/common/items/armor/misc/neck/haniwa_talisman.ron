@@ -1,6 +1,6 @@
 ItemDef(
     name: "Haniwa Talisman",
-    description: "A talisman depicting a figure of unkown origin.",
+    description: "A talisman depicting a figure of unknown origin.",
     kind: Armor((
         kind: Neck,
         stats: (

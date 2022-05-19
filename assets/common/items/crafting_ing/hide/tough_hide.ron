@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tough Hide",
-    description: "A pelt from something fierce. Becomes leather.",
+    description: "A relatively tough, rough hide. Becomes leather.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

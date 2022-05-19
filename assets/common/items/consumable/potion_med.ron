@@ -1,6 +1,6 @@
 ItemDef(
     name: "Medium Potion",
-    description: "Enchanted healing flask.",
+    description: "An innovative invention from an apothecary, better than its smaller precursors.",
     kind: Consumable(
         kind: Drink,
         effects: [

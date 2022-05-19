@@ -1,6 +1,6 @@
 ItemDef(
     name: "Velorite",
-    description: "Just a slight touch makes you feel\nthe knowledge of ancient times",
+    description: "A bizarre, oddly shimmering ore, its origin seems to be shrouded in mystery.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

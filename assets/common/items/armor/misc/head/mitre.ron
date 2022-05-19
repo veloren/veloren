@@ -1,10 +1,11 @@
 ItemDef(
     name: "Mitre",
-    description: "Calls strength from above.",
+    description: "Calls strength down from above.",
     kind: Armor((
         kind: Head,
         stats: (
-            poise_resilience: Some(Normal(1.5)),
+            protection: Some(Normal(2.0)),
+            poise_resilience: Some(Normal(0.5)),
             energy_max: Some(7.0),
             energy_reward: Some(0.06),
         ),

@@ -1,13 +1,13 @@
 ItemDef(
     name: "Impressive Turban",
-    description: "Fancy.",
+    description: "An incredibly fancy and light-weight turban, quite expensive too.",
     kind: Armor((
         kind: Head,
         stats: (
             protection: Some(Normal(5.0)),
-            poise_resilience: Some(Normal(2.0)),
-            energy_max: Some(11.0),
-            energy_reward: Some(0.065),
+            poise_resilience: Some(Normal(1.5)),
+            energy_max: Some(12.0),
+            energy_reward: Some(0.07),
         ),
     )),
     quality: Epic,

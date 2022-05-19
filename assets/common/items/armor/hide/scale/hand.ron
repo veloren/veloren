@@ -1,6 +1,6 @@
 ItemDef(
     name: "Scale Fists",
-    description: "Each embedded scale provides protection.",
+    description: "Each embedded scale provides additional protection.",
     kind: Armor((
         kind: Hand,
         stats: (

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Dragonscale Sash",
-    description: "Power pulses through it.",
+    description: "Crafted from the scales of a legendary creature, power can be felt pulsing through it.",
     kind: Armor((
         kind: Belt,
         stats: (

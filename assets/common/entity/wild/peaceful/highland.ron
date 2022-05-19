@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("highland"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_medium.gentle"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.highland"),
     inventory: (
         loadout: FromBody,
     ),

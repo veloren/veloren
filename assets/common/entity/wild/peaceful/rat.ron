@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("rat"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_small.generic"),
+    loot: LootTable("common.loot_tables.creature.quad_small.rodent"),
     inventory: (
         loadout: FromBody,
     ),

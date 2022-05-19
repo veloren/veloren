@@ -2,19 +2,17 @@
     // Crafting Ingredients
     (5.0, LootTable("common.loot_tables.materials.common")),
     // Consumables
-    (0.5, Item("common.items.consumable.potion_minor")),
+    (2.0, Item("common.items.consumable.potion_minor")),
     // Ring
-    (0.2, Item("common.items.armor.misc.ring.gold")),
+    (0.4, Item("common.items.armor.misc.ring.gold")),
     // Necklace
-    (0.2, Item("common.items.armor.misc.neck.gold")),
-    // Utility
-    (0.5, Item("common.items.utility.collar")),
+    (0.4, Item("common.items.armor.misc.neck.gold")),
     // Armor
-    (0.1, Item("common.items.armor.misc.head.bandana.thief")),
-    (0.1, Item("common.items.armor.misc.head.bandana.red")),
-    (0.1, Item("common.items.armor.misc.head.hood")),
-    (0.1, Item("common.items.armor.misc.head.hood_dark")),
+    (1.0, Item("common.items.armor.misc.head.bandana.thief")),
+    (1.0, Item("common.items.armor.misc.head.bandana.red")),
+    (0.4, Item("common.items.armor.misc.head.hood")),
+    (0.4, Item("common.items.armor.misc.head.hood_dark")),
     // Food
     (1.0, LootTable("common.loot_tables.food.wild_ingredients")),
-    (0.25, LootTable("common.loot_tables.food.prepared")),
+    (0.75, LootTable("common.loot_tables.food.prepared")),
 ]
