@@ -150,6 +150,16 @@
                 color: None
             )
         ),
+        "common.items.debug.cultist_hands_blue": (
+            left: (
+                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -1.5, -2.5)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.velorite_battlemage.hand", (-2.5, -1.5, -2.5)),
+                color: None
+            )
+        ),
         "common.items.armor.hide.rawhide.hand": (
             left: (
                 vox_spec: ("armor.hide.rawhide.hand", (-1.5, -1.5, -2.5)),

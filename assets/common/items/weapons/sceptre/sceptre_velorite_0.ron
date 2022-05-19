@@ -6,9 +6,9 @@ ItemDef(
         hands: Two,
         stats: (
             equip_time_secs: 0.4,
-            power: 2.0,
+            power: 1.75,
             effect_power: 1.5,
-            speed: 1.0,
+            speed: 0.65,
             crit_chance: 0.21153846,
             range: 1.0,
             energy_efficiency: 1.0,

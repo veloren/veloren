@@ -40,6 +40,18 @@
             vox_spec: ("armor.velorite_battlemage.back", (-5.0, -1.0, -14.0)),
             color: None
         ),
+        "common.items.debug.admin_back": (
+            vox_spec: ("armor.velorite_battlemage.back", (-5.0, -1.0, -14.0)),
+            color: None
+        ),
+        "common.items.debug.admin_back": (
+            vox_spec: ("armor.velorite_battlemage.back", (-5.0, -1.0, -14.0)),
+            color: None
+        ),
+        "common.items.debug.dungeon_purple": (
+            vox_spec: ("armor.velorite_battlemage.back", (-5.0, -1.0, -14.0)),
+            color: None
+        ),
         "common.items.npc_armor.back.leather_blue": (
             vox_spec: ("armor.leather_blue.back", (-5.0, -1.0, -11.0)),
             color: None

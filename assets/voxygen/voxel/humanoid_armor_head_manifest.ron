@@ -765,52 +765,52 @@
             color: None
         ),
 //
-        (Danari, Male, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-2.0, -2.0, -8.0)),
+        (Danari, Male, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-2.0, -1.0, -8.0)),
             color: None
         ),
-        (Danari, Female, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-2.0, -2.0, -8.0)),
+        (Danari, Female, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-2.0, -1.0, -8.0)),
             color: None
         ),
-        (Dwarf, Male, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-5.0, -1.0, -10.0)),
+        (Dwarf, Male, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-5.0, 0.0, -10.0)),
             color: None
         ),
-        (Dwarf, Female, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-5.0, -1.0, -10.0)),
+        (Dwarf, Female, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-5.0, 0.0, -10.0)),
             color: None
         ),
-        (Human, Male, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-4.0, -2.0, -11.0)),
+        (Human, Male, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-4.0, -1.0, -10.0)),
             color: None
         ),
-        (Human, Female, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-4.0, -2.0, -10.0)),
+        (Human, Female, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-4.0, 0.0, -10.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-6.0, -2.0, -8.0)),
+        (Undead, Male, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-6.0, -1.0, -8.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-6.0, -2.0, -9.0)),
+        (Undead, Female, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-6.0, -1.0, -9.0)),
             color: None
         ),
-        (Elf, Male, "common.items.armor.cultist.hat"): (
+        (Elf, Male, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-3.0, -1.0, -10.0)),
+            color: None
+        ),
+        (Elf, Female, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-3.0, -1.0, -10.0)),
+            color: None
+        ),
+        (Orc, Male, "common.items.armor.cultist.bandana"): (
+            vox_spec: ("armor.cultist.bandana", (-3.0, 0.0, -7.0)),
+            color: None
+        ),
+        (Orc, Female, "common.items.armor.cultist.bandana"): (
             vox_spec: ("armor.cultist.bandana", (-3.0, -2.0, -10.0)),
-            color: None
-        ),
-        (Elf, Female, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-3.0, -2.0, -10.0)),
-            color: None
-        ),
-        (Orc, Male, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-3.0, 0.0, -8.0)),
-            color: None
-        ),
-        (Orc, Female, "common.items.armor.cultist.hat"): (
-            vox_spec: ("armor.cultist.bandana", (-3.0, -3.0, -10.0)),
             color: None
         ),
         //
@@ -961,51 +961,51 @@
             color: None
         ),
         // Merchant Turban
-        (Human, Male, "common.items.armor.merchant.hat"): (
+        (Human, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-4.0, -7.0, -6.0)),
             color: None
         ),
-        (Human, Female, "common.items.armor.merchant.hat"): (
+        (Human, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-4.0, -6.0, -6.0)),
             color: None
         ),
-        (Elf, Male, "common.items.armor.merchant.hat"): (
+        (Elf, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-3.0, -7.0, -6.0)),
             color: None
         ),
-        (Elf, Female, "common.items.armor.merchant.hat"): (
+        (Elf, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-3.0, -7.0, -6.0)),
             color: None
         ),
-        (Dwarf, Male, "common.items.armor.merchant.hat"): (
+        (Dwarf, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-5.0, -6.0, -6.0)),
             color: None
         ),
-        (Dwarf, Female, "common.items.armor.merchant.hat"): (
+        (Dwarf, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-5.0, -6.0, -6.0)),
             color: None
         ),
-        (Danari, Male, "common.items.armor.merchant.hat"): (
+        (Danari, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-2.0, -7.0, -4.0)),
             color: None
         ),
-        (Danari, Female, "common.items.armor.merchant.hat"): (
+        (Danari, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-2.0, -7.0, -4.0)),
             color: None
         ),
-        (Undead, Male, "common.items.armor.merchant.hat"): (
+        (Undead, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-6.0, -7.0, -4.0)),
             color: None
         ),
-        (Undead, Female, "common.items.armor.merchant.hat"): (
+        (Undead, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-6.0, -7.0, -5.0)),
             color: None
         ),
-        (Orc, Male, "common.items.armor.merchant.hat"): (
+        (Orc, Male, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-3.0, -5.0, -4.0)),
             color: None
         ),
-        (Orc, Female, "common.items.armor.merchant.hat"): (
+        (Orc, Female, "common.items.armor.merchant.turban"): (
             vox_spec: ("armor.merchant.turban", (-3.0, -8.0, -6.0)),
             color: None
         ),

@@ -24,6 +24,6 @@
         (2, Item("common.items.weapons.hammer.cultist_purp_2h-0")),
         (2, ModularWeapon(tool: Hammer, material: Orichalcum, hands: None)),
         (2, Item("common.items.weapons.bow.velorite")),
-        (1, Item("common.items.weapons.sceptre.sceptre_velorite_0")),
+        (1, Item("common.items.weapons.sceptre.root_evil")),
     ]), None)),
 )

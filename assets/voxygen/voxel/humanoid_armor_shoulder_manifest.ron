@@ -231,6 +231,16 @@
                 color: None
             )
         ),
+        "common.items.debug.cultist_shoulder_blue": (
+            left: (
+                vox_spec: ("armor.velorite_battlemage.shoulder", (-6.0, -4.0 , 0.0)),
+                color: None
+            ),
+            right: (
+                vox_spec: ("armor.velorite_battlemage.shoulder", (-1.0, -4.0, 0.0)),
+                color: None
+            )
+        ),
         "common.items.armor.hide.rawhide.shoulder": (
             left: (
                 vox_spec: ("armor.hide.rawhide.shoulder", (-4.0, -3.2, -0.5)),
