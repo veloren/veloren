@@ -14,13 +14,15 @@
         "buff.title.saturation": "Saturazione",
         "buff.desc.saturation": "Guadagna vita nel tempo dai consumabili.",
         "buff.title.campfire_heal": "Cura del Falò",
-        "buff.desc.campfire_heal": "Riposarsi ad un falò cura di {rate}% al secondo.",
+        "buff.desc.campfire_heal": "Riposarsi ad un falò cura del {rate}% al secondo.",
         "buff.title.invulnerability": "Invulnerabilità",
         "buff.desc.invulnerability": "Non puoi essere danneggiato da nessun attacco.",
         "buff.title.protectingward": "Barriera Protettiva",
         "buff.desc.protectingward": "Sei un po' protetto dagli attacchi.",
         "buff.title.frenzied": "Frenetico",
         "buff.desc.frenzied": "Sei imbevuto con velocità innaturale e puoi ignorare ferite minori.",
+        "buff.title.hastened": "Rapido",
+        "buff.desc.hastened": "I tuoi movimenti e i tuoi attachi sono più veloci.",
         // Debuffs
         "buff.title.bleed": "Sanguinante",
         "buff.desc.bleed": "Infligge danno regolare.",
@@ -35,14 +37,14 @@
         "buff.title.wet": "bagnato",
         "buff.desc.wet": "Il terreno rifiuta i tuoi piedi, rendendoti difficile fermarsi.",
         "buff.title.ensnared": "Intrappolato",
-        "buff.desc.ensnared": "Liane si attorcigliano intorno alle tue gambe, impedendo il uo movimento.",
+        "buff.desc.ensnared": "Liane si attorcigliano intorno alle tue gambe, impedendo il tuo movimento.",
         // Buffs stats
         "buff.stat.health": "Rigenera {str_total} di Salute",
         "buff.stat.increase_max_energy": "Aumenta l'Energia Massima di {strength}",
         "buff.stat.increase_max_health": "Aumenta la Salute Massima di {strength}",
         "buff.stat.invulnerability": "Dona invulnerabilità",
         // Text
-        "buff.text.over_seconds": "nella durata di {dur_secs} second1",
+        "buff.text.over_seconds": "nella durata di {dur_secs} secondi",
         "buff.text.for_seconds": "per {dur_secs} secondi",
     },
 
