@@ -69,8 +69,12 @@
             color: None
         ),
         "common.items.armor.velorite_mage.belt": (
-          vox_spec: ("armor.velorite_battlemage.belt", (-5.0, -3.5, 2.0)),
-          color: None
+            vox_spec: ("armor.velorite_battlemage.belt", (-5.0, -3.5, 2.0)),
+            color: None
+        ),
+        "common.items.debug.cultist_belt": (
+            vox_spec: ("armor.velorite_battlemage.belt", (-5.0, -3.5, 2.0)),
+            color: None
         ),
         "common.items.armor.hide.rawhide.belt": (
             vox_spec: ("armor.hide.rawhide.belt", (-4.0, -3.5, 2.0)),

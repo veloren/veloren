@@ -3166,6 +3166,10 @@
         "voxel.sprite.flowers.sunflower_1",
         (-2.0, -0.5, -1.0), (-60.0, 40.0, 20.0), 1.1,
     ),
+    Simple("common.items.flowers.yellow"): VoxTrans(
+        "voxel.sprite.flowers.sunflower_1",
+        (-2.0, -0.5, -1.0), (-60.0, 40.0, 20.0), 1.1,
+    ),
     Simple("common.items.flowers.red"): VoxTrans(
         "voxel.sprite.flowers.flower_red-4",
         (0.0, 0.5, 0.0), (-70.0, 10.0, 0.0), 0.8,
