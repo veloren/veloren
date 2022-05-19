@@ -23,6 +23,7 @@ widget_ids! {
         general_txt,
         transp_text,
         transp_slider,
+        transp_value,
         char_name_text,
         char_name_button,
         reset_chat_button,
@@ -173,6 +174,14 @@ impl<'a> Widget for Chat<'a> {
         {
             events.push(Event::ChatChange(Transp(new_val)));
         }
+
+        Text::new(&format!("{:.2}", chat_settings.chat_opacity,))
+            .right_from(state.ids.transp_slider, 8.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .graphics_for(state.ids.transp_slider)
+            .font_id(self.fonts.cyri.conrod_id)
+            .color(TEXT_COLOR)
+            .set(state.ids.transp_value, ui);
 
         // "Show character names in chat" toggle button
         Text::new(
