@@ -45,7 +45,7 @@ impl Animation for ComboAnimation {
                     _ => (0.0, 0.0, 0.0, 0.0),
                 }
             } else {
-                (1.0, 1.0, 1.0, 1.0)
+                (1.0, 1.0, 0.0, 1.0)
             };
             let pullback = 1.0 - move3;
             let move2 = move2 * pullback;
