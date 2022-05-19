@@ -1,6 +1,6 @@
 ItemDef(
     name: "Moonbell",
-    description: "It glistens brilliantly, but only under moonlight.",
+    description: "It glistens brilliantly under the moonlight.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

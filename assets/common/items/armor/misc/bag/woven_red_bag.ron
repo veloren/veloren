@@ -1,6 +1,6 @@
 ItemDef(
     name: "Woven Red Bag",
-    description: "Made from some patches of dyed cloth.",
+    description: "A moderately sized red bag. Although it still feels pretty cramped.",
     kind: Armor(
         (
             kind: Bag,

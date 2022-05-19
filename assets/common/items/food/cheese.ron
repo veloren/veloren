@@ -1,6 +1,6 @@
 ItemDef(
     name: "Dwarven Cheese",
-    description: "Aromatic and nutritious",
+    description: "Made from goat milk from the finest dwarven produce. Aromatic and nutritious!",
     kind: Consumable(
         kind: Food,
         effects: [

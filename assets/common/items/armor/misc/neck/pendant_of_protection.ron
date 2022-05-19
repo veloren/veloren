@@ -1,10 +1,10 @@
 ItemDef(
     name: "Pendant of Protection",
-    description: "You feel as if something is always watching you...",
+    description: "You feel some sort of presence keeping you safe...",
     kind: Armor((
         kind: Neck,
         stats: (
-            protection: Some(Normal(1.0)),
+            protection: Some(Normal(1.5)),
         ),
     )),
     quality: Common,

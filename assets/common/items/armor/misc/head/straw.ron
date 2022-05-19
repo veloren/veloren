@@ -1,10 +1,10 @@
 ItemDef(
     name: "Straw Hat",
-    description: "Simple and stylish.",
+    description: "Often times worn by villagers. It's simple and stylish!",
     kind: Armor((
         kind: Head,
         stats: (
-            energy_max: Some(4.0),
+            energy_max: Some(3.0),
             energy_reward: Some(0.02),
         ),
     )),

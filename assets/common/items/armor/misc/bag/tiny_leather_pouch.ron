@@ -1,6 +1,6 @@
 ItemDef(
-    name: "Tiny Leather Pouch",
-    description: "Made from a few patches of leather.",
+    name: "Small Leather Pouch",
+    description: "A small reliable leather pouch.",
     kind: Armor(
         (
             kind: Bag,

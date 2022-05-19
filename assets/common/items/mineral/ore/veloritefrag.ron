@@ -1,6 +1,6 @@
 ItemDef(
     name: "Velorite Fragment",
-    description: "Small runes sparkle on its surface",
+    description: "Small runes sparkle on its surface, though you don't know what it means.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

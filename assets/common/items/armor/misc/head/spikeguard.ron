@@ -1,13 +1,12 @@
 ItemDef(
-    name: "Spiked Faceguard",
-    description: "Introvert headgear.",
+    name: "Spiked Crown",
+    description: "Resembling some sort of thorny crown.",
     kind: Armor((
         kind: Head,
         stats: (
             protection: Some(Normal(9.0)),
             poise_resilience: Some(Normal(3.0)),
-            crit_power: Some(0.073),
-            stealth: Some(-0.5),
+            crit_power: Some(0.036),
         ),
     )),
     quality: High,

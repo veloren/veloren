@@ -1,6 +1,6 @@
 ItemDef(
     name: "Scratched Necklace",
-    description: "The string is about to snap...",
+    description: "A shoddy necklace with a string about to snap...",
     kind: Armor((
         kind: Neck,
         stats: (

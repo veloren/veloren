@@ -3,7 +3,7 @@
     name: Automatic,
     body: RandomWith("yak"),
     alignment: Alignment(Wild),
-    loot: LootTable("common.loot_tables.creature.quad_medium.gentle"),
+    loot: LootTable("common.loot_tables.creature.quad_medium.yak"),
     inventory: (
         loadout: FromBody,
     ),

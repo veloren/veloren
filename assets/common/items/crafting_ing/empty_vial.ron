@@ -1,6 +1,6 @@
 ItemDef(
     name: "Empty Vial",
-    description: "Can be filled with fluids.",
+    description: "A simple glass vial used for holding various fluids.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",

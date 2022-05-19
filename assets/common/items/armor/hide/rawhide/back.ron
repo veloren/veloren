@@ -1,6 +1,6 @@
 ItemDef(
     name: "Rawhide Cloak",
-    description: "'Tightly packed pieces of leather to endure all weather.'",
+    description: "Tightly packed pieces of leather. Light-weight and sturdy!",
     kind: Armor((
         kind: Back,
         stats: (

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Bomb",
-    description: "Boom!",
+    description: "A highly explosive device, demolitionists adore them!",
     kind: Throwable(
         kind: Bomb,
     ),

@@ -1,6 +1,6 @@
 ItemDef(
     name: "Tomato",
-    description: "A red fruit. Not actually a vegetable.",
+    description: "A red fruit. It's not actually a vegetable!",
     kind: Consumable(
         kind: Food,
         effects: [

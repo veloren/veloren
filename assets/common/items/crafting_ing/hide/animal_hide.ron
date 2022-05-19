@@ -1,6 +1,6 @@
 ItemDef(
     name: "Animal Hide",
-    description: "A pelt from an animal. Becomes leather.",
+    description: "A common pelt from most animals. Becomes leather.",
     kind: Ingredient(
         // Descriptor not needed
         descriptor: "",
