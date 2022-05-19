@@ -9,7 +9,8 @@ use crate::{
         consts::{
             AVG_FOLLOW_DIST, DAMAGE_MEMORY_DURATION, DEFAULT_ATTACK_RANGE, FLEE_DURATION,
             HEALING_ITEM_THRESHOLD, IDLE_HEALING_ITEM_THRESHOLD, MAX_FLEE_DIST, MAX_FOLLOW_DIST,
-            PARTIAL_PATH_DIST, RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS, SEPARATION_DIST,
+            NPC_PICKUP_RANGE, PARTIAL_PATH_DIST, RETARGETING_THRESHOLD_SECONDS, SEPARATION_BIAS,
+            SEPARATION_DIST,
         },
         data::{AgentData, AttackData, Path, ReadData, Tactic, TargetData},
         util::{
@@ -38,7 +39,7 @@ use common::{
         },
         projectile::ProjectileConstructor,
         Agent, Alignment, BehaviorState, Body, CharacterState, ControlAction, ControlEvent,
-        Controller, Health, HealthChange, InputKind, InventoryAction, Pos, Scale,
+        Controller, Health, HealthChange, InputKind, InventoryAction, InventoryEvent, Pos, Scale,
         UnresolvedChatMsg, UtteranceKind,
     },
     effect::{BuffEffect, Effect},
@@ -421,6 +422,31 @@ impl<'a> AgentData<'a> {
                 };
             } else {
                 self.idle_tree(agent, controller, read_data, event_emitter, rng);
+            }
+        } else if matches!(read_data.bodies.get(target), Some(Body::ItemDrop(_))) {
+            if let Some(tgt_pos) = read_data.positions.get(target) {
+                let dist_sqrd = self.pos.0.distance_squared(tgt_pos.0);
+                if dist_sqrd < NPC_PICKUP_RANGE.powi(2) {
+                    if let Some(uid) = read_data.uids.get(target) {
+                        controller
+                            .push_event(ControlEvent::InventoryEvent(InventoryEvent::Pickup(*uid)));
+                    }
+                } else if let Some((bearing, speed)) = agent.chaser.chase(
+                    &*read_data.terrain,
+                    self.pos.0,
+                    self.vel.0,
+                    tgt_pos.0,
+                    TraversalConfig {
+                        min_tgt_dist: NPC_PICKUP_RANGE - 1.0,
+                        ..self.traversal_config
+                    },
+                ) {
+                    controller.inputs.move_dir =
+                        bearing.xy().try_normalized().unwrap_or_else(Vec2::zero)
+                            * speed.min(0.2 + (dist_sqrd - (NPC_PICKUP_RANGE - 1.5).powi(2)) / 8.0);
+                    self.jump_if(bearing.z > 1.5, controller);
+                    controller.inputs.move_z = bearing.z;
+                }
             }
         } else {
             agent.target = None;
@@ -1551,15 +1577,19 @@ impl<'a> AgentData<'a> {
         let mut aggro_on = false;
 
         let get_pos = |entity| read_data.positions.get(entity);
-        let get_enemy = |entity: EcsEntity| {
-            if self.is_enemy(entity, read_data) {
-                Some(entity)
-            } else if self.should_defend(entity, read_data) {
-                if let Some(attacker) = get_attacker(entity, read_data) {
-                    if !self.passive_towards(attacker, read_data) {
-                        // aggro_on: attack immediately, do not warn/menace.
-                        aggro_on = true;
-                        Some(attacker)
+        let get_enemy = |(entity, attack_target): (EcsEntity, bool)| {
+            if attack_target {
+                if self.is_enemy(entity, read_data) {
+                    Some((entity, true))
+                } else if self.should_defend(entity, read_data) {
+                    if let Some(attacker) = get_attacker(entity, read_data) {
+                        if !self.passive_towards(attacker, read_data) {
+                            // aggro_on: attack immediately, do not warn/menace.
+                            aggro_on = true;
+                            Some((attacker, true))
+                        } else {
+                            None
+                        }
                     } else {
                         None
                     }
@@ -1567,13 +1597,20 @@ impl<'a> AgentData<'a> {
                     None
                 }
             } else {
-                None
+                Some((entity, false))
             }
         };
-        let is_valid_target = |entity| {
-            read_data.healths.get(entity).map_or(false, |health| {
-                !health.is_dead && !is_invulnerable(entity, read_data)
-            })
+        let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
+            Some(Body::ItemDrop(_)) => Some((entity, false)),
+            _ => {
+                if read_data.healths.get(entity).map_or(false, |health| {
+                    !health.is_dead && !is_invulnerable(entity, read_data)
+                }) {
+                    Some((entity, true))
+                } else {
+                    None
+                }
+            },
         };
 
         let can_sense_directly_near =
@@ -1592,12 +1629,19 @@ impl<'a> AgentData<'a> {
 
         let target = grid
             .in_circle_aabr(self.pos.0.xy(), agent.psyche.search_dist())
-            .filter(|entity| is_valid_target(*entity))
+            .filter_map(is_valid_target)
             .filter_map(get_enemy)
-            .filter_map(|entity| get_pos(entity).map(|pos| (entity, pos)))
-            .filter(|(entity, e_pos)| is_detected(*entity, e_pos))
-            .min_by_key(|(_, e_pos)| (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32)
-            .map(|(entity, _)| entity);
+            .filter_map(|(entity, attack_target)| {
+                get_pos(entity).map(|pos| (entity, pos, attack_target))
+            })
+            .filter(|(entity, e_pos, _)| is_detected(*entity, e_pos))
+            .min_by_key(|(_, e_pos, attack_target)| {
+                (
+                    *attack_target,
+                    (e_pos.0.distance_squared(self.pos.0) * 100.0) as i32,
+                )
+            })
+            .map(|(entity, _, attack_target)| (entity, attack_target));
 
         if agent.target.is_none() && target.is_some() {
             if aggro_on {
@@ -1606,13 +1650,13 @@ impl<'a> AgentData<'a> {
                 controller.push_utterance(UtteranceKind::Surprised);
             }
         }
-        // Change target to new target.
-        agent.target = target.map(|target| Target {
-            target,
-            hostile: true,
+
+        agent.target = target.map(|(entity, attack_target)| Target {
+            target: entity,
+            hostile: attack_target,
             selected_at: read_data.time.0,
             aggro_on,
-        });
+        })
     }
 
     fn attack(
