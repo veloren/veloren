@@ -55,6 +55,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an error where '{amount} Exp' floater did not use existing localizations
 - Fix villagers seeing cultists and familiar enemies through objects.
 - Menacing agents are now less spammy with their menacing messages
+- Reduced effects of slow/high FPS on physics like player speed by ~50%
 
 ## [0.12.0] - 2022-02-19
 
