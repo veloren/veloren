@@ -82,9 +82,11 @@ impl<D> SendProtocol for MpscSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
+    type CustomErr = D::CustomErr;
+
     fn notify_from_recv(&mut self, _event: ProtocolEvent) {}
 
-    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
+    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError<Self::CustomErr>> {
         #[cfg(feature = "trace_pedantic")]
         trace!(?event, "send");
         match &event {
@@ -113,7 +115,11 @@ where
         }
     }
 
-    async fn flush(&mut self, _: Bandwidth, _: Duration) -> Result<Bandwidth, ProtocolError> {
+    async fn flush(
+        &mut self,
+        _: Bandwidth,
+        _: Duration,
+    ) -> Result<Bandwidth, ProtocolError<Self::CustomErr>> {
         Ok(0)
     }
 }
@@ -123,7 +129,9 @@ impl<S> RecvProtocol for MpscRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
-    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
+    type CustomErr = S::CustomErr;
+
+    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError<Self::CustomErr>> {
         let event = self.sink.recv().await?;
         #[cfg(feature = "trace_pedantic")]
         trace!(?event, "recv");
@@ -153,7 +161,9 @@ impl<D> ReliableDrain for MpscSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = MpscMsg>,
 {
-    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError> {
+    type CustomErr = D::CustomErr;
+
+    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError<Self::CustomErr>> {
         self.drain.send(MpscMsg::InitFrame(frame)).await
     }
 }
@@ -163,7 +173,9 @@ impl<S> ReliableSink for MpscRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = MpscMsg>,
 {
-    async fn recv(&mut self) -> Result<InitFrame, ProtocolError> {
+    type CustomErr = S::CustomErr;
+
+    async fn recv(&mut self) -> Result<InitFrame, ProtocolError<Self::CustomErr>> {
         match self.sink.recv().await? {
             MpscMsg::Event(_) => Err(ProtocolError::Violated),
             MpscMsg::InitFrame(f) => Ok(f),
@@ -209,25 +221,30 @@ pub mod test_utils {
 
     #[async_trait]
     impl UnreliableDrain for ACDrain {
+        type CustomErr = ();
         type DataFormat = MpscMsg;
 
-        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        async fn send(
+            &mut self,
+            data: Self::DataFormat,
+        ) -> Result<(), ProtocolError<Self::CustomErr>> {
             self.sender
                 .send(data)
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableSink for ACSink {
+        type CustomErr = ();
         type DataFormat = MpscMsg;
 
-        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
             self.receiver
                 .recv()
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 }

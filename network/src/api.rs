@@ -1,4 +1,5 @@
 use crate::{
+    channel::ProtocolsError,
     message::{partial_eq_bincode, Message},
     participant::{A2bStreamOpen, S2bShutdownBparticipant},
     scheduler::{A2sConnect, Scheduler},
@@ -106,7 +107,7 @@ pub enum NetworkError {
 pub enum NetworkConnectError {
     /// Either a Pid UUID clash or you are trying to hijack a connection
     InvalidSecret,
-    Handshake(InitProtocolError),
+    Handshake(InitProtocolError<ProtocolsError>),
     Io(std::io::Error),
 }
 

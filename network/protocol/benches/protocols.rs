@@ -271,73 +271,88 @@ mod utils {
 
     #[async_trait]
     impl UnreliableDrain for ACDrain {
+        type CustomErr = ();
         type DataFormat = MpscMsg;
 
-        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        async fn send(
+            &mut self,
+            data: Self::DataFormat,
+        ) -> Result<(), ProtocolError<Self::CustomErr>> {
             self.sender
                 .send(data)
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableSink for ACSink {
+        type CustomErr = ();
         type DataFormat = MpscMsg;
 
-        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
             self.receiver
                 .recv()
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableDrain for TcpDrain {
+        type CustomErr = ();
         type DataFormat = BytesMut;
 
-        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        async fn send(
+            &mut self,
+            data: Self::DataFormat,
+        ) -> Result<(), ProtocolError<Self::CustomErr>> {
             self.sender
                 .send(data)
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableSink for TcpSink {
+        type CustomErr = ();
         type DataFormat = BytesMut;
 
-        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
             self.receiver
                 .recv()
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableDrain for QuicDrain {
+        type CustomErr = ();
         type DataFormat = QuicDataFormat;
 
-        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        async fn send(
+            &mut self,
+            data: Self::DataFormat,
+        ) -> Result<(), ProtocolError<Self::CustomErr>> {
             self.sender
                 .send(data)
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableSink for QuicSink {
+        type CustomErr = ();
         type DataFormat = QuicDataFormat;
 
-        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
             self.receiver
                 .recv()
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 }

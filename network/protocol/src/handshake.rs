@@ -21,7 +21,8 @@ use tracing::{debug, error, info, trace};
 /// [`RecvProtocol`]: crate::RecvProtocol
 #[async_trait]
 pub trait ReliableDrain {
-    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError>;
+    type CustomErr: std::fmt::Debug + Send;
+    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError<Self::CustomErr>>;
 }
 
 /// Implement this for auto Handshake with [`ReliableDrain`]. See
@@ -30,21 +31,25 @@ pub trait ReliableDrain {
 /// [`ReliableDrain`]: crate::ReliableDrain
 #[async_trait]
 pub trait ReliableSink {
-    async fn recv(&mut self) -> Result<InitFrame, ProtocolError>;
+    type CustomErr: std::fmt::Debug + Send;
+    async fn recv(&mut self) -> Result<InitFrame, ProtocolError<Self::CustomErr>>;
 }
 
 #[async_trait]
-impl<D, S> InitProtocol for (D, S)
+impl<D, S, E> InitProtocol for (D, S)
 where
-    D: ReliableDrain + Send,
-    S: ReliableSink + Send,
+    D: ReliableDrain<CustomErr = E> + Send,
+    S: ReliableSink<CustomErr = E> + Send,
+    E: std::fmt::Debug + Send,
 {
+    type CustomErr = E;
+
     async fn initialize(
         &mut self,
         initializer: bool,
         local_pid: Pid,
         local_secret: u128,
-    ) -> Result<(Pid, Sid, u128), InitProtocolError> {
+    ) -> Result<(Pid, Sid, u128), InitProtocolError<E>> {
         #[cfg(debug_assertions)]
         const WRONG_NUMBER: &str = "Handshake does not contain the magic number required by \
                                     veloren server.\nWe are not sure if you are a valid veloren \
@@ -122,11 +127,11 @@ where
                     Ok(string) => error!(?string, ERR_S),
                     _ => error!(?bytes, ERR_S),
                 }
-                Err(InitProtocolError::Closed)
+                Err(InitProtocolError::NotHandshake)
             },
             _ => {
                 info!("Handshake failed");
-                Err(InitProtocolError::Closed)
+                Err(InitProtocolError::NotHandshake)
             },
         }?;
 
@@ -152,11 +157,11 @@ where
                     Ok(string) => error!(?string, ERR_S),
                     _ => error!(?bytes, ERR_S),
                 }
-                Err(InitProtocolError::Closed)
+                Err(InitProtocolError::NotId)
             },
             _ => {
                 info!("Handshake failed");
-                Err(InitProtocolError::Closed)
+                Err(InitProtocolError::NotId)
             },
         }
     }
@@ -176,7 +181,7 @@ mod tests {
             let _ = p2;
         });
         let (r1, _) = tokio::join!(r1, r2);
-        assert_eq!(r1.unwrap(), Err(InitProtocolError::Closed));
+        assert_eq!(r1.unwrap(), Err(InitProtocolError::Custom(())));
     }
 
     #[tokio::test]
@@ -191,7 +196,7 @@ mod tests {
             })
             .await?;
             let _ = p2.1.recv().await?;
-            Result::<(), InitProtocolError>::Ok(())
+            Result::<(), InitProtocolError<()>>::Ok(())
         });
         let (r1, r2) = tokio::join!(r1, r2);
         assert_eq!(
@@ -218,7 +223,7 @@ mod tests {
         });
         let (r1, r2) = tokio::join!(r1, r2);
         assert_eq!(r1.unwrap(), Err(InitProtocolError::WrongVersion([0, 1, 2])));
-        assert_eq!(r2.unwrap(), Err(InitProtocolError::Closed));
+        assert_eq!(r2.unwrap(), Err(InitProtocolError::Custom(())));
     }
 
     #[tokio::test]
@@ -234,10 +239,10 @@ mod tests {
             .await?;
             let _ = p2.1.recv().await?;
             p2.0.send(InitFrame::Raw(b"Hello World".to_vec())).await?;
-            Result::<(), InitProtocolError>::Ok(())
+            Result::<(), InitProtocolError<()>>::Ok(())
         });
         let (r1, r2) = tokio::join!(r1, r2);
-        assert_eq!(r1.unwrap(), Err(InitProtocolError::Closed));
+        assert_eq!(r1.unwrap(), Err(InitProtocolError::NotId));
         assert_eq!(r2.unwrap(), Ok(()));
     }
 }

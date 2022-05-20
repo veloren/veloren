@@ -2,38 +2,50 @@
 ///
 /// [`InitProtocol`]: crate::InitProtocol
 #[derive(Debug, PartialEq)]
-pub enum InitProtocolError {
-    Closed,
+pub enum InitProtocolError<E: std::fmt::Debug + Send> {
+    Custom(E),
+    /// expected Handshake, didn't get handshake
+    NotHandshake,
+    /// expected Id, didn't get id
+    NotId,
     WrongMagicNumber([u8; 7]),
     WrongVersion([u32; 3]),
 }
 
 /// When you return closed you must stay closed!
 #[derive(Debug, PartialEq)]
-pub enum ProtocolError {
-    /// Closed indicates the underlying I/O got closed
+pub enum ProtocolError<E: std::fmt::Debug + Send> {
+    /// Custom Error on the underlying I/O,
     /// e.g. the TCP, UDP or MPSC connection is dropped by the OS
-    Closed,
+    Custom(E),
     /// Violated indicates the veloren_network_protocol was violated
     /// the underlying I/O connection is still valid, but the remote side
     /// send WRONG (e.g. Invalid, or wrong order) data on the protocol layer.
     Violated,
 }
 
-impl From<ProtocolError> for InitProtocolError {
-    fn from(err: ProtocolError) -> Self {
+impl<E: std::fmt::Debug + Send> From<ProtocolError<E>> for InitProtocolError<E> {
+    fn from(err: ProtocolError<E>) -> Self {
         match err {
-            ProtocolError::Closed => InitProtocolError::Closed,
-            // not possible as the Init has raw access to the I/O
-            ProtocolError::Violated => InitProtocolError::Closed,
+            ProtocolError::Custom(e) => InitProtocolError::Custom(e),
+            ProtocolError::Violated => {
+                unreachable!("not possible as the Init has raw access to the I/O")
+            },
         }
     }
 }
 
-impl core::fmt::Display for InitProtocolError {
+impl<E: std::fmt::Debug + Send> core::fmt::Display for InitProtocolError<E> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            InitProtocolError::Closed => write!(f, "Channel closed"),
+            InitProtocolError::Custom(e) => write!(f, "custom: {:?}", e),
+            InitProtocolError::NotHandshake => write!(
+                f,
+                "Remote send something which couldn't be parsed as a handshake"
+            ),
+            InitProtocolError::NotId => {
+                write!(f, "Remote send something which couldn't be parsed as an id")
+            },
             InitProtocolError::WrongMagicNumber(r) => write!(
                 f,
                 "Magic Number doesn't match, remote side send '{:?}' instead of '{:?}'",
@@ -50,14 +62,14 @@ impl core::fmt::Display for InitProtocolError {
     }
 }
 
-impl core::fmt::Display for ProtocolError {
+impl<E: std::fmt::Debug + Send> core::fmt::Display for ProtocolError<E> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
-            ProtocolError::Closed => write!(f, "Channel closed"),
+            ProtocolError::Custom(e) => write!(f, "Channel custom close: {:?}", e),
             ProtocolError::Violated => write!(f, "Channel protocol violated"),
         }
     }
 }
 
-impl std::error::Error for InitProtocolError {}
-impl std::error::Error for ProtocolError {}
+impl<E: std::fmt::Debug + Send> std::error::Error for InitProtocolError<E> {}
+impl<E: std::fmt::Debug + Send> std::error::Error for ProtocolError<E> {}

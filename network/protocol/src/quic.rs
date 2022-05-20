@@ -147,7 +147,9 @@ where
         }
     }
 
-    async fn recv_into_stream(&mut self) -> Result<QuicDataFormatStream, ProtocolError> {
+    async fn recv_into_stream(
+        &mut self,
+    ) -> Result<QuicDataFormatStream, ProtocolError<S::CustomErr>> {
         let chunk = self.sink.recv().await?;
         let buffer = match chunk.stream {
             QuicDataFormatStream::Main => &mut self.main_buffer,
@@ -181,6 +183,8 @@ impl<D> SendProtocol for QuicSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = QuicDataFormat>,
 {
+    type CustomErr = D::CustomErr;
+
     fn notify_from_recv(&mut self, event: ProtocolEvent) {
         match event {
             ProtocolEvent::OpenStream {
@@ -206,7 +210,7 @@ where
         }
     }
 
-    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
+    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError<Self::CustomErr>> {
         #[cfg(feature = "trace_pedantic")]
         trace!(?event, "send");
         match event {
@@ -268,7 +272,7 @@ where
         &mut self,
         bandwidth: Bandwidth,
         dt: Duration,
-    ) -> Result</* actual */ Bandwidth, ProtocolError> {
+    ) -> Result</* actual */ Bandwidth, ProtocolError<Self::CustomErr>> {
         let (frames, _) = self.store.grab(bandwidth, dt);
         //Todo: optimize reserve
         let mut data_frames = 0;
@@ -343,7 +347,9 @@ impl<S> RecvProtocol for QuicRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = QuicDataFormat>,
 {
-    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
+    type CustomErr = S::CustomErr;
+
+    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError<Self::CustomErr>> {
         'outer: loop {
             match ITFrame::read_frame(&mut self.main_buffer) {
                 Ok(Some(frame)) => {
@@ -484,7 +490,9 @@ impl<D> ReliableDrain for QuicSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = QuicDataFormat>,
 {
-    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError> {
+    type CustomErr = D::CustomErr;
+
+    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError<Self::CustomErr>> {
         self.main_buffer.reserve(500);
         frame.write_bytes(&mut self.main_buffer);
         self.drain
@@ -498,7 +506,9 @@ impl<S> ReliableSink for QuicRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = QuicDataFormat>,
 {
-    async fn recv(&mut self) -> Result<InitFrame, ProtocolError> {
+    type CustomErr = S::CustomErr;
+
+    async fn recv(&mut self) -> Result<InitFrame, ProtocolError<Self::CustomErr>> {
         while self.main_buffer.len() < 100 {
             if self.recv_into_stream().await? == QuicDataFormatStream::Main {
                 if let Some(frame) = InitFrame::read_frame(&mut self.main_buffer) {
@@ -564,9 +574,13 @@ mod test_utils {
 
     #[async_trait]
     impl UnreliableDrain for QuicDrain {
+        type CustomErr = ();
         type DataFormat = QuicDataFormat;
 
-        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        async fn send(
+            &mut self,
+            data: Self::DataFormat,
+        ) -> Result<(), ProtocolError<Self::CustomErr>> {
             use rand::Rng;
             if matches!(data.stream, QuicDataFormatStream::Unreliable)
                 && rand::thread_rng().gen::<f32>() < self.drop_ratio
@@ -576,19 +590,20 @@ mod test_utils {
             self.sender
                 .send(data)
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableSink for QuicSink {
+        type CustomErr = ();
         type DataFormat = QuicDataFormat;
 
-        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
             self.receiver
                 .recv()
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 }
@@ -865,7 +880,7 @@ mod tests {
         drop(s);
 
         let e = e.await.unwrap();
-        assert_eq!(e, Err(ProtocolError::Closed));
+        assert_eq!(e, Err(ProtocolError::Custom(())));
     }
 
     #[tokio::test]

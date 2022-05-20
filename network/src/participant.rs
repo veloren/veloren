@@ -1,6 +1,6 @@
 use crate::{
     api::{ParticipantError, Stream},
-    channel::{Protocols, RecvProtocols, SendProtocols},
+    channel::{Protocols, ProtocolsError, RecvProtocols, SendProtocols},
     metrics::NetworkMetrics,
     util::DeferredTracer,
 };
@@ -371,7 +371,7 @@ impl BParticipant {
                 self.metrics
                     .participant_bandwidth(&self.remote_pid_string, part_bandwidth);
                 let _ = b2a_bandwidth_stats_s.send(part_bandwidth);
-                let r: Result<(), network_protocol::ProtocolError> = Ok(());
+                let r: Result<(), network_protocol::ProtocolError<ProtocolsError>> = Ok(());
                 r
             }
             .await;

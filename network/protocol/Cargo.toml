@@ -1,7 +1,7 @@
 [package]
 name = "veloren-network-protocol"
 description = "pure Protocol without any I/O itself"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Marcel Märtens <marcel.cochem@googlemail.com>"]
 edition = "2021"
 
@@ -24,7 +24,7 @@ rand = { version = "0.8" }
 # async traits
 async-trait = "0.1.42"
 bytes = "^1"
-hashbrown = { version = ">=0.9, <0.13" }
+hashbrown = { version = ">=0.12, <0.13" }
 
 [dev-dependencies]
 async-channel = "1.5.1"
