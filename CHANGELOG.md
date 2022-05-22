@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add stealth stat on Bag UI
 - Water caves
 - Modular weapons
+- Added Thai translation
 
 ### Changed
 
