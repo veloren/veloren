@@ -101,7 +101,14 @@
         license_link: "https://creativecommons.org/licenses/by-sa/3.0/",
         modifications: "Added additional characters.",
         notes: "Derived from Wizard",
-    )],
+    ), (
+        name: "Sarabun",
+        authors: ["Suppakit Chalermlarp"],
+        asset_path: "voxygen/font/Sarabun-Regular.ttf",
+        // License appears to be satisfied by inclusion of its text file.
+        license: "OFL",
+        license_link: "https://scripts.sil.org/OFL",
+    ),],
     other_art: [],
     /// Entry format:
     /// ```
