@@ -31,8 +31,13 @@ impl CharacterBehavior for Data {
                     .max(0.2);
         }
 
-        // fall off wall or hit ground
-        if data.physics.on_wall.is_none() || data.physics.on_ground.is_some() {
+        // fall off wall, hit ground, or enter water
+        // TODO: Rugged way to determine when state change occurs and we need to leave
+        // this state
+        if data.physics.on_wall.is_none()
+            || data.physics.on_ground.is_some()
+            || data.physics.in_fluid.is_some()
+        {
             update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         }
 
