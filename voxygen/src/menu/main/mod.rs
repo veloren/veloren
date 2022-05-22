@@ -148,6 +148,10 @@ impl PlayState for MainMenuState {
                                     },
                                 )
                                 .into_owned(),
+                            server::Error::RtsimError(e) => localized_strings
+                                .get("main.servers.rtsim_error")
+                                .to_owned()
+                                .replace("{raw_error}", e.to_string().as_str()),
                             server::Error::Other(e) => localized_strings
                                 .get_msg_ctx("main-servers-other_error", &i18n::fluent_args! {
                                     "raw_error" => e,
