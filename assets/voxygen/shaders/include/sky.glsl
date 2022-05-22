@@ -18,6 +18,12 @@ struct DirectionalLight {
 
 const float PI = 3.141592;
 
+const vec3 SKY_DAWN_TOP = vec3(0.10, 0.1, 0.10);
+const vec3 SKY_DAWN_MID = vec3(1.2, 0.3, 0.2);
+const vec3 SKY_DAWN_BOT = vec3(0.0, 0.1, 0.23);
+const vec3 DAWN_LIGHT   = vec3(5.0, 2.0, 1.15);
+const vec3 SUN_HALO_DAWN = vec3(8.2, 3.0, 2.1);
+
 const vec3 SKY_DAY_TOP = vec3(0.1, 0.5, 0.9);
 const vec3 SKY_DAY_MID = vec3(0.02, 0.28, 0.8);
 const vec3 SKY_DAY_BOT = vec3(0.1, 0.2, 0.3);
@@ -143,9 +149,11 @@ float get_moon_brightness(/*vec3 moon_dir*/) {
 }
 
 vec3 get_sun_color(/*vec3 sun_dir*/) {
+    vec3 light = (sun_dir.x > 0) ? DUSK_LIGHT : DAWN_LIGHT;
+
     return mix(
         mix(
-            DUSK_LIGHT * magnetosphere_tint,
+            light * magnetosphere_tint,
             NIGHT_LIGHT,
             max(sun_dir.z, 0)
         ),
@@ -450,9 +458,22 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
         star = is_star_at(star_dir);
     }
 
+    vec3 sky_twilight_top = vec3(0.0, 0.0, 0.0);
+    vec3 sky_twilight_mid = vec3(0.0, 0.0, 0.0);
+    vec3 sky_twilight_bot = vec3(0.0, 0.0, 0.0);
+    if (sun_dir.x > 0) {
+      sky_twilight_top = SKY_DUSK_TOP;
+      sky_twilight_mid = SKY_DUSK_MID;
+      sky_twilight_bot = SKY_DUSK_BOT;
+    } else {
+      sky_twilight_top = SKY_DAWN_TOP;
+      sky_twilight_mid = SKY_DAWN_MID;
+      sky_twilight_bot = SKY_DAWN_BOT;
+    }
+
     vec3 sky_top = mix(
         mix(
-            SKY_DUSK_TOP * magnetosphere_tint,
+            sky_twilight_top * magnetosphere_tint,
             SKY_NIGHT_TOP,
             pow(max(sun_dir.z, 0.0), 0.2)
         ) + star,
@@ -462,7 +483,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
 
     vec3 sky_mid = mix(
         mix(
-            SKY_DUSK_MID * magnetosphere_tint,
+            sky_twilight_mid * magnetosphere_tint,
             SKY_NIGHT_MID,
             pow(max(sun_dir.z, 0.0), 0.1)
         ),
@@ -472,7 +493,7 @@ vec3 get_sky_light(vec3 dir, float time_of_day, bool with_stars) {
 
     vec3 sky_bot = mix(
         mix(
-            SKY_DUSK_BOT * magnetosphere_tint,
+            sky_twilight_bot * magnetosphere_tint,
             SKY_NIGHT_BOT,
             pow(max(sun_dir.z, 0.0), 0.2)
         ),
@@ -507,7 +528,7 @@ vec3 get_sky_color(vec3 dir, float time_of_day, vec3 origin, vec3 f_pos, float q
     const vec3 SUN_SURF_COLOR = vec3(1.5, 0.9, 0.35) * 50.0;
 
     vec3 sun_halo_color = mix(
-        SUN_HALO_DUSK * magnetosphere_tint,
+        (sun_dir.x > 0 ? SUN_HALO_DUSK : SUN_HALO_DAWN)* magnetosphere_tint,
         SUN_HALO_DAY,
         pow(max(-sun_dir.z, 0.0), 0.5)
     );
