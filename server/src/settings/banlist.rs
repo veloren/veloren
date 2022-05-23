@@ -1560,8 +1560,11 @@ mod v2 {
                 // Validate that there are not multiple active IP bans
                 // linked to the same UUID. (since if timing happens to match
                 // the per entry validation won't catch this)
-                #[allow(clippy::collapsible_if)] // more clear not to have side effects in the if condition
-                if let Some(uuid) = value.current.uuid_when_performed && !value.current.is_expired(now) {
+                #[allow(clippy::collapsible_if)]
+                // more clear not to have side effects in the if condition
+                if let Some(uuid) = value.current.uuid_when_performed
+                    && !value.current.is_expired(now)
+                {
                     if !uuids.insert(uuid) {
                         return Err(BanError::Ip {
                             kind: BanErrorKind::ActiveIpBansShareUuid,

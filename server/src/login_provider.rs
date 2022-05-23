@@ -112,27 +112,29 @@ impl LoginProvider {
                     .uuid_bans()
                     .get(&uuid)
                     .and_then(|ban_record| ban_record.current.action.ban())
-                    .or_else(|| {
+                    .into_iter()
+                    .chain({
                         let ip = client.participant.as_ref()?.peer_socket_addr()?.ip();
                         banlist
                             .ip_bans()
                             .get(&ip)
                             .and_then(|ban_record| ban_record.current.action.ban())
                     })
+                    .find(|ban| {
+                        // Make sure the ban is active, and that we can't override it.
+                        //
+                        // If we are an admin and our role is at least as high as the role of the
+                        // person who banned us, we can override the ban; we negate this to find
+                        // people who cannot override it.
+                        let exceeds_ban_role = |admin: &AdminRecord| {
+                            Into::<AdminRole>::into(admin.role)
+                                >= Into::<AdminRole>::into(ban.performed_by_role())
+                        };
+                        !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role)
+                    })
                 {
-                    // Make sure the ban is active, and that we can't override it.
-                    //
-                    // If we are an admin and our role is at least as high as the role of the
-                    // person who banned us, we can override the ban; we negate this to find
-                    // people who cannot override it.
-                    let exceeds_ban_role = |admin: &AdminRecord| {
-                        Into::<AdminRole>::into(admin.role)
-                            >= Into::<AdminRole>::into(ban.performed_by_role())
-                    };
-                    if !ban.is_expired(now) && !admin.map_or(false, exceeds_ban_role) {
-                        // Get ban info and send a copy of it
-                        return Some(Err(RegisterError::Banned(ban.info())));
-                    }
+                    // Pull reason string out of ban record and send a copy of it
+                    return Some(Err(RegisterError::Banned(ban.info())));
                 }
 
                 // non-admins can only join if the whitelist is empty (everyone can join)

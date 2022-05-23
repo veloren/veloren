@@ -22,7 +22,7 @@ use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator, VariantNames};
 use tracing::warn;
 
 /// Struct representing a command that a user can run from server chat.
-pub struct ServerChatCommandData {
+pub struct ChatCommandData {
     /// A list of arguments useful for both tab completion and parsing
     pub args: Vec<ArgumentSpec>,
     /// The i18n content for the description of the command
@@ -31,7 +31,7 @@ pub struct ServerChatCommandData {
     pub needs_role: Option<Role>,
 }
 
-impl ServerChatCommandData {
+impl ChatCommandData {
     pub fn new(args: Vec<ArgumentSpec>, description: Content, needs_role: Option<Role>) -> Self {
         Self {
             args,
@@ -425,11 +425,11 @@ pub enum ServerChatCommand {
 }
 
 impl ServerChatCommand {
-    pub fn data(&self) -> ServerChatCommandData {
+    pub fn data(&self) -> ChatCommandData {
         use ArgumentSpec::*;
         use Requirement::*;
         use Role::*;
-        let cmd = ServerChatCommandData::new;
+        let cmd = ChatCommandData::new;
         match self {
             ServerChatCommand::Adminify => cmd(
                 vec![PlayerName(Required), Enum("role", ROLES.clone(), Optional)],
