@@ -265,7 +265,6 @@ mod v0 {
     impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
-        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value)
@@ -613,6 +612,7 @@ mod v1 {
     impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
+        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value)
@@ -1242,7 +1242,6 @@ mod v2 {
         /// edits it without going through the usual specs resources.
         /// So, please be careful with ad hoc modifications to the file while
         /// the server is running.
-        #[must_use]
         pub fn ban_operation(
             &mut self,
             data_dir: &std::path::Path,
@@ -1464,9 +1463,7 @@ mod v2 {
                     }
                     // Push the current (most recent) entry to the back of the history
                     // list.
-                    entry
-                        .history
-                        .push(mem::replace(&mut entry.current, record.clone()));
+                    entry.history.push(mem::replace(&mut entry.current, record));
                 },
             }
             Some(())
@@ -1518,9 +1515,7 @@ mod v2 {
                     }
                     // Push the current (most recent) entry to the back of the history
                     // list.
-                    entry
-                        .history
-                        .push(mem::replace(&mut entry.current, record.clone()));
+                    entry.history.push(mem::replace(&mut entry.current, record));
                 },
             }
             Some(())
@@ -1565,9 +1560,8 @@ mod v2 {
                 // Validate that there are not multiple active IP bans
                 // linked to the same UUID. (since if timing happens to match
                 // the per entry validation won't catch this)
-                if let Some(uuid) = value.current.uuid_when_performed
-                    && !value.current.is_expired(now)
-                {
+                #[allow(clippy::collapsible_if)] // more clear not to have side effects in the if condition
+                if let Some(uuid) = value.current.uuid_when_performed && !value.current.is_expired(now) {
                     if !uuids.insert(uuid) {
                         return Err(BanError::Ip {
                             kind: BanErrorKind::ActiveIpBansShareUuid,
@@ -1590,6 +1584,7 @@ mod v2 {
     /* impl TryFrom<Banlist> for Final {
         type Error = <Final as EditableSetting>::Error;
 
+        #[allow(clippy::useless_conversion)]
         fn try_from(mut value: Banlist) -> Result<Final, Self::Error> {
             value.validate()?;
             Ok(next::Banlist::migrate(value).try_into().expect(MIGRATION_UPGRADE_GUARANTEE))
