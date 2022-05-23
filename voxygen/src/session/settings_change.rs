@@ -63,6 +63,7 @@ pub enum Gameplay {
     ChangePlayerPhysicsBehavior { server_authoritative: bool },
     ChangeStopAutoWalkOnInput(bool),
     ChangeAutoCamera(bool),
+    ChangeBowZoom(bool),
 
     ResetGameplaySettings,
 }
@@ -317,6 +318,9 @@ impl SettingsChange {
                     },
                     Gameplay::ChangeAutoCamera(state) => {
                         settings.gameplay.auto_camera = state;
+                    },
+                    Gameplay::ChangeBowZoom(state) => {
+                        settings.gameplay.bow_zoom = state;
                     },
                     Gameplay::ResetGameplaySettings => {
                         // Reset Gameplay Settings

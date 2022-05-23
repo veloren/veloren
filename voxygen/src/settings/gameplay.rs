@@ -17,6 +17,7 @@ pub struct GameplaySettings {
     pub player_physics_behavior: bool,
     pub stop_auto_walk_on_input: bool,
     pub auto_camera: bool,
+    pub bow_zoom: bool,
 }
 
 impl Default for GameplaySettings {
@@ -34,6 +35,7 @@ impl Default for GameplaySettings {
             player_physics_behavior: false,
             stop_auto_walk_on_input: true,
             auto_camera: false,
+            bow_zoom: true,
         }
     }
 }
