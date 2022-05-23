@@ -56,6 +56,7 @@
         "hud.settings.player_physics_behavior": "Player physics (experimental)",
         "hud.settings.stop_auto_walk_on_input": "Stop auto walk on movement",
         "hud.settings.auto_camera": "Auto camera",
+        "hud.settings.bow_zoom": "Zoom in when charging bow",
         "hud.settings.reset_gameplay": "Reset to Defaults",
 
         "hud.settings.view_distance": "View Distance",

@@ -50,6 +50,8 @@ widget_ids! {
         stop_auto_walk_on_input_label,
         auto_camera_button,
         auto_camera_label,
+        bow_zoom_button,
+        bow_zoom_label,
     }
 }
 
@@ -522,6 +524,30 @@ impl<'a> Widget for Gameplay<'a> {
             .graphics_for(state.ids.auto_camera_button)
             .color(TEXT_COLOR)
             .set(state.ids.auto_camera_label, ui);
+
+        // Charging bow zoom toggle
+        let bow_zoom_toggle = ToggleButton::new(
+            self.global_state.settings.gameplay.bow_zoom,
+            self.imgs.checkbox,
+            self.imgs.checkbox_checked,
+        )
+        .w_h(18.0, 18.0)
+        .down_from(state.ids.auto_camera_button, 8.0)
+        .hover_images(self.imgs.checkbox_mo, self.imgs.checkbox_checked_mo)
+        .press_images(self.imgs.checkbox_press, self.imgs.checkbox_checked)
+        .set(state.ids.bow_zoom_button, ui);
+
+        if self.global_state.settings.gameplay.bow_zoom != bow_zoom_toggle {
+            events.push(ChangeBowZoom(!self.global_state.settings.gameplay.bow_zoom));
+        }
+
+        Text::new(self.localized_strings.get("hud.settings.bow_zoom"))
+            .right_from(state.ids.bow_zoom_button, 10.0)
+            .font_size(self.fonts.cyri.scale(14))
+            .font_id(self.fonts.cyri.conrod_id)
+            .graphics_for(state.ids.bow_zoom_button)
+            .color(TEXT_COLOR)
+            .set(state.ids.bow_zoom_label, ui);
 
         // Reset the gameplay settings to the default settings
         if Button::image(self.imgs.button)

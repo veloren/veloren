@@ -354,17 +354,21 @@ impl PlayState for SessionState {
             let client = self.client.borrow();
             let player_entity = client.entity();
 
-            let mut fov_scaling = 1.0;
-            if let Some(comp::CharacterState::ChargedRanged(cr)) = client
-                .state()
-                .read_storage::<comp::CharacterState>()
-                .get(player_entity)
-            {
-                if cr.charge_frac() > 0.5 {
-                    fov_scaling -= 3.0 * cr.charge_frac() / 5.0;
+            if global_state.settings.gameplay.bow_zoom {
+                let mut fov_scaling = 1.0;
+                if let Some(comp::CharacterState::ChargedRanged(cr)) = client
+                    .state()
+                    .read_storage::<comp::CharacterState>()
+                    .get(player_entity)
+                {
+                    if cr.charge_frac() > 0.5 {
+                        fov_scaling -= 3.0 * cr.charge_frac() / 5.0;
+                    }
                 }
+                camera.set_fixate(fov_scaling);
+            } else {
+                camera.set_fixate(1.0);
             }
-            camera.set_fixate(fov_scaling);
 
             // Compute camera data
             camera.compute_dependents(&*self.client.borrow().state().terrain());

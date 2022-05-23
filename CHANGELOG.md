@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable new giant trees, changed what entities spawn at them
 - Stealth is now shown as a percentage in Stats Diary UI
 - Stealth effects from sneaking and armor are evaluated independently. Armor now has effects even when not sneaking
+- Zoom-in effect when aiming bow is now optional
 
 ### Removed
 
