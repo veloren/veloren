@@ -413,7 +413,7 @@ impl Body {
             Body::BoltFire => Vec3::new(0.1, 0.1, 0.1),
             Body::Crossbow => Vec3::new(3.0, 3.0, 1.5),
             Body::HaniwaSentry => Vec3::new(0.8, 0.8, 1.4),
-            Body::SeaLantern => Vec3::new(0.5, 0.5, 1.0),
+            Body::SeaLantern => Vec3::new(0.8, 0.8, 1.4),
             Body::Snowball => Vec3::broadcast(2.5),
             Body::Tornado => Vec3::new(2.0, 2.0, 3.4),
             Body::TrainingDummy => Vec3::new(1.5, 1.5, 3.0),
