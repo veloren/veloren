@@ -16,6 +16,7 @@ use tracing::{trace, warn};
 
 #[derive(Debug)]
 #[allow(clippy::enum_variant_names)] //TODO: evaluate ClientError ends with Enum name
+#[allow(clippy::large_enum_variant)] // not a problem, its only send once
 pub enum Error {
     ClientError {
         error: ClientError,
