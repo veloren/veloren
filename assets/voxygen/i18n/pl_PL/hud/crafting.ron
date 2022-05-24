@@ -1,4 +1,6 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Lokalizacja na Polskie tłumaczenie
 (
     string_map: {
         "hud.crafting": "Tworzenie",
@@ -7,22 +9,31 @@
         "hud.crafting.craft": "Stwórz",
         "hud.crafting.tool_cata": "Wymaga:",
         // Crafting Stations
-        "hud.crafting.req_crafting_station": "Wymaga użycia:",
+        "hud.crafting.req_crafting_station": "Wymaga:",
         "hud.crafting.anvil": "Kowadło",
         "hud.crafting.cauldron": "Kocioł",
-        "hud.crafting.cooking_pot": "Garnek",
-        "hud.crafting.crafting_bench": "Warsztat",
+        "hud.crafting.cooking_pot": "Gar",
+        "hud.crafting.crafting_bench": "Stół rzemieślniczy",
+        "hud.crafting.forge": "Piec",
+        "hud.crafting.loom": "Krosno",
+        "hud.crafting.spinning_wheel": "Kołowrotek",
+        "hud.crafting.tanning_rack": "Stojak do garbowania",
+        "hud.crafting.salvaging_station": "Stoisko odzyskiwania",
+        "hud.crafting.campfire": "Ognisko",
         // Tabs
         "hud.crafting.tabs.all": "Wszystko",
         "hud.crafting.tabs.armor": "Pancerz",
-        "hud.crafting.tabs.dismantle": "Recykling",
+	"hud.crafting.tabs.dismantle": "Zdemontuj",
         "hud.crafting.tabs.food": "Żywność",
         "hud.crafting.tabs.glider": "Lotnie",
         "hud.crafting.tabs.potion": "Mikstury",
         "hud.crafting.tabs.tool": "Narzędzia",
         "hud.crafting.tabs.utility": "Użytkowe",
-        "hud.crafting.tabs.weapon": "Broń",
+        "hud.crafting.tabs.weapon": "Bronie",
         "hud.crafting.tabs.bag": "Torby",
+        "hud.crafting.tabs.processed_material": "Materiały",
+        "hud.crafting.dismantle_title": "Demontowanie",
+        "hud.crafting.dismantle_explanation" : "Najedź na przedmioty w pleacaku aby\nzobaczyć co możesz odzyskać.\n\nKliknij podwójnie aby rozmontować.",
     },
 
 

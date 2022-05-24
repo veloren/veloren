@@ -1,8 +1,10 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Lokalizacja na Polskie tłumaczenie
 (
     string_map: {
         // Texts used in multiple locations with the same formatting
-        "common.username": "nazwa konta",
+        "common.username": "Nazwa konta",
         "common.singleplayer": "Tryb jednoosobowy",
         "common.multiplayer": "Tryb wieloosobowy",
         "common.servers": "Serwery",
@@ -14,6 +16,7 @@
         "common.controls": "Sterowanie",
         "common.video": "Grafika",
         "common.sound": "Dźwięk",
+	"common.chat": "Czat",
         "common.resume": "Kontynuuj",
         "common.characters": "Postacie",
         "common.close": "Zamknij",
@@ -34,6 +37,8 @@
         "common.automatic": "Automatyczne",
         "common.random": "Losowo",
         "common.empty": "Pusty",
+	"common.confirm": "Potwierdź",
+        "common.delete_server": "Usuń serwer",
 
         // Settings Window title
         "common.interface_settings": "Ustawienia interfejsu",
@@ -42,11 +47,13 @@
         "common.video_settings": "Ustawienia grafiki",
         "common.sound_settings": "Ustawienia dźwięku",
         "common.language_settings": "Ustawienia języka",
+	"common.chat_settings": "Ustawienia czatu",
 
         // Message when connection to the server is lost
-        "common.connection_lost": r#"Stracono połączenia!
+        "common.connection_lost": r#"Stracono połączenie!
 Serwer jest restartowany?
 Czy masz aktualną wersję gry?"#,
+
 
         "common.species.orc": "Ork",
         "common.species.human": "Człowiek",
@@ -56,6 +63,9 @@ Czy masz aktualną wersję gry?"#,
         "common.species.danari": "Danari",
 
         "common.weapons.axe": "Siekiera",
+	"common.weapons.dagger": "Sztylet",
+        "common.weapons.greatsword": "Wielki miecz",
+        "common.weapons.shortswords": "Krótki miecz",
         "common.weapons.sword": "Miecz",
         "common.weapons.staff": "Kostur maga",
         "common.weapons.bow": "Łuk",
@@ -73,6 +83,7 @@ Czy masz aktualną wersję gry?"#,
         "common.tool.debug": "Debug",
         "common.tool.farming": "Narzędzie do uprawy",
         "common.tool.pick": "Kilof",
+	"common.tool.mining": "Wykopywanie",
         "common.kind.modular_component": "Modularny komponent",
         "common.kind.glider": "Lotnia",
         "common.kind.consumable": "Jadalne",
@@ -89,12 +100,24 @@ Czy masz aktualną wersję gry?"#,
         "common.stats.combat_rating": "CR",
         "common.stats.power": "Moc",
         "common.stats.speed": "Prędkość",
-        "common.stats.poise": "Odp. na ogłu.",
-        "common.stats.crit_chance": "Krytyczne%",
-        "common.stats.crit_mult": "Krytytyczne*",
+        "common.stats.poise": "Odporność",
+        "common.stats.crit_chance": "% na cios kryt.",
+        "common.stats.crit_mult": "Mnożnik ciosu kryt.",
         "common.stats.armor": "Obrona",
-        "common.stats.poise_res": "Odp. na ogłu.",
+        "common.stats.poise_res": "Odp. na ogłuszenie",
+        "common.stats.energy_max": "Maksymalna energia",
+        "common.stats.energy_reward": "Bonus energii",
+        "common.stats.crit_power": "Moc ciosu kryt.",
+        "common.stats.stealth": "Skradanie",
         "common.stats.slots": "Sloty",
+
+	"common.material.metal": "Metal",
+        "common.material.wood": "Drewno",
+        "common.material.stone": "Kamień",
+        "common.material.cloth": "Płótno",
+        "common.material.hide": "Skóra",
+
+        "common.sprite.chest": "Skrzynia",
     },
 
 
