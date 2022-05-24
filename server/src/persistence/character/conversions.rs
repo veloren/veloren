@@ -209,6 +209,10 @@ pub fn convert_body_to_database_json(
             "quadruped_small",
             serde_json::to_string(&GenericBody::from(body))?,
         ),
+        common::comp::Body::BirdMedium(body) => (
+            "bird_medium",
+            serde_json::to_string(&GenericBody::from(body))?,
+        ),
         _ => {
             return Err(PersistenceError::ConversionError(format!(
                 "Unsupported body type for persistence: {:?}",
@@ -576,6 +580,9 @@ pub fn convert_body_from_database(
         },
         "quadruped_small" => {
             deserialize_body!(body_data, QuadrupedSmall, quadruped_small)
+        },
+        "bird_medium" => {
+            deserialize_body!(body_data, BirdMedium, bird_medium)
         },
         _ => {
             return Err(PersistenceError::ConversionError(format!(

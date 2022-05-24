@@ -82,6 +82,7 @@ use common::{
         fluid_dynamics,
         inventory::{slot::InvSlotId, trade_pricing::TradePricing},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
+        pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind},
         BuffData, BuffKind, Item, MapMarkerChange,
     },
@@ -1929,7 +1930,8 @@ impl Hud {
                 _,
                 health,
                 _,
-                height_offset,
+                scale,
+                body,
                 hpfl,
                 in_group,
                 dist_sqr,
@@ -2034,23 +2036,10 @@ impl Hud {
                         } else {
                             None
                         };
-
                         (info.is_some() || bubble.is_some()).then(|| {
                             (
-                                entity,
-                                pos,
-                                info,
-                                bubble,
-                                stats,
-                                skill_set,
-                                health,
-                                buffs,
-                                body.height() * scale.map_or(1.0, |s| s.0) + 0.5,
-                                hpfl,
-                                in_group,
-                                dist_sqr,
-                                alignment,
-                                is_mount,
+                                entity, pos, info, bubble, stats, skill_set, health, buffs, scale,
+                                body, hpfl, in_group, dist_sqr, alignment, is_mount,
                             )
                         })
                     },
@@ -2060,10 +2049,9 @@ impl Hud {
                     &mut self.ids.overheads,
                     &mut ui_widgets.widget_id_generator(),
                 );
-                let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
-                //
-                // * height_offset
+                let height_offset = body.height() * scale.map_or(1.0, |s| s.0) + 0.5;
+                let ingame_pos = pos + Vec3::unit_z() * height_offset;
 
                 // Speech bubble, name, level, and hp bars
                 overhead::Overhead::new(
@@ -2093,6 +2081,7 @@ impl Hud {
                             if Some(*owner) == client.uid()
                                 && !client.is_riding()
                                 && is_mount.is_none()
+                                && is_mountable(body, bodies.get(client.entity()))
                                 && dist_sqr < common::consts::MAX_MOUNT_RANGE.powi(2) =>
                         {
                             vec![(GameInput::Mount, i18n.get("hud.mount").to_string())]

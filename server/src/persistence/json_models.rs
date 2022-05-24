@@ -59,6 +59,7 @@ macro_rules! generic_body_from_impl {
 generic_body_from_impl!(comp::quadruped_low::Body);
 generic_body_from_impl!(comp::quadruped_medium::Body);
 generic_body_from_impl!(comp::quadruped_small::Body);
+generic_body_from_impl!(comp::bird_medium::Body);
 
 #[derive(Serialize, Deserialize)]
 pub struct CharacterPosition {

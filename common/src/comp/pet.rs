@@ -1,4 +1,4 @@
-use crate::comp::body::Body;
+use crate::comp::{body::Body, phys::Mass, quadruped_low, quadruped_medium, quadruped_small};
 use crossbeam_utils::atomic::AtomicCell;
 use serde::{Deserialize, Serialize};
 use specs::Component;
@@ -40,10 +40,62 @@ pub fn is_tameable(body: &Body) -> bool {
     // Currently only Quadruped animals can be tamed pending further work
     // on the pets feature (allowing larger animals to be tamed will
     // require balance issues to be addressed).
-    matches!(
-        body,
-        Body::QuadrupedLow(_) | Body::QuadrupedMedium(_) | Body::QuadrupedSmall(_)
-    )
+    match body {
+        Body::QuadrupedMedium(quad_med) =>
+        // NOTE: the reason we ban mammoth from being tameable even though they're
+        // agressive anyway, is that UncomfySilence is going to make them
+        // peaceful after this MR gets merged. Please, remove this note in your MR,
+        // UncomfySilence!
+        {
+            !matches!(
+                quad_med.species,
+                quadruped_medium::Species::Catoblepas
+                    | quadruped_medium::Species::Mammoth
+                    | quadruped_medium::Species::Hirdrasil
+            )
+        },
+        Body::QuadrupedLow(_) | Body::QuadrupedSmall(_) | Body::BirdMedium(_) => true,
+        _ => false,
+    }
+}
+
+pub fn is_mountable(mount: &Body, rider: Option<&Body>) -> bool {
+    let is_light_enough =
+        |rider: Option<&Body>| -> bool { rider.map_or(false, |b| b.mass() <= Mass(500.0)) };
+
+    match mount {
+        Body::QuadrupedMedium(body) => match body.species {
+            quadruped_medium::Species::Alpaca
+            | quadruped_medium::Species::Antelope
+            | quadruped_medium::Species::Bear
+            | quadruped_medium::Species::Camel
+            | quadruped_medium::Species::Cattle
+            | quadruped_medium::Species::Deer
+            | quadruped_medium::Species::Donkey
+            | quadruped_medium::Species::Highland
+            | quadruped_medium::Species::Horse
+            | quadruped_medium::Species::Kelpie
+            | quadruped_medium::Species::Llama
+            | quadruped_medium::Species::Moose
+            | quadruped_medium::Species::Tuskram
+            | quadruped_medium::Species::Yak
+            | quadruped_medium::Species::Zebra => true,
+            quadruped_medium::Species::Mouflon => is_light_enough(rider),
+            _ => false,
+        },
+        Body::QuadrupedSmall(body) => match body.species {
+            quadruped_small::Species::Truffler => true,
+            quadruped_small::Species::Boar | quadruped_small::Species::Holladon => {
+                is_light_enough(rider)
+            },
+            _ => false,
+        },
+        Body::QuadrupedLow(body) => matches!(
+            body.species,
+            quadruped_low::Species::Salamander | quadruped_low::Species::Tortoise
+        ),
+        _ => false,
+    }
 }
 
 impl Component for Pet {
