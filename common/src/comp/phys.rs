@@ -81,7 +81,7 @@ impl Component for Scale {
 }
 
 // Mass
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Mass(pub f32);
 
 impl Default for Mass {

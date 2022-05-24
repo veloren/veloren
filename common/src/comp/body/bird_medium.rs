@@ -1,6 +1,7 @@
 use crate::{make_case_elim, make_proj_elim};
 use rand::{seq::SliceRandom, thread_rng};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
 make_proj_elim!(
     body,
@@ -31,7 +32,9 @@ impl From<Body> for super::Body {
 
 make_case_elim!(
     species,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(
+        Copy, Clone, Debug, Display, EnumString, PartialEq, Eq, Hash, Serialize, Deserialize,
+    )]
     #[repr(u32)]
     pub enum Species {
         Duck = 0,
@@ -98,7 +101,9 @@ impl<'a, SpeciesMeta: 'a> IntoIterator for &'a AllSpecies<SpeciesMeta> {
 
 make_case_elim!(
     body_type,
-    #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+    #[derive(
+        Copy, Clone, Debug, Display, EnumString, PartialEq, Eq, Hash, Serialize, Deserialize,
+    )]
     #[repr(u32)]
     pub enum BodyType {
         Female = 0,
