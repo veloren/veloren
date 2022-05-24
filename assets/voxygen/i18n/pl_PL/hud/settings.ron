@@ -34,7 +34,7 @@
         "hud.settings.speech_bubble_dark_mode": "Dymek rozmowy w trybie ciemnym",
         "hud.settings.speech_bubble_icon": "Ikona dymka rozmowy",
         "hud.settings.energybar_numbers": "Numery na pasku energii",
-	"hud.settings.always_show_bars": "Zawsze pokazuj paski zdrowia i energii",
+	    "hud.settings.always_show_bars": "Zawsze pokazuj paski zdrowia i energii",
         "hud.settings.values": "Wartości",
         "hud.settings.percentages": "Procenty",
         "hud.settings.chat": "Czat",
@@ -115,9 +115,9 @@
         "hud.settings.audio_device": "Urządzenie dźwiękowe",
         "hud.settings.reset_sound": "Zresetuj ustawienia",
 
-        "hud.settings.english_fallback": "Wyświetl angielskie napisy dla brakujących tłumaczeń"
+        "hud.settings.english_fallback": "Wyświetl angielskie napisy dla brakujących tłumaczeń",
 
-	"hud.settings.awaitingkey": "Naciśnij klawisz...",
+        "hud.settings.awaitingkey": "Naciśnij klawisz...",
         "hud.settings.unbound": "Brak",
         "hud.settings.reset_keybinds": "Zresetuj ustawienia",
 

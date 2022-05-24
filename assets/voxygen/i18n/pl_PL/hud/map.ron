@@ -6,7 +6,7 @@
         // Map and Questlog
         "hud.map.map_title": "Mapa",
         "hud.map.qlog_title": "Zadania",
-        "hud.map.topo_map": "Widok topograficzny"
+        "hud.map.topo_map": "Widok topograficzny",
         "hud.map.difficulty": "Trudność",
         "hud.map.towns": "Miasta",
         "hud.map.castles": "Zamki",
