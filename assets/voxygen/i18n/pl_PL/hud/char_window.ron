@@ -1,17 +1,17 @@
 /// WARNING: Localization files shall be saved in UTF-8 format without BOM
 
-/// Lokalizacja na Polskie tłumaczenie
+/// Localization for Polish
 (
     string_map: {
         "character_window.character_name": "Imię postaci",
         // Character stats
         "character_window.character_stats": r#"Wytrzymałość
 
-Wytrenowanie
+Kondycja
 
 Siła woli
 
-Ochrona
+Obrona
 "#,
     },
 

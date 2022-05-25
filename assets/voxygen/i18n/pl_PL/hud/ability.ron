@@ -1,0 +1,35 @@
+/// WARNING: Localization files shall be saved in UTF-8 format without BOM
+
+/// Localization for Polish
+(
+    string_map: {
+        // Debug stick
+        "common.abilities.debug.possess.name": "Strzała Opętania",
+        "common.abilities.debug.possess.desc": "Pozwala przejąć kontrolę nad twoim celem.",
+        // Sword
+        "common.abilities.sword.spin.name": "Cyklon",
+        "common.abilities.sword.spin.desc": "Poruszasz się do przodu kręcąc się z Twoim mieczem.",
+        // Axe
+        "common.abilities.axe.leap.name": "Skok Drwala",
+        "common.abilities.axe.leap.desc": "Skaczesz w kierunku kursora, tnąc swoją siekierą.",
+        // Hammer
+        "common.abilities.hammer.leap.name": "Uderzenie Zagłady",
+        "common.abilities.hammer.leap.desc": "Atak obszarowy z odrzutem. Skaczesz w kierunku kursora, uderzając w ziemię swoim młotem.",
+        // Bow
+        "common.abilities.bow.shotgun.name": "Salwa",
+        "common.abilities.bow.shotgun.desc": "Wystrzeliwujesz salwę strzał.",
+        // Staff
+        "common.abilities.staff.fireshockwave.name": "Pierścień Ognia",
+        "common.abilities.staff.fireshockwave.desc": "Przywołujesz ognisty pierścień odrzucający przeciwników.",
+        // Sceptre
+        "common.abilities.sceptre.wardingaura.name": "Ochronna Aura",
+        "common.abilities.sceptre.wardingaura.desc": "Chroni twoich sojuszników przed atakami.",
+        // Unknown
+        "common.abilities.unknown.name": "Umiejętność bez nazwy",
+        "common.abilities.unknown.desc": "Umiejętność bez opisu",
+    },
+
+
+    vector_map: {
+    }
+)
