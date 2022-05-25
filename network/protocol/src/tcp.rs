@@ -100,6 +100,8 @@ impl<D> SendProtocol for TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
+    type CustomErr = D::CustomErr;
+
     fn notify_from_recv(&mut self, event: ProtocolEvent) {
         match event {
             ProtocolEvent::OpenStream {
@@ -122,7 +124,7 @@ where
         }
     }
 
-    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError> {
+    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError<Self::CustomErr>> {
         #[cfg(feature = "trace_pedantic")]
         trace!(?event, "send");
         match event {
@@ -170,7 +172,7 @@ where
         &mut self,
         bandwidth: Bandwidth,
         dt: Duration,
-    ) -> Result</* actual */ Bandwidth, ProtocolError> {
+    ) -> Result</* actual */ Bandwidth, ProtocolError<Self::CustomErr>> {
         let (frames, total_bytes) = self.store.grab(bandwidth, dt);
         self.buffer.reserve(total_bytes as usize);
         let mut data_frames = 0;
@@ -228,7 +230,9 @@ impl<S> RecvProtocol for TcpRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = BytesMut>,
 {
-    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError> {
+    type CustomErr = S::CustomErr;
+
+    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError<Self::CustomErr>> {
         'outer: loop {
             loop {
                 match ITFrame::read_frame(&mut self.buffer) {
@@ -307,7 +311,9 @@ impl<D> ReliableDrain for TcpSendProtocol<D>
 where
     D: UnreliableDrain<DataFormat = BytesMut>,
 {
-    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError> {
+    type CustomErr = D::CustomErr;
+
+    async fn send(&mut self, frame: InitFrame) -> Result<(), ProtocolError<Self::CustomErr>> {
         let mut buffer = BytesMut::with_capacity(500);
         frame.write_bytes(&mut buffer);
         self.drain.send(buffer).await
@@ -319,7 +325,9 @@ impl<S> ReliableSink for TcpRecvProtocol<S>
 where
     S: UnreliableSink<DataFormat = BytesMut>,
 {
-    async fn recv(&mut self) -> Result<InitFrame, ProtocolError> {
+    type CustomErr = S::CustomErr;
+
+    async fn recv(&mut self) -> Result<InitFrame, ProtocolError<Self::CustomErr>> {
         while self.buffer.len() < 100 {
             let chunk = self.sink.recv().await?;
             self.buffer.extend_from_slice(&chunk);
@@ -371,25 +379,30 @@ mod test_utils {
 
     #[async_trait]
     impl UnreliableDrain for TcpDrain {
+        type CustomErr = ();
         type DataFormat = BytesMut;
 
-        async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError> {
+        async fn send(
+            &mut self,
+            data: Self::DataFormat,
+        ) -> Result<(), ProtocolError<Self::CustomErr>> {
             self.sender
                 .send(data)
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 
     #[async_trait]
     impl UnreliableSink for TcpSink {
+        type CustomErr = ();
         type DataFormat = BytesMut;
 
-        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError> {
+        async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>> {
             self.receiver
                 .recv()
                 .await
-                .map_err(|_| ProtocolError::Closed)
+                .map_err(|_| ProtocolError::Custom(()))
         }
     }
 }
@@ -659,7 +672,7 @@ mod tests {
         drop(s);
 
         let e = e.await.unwrap();
-        assert_eq!(e, Err(ProtocolError::Closed));
+        assert_eq!(e, Err(ProtocolError::Custom(())));
     }
 
     #[tokio::test]

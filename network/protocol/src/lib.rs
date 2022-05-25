@@ -86,12 +86,14 @@ use async_trait::async_trait;
 /// Handshake: Used to connect 2 Channels.
 #[async_trait]
 pub trait InitProtocol {
+    type CustomErr: std::fmt::Debug + Send;
+
     async fn initialize(
         &mut self,
         initializer: bool,
         local_pid: Pid,
         secret: u128,
-    ) -> Result<(Pid, Sid, u128), InitProtocolError>;
+    ) -> Result<(Pid, Sid, u128), InitProtocolError<Self::CustomErr>>;
 }
 
 /// Generic Network Send Protocol.
@@ -101,18 +103,20 @@ pub trait InitProtocol {
 ///
 /// A `Stream` MUST be bound to a specific Channel. You MUST NOT switch the
 /// channel to send a stream mid air. We will provide takeover options for
-/// Channel closure in the future to allow keeping a `Stream` over a broker
+/// Channel closure in the future to allow keeping a `Stream` over a broken
 /// Channel.
 ///
 /// [`ProtocolEvent`]: crate::ProtocolEvent
 #[async_trait]
 pub trait SendProtocol {
+    type CustomErr: std::fmt::Debug + Send;
+
     /// YOU MUST inform the `SendProtocol` by any Stream Open BEFORE using it in
     /// `send` and Stream Close AFTER using it in `send` via this fn.
     fn notify_from_recv(&mut self, event: ProtocolEvent);
     /// Send a Event via this Protocol. The `SendProtocol` MAY require `flush`
     /// to be called before actual data is send to the respective `Sink`.
-    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError>;
+    async fn send(&mut self, event: ProtocolEvent) -> Result<(), ProtocolError<Self::CustomErr>>;
     /// Flush all buffered messages according to their [`Prio`] and
     /// [`Bandwidth`]. provide the current bandwidth budget (per second) as
     /// well as the `dt` since last call. According to the budget the
@@ -124,7 +128,7 @@ pub trait SendProtocol {
         &mut self,
         bandwidth: Bandwidth,
         dt: std::time::Duration,
-    ) -> Result<Bandwidth, ProtocolError>;
+    ) -> Result<Bandwidth, ProtocolError<Self::CustomErr>>;
 }
 
 /// Generic Network Recv Protocol. See: [`SendProtocol`]
@@ -132,9 +136,11 @@ pub trait SendProtocol {
 /// [`SendProtocol`]: crate::SendProtocol
 #[async_trait]
 pub trait RecvProtocol {
+    type CustomErr: std::fmt::Debug + Send;
+
     /// Either recv an event or fail the Protocol, once the Recv side is closed
     /// it cannot recover from the error.
-    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError>;
+    async fn recv(&mut self) -> Result<ProtocolEvent, ProtocolError<Self::CustomErr>>;
 }
 
 /// This crate makes use of UnreliableDrains, they are expected to provide the
@@ -147,8 +153,9 @@ pub trait RecvProtocol {
 /// [`async-channel`]: async-channel
 #[async_trait]
 pub trait UnreliableDrain: Send {
+    type CustomErr: std::fmt::Debug + Send;
     type DataFormat;
-    async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError>;
+    async fn send(&mut self, data: Self::DataFormat) -> Result<(), ProtocolError<Self::CustomErr>>;
 }
 
 /// Sink counterpart of [`UnreliableDrain`]
@@ -156,6 +163,7 @@ pub trait UnreliableDrain: Send {
 /// [`UnreliableDrain`]: crate::UnreliableDrain
 #[async_trait]
 pub trait UnreliableSink: Send {
+    type CustomErr: std::fmt::Debug + Send;
     type DataFormat;
-    async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError>;
+    async fn recv(&mut self) -> Result<Self::DataFormat, ProtocolError<Self::CustomErr>>;
 }
