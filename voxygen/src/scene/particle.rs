@@ -24,6 +24,7 @@ use common::{
 use common_base::span;
 use hashbrown::HashMap;
 use rand::prelude::*;
+//use rand_chacha::ChaCha8Rng;
 use specs::{saveload::MarkerAllocator, Join, WorldExt};
 use std::{
     f32::consts::{PI, TAU},
@@ -1249,9 +1250,35 @@ impl ParticleMgr {
         }
         // smoke is more complex as it comes with varying rate and color
         {
+            // fn create_smoke(
+            //     position: Vec3<i32>,
+            //     temperature: f32,
+            //     humidity: f32,
+            //     time_of_day: f32,
+            // ) -> FireplaceProperties {
+            //     let mut rng2 = ChaCha8Rng::from_seed(seed_from_pos(pos));
+            //     let strength_mod = (0.5_f32 - temperature).max(0.0); // -0.5 (desert) to
+            // 1.5 (ice)     let strength =
+            //         rng2.gen_range((5.0 * strength_mod)..(100.0 * strength_mod).max(1.0))
+            // as u8;     let dryness = (biome_dryness(chunk.meta().biome()) +
+            // rng2.gen_range(-20..20))         .min(255)
+            //         .max(0) as u8;
+            //     // tracing::trace!(?pos, ?strength, ?dryness);
+            //     FireplaceProperties::new(pos, dryness, strength)
+            // }
+            struct FirePlaceProperties {
+                position: Vec3<i32>,
+                strength: f32,
+                dry_chance: f32,
+            }
+
             let range = 8_usize;
             let rate = 3.0 / 128.0;
             let lifetime = 40.0;
+            let time_of_day = scene_data
+                .state
+                .get_time_of_day()
+                .rem_euclid(24.0 * 60.0 * 60.0) as f32;
 
             //    mode: ParticleMode::CampfireSmoke,
             for offset in Spiral2d::new().take((range * 2 + 1).pow(2)) {
@@ -1259,32 +1286,49 @@ impl ParticleMgr {
 
                 terrain.get(chunk_pos).map(|chunk_data| {
                     let blocks = &chunk_data.blocks_of_interest.smokers;
-                    let sum = blocks
-                        .iter()
-                        .fold(0u32, |sum, smoker| sum + smoker.strength as u32);
-                    let avg_particles = dt * sum as f32 * rate;
+                    let mut smoke_properties: Vec<FirePlaceProperties> = Vec::new();
                     let block_pos =
                         Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
+                    let mut sum = 0.0_f32;
+                    for smoker in blocks.iter() {
+                        let position = block_pos + smoker.position;
+                        let prop = crate::scene::smoke_cycle::smoke_at_time(
+                            position,
+                            smoker.temperature,
+                            smoker.humidity,
+                            time_of_day,
+                        );
+                        sum += prop.0;
+                        smoke_properties.push(FirePlaceProperties {
+                            position,
+                            strength: prop.0,
+                            dry_chance: 0.5,
+                        });
+                    }
+                    // let sum = blocks
+                    //     .iter()
+                    //     .fold(0u32, |sum, smoker| sum + smoker.strength as u32);
+                    let avg_particles = dt * sum as f32 * rate;
 
                     let particle_count = avg_particles.trunc() as usize
                         + (rng.gen::<f32>() < avg_particles.fract()) as usize;
-                    let chosen =
-                        blocks.choose_multiple_weighted(&mut rng, particle_count, |smoker| {
-                            smoker.strength as u32
-                        });
+                    let chosen = smoke_properties.choose_multiple_weighted(
+                        &mut rng,
+                        particle_count,
+                        |smoker| smoker.strength,
+                    );
                     if let Ok(chosen) = chosen {
                         let mut smoke_particles: Vec<Particle> = chosen
                             .map(|smoker| {
                                 Particle::new(
                                     Duration::from_secs_f32(lifetime),
                                     time,
-                                    if rng.gen::<u8>() > smoker.dryness {
+                                    if rng.gen::<f32>() > smoker.dry_chance {
                                         ParticleMode::BlackSmoke
                                     } else {
                                         ParticleMode::CampfireSmoke
                                     },
-                                    (block_pos + smoker.position)
-                                        .map(|e: i32| e as f32 + rng.gen::<f32>()),
+                                    smoker.position.map(|e: i32| e as f32 + rng.gen::<f32>()),
                                 )
                             })
                             .collect();

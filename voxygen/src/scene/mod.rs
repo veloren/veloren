@@ -5,6 +5,7 @@ pub mod lod;
 pub mod math;
 pub mod particle;
 pub mod simple;
+pub mod smoke_cycle;
 pub mod terrain;
 pub mod trail;
 

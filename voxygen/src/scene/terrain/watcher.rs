@@ -1,5 +1,5 @@
 use crate::hud::CraftingTab;
-use common::terrain::{BiomeKind, BlockKind, SpriteKind, TerrainChunk};
+use common::terrain::{BlockKind, SpriteKind, TerrainChunk};
 use common_base::span;
 use rand::prelude::*;
 use rand_chacha::ChaCha8Rng;
@@ -12,18 +12,18 @@ pub enum Interaction {
     Mine,
 }
 
-pub struct SmokeProperties {
+pub struct FireplaceProperties {
     pub position: Vec3<i32>,
-    pub dryness: u8,  // 0 = black smoke, 255 = white
-    pub strength: u8, // 0 = thin, 128 = normal, 255 = very strong
+    pub humidity: f32,
+    pub temperature: f32,
 }
 
-impl SmokeProperties {
-    fn new(position: Vec3<i32>, dryness: u8, strength: u8) -> Self {
+impl FireplaceProperties {
+    fn new(position: Vec3<i32>, humidity: f32, temperature: f32) -> Self {
         Self {
             position,
-            dryness,
-            strength,
+            humidity,
+            temperature,
         }
     }
 }
@@ -36,7 +36,7 @@ pub struct BlocksOfInterest {
     pub slow_river: Vec<Vec3<i32>>,
     pub fast_river: Vec<Vec3<i32>>,
     pub fires: Vec<Vec3<i32>>,
-    pub smokers: Vec<SmokeProperties>,
+    pub smokers: Vec<FireplaceProperties>,
     pub beehives: Vec<Vec3<i32>>,
     pub reeds: Vec<Vec3<i32>>,
     pub fireflies: Vec<Vec3<i32>>,
@@ -52,60 +52,6 @@ pub struct BlocksOfInterest {
     // area for optimization
     pub interactables: Vec<(Vec3<i32>, Interaction)>,
     pub lights: Vec<(Vec3<i32>, u8)>,
-}
-
-fn biome_dryness(biome: BiomeKind) -> i32 {
-    match biome {
-        BiomeKind::Void => 0,
-        BiomeKind::Lake => 0,
-        BiomeKind::Ocean => 0,
-        BiomeKind::Swamp => 10,
-        BiomeKind::Jungle => 60,
-        BiomeKind::Snowland => 60,
-        BiomeKind::Desert => 100, // dry but dung
-        BiomeKind::Mountain => 160,
-        BiomeKind::Forest => 180,
-        BiomeKind::Taiga => 180,
-        BiomeKind::Grassland => 200,
-        BiomeKind::Savannah => 240,
-    }
-}
-
-fn seed_from_pos(pos: Vec3<i32>) -> [u8; 32] {
-    [
-        pos.x as u8,
-        (pos.x >> 8) as u8,
-        (pos.x >> 16) as u8,
-        (pos.x >> 24) as u8,
-        0,
-        0,
-        0,
-        0,
-        pos.y as u8,
-        (pos.y >> 8) as u8,
-        (pos.y >> 16) as u8,
-        (pos.y >> 24) as u8,
-        0,
-        0,
-        0,
-        0,
-        pos.z as u8,
-        (pos.z >> 8) as u8,
-        (pos.z >> 16) as u8,
-        (pos.z >> 24) as u8,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ]
 }
 
 impl BlocksOfInterest {
@@ -158,18 +104,12 @@ impl BlocksOfInterest {
                 BlockKind::Snow | BlockKind::Ice if rng.gen_range(0..16) == 0 => snow.push(pos),
                 _ => match block.get_sprite() {
                     Some(SpriteKind::Ember) => {
-                        let mut rng2 = ChaCha8Rng::from_seed(seed_from_pos(pos));
-                        let strength_mod = (0.5_f32 - chunk.meta().temp()).max(0.0); // -0.5 (desert) to 1.5 (ice)
-                        let strength = rng2
-                            .gen_range((5.0 * strength_mod)..(100.0 * strength_mod).max(1.0))
-                            as u8;
-                        let dryness = (biome_dryness(chunk.meta().biome())
-                            + rng2.gen_range(-20..20))
-                        .min(255)
-                        .max(0) as u8;
-                        // tracing::trace!(?pos, ?strength, ?dryness);
                         fires.push(pos);
-                        smokers.push(SmokeProperties::new(pos, dryness, strength));
+                        smokers.push(FireplaceProperties::new(
+                            pos,
+                            chunk.meta().humidity(),
+                            chunk.meta().temp(),
+                        ));
                     },
                     // Offset positions to account for block height.
                     // TODO: Is this a good idea?
@@ -197,7 +137,7 @@ impl BlocksOfInterest {
                         interactables.push((pos, Interaction::Craft(CraftingTab::All)))
                     },
                     Some(SpriteKind::SmokeDummy) => {
-                        smokers.push(SmokeProperties::new(pos, 255, 128));
+                        smokers.push(FireplaceProperties::new(pos, 0.0, -1.0));
                     },
                     Some(SpriteKind::Forge) => interactables
                         .push((pos, Interaction::Craft(CraftingTab::ProcessedMaterial))),
