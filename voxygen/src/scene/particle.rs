@@ -1250,22 +1250,6 @@ impl ParticleMgr {
         }
         // smoke is more complex as it comes with varying rate and color
         {
-            // fn create_smoke(
-            //     position: Vec3<i32>,
-            //     temperature: f32,
-            //     humidity: f32,
-            //     time_of_day: f32,
-            // ) -> FireplaceProperties {
-            //     let mut rng2 = ChaCha8Rng::from_seed(seed_from_pos(pos));
-            //     let strength_mod = (0.5_f32 - temperature).max(0.0); // -0.5 (desert) to
-            // 1.5 (ice)     let strength =
-            //         rng2.gen_range((5.0 * strength_mod)..(100.0 * strength_mod).max(1.0))
-            // as u8;     let dryness = (biome_dryness(chunk.meta().biome()) +
-            // rng2.gen_range(-20..20))         .min(255)
-            //         .max(0) as u8;
-            //     // tracing::trace!(?pos, ?strength, ?dryness);
-            //     FireplaceProperties::new(pos, dryness, strength)
-            // }
             struct FirePlaceProperties {
                 position: Vec3<i32>,
                 strength: f32,
@@ -1280,7 +1264,6 @@ impl ParticleMgr {
                 .get_time_of_day()
                 .rem_euclid(24.0 * 60.0 * 60.0) as f32;
 
-            //    mode: ParticleMode::CampfireSmoke,
             for offset in Spiral2d::new().take((range * 2 + 1).pow(2)) {
                 let chunk_pos = player_chunk + offset;
 
@@ -1295,19 +1278,21 @@ impl ParticleMgr {
                         let prop = crate::scene::smoke_cycle::smoke_at_time(
                             position,
                             smoker.temperature,
-                            smoker.humidity,
                             time_of_day,
                         );
                         sum += prop.0;
                         smoke_properties.push(FirePlaceProperties {
                             position,
                             strength: prop.0,
-                            dry_chance: 0.5,
+                            dry_chance: if prop.1 {
+                                // fire started, dark smoke
+                                0.8 - smoker.humidity
+                            } else {
+                                // fire continues, light smoke
+                                1.2 - smoker.humidity
+                            },
                         });
                     }
-                    // let sum = blocks
-                    //     .iter()
-                    //     .fold(0u32, |sum, smoker| sum + smoker.strength as u32);
                     let avg_particles = dt * sum as f32 * rate;
 
                     let particle_count = avg_particles.trunc() as usize

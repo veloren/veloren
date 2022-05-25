@@ -82,13 +82,14 @@ fn create_timing(rng: &mut ChaCha8Rng) -> FireplaceTiming {
     }
 }
 
-fn create_climate(temperature: f32, _humidity: f32) -> FireplaceClimate {
-    // temp -1…1, humidity 0…1
+fn create_climate(temperature: f32) -> FireplaceClimate {
+    // temp -1…1
     let daily_strength =
         (SMOKE_MAX_TEMPERATURE - temperature).min(SMOKE_MAX_TEMP_VALUE) * SMOKE_TEMP_MULTIPLIER;
     // when is breakfast down to daily strength
     // daily_strength ==
     // SMOKE_BREAKFAST_STRENGTH*(1.0-(t-breakfast)/SMOKE_BREAKFAST_HALF_DURATION)
+    //
     // (t-breakfast) = (1.0 -
     // daily_strength/SMOKE_BREAKFAST_STRENGTH)*SMOKE_BREAKFAST_HALF_DURATION
     let day_start = (SMOKE_BREAKFAST_STRENGTH - daily_strength.max(0.0))
@@ -104,15 +105,10 @@ fn create_climate(temperature: f32, _humidity: f32) -> FireplaceClimate {
 
 pub type Increasing = bool;
 
-pub fn smoke_at_time(
-    position: Vec3<i32>,
-    temperature: f32,
-    humidity: f32,
-    time_of_day: f32,
-) -> (f32, Increasing) {
+pub fn smoke_at_time(position: Vec3<i32>, temperature: f32, time_of_day: f32) -> (f32, Increasing) {
     let mut pseudorandom = ChaCha8Rng::from_seed(seed_from_pos(position));
     let timing = create_timing(&mut pseudorandom);
-    let climate = create_climate(temperature, humidity);
+    let climate = create_climate(temperature);
     let after_breakfast = time_of_day - timing.breakfast;
     if after_breakfast < -SMOKE_BREAKFAST_HALF_DURATION {
         /* night */
@@ -167,12 +163,12 @@ pub fn smoke_at_time(
 mod tests {
     use super::*;
 
-    fn test_conditions(position: Vec3<i32>, temperature: f32, humidity: f32) {
+    fn test_conditions(position: Vec3<i32>, temperature: f32) {
         print!("{} T{:.1}  ", position, temperature);
         let mut pseudorandom = ChaCha8Rng::from_seed(seed_from_pos(position));
         if true {
             let timing = create_timing(&mut pseudorandom);
-            let climate = create_climate(temperature, humidity);
+            let climate = create_climate(temperature);
             print!(
                 "B{:.1}+{:.1} D{:.1}-{:.1} C{:.0} S{:.0} ",
                 timing.breakfast / 3600.0,
@@ -187,10 +183,10 @@ mod tests {
             print!(" {}:", i);
             for j in 0..6 {
                 let time_of_day = 60.0 * 60.0 * (i as f32) + 60.0 * 10.0 * (j as f32);
-                let res = smoke_at_time(position, temperature, humidity, time_of_day);
+                let res = smoke_at_time(position, temperature, time_of_day);
                 print!("{:.0}{} ", res.0, if res.1 { "^" } else { "" },);
-                assert!(res.0>=0.0);
-                assert!(res.0<=SMOKE_DINNER_STRENGTH);
+                assert!(res.0 >= 0.0);
+                assert!(res.0 <= SMOKE_DINNER_STRENGTH);
             }
         }
         println!();
@@ -198,10 +194,10 @@ mod tests {
 
     #[test]
     fn test_smoke() {
-        test_conditions(Vec3::new(25_i32, 11, 33), -1.0, 0.5);
-        test_conditions(Vec3::new(22_i32, 11, 33), -0.5, 0.5);
-        test_conditions(Vec3::new(27_i32, 11, 33), 0.0, 0.5);
-        test_conditions(Vec3::new(24_i32, 11, 33), 0.5, 0.5);
-        test_conditions(Vec3::new(26_i32, 11, 33), 1.0, 0.5);
+        test_conditions(Vec3::new(25_i32, 11, 33), -1.0);
+        test_conditions(Vec3::new(22_i32, 11, 33), -0.5);
+        test_conditions(Vec3::new(27_i32, 11, 33), 0.0);
+        test_conditions(Vec3::new(24_i32, 11, 33), 0.5);
+        test_conditions(Vec3::new(26_i32, 11, 33), 1.0);
     }
 }
