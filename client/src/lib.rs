@@ -47,6 +47,7 @@ use common::{
     uid::{Uid, UidAllocator},
     vol::RectVolSize,
 };
+#[cfg(feature = "tracy")] use common_base::plot;
 use common_base::{prof_span, span};
 use common_net::{
     msg::{
@@ -77,16 +78,6 @@ use std::{
 use tokio::runtime::Runtime;
 use tracing::{debug, error, trace, warn};
 use vek::*;
-
-#[cfg(feature = "tracy")]
-mod tracy_plots {
-    use common_base::tracy_client::{create_plot, Plot};
-    pub static TERRAIN_SENDS: Plot = create_plot!("terrain_sends");
-    pub static TERRAIN_RECVS: Plot = create_plot!("terrain_recvs");
-    pub static INGAME_SENDS: Plot = create_plot!("ingame_sends");
-    pub static INGAME_RECVS: Plot = create_plot!("ingame_recvs");
-}
-#[cfg(feature = "tracy")] use tracy_plots::*;
 
 const PING_ROLLING_AVERAGE_SECS: usize = 10;
 
@@ -783,8 +774,8 @@ impl Client {
                 };
                 #[cfg(feature = "tracy")]
                 {
-                    INGAME_SENDS.point(ingame);
-                    TERRAIN_SENDS.point(terrain);
+                    plot!("ingame_sends", ingame);
+                    plot!("terrain_sends", terrain);
                 }
                 stream.send(msg)
             },
@@ -2197,8 +2188,8 @@ impl Client {
             if cnt_start == cnt {
                 #[cfg(feature = "tracy")]
                 {
-                    TERRAIN_RECVS.point(terrain_cnt as f64);
-                    INGAME_RECVS.point(ingame_cnt as f64);
+                    plot!("terrain_recvs", terrain_cnt as f64);
+                    plot!("ingame_recvs", ingame_cnt as f64);
                 }
                 return Ok(cnt);
             }
