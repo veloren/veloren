@@ -36,7 +36,7 @@ impl CharacterBehavior for Data {
         // this state
         if data.physics.on_wall.is_none()
             || data.physics.on_ground.is_some()
-            || data.physics.in_fluid.is_some()
+            || data.physics.in_liquid().is_some()
         {
             update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
         }
