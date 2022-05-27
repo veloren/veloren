@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stealth is now shown as a percentage in Stats Diary UI
 - Stealth effects from sneaking and armor are evaluated independently. Armor now has effects even when not sneaking
 - Zoom-in effect when aiming bow is now optional
+- Non-Humanoid NPCs now pick up consumables when less than full health and use them to heal up.
 
 ### Removed
 
