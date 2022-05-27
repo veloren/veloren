@@ -37,6 +37,7 @@ use common::{
             tool::{AbilitySpec, ToolKind},
             ConsumableKind, Item, ItemDesc, ItemKind,
         },
+        item_drop,
         projectile::ProjectileConstructor,
         Agent, Alignment, BehaviorState, Body, CharacterState, ControlAction, ControlEvent,
         Controller, Health, HealthChange, InputKind, InventoryAction, InventoryEvent, Pos, Scale,
@@ -1601,7 +1602,24 @@ impl<'a> AgentData<'a> {
             }
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
-            Some(Body::ItemDrop(_)) => Some((entity, false)),
+            Some(Body::ItemDrop(item)) => {
+                //If statement that checks either if the self (agent) is a humanoid,
+                //or if the self is not a humanoid, it checks whether or not you are 'hungry' -
+                // meaning less than full health - and additionally checks if
+                // the target entity is a consumable item. If it qualifies for
+                // either being a humanoid or a hungry non-humanoid that likes consumables,
+                // it will choose the item as its target.
+                if matches!(self.body, Some(Body::Humanoid(_)))
+                    || (self
+                        .health
+                        .map_or(false, |health| health.current() < health.maximum())
+                        && matches!(item, item_drop::Body::Consumable))
+                {
+                    Some((entity, false))
+                } else {
+                    None
+                }
+            },
             _ => {
                 if read_data.healths.get(entity).map_or(false, |health| {
                     !health.is_dead && !is_invulnerable(entity, read_data)
