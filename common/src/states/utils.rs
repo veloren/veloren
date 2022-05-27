@@ -4,8 +4,8 @@ use crate::{
     comp::{
         arthropod, biped_large, biped_small,
         character_state::OutputEvents,
-        inventory::slot::{EquipSlot, Slot},
-        item::{Hands, ItemKind, ToolKind},
+        inventory::slot::{ArmorSlot, EquipSlot, Slot},
+        item::{armor::Friction, Hands, ItemKind, ToolKind},
         quadruped_low, quadruped_medium, quadruped_small,
         skills::{Skill, SwimSkill, SKILL_MODIFIERS},
         theropod, Body, CharacterAbility, CharacterState, Density, InputAttr, InputKind,
@@ -14,7 +14,7 @@ use crate::{
     consts::{FRIC_GROUND, GRAVITY, MAX_PICKUP_RANGE},
     event::{LocalEvent, ServerEvent},
     outcome::Outcome,
-    states::{behavior::JoinData, *},
+    states::{behavior::JoinData, utils::CharacterState::Idle, *},
     util::Dir,
     vol::ReadVol,
 };
@@ -298,6 +298,35 @@ impl Body {
             body_radius * ori.y * 1.1,
             body_offsets_z,
         )
+    }
+}
+
+/// set footwear in idle data and potential state change to Skate
+pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
+    if let Idle(crate::states::idle::Data {
+        is_sneaking,
+        mut footwear,
+    }) = data.character
+    {
+        if footwear.is_none() {
+            footwear = data.inventory.and_then(|inv| {
+                inv.equipped(EquipSlot::Armor(ArmorSlot::Feet))
+                    .map(|armor| match armor.kind().as_ref() {
+                        ItemKind::Armor(a) => a.ground_contact(),
+                        _ => crate::comp::inventory::item::armor::Friction::Normal,
+                    })
+            });
+            update.character = Idle(crate::states::idle::Data {
+                is_sneaking: *is_sneaking,
+                footwear,
+            });
+        }
+        if data.physics.skating_active {
+            update.character = CharacterState::Skate(crate::states::skate::Data::new(
+                data,
+                footwear.unwrap_or(Friction::Normal),
+            ));
+        }
     }
 }
 
@@ -635,7 +664,10 @@ pub fn attempt_talk(data: &JoinData<'_>, update: &mut StateUpdate) {
 
 pub fn attempt_sneak(data: &JoinData<'_>, update: &mut StateUpdate) {
     if data.physics.on_ground.is_some() && data.body.is_humanoid() {
-        update.character = CharacterState::Idle(idle::Data { is_sneaking: true });
+        update.character = CharacterState::Idle(idle::Data {
+            is_sneaking: true,
+            footwear: data.character.footwear(),
+        });
     }
 }
 

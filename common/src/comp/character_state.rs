@@ -1,6 +1,7 @@
 use crate::{
     comp::{
-        item::ConsumableKind, ControlAction, Density, Energy, InputAttr, InputKind, Ori, Pos, Vel,
+        inventory::item::armor::Friction, item::ConsumableKind, ControlAction, Density, Energy,
+        InputAttr, InputKind, Ori, Pos, Vel,
     },
     event::{LocalEvent, ServerEvent},
     states::{
@@ -123,6 +124,8 @@ pub enum CharacterState {
     SpriteInteract(sprite_interact::Data),
     /// Runs on the wall
     Wallrun(wallrun::Data),
+    /// Ice skating or skiing
+    Skate(skate::Data),
 }
 
 impl CharacterState {
@@ -153,15 +156,16 @@ impl CharacterState {
     pub fn is_stealthy(&self) -> bool {
         matches!(
             self,
-            CharacterState::Idle(idle::Data { is_sneaking: true })
-                | CharacterState::Wielding(wielding::Data {
-                    is_sneaking: true,
-                    ..
-                })
-                | CharacterState::Roll(roll::Data {
-                    is_sneaking: true,
-                    ..
-                })
+            CharacterState::Idle(idle::Data {
+                is_sneaking: true,
+                footwear: _
+            }) | CharacterState::Wielding(wielding::Data {
+                is_sneaking: true,
+                ..
+            }) | CharacterState::Roll(roll::Data {
+                is_sneaking: true,
+                ..
+            })
         )
     }
 
@@ -226,6 +230,8 @@ impl CharacterState {
     pub fn is_dodge(&self) -> bool { matches!(self, CharacterState::Roll(_)) }
 
     pub fn is_glide(&self) -> bool { matches!(self, CharacterState::Glide(_)) }
+
+    pub fn is_skate(&self) -> bool { matches!(self, CharacterState::Skate(_)) }
 
     pub fn is_melee_dodge(&self) -> bool {
         matches!(self, CharacterState::Roll(d) if d.static_data.immune_melee)
@@ -329,6 +335,7 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => data.behavior(j, output_events),
             CharacterState::UseItem(data) => data.behavior(j, output_events),
             CharacterState::SpriteInteract(data) => data.behavior(j, output_events),
+            CharacterState::Skate(data) => data.behavior(j, output_events),
         }
     }
 
@@ -375,12 +382,26 @@ impl CharacterState {
             CharacterState::SpriteSummon(data) => data.handle_event(j, output_events, action),
             CharacterState::UseItem(data) => data.handle_event(j, output_events, action),
             CharacterState::SpriteInteract(data) => data.handle_event(j, output_events, action),
+            CharacterState::Skate(data) => data.handle_event(j, output_events, action),
+        }
+    }
+
+    pub fn footwear(&self) -> Option<Friction> {
+        match &self {
+            CharacterState::Idle(data) => data.footwear,
+            CharacterState::Skate(data) => Some(data.footwear),
+            _ => None,
         }
     }
 }
 
 impl Default for CharacterState {
-    fn default() -> Self { Self::Idle(idle::Data { is_sneaking: false }) }
+    fn default() -> Self {
+        Self::Idle(idle::Data {
+            is_sneaking: false,
+            footwear: None,
+        })
+    }
 }
 
 impl Component for CharacterState {

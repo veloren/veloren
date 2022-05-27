@@ -2,6 +2,7 @@ use common::{
     comp::{
         body::ship::figuredata::{VoxelCollider, VOXEL_COLLIDER_MANIFEST},
         fluid_dynamics::{Fluid, LiquidKind, Wings},
+        inventory::item::armor::Friction,
         Body, CharacterState, Collider, Density, Immovable, Mass, Ori, PhysicsState, Pos,
         PosVelOriDefer, PreviousPhysCache, Projectile, Scale, Stats, Sticky, Vel,
     },
@@ -12,7 +13,7 @@ use common::{
     outcome::Outcome,
     resources::DeltaTime,
     states,
-    terrain::{Block, TerrainGrid},
+    terrain::{Block, BlockKind, TerrainGrid},
     uid::Uid,
     util::{Projection, SpatialGrid},
     vol::{BaseVol, ReadVol},
@@ -780,6 +781,13 @@ impl<'a> PhysicsData<'a> {
                         1.0
                     };
 
+                    if let Some(state) = character_state {
+                        let footwear = state.footwear().unwrap_or(Friction::Normal);
+                        if footwear != physics_state.footwear {
+                            physics_state.footwear = footwear;
+                        }
+                    }
+
                     let in_loaded_chunk = read
                         .terrain
                         .get_key(read.terrain.pos_key(pos.0.map(|e| e.floor() as i32)))
@@ -846,6 +854,7 @@ impl<'a> PhysicsData<'a> {
                                 climbing,
                                 |entity, vel| land_on_ground = Some((entity, vel)),
                                 read,
+                                &ori,
                             );
                             tgt_pos = cpos.0;
                         },
@@ -878,6 +887,7 @@ impl<'a> PhysicsData<'a> {
                                 climbing,
                                 |entity, vel| land_on_ground = Some((entity, vel)),
                                 read,
+                                &ori,
                             );
 
                             // Sticky things shouldn't move when on a surface
@@ -1142,6 +1152,7 @@ impl<'a> PhysicsData<'a> {
                                                 Some((entity, Vel(ori_from.mul_direction(vel.0))));
                                         },
                                         read,
+                                        &ori,
                                     );
 
                                     cpos.0 = transform_from.mul_point(cpos.0) + wpos;
@@ -1339,6 +1350,7 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     climbing: bool,
     mut land_on_ground: impl FnMut(Entity, Vel),
     read: &PhysicsRead,
+    ori: &Ori,
 ) {
     // FIXME: Review these
     #![allow(
@@ -1700,19 +1712,84 @@ fn box_voxel_collision<'a, T: BaseVol<Vox = Block> + ReadVol>(
     physics_state.on_wall = on_wall;
     let fric_mod = read.stats.get(entity).map_or(1.0, |s| s.friction_modifier);
 
-    let ground_fric = physics_state
-        .on_ground
-        .map(|b| b.get_friction())
-        .unwrap_or(0.0);
-    let wall_fric = if physics_state.on_wall.is_some() && climbing {
-        FRIC_GROUND
+    // skating (ski)
+    if !vel.0.xy().is_approx_zero()
+        && physics_state
+            .on_ground
+            .map_or(false, |g| physics_state.footwear.can_skate_on(g.kind()))
+    {
+        const DT_SCALE: f32 = 1.0; // other areas use 60.0???
+        const POTENTIAL_TO_KINETIC: f32 = 8.0; // * 2.0 * GRAVITY;
+
+        let kind = physics_state.on_ground.map_or(BlockKind::Air, |g| g.kind());
+        let (longitudinal_friction, lateral_friction) = physics_state.footwear.get_friction(kind);
+        // the amount of longitudinal speed preserved
+        let longitudinal_friction_factor_squared =
+            (1.0 - longitudinal_friction).powf(dt.0 * DT_SCALE * 2.0);
+        let lateral_friction_factor = (1.0 - lateral_friction).powf(dt.0 * DT_SCALE);
+        let groundplane_velocity = vel.0.xy();
+        let mut longitudinal_dir = ori.look_vec().xy();
+        if longitudinal_dir.is_approx_zero() {
+            // fall back to travelling dir (in case we look up)
+            longitudinal_dir = groundplane_velocity;
+        }
+        let longitudinal_dir = longitudinal_dir.normalized();
+        let lateral_dir = Vec2::new(longitudinal_dir.y, -longitudinal_dir.x);
+        let squared_velocity = groundplane_velocity.magnitude_squared();
+        // if we crossed an edge up or down accelerate in travelling direction,
+        // as potential energy is converted into kinetic energy we compare it with the
+        // square of velocity
+        let vertical_difference = physics_state.skating_last_height - pos.0.z;
+        // might become negative when skating slowly uphill
+        let height_factor_squared = if vertical_difference != 0.0 {
+            // E=½mv², we scale both energies by ½m
+            let kinetic = squared_velocity;
+            // positive accelerate, negative decelerate, ΔE=mgΔh
+            let delta_potential = vertical_difference.max(-1.0).min(2.0) * POTENTIAL_TO_KINETIC;
+            let new_energy = kinetic + delta_potential;
+            physics_state.skating_last_height = pos.0.z;
+            new_energy / kinetic
+        } else {
+            1.0
+        };
+
+        // we calculate these squared as we need to combined them Euclidianly anyway,
+        // skiing: separate speed into longitudinal and lateral component
+        let long_speed = groundplane_velocity.dot(longitudinal_dir);
+        let lat_speed = groundplane_velocity.dot(lateral_dir);
+        let long_speed_squared = long_speed.powi(2);
+
+        // lateral speed is reduced by lateral_friction,
+        let new_lateral = lat_speed * lateral_friction_factor;
+        let lateral_speed_reduction = lat_speed - new_lateral;
+        // we convert this reduction partically (by the cosine of the angle) into
+        // longitudinal (elastic collision) and the remainder into heat
+        let cosine_squared_aoa = long_speed_squared / squared_velocity;
+        let converted_lateral_squared = cosine_squared_aoa * lateral_speed_reduction.powi(2);
+        let new_longitudinal_squared = longitudinal_friction_factor_squared
+            * (long_speed_squared + converted_lateral_squared)
+            * height_factor_squared;
+        let new_longitudinal =
+            new_longitudinal_squared.signum() * new_longitudinal_squared.abs().sqrt();
+        let new_ground_speed = new_longitudinal * longitudinal_dir + new_lateral * lateral_dir;
+        physics_state.skating_active = true;
+        vel.0 = Vec3::new(new_ground_speed.x, new_ground_speed.y, 0.0);
     } else {
-        0.0
-    };
-    let fric = ground_fric.max(wall_fric);
-    if fric > 0.0 {
-        vel.0 *= (1.0 - fric.min(1.0) * fric_mod).powf(dt.0 * 60.0);
-        physics_state.ground_vel = ground_vel;
+        let ground_fric = physics_state
+            .on_ground
+            .map(|b| b.get_friction())
+            .unwrap_or(0.0);
+        let wall_fric = if physics_state.on_wall.is_some() && climbing {
+            FRIC_GROUND
+        } else {
+            0.0
+        };
+        let fric = ground_fric.max(wall_fric);
+        if fric > 0.0 {
+            vel.0 *= (1.0 - fric.min(1.0) * fric_mod).powf(dt.0 * 60.0);
+            physics_state.ground_vel = ground_vel;
+        }
+        physics_state.skating_active = false;
     }
 
     physics_state.in_fluid = liquid

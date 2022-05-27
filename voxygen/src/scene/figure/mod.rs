@@ -976,9 +976,10 @@ impl FigureMgr {
                         rel_vel.magnitude_squared() > 0.01, // Moving
                         physics.in_liquid().is_some(),      // In water
                         is_rider.is_some(),
+                        physics.skating_active,
                     ) {
-                        // Standing
-                        (true, false, false, false) => {
+                        // Standing or Skating
+                        (true, false, false, false, _) | (_, _, false, false, true) => {
                             anim::character::StandAnimation::update_skeleton(
                                 &CharacterSkeleton::new(holding_lantern),
                                 (
@@ -997,7 +998,7 @@ impl FigureMgr {
                             )
                         },
                         // Running
-                        (true, true, false, false) => {
+                        (true, true, false, false, _) => {
                             anim::character::RunAnimation::update_skeleton(
                                 &CharacterSkeleton::new(holding_lantern),
                                 (
@@ -1019,7 +1020,7 @@ impl FigureMgr {
                             )
                         },
                         // In air
-                        (false, _, false, false) => {
+                        (false, _, false, false, _) => {
                             anim::character::JumpAnimation::update_skeleton(
                                 &CharacterSkeleton::new(holding_lantern),
                                 (
@@ -1038,7 +1039,7 @@ impl FigureMgr {
                             )
                         },
                         // Swim
-                        (_, _, true, false) => anim::character::SwimAnimation::update_skeleton(
+                        (_, _, true, false, _) => anim::character::SwimAnimation::update_skeleton(
                             &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
@@ -1056,7 +1057,7 @@ impl FigureMgr {
                             skeleton_attr,
                         ),
                         // Mount
-                        (_, _, _, true) => anim::character::MountAnimation::update_skeleton(
+                        (_, _, _, true, _) => anim::character::MountAnimation::update_skeleton(
                             &CharacterSkeleton::new(holding_lantern),
                             (
                                 active_tool_kind,
@@ -1260,7 +1261,9 @@ impl FigureMgr {
                                 skeleton_attr,
                             )
                         },
-                        CharacterState::Idle(idle::Data { is_sneaking: true }) => {
+                        CharacterState::Idle(idle::Data {
+                            is_sneaking: true, ..
+                        }) => {
                             anim::character::SneakAnimation::update_skeleton(
                                 &target_base,
                                 (
@@ -5257,16 +5260,11 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
+                    let idlestate = CharacterState::Idle(common::states::idle::Data::default());
+                    let last = Last(idlestate.clone());
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
-                        _ => (
-                            &CharacterState::Idle(common::states::idle::Data {
-                                is_sneaking: false,
-                            }),
-                            &Last(CharacterState::Idle(common::states::idle::Data {
-                                is_sneaking: false,
-                            })),
-                        ),
+                        _ => (&idlestate, &last),
                     };
 
                     if !character.same_variant(&last_character.0) {
@@ -5388,16 +5386,11 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
+                    let idle_state = CharacterState::Idle(common::states::idle::Data::default());
+                    let last = Last(idle_state.clone());
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
-                        _ => (
-                            &CharacterState::Idle(common::states::idle::Data {
-                                is_sneaking: false,
-                            }),
-                            &Last(CharacterState::Idle(common::states::idle::Data {
-                                is_sneaking: false,
-                            })),
-                        ),
+                        _ => (&idle_state, &last),
                     };
 
                     if !character.same_variant(&last_character.0) {
@@ -5486,16 +5479,11 @@ impl FigureMgr {
                     // Average velocity relative to the current ground
                     let _rel_avg_vel = state.avg_vel - physics.ground_vel;
 
+                    let idlestate = CharacterState::Idle(common::states::idle::Data::default());
+                    let last = Last(idlestate.clone());
                     let (character, last_character) = match (character, last_character) {
                         (Some(c), Some(l)) => (c, l),
-                        _ => (
-                            &CharacterState::Idle(common::states::idle::Data {
-                                is_sneaking: false,
-                            }),
-                            &Last(CharacterState::Idle(common::states::idle::Data {
-                                is_sneaking: false,
-                            })),
-                        ),
+                        _ => (&idlestate, &last),
                     };
 
                     if !character.same_variant(&last_character.0) {

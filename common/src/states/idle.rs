@@ -1,19 +1,25 @@
 use super::utils::*;
 use crate::{
-    comp::{character_state::OutputEvents, CharacterState, InventoryAction, StateUpdate},
+    comp::{
+        character_state::OutputEvents, inventory::item::armor::Friction, CharacterState,
+        InventoryAction, StateUpdate,
+    },
     states::behavior::{CharacterBehavior, JoinData},
 };
 use serde::{Deserialize, Serialize};
 
-#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub struct Data {
     pub is_sneaking: bool,
+    // None means unknown
+    pub(crate) footwear: Option<Friction>,
 }
 
 impl CharacterBehavior for Data {
     fn behavior(&self, data: &JoinData, output_events: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
 
+        handle_skating(data, &mut update);
         handle_orientation(data, &mut update, 1.0, None);
         handle_move(data, &mut update, if self.is_sneaking { 0.4 } else { 1.0 });
         handle_jump(data, output_events, &mut update, 1.0);
@@ -26,7 +32,10 @@ impl CharacterBehavior for Data {
         if self.is_sneaking
             && (data.physics.on_ground.is_none() || data.physics.in_liquid().is_some())
         {
-            update.character = CharacterState::Idle(Data { is_sneaking: false });
+            update.character = CharacterState::Idle(Data {
+                is_sneaking: false,
+                footwear: self.footwear,
+            });
         }
 
         update
@@ -75,13 +84,16 @@ impl CharacterBehavior for Data {
 
     fn sneak(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle(Data { is_sneaking: true });
+        update.character = CharacterState::Idle(Data {
+            is_sneaking: true,
+            footwear: self.footwear,
+        });
         update
     }
 
     fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle(Data { is_sneaking: false });
+        update.character = CharacterState::Idle(Data::default());
         update
     }
 

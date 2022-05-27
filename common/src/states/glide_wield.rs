@@ -74,7 +74,7 @@ impl CharacterBehavior for Data {
                     ..*self
                 })
             } else {
-                CharacterState::Idle(idle::Data { is_sneaking: false })
+                CharacterState::Idle(idle::Data::default())
             };
         }
 
@@ -98,7 +98,7 @@ impl CharacterBehavior for Data {
             pos: data.pos.0,
             wielded: false,
         }));
-        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+        update.character = CharacterState::Idle(idle::Data::default());
         update
     }
 

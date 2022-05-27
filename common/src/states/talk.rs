@@ -42,14 +42,14 @@ impl CharacterBehavior for Data {
 
     fn sit(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+        update.character = CharacterState::Idle(idle::Data::default());
         attempt_sit(data, &mut update);
         update
     }
 
     fn dance(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
-        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+        update.character = CharacterState::Idle(idle::Data::default());
         attempt_dance(data, &mut update);
         update
     }
@@ -57,7 +57,7 @@ impl CharacterBehavior for Data {
     fn stand(&self, data: &JoinData, _: &mut OutputEvents) -> StateUpdate {
         let mut update = StateUpdate::from(data);
         // Try to Fall/Stand up/Move
-        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+        update.character = CharacterState::Idle(idle::Data::default());
         update
     }
 }

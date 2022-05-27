@@ -93,7 +93,7 @@ fn same_previous_event_elapsed_emits() {
 #[test]
 fn maps_idle() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
+        &CharacterState::Idle(common::states::idle::Data::default()),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -115,7 +115,7 @@ fn maps_idle() {
 #[test]
 fn maps_run_with_sufficient_velocity() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
+        &CharacterState::Idle(common::states::idle::Data::default()),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -137,7 +137,7 @@ fn maps_run_with_sufficient_velocity() {
 #[test]
 fn does_not_map_run_with_insufficient_velocity() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
+        &CharacterState::Idle(common::states::idle::Data::default()),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()
@@ -159,7 +159,7 @@ fn does_not_map_run_with_insufficient_velocity() {
 #[test]
 fn does_not_map_run_with_sufficient_velocity_but_not_on_ground() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
+        &CharacterState::Idle(common::states::idle::Data::default()),
         &Default::default(),
         &PreviousEntityState {
             event: SfxEvent::Idle,
@@ -214,7 +214,7 @@ fn maps_roll() {
 #[test]
 fn maps_land_on_ground_to_run() {
     let result = MovementEventMapper::map_movement_event(
-        &CharacterState::Idle(common::states::idle::Data { is_sneaking: false }),
+        &CharacterState::Idle(common::states::idle::Data::default()),
         &PhysicsState {
             on_ground: Some(Block::empty()),
             ..Default::default()

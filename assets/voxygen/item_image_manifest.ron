@@ -2699,6 +2699,14 @@
         "voxel.armor.misc.pants.grayscale",
         (0.0, 1.0, 0.0), (-120.0, 210.0,15.0), 0.9,
     ),
+    Simple("common.items.armor.misc.foot.ski"): VoxTrans(
+        "voxel.armor.misc.foot.ski",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
+    Simple("common.items.armor.misc.foot.iceskate"): VoxTrans(
+        "voxel.armor.misc.foot.iceskate",
+        (0.0, 0.0, 0.0), (-120.0, 210.0,15.0), 0.9,
+    ),
     // Backs
     Simple("common.items.armor.misc.back.short_0"): VoxTrans(
         "voxel.armor.misc.back.short-0",

@@ -58,6 +58,7 @@ impl CharacterBehavior for Data {
             ) => {
                 update.character = CharacterState::Idle(idle::Data {
                     is_sneaking: self.is_sneaking,
+                    footwear: None,
                 });
             },
             _ => (),
@@ -76,6 +77,7 @@ impl CharacterBehavior for Data {
         let mut update = StateUpdate::from(data);
         update.character = CharacterState::Idle(idle::Data {
             is_sneaking: self.is_sneaking,
+            footwear: None,
         });
         update
     }

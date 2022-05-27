@@ -72,7 +72,7 @@ impl CharacterBehavior for Data {
                         update.character =
                             CharacterState::Wielding(wielding::Data { is_sneaking: false });
                     } else {
-                        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+                        update.character = CharacterState::Idle(idle::Data::default());
                     }
                 }
             },
@@ -82,7 +82,7 @@ impl CharacterBehavior for Data {
                     update.character =
                         CharacterState::Wielding(wielding::Data { is_sneaking: false });
                 } else {
-                    update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+                    update.character = CharacterState::Idle(idle::Data::default());
                 }
             },
         }
