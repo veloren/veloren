@@ -455,13 +455,8 @@ pub fn handle_orientation(
     /// first check for horizontal
     fn to_horizontal_fast(ori: &crate::comp::Ori) -> crate::comp::Ori {
         if ori.to_quat().into_vec4().xy().is_approx_zero() {
-            // if ori.to_horizontal().dot(*ori) < (1.0 - 4.0 * f32::EPSILON) {
-            //     tracing::error!("{:?} {}", ori, ori.to_horizontal().dot(*ori));
-            // }
-            // debug_assert!(ori.to_horizontal().dot(*ori) >= (1.0 - 4.0 * f32::EPSILON));
             *ori
         } else {
-            //tracing::info!("non horizontal {:?}", ori);
             ori.to_horizontal()
         }
     }
@@ -498,40 +493,8 @@ pub fn handle_orientation(
     let ticks_from_target_guess = ori_absdiff(&update.ori, &target_ori) / half_turns_per_tick;
     let instantaneous = ticks_from_target_guess < 1.0;
     update.ori = if instantaneous {
-        // if (half_turns_per_tick * 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt()) <
-        // 1.0 {     tracing::error!(
-        //         "{:?} {} {} {:?} {:?} {:?} {:?} {}",
-        //         data.body.mass(),
-        //         data.body.base_ori_rate(),
-        //         update.ori.dot(target_ori),
-        //         update.ori.look_dir(),
-        //         target_ori.look_dir(),
-        //         update.ori,
-        //         target_ori,
-        //         ticks_from_target_guess
-        //     );
-        //     tracing::error!(
-        //         "{} {} {}",
-        //         half_turns_per_tick,
-        //         2.0 / (1.0 - update.ori.dot(target_ori)).sqrt(),
-        //         update.ori.angle_between(target_ori) * 180.0 / std::f32::consts::PI,
-        //     );
-        // }
-        // debug_assert!(
-        //     (half_turns_per_tick * 2.0 / (1.0 - update.ori.dot(target_ori)).sqrt())
-        // >= 1.0 );
         target_ori
     } else {
-        // tracing::trace!(
-        //     "{} {} {} {:?} {} {:?} {:?}",
-        //     update.ori.dot(target_ori),
-        //     ticks_from_target_guess,
-        //     half_turns_per_tick,
-        //     data.body.mass(),
-        //     data.body.base_ori_rate(),
-        //     update.ori,
-        //     target_ori,
-        // );
         let target_fraction = {
             // Angle factor used to keep turning rate approximately constant by
             // counteracting slerp turning more with a larger angle
@@ -539,17 +502,9 @@ pub fn handle_orientation(
 
             half_turns_per_tick * angle_factor
         };
-        //let res =
         update
             .ori
             .slerped_towards(target_ori, target_fraction.min(1.0))
-        // tracing::trace!(
-        //     ">>{}<< {} {}",
-        //     target_fraction,
-        //     data.dt.0,
-        //     res.dot(target_ori)
-        // );
-        //res
     };
 }
 
@@ -1311,5 +1266,53 @@ impl HandInfo {
                 }
             },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use specs::LazyUpdate;
+
+    use crate::{
+        comp::item::MaterialStatManifest, resources::DeltaTime, states::behavior::JoinStruct,
+    };
+
+    use super::*;
+
+    #[test]
+    fn orientation_shortcut() {
+        let index: specs::world::entity::Index = 42;
+        let generation = specs::world::entity::Generation(43);
+        let js = JoinStruct {
+            entity: Entitiy::new(index, generation),
+            uid: todo!(),
+            char_state: todo!(),
+            pos: todo!(),
+            vel: todo!(),
+            ori: todo!(),
+            mass: todo!(),
+            density: todo!(),
+            energy: todo!(),
+            inventory: todo!(),
+            controller: todo!(),
+            health: todo!(),
+            body: todo!(),
+            physics: todo!(),
+            melee_attack: todo!(),
+            beam: todo!(),
+            stat: todo!(),
+            skill_set: todo!(),
+            active_abilities: todo!(),
+            combo: todo!(),
+            alignment: todo!(),
+            terrain: todo!(),
+            mount_data: todo!(),
+        };
+        let lu = LazyUpdate::new();
+        let msm = MaterialStatManifest::new();
+        let dt = DeltaTime(0.033);
+        let jd = JoinData::new(&js, &lu, &dt, &msm);
+        let mut update: StateUpdate = jd.into();
+        handle_orientation(&jd, &mut update, 1.0, None);
     }
 }
