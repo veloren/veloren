@@ -209,6 +209,8 @@ const NAMETAG_DMG_TIME: f32 = 60.0;
 const NAMETAG_DMG_RANGE: f32 = 120.0;
 /// Range to display speech-bubbles at
 const SPEECH_BUBBLE_RANGE: f32 = NAMETAG_RANGE;
+const EXP_FLOATER_LIFETIME: f32 = 2.0;
+const EXP_ACCUMULATION_DURATION: f32 = 0.5;
 
 widget_ids! {
     struct Ids {
@@ -452,6 +454,7 @@ pub struct ExpFloater {
     pub owner: Uid,
     pub exp_change: u32,
     pub timer: f32,
+    pub jump_timer: f32,
     pub rand_offset: (f32, f32),
     pub xp_pools: HashSet<SkillGroupKind>,
 }
@@ -1437,7 +1440,9 @@ impl Hud {
                             .abs()
                             .clamp(Health::HEALTH_EPSILON, health.maximum() * 1.25)
                             / health.maximum();
-                        let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
+                        let hp_dmg_text = if floater.info.amount.abs() < 0.1 {
+                            String::new()
+                        } else if global_state.settings.interface.sct_damage_rounding
                             && floater.info.amount.abs() >= 1.0
                         {
                             format!("{:.0}", floater.info.amount.abs())
@@ -1457,11 +1462,14 @@ impl Hud {
 
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + (if crit { max_hp_frac * 10.0 * 1.35 + 5.0} else { max_hp_frac * 10.0 }) as u32 * 3
-                            + if floater.jump_timer < 0.1 {
+                        let font_size =
+                            30 + (if crit {
+                                (max_hp_frac * 10.0) as u32 * 3 + 10
+                            } else {
+                                (max_hp_frac * 10.0) as u32 * 3
+                            }) + if floater.jump_timer < 0.1 {
                                 FLASH_MAX
-                                    * (((1.0 - floater.jump_timer / 0.1)
+                                    * (((1.0 - floater.jump_timer * 10.0)
                                         * 10.0
                                         * if crit { 1.25 } else { 1.0 })
                                         as u32)
@@ -1511,11 +1519,11 @@ impl Hud {
                     }
                 }
                 // EXP Numbers
-                self.floaters
-                    .exp_floaters
-                    .iter_mut()
-                    .for_each(|f| f.timer -= dt.as_secs_f32());
-                self.floaters.exp_floaters.retain(|f| f.timer > 0_f32);
+                self.floaters.exp_floaters.iter_mut().for_each(|f| {
+                    f.timer -= dt.as_secs_f32();
+                    f.jump_timer += dt.as_secs_f32();
+                });
+                self.floaters.exp_floaters.retain(|f| f.timer > 0.0);
                 if let Some(uid) = uids.get(me) {
                     for floater in self
                         .floaters
@@ -1538,16 +1546,17 @@ impl Hud {
                         );*/
                         // Increase font size based on fraction of maximum Experience
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size_xp =
-                            30 + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32;
+                        let font_size_xp = 30
+                            + ((floater.exp_change as f32 / 300.0).min(1.0) * 50.0) as u32
+                            + if floater.jump_timer < 0.1 {
+                                FLASH_MAX * (((1.0 - floater.jump_timer * 10.0) * 10.0) as u32)
+                            } else {
+                                0
+                            };
                         let y = floater.timer as f64 * number_speed; // Timer sets the widget offset
                         //let fade = ((4.0 - floater.timer as f32) * 0.25) + 0.2; // Timer sets
                         // text transparency
-                        let fade = if floater.timer < 1.0 {
-                            floater.timer
-                        } else {
-                            1.0
-                        };
+                        let fade = floater.timer.min(1.0);
 
                         if floater.exp_change > 0 {
                             let xp_pool = &floater.xp_pools;
@@ -2169,12 +2178,15 @@ impl Hud {
                         let sct_bg_id = sct_bg_walker
                             .next(&mut self.ids.sct_bgs, &mut ui_widgets.widget_id_generator());
                         // Calculate total change
-                        let max_hp_frac =
-                            floater.info.amount.abs().clamp(
-                                Health::HEALTH_EPSILON,
-                                health.map_or(1.0, |h| h.maximum()),
-                            ) / health.map_or(1.0, |h| h.maximum());
-                        let hp_dmg_text = if global_state.settings.interface.sct_damage_rounding
+                        let max_hp_frac = floater
+                            .info
+                            .amount
+                            .abs()
+                            .clamp(Health::HEALTH_EPSILON, health.map_or(1.0, |h| h.maximum()))
+                            / health.map_or(1.0, |h| h.maximum());
+                        let hp_dmg_text = if floater.info.amount.abs() < 0.1 {
+                            String::new()
+                        } else if global_state.settings.interface.sct_damage_rounding
                             && floater.info.amount.abs() >= 1.0
                         {
                             format!("{:.0}", floater.info.amount.abs())
@@ -2184,11 +2196,9 @@ impl Hud {
                         let crit = floater.info.crit;
                         // Timer sets text transparency
                         let fade = if crit {
-                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75)
-                                + 0.5
+                            ((crate::ecs::sys::floater::CRIT_SHOWTIME - floater.timer) * 0.75) + 0.5
                         } else {
-                            ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25)
-                                + 0.2
+                            ((crate::ecs::sys::floater::HP_SHOWTIME - floater.timer) * 0.25) + 0.2
                         };
                         // Skip floater if fade is less than or equal to 0.0
                         if fade <= 0.0 {
@@ -2196,11 +2206,14 @@ impl Hud {
                         }
                         // Increase font size based on fraction of maximum health
                         // "flashes" by having a larger size in the first 100ms
-                        let font_size = 30
-                            + (if crit { max_hp_frac * 10.0 * 1.35 + 5.0} else { max_hp_frac * 10.0 }) as u32 * 3
-                            + if floater.jump_timer < 0.1 {
+                        let font_size =
+                            30 + (if crit {
+                                (max_hp_frac * 10.0) as u32 * 3 + 10
+                            } else {
+                                (max_hp_frac * 10.0) as u32 * 3
+                            }) + if floater.jump_timer < 0.1 {
                                 FLASH_MAX
-                                    * (((1.0 - floater.jump_timer / 0.1)
+                                    * (((1.0 - floater.jump_timer * 10.0)
                                         * 10.0
                                         * if crit { 1.25 } else { 1.0 })
                                         as u32)
@@ -2210,11 +2223,9 @@ impl Hud {
                         let font_col = font_col(font_size, crit);
                         // Timer sets the widget offset
                         let y = if crit {
-                            ui_widgets.win_h * (floater.rand as f64 % 0.1)
-                                + ui_widgets.win_h * 0.05
+                            ui_widgets.win_h * (floater.rand as f64 % 0.1) + ui_widgets.win_h * 0.05
                         } else {
-                            (floater.timer as f64
-                                / crate::ecs::sys::floater::HP_SHOWTIME as f64
+                            (floater.timer as f64 / crate::ecs::sys::floater::HP_SHOWTIME as f64
                                 * number_speed)
                                 + 100.0
                         };
@@ -2223,9 +2234,7 @@ impl Hud {
                             0.0
                         } else {
                             (floater.rand as f64 - 0.5) * 0.075 * ui_widgets.win_w
-                                + (0.03
-                                    * ui_widgets.win_w
-                                    * (floater.rand as f64 - 0.5).signum())
+                                + (0.03 * ui_widgets.win_w * (floater.rand as f64 - 0.5).signum())
                         };
 
                         Text::new(&hp_dmg_text)
@@ -4344,13 +4353,23 @@ impl Hud {
         let interface = &global_state.settings.interface;
         match outcome {
             Outcome::ExpChange { uid, exp, xp_pools } => {
-                self.floaters.exp_floaters.push(ExpFloater {
-                    owner: *uid,
-                    exp_change: *exp,
-                    timer: 4.0,
-                    rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
-                    xp_pools: xp_pools.clone(),
-                })
+                match self.floaters.exp_floaters.last_mut() {
+                    Some(floater)
+                        if floater.timer > (EXP_FLOATER_LIFETIME - EXP_ACCUMULATION_DURATION)
+                            && floater.owner == *uid =>
+                    {
+                        floater.jump_timer = 0.0;
+                        floater.exp_change += *exp;
+                    },
+                    _ => self.floaters.exp_floaters.push(ExpFloater {
+                        owner: *uid,
+                        exp_change: *exp,
+                        timer: EXP_FLOATER_LIFETIME,
+                        jump_timer: 0.0,
+                        rand_offset: rand::thread_rng().gen::<(f32, f32)>(),
+                        xp_pools: xp_pools.clone(),
+                    }),
+                }
             },
             Outcome::SkillPointGain {
                 uid,
@@ -4430,14 +4449,13 @@ impl Hud {
 
                             match last_floater {
                                 Some(f)
-                                if f.timer < if hit_me {
+                                    if f.timer < if hit_me {
                                         interface.sct_inc_dmg_accum_duration
                                     } else {
                                         interface.sct_dmg_accum_duration
                                     }
                                     // To avoid grouping up crits with non-crits
-                                    && (!info.crit || hit_me)
-                                 =>
+                                    && (!info.crit || hit_me) =>
                                 {
                                     f.jump_timer = 0.0;
                                     f.info.amount += info.amount;
