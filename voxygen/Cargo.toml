@@ -127,7 +127,7 @@ itertools = "0.10.0"
 
 # Tracy
 tracing = "0.1"
-profiling = { version = "1.0.1", default-features = false, optional = true }
+profiling = { version = "1.0.6", default-features = false, optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dispatch = "0.1.4"

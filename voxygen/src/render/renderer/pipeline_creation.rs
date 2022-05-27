@@ -10,7 +10,7 @@ use super::{
     shaders::Shaders,
     ImmutableLayouts, Layouts,
 };
-use common_base::prof_span;
+use common_base::{prof_span, prof_span_alloc};
 use std::sync::Arc;
 
 /// All the pipelines
@@ -1012,7 +1012,7 @@ impl<'a> Task<'a> {
         // _name only used when tracy feature is activated
         StartedTask {
             _span: {
-                prof_span!(guard, _name);
+                prof_span_alloc!(guard, _name);
                 guard
             },
             _task: self,

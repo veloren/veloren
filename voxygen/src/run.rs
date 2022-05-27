@@ -5,7 +5,7 @@ use crate::{
     window::{Event, EventLoop},
     Direction, GlobalState, PlayState, PlayStateResult,
 };
-use common_base::{no_guard_span, span, GuardlessSpan};
+use common_base::{prof_span, span};
 use std::{mem, time::Duration};
 use tracing::debug;
 
@@ -71,7 +71,8 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
 
         match event {
             winit::event::Event::NewEvents(_) => {
-                event_span = Some(no_guard_span!("Process Events"));
+                prof_span!(span, "Process Events");
+                event_span = Some(span);
             },
             winit::event::Event::MainEventsCleared => {
                 event_span.take();
@@ -79,7 +80,8 @@ pub fn run(mut global_state: GlobalState, event_loop: EventLoop) {
                 if polled_twice {
                     handle_main_events_cleared(&mut states, control_flow, &mut global_state);
                 }
-                poll_span = Some(no_guard_span!("Poll Winit"));
+                prof_span!(span, "Poll Winit");
+                poll_span = Some(span);
                 polled_twice = !polled_twice;
             },
             winit::event::Event::WindowEvent { event, .. } => {
@@ -252,7 +254,7 @@ fn handle_main_events_cleared(
         global_state.clock.tick();
         drop(guard);
         #[cfg(feature = "tracy")]
-        common_base::tracy_client::finish_continuous_frame!();
+        common_base::tracy_client::frame_mark();
 
         // Maintain global state.
         global_state.maintain(global_state.clock.dt());
