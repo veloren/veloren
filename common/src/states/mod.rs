@@ -23,6 +23,7 @@ pub mod roll;
 pub mod self_buff;
 pub mod shockwave;
 pub mod sit;
+pub mod skate;
 pub mod spin_melee;
 pub mod sprite_interact;
 pub mod sprite_summon;

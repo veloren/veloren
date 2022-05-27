@@ -213,7 +213,7 @@ impl<'a> System<'a> for Sys {
             // If mounted, character state is controlled by mount
             if is_rider.is_some() && !join_struct.char_state.can_perform_mounted() {
                 // TODO: A better way to swap between mount inputs and rider inputs
-                *join_struct.char_state = CharacterState::Idle(idle::Data { is_sneaking: false });
+                *join_struct.char_state = CharacterState::Idle(idle::Data::default());
                 continue;
             }
 

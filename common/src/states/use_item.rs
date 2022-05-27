@@ -132,13 +132,14 @@ impl CharacterBehavior for Data {
                     } else {
                         CharacterState::Idle(idle::Data {
                             is_sneaking: self.static_data.was_sneak,
+                            footwear: None,
                         })
                     }
                 }
             },
             _ => {
                 // If it somehow ends up in an incorrect stage section
-                update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+                update.character = CharacterState::Idle(idle::Data::default());
             },
         }
 

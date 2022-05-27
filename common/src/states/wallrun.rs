@@ -38,7 +38,7 @@ impl CharacterBehavior for Data {
             || data.physics.on_ground.is_some()
             || data.physics.in_liquid().is_some()
         {
-            update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+            update.character = CharacterState::Idle(idle::Data::default());
         }
 
         update

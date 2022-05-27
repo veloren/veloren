@@ -1,3 +1,7 @@
+use crate::{
+    comp::item::Rgb,
+    terrain::{Block, BlockKind},
+};
 use serde::{Deserialize, Serialize};
 use std::{cmp::Ordering, ops::Sub};
 
@@ -26,6 +30,45 @@ impl Armor {
     }
 }
 
+/// longitudinal and lateral friction, only meaningful for footwear
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub enum Friction {
+    Normal,
+    Ski,
+    Skate,
+    // Snowshoe,
+    // Spikes,
+}
+
+impl Default for Friction {
+    fn default() -> Self { Self::Normal }
+}
+
+impl Friction {
+    pub fn can_skate_on(&self, b: BlockKind) -> bool {
+        match self {
+            Friction::Ski => matches!(b, BlockKind::Snow | BlockKind::Ice | BlockKind::Air),
+            Friction::Skate => b == BlockKind::Ice,
+            _ => false,
+        }
+    }
+
+    /// longitudinal (forward) and lateral (side) friction
+    pub fn get_friction(&self, b: BlockKind) -> (f32, f32) {
+        match (self, b) {
+            (Friction::Ski, BlockKind::Snow) => (0.01, 0.95),
+            (Friction::Ski, BlockKind::Ice) => (0.001, 0.5),
+            (Friction::Ski, BlockKind::Water) => (0.1, 0.7),
+            (Friction::Ski, BlockKind::Air) => (0.0, 0.0),
+            (Friction::Skate, BlockKind::Ice) => (0.001, 0.99),
+            _ => {
+                let non_directional_friction = Block::new(b, Rgb::new(0, 0, 0)).get_friction();
+                (non_directional_friction, non_directional_friction)
+            },
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Stats {
     /// Protection is non-linearly transformed (following summation) to a damage
@@ -46,6 +89,9 @@ pub struct Stats {
     /// Stealth is summed along with the base stealth bonus (2.0), and then
     /// the agent's perception distance is divided by this value
     stealth: Option<f32>,
+    /// Ground contact type, mostly for shoes
+    #[serde(default)]
+    ground_contact: Friction,
 }
 
 impl Stats {
@@ -66,6 +112,7 @@ impl Stats {
             energy_reward,
             crit_power,
             stealth,
+            ground_contact: Friction::Normal,
         }
     }
 
@@ -80,6 +127,8 @@ impl Stats {
     pub fn crit_power(&self) -> Option<f32> { self.crit_power }
 
     pub fn stealth(&self) -> Option<f32> { self.stealth }
+
+    pub fn ground_contact(&self) -> Friction { self.ground_contact }
 }
 
 impl Sub<Stats> for Stats {
@@ -99,6 +148,7 @@ impl Sub<Stats> for Stats {
                 .map(|(a, b)| a - b),
             crit_power: self.crit_power.zip(other.crit_power).map(|(a, b)| a - b),
             stealth: self.stealth.zip(other.stealth).map(|(a, b)| a - b),
+            ground_contact: Friction::Normal,
         }
     }
 }
@@ -159,6 +209,8 @@ impl Armor {
 
     pub fn stealth(&self) -> Option<f32> { self.stats.stealth }
 
+    pub fn ground_contact(&self) -> Friction { self.stats.ground_contact }
+
     #[cfg(test)]
     pub fn test_armor(
         kind: ArmorKind,
@@ -174,6 +226,7 @@ impl Armor {
                 energy_reward: None,
                 crit_power: None,
                 stealth: None,
+                ground_contact: Friction::Normal,
             },
         }
     }

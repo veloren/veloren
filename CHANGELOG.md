@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Water caves
 - Modular weapons
 - Added Thai translation
+- Skiing and ice skating
 
 ### Changed
 

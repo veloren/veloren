@@ -402,6 +402,7 @@ impl From<&CharacterState> for CharacterAbilityType {
             | CharacterState::SpriteSummon(_)
             | CharacterState::UseItem(_)
             | CharacterState::SpriteInteract(_)
+            | CharacterState::Skate(_)
             | CharacterState::Wallrun(_) => Self::Other,
         }
     }

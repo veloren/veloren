@@ -89,7 +89,7 @@ impl CharacterBehavior for Data {
                 .and_then(|inv| inv.equipped(EquipSlot::Glider))
                 .is_none()
         {
-            update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+            update.character = CharacterState::Idle(idle::Data::default());
         } else if !handle_climb(data, &mut update) {
             let air_flow = data
                 .physics
@@ -207,7 +207,7 @@ impl CharacterBehavior for Data {
             pos: data.pos.0,
             wielded: false,
         }));
-        update.character = CharacterState::Idle(idle::Data { is_sneaking: false });
+        update.character = CharacterState::Idle(idle::Data::default());
         update
     }
 }

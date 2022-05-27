@@ -164,5 +164,13 @@
             vox_spec: ("armor.merchant.foot", (-2.5, -3.5, -2.0)),
             color: None
         ),
+        "common.items.armor.misc.foot.ski": (
+            vox_spec: ("armor.misc.foot.ski", (-2.5, -15.5, -2.0)),
+            color: None
+        ),
+        "common.items.armor.misc.foot.iceskate": (
+            vox_spec: ("armor.misc.foot.iceskate", (-2.5, -3.5, -2.0)),
+            color: None
+        ),
     },
 ))

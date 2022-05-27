@@ -1,0 +1,16 @@
+ItemDef(
+    name: "Wooden skis",
+    description: "Best used downhill on snow.",
+    kind: Armor((
+        kind: Foot,
+        stats: (
+            protection: Some(Normal(3.0)),
+            ground_contact: Ski,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Wood),
+//        SalvageInto(Twigs),
+    ],
+)

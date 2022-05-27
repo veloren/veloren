@@ -11,7 +11,7 @@ mod widgets;
 use client::{Client, Join, World, WorldExt};
 use common::{
     comp,
-    comp::{Poise, PoiseState},
+    comp::{inventory::item::armor::Friction, Poise, PoiseState},
 };
 use core::mem;
 use egui::{
@@ -708,6 +708,7 @@ fn selected_entity_window(
                                     Some(Fluid::Liquid { depth, kind, .. }) => format!("{:?} (Depth: {:.1})", kind, depth),
                                     _ => "None".to_owned() });
                                 });
+                                two_col_row(ui, "Footwear", match physics_state.footwear{ Friction::Ski => "Ski", Friction::Skate => "Skate", /* Friction::Snowshoe => "Snowshoe", Friction::Spikes => "Spikes", */ Friction::Normal=>"Normal",}.to_string());
                             });
                 }
             });

@@ -147,6 +147,7 @@ impl<'a> System<'a> for Sys {
                 | CharacterState::Sit { .. }
                 | CharacterState::Dance { .. }
                 | CharacterState::Glide { .. }
+                | CharacterState::Skate { .. }
                 | CharacterState::GlideWield { .. }
                 | CharacterState::Wielding { .. }
                 | CharacterState::Equipping { .. }

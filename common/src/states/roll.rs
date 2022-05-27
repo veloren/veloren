@@ -142,6 +142,7 @@ impl CharacterBehavior for Data {
                         } else {
                             CharacterState::Idle(idle::Data {
                                 is_sneaking: self.is_sneaking,
+                                footwear: None,
                             })
                         }
                     }
@@ -151,6 +152,7 @@ impl CharacterBehavior for Data {
                 // If it somehow ends up in an incorrect stage section
                 update.character = CharacterState::Idle(idle::Data {
                     is_sneaking: self.is_sneaking,
+                    footwear: None,
                 });
             },
         }

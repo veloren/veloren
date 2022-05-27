@@ -1,0 +1,15 @@
+ItemDef(
+    name: "Ice Skates",
+    description: "Best used on a frozen lake.",
+    kind: Armor((
+        kind: Foot,
+        stats: (
+            protection: Some(Normal(3.0)),
+            ground_contact: Skate,
+        ),
+    )),
+    quality: Moderate,
+    tags: [
+        Material(Steel),
+    ],
+)
