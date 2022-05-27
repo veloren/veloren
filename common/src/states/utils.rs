@@ -1271,48 +1271,75 @@ impl HandInfo {
 
 #[cfg(test)]
 mod tests {
-    use specs::LazyUpdate;
-
-    use crate::{
-        comp::item::MaterialStatManifest, resources::DeltaTime, states::behavior::JoinStruct,
-    };
-
     use super::*;
+    use crate::{
+        comp::{item::MaterialStatManifest, Ori, Pos, Vel},
+        resources::DeltaTime,
+        states::behavior::JoinStruct,
+        uid::Uid,
+    };
+    use specs::{
+        shrev::EventChannel, storage::FlaggedAccessMut, world::entity::Generation, LazyUpdate,
+    };
+    use std::marker::PhantomData;
+    use common_systems::character_behavior;
 
     #[test]
     fn orientation_shortcut() {
-        let index: specs::world::entity::Index = 42;
-        let generation = specs::world::entity::Generation(43);
-        let js = JoinStruct {
-            entity: Entitiy::new(index, generation),
-            uid: todo!(),
-            char_state: todo!(),
-            pos: todo!(),
-            vel: todo!(),
-            ori: todo!(),
-            mass: todo!(),
-            density: todo!(),
-            energy: todo!(),
-            inventory: todo!(),
-            controller: todo!(),
-            health: todo!(),
-            body: todo!(),
-            physics: todo!(),
-            melee_attack: todo!(),
-            beam: todo!(),
-            stat: todo!(),
-            skill_set: todo!(),
-            active_abilities: todo!(),
-            combo: todo!(),
-            alignment: todo!(),
-            terrain: todo!(),
-            mount_data: todo!(),
-        };
-        let lu = LazyUpdate::new();
-        let msm = MaterialStatManifest::new();
-        let dt = DeltaTime(0.033);
-        let jd = JoinData::new(&js, &lu, &dt, &msm);
-        let mut update: StateUpdate = jd.into();
-        handle_orientation(&jd, &mut update, 1.0, None);
+        let mut ecs = specs::World::new();
+        ecs.register::<crate::comp::CharacterState>();
+        let entity = ecs
+            .create_entity()
+            .with(CharacterState::Idle(idle::Data { is_sneaking: false }))
+            .build();
+
+        let mut system = character_behavior::Sys::new();
+        system.run_now(ecs);
+        ecs.maintain();
+
+        // let mut char_state = CharacterState::Idle(idle::Data { is_sneaking: false });
+        // let mut pos = Pos(Vec3::new(11, 12, 13));
+        // let mut vel = Vel(Vec3::new(1.0, 0.0, 0.0));
+        // let mut ori = Ori::default();
+        // let index: specs::world::entity::Index = 42;
+        // let generation = Generation(43);
+        // let js = JoinStruct {
+        //     entity: entity,
+        //     //specs::world::entity::Entitiy::new(index, generation),
+        //     uid: &Uid(44),
+        //     char_state: FlaggedAccessMut {
+        //         channel: &mut EventChannel::with_capacity(2),
+        //         emit: false,
+        //         id: 44,
+        //         access: &mut char_state,
+        //         phantom: PhantomData,
+        //     },
+        //     pos: &mut pos,
+        //     vel: &mut vel,
+        //     ori: &mut ori,
+        //     mass: todo!(),
+        //     density: todo!(),
+        //     energy: todo!(),
+        //     inventory: todo!(),
+        //     controller: todo!(),
+        //     health: todo!(),
+        //     body: todo!(),
+        //     physics: todo!(),
+        //     melee_attack: todo!(),
+        //     beam: todo!(),
+        //     stat: todo!(),
+        //     skill_set: todo!(),
+        //     active_abilities: todo!(),
+        //     combo: todo!(),
+        //     alignment: todo!(),
+        //     terrain: todo!(),
+        //     mount_data: todo!(),
+        // };
+        // let lu = LazyUpdate::new();
+        // let msm = MaterialStatManifest::new();
+        // let dt = DeltaTime(0.033);
+        // let jd = JoinData::new(&js, &lu, &dt, &msm);
+        // let mut update: StateUpdate = jd.into();
+        // handle_orientation(&jd, &mut update, 1.0, None);
     }
 }
