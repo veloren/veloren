@@ -286,7 +286,8 @@ impl Block {
                 | SpriteKind::Loom
                 | SpriteKind::SpinningWheel
                 | SpriteKind::DismantlingBench
-                | SpriteKind::TanningRack => None,
+                | SpriteKind::TanningRack
+                | SpriteKind::Chest => None,
                 SpriteKind::EnsnaringVines | SpriteKind::EnsnaringWeb => Some(0.1),
                 _ => Some(0.25),
             }),
