@@ -312,7 +312,7 @@ pub fn handle_skating(data: &JoinData, update: &mut StateUpdate) {
             footwear = data.inventory.and_then(|inv| {
                 inv.equipped(EquipSlot::Armor(ArmorSlot::Feet))
                     .map(|armor| match armor.kind().as_ref() {
-                        ItemKind::Armor(a) => a.ground_contact(),
+                        ItemKind::Armor(a) => a.stats(data.msm).ground_contact,
                         _ => crate::comp::inventory::item::armor::Friction::Normal,
                     })
             });
@@ -1084,7 +1084,7 @@ pub fn get_crit_data(data: &JoinData<'_>, ai: AbilityInfo) -> (f32, f32) {
         })
         .unwrap_or(DEFAULT_CRIT_CHANCE);
 
-    let crit_mult = combat::compute_crit_mult(data.inventory);
+    let crit_mult = combat::compute_crit_mult(data.inventory, data.msm);
 
     (crit_chance, crit_mult)
 }

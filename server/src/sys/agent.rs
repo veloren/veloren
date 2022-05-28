@@ -236,6 +236,7 @@ impl<'a> System<'a> for Sys {
                         char_state,
                         active_abilities,
                         cached_spatial_grid: &read_data.cached_spatial_grid,
+                        msm: &read_data.msm,
                     };
                     ///////////////////////////////////////////////////////////
                     // Behavior tree
@@ -2502,7 +2503,7 @@ impl<'a> AgentData<'a> {
             let other_inventory = read_data.inventories.get(other);
             let other_char_state = read_data.char_states.get(other);
 
-            perception_dist_multiplier_from_stealth(other_inventory, other_char_state)
+            perception_dist_multiplier_from_stealth(other_inventory, other_char_state, self.msm)
         };
 
         let within_sight_dist = {

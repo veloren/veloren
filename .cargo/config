@@ -21,3 +21,4 @@ tracy-voxygen = "run --bin veloren-voxygen --no-default-features --features trac
 dbg-voxygen = "run --bin veloren-voxygen --profile debuginfo"
 # misc
 swarm = "run --bin swarm --features client/bin_bot,client/tick_network --"
+ci-clippy = "clippy --all-targets --locked --features=bin_cmd_doc_gen,bin_compression,bin_csv,bin_graphviz,bin_bot,bin_asset_migrate,asset_tweak"

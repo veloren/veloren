@@ -4,8 +4,8 @@ pub mod modular;
 pub mod tool;
 
 // Reexports
-pub use modular::{ModularBase, ModularComponent};
-pub use tool::{AbilitySet, AbilitySpec, Hands, MaterialStatManifest, Tool, ToolKind};
+pub use modular::{MaterialStatManifest, ModularBase, ModularComponent};
+pub use tool::{AbilitySet, AbilitySpec, Hands, Tool, ToolKind};
 
 use crate::{
     assets::{self, AssetExt, BoxedError, Error},

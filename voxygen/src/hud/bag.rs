@@ -937,19 +937,28 @@ impl<'a> Widget for Bag<'a> {
                 let protection_txt = format!(
                     "{}%",
                     (100.0
-                        * Damage::compute_damage_reduction(None, Some(inventory), Some(self.stats)))
-                        as i32
+                        * Damage::compute_damage_reduction(
+                            None,
+                            Some(inventory),
+                            Some(self.stats),
+                            self.msm
+                        )) as i32
                 );
                 let health_txt = format!("{}", self.health.maximum().round() as usize);
                 let energy_txt = format!("{}", self.energy.maximum().round() as usize);
                 let combat_rating_txt = format!("{}", (combat_rating * 10.0) as usize);
                 let stun_res_txt = format!(
                     "{}",
-                    (100.0 * Poise::compute_poise_damage_reduction(inventory)) as i32
+                    (100.0 * Poise::compute_poise_damage_reduction(inventory, self.msm)) as i32
                 );
                 let stealth_txt = format!(
                     "{:.1}%",
-                    ((1.0 - perception_dist_multiplier_from_stealth(Some(inventory), None))
+                    ((1.0
+                        - perception_dist_multiplier_from_stealth(
+                            Some(inventory),
+                            None,
+                            self.msm
+                        ))
                         * 100.0)
                 );
                 let btn = if i.0 == 0 {

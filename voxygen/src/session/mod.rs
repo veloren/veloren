@@ -18,8 +18,8 @@ use common::{
         inventory::slot::{EquipSlot, Slot},
         invite::InviteKind,
         item::{
-            tool::{AbilityMap, MaterialStatManifest, ToolKind},
-            ItemDesc,
+            tool::{AbilityMap, ToolKind},
+            ItemDesc, MaterialStatManifest,
         },
         ChatMsg, ChatType, InputKind, InventoryUpdateEvent, Pos, Stats, UtteranceKind, Vel,
     },

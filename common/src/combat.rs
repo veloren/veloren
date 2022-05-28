@@ -133,11 +133,12 @@ impl Attack {
         source: AttackSource,
         dir: Dir,
         damage: Damage,
+        msm: &MaterialStatManifest,
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> f32 {
         let damage_reduction =
-            Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats);
+            Damage::compute_damage_reduction(Some(damage), target.inventory, target.stats, msm);
         let block_reduction = match source {
             AttackSource::Melee => {
                 if let (Some(CharacterState::BasicBlock(data)), Some(ori)) =
@@ -186,6 +187,9 @@ impl Attack {
         mut emit: impl FnMut(ServerEvent),
         mut emit_outcome: impl FnMut(Outcome),
     ) -> bool {
+        // TODO: Maybe move this higher and pass it as argument into this function?
+        let msm = &MaterialStatManifest::load().read();
+
         let AttackOptions {
             target_dodging,
             may_harm,
@@ -220,6 +224,7 @@ impl Attack {
                 attack_source,
                 dir,
                 damage.damage,
+                msm,
                 &mut emit,
                 &mut emit_outcome,
             );
@@ -272,7 +277,7 @@ impl Attack {
                         let reduced_damage =
                             applied_damage * damage_reduction / (1.0 - damage_reduction);
                         let poise = reduced_damage * CRUSHING_POISE_FRACTION;
-                        let change = -Poise::apply_poise_reduction(poise, target.inventory);
+                        let change = -Poise::apply_poise_reduction(poise, target.inventory, msm);
                         let poise_change = PoiseChange {
                             amount: change,
                             impulse: *dir,
@@ -307,7 +312,7 @@ impl Attack {
                                 emit(ServerEvent::EnergyChange {
                                     entity: attacker.entity,
                                     change: *ec
-                                        * compute_energy_reward_mod(attacker.inventory)
+                                        * compute_energy_reward_mod(attacker.inventory, msm)
                                         * strength_modifier,
                                 });
                             }
@@ -342,7 +347,7 @@ impl Attack {
                             }
                         },
                         CombatEffect::Poise(p) => {
-                            let change = -Poise::apply_poise_reduction(*p, target.inventory)
+                            let change = -Poise::apply_poise_reduction(*p, target.inventory, msm)
                                 * strength_modifier;
                             if change.abs() > Poise::POISE_EPSILON {
                                 let poise_change = PoiseChange {
@@ -450,7 +455,7 @@ impl Attack {
                             emit(ServerEvent::EnergyChange {
                                 entity: attacker.entity,
                                 change: ec
-                                    * compute_energy_reward_mod(attacker.inventory)
+                                    * compute_energy_reward_mod(attacker.inventory, msm)
                                     * strength_modifier,
                             });
                         }
@@ -485,8 +490,8 @@ impl Attack {
                         }
                     },
                     CombatEffect::Poise(p) => {
-                        let change =
-                            -Poise::apply_poise_reduction(p, target.inventory) * strength_modifier;
+                        let change = -Poise::apply_poise_reduction(p, target.inventory, msm)
+                            * strength_modifier;
                         if change.abs() > Poise::POISE_EPSILON {
                             let poise_change = PoiseChange {
                                 amount: change,
@@ -755,8 +760,9 @@ impl Damage {
         damage: Option<Self>,
         inventory: Option<&Inventory>,
         stats: Option<&Stats>,
+        msm: &MaterialStatManifest,
     ) -> f32 {
-        let protection = compute_protection(inventory);
+        let protection = compute_protection(inventory, msm);
 
         let penetration = if let Some(damage) = damage {
             if let DamageKind::Piercing = damage.kind {
@@ -1058,20 +1064,20 @@ pub fn combat_rating(
     // Normalized with a standard max health of 100
     let health_rating = health.base_max()
         / 100.0
-        / (1.0 - Damage::compute_damage_reduction(None, Some(inventory), None)).max(0.00001);
+        / (1.0 - Damage::compute_damage_reduction(None, Some(inventory), None, msm)).max(0.00001);
 
     // Normalized with a standard max energy of 100 and energy reward multiplier of
     // x1
-    let energy_rating = (energy.base_max() + compute_max_energy_mod(Some(inventory))) / 100.0
-        * compute_energy_reward_mod(Some(inventory));
+    let energy_rating = (energy.base_max() + compute_max_energy_mod(Some(inventory), msm)) / 100.0
+        * compute_energy_reward_mod(Some(inventory), msm);
 
     // Normalized with a standard max poise of 100
     let poise_rating = poise.base_max() as f32
         / 100.0
-        / (1.0 - Poise::compute_poise_damage_reduction(inventory)).max(0.00001);
+        / (1.0 - Poise::compute_poise_damage_reduction(inventory, msm)).max(0.00001);
 
     // Normalized with a standard crit multiplier of 1.2
-    let crit_rating = compute_crit_mult(Some(inventory)) / 1.2;
+    let crit_rating = compute_crit_mult(Some(inventory), msm) / 1.2;
 
     // Assumes a standard person has earned 20 skill points in the general skill
     // tree and 10 skill points for the weapon skill tree
@@ -1100,14 +1106,14 @@ pub fn combat_rating(
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
+pub fn compute_crit_mult(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
     // Starts with a value of 1.25 when summing the stats from each armor piece, and
     // defaults to a value of 1.25 if no inventory is equipped
     inventory.map_or(1.25, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.crit_power()
+                    armor.stats(msm).crit_power
                 } else {
                     None
                 }
@@ -1118,14 +1124,14 @@ pub fn compute_crit_mult(inventory: Option<&Inventory>) -> f32 {
 
 /// Computes the energy reward modifer from worn armor
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
+pub fn compute_energy_reward_mod(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
     // Starts with a value of 1.0 when summing the stats from each armor piece, and
     // defaults to a value of 1.0 if no inventory is present
     inventory.map_or(1.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.energy_reward()
+                    armor.stats(msm).energy_reward
                 } else {
                     None
                 }
@@ -1137,13 +1143,13 @@ pub fn compute_energy_reward_mod(inventory: Option<&Inventory>) -> f32 {
 /// Computes the additive modifier that should be applied to max energy from the
 /// currently equipped items
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
+pub fn compute_max_energy_mod(inventory: Option<&Inventory>, msm: &MaterialStatManifest) -> f32 {
     // Defaults to a value of 0 if no inventory is present
     inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.energy_max()
+                    armor.stats(msm).energy_max
                 } else {
                     None
                 }
@@ -1158,10 +1164,11 @@ pub fn compute_max_energy_mod(inventory: Option<&Inventory>) -> f32 {
 pub fn perception_dist_multiplier_from_stealth(
     inventory: Option<&Inventory>,
     character_state: Option<&CharacterState>,
+    msm: &MaterialStatManifest,
 ) -> f32 {
     const SNEAK_MULTIPLIER: f32 = 0.7;
 
-    let item_stealth_multiplier = stealth_multiplier_from_items(inventory);
+    let item_stealth_multiplier = stealth_multiplier_from_items(inventory, msm);
     let is_sneaking = character_state.map_or(false, |state| state.is_stealthy());
 
     let multiplier = item_stealth_multiplier * if is_sneaking { SNEAK_MULTIPLIER } else { 1.0 };
@@ -1170,12 +1177,15 @@ pub fn perception_dist_multiplier_from_stealth(
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
+pub fn stealth_multiplier_from_items(
+    inventory: Option<&Inventory>,
+    msm: &MaterialStatManifest,
+) -> f32 {
     let stealth_sum = inventory.map_or(0.0, |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.stealth()
+                    armor.stats(msm).stealth
                 } else {
                     None
                 }
@@ -1190,12 +1200,15 @@ pub fn stealth_multiplier_from_items(inventory: Option<&Inventory>) -> f32 {
 /// damage reduction applied to damage received by an entity None indicates that
 /// the armor equipped makes the entity invulnerable
 #[cfg(not(target_arch = "wasm32"))]
-pub fn compute_protection(inventory: Option<&Inventory>) -> Option<f32> {
+pub fn compute_protection(
+    inventory: Option<&Inventory>,
+    msm: &MaterialStatManifest,
+) -> Option<f32> {
     inventory.map_or(Some(0.0), |inv| {
         inv.equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.protection()
+                    armor.stats(msm).protection
                 } else {
                     None
                 }

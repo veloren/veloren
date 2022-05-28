@@ -2,7 +2,7 @@ use crate::{
     combat::{DamageContributor, DamageSource},
     comp::{
         self,
-        inventory::item::{armor::Protection, ItemKind},
+        inventory::item::{armor::Protection, ItemKind, MaterialStatManifest},
         CharacterState, Inventory,
     },
     resources::Time,
@@ -226,12 +226,15 @@ impl Poise {
     }
 
     /// Returns the total poise damage reduction provided by all equipped items
-    pub fn compute_poise_damage_reduction(inventory: &Inventory) -> f32 {
+    pub fn compute_poise_damage_reduction(
+        inventory: &Inventory,
+        msm: &MaterialStatManifest,
+    ) -> f32 {
         let protection = inventory
             .equipped_items()
             .filter_map(|item| {
                 if let ItemKind::Armor(armor) = &*item.kind() {
-                    armor.poise_resilience()
+                    armor.stats(msm).poise_resilience
                 } else {
                     None
                 }
@@ -249,9 +252,13 @@ impl Poise {
 
     /// Modifies a poise change when optionally given an inventory to aid in
     /// calculation of poise damage reduction
-    pub fn apply_poise_reduction(value: f32, inventory: Option<&Inventory>) -> f32 {
+    pub fn apply_poise_reduction(
+        value: f32,
+        inventory: Option<&Inventory>,
+        msm: &MaterialStatManifest,
+    ) -> f32 {
         inventory.map_or(value, |inv| {
-            value * (1.0 - Poise::compute_poise_damage_reduction(inv))
+            value * (1.0 - Poise::compute_poise_damage_reduction(inv, msm))
         })
     }
 }

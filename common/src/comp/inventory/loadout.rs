@@ -408,7 +408,7 @@ impl Loadout {
     pub fn persistence_update_all_item_states(
         &mut self,
         ability_map: &item::tool::AbilityMap,
-        msm: &item::tool::MaterialStatManifest,
+        msm: &item::MaterialStatManifest,
     ) {
         self.slots.iter_mut().for_each(|slot| {
             if let Some(item) = &mut slot.slot {

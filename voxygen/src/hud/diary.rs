@@ -33,11 +33,7 @@ use common::{
         self,
         ability::{Ability, ActiveAbilities, AuxiliaryAbility, MAX_ABILITIES},
         inventory::{
-            item::{
-                item_key::ItemKey,
-                tool::{MaterialStatManifest, ToolKind},
-                ItemKind,
-            },
+            item::{item_key::ItemKey, tool::ToolKind, ItemKind, MaterialStatManifest},
             slot::EquipSlot,
         },
         skills::{
@@ -1184,23 +1180,25 @@ impl<'a> Widget for Diary<'a> {
                             format!("{:.2}", cr * 10.0)
                         },
                         "Protection" => {
-                            let protection = combat::compute_protection(Some(self.inventory));
+                            let protection =
+                                combat::compute_protection(Some(self.inventory), self.msm);
                             match protection {
                                 Some(prot) => format!("{}", prot),
                                 None => String::from("Invincible"),
                             }
                         },
                         "Stun-Resistance" => {
-                            let stun_res = Poise::compute_poise_damage_reduction(self.inventory);
+                            let stun_res =
+                                Poise::compute_poise_damage_reduction(self.inventory, self.msm);
                             format!("{:.2}%", stun_res * 100.0)
                         },
                         "Crit-Power" => {
-                            let critpwr = combat::compute_crit_mult(Some(self.inventory));
+                            let critpwr = combat::compute_crit_mult(Some(self.inventory), self.msm);
                             format!("x{:.2}", critpwr)
                         },
                         "Energy Reward" => {
                             let energy_rew =
-                                combat::compute_energy_reward_mod(Some(self.inventory));
+                                combat::compute_energy_reward_mod(Some(self.inventory), self.msm);
                             format!("{:+.0}%", (energy_rew - 1.0) * 100.0)
                         },
                         "Stealth" => {
@@ -1208,6 +1206,7 @@ impl<'a> Widget for Diary<'a> {
                                 combat::perception_dist_multiplier_from_stealth(
                                     Some(self.inventory),
                                     None,
+                                    self.msm,
                                 );
                             let txt =
                                 format!("{:+.1}%", (1.0 - stealth_perception_multiplier) * 100.0);

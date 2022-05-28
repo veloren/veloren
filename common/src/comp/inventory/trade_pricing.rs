@@ -686,14 +686,16 @@ impl TradePricing {
 
     #[cfg(test)]
     fn print_sorted(&self) {
-        use crate::comp::item::{armor, ItemKind};
+        use crate::comp::item::{armor, ItemKind, MaterialStatManifest};
 
         println!("Item, ForSale, Amount, Good, Quality, Deal, Unit,");
 
         fn more_information(i: &Item, p: f32) -> (String, &'static str) {
+            let msm = &MaterialStatManifest::load().read();
+
             if let ItemKind::Armor(a) = &*i.kind() {
                 (
-                    match a.protection() {
+                    match a.stats(msm).protection {
                         Some(armor::Protection::Invincible) => "Invincible".into(),
                         Some(armor::Protection::Normal(x)) => format!("{:.4}", x * p),
                         None => "0.0".into(),
