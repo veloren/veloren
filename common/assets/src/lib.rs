@@ -12,7 +12,7 @@ pub use assets_manager::{
         self, BincodeLoader, BytesLoader, JsonLoader, LoadFrom, Loader, RonLoader, StringLoader,
     },
     source::{self, Source},
-    Asset, AssetCache, BoxedError, Compound, Error, SharedString,
+    AnyCache, Asset, AssetCache, BoxedError, Compound, Error, SharedString,
 };
 
 mod fs;
@@ -28,7 +28,7 @@ pub fn start_hot_reloading() { ASSETS.enhance_hot_reloading(); }
 
 pub type AssetHandle<T> = assets_manager::Handle<'static, T>;
 pub type AssetGuard<T> = assets_manager::AssetGuard<'static, T>;
-pub type AssetDirHandle<T> = assets_manager::DirHandle<'static, T, fs::FileSystem>;
+pub type AssetDirHandle<T> = assets_manager::DirHandle<'static, T>;
 pub type ReloadWatcher = assets_manager::ReloadWatcher<'static>;
 
 /// The Asset trait, which is implemented by all structures that have their data
@@ -122,7 +122,7 @@ pub fn load_dir<T: DirLoadable>(
 /// 1) If can't load directory (filesystem errors)
 /// 2) If file can't be loaded (parsing problem)
 #[track_caller]
-pub fn read_expect_dir<T: DirLoadable>(
+pub fn read_expect_dir<T: DirLoadable + Compound>(
     specifier: &str,
     recursive: bool,
 ) -> impl Iterator<Item = AssetGuard<T>> {

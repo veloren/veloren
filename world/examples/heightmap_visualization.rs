@@ -1,6 +1,6 @@
 use image::{
     codecs::png::{CompressionType, FilterType, PngEncoder},
-    ImageBuffer,
+    ImageBuffer, ImageEncoder,
 };
 use rayon::ThreadPoolBuilder;
 use std::{fs::File, io::Write};
@@ -83,7 +83,7 @@ fn image_from_function<F: FnMut(u32, u32) -> [u8; 3]>(
     let mut heightmap_png = Vec::new();
     let png =
         PngEncoder::new_with_quality(&mut heightmap_png, CompressionType::Best, FilterType::Paeth);
-    png.encode(
+    png.write_image(
         &*heightmap.as_raw(),
         heightmap.width(),
         heightmap.height(),

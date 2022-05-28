@@ -68,10 +68,7 @@ impl std::ops::Deref for StructuresGroup {
 }
 
 impl assets::Compound for StructuresGroup {
-    fn load<S: assets::source::Source + ?Sized>(
-        cache: &assets::AssetCache<S>,
-        specifier: &str,
-    ) -> Result<Self, BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, BoxedError> {
         let specs = cache.load::<StructuresGroupSpec>(specifier)?.read();
 
         Ok(StructuresGroup(
@@ -139,10 +136,7 @@ impl ReadVol for Structure {
 }
 
 impl assets::Compound for BaseStructure {
-    fn load<S: assets::source::Source + ?Sized>(
-        cache: &assets::AssetCache<S>,
-        specifier: &str,
-    ) -> Result<Self, BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, BoxedError> {
         let dot_vox_data = cache.load::<DotVoxAsset>(specifier)?.read();
         let dot_vox_data = &dot_vox_data.0;
 

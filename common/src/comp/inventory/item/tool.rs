@@ -373,10 +373,7 @@ impl Asset for AbilityMap<String> {
 }
 
 impl assets::Compound for AbilityMap {
-    fn load<S: assets::source::Source + ?Sized>(
-        cache: &assets::AssetCache<S>,
-        specifier: &str,
-    ) -> Result<Self, assets::BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
         let manifest = cache.load::<AbilityMap<String>>(specifier)?.read();
 
         Ok(AbilityMap(

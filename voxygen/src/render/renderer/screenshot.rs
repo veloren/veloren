@@ -147,7 +147,7 @@ impl TakeScreenshot {
         let buffer_map_future = buffer_slice.map_async(wgpu::MapMode::Read);
 
         // Wait on buffer mapping
-        let pixel_bytes = match singlethread_rt.block_on(buffer_map_future) {
+        let mut pixel_bytes = match singlethread_rt.block_on(buffer_map_future) {
             // Buffer is mapped and we can read it
             Ok(()) => {
                 // Copy to a Vec
@@ -174,38 +174,34 @@ impl TakeScreenshot {
         // Construct image
         let image = match self.tex_format {
             wgpu::TextureFormat::Bgra8UnormSrgb => {
-                let image = image::ImageBuffer::<image::Bgra<u8>, Vec<u8>>::from_vec(
-                    self.width,
-                    self.height,
-                    pixel_bytes,
-                )
-                .expect(
-                    "Failed to create ImageBuffer! Buffer was not large enough. This should not \
-                     occur",
+                let (pixels, rest) = pixel_bytes.as_chunks_mut();
+                assert!(
+                    rest.is_empty(),
+                    "Always valid because each pixel uses four bytes"
                 );
-                let image = image::DynamicImage::ImageBgra8(image);
-
-                Ok(image)
+                // Swap blue and red components to get a RGBA texture.
+                for [b, _g, r, _a] in pixels {
+                    std::mem::swap(b, r);
+                }
+                Ok(pixel_bytes)
             },
-            wgpu::TextureFormat::Rgba8UnormSrgb => {
-                let image = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(
-                    self.width,
-                    self.height,
-                    pixel_bytes,
-                )
-                .expect(
-                    "Failed to create ImageBuffer! Buffer was not large enough. This should not \
-                     occur",
-                );
-                let image = image::DynamicImage::ImageRgba8(image);
-
-                Ok(image)
-            },
+            wgpu::TextureFormat::Rgba8UnormSrgb => Ok(pixel_bytes),
             format => Err(format!(
                 "Unhandled format for screenshot texture: {:?}",
                 format,
             )),
-        };
+        }
+        .map(|pixel_bytes| {
+            let image = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(
+                self.width,
+                self.height,
+                pixel_bytes,
+            )
+            .expect(
+                "Failed to create ImageBuffer! Buffer was not large enough. This should not occur",
+            );
+            image::DynamicImage::ImageRgba8(image)
+        });
 
         // Call supplied handler
         (self.screenshot_fn)(image);
