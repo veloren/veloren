@@ -665,6 +665,17 @@ pub fn apply_scatter_to(canvas: &mut Canvas, rng: &mut impl Rng) {
                 Some((0.2, 128.0, 0.5)),
             )
         }),
+		(Bamboo, Ground, |_, col| {
+            (
+                0.35 * close(col.humidity, CONFIG.jungle_hum, 0.9)
+                    * col
+                        .water_dist
+                        .map(|wd| Lerp::lerp(0.2, 0.0, (wd / 8.0).clamped(0.0, 1.0)))
+                        .unwrap_or(0.0)
+                    * ((col.alt - CONFIG.sea_level) / 12.0).clamped(0.0, 1.0),
+                Some((0.2, 128.0, 0.5)),
+            )
+        }),
     ];
 
     canvas.foreach_col(|canvas, wpos2d, col| {
