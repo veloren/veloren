@@ -420,10 +420,7 @@ impl assets::Asset for ItemList {
 }
 
 impl assets::Compound for RecipeBook {
-    fn load<S: assets::source::Source + ?Sized>(
-        cache: &assets::AssetCache<S>,
-        specifier: &str,
-    ) -> Result<Self, assets::BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
         #[inline]
         fn load_item_def(spec: &(String, u32)) -> Result<(Arc<ItemDef>, u32), assets::Error> {
             let def = Arc::<ItemDef>::load_cloned(&spec.0)?;
@@ -748,10 +745,7 @@ enum RawComponentOutput {
 }
 
 impl assets::Compound for ComponentRecipeBook {
-    fn load<S: assets::source::Source + ?Sized>(
-        cache: &assets::AssetCache<S>,
-        specifier: &str,
-    ) -> Result<Self, assets::BoxedError> {
+    fn load(cache: assets::AnyCache, specifier: &str) -> Result<Self, assets::BoxedError> {
         #[inline]
         fn create_recipe_key(raw_recipe: &RawComponentRecipe) -> ComponentKey {
             match &raw_recipe.output {

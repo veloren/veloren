@@ -1,6 +1,6 @@
 use super::RenderError;
 use core::num::NonZeroU32;
-use image::{DynamicImage, GenericImageView};
+use image::DynamicImage;
 use wgpu::Extent3d;
 
 /// Represents an image that has been uploaded to the GPU.
@@ -21,17 +21,16 @@ impl Texture {
         filter_method: Option<wgpu::FilterMode>,
         address_mode: Option<wgpu::AddressMode>,
     ) -> Result<Self, RenderError> {
-        let format = match &image {
+        let format = match image {
             DynamicImage::ImageLuma8(_) => wgpu::TextureFormat::R8Unorm,
             DynamicImage::ImageLumaA8(_) => panic!("ImageLuma8 unsupported"),
             DynamicImage::ImageRgb8(_) => panic!("ImageRgb8 unsupported"),
             DynamicImage::ImageRgba8(_) => wgpu::TextureFormat::Rgba8UnormSrgb,
-            DynamicImage::ImageBgr8(_) => panic!("ImageBgr8 unsupported"),
-            DynamicImage::ImageBgra8(_) => panic!("ImageBgra8 unsupported"),
             DynamicImage::ImageLuma16(_) => panic!("ImageLuma16 unsupported"),
             DynamicImage::ImageLumaA16(_) => panic!("ImageLumaA16 unsupported"),
             DynamicImage::ImageRgb16(_) => panic!("ImageRgb16 unsupported"),
             DynamicImage::ImageRgba16(_) => panic!("ImageRgba16 unsupported"),
+            _ => panic!("unsupported format"),
         };
 
         // TODO: Actually handle images that aren't in rgba format properly.

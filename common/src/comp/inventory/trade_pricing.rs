@@ -299,10 +299,7 @@ impl EqualitySet {
 }
 
 impl assets::Compound for EqualitySet {
-    fn load<S: assets::source::Source + ?Sized>(
-        cache: &assets::AssetCache<S>,
-        id: &str,
-    ) -> Result<Self, assets::BoxedError> {
+    fn load(cache: assets::AnyCache, id: &str) -> Result<Self, assets::BoxedError> {
         #[derive(Debug, Deserialize)]
         enum EqualitySpec {
             LootTable(String),

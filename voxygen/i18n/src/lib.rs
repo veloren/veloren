@@ -102,8 +102,8 @@ impl Language {
 }
 
 impl common_assets::Compound for Language {
-    fn load<S: common_assets::source::Source + ?Sized>(
-        cache: &common_assets::AssetCache<S>,
+    fn load(
+        cache: common_assets::AnyCache,
         asset_key: &str,
     ) -> Result<Self, common_assets::BoxedError> {
         let manifest = cache
@@ -282,15 +282,6 @@ impl LocalizationHandle {
 
 struct FindManifests;
 
-impl common_assets::Compound for FindManifests {
-    fn load<S: common_assets::Source + ?Sized>(
-        _: &common_assets::AssetCache<S>,
-        _: &str,
-    ) -> Result<Self, common_assets::BoxedError> {
-        Ok(Self)
-    }
-}
-
 impl common_assets::DirLoadable for FindManifests {
     fn select_ids<S: common_assets::Source + ?Sized>(
         source: &S,
@@ -315,8 +306,8 @@ impl common_assets::DirLoadable for FindManifests {
 struct LocalizationList(Vec<LanguageMetadata>);
 
 impl common_assets::Compound for LocalizationList {
-    fn load<S: common_assets::Source + ?Sized>(
-        cache: &common_assets::AssetCache<S>,
+    fn load(
+        cache: common_assets::AnyCache,
         specifier: &str,
     ) -> Result<Self, common_assets::BoxedError> {
         // List language directories

@@ -4,7 +4,7 @@ use common::{
     volumes::vol_grid_2d::VolGrid2d,
 };
 use hashbrown::HashMap;
-use image::{ImageBuffer, ImageDecoder, Pixel};
+use image::{ImageBuffer, ImageDecoder, ImageEncoder, Pixel};
 use num_traits::cast::FromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::{
@@ -237,7 +237,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
                 CompressionType::Rle,
                 FilterType::Up,
             );
-            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())
@@ -252,7 +252,7 @@ impl<const N: u32> VoxelImageEncoding for QuadPngEncoding<N> {
                 CompressionType::Rle,
                 FilterType::Sub,
             );
-            png.encode(
+            png.write_image(
                 &*ws.3.as_raw(),
                 ws.3.width(),
                 ws.3.height(),
@@ -513,7 +513,7 @@ impl<const AVERAGE_PALETTE: bool> VoxelImageEncoding for TriPngEncoding<AVERAGE_
                 CompressionType::Rle,
                 FilterType::Up,
             );
-            png.encode(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
+            png.write_image(&*x.as_raw(), x.width(), x.height(), image::ColorType::L8)
                 .ok()?;
             indices[i] = buf.len();
             Some(())

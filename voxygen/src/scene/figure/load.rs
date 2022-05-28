@@ -125,7 +125,7 @@ macro_rules! make_vox_spec {
         }
 
         impl assets::Compound for $Spec {
-            fn load<S: assets::source::Source + ?Sized>(_: &assets::AssetCache<S>, _: &str) -> Result<Self, assets::BoxedError> {
+            fn load(_: assets::AnyCache, _: &str) -> Result<Self, assets::BoxedError> {
                 Ok($Spec {
                     $( $field: AssetExt::load($asset_path)?, )*
                 })
