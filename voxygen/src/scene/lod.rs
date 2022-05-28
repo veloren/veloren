@@ -195,8 +195,8 @@ impl Lod {
                     [
                         (w.cloud * 255.0) as u8,
                         (w.rain * 255.0) as u8,
-                        (w.wind.x + 128.0).clamp(0.0, 255.0) as u8,
-                        (w.wind.y + 128.0).clamp(0.0, 255.0) as u8,
+                        0,
+                        0,
                     ]
                 })
                 .collect::<Vec<_>>(),

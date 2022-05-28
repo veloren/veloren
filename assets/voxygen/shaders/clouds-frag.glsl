@@ -111,8 +111,8 @@ void main() {
     vec2 view_pos = vec2(atan2(dir_2d.x, dir_2d.y), z);
 
     vec3 cam_wpos = cam_pos.xyz + focus_off.xyz;
-    float rain_dist = 250.0;
-    for (int i = 0; i < 7; i ++) {
+    float rain_dist = 50.0;
+    for (int i = 0; i < 4; i ++) {
         float old_rain_dist = rain_dist;
         rain_dist *= 0.3;
 
