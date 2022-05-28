@@ -400,15 +400,29 @@ impl Controls {
                 ref mut yes_button,
                 ref mut no_button,
             } => {
-                // If no character is selected then select the first one
-                // Note: we don't need to persist this because it is the default
-                if self.selected.is_none() {
-                    self.selected = client
-                        .character_list()
-                        .characters
-                        .get(0)
-                        .and_then(|i| i.character.id);
+                match self.selected {
+                    Some(character_id) => {
+                        // If the selected character no longer exists, deselect it.
+                        if !client
+                            .character_list()
+                            .characters
+                            .iter()
+                            .any(|char| char.character.id.map_or(false, |id| id == character_id))
+                        {
+                            self.selected = None;
+                        }
+                    },
+                    None => {
+                        // If no character is selected then select the first one
+                        // Note: we don't need to persist this because it is the default
+                        self.selected = client
+                            .character_list()
+                            .characters
+                            .get(0)
+                            .and_then(|i| i.character.id);
+                    },
                 }
+
                 // Get the index of the selected character
                 let selected = self.selected.and_then(|id| {
                     client
@@ -1725,7 +1739,10 @@ impl CharSelectionUi {
 
         if self.enter_pressed {
             self.enter_pressed = false;
-            messages.push(Message::EnterWorld);
+            messages.push(match self.controls.mode {
+                Mode::Select { .. } => Message::EnterWorld,
+                Mode::CreateOrEdit { .. } => Message::CreateCharacter,
+            });
         }
 
         if let Some(id) = self.select_character.take() {
