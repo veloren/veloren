@@ -191,7 +191,7 @@ impl TakeScreenshot {
                 format,
             )),
         }
-        .and_then(|pixel_bytes| {
+        .map(|pixel_bytes| {
             let image = image::ImageBuffer::<image::Rgba<u8>, Vec<u8>>::from_vec(
                 self.width,
                 self.height,
@@ -200,7 +200,7 @@ impl TakeScreenshot {
             .expect(
                 "Failed to create ImageBuffer! Buffer was not large enough. This should not occur",
             );
-            Ok(image::DynamicImage::ImageRgba8(image))
+            image::DynamicImage::ImageRgba8(image)
         });
 
         // Call supplied handler
