@@ -314,8 +314,8 @@ impl From<&InventoryUpdateEvent> for SfxEvent {
                     _ => SfxEvent::Inventory(SfxInventoryEvent::Collected),
                 }
             },
-            InventoryUpdateEvent::BlockCollectFailed(_)
-            | InventoryUpdateEvent::EntityCollectFailed(_) => {
+            InventoryUpdateEvent::BlockCollectFailed { .. }
+            | InventoryUpdateEvent::EntityCollectFailed { .. } => {
                 SfxEvent::Inventory(SfxInventoryEvent::CollectFailed)
             },
             InventoryUpdateEvent::Consumed(consumable) => {

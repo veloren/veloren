@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modular weapons
 - Added Thai translation
 - Skiing and ice skating
+- Added loot ownership for NPC drops
 
 ### Changed
 

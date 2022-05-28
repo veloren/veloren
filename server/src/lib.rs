@@ -2,14 +2,15 @@
 #![allow(clippy::option_map_unit_fn)]
 #![deny(clippy::clone_on_ref_ptr)]
 #![feature(
-    box_patterns,
-    label_break_value,
     bool_to_option,
+    box_patterns,
     drain_filter,
+    label_break_value,
+    let_chains,
+    let_else,
     never_type,
     option_zip,
-    unwrap_infallible,
-    let_else
+    unwrap_infallible
 )]
 #![cfg_attr(not(feature = "worldgen"), feature(const_panic))]
 

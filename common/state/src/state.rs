@@ -157,6 +157,7 @@ impl State {
         ecs.register::<comp::ShockwaveHitEntities>();
         ecs.register::<comp::BeamSegment>();
         ecs.register::<comp::Alignment>();
+        ecs.register::<comp::LootOwner>();
 
         // Register components send from clients -> server
         ecs.register::<comp::Controller>();

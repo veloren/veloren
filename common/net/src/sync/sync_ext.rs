@@ -74,7 +74,7 @@ impl WorldSyncExt for specs::World {
         self.read_storage::<Uid>().get(entity).copied()
     }
 
-    /// Get the UID of an entity
+    /// Get an entity from a UID
     fn entity_from_uid(&self, uid: u64) -> Option<specs::Entity> {
         self.read_resource::<UidAllocator>()
             .retrieve_entity_internal(uid)
