@@ -43,7 +43,10 @@ use crate::{
     audio::sfx::SfxEvent,
     error::Error,
     game_input::GameInput,
-    hud::{DebugInfo, Event as HudEvent, Hud, HudInfo, LootMessage, PromptDialogSettings},
+    hud::{
+        DebugInfo, Event as HudEvent, Hud, HudCollectFailedReason, HudInfo, LootMessage,
+        PromptDialogSettings,
+    },
     key_state::KeyState,
     menu::char_selection::CharSelectionState,
     render::{Drawer, GlobalsBindGroup},
@@ -244,12 +247,27 @@ impl SessionState {
                     global_state.audio.emit_sfx_item(sfx_trigger_item);
 
                     match inv_event {
-                        InventoryUpdateEvent::BlockCollectFailed(pos) => {
-                            self.hud.add_failed_block_pickup(pos);
+                        InventoryUpdateEvent::BlockCollectFailed { pos, reason } => {
+                            self.hud.add_failed_block_pickup(
+                                pos,
+                                HudCollectFailedReason::from_server_reason(
+                                    &reason,
+                                    client.state().ecs(),
+                                ),
+                            );
                         },
-                        InventoryUpdateEvent::EntityCollectFailed(uid) => {
+                        InventoryUpdateEvent::EntityCollectFailed {
+                            entity: uid,
+                            reason,
+                        } => {
                             if let Some(entity) = client.state().ecs().entity_from_uid(uid.into()) {
-                                self.hud.add_failed_entity_pickup(entity);
+                                self.hud.add_failed_entity_pickup(
+                                    entity,
+                                    HudCollectFailedReason::from_server_reason(
+                                        &reason,
+                                        client.state().ecs(),
+                                    ),
+                                );
                             }
                         },
                         InventoryUpdateEvent::Collected(item) => {

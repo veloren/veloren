@@ -62,6 +62,7 @@ macro_rules! synced_components {
             combo: Combo,
             active_abilities: ActiveAbilities,
             can_build: CanBuild,
+            loot_owner: LootOwner,
         }
     };
 }
@@ -233,4 +234,8 @@ impl NetSync for ActiveAbilities {
 
 impl NetSync for CanBuild {
     const SYNC_FROM: SyncFrom = SyncFrom::ClientEntity;
+}
+
+impl NetSync for LootOwner {
+    const SYNC_FROM: SyncFrom = SyncFrom::AnyEntity;
 }

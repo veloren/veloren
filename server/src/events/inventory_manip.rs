@@ -24,7 +24,10 @@ use comp::LightEmitter;
 
 use crate::{client::Client, Server, StateExt};
 use common::{
-    comp::{pet::is_tameable, ChatType, Group},
+    comp::{
+        pet::is_tameable, Alignment, Body, ChatType, CollectFailedReason, Group,
+        InventoryUpdateEvent, Player,
+    },
     event::{EventBus, ServerEvent},
 };
 use common_net::msg::ServerGeneral;
@@ -109,26 +112,65 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
     }
 
     match manip {
-        comp::InventoryManip::Pickup(uid) => {
-            let item_entity = if let Some(item_entity) = state.ecs().entity_from_uid(uid.into()) {
-                item_entity
-            } else {
-                // Item entity could not be found - most likely because the entity
-                // attempted to pick up the same item very quickly before its deletion of the
-                // world from the first pickup attempt was processed.
-                debug!("Failed to get entity for item Uid: {}", uid);
-                return;
-            };
+        comp::InventoryManip::Pickup(pickup_uid) => {
+            let item_entity =
+                if let Some(item_entity) = state.ecs().entity_from_uid(pickup_uid.into()) {
+                    item_entity
+                } else {
+                    // Item entity could not be found - most likely because the entity
+                    // attempted to pick up the same item very quickly before its deletion of the
+                    // world from the first pickup attempt was processed.
+                    debug!("Failed to get entity for item Uid: {}", pickup_uid);
+                    return;
+                };
             let entity_cylinder = get_cylinder(state, entity);
 
             // FIXME: Raycast so we can't pick up items through walls.
             if !within_pickup_range(entity_cylinder, || get_cylinder(state, item_entity)) {
                 debug!(
                     ?entity_cylinder,
-                    "Failed to pick up item as not within range, Uid: {}", uid
+                    "Failed to pick up item as not within range, Uid: {}", pickup_uid
                 );
                 return;
             }
+
+            let loot_owner_storage = state.ecs().read_storage::<comp::LootOwner>();
+
+            // If there's a loot owner for the item being picked up, then
+            // determine whether the pickup should be rejected.
+            let ownership_check_passed = state
+                .ecs()
+                .read_storage::<comp::LootOwner>()
+                .get(item_entity)
+                .map_or(true, |loot_owner| {
+                    let alignments = state.ecs().read_storage::<Alignment>();
+                    let bodies = state.ecs().read_storage::<Body>();
+                    let players = state.ecs().read_storage::<Player>();
+                    let can_pickup = loot_owner.can_pickup(
+                        uid,
+                        alignments.get(entity),
+                        bodies.get(entity),
+                        players.get(entity),
+                    );
+                    if !can_pickup {
+                        let event =
+                            comp::InventoryUpdate::new(InventoryUpdateEvent::EntityCollectFailed {
+                                entity: pickup_uid,
+                                reason: CollectFailedReason::LootOwned {
+                                    owner_uid: loot_owner.uid(),
+                                    expiry_secs: loot_owner.time_until_expiration().as_secs(),
+                                },
+                            });
+                        state.ecs().write_storage().insert(entity, event).unwrap();
+                    }
+                    can_pickup
+                });
+
+            if !ownership_check_passed {
+                return;
+            }
+
+            drop(loot_owner_storage);
 
             // First, we remove the item, assuming picking it up will succeed (we do this to
             // avoid cloning the item, as we should not call Item::clone and it
@@ -140,7 +182,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                 // Item component could not be found - most likely because the entity
                 // attempted to pick up the same item very quickly before its deletion of the
                 // world from the first pickup attempt was processed.
-                debug!("Failed to delete item component for entity, Uid: {}", uid);
+                debug!(
+                    "Failed to delete item component for entity, Uid: {}",
+                    pickup_uid
+                );
                 return;
             };
 
@@ -165,7 +210,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                     );
                     drop(item_storage);
                     drop(inventories);
-                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::EntityCollectFailed(uid))
+                    comp::InventoryUpdate::new(comp::InventoryUpdateEvent::EntityCollectFailed {
+                        entity: pickup_uid,
+                        reason: comp::CollectFailedReason::InventoryFull,
+                    })
                 },
                 Ok(_) => {
                     // We succeeded in picking up the item, so we may now delete its old entity
@@ -219,7 +267,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
                             Err(_) => {
                                 drop_item = Some(item_msg);
                                 comp::InventoryUpdate::new(
-                                    comp::InventoryUpdateEvent::BlockCollectFailed(pos),
+                                    comp::InventoryUpdateEvent::BlockCollectFailed {
+                                        pos,
+                                        reason: comp::CollectFailedReason::InventoryFull,
+                                    },
                                 )
                             },
                         };
@@ -248,11 +299,10 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
             drop(inventories);
             if let Some(item) = drop_item {
                 state
-                    .create_item_drop(Default::default(), &item)
+                    .create_item_drop(Default::default(), item)
                     .with(comp::Pos(
                         Vec3::new(pos.x as f32, pos.y as f32, pos.z as f32) + Vec3::unit_z(),
                     ))
-                    .with(item)
                     .with(comp::Vel(Vec3::zero()))
                     .build();
             }
@@ -771,9 +821,8 @@ pub fn handle_inventory(server: &mut Server, entity: EcsEntity, manip: comp::Inv
         });
 
         state
-            .create_item_drop(Default::default(), &item)
+            .create_item_drop(Default::default(), item)
             .with(comp::Pos(pos.0 + *ori.look_dir() + Vec3::unit_z()))
-            .with(item)
             .with(comp::Vel(Vec3::zero()))
             .build();
     }

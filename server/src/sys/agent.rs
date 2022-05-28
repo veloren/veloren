@@ -1603,22 +1603,29 @@ impl<'a> AgentData<'a> {
         };
         let is_valid_target = |entity: EcsEntity| match read_data.bodies.get(entity) {
             Some(Body::ItemDrop(item)) => {
-                //If statement that checks either if the self (agent) is a humanoid,
-                //or if the self is not a humanoid, it checks whether or not you are 'hungry' -
-                // meaning less than full health - and additionally checks if
-                // the target entity is a consumable item. If it qualifies for
-                // either being a humanoid or a hungry non-humanoid that likes consumables,
-                // it will choose the item as its target.
-                if matches!(self.body, Some(Body::Humanoid(_)))
-                    || (self
-                        .health
-                        .map_or(false, |health| health.current() < health.maximum())
-                        && matches!(item, item_drop::Body::Consumable))
-                {
-                    Some((entity, false))
-                } else {
-                    None
-                }
+                // If there is no LootOwner then the ItemDrop is a valid target, otherwise check
+                // if the loot can be picked up
+                read_data
+                    .loot_owners
+                    .get(entity)
+                    .map_or(Some((entity, false)), |loot_owner| {
+                        // Agents want to pick up items if they are humanoid, or are hungry and the
+                        // item is consumable
+                        let hungry = self
+                            .health
+                            .map_or(false, |health| health.current() < health.maximum());
+                        let wants_pickup = matches!(self.body, Some(Body::Humanoid(_)))
+                            || (hungry && matches!(item, item_drop::Body::Consumable));
+
+                        let can_pickup =
+                            loot_owner.can_pickup(*self.uid, self.alignment, self.body, None);
+
+                        if wants_pickup && can_pickup {
+                            Some((entity, false))
+                        } else {
+                            None
+                        }
+                    })
             },
             _ => {
                 if read_data.healths.get(entity).map_or(false, |health| {

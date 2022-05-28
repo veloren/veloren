@@ -500,13 +500,12 @@ fn handle_drop_all(
 
         server
             .state
-            .create_item_drop(Default::default(), &item)
+            .create_item_drop(Default::default(), item)
             .with(comp::Pos(Vec3::new(
                 pos.0.x + rng.gen_range(5.0..10.0),
                 pos.0.y + rng.gen_range(5.0..10.0),
                 pos.0.z + 5.0,
             )))
-            .with(item)
             .with(comp::Vel(vel))
             .build();
     }

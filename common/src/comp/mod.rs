@@ -29,6 +29,7 @@ pub mod inventory;
 pub mod invite;
 #[cfg(not(target_arch = "wasm32"))] mod last;
 #[cfg(not(target_arch = "wasm32"))] mod location;
+pub mod loot_owner;
 #[cfg(not(target_arch = "wasm32"))] pub mod melee;
 #[cfg(not(target_arch = "wasm32"))] mod misc;
 #[cfg(not(target_arch = "wasm32"))] pub mod ori;
@@ -87,10 +88,11 @@ pub use self::{
             tool::{self, AbilityItem},
             Item, ItemConfig, ItemDrop,
         },
-        slot, Inventory, InventoryUpdate, InventoryUpdateEvent,
+        slot, CollectFailedReason, Inventory, InventoryUpdate, InventoryUpdateEvent,
     },
     last::Last,
     location::{MapMarker, MapMarkerChange, MapMarkerUpdate, Waypoint, WaypointArea},
+    loot_owner::LootOwner,
     melee::{Melee, MeleeConstructor},
     misc::Object,
     ori::Ori,

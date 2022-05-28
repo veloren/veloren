@@ -80,7 +80,7 @@ use common::{
         self,
         ability::AuxiliaryAbility,
         fluid_dynamics,
-        inventory::{slot::InvSlotId, trade_pricing::TradePricing},
+        inventory::{slot::InvSlotId, trade_pricing::TradePricing, CollectFailedReason},
         item::{tool::ToolKind, ItemDesc, MaterialStatManifest, Quality},
         pet::is_mountable,
         skillset::{skills::Skill, SkillGroupKind},
@@ -997,6 +997,58 @@ pub struct Floaters {
     pub block_floaters: Vec<BlockFloater>,
 }
 
+#[derive(Clone)]
+pub enum HudLootOwner {
+    Name(String),
+    Unknown,
+}
+
+#[derive(Clone)]
+pub enum HudCollectFailedReason {
+    InventoryFull,
+    LootOwned {
+        owner: HudLootOwner,
+        expiry_secs: u64,
+    },
+}
+
+impl HudCollectFailedReason {
+    pub fn from_server_reason(reason: &CollectFailedReason, ecs: &specs::World) -> Self {
+        match reason {
+            CollectFailedReason::InventoryFull => HudCollectFailedReason::InventoryFull,
+            CollectFailedReason::LootOwned {
+                owner_uid,
+                expiry_secs,
+            } => {
+                let maybe_owner_name =
+                    ecs.entity_from_uid((*owner_uid).into()).and_then(|entity| {
+                        ecs.read_storage::<comp::Stats>()
+                            .get(entity)
+                            .map(|stats| stats.name.clone())
+                    });
+                let owner = if let Some(name) = maybe_owner_name {
+                    HudLootOwner::Name(name)
+                } else {
+                    HudLootOwner::Unknown
+                };
+                HudCollectFailedReason::LootOwned {
+                    owner,
+                    expiry_secs: *expiry_secs,
+                }
+            },
+        }
+    }
+}
+#[derive(Clone)]
+pub struct CollectFailedData {
+    pulse: f32,
+    reason: HudCollectFailedReason,
+}
+
+impl CollectFailedData {
+    pub fn new(pulse: f32, reason: HudCollectFailedReason) -> Self { Self { pulse, reason } }
+}
+
 pub struct Hud {
     ui: Ui,
     ids: Ids,
@@ -1005,8 +1057,8 @@ pub struct Hud {
     item_imgs: ItemImgs,
     fonts: Fonts,
     rot_imgs: ImgsRot,
-    failed_block_pickups: HashMap<Vec3<i32>, f32>,
-    failed_entity_pickups: HashMap<EcsEntity, f32>,
+    failed_block_pickups: HashMap<Vec3<i32>, CollectFailedData>,
+    failed_entity_pickups: HashMap<EcsEntity, CollectFailedData>,
     new_loot_messages: VecDeque<LootMessage>,
     new_messages: VecDeque<comp::ChatMsg>,
     new_notifications: VecDeque<Notification>,
@@ -1772,9 +1824,9 @@ impl Hud {
                 };
 
             self.failed_block_pickups
-                .retain(|_, t| pulse - *t < overitem::PICKUP_FAILED_FADE_OUT_TIME);
+                .retain(|_, t| pulse - (*t).pulse < overitem::PICKUP_FAILED_FADE_OUT_TIME);
             self.failed_entity_pickups
-                .retain(|_, t| pulse - *t < overitem::PICKUP_FAILED_FADE_OUT_TIME);
+                .retain(|_, t| pulse - (*t).pulse < overitem::PICKUP_FAILED_FADE_OUT_TIME);
 
             // Render overitem: name, etc.
             for (entity, pos, item, distance) in (&entities, &pos, &items)
@@ -1793,7 +1845,7 @@ impl Hud {
                     distance,
                     overitem::OveritemProperties {
                         active: interactable.as_ref().and_then(|i| i.entity()) == Some(entity),
-                        pickup_failed_pulse: self.failed_entity_pickups.get(&entity).copied(),
+                        pickup_failed_pulse: self.failed_entity_pickups.get(&entity).cloned(),
                     },
                     &self.fonts,
                     vec![(GameInput::Interact, i18n.get("hud.pick_up").to_string())],
@@ -1810,7 +1862,7 @@ impl Hud {
 
                 let overitem_properties = overitem::OveritemProperties {
                     active: true,
-                    pickup_failed_pulse: self.failed_block_pickups.get(&pos).copied(),
+                    pickup_failed_pulse: self.failed_block_pickups.get(&pos).cloned(),
                 };
                 let pos = pos.map(|e| e as f32 + 0.5);
                 let over_pos = pos + Vec3::unit_z() * 0.7;
@@ -3938,12 +3990,14 @@ impl Hud {
         }
     }
 
-    pub fn add_failed_block_pickup(&mut self, pos: Vec3<i32>) {
-        self.failed_block_pickups.insert(pos, self.pulse);
+    pub fn add_failed_block_pickup(&mut self, pos: Vec3<i32>, reason: HudCollectFailedReason) {
+        self.failed_block_pickups
+            .insert(pos, CollectFailedData::new(self.pulse, reason));
     }
 
-    pub fn add_failed_entity_pickup(&mut self, entity: EcsEntity) {
-        self.failed_entity_pickups.insert(entity, self.pulse);
+    pub fn add_failed_entity_pickup(&mut self, entity: EcsEntity, reason: HudCollectFailedReason) {
+        self.failed_entity_pickups
+            .insert(entity, CollectFailedData::new(self.pulse, reason));
     }
 
     pub fn new_loot_message(&mut self, item: LootMessage) {

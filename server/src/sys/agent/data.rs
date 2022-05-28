@@ -2,7 +2,8 @@ use crate::rtsim::Entity as RtSimData;
 use common::{
     comp::{
         buff::Buffs, group, ActiveAbilities, Alignment, Body, CharacterState, Combo, Energy,
-        Health, Inventory, LightEmitter, Ori, PhysicsState, Pos, Scale, SkillSet, Stats, Vel,
+        Health, Inventory, LightEmitter, LootOwner, Ori, PhysicsState, Pos, Scale, SkillSet, Stats,
+        Vel,
     },
     link::Is,
     mounting::Mount,
@@ -152,6 +153,7 @@ pub struct ReadData<'a> {
     pub buffs: ReadStorage<'a, Buffs>,
     pub combos: ReadStorage<'a, Combo>,
     pub active_abilities: ReadStorage<'a, ActiveAbilities>,
+    pub loot_owners: ReadStorage<'a, LootOwner>,
 }
 
 pub enum Path {

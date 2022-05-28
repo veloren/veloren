@@ -3,6 +3,7 @@ use crate::{
     comp::{
         ability,
         agent::{Agent, AgentEvent, Sound, SoundKind},
+        loot_owner::LootOwner,
         skillset::SkillGroupKind,
         BuffKind, BuffSource, PhysicsState,
     },
@@ -34,7 +35,8 @@ use common_net::{msg::ServerGeneral, sync::WorldSyncExt};
 use common_state::BlockChange;
 use comp::chat::GenericChatMsg;
 use hashbrown::HashSet;
-use rand::Rng;
+use rand::{distributions::WeightedIndex, Rng};
+use rand_distr::Distribution;
 use specs::{
     join::Join, saveload::MarkerAllocator, Builder, Entity as EcsEntity, Entity, WorldExt,
 };
@@ -203,6 +205,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         }
     }
 
+    let mut exp_awards = Vec::<(Entity, f32)>::new();
     // Award EXP to damage contributors
     //
     // NOTE: Debug logging is disabled by default for this module - to enable it add
@@ -313,7 +316,7 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
         // Iterate through all contributors of damage for the killed entity, calculating
         // how much EXP each contributor should be awarded based on their
         // percentage of damage contribution
-        damage_contributors.iter().filter_map(|(damage_contributor, (_, damage_percent))| {
+        exp_awards = damage_contributors.iter().filter_map(|(damage_contributor, (_, damage_percent))| {
             let contributor_exp = exp_reward * damage_percent;
             match damage_contributor {
                 DamageContrib::Solo(attacker) => {
@@ -365,16 +368,23 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
                     None
                 }
             }
-        }).flatten().for_each(|(attacker, exp_reward)| {
+        }).flatten().collect::<Vec<(Entity, f32)>>();
+
+        exp_awards.iter().for_each(|(attacker, exp_reward)| {
             // Process the calculated EXP rewards
-            if let (Some(mut attacker_skill_set), Some(attacker_uid), Some(attacker_inventory), Some(pos)) = (
-                skill_sets.get_mut(attacker),
-                uids.get(attacker),
-                inventories.get(attacker),
-                positions.get(attacker),
+            if let (
+                Some(mut attacker_skill_set),
+                Some(attacker_uid),
+                Some(attacker_inventory),
+                Some(pos),
+            ) = (
+                skill_sets.get_mut(*attacker),
+                uids.get(*attacker),
+                inventories.get(*attacker),
+                positions.get(*attacker),
             ) {
                 handle_exp_gain(
-                    exp_reward,
+                    *exp_reward,
                     attacker_inventory,
                     &mut attacker_skill_set,
                     attacker_uid,
@@ -437,14 +447,53 @@ pub fn handle_destroy(server: &mut Server, entity: EcsEntity, last_change: Healt
             let pos = state.ecs().read_storage::<comp::Pos>().get(entity).cloned();
             let vel = state.ecs().read_storage::<comp::Vel>().get(entity).cloned();
             if let Some(pos) = pos {
-                // TODO: This should only be temporary as you'd eventually want to actually
-                // render the items on the ground, rather than changing the texture depending on
-                // the body type
-                let _ = state
-                    .create_item_drop(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), &item)
+                let winner_uid = if exp_awards.is_empty() {
+                    None
+                } else {
+                    // Use the awarded exp per entity as the weight distribution for drop chance
+                    // Creating the WeightedIndex can only fail if there are weights <= 0 or no
+                    // weights, which shouldn't ever happen
+                    let dist = WeightedIndex::new(exp_awards.iter().map(|x| x.1))
+                        .expect("Failed to create WeightedIndex for loot drop chance");
+                    let mut rng = rand::thread_rng();
+                    let winner = exp_awards
+                        .get(dist.sample(&mut rng))
+                        .expect("Loot distribution failed to find a winner")
+                        .0;
+
+                    state
+                        .ecs()
+                        .read_storage::<comp::Body>()
+                        .get(winner)
+                        .and_then(|body| {
+                            // Only humanoids are awarded loot ownership - if the winner was a
+                            // non-humanoid NPC the loot will be free-for-all
+                            if matches!(body, Body::Humanoid(_)) {
+                                Some(state.ecs().read_storage::<Uid>().get(winner).cloned())
+                            } else {
+                                None
+                            }
+                        })
+                        .flatten()
+                };
+
+                let item_drop_entity = state
+                    .create_item_drop(comp::Pos(pos.0 + Vec3::unit_z() * 0.25), item)
                     .maybe_with(vel)
-                    .with(item)
                     .build();
+
+                // If there was a loot winner, assign them as the owner of the loot. There will
+                // not be a loot winner when an entity dies to environment damage and such so
+                // the loot will be free-for-all.
+                if let Some(uid) = winner_uid {
+                    debug!("Assigned UID {:?} as the winner for the loot drop", uid);
+
+                    state
+                        .ecs()
+                        .write_storage::<comp::LootOwner>()
+                        .insert(item_drop_entity, LootOwner::new(uid))
+                        .unwrap();
+                }
             } else {
                 error!(
                     ?entity,

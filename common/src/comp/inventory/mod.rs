@@ -803,6 +803,12 @@ impl Component for Inventory {
     type Storage = DerefFlaggedStorage<Self, IdvStorage<Self>>;
 }
 
+#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+pub enum CollectFailedReason {
+    InventoryFull,
+    LootOwned { owner_uid: Uid, expiry_secs: u64 },
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum InventoryUpdateEvent {
     Init,
@@ -813,8 +819,14 @@ pub enum InventoryUpdateEvent {
     Swapped,
     Dropped,
     Collected(Item),
-    BlockCollectFailed(Vec3<i32>),
-    EntityCollectFailed(Uid),
+    BlockCollectFailed {
+        pos: Vec3<i32>,
+        reason: CollectFailedReason,
+    },
+    EntityCollectFailed {
+        entity: Uid,
+        reason: CollectFailedReason,
+    },
     Possession,
     Debug,
     Craft,

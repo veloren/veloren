@@ -55,7 +55,7 @@ pub trait StateExt {
     ) -> EcsEntityBuilder;
     /// Build a static object entity
     fn create_object(&mut self, pos: comp::Pos, object: comp::object::Body) -> EcsEntityBuilder;
-    fn create_item_drop(&mut self, pos: comp::Pos, item: &Item) -> EcsEntityBuilder;
+    fn create_item_drop(&mut self, pos: comp::Pos, item: Item) -> EcsEntityBuilder;
     fn create_ship<F: FnOnce(comp::ship::Body) -> comp::Collider>(
         &mut self,
         pos: comp::Pos,
@@ -271,11 +271,12 @@ impl StateExt for State {
             .with(body)
     }
 
-    fn create_item_drop(&mut self, pos: comp::Pos, item: &Item) -> EcsEntityBuilder {
-        let item_drop = comp::item_drop::Body::from(item);
+    fn create_item_drop(&mut self, pos: comp::Pos, item: Item) -> EcsEntityBuilder {
+        let item_drop = comp::item_drop::Body::from(&item);
         let body = comp::Body::ItemDrop(item_drop);
         self.ecs_mut()
             .create_entity_synced()
+            .with(item)
             .with(pos)
             .with(comp::Vel(Vec3::zero()))
             .with(item_drop.orientation(&mut thread_rng()))

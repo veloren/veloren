@@ -11,6 +11,7 @@ use conrod_core::{
 use i18n::Localization;
 use std::borrow::Cow;
 
+use crate::hud::{CollectFailedData, HudCollectFailedReason, HudLootOwner};
 use keyboard_keynames::key_layout::KeyLayout;
 
 pub const TEXT_COLOR: Color = Color::Rgba(0.61, 0.61, 0.89, 1.0);
@@ -79,7 +80,7 @@ impl<'a> Overitem<'a> {
 
 pub struct OveritemProperties {
     pub active: bool,
-    pub pickup_failed_pulse: Option<f32>,
+    pub pickup_failed_pulse: Option<CollectFailedData>,
 }
 
 pub struct State {
@@ -215,9 +216,10 @@ impl<'a> Widget for Overitem<'a> {
             .parent(id)
             .set(state.ids.btn_bg, ui);
         }
-        if let Some(time) = self.properties.pickup_failed_pulse {
+        if let Some(collect_failed_data) = self.properties.pickup_failed_pulse {
             //should never exceed 1.0, but just in case
-            let age = ((self.pulse - time) / PICKUP_FAILED_FADE_OUT_TIME).clamp(0.0, 1.0);
+            let age = ((self.pulse - collect_failed_data.pulse) / PICKUP_FAILED_FADE_OUT_TIME)
+                .clamp(0.0, 1.0);
 
             let alpha = 1.0 - age.powi(4);
             let brightness = 1.0 / (age / 0.07 - 1.0).abs().clamp(0.01, 1.0);
@@ -226,7 +228,25 @@ impl<'a> Widget for Overitem<'a> {
                 color::hsla(hue, sat / brightness, lum * brightness.sqrt(), alp * alpha)
             };
 
-            Text::new(self.localized_strings.get("hud.inventory_full"))
+            let text = match collect_failed_data.reason {
+                HudCollectFailedReason::InventoryFull => {
+                    self.localized_strings.get("hud.inventory_full").to_string()
+                },
+                HudCollectFailedReason::LootOwned { owner, expiry_secs } => {
+                    let owner_name = match owner {
+                        HudLootOwner::Name(name) => name,
+                        HudLootOwner::Unknown => {
+                            self.localized_strings.get("hud.someone_else").to_string()
+                        },
+                    };
+                    self.localized_strings
+                        .get("hud.owned_by_for_secs")
+                        .replace("{name}", &owner_name)
+                        .replace("{secs}", format!("{}", expiry_secs).as_str())
+                },
+            };
+
+            Text::new(&text)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(inv_full_font_size as u32)
                 .color(shade_color(Color::Rgba(0.0, 0.0, 0.0, 1.0)))
@@ -235,7 +255,7 @@ impl<'a> Widget for Overitem<'a> {
                 .depth(self.distance_from_player_sqr + 6.0)
                 .set(state.ids.inv_full_bg, ui);
 
-            Text::new(self.localized_strings.get("hud.inventory_full"))
+            Text::new(&text)
                 .font_id(self.fonts.cyri.conrod_id)
                 .font_size(inv_full_font_size as u32)
                 .color(shade_color(Color::Rgba(1.0, 0.0, 0.0, 1.0)))

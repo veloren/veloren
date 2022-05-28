@@ -2133,8 +2133,8 @@ impl Client {
             },
             ServerGeneral::InventoryUpdate(inventory, event) => {
                 match event {
-                    InventoryUpdateEvent::BlockCollectFailed(_) => {},
-                    InventoryUpdateEvent::EntityCollectFailed(_) => {},
+                    InventoryUpdateEvent::BlockCollectFailed { .. } => {},
+                    InventoryUpdateEvent::EntityCollectFailed { .. } => {},
                     _ => {
                         // Push the updated inventory component to the client
                         // FIXME: Figure out whether this error can happen under normal gameplay,
