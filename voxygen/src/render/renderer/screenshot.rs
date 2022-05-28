@@ -175,9 +175,10 @@ impl TakeScreenshot {
         let image = match self.tex_format {
             wgpu::TextureFormat::Bgra8UnormSrgb => {
                 let (pixels, rest) = pixel_bytes.as_chunks_mut();
-                // Always valid because each pixel should use four bytes.
-                assert!(rest.is_empty());
-
+                assert!(
+                    rest.is_empty(),
+                    "Always valid because each pixel uses four bytes"
+                );
                 // Swap blue and red components to get a RGBA texture.
                 for [b, _g, r, _a] in pixels {
                     std::mem::swap(b, r);
