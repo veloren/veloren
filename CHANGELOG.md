@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Thai translation
 - Skiing and ice skating
 - Added loot ownership for NPC drops
+- Bamboo collectibles now spawn near rivers
 
 ### Changed
 
