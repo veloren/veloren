@@ -162,6 +162,7 @@ impl WeatherLerp {
         self.old = mem::replace(&mut self.new, (weather, Instant::now()));
     }
 
+    // TODO: Make impårovements to this interpolation, it's main issue is assuming that updates come at regular intervals. 
     fn update(&mut self, to_update: &mut WeatherGrid) {
         prof_span!("WeatherLerp::update");
         let old = &self.old.0;
@@ -173,7 +174,7 @@ impl WeatherLerp {
             *to_update = new.clone();
         }
         if old.size() == new.size() {
-            // Assume updates are regular
+            // Assumes updates are regular
             let t = (self.new.1.elapsed().as_secs_f32()
                 / self.new.1.duration_since(self.old.1).as_secs_f32())
             .clamp(0.0, 1.0);
@@ -182,7 +183,7 @@ impl WeatherLerp {
                 .iter_mut()
                 .zip(old.iter().zip(new.iter()))
                 .for_each(|((_, current), ((_, old), (_, new)))| {
-                    *current = Weather::lerp(old, new, t);
+                    *current = Weather::lerp_unclamped(old, new, t);
                 });
         }
     }
@@ -191,8 +192,8 @@ impl WeatherLerp {
 impl Default for WeatherLerp {
     fn default() -> Self {
         Self {
-            old: (WeatherGrid::new(Vec2::broadcast(0)), Instant::now()),
-            new: (WeatherGrid::new(Vec2::broadcast(0)), Instant::now()),
+            old: (WeatherGrid::new(Vec2::zero()), Instant::now()),
+            new: (WeatherGrid::new(Vec2::zero()), Instant::now()),
         }
     }
 }
@@ -1461,6 +1462,7 @@ impl Client {
             .map(|v| v.0)
     }
 
+    /// Returns Weather::default if no player position exists.
     pub fn weather_at_player(&self) -> Weather {
         self.position()
             .map(|wpos| self.state.weather_at(wpos.xy()))

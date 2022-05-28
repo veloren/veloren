@@ -113,11 +113,10 @@ layout(set = 0, binding = 12) uniform texture2D t_weather;
 layout(set = 0, binding = 13) uniform sampler s_weather;
 
 vec4 sample_weather(vec2 wpos) {
-    return textureLod(sampler2D(t_weather, s_weather), pos_to_uv(t_alt, s_alt, wpos - focus_off.xy), 0); // TODO: make this work for any world size
+    return textureLod(sampler2D(t_weather, s_weather), pos_to_uv(t_alt, s_alt, wpos - focus_off.xy), 0);
 }
 
 float cloud_tendency_at(vec2 pos) {
-    //float nz = textureLod(sampler2D(t_noise, s_noise), (pos + wind_offset) / 60000.0 / cloud_scale, 0).x - 0.3;
     return sample_weather(pos).r;
 }
 

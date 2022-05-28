@@ -58,7 +58,7 @@ vec3 warp_normal(vec3 norm, vec3 pos, float time) {
         + smooth_rand(pos * 0.25, time * 0.25) * 0.1);
 }
 
-float wave_height(vec3 pos, vec3 surf_norm) {
+float wave_height(vec3 pos) {
     float timer = tick.x * 0.75;
 
     pos *= 0.5;
@@ -134,9 +134,9 @@ void main() {
 
     vec3 wave_pos = mod(f_pos + focus_off.xyz, vec3(100.0));
     float wave_sample_dist = 0.025;
-    float wave00 = wave_height(wave_pos, surf_norm);
-    float wave10 = wave_height(wave_pos + vec3(wave_sample_dist, 0, 0), surf_norm);
-    float wave01 = wave_height(wave_pos + vec3(0, wave_sample_dist, 0), surf_norm);
+    float wave00 = wave_height(wave_pos);
+    float wave10 = wave_height(wave_pos + vec3(wave_sample_dist, 0, 0));
+    float wave01 = wave_height(wave_pos + vec3(0, wave_sample_dist, 0));
 
     // Possibility of div by zero when slope = 0,
     // however this only results in no water surface appearing

@@ -20,24 +20,23 @@ impl Weather {
     pub fn new(cloud: f32, rain: f32, wind: Vec2<f32>) -> Self { Self { cloud, rain, wind } }
 
     pub fn get_kind(&self) -> WeatherKind {
-        match (
-            (self.cloud * 10.0) as i32,
-            (self.rain * 10.0) as i32,
-            (self.wind.magnitude() * 10.0) as i32,
-        ) {
-            // Over 24.5 m/s wind is a storm
-            (_, _, 245..) => WeatherKind::Storm,
-            (_, 1..=10, _) => WeatherKind::Rain,
-            (4..=10, _, _) => WeatherKind::Cloudy,
-            _ => WeatherKind::Clear,
+        // Over 24.5 m/s wind is a storm
+        if self.wind.magnitude_squared() >= 24.5f32.powi(2) {
+            WeatherKind::Storm
+        } else if (0.1..=1.0).contains(&self.rain) {
+            WeatherKind::Rain
+        } else if (0.2..=1.0).contains(&self.cloud) {
+            WeatherKind::Cloudy
+        } else {
+            WeatherKind::Clear
         }
     }
 
-    pub fn lerp(from: &Self, to: &Self, t: f32) -> Self {
+    pub fn lerp_unclamped(from: &Self, to: &Self, t: f32) -> Self {
         Self {
-            cloud: f32::lerp(from.cloud, to.cloud, t),
-            rain: f32::lerp(from.rain, to.rain, t),
-            wind: Vec2::<f32>::lerp(from.wind, to.wind, t),
+            cloud: f32::lerp_unclamped(from.cloud, to.cloud, t),
+            rain: f32::lerp_unclamped(from.rain, to.rain, t),
+            wind: Vec2::<f32>::lerp_unclamped(from.wind, to.wind, t),
         }
     }
 
@@ -68,18 +67,18 @@ impl fmt::Display for WeatherKind {
     }
 }
 
+// How many chunks wide a weather cell is.
+// So one weather cell has (CHUNKS_PER_CELL * CHUNKS_PER_CELL) chunks.
 pub const CHUNKS_PER_CELL: u32 = 16;
 
 pub const CELL_SIZE: u32 = CHUNKS_PER_CELL * TerrainChunkSize::RECT_SIZE.x;
-
-/// How often the weather is updated, in seconds
-pub const WEATHER_DT: f32 = 5.0;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WeatherGrid {
     weather: Grid<Weather>,
 }
 
+/// Returns the center of the weather cell at the given position
 fn to_cell_pos(wpos: Vec2<f32>) -> Vec2<f32> { wpos / CELL_SIZE as f32 - 0.5 }
 
 // TODO: Move consts from world to common to avoid duplication
@@ -97,6 +96,7 @@ const LOCALITY: [Vec2<i32>; 9] = [
 
 impl WeatherGrid {
     pub fn new(size: Vec2<u32>) -> Self {
+        size.map(|e| debug_assert!(i32::try_from(e).is_ok()));
         Self {
             weather: Grid::new(size.as_(), Weather::default()),
         }
@@ -114,24 +114,24 @@ impl WeatherGrid {
     /// interpolation between four cells.
     pub fn get_interpolated(&self, wpos: Vec2<f32>) -> Weather {
         let cell_pos = to_cell_pos(wpos);
-        let rpos = cell_pos.map(|e| e.fract());
+        let rpos = cell_pos.map(|e| e.fract() + (1.0 - e.signum()) / 2.0);
         let cell_pos = cell_pos.map(|e| e.floor());
 
-        let wpos = cell_pos.as_::<i32>();
-        Weather::lerp(
-            &Weather::lerp(
-                self.weather.get(wpos).unwrap_or(&Weather::default()),
+        let cpos = cell_pos.as_::<i32>();
+        Weather::lerp_unclamped(
+            &Weather::lerp_unclamped(
+                self.weather.get(cpos).unwrap_or(&Weather::default()),
                 self.weather
-                    .get(wpos + Vec2::unit_x())
+                    .get(cpos + Vec2::unit_x())
                     .unwrap_or(&Weather::default()),
                 rpos.x,
             ),
-            &Weather::lerp(
+            &Weather::lerp_unclamped(
                 self.weather
-                    .get(wpos + Vec2::unit_x())
+                    .get(cpos + Vec2::unit_y())
                     .unwrap_or(&Weather::default()),
                 self.weather
-                    .get(wpos + Vec2::one())
+                    .get(cpos + Vec2::one())
                     .unwrap_or(&Weather::default()),
                 rpos.x,
             ),
