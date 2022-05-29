@@ -39,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stealth effects from sneaking and armor are evaluated independently. Armor now has effects even when not sneaking
 - Zoom-in effect when aiming bow is now optional
 - Non-Humanoid NPCs now pick up consumables when less than full health and use them to heal up.
+- Changed module component modifier costs to the following scheme, based on base material: 1 -> 5 -> 10 -> 15 -> 20 -> 30
 
 ### Removed
 
