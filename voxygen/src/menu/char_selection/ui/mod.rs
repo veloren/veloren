@@ -202,7 +202,7 @@ impl Mode {
             .active_offhand(offhand.map(Item::new_from_asset_expect))
             .build();
 
-        let inventory = Box::new(Inventory::new_with_loadout(loadout));
+        let inventory = Box::new(Inventory::with_loadout_humanoid(loadout));
 
         Self::CreateOrEdit {
             name,
