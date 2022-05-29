@@ -5,6 +5,7 @@ use crate::{
         pipelines::particle::ParticleMode, Instances, Light, Model, ParticleDrawer,
         ParticleInstance, ParticleVertex, Renderer,
     },
+    scene::terrain::FireplaceType,
 };
 use common::{
     assets::{AssetExt, DotVoxAsset},
@@ -1249,7 +1250,7 @@ impl ParticleMgr {
         }
         // smoke is more complex as it comes with varying rate and color
         {
-            struct FirePlaceProperties {
+            struct SmokeProperties {
                 position: Vec3<i32>,
                 strength: f32,
                 dry_chance: f32,
@@ -1268,28 +1269,39 @@ impl ParticleMgr {
 
                 terrain.get(chunk_pos).map(|chunk_data| {
                     let blocks = &chunk_data.blocks_of_interest.smokers;
-                    let mut smoke_properties: Vec<FirePlaceProperties> = Vec::new();
+                    let mut smoke_properties: Vec<SmokeProperties> = Vec::new();
                     let block_pos =
                         Vec3::from(chunk_pos * TerrainChunk::RECT_SIZE.map(|e| e as i32));
                     let mut sum = 0.0_f32;
                     for smoker in blocks.iter() {
                         let position = block_pos + smoker.position;
-                        let prop = crate::scene::smoke_cycle::smoke_at_time(
+                        let (strength, dry_chance) = {
+                            match smoker.kind {
+                                FireplaceType::House => {
+                                    let prop = crate::scene::smoke_cycle::smoke_at_time(
+                                        position,
+                                        chunk_data.blocks_of_interest.temperature,
+                                        time_of_day,
+                                    );
+                                    (
+                                        prop.0,
+                                        if prop.1 {
+                                            // fire started, dark smoke
+                                            0.8 - chunk_data.blocks_of_interest.humidity
+                                        } else {
+                                            // fire continues, light smoke
+                                            1.2 - chunk_data.blocks_of_interest.humidity
+                                        },
+                                    )
+                                },
+                                FireplaceType::Workshop => (128.0, 1.0),
+                            }
+                        };
+                        sum += strength;
+                        smoke_properties.push(SmokeProperties {
                             position,
-                            smoker.temperature,
-                            time_of_day,
-                        );
-                        sum += prop.0;
-                        smoke_properties.push(FirePlaceProperties {
-                            position,
-                            strength: prop.0,
-                            dry_chance: if prop.1 {
-                                // fire started, dark smoke
-                                0.8 - smoker.humidity
-                            } else {
-                                // fire continues, light smoke
-                                1.2 - smoker.humidity
-                            },
+                            strength,
+                            dry_chance,
                         });
                     }
                     let avg_particles = dt * sum as f32 * rate;
