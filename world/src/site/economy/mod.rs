@@ -10,7 +10,7 @@ use common::{
 };
 use lazy_static::lazy_static;
 use std::{cmp::Ordering::Less, convert::TryFrom};
-use tracing::{debug, info};
+use tracing::{debug, info, trace, warn};
 
 use Good::*;
 mod map_types;
@@ -383,14 +383,14 @@ impl Economy {
             .collect();
         if site_id.id() == 1 {
             // cut down number of lines printed
-            debug!(
+            trace!(
                 "Site {} #neighbors {} Transport capacity {}",
                 site_id.id(),
                 self.neighbors.len(),
                 transportation_capacity,
             );
-            debug!("missing {:#?} extra {:#?}", missing_goods, extra_goods,);
-            debug!("buy {:#?} pay {:#?}", good_price, good_payment);
+            trace!("missing {:#?} extra {:#?}", missing_goods, extra_goods,);
+            trace!("buy {:#?} pay {:#?}", good_price, good_payment);
         }
         // === the actual planning is here ===
         for (g, (_, a)) in missing_goods.iter() {
@@ -409,14 +409,16 @@ impl Economy {
                         potential_balance += missing_trade * *price;
                         buy_target = transportable_amount; // (buy_target - missing_trade).max(0.0); // avoid negative buy target caused by numeric inaccuracies
                         missing_collect += collect - collect_capacity;
-                        debug!(
+                        trace!(
                             "missing capacity {:?}/{:?} {:?}",
-                            missing_trade, amount, potential_balance,
+                            missing_trade,
+                            amount,
+                            potential_balance,
                         );
                         amount = (amount - missing_trade).max(0.0); // you won't be able to transport it from elsewhere either, so don't count multiple times
                     }
                     let mut balance: f32 = *price * buy_target;
-                    debug!(
+                    trace!(
                         "buy {:?} at {:?} amount {:?} balance {:?}",
                         *g,
                         s.id(),
@@ -441,15 +443,17 @@ impl Economy {
                                     if acute_missing_dispatch == 0.0 {
                                         acute_missing_dispatch = missing_trade * effort2;
                                     }
-                                    debug!(
+                                    trace!(
                                         "can't carry payment {:?} {:?} {:?}",
-                                        g2, dispatch, dispatch_capacity
+                                        g2,
+                                        dispatch,
+                                        dispatch_capacity
                                     );
                                     dispatch = dispatch_capacity;
                                 }
 
                                 extra_goods[*g2] -= amount2;
-                                debug!("pay {:?} {:?} = {:?}", g2, amount2, balance);
+                                trace!("pay {:?} {:?} = {:?}", g2, amount2, balance);
                                 balance -= amount2 * price2;
                                 neighbor_orders[*g2] -= amount2;
                                 dispatch_capacity = (dispatch_capacity - dispatch).max(0.0);
@@ -465,9 +469,12 @@ impl Economy {
                         collect_capacity = (collect_capacity - buy_target * effort).max(0.0);
                         neighbor_orders[*g] += buy_target;
                         amount -= buy_target;
-                        debug!(
+                        trace!(
                             "deal amount {:?} end_balance {:?} price {:?} left {:?}",
-                            buy_target, balance, *price, amount
+                            buy_target,
+                            balance,
+                            *price,
+                            amount
                         );
                     }
                 }
@@ -492,7 +499,7 @@ impl Economy {
                     if o.len() < 100 {
                         o.push(to);
                     } else {
-                        debug!("overflow {:?}", o);
+                        warn!("overflow {:?}", o);
                     }
                 } else {
                     self.orders.insert(n.id, vec![to]);
@@ -501,7 +508,7 @@ impl Economy {
         }
         // return missing transport capacity
         //missing_collect.max(missing_dispatch)
-        debug!(
+        trace!(
             "Tranportation {:?} {:?} {:?} {:?} {:?}",
             transportation_capacity,
             collect_capacity,
@@ -513,7 +520,7 @@ impl Economy {
             - collect_capacity.min(dispatch_capacity)
             + missing_collect.max(missing_dispatch));
         if site_id.id() == 1 {
-            debug!("Trade {:?}", result);
+            trace!("Trade {:?}", result);
         }
         result
     }
@@ -557,7 +564,7 @@ impl Economy {
                 .map(|(g, a, s)| (g, Some(total_orders[g] / (a - s)))),
             None,
         );
-        debug!("trade {} {:?}", site_id.id(), order_stock_ratio);
+        trace!("trade {} {:?}", site_id.id(), order_stock_ratio);
         let prices = GoodMap::from_iter(
             self.values
                 .iter()
@@ -581,7 +588,7 @@ impl Economy {
                 .map(|(g, a)| (g, *a, prices[g]))
                 .collect();
             sorted_buy.sort_by(|a, b| (b.2.partial_cmp(&a.2).unwrap_or(Less)));
-            debug!(
+            trace!(
                 "with {} {:?} buy {:?}",
                 o.customer.id(),
                 sorted_sell,
@@ -598,7 +605,7 @@ impl Economy {
                         self.stocks[*g2] += amount2;
                         balance = (balance - amount2 * *price2).max(0.0);
                         *avail += amount2; // reduce (negative) brought stock
-                        debug!("paid with {:?} {} {}", *g2, amount2, *price2);
+                        trace!("paid with {:?} {} {}", *g2, amount2, *price2);
                         if balance == 0.0 {
                             break;
                         }
@@ -606,7 +613,7 @@ impl Economy {
                     let mut paid_amount =
                         (allocated_amount - balance / *price).min(self.stocks[*g]);
                     if paid_amount / allocated_amount < 0.95 {
-                        debug!(
+                        trace!(
                             "Client {} is broke on {:?} : {} {} severity {}",
                             o.customer.id(),
                             *g,
@@ -615,7 +622,7 @@ impl Economy {
                             order_stock_ratio,
                         );
                     } else {
-                        debug!("bought {:?} {} {}", *g, paid_amount, *price);
+                        trace!("bought {:?} {} {}", *g, paid_amount, *price);
                     }
                     if self.stocks[*g] - paid_amount < 0.0 {
                         info!(
@@ -635,7 +642,7 @@ impl Economy {
             }
             for (g, amount, _) in sorted_buy.drain(..) {
                 if amount < 0.0 {
-                    debug!("shipping back unsold {} of {:?}", amount, g);
+                    trace!("shipping back unsold {} of {:?}", amount, g);
                     good_delivery[g] += -amount;
                 }
             }
@@ -652,7 +659,7 @@ impl Economy {
                 ),
                 amount: good_delivery,
             };
-            debug!(?delivery);
+            trace!(?delivery);
             if let Some(deliveries) = deliveries.get_mut(&o.customer) {
                 deliveries.push(delivery);
             } else {
@@ -695,7 +702,7 @@ impl Economy {
                 for (g, a) in d.amount.iter() {
                     if *a < 0.0 {
                         // likely rounding error, ignore
-                        debug!("Unexpected delivery for {:?} {}", g, *a);
+                        trace!("Unexpected delivery for {:?} {}", g, *a);
                     } else {
                         self.stocks[g] += *a;
                     }
@@ -896,7 +903,7 @@ impl Economy {
             }),
             0.0,
         );
-        debug!(?labor_ratios);
+        trace!(?labor_ratios);
 
         let labor_ratio_sum = labor_ratios.iter().map(|(_, r)| *r).sum::<f32>().max(0.01);
         let mut labor_context = vc.context("labor");
@@ -1002,7 +1009,7 @@ impl Economy {
                                     })
                                     .sum();
                                 let scale = reduced_amount / planned_amount.abs();
-                                debug!("re-plan {} {} {}", reduced_amount, planned_amount, scale);
+                                trace!("re-plan {} {} {}", reduced_amount, planned_amount, scale);
                                 for k in self.orders.iter_mut() {
                                     for l in k.1.iter_mut().filter(|o| o.customer == site_id) {
                                         l.amount[g] *= scale;
@@ -1021,7 +1028,7 @@ impl Economy {
                         produced_goods[g] += *a;
                     }
                 }
-                debug!(
+                trace!(
                     "merchant {} {}: {:?} {} {:?}",
                     site_id.id(),
                     self.pop,

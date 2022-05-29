@@ -56,6 +56,7 @@ where
         "veloren_common::trade=info",
         "veloren_world::sim=info",
         "veloren_world::civ=info",
+        "veloren_world::site::economy=info",
         "veloren_server::events::entity_manipulation=info",
         "hyper=info",
         "prometheus_hyper=info",
