@@ -295,3 +295,74 @@ fn cant_run_during_fall() -> Result<(), Box<dyn Error>> {
 
     Ok(())
 }
+
+// The problem with old_vec is that we cant start with 0.0 0.0 0.0 as it will make the first tick different on all examples
+
+#[test]
+fn physics_theory() -> Result<(), Box<dyn Error>> {
+    let fric_ground = 0.1;
+    let fric_air = 0.9_f64;
+    let tick = |i: usize, move_dir: f64, vel: f64, pos: f64, dt: f64| {
+        //let diff_vec = last_acc * dt;
+        let acc = fric_air * move_dir;
+        // controller
+        let vel = vel + acc * dt;
+
+        //physics
+        let distance = vel * dt - 0.5 * acc * dt * dt;
+        let pos = pos + distance;
+
+
+        let fric = (1.0_f64 - fric_ground).powf(dt);
+        //println!("fric: {:4.4}", fric);
+        //let vel = vel * fric;
+        //let vel = (vel.powi(2) - dt* fric_ground*distance).sqrt();
+        if ((i+1) as f64 *dt * 10.0).round() as i64 % 2 == 0 {
+            println!("[{:0>2.1}]:    move_dir: {:4.1},    acc: {:4.4},    vel: {:4.4},    pos: {:4.4}", (i+1) as f64 *dt, move_dir, acc, vel, pos);
+        }
+        (acc, vel, pos)
+    };
+
+    let (vel_final_01, pos_final_01) = {
+        println!("");
+        const DT: f64 = 0.1;
+        println!("dt: {}", DT);
+        let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
+        for i in 0..30 {
+            (_, vel, pos) = tick(i, 1.0, vel, pos, DT);
+        }
+        (vel, pos)
+    };
+
+    let (vel_final_02, pos_final_02) = {
+        println!("");
+        const DT: f64 = 0.2;
+        println!("dt: {}", DT);
+        let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
+        for i in 0..15 {
+            (_, vel, pos) = tick(i, 1.0, vel, pos, DT);
+        }
+        (vel, pos)
+    };
+
+    let (vel_final_10, pos_final_10) = {
+        println!("");
+        const DT: f64 = 1.0;
+        println!("dt: {}", DT);
+        let (_acc, mut vel, mut pos) = (0.0, 0.0, 0.0);
+        for i in 0..3 {
+            (_, vel, pos) = tick(i, 1.0, vel, pos, DT);
+        }
+        (vel, pos)
+    };
+
+    let vel_diff = (vel_final_02 - vel_final_01).abs();
+    let pos_diff = (pos_final_02 - pos_final_01).abs();
+    println!("[ #1 ] vel_diff: {:4.4},   pos_diff: {:4.4}", vel_diff, pos_diff);
+
+    let vel_diff = (vel_final_10 - vel_final_01).abs();
+    let pos_diff = (pos_final_10 - pos_final_01).abs();
+    println!("[ #2 ] vel_diff: {:4.4},   pos_diff: {:4.4}", vel_diff, pos_diff);
+
+    Ok(())
+}
